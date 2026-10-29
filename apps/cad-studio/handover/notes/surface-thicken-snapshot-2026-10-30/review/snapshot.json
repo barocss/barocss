@@ -1,0 +1,53 @@
+{
+  "review": "D338 source-only independent HIGH review",
+  "head": "8c0710d7ab0cce6e09d4fb9c8c7379dba1f3d717",
+  "capturedUTC": "2026-10-29T17:05:29.152427+00:00",
+  "scope": "listed files only; concurrent worker source may change; no runtime/build/browser/tests by reviewer",
+  "files": {
+    "packages/barocss-cad/src/api/surface-snapshot.ts": "261671d628e24a3888113e98aa4bee57243e763d2694c98215a5cdc720d97c7d",
+    "packages/barocss-cad/src/api/spec.ts": "e07aa01820a37bd3a72eb1ae5c933944af865af0a8d3f989eed06dd381633866",
+    "packages/barocss-cad/src/api/part.ts": "4da44857bdcbbee9e75727af6827dc8182bd5e9dceefa29d9f936199c5e30c42",
+    "packages/barocss-cad/src/api/kernel.ts": "999f274fdc304e3638060c95ca70342bdf78d2f23bfdaadd3e2bb0846952ec45",
+    "packages/barocss-cad/src/api/index.ts": "06f77944b67c8bfe4cdd5657a83e68cf19f51efb6742b4e54b2749e7f623ed78",
+    "packages/barocss-cad-model/src/engine/thicken.ts": "dc2b206c3772a65802c314cf9474b2a598e1b8069d787cdab285c48128f33152",
+    "packages/barocss-cad-model/src/app/thickenCommand.ts": "71f863f59c6282ec8c696b645ed886271cea08f6da1b204939567f8ccb4ddf42",
+    "packages/barocss-cad-model/src/app/commands.ts": "70b5dcdd1646f58fec9b41af068f96d36d7a2daff2ae8b3464628412a5e1914f",
+    "packages/barocss-cad-model/src/app/editFields.ts": "61f40544be9d7b6caf85b765f0ceec0246e46de3ea3d67c9e874263db6783eea",
+    "packages/barocss-cad-model/src/api/studio.ts": "6a13e1e83fcc29f31f27cf5025b51a5404aa0c6252fea0dc1279bda9daff4d1e",
+    "packages/barocss-cad-model/src/api/index.ts": "7cd3dde6150e89f6e6b8abf888fc82b6c8f63a2036fb6470b162f28a4ff1dc00",
+    "packages/barocss-cad-model/src/chat/features.ts": "2384c9ecb45c9a60bad4841e005607f75655801b7028df43d0778cc2ad002482",
+    "packages/barocss-cad-model/src/chat/part/features.ts": "ce05c5aa9acb045715fef7146a2924209d0d325962aa5fedeb26dac936f6bb62",
+    "packages/barocss-cad-model/src/api/select.ts": "56e3bc1c580a1489957cdffa9fca0430abcb63bc9694d8fb22374119de907d0e",
+    "packages/barocss-cad-model/src/engine/mesh.ts": "609db55ae64bb7c02aef9386c391d8622d6ec1d79858d96bbda7b2aeda6f2543",
+    "packages/barocss-cad-model/src/engine/part.ts": "5438fca9b26a696cc71fb27e5c8c350b75c950413c52d4d8674138603bbc7dfa",
+    "packages/barocss-cad-model/src/engine/evaluate.ts": "e19916805fca12e41bca23acba3bcf6878efcc636d600e372a3c2320c37b1c59",
+    "packages/barocss-cad-model/src/engine/directModule.ts": "ea6908da3945fd96076afefdfc786e837e835e5b49a1c65e88656dce565177c0",
+    "apps/cad-studio/src/App.tsx": "6df915083ec4c70c02590c9652ffff0bd27feaf9f009380e61ba357be30d2632",
+    "apps/cad-studio/src/ui/DirectInspector.tsx": "8f93c956f85de18e29522dcc2cdadf10bfc517882a6387eea51b281ae7ce94d2",
+    "apps/cad-studio/src/ui/DirectPanel.tsx": "705eb1397edfa07e294ba6d91d4da275dbca66ea8f6e848f3d69a5e4b0707adc",
+    "apps/cad-studio/src/state/useCommandPreview.ts": "0c481d82435203744e48f068eb0838828d7866c8de6bb53aa511e32230a154c9",
+    "apps/cad-studio/src/app/directCurveCandidate.ts": "d49b15379bfd9818b5ccaa12f2257f019534046aeb15a777506d2811d87c5b9c",
+    "packages/barocss-cad/src/core/math.ts": "90613a0504b96bd31a0869af1193299b088df99e4ada0f135eaf78c5bff992bf",
+    "packages/barocss-cad/src/brep/thicken-solid.ts": "f93dee710e3803f33f3efc5b68a9ea015862c7a5b79593bb7470201e63619a62",
+    "packages/barocss-cad/src/blend/offset-cavity.ts": "e4e5b10c7535c381e9f71e755e407525c5f5aa6c75df90901d068015a5d31b47",
+    "packages/barocss-cad/src/mesh/mesh-brep.ts": "c96139929e63a2be4d8395598e5d3e0d332300a4662076d943544daa03a18cc6",
+    "packages/barocss-cad/src/part/part-shell.ts": "fba497c88939c988210fef888ef31aff82bd56e0b17903c347c818a54d5cb172",
+    "packages/barocss-cad/test/api-thicken.test.mjs": "5618c5e86b90c15f3aa1eaa11ca000c81c10799f3c2ce88bfe23aa63374212f2",
+    "packages/barocss-cad/test/api-thicken-types.mts": "f6014f36c6aa429fb36d8baa6a4766545a30ab904196038a32cd7c1581af4110",
+    "packages/barocss-cad-model/test/api-thicken.test.ts": "b70ffbbdb971f4631201806b769c7a577185adc464c2db36b4bfc96931c41570",
+    "apps/cad-studio/test/thicken-snapshot-browser.mjs": "89756d17a7926dc81c833c14cbdaa488beaea681f076614e2d15c364147a6639"
+  },
+  "unchangedGeometryAgainstHEAD": {
+    "packages/barocss-cad/src/core/math.ts": true,
+    "packages/barocss-cad/src/brep/thicken-solid.ts": true,
+    "packages/barocss-cad/src/blend/offset-cavity.ts": true,
+    "packages/barocss-cad/src/mesh/mesh-brep.ts": true,
+    "packages/barocss-cad/src/part/part-shell.ts": true
+  },
+  "finalCheck": {
+    "utc": "2026-10-29T17:11:30.864066+00:00",
+    "workerProductionFrozen": true,
+    "changedSinceReview": [],
+    "runtimeByReviewer": "NOT_RUN"
+  }
+}

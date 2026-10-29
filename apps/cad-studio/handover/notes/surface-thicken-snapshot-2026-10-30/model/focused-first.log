@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: raw facade creates on an empty part, with all sides and independent planar mass and bounds
+not ok 1 - raw facade creates on an empty part, with all sides and independent planar mass and bounds
+  ---
+  duration_ms: 246.411834
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-E6nVrK/api-thicken.test.mjs:104618:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    6 !== 73
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 73
+  actual: 6
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-E6nVrK/api-thicken.test.mjs:104638:12)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: only thickness binds; edits preserve names, snapshots and immutable input on refusal
+ok 2 - only thickness binds; edits preserve names, snapshots and immutable input on refusal
+  ---
+  duration_ms: 561.759834
+  type: 'test'
+  ...
+# Subtest: creation preserves a separate stock body and its focus
+ok 3 - creation preserves a separate stock body and its focus
+  ---
+  duration_ms: 186.8055
+  type: 'test'
+  ...
+# Subtest: raw context discovery and chat admission use the strict public snapshot validator
+ok 4 - raw context discovery and chat admission use the strict public snapshot validator
+  ---
+  duration_ms: 1.121416
+  type: 'test'
+  ...
+# Subtest: selected direct capture checks trims and identity before copying, and keeps independent history
+ok 5 - selected direct capture checks trims and identity before copying, and keeps independent history
+  ---
+  duration_ms: 4.525708
+  type: 'test'
+  ...
+# Subtest: fold preview refuses before acceptance and facade retains its native mapped refusal
+ok 6 - fold preview refuses before acceptance and facade retains its native mapped refusal
+  ---
+  duration_ms: 10.99825
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 5
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1148.158542

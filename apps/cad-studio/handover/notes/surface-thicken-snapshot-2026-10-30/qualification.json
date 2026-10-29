@@ -1,0 +1,261 @@
+{
+  "workId": "D338",
+  "date": "2026-10-30",
+  "status": "BOUNDED_QUALIFIED",
+  "scope": "Owned whole-untrimmed-surface Thicken recipe through inherited public facade and shared Model/Direct command; unchanged Core geometry.",
+  "source": {
+    "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+    "branch": "local/cad-dev",
+    "baselinePublishedD337": "8c0710d7ab0cce6e09d4fb9c8c7379dba1f3d717",
+    "checkpoint": "0396200d313670aa711e50a5ba21f0d5008dc5db",
+    "checkpointFiles": 22
+  },
+  "contract": {
+    "method": "Part.thicken(surface,{t,side}) inherited by KernelPart and StudioPart",
+    "surface": "Owned strict six-field RawNurbsSurface; existing validateSurface reused; no wrapper/metadata/accessor/foreign-container admission.",
+    "dimensions": "Only t binds; side normal/reverse/both; default normal omitted.",
+    "ownership": "New body via #make, copied whole support, independent source lifetime. Selected Direct checks trims before compilation/copy.",
+    "ModelUI": "One Model command/raw snapshot context and DirectInspector callback into existing App preview/Cancel/Apply; source-current Apply guard; selection clears after commit only.",
+    "chat": "No direct/raw args in run_command, so thicken excluded from CHAT_COMMANDS. Strict checked features.add raw node, API and UI remain available.",
+    "algorithm": "Existing default40/fold/geometry behavior byte unchanged; faceted curved approximation.",
+    "unchanged": [
+      "schema",
+      "package export-map keys",
+      "core-result checks",
+      "geometry tolerances",
+      "five reviewed geometry files"
+    ]
+  },
+  "checks": {
+    "kernelNewAndVerbs": {
+      "status": "PASS",
+      "pass": 22,
+      "newPass": 6,
+      "verbsPass": 16,
+      "logSource": "kernel/focused-final.log"
+    },
+    "kernelPriorControls": {
+      "status": "PASS",
+      "pass": 10,
+      "boundary": "9 api-part/api-parameters/raw-thicken controls in first run plus1 fold control, not repeated for acknowledgment."
+    },
+    "kernelBuild": {
+      "status": "PASS",
+      "logSource": "kernel/build-first.log"
+    },
+    "kernelLint": {
+      "status": "PASS",
+      "logSource": "kernel/lint-first.log"
+    },
+    "kernelDeclarationConsumer": {
+      "status": "PASS",
+      "logSource": "kernel/types-retry1.log",
+      "initial": "Wrong relative tsc launcher failure retained in types-first.log."
+    },
+    "model": {
+      "status": "PASS",
+      "pass": 6,
+      "logSource": "model/focused-final.log"
+    },
+    "modelRelated": {
+      "status": "PASS",
+      "pass": 7,
+      "logSource": "model/related-model.log"
+    },
+    "studioRelated": {
+      "status": "PASS",
+      "pass": 20,
+      "logSource": "model/related-studio.log"
+    },
+    "ModelAndStudioTypes": {
+      "status": "PASS",
+      "boundary": "Worker receipts; model-types-final.log and studio-types-first.log."
+    },
+    "ownedLint": {
+      "status": "PASS",
+      "logSource": "model/lint-first.log"
+    },
+    "rootChat": {
+      "status": "PASS",
+      "pass": 23,
+      "boundary": "Coordinator-provided result."
+    },
+    "studioBuild": {
+      "status": "PASS",
+      "boundary": "Coordinator-provided result."
+    },
+    "rootLint": {
+      "status": "PASS",
+      "errors": 0,
+      "warnings": 1,
+      "boundary": "Existing console warning."
+    },
+    "review": {
+      "status": "NO_REQUIRED_FINDINGS",
+      "runtime": "NOT_RUN",
+      "listedInputs": 32,
+      "reviewSource": "review/review.md",
+      "snapshotSource": "review/snapshot.json",
+      "geometryByteEqualFiles": 5,
+      "boundary": "Listed source review, not whole-repository freeze or runtime.",
+      "finalCheck": "Final snapshot32 listed inputs unchanged."
+    },
+    "api": {
+      "status": "SCOPED_PASS",
+      "logSource": "root/api-check.log",
+      "added": 12,
+      "removed": 0,
+      "changed": 7,
+      "oldMembersRemoved": 0,
+      "deltaSource": "root/api-delta.json",
+      "memberDeltaSource": "root/api-member-delta.json",
+      "unchangedMetadata": [
+        "schemaVersion",
+        "policyVersion",
+        "typescriptVersion",
+        "packageExports",
+        "coreResultChecks"
+      ],
+      "boundary": "Existing inventory rules only. Changed rows add FeatureSpec case, inherited thicken methods and optional Ctx.thickenSnapshot."
+    },
+    "browser": {
+      "status": "FULL_FLOW_PASS",
+      "receipt": "studio/run-01/receipt.json",
+      "invocations": 1,
+      "chromeProcesses": 1,
+      "backend": "Chrome WebGPU",
+      "serialContextsClosed": 5,
+      "observationalStates": 25,
+      "acceptedPublicGeometryReads": 10,
+      "refusals": 2,
+      "nativeSaveDownloads": 2,
+      "nativeFreshOpenRecipes": 2,
+      "readonlyNativeCheckBrep": "VALID_CLOSED",
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "watchedSourceChanges": 0,
+      "boundary": "One clean first invocation;25 observational states are not25 tests. No actual browser failure. Preview mesh/HUD proof is distinct from accepted native mass."
+    },
+    "docs": {
+      "status": "PASS",
+      "exitCode": 0,
+      "metrics": {
+        "pages": 68,
+        "beingWritten": 0,
+        "shots": 55,
+        "shotKB": 4811,
+        "labels": 861
+      },
+      "log": "root/docs-check.log",
+      "boundary": "After feature notes, decision, roadmap and resume assembly; only check receipts and manifest changed afterward."
+    },
+    "generatedToolsAndRefusals": {
+      "status": "PASS",
+      "agentToolsExitCode": 0,
+      "refusalsExitCode": 0,
+      "logs": [
+        "root/agent-tools.log",
+        "root/refusals.log"
+      ],
+      "boundary": "Coordinator --check receipts; no generated source edit."
+    }
+  },
+  "retainedFirstFailures": {
+    "kernel": "Exact float bounds/mass, inferred fold mapping; wrong edit cwd left retry1 tests unchanged; actual native73 names; parameter10001 FORMAT; Location tuple API; stockY fixture; wrong tsc relative launcher.",
+    "Model": "First5PASS/1FAIL assumes native73==public6. Retry1 wrong composite-name regex; repaired first1PASS then final whole-new6PASS.",
+    "boundary": "Test/launcher corrections only; no production or geometry/tolerance repair followed these failures."
+  },
+  "names": {
+    "qualifiedPlaneNativeFacets": 73,
+    "qualifiedPlaneModelPublicDisplayGroups": 6,
+    "boundary": "Exact native coplanarity versus existing Model display merging/composite+names; distinct policies. Neither count universal."
+  },
+  "errors": {
+    "initialBadInput": "VALUE",
+    "unknownParameter": "PARAMETER_UNKNOWN",
+    "editedZeroOrNegative": "PARAMETER",
+    "edited10001": "FORMAT",
+    "nativeFold": {
+      "code": "OFFSET_FOLDS",
+      "category": "CAPABILITY"
+    },
+    "KernelFacadeFold": {
+      "code": "OFFSET_FOLDS",
+      "where": "evaluate",
+      "details.kernelCode": "OFFSET_FOLDS"
+    },
+    "ModelFacadeFold": {
+      "code": "OFFSET_FOLDS",
+      "details": "friendly; no kernelCode/category exposed"
+    }
+  },
+  "oracle": {
+    "plane": "S(u,v)=[20+5u,-11+5v,3], u[-2,6],v[1,7]",
+    "t2Volume": 2400,
+    "t2Centroids": {
+      "normal": [
+        30,
+        9,
+        4
+      ],
+      "reverse": [
+        30,
+        9,
+        2
+      ],
+      "both": [
+        30,
+        9,
+        3
+      ]
+    },
+    "t3BothVolume": 3600,
+    "t3BothBoundsZ": [
+      1.5,
+      4.5
+    ],
+    "KernelMassTolerance": 1e-06,
+    "centroidBoundsTolerance": 1e-07,
+    "ModelTolerance": 1e-07,
+    "witness": {
+      "volume": 420,
+      "centroid": [
+        86,
+        0.5,
+        3.5
+      ],
+      "boundary": "Separate accepted solid only."
+    }
+  },
+  "notProven": [
+    "Actual UI named-parameter value editing (focused Model tests only)",
+    "Browser native73-face-name set (focused Kernel/Model evidence only)",
+    "Preview centroid",
+    "Generic exact curved offset or trimmed solid",
+    "Sew facade",
+    "Whole Kernel/Model/Studio/GPU/Viewer suites",
+    "Performance, remoteCI, release and whole08 acceptance"
+  ],
+  "next": "Continue remaining08 before09. Electron15 stays queued. No new queue.",
+  "actualProof": {
+    "preview": "Shown total mesh volume2820 minus witness420 gives plate2400; accepted doc unchanged. No preview centroid proof.",
+    "accepted": "Normalt2 plate2400 center[30,9,4]; literal Thickness3 gives3600/[30,9,4.5]; SideBoth gives3600/[30,9,3],boundsz1.5..4.5.",
+    "editing": "Actual Cancel/Apply/UndoRedo, literal t/side editor and UI native Save/fresh Open.",
+    "snapshotLifetime": "Actual source Move/delete leaves accepted copied surface/body/public names unchanged.",
+    "refusals": "Actual public160 trimmed context refuses; radius10 quarter wall12 displays expanded OFFSET_FOLDS Kernel detail, preview fails/Apply disabled; accepted doc/selection/download/history unchanged, valid retry succeeds.",
+    "facadeRecipe": "Public API seed has named wall parameter2; save/fresh Open retains bound recipe and reopens Thickness parameter wall/Side. Actual UI parameter-value edit was not run; named parameter mutation proof is focused Model tests only.",
+    "names": "Actual Model6 composite public groups preserved. Native checkBrep valid/closed; browser does not assert native73 name set, which is separate Kernel/Model focused evidence.",
+    "witness": "b1 and6 names stable; volume420 center[86,.5,3.5].",
+    "cleanup": "All5contexts/browser/server CLOSED.",
+    "imageReview": "Coordinator viewed02-preview.png,09-both.png and18-fold-refusal.png."
+  },
+  "provenance": {
+    "initialSourceSubset": 19,
+    "frozenInputCount": 721,
+    "initialSubsetMatchesFrozen": 19,
+    "frozenAfterBrowserCleanupMatch": 721,
+    "boundary": "Initial19 subset, then frozen721. No721before-generation attestation; not full served graph. Hashes prove provenance only.",
+    "manifest": "artifact-manifest.json",
+    "decodedAndStoredHashes": "source-provenance.json"
+  }
+}

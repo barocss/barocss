@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {writeFileSync} from 'node:fs';
+import {part,param} from '../../packages/barocss-cad-model/src/api/index.ts';
+import {emptyDirect,importSource} from '../../packages/barocss-cad-model/src/engine/direct.ts';
+const witness=part('D338 witness').parameter('wall',2).box({w:12,d:7,h:5,x:80,y:-3,z:1});
+assert.ok(Math.abs(witness.mass({density:1}).volume-420)<1e-7);
+const direct=importSource(emptyDirect(),"@model d338 { version:0; length-unit:mm;\n @surface #panel { type:nurbs; degree-u:1; degree-v:1; knots-u:[-2,-2,6,6]; knots-v:[1,1,7,7]; control-points:[[[10,-6,3],[10,24,3]],[[50,-6,3],[50,24,3]]]; weights:[[1,1],[1,1]]; }\n @curve #hole { type:nurbs; degree:1; knots:[0,0,1,2,3,4,4]; control-points:[[15,-1,3],[25,-1,3],[25,9,3],[15,9,3],[15,-1,3]]; weights:[1,1,1,1,1]; }\n @surface #fold { type:nurbs; degree-u:2; degree-v:1; knots-u:[0,0,0,1,1,1]; knots-v:[0,0,1,1]; control-points:[[[10,0,0],[10,10,0]],[[10,0,10],[10,10,10]],[[0,0,10],[0,10,10]]]; weights:[[1,1],[0.7071067811865476,0.7071067811865476],[1,1]]; }\n}",'D338');
+assert.ok(direct.objects.every(o=>!o.trims));
+const ui={...witness.doc,direct};
+const api=part('D338 public facade',ui).thicken({"degreeU":1,"degreeV":1,"knotsU":[-2,-2,6,6],"knotsV":[1,1,7,7],"controlPoints":[[[10,-6,3],[10,24,3]],[[50,-6,3],[50,24,3]]],"weights":[[1,1],[1,1]]},{t:param('wall')});
+assert.equal(api.bodies().length,2);
+writeFileSync(process.argv[2],JSON.stringify(ui,null,2)+'\n');
+writeFileSync(process.argv[3],JSON.stringify(api.doc,null,2)+'\n');

@@ -1,0 +1,8 @@
+e07aa01820a37bd3a72eb1ae5c933944af865af0a8d3f989eed06dd381633866  packages/barocss-cad/src/api/spec.ts
+4da44857bdcbbee9e75727af6827dc8182bd5e9dceefa29d9f936199c5e30c42  packages/barocss-cad/src/api/part.ts
+999f274fdc304e3638060c95ca70342bdf78d2f23bfdaadd3e2bb0846952ec45  packages/barocss-cad/src/api/kernel.ts
+06f77944b67c8bfe4cdd5657a83e68cf19f51efb6742b4e54b2749e7f623ed78  packages/barocss-cad/src/api/index.ts
+261671d628e24a3888113e98aa4bee57243e763d2694c98215a5cdc720d97c7d  packages/barocss-cad/src/api/surface-snapshot.ts
+5618c5e86b90c15f3aa1eaa11ca000c81c10799f3c2ce88bfe23aa63374212f2  packages/barocss-cad/test/api-thicken.test.mjs
+f6014f36c6aa429fb36d8baa6a4766545a30ab904196038a32cd7c1581af4110  packages/barocss-cad/test/api-thicken-types.mts
+9b66cafac3d215c9a929541c9354fd332ab16f25048e881051db831a41e4e161  packages/barocss-cad/README.md

@@ -1,0 +1,21 @@
+{
+  "apps/cad-studio/src/App.tsx": "6df915083ec4c70c02590c9652ffff0bd27feaf9f009380e61ba357be30d2632",
+  "apps/cad-studio/src/state/useCommandPreview.ts": "0c481d82435203744e48f068eb0838828d7866c8de6bb53aa511e32230a154c9",
+  "apps/cad-studio/src/ui/DirectInspector.tsx": "8f93c956f85de18e29522dcc2cdadf10bfc517882a6387eea51b281ae7ce94d2",
+  "apps/cad-studio/src/ui/DirectPanel.tsx": "705eb1397edfa07e294ba6d91d4da275dbca66ea8f6e848f3d69a5e4b0707adc",
+  "apps/cad-studio/test/thicken-snapshot-browser.mjs": "89756d17a7926dc81c833c14cbdaa488beaea681f076614e2d15c364147a6639",
+  "apps/cad-studio/vite.config.ts": "67b607e6374107bf07c232ad7ebe46a9f93e0d3bce887579c3d46ed363be5407",
+  "packages/barocss-cad-model/src/api/studio.ts": "6a13e1e83fcc29f31f27cf5025b51a5404aa0c6252fea0dc1279bda9daff4d1e",
+  "packages/barocss-cad-model/src/app/commands.ts": "70b5dcdd1646f58fec9b41af068f96d36d7a2daff2ae8b3464628412a5e1914f",
+  "packages/barocss-cad-model/src/app/editFields.ts": "61f40544be9d7b6caf85b765f0ceec0246e46de3ea3d67c9e874263db6783eea",
+  "packages/barocss-cad-model/src/app/thickenCommand.ts": "71f863f59c6282ec8c696b645ed886271cea08f6da1b204939567f8ccb4ddf42",
+  "packages/barocss-cad-model/src/chat/features.ts": "2384c9ecb45c9a60bad4841e005607f75655801b7028df43d0778cc2ad002482",
+  "packages/barocss-cad-model/src/engine/thicken.ts": "dc2b206c3772a65802c314cf9474b2a598e1b8069d787cdab285c48128f33152",
+  "packages/barocss-cad/dist/index.js": "5637c4cc06d7ed87c70df61afac5fb5c8df2daf6016a36b8c4d18258fdfedc59",
+  "packages/barocss-cad/src/api/kernel.ts": "999f274fdc304e3638060c95ca70342bdf78d2f23bfdaadd3e2bb0846952ec45",
+  "packages/barocss-cad/src/api/part.ts": "4da44857bdcbbee9e75727af6827dc8182bd5e9dceefa29d9f936199c5e30c42",
+  "packages/barocss-cad/src/api/spec.ts": "e07aa01820a37bd3a72eb1ae5c933944af865af0a8d3f989eed06dd381633866",
+  "packages/barocss-cad/src/api/surface-snapshot.ts": "261671d628e24a3888113e98aa4bee57243e763d2694c98215a5cdc720d97c7d",
+  "packages/barocss-cad/src/blend/offset-cavity.ts": "e4e5b10c7535c381e9f71e755e407525c5f5aa6c75df90901d068015a5d31b47",
+  "packages/barocss-cad/src/brep/thicken-solid.ts": "f93dee710e3803f33f3efc5b68a9ea015862c7a5b79593bb7470201e63619a62"
+}

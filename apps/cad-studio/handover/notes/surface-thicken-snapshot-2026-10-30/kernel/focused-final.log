@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: public thicken: three sides make one valid planar body with independent mass, bounds and native names
+ok 1 - public thicken: three sides make one valid planar body with independent mass, bounds and native names
+  ---
+  duration_ms: 3003.491208
+  type: 'test'
+  ...
+# Subtest: public thicken: exact six-field plain dense snapshot refuses metadata, accessors, wrappers and malformed geometry
+ok 2 - public thicken: exact six-field plain dense snapshot refuses metadata, accessors, wrappers and malformed geometry
+  ---
+  duration_ms: 1.013959
+  type: 'test'
+  ...
+# Subtest: public thicken: t binding edits the existing snapshot and native save/read retains the recipe and names
+ok 3 - public thicken: t binding edits the existing snapshot and native save/read retains the recipe and names
+  ---
+  duration_ms: 4127.665875
+  type: 'test'
+  ...
+# Subtest: public thicken: malformed t/side are VALUE and unknown parameter lookup remains unchanged
+ok 4 - public thicken: malformed t/side are VALUE and unknown parameter lookup remains unchanged
+  ---
+  duration_ms: 0.353625
+  type: 'test'
+  ...
+# Subtest: public thicken: adding a body preserves the chosen witness; a Boolean tool callback follows its new body
+ok 5 - public thicken: adding a body preserves the chosen witness; a Boolean tool callback follows its new body
+  ---
+  duration_ms: 3731.671666
+  type: 'test'
+  ...
+# Subtest: public thicken: existing normal/both fold errors and parameter edits refuse atomically
+ok 6 - public thicken: existing normal/both fold errors and parameter edits refuse atomically
+  ---
+  duration_ms: 202.087667
+  type: 'test'
+  ...
+# Subtest: plate: the facade writes the hand-written CadPartDocument, byte for byte
+ok 7 - plate: the facade writes the hand-written CadPartDocument, byte for byte
+  ---
+  duration_ms: 101.308667
+  type: 'test'
+  ...
+# Subtest: plate: its bodies, mass and STEP are the kernel's own on that document
+ok 8 - plate: its bodies, mass and STEP are the kernel's own on that document
+  ---
+  duration_ms: 183.390459
+  type: 'test'
+  ...
+# Subtest: cup: the facade writes the hand-written CadPartDocument, byte for byte
+ok 9 - cup: the facade writes the hand-written CadPartDocument, byte for byte
+  ---
+  duration_ms: 93.389458
+  type: 'test'
+  ...
+# Subtest: cup: its bodies, mass and STEP are the kernel's own on that document
+ok 10 - cup: its bodies, mass and STEP are the kernel's own on that document
+  ---
+  duration_ms: 351.477875
+  type: 'test'
+  ...
+# Subtest: ring: the facade writes the hand-written CadPartDocument, byte for byte
+ok 11 - ring: the facade writes the hand-written CadPartDocument, byte for byte
+  ---
+  duration_ms: 71.309083
+  type: 'test'
+  ...
+# Subtest: ring: its bodies, mass and STEP are the kernel's own on that document
+ok 12 - ring: its bodies, mass and STEP are the kernel's own on that document
+  ---
+  duration_ms: 90.069875
+  type: 'test'
+  ...
+# Subtest: pegged: the facade writes the hand-written CadPartDocument, byte for byte
+ok 13 - pegged: the facade writes the hand-written CadPartDocument, byte for byte
+  ---
+  duration_ms: 383.547666
+  type: 'test'
+  ...
+# Subtest: pegged: its bodies, mass and STEP are the kernel's own on that document
+ok 14 - pegged: its bodies, mass and STEP are the kernel's own on that document
+  ---
+  duration_ms: 500.956417
+  type: 'test'
+  ...
+# Subtest: tabs: the facade writes the hand-written CadPartDocument, byte for byte
+ok 15 - tabs: the facade writes the hand-written CadPartDocument, byte for byte
+  ---
+  duration_ms: 2.321166
+  type: 'test'
+  ...
+# Subtest: tabs: its bodies, mass and STEP are the kernel's own on that document
+ok 16 - tabs: its bodies, mass and STEP are the kernel's own on that document
+  ---
+  duration_ms: 8.559958
+  type: 'test'
+  ...
+# Subtest: mirrored: the facade writes the hand-written CadPartDocument, byte for byte
+ok 17 - mirrored: the facade writes the hand-written CadPartDocument, byte for byte
+  ---
+  duration_ms: 11.615625
+  type: 'test'
+  ...
+# Subtest: mirrored: its bodies, mass and STEP are the kernel's own on that document
+ok 18 - mirrored: its bodies, mass and STEP are the kernel's own on that document
+  ---
+  duration_ms: 22.741667
+  type: 'test'
+  ...
+# Subtest: a body chooser leaves the document as it was, and follows its body through the verbs that replace it
+ok 19 - a body chooser leaves the document as it was, and follows its body through the verbs that replace it
+  ---
+  duration_ms: 87.953667
+  type: 'test'
+  ...
+# Subtest: Plane, Location and Sketch are immutable values with plain data
+ok 20 - Plane, Location and Sketch are immutable values with plain data
+  ---
+  duration_ms: 0.49375
+  type: 'test'
+  ...
+# Subtest: the growth's refusals are typed, the facade's own before the kernel's
+ok 21 - the growth's refusals are typed, the facade's own before the kernel's
+  ---
+  duration_ms: 23.221958
+  type: 'test'
+  ...
+# Subtest: the meshes carry their display lines: the selectable edges as segment pairs, seams and tangent joints left out
+ok 22 - the meshes carry their display lines: the selectable edges as segment pairs, seams and tangent joints left out
+  ---
+  duration_ms: 4.08025
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11353.591

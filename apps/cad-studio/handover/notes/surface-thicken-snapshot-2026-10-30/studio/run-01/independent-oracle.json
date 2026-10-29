@@ -1,0 +1,213 @@
+{
+  "status": "PLANNING_ONLY",
+  "flat": [
+    {
+      "t": "2",
+      "side": "normal",
+      "volume": "2400",
+      "centroid": [
+        "30",
+        "9",
+        "4"
+      ],
+      "bounds": {
+        "min": [
+          "10",
+          "-6",
+          "3"
+        ],
+        "max": [
+          "50",
+          "24",
+          "5"
+        ]
+      }
+    },
+    {
+      "t": "2",
+      "side": "reverse",
+      "volume": "2400",
+      "centroid": [
+        "30",
+        "9",
+        "2"
+      ],
+      "bounds": {
+        "min": [
+          "10",
+          "-6",
+          "1"
+        ],
+        "max": [
+          "50",
+          "24",
+          "3"
+        ]
+      }
+    },
+    {
+      "t": "2",
+      "side": "both",
+      "volume": "2400",
+      "centroid": [
+        "30",
+        "9",
+        "3"
+      ],
+      "bounds": {
+        "min": [
+          "10",
+          "-6",
+          "2"
+        ],
+        "max": [
+          "50",
+          "24",
+          "4"
+        ]
+      }
+    },
+    {
+      "t": "3",
+      "side": "normal",
+      "volume": "3600",
+      "centroid": [
+        "30",
+        "9",
+        "9/2"
+      ],
+      "bounds": {
+        "min": [
+          "10",
+          "-6",
+          "3"
+        ],
+        "max": [
+          "50",
+          "24",
+          "6"
+        ]
+      }
+    },
+    {
+      "t": "3",
+      "side": "reverse",
+      "volume": "3600",
+      "centroid": [
+        "30",
+        "9",
+        "3/2"
+      ],
+      "bounds": {
+        "min": [
+          "10",
+          "-6",
+          "0"
+        ],
+        "max": [
+          "50",
+          "24",
+          "3"
+        ]
+      }
+    },
+    {
+      "t": "3",
+      "side": "both",
+      "volume": "3600",
+      "centroid": [
+        "30",
+        "9",
+        "3"
+      ],
+      "bounds": {
+        "min": [
+          "10",
+          "-6",
+          "3/2"
+        ],
+        "max": [
+          "50",
+          "24",
+          "9/2"
+        ]
+      }
+    }
+  ],
+  "quarterCylinder": [
+    {
+      "t": 2,
+      "side": "normal",
+      "innerRadius": 8,
+      "outerRadius": 10,
+      "analyticVolume": 282.7433388230814,
+      "analyticCentroid": [
+        5.753156461395921,
+        5,
+        5.753156461395921
+      ],
+      "proof": "PLANNING_CURVED_FACETED_APPROXIMATION_NOT_EXACT_BODY_ACCEPTANCE"
+    },
+    {
+      "t": 2,
+      "side": "reverse",
+      "innerRadius": 10,
+      "outerRadius": 12,
+      "analyticVolume": 345.5751918948772,
+      "analyticCentroid": [
+        7.022109004296958,
+        5,
+        7.022109004296958
+      ],
+      "proof": "PLANNING_CURVED_FACETED_APPROXIMATION_NOT_EXACT_BODY_ACCEPTANCE"
+    },
+    {
+      "t": 2,
+      "side": "both",
+      "innerRadius": 9,
+      "outerRadius": 11,
+      "analyticVolume": 314.1592653589793,
+      "analyticCentroid": [
+        6.387418382754734,
+        5,
+        6.387418382754734
+      ],
+      "proof": "PLANNING_CURVED_FACETED_APPROXIMATION_NOT_EXACT_BODY_ACCEPTANCE"
+    }
+  ],
+  "foldRefusals": [
+    {
+      "radius": 10,
+      "side": "normal",
+      "t": 12,
+      "expected": "CAPABILITY with OFFSET_FOLDS"
+    },
+    {
+      "radius": 10,
+      "side": "both",
+      "t": 21,
+      "expected": "CAPABILITY with OFFSET_FOLDS"
+    }
+  ],
+  "flatNameOracle": "actual stable feature prefix plus .facet0..5 for this planar profile; verify actual grouping before claim",
+  "witness": {
+    "bounds": {
+      "min": [
+        80,
+        -3,
+        1
+      ],
+      "max": [
+        92,
+        4,
+        6
+      ]
+    },
+    "volume": 420,
+    "centroid": [
+      86,
+      0.5,
+      3.5
+    ]
+  }
+}

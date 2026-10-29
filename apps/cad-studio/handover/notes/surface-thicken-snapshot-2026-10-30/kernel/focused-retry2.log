@@ -1,0 +1,587 @@
+TAP version 13
+# Subtest: public thicken: three sides make one valid planar body with independent mass, bounds and native names
+not ok 1 - public thicken: three sides make one valid planar body with independent mass, bounds and native names
+  ---
+  duration_ms: 1061.549583
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/api-thicken.test.mjs:25:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        'thicken1.facet0',
+        'thicken1.facet1',
+    +   'thicken1.facet10',
+    +   'thicken1.facet11',
+    +   'thicken1.facet12',
+    +   'thicken1.facet13',
+    +   'thicken1.facet14',
+    +   'thicken1.facet15',
+    +   'thicken1.facet16',
+    +   'thicken1.facet17',
+    +   'thicken1.facet18',
+    +   'thicken1.facet19',
+        'thicken1.facet2',
+    +   'thicken1.facet20',
+    +   'thicken1.facet21',
+    +   'thicken1.facet22',
+    +   'thicken1.facet23',
+    +   'thicken1.facet24',
+    +   'thicken1.facet25',
+    +   'thicken1.facet26',
+    +   'thicken1.facet27',
+    +   'thicken1.facet28',
+    +   'thicken1.facet29',
+        'thicken1.facet3',
+    +   'thicken1.facet30',
+    +   'thicken1.facet31',
+    +   'thicken1.facet32',
+    +   'thicken1.facet33',
+    +   'thicken1.facet34',
+    +   'thicken1.facet35',
+    +   'thicken1.facet36',
+    +   'thicken1.facet37',
+    +   'thicken1.facet38',
+    +   'thicken1.facet39',
+        'thicken1.facet4',
+    +   'thicken1.facet40',
+    +   'thicken1.facet41',
+    +   'thicken1.facet42',
+    +   'thicken1.facet43',
+    +   'thicken1.facet44',
+    +   'thicken1.facet45',
+    +   'thicken1.facet46',
+    +   'thicken1.facet47',
+    +   'thicken1.facet48',
+    +   'thicken1.facet49',
+        'thicken1.facet5',
+    +   'thicken1.facet50',
+    +   'thicken1.facet51',
+    +   'thicken1.facet52',
+    +   'thicken1.facet53',
+    +   'thicken1.facet54',
+    +   'thicken1.facet55',
+    +   'thicken1.facet56',
+    +   'thicken1.facet57',
+    +   'thicken1.facet58',
+    +   'thicken1.facet59',
+    +   'thicken1.facet6',
+    +   'thicken1.facet60',
+    +   'thicken1.facet61',
+    +   'thicken1.facet62',
+    +   'thicken1.facet63',
+    +   'thicken1.facet64',
+    +   'thicken1.facet65',
+    +   'thicken1.facet66',
+    +   'thicken1.facet67',
+    +   'thicken1.facet68',
+    +   'thicken1.facet69',
+    +   'thicken1.facet7',
+    +   'thicken1.facet70',
+    +   'thicken1.facet71',
+    +   'thicken1.facet72',
+    +   'thicken1.facet8',
+    +   'thicken1.facet9'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'thicken1.facet0'
+    1: 'thicken1.facet1'
+    2: 'thicken1.facet2'
+    3: 'thicken1.facet3'
+    4: 'thicken1.facet4'
+    5: 'thicken1.facet5'
+  actual:
+    0: 'thicken1.facet0'
+    1: 'thicken1.facet1'
+    2: 'thicken1.facet10'
+    3: 'thicken1.facet11'
+    4: 'thicken1.facet12'
+    5: 'thicken1.facet13'
+    6: 'thicken1.facet14'
+    7: 'thicken1.facet15'
+    8: 'thicken1.facet16'
+    9: 'thicken1.facet17'
+    10: 'thicken1.facet18'
+    11: 'thicken1.facet19'
+    12: 'thicken1.facet2'
+    13: 'thicken1.facet20'
+    14: 'thicken1.facet21'
+    15: 'thicken1.facet22'
+    16: 'thicken1.facet23'
+    17: 'thicken1.facet24'
+    18: 'thicken1.facet25'
+    19: 'thicken1.facet26'
+    20: 'thicken1.facet27'
+    21: 'thicken1.facet28'
+    22: 'thicken1.facet29'
+    23: 'thicken1.facet3'
+    24: 'thicken1.facet30'
+    25: 'thicken1.facet31'
+    26: 'thicken1.facet32'
+    27: 'thicken1.facet33'
+    28: 'thicken1.facet34'
+    29: 'thicken1.facet35'
+    30: 'thicken1.facet36'
+    31: 'thicken1.facet37'
+    32: 'thicken1.facet38'
+    33: 'thicken1.facet39'
+    34: 'thicken1.facet4'
+    35: 'thicken1.facet40'
+    36: 'thicken1.facet41'
+    37: 'thicken1.facet42'
+    38: 'thicken1.facet43'
+    39: 'thicken1.facet44'
+    40: 'thicken1.facet45'
+    41: 'thicken1.facet46'
+    42: 'thicken1.facet47'
+    43: 'thicken1.facet48'
+    44: 'thicken1.facet49'
+    45: 'thicken1.facet5'
+    46: 'thicken1.facet50'
+    47: 'thicken1.facet51'
+    48: 'thicken1.facet52'
+    49: 'thicken1.facet53'
+    50: 'thicken1.facet54'
+    51: 'thicken1.facet55'
+    52: 'thicken1.facet56'
+    53: 'thicken1.facet57'
+    54: 'thicken1.facet58'
+    55: 'thicken1.facet59'
+    56: 'thicken1.facet6'
+    57: 'thicken1.facet60'
+    58: 'thicken1.facet61'
+    59: 'thicken1.facet62'
+    60: 'thicken1.facet63'
+    61: 'thicken1.facet64'
+    62: 'thicken1.facet65'
+    63: 'thicken1.facet66'
+    64: 'thicken1.facet67'
+    65: 'thicken1.facet68'
+    66: 'thicken1.facet69'
+    67: 'thicken1.facet7'
+    68: 'thicken1.facet70'
+    69: 'thicken1.facet71'
+    70: 'thicken1.facet72'
+    71: 'thicken1.facet8'
+    72: 'thicken1.facet9'
+  operator: 'deepStrictEqual'
+  stack: |-
+    plate (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/api-thicken.test.mjs:22:10)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/api-thicken.test.mjs:30:56)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: public thicken: exact six-field plain dense snapshot refuses metadata, accessors, wrappers and malformed geometry
+ok 2 - public thicken: exact six-field plain dense snapshot refuses metadata, accessors, wrappers and malformed geometry
+  ---
+  duration_ms: 1.10725
+  type: 'test'
+  ...
+# Subtest: public thicken: t binding edits the existing snapshot and native save/read retains the recipe and names
+not ok 3 - public thicken: t binding edits the existing snapshot and native save/read retains the recipe and names
+  ---
+  duration_ms: 838.114625
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/api-thicken.test.mjs:71:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        'thicken1.facet0',
+        'thicken1.facet1',
+    +   'thicken1.facet10',
+    +   'thicken1.facet11',
+    +   'thicken1.facet12',
+    +   'thicken1.facet13',
+    +   'thicken1.facet14',
+    +   'thicken1.facet15',
+    +   'thicken1.facet16',
+    +   'thicken1.facet17',
+    +   'thicken1.facet18',
+    +   'thicken1.facet19',
+        'thicken1.facet2',
+    +   'thicken1.facet20',
+    +   'thicken1.facet21',
+    +   'thicken1.facet22',
+    +   'thicken1.facet23',
+    +   'thicken1.facet24',
+    +   'thicken1.facet25',
+    +   'thicken1.facet26',
+    +   'thicken1.facet27',
+    +   'thicken1.facet28',
+    +   'thicken1.facet29',
+        'thicken1.facet3',
+    +   'thicken1.facet30',
+    +   'thicken1.facet31',
+    +   'thicken1.facet32',
+    +   'thicken1.facet33',
+    +   'thicken1.facet34',
+    +   'thicken1.facet35',
+    +   'thicken1.facet36',
+    +   'thicken1.facet37',
+    +   'thicken1.facet38',
+    +   'thicken1.facet39',
+        'thicken1.facet4',
+    +   'thicken1.facet40',
+    +   'thicken1.facet41',
+    +   'thicken1.facet42',
+    +   'thicken1.facet43',
+    +   'thicken1.facet44',
+    +   'thicken1.facet45',
+    +   'thicken1.facet46',
+    +   'thicken1.facet47',
+    +   'thicken1.facet48',
+    +   'thicken1.facet49',
+        'thicken1.facet5',
+    +   'thicken1.facet50',
+    +   'thicken1.facet51',
+    +   'thicken1.facet52',
+    +   'thicken1.facet53',
+    +   'thicken1.facet54',
+    +   'thicken1.facet55',
+    +   'thicken1.facet56',
+    +   'thicken1.facet57',
+    +   'thicken1.facet58',
+    +   'thicken1.facet59',
+    +   'thicken1.facet6',
+    +   'thicken1.facet60',
+    +   'thicken1.facet61',
+    +   'thicken1.facet62',
+    +   'thicken1.facet63',
+    +   'thicken1.facet64',
+    +   'thicken1.facet65',
+    +   'thicken1.facet66',
+    +   'thicken1.facet67',
+    +   'thicken1.facet68',
+    +   'thicken1.facet69',
+    +   'thicken1.facet7',
+    +   'thicken1.facet70',
+    +   'thicken1.facet71',
+    +   'thicken1.facet72',
+    +   'thicken1.facet8',
+    +   'thicken1.facet9'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'thicken1.facet0'
+    1: 'thicken1.facet1'
+    2: 'thicken1.facet2'
+    3: 'thicken1.facet3'
+    4: 'thicken1.facet4'
+    5: 'thicken1.facet5'
+  actual:
+    0: 'thicken1.facet0'
+    1: 'thicken1.facet1'
+    2: 'thicken1.facet10'
+    3: 'thicken1.facet11'
+    4: 'thicken1.facet12'
+    5: 'thicken1.facet13'
+    6: 'thicken1.facet14'
+    7: 'thicken1.facet15'
+    8: 'thicken1.facet16'
+    9: 'thicken1.facet17'
+    10: 'thicken1.facet18'
+    11: 'thicken1.facet19'
+    12: 'thicken1.facet2'
+    13: 'thicken1.facet20'
+    14: 'thicken1.facet21'
+    15: 'thicken1.facet22'
+    16: 'thicken1.facet23'
+    17: 'thicken1.facet24'
+    18: 'thicken1.facet25'
+    19: 'thicken1.facet26'
+    20: 'thicken1.facet27'
+    21: 'thicken1.facet28'
+    22: 'thicken1.facet29'
+    23: 'thicken1.facet3'
+    24: 'thicken1.facet30'
+    25: 'thicken1.facet31'
+    26: 'thicken1.facet32'
+    27: 'thicken1.facet33'
+    28: 'thicken1.facet34'
+    29: 'thicken1.facet35'
+    30: 'thicken1.facet36'
+    31: 'thicken1.facet37'
+    32: 'thicken1.facet38'
+    33: 'thicken1.facet39'
+    34: 'thicken1.facet4'
+    35: 'thicken1.facet40'
+    36: 'thicken1.facet41'
+    37: 'thicken1.facet42'
+    38: 'thicken1.facet43'
+    39: 'thicken1.facet44'
+    40: 'thicken1.facet45'
+    41: 'thicken1.facet46'
+    42: 'thicken1.facet47'
+    43: 'thicken1.facet48'
+    44: 'thicken1.facet49'
+    45: 'thicken1.facet5'
+    46: 'thicken1.facet50'
+    47: 'thicken1.facet51'
+    48: 'thicken1.facet52'
+    49: 'thicken1.facet53'
+    50: 'thicken1.facet54'
+    51: 'thicken1.facet55'
+    52: 'thicken1.facet56'
+    53: 'thicken1.facet57'
+    54: 'thicken1.facet58'
+    55: 'thicken1.facet59'
+    56: 'thicken1.facet6'
+    57: 'thicken1.facet60'
+    58: 'thicken1.facet61'
+    59: 'thicken1.facet62'
+    60: 'thicken1.facet63'
+    61: 'thicken1.facet64'
+    62: 'thicken1.facet65'
+    63: 'thicken1.facet66'
+    64: 'thicken1.facet67'
+    65: 'thicken1.facet68'
+    66: 'thicken1.facet69'
+    67: 'thicken1.facet7'
+    68: 'thicken1.facet70'
+    69: 'thicken1.facet71'
+    70: 'thicken1.facet72'
+    71: 'thicken1.facet8'
+    72: 'thicken1.facet9'
+  operator: 'deepStrictEqual'
+  stack: |-
+    plate (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/api-thicken.test.mjs:22:10)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/api-thicken.test.mjs:74:68)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public thicken: malformed t/side are VALUE and unknown parameter lookup remains unchanged
+ok 4 - public thicken: malformed t/side are VALUE and unknown parameter lookup remains unchanged
+  ---
+  duration_ms: 0.439792
+  type: 'test'
+  ...
+# Subtest: public thicken: adding a body preserves the chosen witness; a Boolean tool callback follows its new body
+not ok 5 - public thicken: adding a body preserves the chosen witness; a Boolean tool callback follows its new body
+  ---
+  duration_ms: 1294.000042
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/api-thicken.test.mjs:95:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        'thicken1.facet0',
+        'thicken1.facet1',
+    +   'thicken1.facet10',
+    +   'thicken1.facet11',
+    +   'thicken1.facet12',
+    +   'thicken1.facet13',
+    +   'thicken1.facet14',
+    +   'thicken1.facet15',
+    +   'thicken1.facet16',
+    +   'thicken1.facet17',
+    +   'thicken1.facet18',
+    +   'thicken1.facet19',
+        'thicken1.facet2',
+    +   'thicken1.facet20',
+    +   'thicken1.facet21',
+    +   'thicken1.facet22',
+    +   'thicken1.facet23',
+    +   'thicken1.facet24',
+    +   'thicken1.facet25',
+    +   'thicken1.facet26',
+    +   'thicken1.facet27',
+    +   'thicken1.facet28',
+    +   'thicken1.facet29',
+        'thicken1.facet3',
+    +   'thicken1.facet30',
+    +   'thicken1.facet31',
+    +   'thicken1.facet32',
+    +   'thicken1.facet33',
+    +   'thicken1.facet34',
+    +   'thicken1.facet35',
+    +   'thicken1.facet36',
+    +   'thicken1.facet37',
+    +   'thicken1.facet38',
+    +   'thicken1.facet39',
+        'thicken1.facet4',
+    +   'thicken1.facet40',
+    +   'thicken1.facet41',
+    +   'thicken1.facet42',
+    +   'thicken1.facet43',
+    +   'thicken1.facet44',
+    +   'thicken1.facet45',
+    +   'thicken1.facet46',
+    +   'thicken1.facet47',
+    +   'thicken1.facet48',
+    +   'thicken1.facet49',
+        'thicken1.facet5',
+    +   'thicken1.facet50',
+    +   'thicken1.facet51',
+    +   'thicken1.facet52',
+    +   'thicken1.facet53',
+    +   'thicken1.facet54',
+    +   'thicken1.facet55',
+    +   'thicken1.facet56',
+    +   'thicken1.facet57',
+    +   'thicken1.facet58',
+    +   'thicken1.facet59',
+    +   'thicken1.facet6',
+    +   'thicken1.facet60',
+    +   'thicken1.facet61',
+    +   'thicken1.facet62',
+    +   'thicken1.facet63',
+    +   'thicken1.facet64',
+    +   'thicken1.facet65',
+    +   'thicken1.facet66',
+    +   'thicken1.facet67',
+    +   'thicken1.facet68',
+    +   'thicken1.facet69',
+    +   'thicken1.facet7',
+    +   'thicken1.facet70',
+    +   'thicken1.facet71',
+    +   'thicken1.facet72',
+    +   'thicken1.facet8',
+    +   'thicken1.facet9'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'thicken1.facet0'
+    1: 'thicken1.facet1'
+    2: 'thicken1.facet2'
+    3: 'thicken1.facet3'
+    4: 'thicken1.facet4'
+    5: 'thicken1.facet5'
+  actual:
+    0: 'thicken1.facet0'
+    1: 'thicken1.facet1'
+    2: 'thicken1.facet10'
+    3: 'thicken1.facet11'
+    4: 'thicken1.facet12'
+    5: 'thicken1.facet13'
+    6: 'thicken1.facet14'
+    7: 'thicken1.facet15'
+    8: 'thicken1.facet16'
+    9: 'thicken1.facet17'
+    10: 'thicken1.facet18'
+    11: 'thicken1.facet19'
+    12: 'thicken1.facet2'
+    13: 'thicken1.facet20'
+    14: 'thicken1.facet21'
+    15: 'thicken1.facet22'
+    16: 'thicken1.facet23'
+    17: 'thicken1.facet24'
+    18: 'thicken1.facet25'
+    19: 'thicken1.facet26'
+    20: 'thicken1.facet27'
+    21: 'thicken1.facet28'
+    22: 'thicken1.facet29'
+    23: 'thicken1.facet3'
+    24: 'thicken1.facet30'
+    25: 'thicken1.facet31'
+    26: 'thicken1.facet32'
+    27: 'thicken1.facet33'
+    28: 'thicken1.facet34'
+    29: 'thicken1.facet35'
+    30: 'thicken1.facet36'
+    31: 'thicken1.facet37'
+    32: 'thicken1.facet38'
+    33: 'thicken1.facet39'
+    34: 'thicken1.facet4'
+    35: 'thicken1.facet40'
+    36: 'thicken1.facet41'
+    37: 'thicken1.facet42'
+    38: 'thicken1.facet43'
+    39: 'thicken1.facet44'
+    40: 'thicken1.facet45'
+    41: 'thicken1.facet46'
+    42: 'thicken1.facet47'
+    43: 'thicken1.facet48'
+    44: 'thicken1.facet49'
+    45: 'thicken1.facet5'
+    46: 'thicken1.facet50'
+    47: 'thicken1.facet51'
+    48: 'thicken1.facet52'
+    49: 'thicken1.facet53'
+    50: 'thicken1.facet54'
+    51: 'thicken1.facet55'
+    52: 'thicken1.facet56'
+    53: 'thicken1.facet57'
+    54: 'thicken1.facet58'
+    55: 'thicken1.facet59'
+    56: 'thicken1.facet6'
+    57: 'thicken1.facet60'
+    58: 'thicken1.facet61'
+    59: 'thicken1.facet62'
+    60: 'thicken1.facet63'
+    61: 'thicken1.facet64'
+    62: 'thicken1.facet65'
+    63: 'thicken1.facet66'
+    64: 'thicken1.facet67'
+    65: 'thicken1.facet68'
+    66: 'thicken1.facet69'
+    67: 'thicken1.facet7'
+    68: 'thicken1.facet70'
+    69: 'thicken1.facet71'
+    70: 'thicken1.facet72'
+    71: 'thicken1.facet8'
+    72: 'thicken1.facet9'
+  operator: 'deepStrictEqual'
+  stack: |-
+    plate (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/api-thicken.test.mjs:22:10)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/api-thicken.test.mjs:102:66)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: public thicken: existing normal/both fold errors and parameter edits refuse atomically
+not ok 6 - public thicken: existing normal/both fold errors and parameter edits refuse atomically
+  ---
+  duration_ms: 7.760834
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/api-thicken.test.mjs:111:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    BarocssError: [OFFSET_FOLDS] thicken1: face thicken1 curves more tightly than the wall at (0.51357, 0.093086): its radius there 10 mm, the wall 12 mm — the offset turns over
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/api-thicken.test.mjs:114:66)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 2
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3424.852334

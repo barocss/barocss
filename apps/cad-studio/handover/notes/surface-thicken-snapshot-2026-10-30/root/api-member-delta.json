@@ -1,0 +1,135 @@
+[
+  {
+    "key": [
+      "@barocss/cad",
+      "./api",
+      "FeatureSpec"
+    ],
+    "addedMembers": [
+      {
+        "kind": "property",
+        "name": "command",
+        "optional": false,
+        "readonly": true,
+        "type": "\"thicken\""
+      },
+      {
+        "kind": "property",
+        "name": "surface",
+        "optional": false,
+        "readonly": true,
+        "type": "RawNurbsSurface"
+      },
+      {
+        "kind": "property",
+        "name": "values",
+        "optional": false,
+        "readonly": true,
+        "type": "{ readonly t: number; readonly side?: \"reverse\" | \"normal\" | \"both\" | undefined; }"
+      }
+    ],
+    "removedMembers": []
+  },
+  {
+    "key": [
+      "@barocss/cad",
+      "./api",
+      "KernelPart"
+    ],
+    "addedMembers": [
+      {
+        "kind": "method",
+        "name": "thicken",
+        "optional": false,
+        "readonly": false,
+        "type": "(surface: RawNurbsSurface, options: ThickenOptions) => KernelPart"
+      }
+    ],
+    "removedMembers": []
+  },
+  {
+    "key": [
+      "@barocss/cad",
+      "./api",
+      "Part"
+    ],
+    "addedMembers": [
+      {
+        "kind": "method",
+        "name": "thicken",
+        "optional": false,
+        "readonly": false,
+        "type": "(surface: RawNurbsSurface, options: ThickenOptions) => Part<D>"
+      }
+    ],
+    "removedMembers": []
+  },
+  {
+    "key": [
+      "@barocss/cad-model",
+      "./api",
+      "StudioPart"
+    ],
+    "addedMembers": [
+      {
+        "kind": "method",
+        "name": "thicken",
+        "optional": false,
+        "readonly": false,
+        "type": "(surface: RawNurbsSurface, options: ThickenOptions) => StudioPart"
+      }
+    ],
+    "removedMembers": []
+  },
+  {
+    "key": [
+      "@barocss/cad-model",
+      "./api/index",
+      "StudioPart"
+    ],
+    "addedMembers": [
+      {
+        "kind": "method",
+        "name": "thicken",
+        "optional": false,
+        "readonly": false,
+        "type": "(surface: RawNurbsSurface, options: ThickenOptions) => StudioPart"
+      }
+    ],
+    "removedMembers": []
+  },
+  {
+    "key": [
+      "@barocss/cad-model",
+      "./api/part",
+      "StudioPart"
+    ],
+    "addedMembers": [
+      {
+        "kind": "method",
+        "name": "thicken",
+        "optional": false,
+        "readonly": false,
+        "type": "(surface: RawNurbsSurface, options: ThickenOptions) => StudioPart"
+      }
+    ],
+    "removedMembers": []
+  },
+  {
+    "key": [
+      "@barocss/cad-model",
+      "./app/commands",
+      "Ctx"
+    ],
+    "addedMembers": [
+      {
+        "kind": "property",
+        "name": "thickenSnapshot",
+        "optional": true,
+        "readonly": false,
+        "type": "ThickenSnapshot | undefined"
+      }
+    ],
+    "removedMembers": []
+  }
+]

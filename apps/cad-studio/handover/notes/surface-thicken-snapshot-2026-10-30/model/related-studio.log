@@ -1,0 +1,130 @@
+TAP version 13
+# Subtest: a consumed baked path change is staged while accepted document and stable IDs remain intact
+ok 1 - a consumed baked path change is staged while accepted document and stable IDs remain intact
+  ---
+  duration_ms: 60.512
+  type: 'test'
+  ...
+# Subtest: unreferenced sources and display edits retain the direct fast path
+ok 2 - unreferenced sources and display edits retain the direct fast path
+  ---
+  duration_ms: 22.9445
+  type: 'test'
+  ...
+# Subtest: missing and short consumed paths refuse before accepted input or IDs change
+ok 3 - missing and short consumed paths refuse before accepted input or IDs change
+  ---
+  duration_ms: 17.567209
+  type: 'test'
+  ...
+# Subtest: part insertion refuses live paths before the caller strips direct sources
+ok 4 - part insertion refuses live paths before the caller strips direct sources
+  ---
+  duration_ms: 16.212167
+  type: 'test'
+  ...
+# Subtest: a new direct path reaches command choices without changing the displayed model input
+ok 5 - a new direct path reaches command choices without changing the displayed model input
+  ---
+  duration_ms: 16.125625
+  type: 'test'
+  ...
+# Subtest: consumed geometry invalidates the displayed input while direct display and unrelated edits retain it
+ok 6 - consumed geometry invalidates the displayed input while direct display and unrelated edits retain it
+  ---
+  duration_ms: 19.237083
+  type: 'test'
+  ...
+# Subtest: consumers outside the displayed history and suppressed consumers do not invalidate its input
+ok 7 - consumers outside the displayed history and suppressed consumers do not invalidate its input
+  ---
+  duration_ms: 17.702875
+  type: 'test'
+  ...
+# Subtest: pending work refuses an independent document edit before caller document, history, dirty or recovery values change
+ok 8 - pending work refuses an independent document edit before caller document, history, dirty or recovery values change
+  ---
+  duration_ms: 1.543125
+  type: 'test'
+  ...
+# Subtest: Stop returns exactly the originating accepted edit and its rollback marker without popping caller history
+ok 9 - Stop returns exactly the originating accepted edit and its rollback marker without popping caller history
+  ---
+  duration_ms: 0.200708
+  type: 'test'
+  ...
+# Subtest: an idle Stop never replays old history and future work is still allowed
+ok 10 - an idle Stop never replays old history and future work is still allowed
+  ---
+  duration_ms: 0.066709
+  type: 'test'
+  ...
+# Subtest: initial, variant and unaccepted parameter evaluations cannot claim an unrelated Undo entry
+ok 11 - initial, variant and unaccepted parameter evaluations cannot claim an unrelated Undo entry
+  ---
+  duration_ms: 0.076375
+  type: 'test'
+  ...
+# Subtest: only the current parameter candidate token authorizes its pre-effect accept closure, and acceptance consumes it
+ok 12 - only the current parameter candidate token authorizes its pre-effect accept closure, and acceptance consumes it
+  ---
+  duration_ms: 0.132083
+  type: 'test'
+  ...
+# Subtest: a candidate or view-only run never borrows an accepted model rollback reservation
+ok 13 - a candidate or view-only run never borrows an accepted model rollback reservation
+  ---
+  duration_ms: 0.054292
+  type: 'test'
+  ...
+# Subtest: same-content document or input ABA and a lookalike history entry do not authorize rollback
+ok 14 - same-content document or input ABA and a lookalike history entry do not authorize rollback
+  ---
+  duration_ms: 0.146291
+  type: 'test'
+  ...
+# Subtest: old completion and finally callbacks cannot release a newer owner or a newer Render reservation
+ok 15 - old completion and finally callbacks cannot release a newer owner or a newer Render reservation
+  ---
+  duration_ms: 0.072917
+  type: 'test'
+  ...
+# Subtest: new Open invalidates ownership even when the old document object is reused; redo gets a new owner
+ok 16 - new Open invalidates ownership even when the old document object is reused; redo gets a new owner
+  ---
+  duration_ms: 0.29725
+  type: 'test'
+  ...
+# Subtest: two Render-only reservations settle normally and cannot attach themselves to a later model computation
+ok 17 - two Render-only reservations settle normally and cannot attach themselves to a later model computation
+  ---
+  duration_ms: 0.31725
+  type: 'test'
+  ...
+# Subtest: a reservation survives a changed evaluated identity until the corresponding work begins
+ok 18 - a reservation survives a changed evaluated identity until the corresponding work begins
+  ---
+  duration_ms: 0.105875
+  type: 'test'
+  ...
+# Subtest: a rejected or throwing pre-accept transition releases its reservation without reserving an unrelated document
+ok 19 - a rejected or throwing pre-accept transition releases its reservation without reserving an unrelated document
+  ---
+  duration_ms: 0.19575
+  type: 'test'
+  ...
+# Subtest: matching completion releases ordinary or hand-off work without a worker request and allows the next edit
+ok 20 - matching completion releases ordinary or hand-off work without a worker request and allows the next edit
+  ---
+  duration_ms: 0.050917
+  type: 'test'
+  ...
+1..20
+# tests 20
+# suites 0
+# pass 20
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 312.763167

@@ -1,0 +1,109 @@
+{
+  "added": [
+    [
+      "@barocss/cad",
+      "./api",
+      "RawNurbsSurface"
+    ],
+    [
+      "@barocss/cad",
+      "./api",
+      "ThickenOptions"
+    ],
+    [
+      "@barocss/cad",
+      "./api",
+      "thickenSpec"
+    ],
+    [
+      "@barocss/cad-model",
+      "./api",
+      "RawNurbsSurface"
+    ],
+    [
+      "@barocss/cad-model",
+      "./api",
+      "ThickenOptions"
+    ],
+    [
+      "@barocss/cad-model",
+      "./api/index",
+      "RawNurbsSurface"
+    ],
+    [
+      "@barocss/cad-model",
+      "./api/index",
+      "ThickenOptions"
+    ],
+    [
+      "@barocss/cad-model",
+      "./app/thickenCommand",
+      "thickenCommand"
+    ],
+    [
+      "@barocss/cad-model",
+      "./engine/thicken",
+      "ThickenSnapshot"
+    ],
+    [
+      "@barocss/cad-model",
+      "./engine/thicken",
+      "thickenNode"
+    ],
+    [
+      "@barocss/cad-model",
+      "./engine/thicken",
+      "thickenNodeProblem"
+    ],
+    [
+      "@barocss/cad-model",
+      "./engine/thicken",
+      "thickenSnapshot"
+    ]
+  ],
+  "removed": [],
+  "changed": [
+    [
+      "@barocss/cad",
+      "./api",
+      "FeatureSpec"
+    ],
+    [
+      "@barocss/cad",
+      "./api",
+      "KernelPart"
+    ],
+    [
+      "@barocss/cad",
+      "./api",
+      "Part"
+    ],
+    [
+      "@barocss/cad-model",
+      "./api",
+      "StudioPart"
+    ],
+    [
+      "@barocss/cad-model",
+      "./api/index",
+      "StudioPart"
+    ],
+    [
+      "@barocss/cad-model",
+      "./api/part",
+      "StudioPart"
+    ],
+    [
+      "@barocss/cad-model",
+      "./app/commands",
+      "Ctx"
+    ]
+  ],
+  "unchangedMetadata": {
+    "schemaVersion": true,
+    "policyVersion": true,
+    "typescriptVersion": true,
+    "packageExports": true,
+    "coreResultChecks": true
+  }
+}
