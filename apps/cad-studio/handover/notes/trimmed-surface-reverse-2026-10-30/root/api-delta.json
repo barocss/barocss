@@ -1,0 +1,48 @@
+{
+  "added": [
+    [
+      "@barocss/cad",
+      ".",
+      "OwnedSurfaceAxisTrimLoop"
+    ],
+    [
+      "@barocss/cad",
+      ".",
+      "ReversedTrimmedSurfaceAxisResult"
+    ],
+    [
+      "@barocss/cad",
+      ".",
+      "SurfaceAxisTrimLoop"
+    ],
+    [
+      "@barocss/cad",
+      ".",
+      "TrimmedSurfaceAxisReversalDiagnosticCode"
+    ],
+    [
+      "@barocss/cad",
+      ".",
+      "TrimmedSurfaceAxisReversalError"
+    ],
+    [
+      "@barocss/cad",
+      ".",
+      "TrimmedSurfaceAxisTransportReport"
+    ],
+    [
+      "@barocss/cad",
+      ".",
+      "reverseTrimmedSurfaceAxis"
+    ]
+  ],
+  "removed": [],
+  "changed": [],
+  "unchangedMetadata": {
+    "schemaVersion": true,
+    "policyVersion": true,
+    "typescriptVersion": true,
+    "packageExports": true,
+    "coreResultChecks": true
+  }
+}

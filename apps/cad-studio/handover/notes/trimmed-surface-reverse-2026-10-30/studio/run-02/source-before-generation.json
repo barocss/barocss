@@ -1,0 +1,11 @@
+{
+  "apps/cad-studio/src/App.tsx": "7b77b98d715d8018a861e500f2607b50d2a09a49c01b78398a68efbd3a220a77",
+  "apps/cad-studio/src/ui/DirectInspector.tsx": "01926adf85aa8c05645f6a24743c8f2dcfb1ba066bb1b83c7808985293b81ebc",
+  "apps/cad-studio/src/ui/DirectPanel.tsx": "705eb1397edfa07e294ba6d91d4da275dbca66ea8f6e848f3d69a5e4b0707adc",
+  "apps/cad-studio/test/trimmed-surface-reverse-browser.mjs": "6090075223fd67179f567e1d8ce2002dcbd4ac556ab80519e5f08a2a17069274",
+  "apps/cad-studio/vite.config.ts": "67b607e6374107bf07c232ad7ebe46a9f93e0d3bce887579c3d46ed363be5407",
+  "packages/barocss-cad-model/dist/engine/direct.js": "ABSENT",
+  "packages/barocss-cad-model/src/engine/direct.ts": "015b03b810c0754b187409a4c1b459d3209f15a6249085802934b5301449dd05",
+  "packages/barocss-cad-model/src/engine/trim.ts": "d8d0e4f6b1468381cf5baa0960ceea1042678037c2b1a1f9b9ed154b4bdc9467",
+  "packages/barocss-cad/dist/index.js": "5637c4cc06d7ed87c70df61afac5fb5c8df2daf6016a36b8c4d18258fdfedc59"
+}

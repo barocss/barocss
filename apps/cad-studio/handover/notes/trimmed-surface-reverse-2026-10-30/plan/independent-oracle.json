@@ -1,0 +1,252 @@
+{
+  "support": {
+    "area": 1200,
+    "centroid": [
+      30,
+      9,
+      3
+    ],
+    "domainU": [
+      -2,
+      6
+    ],
+    "domainV": [
+      1,
+      7
+    ]
+  },
+  "rectangle": {
+    "holeArea": {
+      "exact": "100",
+      "number": 100.0
+    },
+    "holeCentroid": [
+      {
+        "exact": "20",
+        "number": 20.0
+      },
+      {
+        "exact": "4",
+        "number": 4.0
+      }
+    ],
+    "outsideArea": {
+      "exact": "1100",
+      "number": 1100.0
+    },
+    "outsideCentroid": [
+      {
+        "exact": "340/11",
+        "number": 30.90909090909091
+      },
+      {
+        "exact": "104/11",
+        "number": 9.454545454545455
+      }
+    ]
+  },
+  "concaveAuthoredDesign": {
+    "holeArea": {
+      "exact": "131",
+      "number": 131.0
+    },
+    "holeCentroid": [
+      {
+        "exact": "5447/262",
+        "number": 20.790076335877863
+      },
+      {
+        "exact": "1121/262",
+        "number": 4.278625954198473
+      }
+    ],
+    "outsideArea": {
+      "exact": "1069",
+      "number": 1069.0
+    },
+    "outsideCentroid": [
+      {
+        "exact": "66553/2138",
+        "number": 31.128624883068287
+      },
+      {
+        "exact": "20479/2138",
+        "number": 9.578578110383535
+      }
+    ]
+  },
+  "concavePublicProducerIdeal160Polyline": {
+    "holeArea": {
+      "exact": "419069/3200",
+      "number": 130.9590625
+    },
+    "holeCentroid": [
+      {
+        "exact": "836369473/40230624",
+        "number": 20.789373612499773
+      },
+      {
+        "exact": "40975587/9578720",
+        "number": 4.277772708670887
+      }
+    ],
+    "outsideArea": {
+      "exact": "3420931/3200",
+      "number": 1069.0409375
+    },
+    "outsideCentroid": [
+      {
+        "exact": "10222830527/328409376",
+        "number": 31.128315066741578
+      },
+      {
+        "exact": "5242770891/547348960",
+        "number": 9.578479679581378
+      }
+    ]
+  },
+  "witness": {
+    "volume": 420,
+    "centroid": [
+      86,
+      0.5,
+      3.5
+    ]
+  },
+  "surfaceSolidMass": "NOT_APPLICABLE",
+  "publicProjectionRuntime": "NOT_RUN",
+  "roundingExamples": [
+    {
+      "storedUV": [
+        "-1",
+        "2"
+      ],
+      "reversedU": [
+        "5",
+        "2"
+      ],
+      "reversedV": [
+        "-1",
+        "6"
+      ],
+      "uLiftErrorMM": {
+        "exact": "0",
+        "number": 0.0
+      },
+      "vLiftErrorMM": {
+        "exact": "0",
+        "number": 0.0
+      }
+    },
+    {
+      "storedUV": [
+        "2",
+        "2"
+      ],
+      "reversedU": [
+        "2",
+        "2"
+      ],
+      "reversedV": [
+        "2",
+        "6"
+      ],
+      "uLiftErrorMM": {
+        "exact": "0",
+        "number": 0.0
+      },
+      "vLiftErrorMM": {
+        "exact": "0",
+        "number": 0.0
+      }
+    },
+    {
+      "storedUV": [
+        "2",
+        "3"
+      ],
+      "reversedU": [
+        "2",
+        "3"
+      ],
+      "reversedV": [
+        "2",
+        "5"
+      ],
+      "uLiftErrorMM": {
+        "exact": "0",
+        "number": 0.0
+      },
+      "vLiftErrorMM": {
+        "exact": "0",
+        "number": 0.0
+      }
+    },
+    {
+      "storedUV": [
+        "3602879701896397/9007199254740992",
+        "3"
+      ],
+      "reversedU": [
+        "8106479329266893/2251799813685248",
+        "3"
+      ],
+      "reversedV": [
+        "3602879701896397/9007199254740992",
+        "5"
+      ],
+      "uLiftErrorMM": {
+        "exact": "5/9007199254740992",
+        "number": 5.551115123125783e-16
+      },
+      "vLiftErrorMM": {
+        "exact": "0",
+        "number": 0.0
+      }
+    },
+    {
+      "storedUV": [
+        "3602879701896397/9007199254740992",
+        "2589569785738035/562949953421312"
+      ],
+      "reversedU": [
+        "8106479329266893/2251799813685248",
+        "2589569785738035/562949953421312"
+      ],
+      "reversedV": [
+        "3602879701896397/9007199254740992",
+        "1914029841632461/562949953421312"
+      ],
+      "uLiftErrorMM": {
+        "exact": "5/9007199254740992",
+        "number": 5.551115123125783e-16
+      },
+      "vLiftErrorMM": {
+        "exact": "0",
+        "number": 0.0
+      }
+    },
+    {
+      "storedUV": [
+        "-1",
+        "2589569785738035/562949953421312"
+      ],
+      "reversedU": [
+        "5",
+        "2589569785738035/562949953421312"
+      ],
+      "reversedV": [
+        "-1",
+        "1914029841632461/562949953421312"
+      ],
+      "uLiftErrorMM": {
+        "exact": "0",
+        "number": 0.0
+      },
+      "vLiftErrorMM": {
+        "exact": "0",
+        "number": 0.0
+      }
+    }
+  ]
+}

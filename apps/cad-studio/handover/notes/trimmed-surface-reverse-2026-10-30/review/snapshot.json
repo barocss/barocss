@@ -1,0 +1,66 @@
+{
+  "head": "92413878961db4f5886097fcf43439761c11452d",
+  "scope": "listed source review inputs, not full dependency graph or runtime attestation",
+  "files": [
+    {
+      "path": "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-axis-reversal.ts",
+      "sha256": "5dec26b81bc0847e656326981213e874726c42f89cc988c6eff4941d6a5a7875",
+      "bytes": 14765
+    },
+    {
+      "path": "packages/barocss-cad/src/nurbs/surfaces/surface-axis-reversal.ts",
+      "sha256": "13656f2f18304982ff5a1eb50e3f1d955b5d7d03bf734f750613c7f0ce0a032a",
+      "bytes": 24936
+    },
+    {
+      "path": "packages/barocss-cad/src/section-rational-internal.ts",
+      "sha256": "8ed40c435eec1c242c0ce58c9d9eb4cb3809443b5f7661877445262433765e38",
+      "bytes": 9787
+    },
+    {
+      "path": "packages/barocss-cad/src/exact-proof/exact-affine-plane-internal.ts",
+      "sha256": "41507a3bea818742fdf70b7896f92a1c3e3e0f7c4ca718e2050d1c26965b7242",
+      "bytes": 4218
+    },
+    {
+      "path": "packages/barocss-cad/src/brep/planar-arrangement.ts",
+      "sha256": "22e854469661193cf02749ed52dde99ac7ef8ec03010bbf9142f312bdd80cd47",
+      "bytes": 18564
+    },
+    {
+      "path": "packages/barocss-cad/src/numeric-policy.ts",
+      "sha256": "860ee982f9ac01559a38db48dd7be7e8b550e3c17fa753fa66f4c9e0677335ae",
+      "bytes": 3318
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/direct.ts",
+      "sha256": "015b03b810c0754b187409a4c1b459d3209f15a6249085802934b5301449dd05",
+      "bytes": 42283
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/trim.ts",
+      "sha256": "d8d0e4f6b1468381cf5baa0960ceea1042678037c2b1a1f9b9ed154b4bdc9467",
+      "bytes": 9225
+    },
+    {
+      "path": "packages/barocss-cad/test/trimmed-surface-axis-reversal.test.mjs",
+      "sha256": "74ee77d3f266bc295a0fa4a24bdc3c26da177a15100bfd4599c0d640a808cdeb",
+      "bytes": 11657
+    },
+    {
+      "path": "packages/barocss-cad-model/test/direct-trim-reverse.test.ts",
+      "sha256": "2f6809a6a6e3a79336ed0d517a30026ccde240e56671c24619060056c334b043",
+      "bytes": 8123
+    },
+    {
+      "path": "packages/barocss-cad-model/test/direct-trim-guards.test.ts",
+      "sha256": "c02cc82ff5b0d2d813189646b3d6299449c4888b96618486229317bfb35d186f",
+      "bytes": 7026
+    },
+    {
+      "path": "packages/barocss-cad/src/index.ts",
+      "sha256": "d9fa55486635f1da6c843f2fb6c3dc5e8cdc0480d49f8b2c58a06993a75d5bad",
+      "bytes": 103479
+    }
+  ]
+}

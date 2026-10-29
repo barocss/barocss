@@ -1,0 +1,208 @@
+TAP version 13
+# Subtest: direct trims: five unsupported consumers refuse exact outside and inside loops without state changes
+ok 1 - direct trims: five unsupported consumers refuse exact outside and inside loops without state changes
+  ---
+  duration_ms: 1.60575
+  type: 'test'
+  ...
+# Subtest: direct trims: malformed non-array containers cannot bypass the consumer guards
+ok 2 - direct trims: malformed non-array containers cannot bypass the consumer guards
+  ---
+  duration_ms: 0.359958
+  type: 'test'
+  ...
+# Subtest: direct trims: five unsupported consumers refuse the actual public Trim by curve result
+ok 3 - direct trims: five unsupported consumers refuse the actual public Trim by curve result
+  ---
+  duration_ms: 13.52125
+  type: 'test'
+  ...
+# Subtest: direct trims: intersection checks both selected operands, including hidden sources
+ok 4 - direct trims: intersection checks both selected operands, including hidden sources
+  ---
+  duration_ms: 0.165542
+  type: 'test'
+  ...
+# Subtest: direct trims: IGES refuses the whole visible set and ignores hidden trimmed surfaces
+ok 5 - direct trims: IGES refuses the whole visible set and ignores hidden trimmed surfaces
+  ---
+  duration_ms: 5.238083
+  type: 'test'
+  ...
+# Subtest: direct trims: empty trims and explicit Untrim retain whole-surface operations and IGES reimport
+ok 6 - direct trims: empty trims and explicit Untrim retain whole-surface operations and IGES reimport
+  ---
+  duration_ms: 91.082209
+  type: 'test'
+  ...
+# Subtest: direct trims: existing pick and Extend value refusals retain precedence
+ok 7 - direct trims: existing pick and Extend value refusals retain precedence
+  ---
+  duration_ms: 0.186583
+  type: 'test'
+  ...
+# Subtest: trim Reverse u/inside: nonunit fractional concave loop retains world material and source ownership
+ok 8 - trim Reverse u/inside: nonunit fractional concave loop retains world material and source ownership
+  ---
+  duration_ms: 17.548209
+  type: 'test'
+  ...
+# Subtest: trim Reverse u/inside: the public 160-point producer remains admitted
+ok 9 - trim Reverse u/inside: the public 160-point producer remains admitted
+  ---
+  duration_ms: 26.248542
+  type: 'test'
+  ...
+# Subtest: trim Reverse u/outside: nonunit fractional concave loop retains world material and source ownership
+ok 10 - trim Reverse u/outside: nonunit fractional concave loop retains world material and source ownership
+  ---
+  duration_ms: 6.3925
+  type: 'test'
+  ...
+# Subtest: trim Reverse u/outside: the public 160-point producer remains admitted
+ok 11 - trim Reverse u/outside: the public 160-point producer remains admitted
+  ---
+  duration_ms: 15.6535
+  type: 'test'
+  ...
+# Subtest: trim Reverse v/inside: nonunit fractional concave loop retains world material and source ownership
+ok 12 - trim Reverse v/inside: nonunit fractional concave loop retains world material and source ownership
+  ---
+  duration_ms: 5.429583
+  type: 'test'
+  ...
+# Subtest: trim Reverse v/inside: the public 160-point producer remains admitted
+ok 13 - trim Reverse v/inside: the public 160-point producer remains admitted
+  ---
+  duration_ms: 11.892459
+  type: 'test'
+  ...
+# Subtest: trim Reverse v/outside: nonunit fractional concave loop retains world material and source ownership
+ok 14 - trim Reverse v/outside: nonunit fractional concave loop retains world material and source ownership
+  ---
+  duration_ms: 4.747709
+  type: 'test'
+  ...
+# Subtest: trim Reverse v/outside: the public 160-point producer remains admitted
+ok 15 - trim Reverse v/outside: the public 160-point producer remains admitted
+  ---
+  duration_ms: 11.354542
+  type: 'test'
+  ...
+# Subtest: trim Reverse: native Save/Open retains accepted UV, source bytes, IDs, flags and names
+ok 16 - trim Reverse: native Save/Open retains accepted UV, source bytes, IDs, flags and names
+  ---
+  duration_ms: 3.884458
+  type: 'test'
+  ...
+# Subtest: trim Reverse: unsupported supports and trim profiles refuse atomically; a valid retry works
+ok 17 - trim Reverse: unsupported supports and trim profiles refuse atomically; a valid retry works
+  ---
+  duration_ms: 45.180583
+  type: 'test'
+  ...
+# Subtest: trim Reverse: duplicate selected object IDs refuse without changing the document
+ok 18 - trim Reverse: duplicate selected object IDs refuse without changing the document
+  ---
+  duration_ms: 0.227417
+  type: 'test'
+  ...
+# Subtest: direct geometry: a .barocad source imports as curve and surface objects that display
+ok 19 - direct geometry: a .barocad source imports as curve and surface objects that display
+  ---
+  duration_ms: 12.398333
+  type: 'test'
+  ...
+# Subtest: direct geometry: curve tools split, reverse, join, refine and edit poles
+ok 20 - direct geometry: curve tools split, reverse, join, refine and edit poles
+  ---
+  duration_ms: 23.538334
+  type: 'test'
+  ...
+# Subtest: direct geometry: surface tools split, extract, reverse, refine; curves make ruled and swept surfaces
+ok 21 - direct geometry: surface tools split, extract, reverse, refine; curves make ruled and swept surfaces
+  ---
+  duration_ms: 47.639833
+  type: 'test'
+  ...
+# Subtest: direct geometry: lengths, curvature and IGES
+ok 22 - direct geometry: lengths, curvature and IGES
+  ---
+  duration_ms: 5.313708
+  type: 'test'
+  ...
+# Subtest: direct geometry: move, rotate and scale in place; duplicate and rename
+ok 23 - direct geometry: move, rotate and scale in place; duplicate and rename
+  ---
+  duration_ms: 4.01475
+  type: 'test'
+  ...
+# Subtest: direct geometry: a loft through three curves of one degree and knots
+ok 24 - direct geometry: a loft through three curves of one degree and knots
+  ---
+  duration_ms: 6.149166
+  type: 'test'
+  ...
+# Subtest: IGES: written curves and surfaces read back as the same geometry; a file it cannot read is refused
+ok 25 - IGES: written curves and surfaces read back as the same geometry; a file it cannot read is refused
+  ---
+  duration_ms: 5.706416
+  type: 'test'
+  ...
+# Subtest: direct: a curve raised a degree keeps its shape; a surface shows isocurves of both families
+ok 26 - direct: a curve raised a degree keeps its shape; a surface shows isocurves of both families
+  ---
+  duration_ms: 5.446417
+  type: 'test'
+  ...
+# Subtest: direct: stretch by axis and shear copy the geometry by the affine map about its centre
+ok 27 - direct: stretch by axis and shear copy the geometry by the affine map about its centre
+  ---
+  duration_ms: 3.045708
+  type: 'test'
+  ...
+# Subtest: direct: a loft through curves of different degrees and knots makes them alike first
+ok 28 - direct: a loft through curves of different degrees and knots makes them alike first
+  ---
+  duration_ms: 19.747958
+  type: 'test'
+  ...
+# Subtest: curves made in the studio: a sketch outline, a circle and model edges as exact curves
+ok 29 - curves made in the studio: a sketch outline, a circle and model edges as exact curves
+  ---
+  duration_ms: 54.207042
+  type: 'test'
+  ...
+# Subtest: direct: a curve's crossings with a plane; two surfaces' intersection curve; a point in or out of a body
+ok 30 - direct: a curve's crossings with a plane; two surfaces' intersection curve; a point in or out of a body
+  ---
+  duration_ms: 95.533667
+  type: 'test'
+  ...
+# Subtest: direct geometry: poles listed by key and moved one at a time
+ok 31 - direct geometry: poles listed by key and moved one at a time
+  ---
+  duration_ms: 3.749292
+  type: 'test'
+  ...
+# Subtest: Sweep along a picked curve: the newest sketch carried along it, a bent rod of the area times the path
+ok 32 - Sweep along a picked curve: the newest sketch carried along it, a bent rod of the area times the path
+  ---
+  duration_ms: 224.06325
+  type: 'test'
+  ...
+# Subtest: trim by a loop: a circle above the panel cuts a hole (or keeps the disc); the support stays whole
+ok 33 - trim by a loop: a circle above the panel cuts a hole (or keeps the disc); the support stays whole
+  ---
+  duration_ms: 97.154792
+  type: 'test'
+  ...
+1..33
+# tests 33
+# suites 0
+# pass 33
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 760.434375

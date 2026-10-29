@@ -1,0 +1,71 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": {},
+  "nodes": [
+    {
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [
+        80,
+        -3
+      ],
+      "max": [
+        92,
+        4
+      ],
+      "id": "n0"
+    },
+    {
+      "kind": "extrude",
+      "sketch": 0,
+      "height": 5,
+      "from": 1,
+      "id": "n1",
+      "made": {
+        "command": "box",
+        "values": {
+          "w": 12,
+          "d": 7,
+          "h": 5,
+          "x": 80,
+          "y": -3,
+          "z": 1
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "b1": {
+      "node": 1,
+      "side": "solid"
+    }
+  },
+  "nextId": 2,
+  "direct": {
+    "sources": {
+      "src_1": "@model d337 { version:0; length-unit:mm;\n @surface #panel { type:nurbs; degree-u:1; degree-v:1; knots-u:[-2,-2,6,6]; knots-v:[1,1,7,7]; control-points:[[[10,-6,3],[10,24,3]],[[50,-6,3],[50,24,3]]]; weights:[[1,1],[1,1]]; }\n @curve #hole { type:nurbs; degree:1; knots:[0,0,1,2,3,4,5,6,6]; control-points:[[15,-1,3],[30,-1,3],[30,4,3],[22,4,3],[22,12,3],[15,12,3],[15,-1,3]]; weights:[1,1,1,1,1,1,1]; }\n @surface #wall { type:nurbs; degree-u:1; degree-v:1; knots-u:[0,0,1,1]; knots-v:[0,0,1,1]; control-points:[[[20,-8,-2],[20,-8,8]],[[20,26,-2],[20,26,8]]]; weights:[[1,1],[1,1]]; }\n}"
+    },
+    "objects": [
+      {
+        "id": "obj_1",
+        "name": "D337 · panel",
+        "source": "src_1",
+        "geometry": "panel"
+      },
+      {
+        "id": "obj_2",
+        "name": "D337 · hole",
+        "source": "src_1",
+        "geometry": "hole"
+      },
+      {
+        "id": "obj_3",
+        "name": "D337 · wall",
+        "source": "src_1",
+        "geometry": "wall"
+      }
+    ]
+  }
+}

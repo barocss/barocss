@@ -1,0 +1,64 @@
+{
+  "status": "FAIL",
+  "profiles": [
+    "rectangle-outside",
+    "rectangle-inside",
+    "concave-outside",
+    "nonplanar-refusal"
+  ],
+  "backend": "webgpu",
+  "states": [],
+  "refusals": [],
+  "errors": [],
+  "consoleErrors": [],
+  "changes": [],
+  "downloads": [],
+  "files": [],
+  "cleanup": [],
+  "limits": [
+    "Main trim metadata comes from actual public UI Trim by the curve (160 samples).",
+    "World polygon material is separate from sampled display mesh and solid mass.",
+    "Native semantic equality includes exact accepted UV, flags, object IDs and source bytes; hashes are provenance only."
+  ],
+  "sourceBefore": {
+    "apps/cad-studio/src/App.tsx": "7b77b98d715d8018a861e500f2607b50d2a09a49c01b78398a68efbd3a220a77",
+    "apps/cad-studio/src/ui/DirectInspector.tsx": "01926adf85aa8c05645f6a24743c8f2dcfb1ba066bb1b83c7808985293b81ebc",
+    "apps/cad-studio/src/ui/DirectPanel.tsx": "705eb1397edfa07e294ba6d91d4da275dbca66ea8f6e848f3d69a5e4b0707adc",
+    "apps/cad-studio/test/trimmed-surface-reverse-browser.mjs": "4c289f0d70b15d6c7cc93750df6d15e02c9dc7206b131348464b217f8e841ed3",
+    "apps/cad-studio/vite.config.ts": "67b607e6374107bf07c232ad7ebe46a9f93e0d3bce887579c3d46ed363be5407",
+    "packages/barocss-cad-model/dist/engine/direct.js": "ABSENT",
+    "packages/barocss-cad-model/src/engine/direct.ts": "015b03b810c0754b187409a4c1b459d3209f15a6249085802934b5301449dd05",
+    "packages/barocss-cad-model/src/engine/trim.ts": "d8d0e4f6b1468381cf5baa0960ceea1042678037c2b1a1f9b9ed154b4bdc9467",
+    "packages/barocss-cad/dist/index.js": "5637c4cc06d7ed87c70df61afac5fb5c8df2daf6016a36b8c4d18258fdfedc59"
+  },
+  "independentOracle": [
+    {
+      "file": "/tmp/d337-plan/independent-oracle.py",
+      "sha256": "c3f64d599063d5b162ccacb09c762a5e41c0c20fabe596431fea8caf827268a0",
+      "scope": "Planning arithmetic reference; browser claims require actual captured geometry"
+    },
+    {
+      "file": "/tmp/d337-plan/independent-oracle.json",
+      "sha256": "8442d7276e516b1ea05050f63263ad5fc414f31b6e6e0ad1b6664c5047ce4728",
+      "scope": "Planning arithmetic reference; browser claims require actual captured geometry"
+    }
+  ],
+  "seed": {
+    "file": "/tmp/d337-studio/run-01/seed.bcad",
+    "sha256": "ee1d4c3e74ca5b36d8807a34c52aa987a52467a1249c0ce163dbe69c66bdfbc2",
+    "trimAuthorship": "Actual public Studio Trim by the curve only"
+  },
+  "failure": "Error: ENOENT: no such file or directory, open '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/d337-untrimmed-seed.ts'\n    at async open (node:internal/fs/promises:641:25)\n    at async readFile (node:internal/fs/promises:1245:14)\n    at async capsule (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/trimmed-surface-reverse-browser.mjs:238:31)\n    at async file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/trimmed-surface-reverse-browser.mjs:281:25",
+  "sourceAfterCleanup": {
+    "apps/cad-studio/src/App.tsx": "7b77b98d715d8018a861e500f2607b50d2a09a49c01b78398a68efbd3a220a77",
+    "apps/cad-studio/src/ui/DirectInspector.tsx": "01926adf85aa8c05645f6a24743c8f2dcfb1ba066bb1b83c7808985293b81ebc",
+    "apps/cad-studio/src/ui/DirectPanel.tsx": "705eb1397edfa07e294ba6d91d4da275dbca66ea8f6e848f3d69a5e4b0707adc",
+    "apps/cad-studio/test/trimmed-surface-reverse-browser.mjs": "4c289f0d70b15d6c7cc93750df6d15e02c9dc7206b131348464b217f8e841ed3",
+    "apps/cad-studio/vite.config.ts": "67b607e6374107bf07c232ad7ebe46a9f93e0d3bce887579c3d46ed363be5407",
+    "packages/barocss-cad-model/dist/engine/direct.js": "ABSENT",
+    "packages/barocss-cad-model/src/engine/direct.ts": "015b03b810c0754b187409a4c1b459d3209f15a6249085802934b5301449dd05",
+    "packages/barocss-cad-model/src/engine/trim.ts": "d8d0e4f6b1468381cf5baa0960ceea1042678037c2b1a1f9b9ed154b4bdc9467",
+    "packages/barocss-cad/dist/index.js": "5637c4cc06d7ed87c70df61afac5fb5c8df2daf6016a36b8c4d18258fdfedc59"
+  },
+  "phase": "seed generation"
+}

@@ -3,6 +3,14 @@
 The owner asked: "지금까지 하던거 멈추고 인수인계 할 수 있도록 해줘". This note lets the next session continue the
 kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-10-27 to 2026-10-28.
 
+## Latest D337 checkpoint — 2026-10-30
+
+- D337 adds trim-preserving Reverse for one simple stored 3..160-point loop on an exact affine degree1x1 equal-positive-weight plane. Both axes, both keep flags and nonunit domains use exact reflection followed by one nearest rounding under the original separate 1e-7 UV/world limits. Curved, multiple-loop, malformed and failed topology/binding inputs still refuse atomically.
+- Feature source `481105e400d713e2b79f7160c307836fc65bd13a`; driver-only correction `7cd5726657b7823356f213dbe8e35c40422499d2`. [Qualification](../trimmed-surface-reverse-2026-10-30/qualification.json). New Kernel8/related19, full Kernel2237 PASS/0 FAIL/6 existing SKIP, related Model33, both types, lint and Studio build pass. API inventory adds7/removes0/changes0 and its existing six-rule check passes. High geometry review reports no required source findings; reviewer runtime is NOT_RUN.
+- Preserve run-01 FAIL before browser launch: evidence collection tried to read a virtual esbuild stdin file. After its driver correction, run-02 is one clean actual Chrome WebGPU full-flow PASS: one browser, six serial contexts,29 observations, public Trim-by-curve160 outside/inside/concave, U/V Reverse, Undo/Redo, native Save/fresh Open/reselection, four refusal actions and a valid retry. No page/console errors or source changes. The720 listed source inputs match before/after; this is not the complete served graph.
+- Actual IGES/Thicken/Sew refusals remain after successful trim-preserving Reverse; no document/selection/download/Undo allocation occurs on refusal. Rectangle material areas1100/100 and actual concave stored hole130.95906250000002 remain distinct from ideal authored131 and sampled display meshes. Witness volume420/centroid[86,0.5,3.5] stays unchanged. Surface solid mass is NOT_APPLICABLE.
+- Continue remaining08 before09. Next candidate: public whole-surface snapshot Thicken facade and its editable Model/Studio consumer; existing Core/DirectInspector Thicken is already implemented. General curved/multi-loop trim mapping, clipping and trimmed solids remain open. Next decision:D338. Existing12/O9/R4 source-only stale-export candidate and queued Electron15 retain their priorities. Normal per-feature push is authorized; no PR/release.
+
 ## Latest D336 checkpoint — 2026-10-30
 
 - D336 prevents silent trim loss at existing direct-surface Reverse/Split/Region/Extend, surface intersection and visible IGES export. These inputs now refuse before a partial result, selection change or file download. Explicit Untrim and ordinary untrimmed operations remain available. This adds no trim mapping or clipping support.
