@@ -1,0 +1,12 @@
+SAME source surface case0 degree1 controls17 rationalU=false max=4.440892098500626e-16
+SAME source surface case1 degree1 controls64 rationalU=false max=6.661338147750939e-16
+SAME source surface case2 degree2 controls17 rationalU=false max=6.661338147750939e-16
+SAME source surface case3 degree2 controls64 rationalU=false max=6.661338147750939e-16
+SAME source surface case4 degree3 controls17 rationalU=false max=6.661338147750939e-16
+SAME source surface case5 degree3 controls64 rationalU=false max=1.1102230246251565e-15
+SAME source surface case6 degree4 controls17 rationalU=false max=1.1102230246251565e-15
+SAME source surface case7 degree4 controls64 rationalU=false max=1.1102230246251565e-15
+SAME source surface case8 degree5 controls17 rationalU=false max=6.661338147750939e-16
+SAME source surface case9 degree5 controls64 rationalU=false max=1.3322676295501878e-15
+SAME source surface case10 degree3 controls17 rationalU=true max=1.3322676295501878e-15
+SAME source surface case11 degree3 controls64 rationalU=true max=1.7763568394002505e-15

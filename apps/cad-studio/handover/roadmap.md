@@ -4,8 +4,8 @@
 
 The owner's order for `local/cad-dev` in this worktree is **07 → 08 → 09**, one qualified
 feature at a time. D313's bounded cylindrical wrap is locally complete at `f29df9217`.
-D314 runtime`bb92da70b` qualifies the measured thread-quadrature slice. D315 now repairs a
-reproduced17/64-control polynomial-guide Surface mismatch before explicit-frame extension.
+D314 runtime`bb92da70b` qualifies the measured thread-quadrature slice. D315 runtime`dbfe93216` repairs the17/64-control polynomial-guide Surface/temporary Curve mismatch.
+Next is D316 raw explicit-frame guide dispatch, preserving the existing non-XY height path.
 The research reconciliation below attaches
 existing GitHub investigations to these numbered scopes; it creates no second implementation queue.
 
@@ -44,7 +44,7 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
 
 | 번호 | 작업·기존 ID | 남은 범위 | 담당·선행 조건 | 완료 조건 |
 |---|---|---|---|---|
-| 07 | Advanced modeling — CG1 | D313 runtime`f29df9217` connects one original-native-UV rectangular cylindrical pad through Part/API/Model/agent/Studio. Full kernel2187pass/0fail/6existing skips, Model1833/1833, Studio365/365, types, actual Chrome/WebGPU create/edit/Undo/Redo/Save/Open and generated/docs pass. Closed-reference mass is qualified; literal rounded-shell closure/mass and native SI remain unqualified. [Current scope and evidence](notes/cylindrical-wrap-product-2026-10-29/README.md). D314 runtime`bb92da70b` adds measured long-thread boundary-distance pruning: kernel2192pass/0fail/6existing skips, Model1833/1833, Studio365/365 and generated/docs pass; geometry/mass bits match. Next: D315 repairs the reproduced17/64-control guided Surface mismatch, then explicit-frame/remaining07 before08→09. | Kernel → Model/API → Studio. Existing bounded guided loft, Coons, variable/full-round/analytic and polynomial face fillets, draft, rib, original-font Text, +Z text relief, modeled threads and rectangular wrap are preserved (D288–D313). Remaining: polynomial guides on explicit frames; two/rational guides and smooth guided sections; general free-form/multi-span/rational face fillets; arbitrary-depth/outline/glyph/curved wrap and text shaping. Reuse existing source and selected fonts; no new runtime dependency. | One admitted feature at a time: preserve original coordinates, tolerances, references and refusal atomicity; independent geometry/mass oracles, actual public consumer and editable file flow. Performance needs measured before/after and unchanged bits or accepted shape evidence. Bounded completion does not close general families. |
+| 07 | Advanced modeling — CG1 | D313 runtime`f29df9217` connects one original-native-UV rectangular cylindrical pad through Part/API/Model/agent/Studio. Full kernel2187pass/0fail/6existing skips, Model1833/1833, Studio365/365, types, actual Chrome/WebGPU create/edit/Undo/Redo/Save/Open and generated/docs pass. Closed-reference mass is qualified; literal rounded-shell closure/mass and native SI remain unqualified. [Current scope and evidence](notes/cylindrical-wrap-product-2026-10-29/README.md). D314 runtime`bb92da70b` adds measured long-thread boundary-distance pruning: kernel2192pass/0fail/6existing skips, Model1833/1833, Studio365/365 and generated/docs pass; geometry/mass bits match. D315 runtime`dbfe93216` repairs17/64-control native surfaces and64-control inner-section cuts under unchanged caps. Related Kernel94/94, Model19, actual17/64 Studio flows and final kernel2197pass/0fail/6existing skips pass; docs/API checks pass. [Repair and evidence](notes/loft-guide-control-range-2026-10-29/README.md). Next: D316 raw explicit-frame guides, then remaining07 before08→09. | Kernel → Model/API → Studio. Existing bounded guided loft, Coons, variable/full-round/analytic and polynomial face fillets, draft, rib, original-font Text, +Z text relief, modeled threads and rectangular wrap are preserved (D288–D313). Remaining: polynomial guides on explicit frames; two/rational guides and smooth guided sections; general free-form/multi-span/rational face fillets; arbitrary-depth/outline/glyph/curved wrap and text shaping. Reuse existing source and selected fonts; no new runtime dependency. | One admitted feature at a time: preserve original coordinates, tolerances, references and refusal atomicity; independent geometry/mass oracles, actual public consumer and editable file flow. Performance needs measured before/after and unchanged bits or accepted shape evidence. Bounded completion does not close general families. |
 | 08 | Feature patterns, direct editing and surfaces — CG2 | Remaining curve/fill feature patterns and current move/delete/replace/thicken/offset/knit/trim/extend gaps. Reuse03 and existing body-copy/affine/Boolean/surface consumers; the research mapping attaches #2227/#2215 and #2032/#2036 controls. | Kernel/Model → actual Studio, after the selected07 closures. Inspect the current producer/consumer before implementing another surface command. | Distinguish body copies from repeated cut tools. Preserve source/history, dual-UV/trim ownership, exact names, ambiguous/missing references and atomic refusal; verify actual edit/file results. |
 | 09 | Advanced sketch — CG3 | Remaining spline handles, conics, text/blocks and diagnostic/edit consumers. Reuse existing solver and corrected sketch adapter; attach #2210/#2215 and #2033/#2038 controls. | Kernel/Model → actual Studio after08. Existing2D→3D/extrude-cut and dimension-expression decisions remain. | Returned geometry meets the original residual limits. Distinguish DOF, conflict, redundancy and nonconvergence; preserve authored coordinates/dimensions/references through actual constraint edit, downstream feature and Save/fresh Open. |
 | 10 | 조립 확장 — CG4 | 유연한 하위 조립, 반복 occurrence 참조, 조립 피처, 승인된 motion/대형 조립 범위. | Model/Outer + Kernel/GPU. 같은 revision의 배치/관절 기반이 선행. | 계층·part-local/world/display 변환과 반복 인스턴스를 보존한다. pose 표시를 동역학 완료로 쓰지 않는다. |
@@ -80,7 +80,7 @@ The remote research baselines predate local D313; reproduce a current gap before
 
 | Existing scope | Research inputs and deduplicated action | Required result |
 |---|---|---|
-| 07 → 08 → 09 | Reuse the bounded modeling/loft/fillet/Text/thread/wrap results. After qualified D314, repair the confirmed long-guide Surface mismatch and continue one remaining07 profile before08 patterns/direct surfaces, then09 sketch consumers. #2227/#2215 supply regression contracts; #2032/#2033/#2036/#2038 are design targets. | Kernel → Part/API/Model → actual Studio edit/Undo/file proof for the exact profile. Preserve unsupported ranges, independent geometry/mass oracles and reference/refusal semantics. Existing surface commands and body-copy patterns are not missing features. |
+| 07 → 08 → 09 | Reuse the bounded modeling/loft/fillet/Text/thread/wrap results. Reuse qualified D314/D315 and continue raw explicit-frame guide dispatch and one remaining07 profile before08 patterns/direct surfaces, then09 sketch consumers. #2227/#2215 supply regression contracts; #2032/#2033/#2036/#2038 are design targets. | Kernel → Part/API/Model → actual Studio edit/Undo/file proof for the exact profile. Preserve unsupported ranges, independent geometry/mass oracles and reference/refusal semantics. Existing surface commands and body-copy patterns are not missing features. |
 | 16 CG10/R7 | One result-acceptance ledger for [#2205](https://github.com/barocss/barocss/issues/2205), [#2210](https://github.com/barocss/barocss/issues/2210), [#2215](https://github.com/barocss/barocss/issues/2215), [#2227](https://github.com/barocss/barocss/issues/2227) and [#2228](https://github.com/barocss/barocss/issues/2228). Attach controls to the feature that owns the seam. | Distinguish existing test definitions, retained runs, reproduced gaps and inapplicable cases. Keep false-success, uncertainty/SSI/dual-UV, units and reference-evolution evidence explicit. The inventory's six-rule SCOPED_PASS is not whole API acceptance. |
 | 22 +20 | [#2188](https://github.com/barocss/barocss/issues/2188) supplies workload/async measurements; #2213 supplies GPU measurement boundaries. D314's qualified quadrature change remains a bounded measured slice. | Same inputs and original tolerances; before/after timings plus actual output equivalence. Feedback/queue/compute/validation/export and CPU/GPU/driver memory remain distinct. Reject an ineffective optimization. |
 | 12 files/recovery | #2217/#2181/#2184/#2208/#2220/#2228 share revision-bound candidate, accepted-state and resource ownership. Reuse the current implementation before selecting a missing control. | Real Save/fresh Open/re-edit and stale/cancel/failure preservation at the same source/revision. Report semantic equality and raw-byte identity separately. Current schema and existing asset-dependent JSON/package branches remain authoritative. |
@@ -96,7 +96,7 @@ state only. It does not count as a new product test run or satisfy retained proo
 
 ### Static engine-audit follow-ups — 2026-10-29
 
-The fixed-source audit at `06c33222a` supplies 15 **NOT_REPRODUCED** candidates, not 15 product failures.
+The original fixed-source audit at `06c33222a` supplies15 **NOT_REPRODUCED** candidates, not15 product failures.
 They are attached to existing areas below; no duplicate issues or task queue are created. D297 `739978a27`
 and current wrap/text-relief-rematch WIP retain separate ownership and evidence. The owner's **07 → 08 → 09**
 order is unchanged; wrap remains active. Candidate priority controls their later reproduction order only.
@@ -115,6 +115,16 @@ A10 counts remain separate: GPU default45/83, three-command union64/83, all83, u
 static file-registration counts, not executions. A13 is excluded by the public immutable-array contract.
 [Full intake and exact acceptance scopes](notes/engine-audit-intake-2026-10-29.md) preserve the audit limits,
 existing-task deduplication and deferred reproduction order. This registration runs no product checks.
+
+An independent fixed5463dbf32 execution audit subsequently reports five bounded reproductions:
+A01 [#2235](https://github.com/barocss/barocss/issues/2235) actual skeleton Save/fresh Open;
+A04 [#2236](https://github.com/barocss/barocss/issues/2236) version memoryStore canonical-key loss;
+A07 [#2237](https://github.com/barocss/barocss/issues/2237) delayed CPU readback reconstruction mock;
+A03 [#2238](https://github.com/barocss/barocss/issues/2238) actual WebGPU retained Geometry growth;
+A08 [#2239](https://github.com/barocss/barocss/issues/2239) actual display/public CPU clip mismatch.
+[Exact execution limits and remaining acceptance](notes/engine-audit-intake-2026-10-29.md)
+replace NOT_REPRODUCED only for those cases. Keep these five defect issues OPEN, separate from
+the completed research archive. This intake reran no product test and does not reorder07->08->09.
 
 ### 제품 완료와 인계의 공통 조건
 

@@ -1,0 +1,156 @@
+{
+  "work_id": "D315-loft-guide-control-range",
+  "artifact_type": "verification",
+  "status": "verified_scoped",
+  "owner_role": "geometry-reviewer",
+  "source_request": "Repair existing D288 17-64-control guide wrong-success with bounded native patches",
+  "last_updated": "2026-10-29T04:00:26.533549+00:00",
+  "baselineRuntime": "bb92da70b99114fb4e2b04149b52a3db05283804",
+  "finalSourceIdentity": "source-identity.json",
+  "checks": {
+    "node22FullBuild": "PASS",
+    "kernelLintAndCodeShape": "PASS",
+    "focusedKernel": {
+      "files": 5,
+      "pass": 94,
+      "fail": 0,
+      "skip": 0
+    },
+    "legacyWholeBitTrees": {
+      "pass": 9,
+      "fail": 0
+    },
+    "originalSurfaceOracle": {
+      "fixtures": 12,
+      "nativeObservations": 31536,
+      "maximumObservedCoordinateDifference": 1.7763568394002505e-15,
+      "lengthUnit": "mm"
+    },
+    "wholeIdealCoefficientBound": {
+      "surfaces": 168,
+      "maximumL1": {
+        "numerator": "586699257071332065833425822111",
+        "denominator": "1178313601718004231558169254481102791791083520"
+      },
+      "scope": "Whole ideal represented geometry: exact source knot restriction and unchanged positive U weights; B-spline convex hull bound. Native evaluator roundoff is separate."
+    },
+    "parentWholeKernel": {
+      "status": "PASS",
+      "total": 2203,
+      "pass": 2197,
+      "fail": 0,
+      "skip": 6,
+      "skipScope": "existing skips",
+      "durationMs": 260291.518875,
+      "log": "kernel-full-final.txt",
+      "runs": 1
+    },
+    "relatedModelConsumers": {
+      "status": "PASS",
+      "focused": {
+        "files": 2,
+        "pass": 19,
+        "fail": 0,
+        "skip": 0,
+        "durationMs": 743.48675,
+        "coverageNote": "19 distinct tests: API 7 reused from combined 19, command 12 replaced by final 12-test run; do not sum overlapping runs."
+      },
+      "types": "PASS",
+      "lint": "PASS",
+      "firstTypeFailure": "consumers/model-types-first-failure.txt",
+      "finalLogs": [
+        "consumers/model-focused.txt",
+        "consumers/model-types.txt",
+        "consumers/model-lint.txt"
+      ],
+      "exitEvidence": "Parent and Model lane report: all final commands exit 0; empty final type/lint stdout preserved byte-for-byte.",
+      "commandFinal": {
+        "pass": 12,
+        "fail": 0,
+        "skip": 0,
+        "durationMs": 370.937917,
+        "exit": 0,
+        "lint": "PASS",
+        "logs": [
+          "consumers/model-command-final.txt",
+          "consumers/model-command-lint-final.txt"
+        ]
+      },
+      "firstTypeFailureDisposition": "Two deliberate alias-isolation mutations targeted readonly typed arrays. Replaced assignments with Reflect.set, then asserted both successful return values. No geometry expectation or tolerance changed.",
+      "commands": [
+        "node scripts/test.mjs api-loft-guide loft-guide-command",
+        "node ../../node_modules/typescript/bin/tsc --noEmit -p .",
+        "node ../../node_modules/eslint/bin/eslint.js test/api-loft-guide.test.ts test/loft-guide-command.test.ts"
+      ],
+      "execution": "Node 22.19.0; serial heavy gate; final command-only test/lint rerun after return-value assertions. API 7 and final type PASS reused."
+    },
+    "actualStudioFlows": {
+      "status": "PASS",
+      "firstRun": true,
+      "cases": [
+        "starter plate loads",
+        "copied cubic guide with 17 controls",
+        "copied cubic guide with 64 controls"
+      ],
+      "renderer": "webgpu",
+      "requestedDpr": 1,
+      "display": "browser/display.json",
+      "rawLog": "browser/flow-first.txt",
+      "interactions": [
+        "real file Open",
+        "History Shift selection",
+        "Guide dropdown",
+        "preview",
+        "Apply",
+        "Undo",
+        "Redo",
+        "Save download",
+        "New part",
+        "Open saved file"
+      ],
+      "selectionStagingHook": false,
+      "invariants": [
+        "exactly one fresh body bound to new loft producer",
+        "massReady true",
+        "finite volume within 1e-9 of 7/3 mm^3",
+        "centroid within 1e-9 mm of [45/56,45/56,17/28]",
+        "no viewport error",
+        "actual preview frame change",
+        "retained source controls, knots and weights",
+        "full semantic current-schema JSON equality after asset-free Save and fresh Open"
+      ],
+      "visualReview": {
+        "reviewer": "parent",
+        "images": 6,
+        "result": "PASS: preview, applied and reopened shapes, HUD and one body for both counts"
+      },
+      "massDisplayBoundary": "The small fixture can display 0 g because the UI rounds its displayed mass. This display is separate from raw kernel mass and volume/centroid checks."
+    },
+    "parentDocsFinal": {
+      "status": "PASS",
+      "pages": 68,
+      "shots": 55,
+      "shotKiB": 4811,
+      "labels": 858,
+      "generatedChecks": 3,
+      "apiInventory": "unchanged",
+      "log": "docs-final.txt"
+    }
+  },
+  "unchangedLimits": {
+    "sourceGuideControls": 64,
+    "nativeSurfaceAxisControls": 16,
+    "numericPolicy": true,
+    "workLimits": true,
+    "tolerances": true
+  },
+  "noCommitPushPR": true,
+  "notRun": [
+    "raw explicit-frame guide adapter",
+    "additional exploratory UI checks",
+    "other DPR values",
+    "other browsers",
+    "D315 full Model and Studio unit reruns (intentional affected-scope validation; prior PASS reused; API and schema unchanged)"
+  ],
+  "runtimeCommit": "dbfe93216"
+}

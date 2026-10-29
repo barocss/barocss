@@ -1,0 +1,16 @@
+{
+  "gitHead": "5463dbf32af5dd10670badd0d334c68504615292",
+  "node": "v22.19.0",
+  "baseline": "bb92da70b99114fb4e2b04149b52a3db05283804",
+  "source": {
+    "packages/barocss-cad/src/features/loft.ts": "650b9948fe1d0a9d0302a2fdb67fd315ddee961fef560e87dd0989c321b7fae6",
+    "packages/barocss-cad/src/features/loft-nurbs-guide.ts": "28467889c6adf2b3bdee0f84eea26a9f889942ab2f7b2039923dedd2f6792add",
+    "packages/barocss-cad/src/features/loft-guide-patches.ts": "7ac400dfc17952a23315741424b3201fdd08eef24508e7b551366871683fb02b",
+    "packages/barocss-cad/test/loft-guide-control-range.test.mjs": "b71e187676266760adefbef121ddc8bcf001e8312437347ca1573d1eedd055e9"
+  },
+  "compiled": {
+    "packages/barocss-cad/dist/features/loft.js": "1e652cb8cb2f8b153bf0511ab41ac1d6622cd41bd182e6a7afbf5f685e762a00",
+    "packages/barocss-cad/dist/features/loft-nurbs-guide.js": "e988ea582b23f091dc20285c7c71b59e6db97921bd34c81a05cf71b4dc983afc",
+    "packages/barocss-cad/dist/features/loft-guide-patches.js": "4704cf3bf8e220dec87756a0459311cdc6f711f86b20fbe3e03492cc6efa0a6d"
+  }
+}

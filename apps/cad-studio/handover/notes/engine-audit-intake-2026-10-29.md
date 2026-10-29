@@ -1,7 +1,8 @@
 # Engine audit intake — 2026-10-29
 
-Status: **REGISTERED / NOT_REPRODUCED**. This note attaches 15 static candidates to existing roadmap
-areas. It does not report 15 product failures, authorize a repository rewrite, or create another task queue.
+Original intake status: **REGISTERED / NOT_REPRODUCED** for15 static candidates. The later bounded
+execution update below reports five reproduced cases at its own fixed source, not15 product failures.
+This note creates no repository rewrite or second task queue.
 A candidate's priority is the audit's reproduction priority, not a replacement for the owner's work order.
 
 ## Source and current-state boundary
@@ -30,7 +31,8 @@ A confirmed defect in the active feature is handled within that feature. Otherwi
 
 ## Mapping and bounded acceptance
 
-All 15 rows below are **NOT_REPRODUCED**. Candidate IDs are namespaced as `EA-20261029/Axx` here to
+At the original static intake, all15 rows below were **NOT_REPRODUCED**. The execution update below
+supersedes that label only for its five stated cases. Candidate IDs are namespaced as `EA-20261029/Axx` here to
 avoid confusion with older A1/A9 experiment and acceptance IDs. They are references, not new task IDs.
 Completed historical O/R/V entries keep their earlier qualification scope; these follow-ups do not reopen
 or invalidate those whole entries without current evidence. No new issue is needed for this intake.
@@ -85,3 +87,27 @@ When assigned, process one bounded candidate as current-source check → reprodu
 remote status separately; keep first failures. P1 data/lifetime checks precede lower-priority investigations
 within this audit's pending work. The active owner order07→08→09 is unchanged. No issue, cross-thread message,
 fetch, product tool run, source modification, push, PR or release was performed by this intake.
+
+
+## Independent execution update — fixed5463dbf32,2026-10-29
+
+The later audit reports were read from the actual GitHub issues and are indexed in
+[the execution-report source record](engine-audit-reproductions-2026-10-29.json). They use an isolated
+`5463dbf32af5dd10670badd0d334c68504615292` snapshot and did not modify or qualify the D315 WIP.
+This intake did not rerun their probes. The five directly affected files have no committed diff
+from that snapshot through D315 `dbfe93216`; that source comparison is not a new product run.
+Keep the owner's07->08->09 order and existing source ownership. These are new OPEN defect issues,
+separate from the already archived73-issue research intake; do not close them as research transfer.
+
+| Existing candidate / destination | Issue and executed scope reported by the audit | Remaining acceptance |
+|---|---|---|
+| A01 /09+12 | [#2235 P1](https://github.com/barocss/barocss/issues/2235): actual Studio3D sketch, real Save download and fresh browser-context Open reject unknown skeleton. File SHA25609a1e09a23c191b4ea0e0a62688b2bf208cbb16ff3512f02c76635ec9e4c7a98; prior accepted document preserved. | Current structural reader admission, stable IDs/frames/evaluation, actual Save/fresh Open/re-edit. Allow-list addition alone is not full acceptance. |
+| A04 /12 | [#2236 P2](https://github.com/barocss/barocss/issues/2236): real version API/project codec with memoryStore changes the canonical key when optional nextId is omitted. Dedicated snapshot-codec control passes. This is not UI or physical-file evidence. | Reuse the dedicated snapshot codec; preserve omission/false/0/empty data and original keys while ordinary Open normalization remains. Then validate the actual selected project flow. |
+| A07 /06+GPU R2 | [#2237 P2](https://github.com/barocss/barocss/issues/2237): real pickNow CPU reconstruction and public setInstances with delayed readback mock reproduce shrink TypeError and old-depth/current-instance mixing. Device/draw/visibility/camera preparation are stubs. | Bind instance/scene generations across await; cover replacement/reorder/shrink/remove and buffer cleanup. Actual GPU readback timing remains unexecuted by this mock. |
+| A03 /05+Viewer V1/R2 | [#2238 P1](https://github.com/barocss/barocss/issues/2238): actual Chrome156/Apple Metal WebGPU orbit32 times grows retained Geometry1->33 with one Mesh; three setView calls then clear retain36 Geometry/Mesh0; dispose reaches0. | Reuse or release owned geometry through camera/scene/clear/error/dispose cycles. Counts are private-object diagnostics, not driver-byte or OOM measurements. |
+| A08 /05+Viewer display/pick | [#2239 P2](https://github.com/barocss/barocss/issues/2239): actual WebGPU coverage9600 pixels and center RGBA remain at depth6 for near7 or far5, while public CPU pick returns null; normal clip control hits. | Align or explicitly define display/CPU/GPU clipping; test bounds and camera transitions. Whole pixel-byte equality and GPU-pick equivalence were not measured. |
+
+The same audit independently observed D315's original17/64-control constructor/mass success with
+Surface/strict/tessellation failure at the fixed baseline. It added no duplicate issue. D315's
+later source repair and actual consumer checks are a separate receipt, not supplied by that baseline.
+The remaining original audit candidates retain their original unexecuted status and scope.

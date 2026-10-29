@@ -1,0 +1,55 @@
+{
+  "retrievedDate": "2026-10-29",
+  "repository": "barocss/barocss",
+  "baseline": "5463dbf32af5dd10670badd0d334c68504615292",
+  "kind": "Independent audit execution reports, read here from the actual GitHub issues; no product probe was re-run by this intake.",
+  "issues": [
+    {
+      "number": 2235,
+      "title": "[P1] fix(cad-model): reopen skeleton documents saved by Studio",
+      "url": "https://github.com/barocss/barocss/issues/2235",
+      "state": "open",
+      "createdAt": "2026-10-29T03:54:57Z",
+      "updatedAt": "2026-10-29T03:54:57Z",
+      "comments": 0
+    },
+    {
+      "number": 2236,
+      "title": "[P2] fix(studio): preserve canonical keys when reading project snapshots",
+      "url": "https://github.com/barocss/barocss/issues/2236",
+      "state": "open",
+      "createdAt": "2026-10-29T03:54:59Z",
+      "updatedAt": "2026-10-29T03:54:59Z",
+      "comments": 0
+    },
+    {
+      "number": 2237,
+      "title": "[P2] fix(gpu): reject pick readback after instance replacement",
+      "url": "https://github.com/barocss/barocss/issues/2237",
+      "state": "open",
+      "createdAt": "2026-10-29T03:55:00Z",
+      "updatedAt": "2026-10-29T03:55:00Z",
+      "comments": 0
+    },
+    {
+      "number": 2238,
+      "title": "[P1] fix(viewer): release or reuse geometry during camera changes",
+      "url": "https://github.com/barocss/barocss/issues/2238",
+      "state": "open",
+      "createdAt": "2026-10-29T03:56:09Z",
+      "updatedAt": "2026-10-29T03:56:09Z",
+      "comments": 0
+    },
+    {
+      "number": 2239,
+      "title": "[P2] fix(viewer): align displayed clipping with public CPU picking",
+      "url": "https://github.com/barocss/barocss/issues/2239",
+      "state": "open",
+      "createdAt": "2026-10-29T03:56:11Z",
+      "updatedAt": "2026-10-29T03:56:11Z",
+      "comments": 0
+    }
+  ],
+  "separateFromArchive": "These five open defect issues are not part of the owner-authorized73-issue research archive.",
+  "executionOrder": "Attach to existing EA/numbered rows without replacing the owner's07->08->09 order."
+}

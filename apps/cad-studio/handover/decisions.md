@@ -15914,3 +15914,58 @@ and taper requests now reproduce successful construction/mass followed by strict
 tessellation failure: `Surface V control point count must be in 2..16`. The16-control controls pass.
 D315 preserves original source and caps while repairing this mismatch; explicit parallel-frame
 guide support and remaining07 follow before08->09.
+
+
+## D315 — Make the existing64-control guide contract renderable (2026-10-29)
+
+**Decision.** Runtime `dbfe93216` repairs an existing D288 wrong-success without changing public
+inputs, schema, global Curve/Surface capacities, work limits, tolerance or mass integration.
+At baseline `bb92da70b`,16-control prism/taper requests are valid. The same17/64-control requests
+construct and return mass but strict checking, native evaluation and tessellation throw
+`Surface V control point count must be in 2..16`; public Part cannot produce a usable result.
+A64-control/three-section request also hits `Curve control point count must be in 2..64` when
+whole-Curve temporary knot refinement crosses the source cap. Original recipes/B-reps/errors
+and the first probe's thrown-check harness failure are retained.
+
+Only oversized guided sides are partitioned at original knots using existing curvePiece.
+Each native child has at most16 V controls and retains its original parameter subinterval.
+Canonical ruling segments, cut vertices and boundary rows are shared by adjacent sides;
+internal rings create reciprocal shared coedges. Caps and section rings remain. Polynomial
+V rows are split with unit weights while their original positive constant U weights stay
+outside the restriction, preserving originally admitted rational-U arc sides. There is no
+fitting, flattening, degree reduction, reparameterization or global-cap bypass. Section cuts
+use direct child restrictions only when temporary whole refinement would exceed64; existing
+successful paths remain. All helpers are at module scope with no per-element callback factory.
+
+Original guide/profile/knots/weights remain copied in the recipe. guidedSpanMoments is unchanged.
+Nine original complete B-rep/name/knot/weight/coordinate/mass bit trees match, including signed
+zero. Independent homogeneous de Boor comparisons cover12 fixtures and31536 native points;
+maximum observed difference is1.7763568394002505e-15mm. A separate Python Fraction restriction
+and positive-weight convex-hull comparison bounds whole ideal coefficient-defined geometry
+for168 tested child Surfaces below5e-16mm. That bound concerns ideal stored-coefficient geometry;
+native evaluator roundoff remains a separate observation, not an all-input native error proof.
+Degrees1–5,17/64 controls, repeated/non-unit knots, nonlinear height, bows, rational-U arc sides,
+64-control three/eight-section cuts, one closed genus0 body, exact shared endpoints/coedges,
+watertight actual triangles, independent V/C/I and input/refusal atomicity pass.
+
+Final Node22 full build and lint/code-shape are reused on the frozen source. Kernel related
+five-file suite94/94 and final whole kernel2203total/2197pass/0fail/6existing skips pass;
+whole duration260291.518875ms. Model coverage19 is API7 retained plus final command12; the
+combined19 and repeated command12 are overlapping receipts, not31 unique tests. New test types
+and changed-file lint pass. The first readonly-assignment TS2540/TS2542 test diagnostics remain;
+Reflect.set plus explicit true-return assertions preserve the intended caller-mutation check.
+
+Actual Chrome/WebGPU/DPR1 normal file/History/Guide controls run17/64 first-attempt flows:
+preview, Apply, fresh producer/massReady/one body, independent V=7/3 and centroid, Undo/Redo,
+actual asset-free JSON Save/New/Open and complete guide/source preservation. Root viewed the
+six preview/applied/reopened PNGs. Tiny fixture UI mass rounds to0g; raw mass/volume/centroid
+checks are separate. Other engines/DPRs and additional exploratory browser passes are NOT_RUN.
+Model/Studio whole suites are intentionally not repeated for unchanged production contracts.
+The final kernel whole suite ran once after focused and real-consumer checks. Generated tools/
+refusals/unchanged API six-rule check and docs pass:68pages,55shots,4811KiB,858labels.
+
+Evidence: notes/loft-guide-control-range-2026-10-29/README.md. No new runtime dependency, WASM,
+lockfile/schema change, push, PR or release. Existing height-guide2–8 sections include non-XY
+common sketch planes and remain supported. Next D316 is the distinct raw explicit-frame
+polynomial-guide dispatch gap, reusing common-frame/legacy/mass providers and existing Studio
+file/profile-edit consumers, before remaining07->08->09. No new authoring mode is assumed.

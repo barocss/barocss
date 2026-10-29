@@ -232,11 +232,19 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   Studio speedup claim. Kernel2192pass/0fail/6existing skips, Model1833/1833, Studio365/365 and
   generated/docs pass. Consumer type contracts retain D313 coverage. Evidence:
   `../thread-basis-performance-2026-10-29/README.md`.
-- Next D315: repair a reproduced existing guide mismatch:17/64controls construct and return mass
-  but strict/evaluate/tessellate fail Surface V2..16;16controls pass. Preserve global/source caps
-  and legacy valid outputs, then continue explicit-frame/remaining07 before08,09. General/curved/rational/smooth wrapping, shaping/kerning/bidi/
+- D315 runtime`dbfe93216` repairs17/64-control guide sides and64-control section cuts with
+  original-knot child patches/shared topology. Global caps/tolerance/mass integration stay unchanged.
+  Kernel94/94, Model19/types/lint and actual17/64 Studio first-attempt Preview/Apply/Undo/Redo/
+  Save/New/Open pass; final kernel2197pass/0fail/6existing skips and generated/docs pass.
+  [Exact scope](../loft-guide-control-range-2026-10-29/README.md) separates native observed error,
+  ideal geometry bounds, old result-bit preservation and the original failures.
+- Verification follows changed scope: focused checks during edits, existing valid receipts reused,
+  broader packages only for a concrete risk, final kernel whole once for this geometry repair.
+  Model/Studio whole suites were not repeated for D315's unchanged production contracts.
+- Next D316: raw explicit-frame polynomial-guide dispatch, with existing height2–8/non-XY and
+  Bezier paths preserved; then remaining07 before08,09. General/curved/rational/smooth wrapping, shaping/kerning/bidi/
   normalization and D291's broader free-form/concave/multi-span ranges remain open. No feature
-  push, new PR or release. Next decision:D315.
+  push, new PR or release. Next decision:D316.
 
 The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
 
@@ -245,7 +253,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D315**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D316**).
 
 ## 0. State at the stop
 
