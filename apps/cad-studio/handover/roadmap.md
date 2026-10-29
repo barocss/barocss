@@ -1755,3 +1755,23 @@ starter pass across preserved runs; initial A6.4 dialog-driver failure and final
 separate. Initial leftover-dialog screenshots do not certify clean whole-screen acceptance. No whole
 browser/other-package/performance acceptance. Normal push follows. Resume existing A05/A06 priority;
 keep incoming DA-1a attached to existing CG5/DR1–8/O26/RS7.6, then original 07→08→09 order.
+
+
+### DA-1c supplementary fix and standalone SVG evidence — 2026-10-29
+
+Keep the [supplied report](notes/drawing-assistant-maps-intake-2026-10-29/da1c-supplement/da1c-085920.md)
+under existing CG5/DR1–8/O26/RS7.6 DA-1 and [research issue #2243](https://github.com/barocss/barocss/issues/2243#issuecomment-6492609845).
+The author reports one existing fix_drawing proposal/user acceptance and one Chrome156 standalone SVG
+session: checker issues 3→0, two 1.5 labels moved, auto d9 removed, ten retained dimensions and model
+nodes semantically preserved. Raw JSON.stringify key-order false-positive flags remain separate from
+retained-data deepStrictEqual comparison. The nine successful DA-1a check groups were not repeated.
+
+Required semantic acceptance remains OPEN: retained d3(top) references n0/n2; removed d9(right)
+references n0/n5. A shared base feature and equal axis/span do not prove equal hole-location intent.
+A separate Sol High review must establish duplicate-removal validity and dimension sufficiency using
+independent feature/geometry intent before accepting this deletion. Checker zero is not completion,
+manufacturing approval or a new confirmed defect. Manual dimensions were absent: manual-reference
+preservation NOT_TESTED. Actual Studio UI/Undo, independent numerical oracle, external PDF reader and
+post-fix native roundtrip remain unverified. Root read the full supplied report without rerunning or
+accepting its pixel/runtime claims. No immediate implementation, duplicate issue, closure or reply.
+Existing A05/A06 priority remains; schedule this semantic review with the existing drawing work.
