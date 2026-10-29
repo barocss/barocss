@@ -14,6 +14,7 @@ import { gauss } from '../core/quadrature.js';
 import type { LoftGuideFactory } from './loft-guide.js';
 import { admitNurbsGuide, type LoftNurbsGuideInput, type LoftNurbsGuideSpan } from './loft-nurbs-guide.js';
 import { orientedLoftSolid } from './oriented-loft.js';
+import { patchLoftGuideSides } from './loft-guide-patches.js';
 
 type XY = [number, number];
 type Piece = { readonly kind: 'line'; readonly a: XY; readonly b: XY } | { readonly kind: 'arc'; readonly c: XY; readonly r: number; readonly t0: number; readonly dt: number };
@@ -171,6 +172,7 @@ function legacyLoft(input: LoftInput, guideFactory?: LoftGuideFactory, nurbsGuid
   const bounds = (p: Piece[]) => { const pts = p.flatMap(q => bezier(q).p); return { min: [Math.min(...pts.map(q => q[0])) - 1, Math.min(...pts.map(q => q[1])) - 1] as XY, max: [Math.max(...pts.map(q => q[0])) + 1, Math.max(...pts.map(q => q[1])) + 1] as XY }; };
   faces.push({ id: 'bottom', surface: capSurface(bounds(sections[0]), z[0], 'bottom', false), sense: 'forward', name: `${nm}.bottom`, loops: [{ kind: 'outer', uses: Array.from({ length: n }, (_, j) => ({ edge: rid(0, n - 1 - j), sense: 'reversed' as const })) }] });
   faces.push({ id: 'top', surface: capSurface(bounds(sections[K]), z[K], 'top', true), sense: 'forward', name: `${nm}.top`, loops: [{ kind: 'outer', uses: Array.from({ length: n }, (_, j) => ({ edge: rid(K, j), sense: 'forward' as const })) }] });
+  if (nurbsSpans) patchLoftGuideSides(vertices, edges, faces);
   const brep = buildBrep({ source: { family: 'loft', id }, vertices, edges, bodies: [{ id, kind: 'solid', shells: [{ id: `${id}.shell`, faces, closed: true }] }] });
 
   // Volume integrals [V, ∫x, ∫y, ∫z, ∫x², ∫y², ∫z², ∫xy, ∫xz, ∫yz] by sections (Green's theorem along them).

@@ -277,6 +277,11 @@ Frames and guide controls are copied snapshots. A separately imported source cur
 reference. Later changes to that curve or the caller's arrays do not update the stored loft. This construction
 does not certify manufacturing suitability.
 
+A polynomial `guide: { kind: 'nurbs', degree, knots, controlPoints }` uses the separate 2–8 ruled-height-section
+path. It supports degree 1–5 and up to 64 controls under the original monotone-height and section-vertex rules.
+A common non-XY sketch plane is already supported; raw explicit section frames remain outside this general-guide
+path. The source is copied without a new schema. See the [tested polynomial example and actual Studio preview](/how/loft-sweep#one-polynomial-guide-on-height-sections).
+
 ## Direct sweep and loft surfaces
 
 `directOps` from `@barocss/cad-model/engine/direct` works on direct curves. Its sweep and loft add a

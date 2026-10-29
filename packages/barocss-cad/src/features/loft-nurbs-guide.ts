@@ -8,6 +8,7 @@ import { BrepError } from '../brep/brep-core.js';
 import { evaluateCurve, validateCurve } from '../core/math.js';
 import { evaluateCurveD1 } from '../core/derivatives.js';
 import { insertCurveKnotCoefficientsTrusted } from '../nurbs/curves/curve-knot-insertion.js';
+import { curvePiece } from '../nurbs/curves/curve-segment.js';
 import { ExtrudedProfileLimits } from './extruded-profile-solid.js';
 import type { Curve, Point } from '../types.js';
 
@@ -91,11 +92,18 @@ export function admitNurbsGuide(value: unknown, z: readonly number[], tol: numbe
     let piece = rest;
     if (k < K - 1) {
       const tk = t[k + 1], have = rest.knots.filter(x => x === tk).length;
-      const cut = have < p ? insertCurveKnotCoefficientsTrusted(rest, tk, p - have).candidate : rest, V = cut.knots;
-      const r = V.indexOf(tk);
-      piece = { ...cut, knots: [...V.slice(0, r + p), tk], controlPoints: cut.controlPoints.slice(0, r), weights: cut.weights.slice(0, r) };
-      rest = { ...cut, knots: [tk, ...V.slice(r)], controlPoints: cut.controlPoints.slice(r - 1), weights: cut.weights.slice(r - 1) };
-      through.push(cut.controlPoints[r - 1] as Point);
+      if (rest.controlPoints.length + p - have > 64) {
+        // Restrict the admitted source directly when a temporary refined whole curve would exceed its cap.
+        piece = curvePiece(rest, rest.knots[p], tk, rest.id);
+        rest = curvePiece(rest, tk, rest.knots[rest.controlPoints.length], rest.id);
+        through.push(piece.controlPoints[piece.controlPoints.length - 1] as Point);
+      } else {
+        const cut = have < p ? insertCurveKnotCoefficientsTrusted(rest, tk, p - have).candidate : rest, V = cut.knots;
+        const r = V.indexOf(tk);
+        piece = { ...cut, knots: [...V.slice(0, r + p), tk], controlPoints: cut.controlPoints.slice(0, r), weights: cut.weights.slice(0, r) };
+        rest = { ...cut, knots: [tk, ...V.slice(r)], controlPoints: cut.controlPoints.slice(r - 1), weights: cut.weights.slice(r - 1) };
+        through.push(cut.controlPoints[r - 1] as Point);
+      }
     } else through.push(P[n - 1]);
     spans.push(spanOf(piece, t[k], t[k + 1]));
   }

@@ -825,6 +825,73 @@ try {
     await iso(); await snap('cg13-reopened');
   });
 
+  for (const count of [17, 64]) await check(`D315: copied cubic guide with ${count} controls previews, applies, undoes and reopens`, async () => {
+    // Authored polynomial curve: count is the control count, not the span count.
+    const knots = [0, 0, 0, 0, ...Array.from({ length: count - 4 }, (_, i) => (i + 1) / (count - 3)), 1, 1, 1, 1];
+    const controlPoints = Array.from({ length: count }, (_, i) => [0, 0, i / (count - 1)]);
+    const weights = Array(count).fill(1);
+    const source = `@model guided { version: 0; length-unit: mm;
+      @curve #g { type: nurbs; degree: 3; knots: ${JSON.stringify(knots)};
+        control-points: ${JSON.stringify(controlPoints)}; weights: ${JSON.stringify(weights)}; }
+    }`;
+    const nodes = [0, 1].map((z, i) => ({ id: `n${i}`, kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [i + 1, i + 1],
+      plane: { origin: [0, 0, z], normal: [0, 0, 1], xAxis: [1, 0, 0] } }));
+    const input = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes, outputs: {}, nextId: 2,
+      direct: { sources: { src_0: source }, objects: [{ id: 'obj_0', name: `Cubic guide, ${count} controls`, source: 'src_0', geometry: 'g' }] } };
+    const fixture = join(out, `d315-${count}-input.bcad`); writeFileSync(fixture, JSON.stringify(input));
+    await openModel(fixture, 2); await idle(); await iso();
+    const before = await page.evaluate(() => window.__studioFrame(48));
+    for (const i of [0, 1]) await page.locator('.history .hs.sketch').nth(i).click({ modifiers: i ? ['Shift'] : [] });
+    await page.waitForFunction(() => document.querySelectorAll('.history .hs.sketch.picked').length === 2);
+    await press(' '); await page.locator('.palette input').fill('loft'); await press('Enter'); await hudReady();
+    await field('Guide (copied)').selectOption('obj_0'); await hudReady();
+    assert.match(await page.locator('.hud').innerText(), /must pass through a vertex of each section/);
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    assert.equal(await page.locator('.vp-error').count(), 0);
+    await iso();
+    const preview = await page.evaluate(() => window.__studioFrame(48));
+    assert.ok(before && preview && preview.length === before.length, 'the renderer returns actual frames');
+    let changed = 0;
+    for (let i = 0; i < preview.length; i += 3) if (Math.abs(preview[i] - before[i]) + Math.abs(preview[i + 1] - before[i + 1]) + Math.abs(preview[i + 2] - before[i + 2]) > 48) changed++;
+    assert.ok(changed > 48 * 48 * 0.005, 'the solid preview changes the sketch-only frame');
+    await snap(`d315-${count}-preview`);
+    await page.locator('.hud button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'loft', null, { timeout: 30000 });
+    const accepted = await doc(), producer = accepted.nodes.length - 1, node = accepted.nodes[producer];
+    assert.deepEqual(node.guide, { kind: 'nurbs', degree: 3, knots, controlPoints });
+    assert.deepEqual(node.from, [0, 1]); assert.deepEqual(node.sections.map(section => section.z), [0, 1]);
+    assert.deepEqual(accepted.direct, input.direct, 'the authored source retains every control, knot and weight');
+    // The square side is 1 + z: integral from 0 to 1 of (1 + z)^2 is 7/3.
+    const ready = async () => {
+      await page.waitForFunction(({ producer, count }) => {
+        const state = window.__studioBodies?.(), node = window.__studioDoc.nodes[producer];
+        if (!state?.fresh || state.massReady !== true || state.bodies.length !== 1 || node?.guide?.controlPoints.length !== count) return false;
+        const body = state.bodies[0];
+        return body.key === `b${producer}` && Number.isFinite(body.volume) && Math.abs(body.volume - 7 / 3) < 1e-9;
+      }, { producer, count }, { timeout: 30000 });
+      const state = await page.evaluate(() => window.__studioBodies());
+      assert.equal(state.bodies.length, 1); assert.equal(state.bodies[0].key, `b${producer}`);
+      assert.ok(Math.abs(state.bodies[0].volume - 7 / 3) < 1e-9);
+      assert.ok(state.bodies[0].centroid?.every((v, i) => Math.abs(v - [45 / 56, 45 / 56, 17 / 28][i]) < 1e-9));
+      assert.equal(await page.locator('.vp-error').count(), 0); assert.match(await outliner(), /1 body/);
+    };
+    await ready(); await iso(); await snap(`d315-${count}-applied`);
+    await press('Escape'); await press('Meta+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && window.__studioBodies?.().fresh && window.__studioBodies().bodies.length === 0, null, { timeout: 30000 });
+    assert.deepEqual((await doc()).direct, input.direct);
+    await press('Meta+Shift+z'); await ready();
+    assert.deepEqual((await doc()).nodes, accepted.nodes);
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+    const file = join(out, `d315-${count}-saved.bcad`); await saved.saveAs(file);
+    const savedDoc = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readFileSync(file)));
+    assert.deepEqual(savedDoc, JSON.parse(JSON.stringify(accepted)), 'asset-free Save preserves the complete current-schema JSON document');
+    await page.click('[aria-label="New part"]');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 0 && window.__studioBodies?.().fresh && window.__studioBodies().bodies.length === 0, null, { timeout: 30000 });
+    await openModel(file, accepted.nodes.length); await ready();
+    assert.deepEqual(await doc(), accepted);
+    await iso(); await snap(`d315-${count}-reopened`);
+  });
+
   await check('CG1 freeform: Face fillet on a quintic guided loft previews, applies and reopens', async () => {
     const input = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [
       { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [20, 20] },

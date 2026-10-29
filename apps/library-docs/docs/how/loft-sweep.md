@@ -164,6 +164,37 @@ sketches by height. Later edits of the direct curve do not change the loft. A si
 keeps the existing framed guide path below. Two guides, smooth guided sections, rational guides and general guides
 on explicit frames remain unsupported.
 
+Large polynomial guides keep the same source and input limit. Guided sides with more than 16 controls are split
+at existing knots into patches with at most 16 controls along V. Adjacent patches share their boundary edges and
+vertices. The original guide still supplies the mass integrals. This also handles 64-control guides crossing inner
+sections without increasing the Curve or Surface limits. Existing valid small-guide results are unchanged.
+
+The height path already supports a common non-XY sketch plane. This differs from raw explicit section frames;
+general polynomial guides on that separate frame path remain unsupported.
+
+The Model facade accepts the same polynomial guide. This tested example makes a square frustum with volume 7/3 mm³:
+
+```ts
+import { part, sketch } from '@barocss/cad-model/api';
+
+const count = 17;
+const knots = [0, 0, 0,
+  ...Array.from({ length: count - 3 }, (_, i) => (i + 1) / (count - 2)),
+  1, 1, 1];
+const controlPoints = Array.from({ length: count }, (_, i): [number, number, number] =>
+  [0, 0, (knots[i + 1] + knots[i + 2]) / 2]);
+const model = part('Polynomial guide').loft([
+  { sketch: sketch().rectangle({ w: 1, d: 1 }), z: 0 },
+  { sketch: sketch().rectangle({ w: 2, d: 2 }), z: 1 },
+], { guide: { kind: 'nurbs', degree: 2, knots, controlPoints } });
+```
+
+The actual Studio example below uses a 64-control cubic guide and the same physical frustum. The unit-scale
+fixture has a nonzero mass below the inspector's displayed precision; native volume and centroid are checked
+separately. This screenshot is an actual preview, not a generated design target.
+
+![Studio previews a copied 64-control cubic guide between two square sections](/shots/studio/loft-polynomial-64.png)
+
 ### Sections on frames, twist and guides
 
 A section can be placed on an explicit frame instead of a height: an origin and two unit, perpendicular axes (checked to
@@ -215,7 +246,8 @@ All paths are under `packages/barocss-cad/src/`.
 | `brep/brep-glue.ts` | `glueAtSharedFace`: two bodies joined along a shared section |
 | `features/loft.ts` | `loftSolid`: pieces, turn, degree match, ruled sides (`legacyLoft`), smooth sides (`smoothLoft`), their mass integrals |
 | `features/oriented-loft.ts`, `features/curved-loft.ts`, `features/framed-mixed-loft.ts` | Lofts on frames: polygons with their fold certificates, conics, mixed loops |
-| `features/loft-nurbs-guide.ts` | Polynomial guide admission, section crossings, chord elevation and per-span mass integrals |
+| `features/loft-nurbs-guide.ts` | Polynomial guide admission, bounded section crossings, chord elevation and per-span mass integrals |
+| `features/loft-guide-patches.ts` | Split oversized guided sides at native knots with shared ruling segments and interior rings |
 | `features/loft-guide.ts` | `admitLoftGuide`: the quadratic and cubic seam guides and their offsets |
 | `nurbs/surfaces/compatible-ruled-surface.ts`, `nurbs/surfaces/rational-ruled-surface.ts` | Ruled surfaces between two compatible sections |
 | `features/section-knot-alignment.ts` | `buildAlignedRationalRuledSurface`: knot union, insertion, ruled |
