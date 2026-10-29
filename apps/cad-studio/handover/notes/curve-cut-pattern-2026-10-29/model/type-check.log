@@ -1,0 +1,4 @@
+
+> @barocss/cad-model@0.0.0-experimental type-check /Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model
+> tsc --noEmit -p .
+
