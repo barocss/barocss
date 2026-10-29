@@ -93,7 +93,7 @@ export function editFields(nodes: Nodes, i: number, params?: Record<string, numb
     set: (n, v) => within(params, () => f.set(n, v)).value,
     param: (n: Nodes) => { const r = within(params, () => f.get(n)); return r.seen.length === 1 ? r.seen[0] : null; },
     bind: (n: Nodes, name: string) => {
-      if (n[i]?.kind === 'linear-feature-pattern' && f.key === 'count') return null;
+      if ((n[i]?.kind === 'linear-feature-pattern' && f.key === 'count') || (n[i]?.kind === 'rectangular-feature-pattern' && (f.key === 'count' || f.key === 'count2'))) return null;
       if (!(name in params)) return null;
       const next = within(params, () => f.set(n, params[name])).value;
       // (The value must land as it is in one place: then that place holds the reference.)
@@ -551,6 +551,14 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       out.push({ kind: 'choice', key: 'plane', label: 'Plane', options: [{ value: 'yz', label: 'YZ' }, { value: 'xz', label: 'XZ' }, { value: 'xy', label: 'XY' }], get: n => self<typeof node>(n).plane, set: (n, v) => replace(n, i, { ...self<typeof node>(n), plane: v as typeof node.plane }) });
       break;
     case 'scale': number('k', 'Factor', undefined, n => (n as typeof node).factor, (n, v) => ({ ...(n as typeof node), factor: v })); break;
+    case 'rectangular-feature-pattern':
+      out.push({ kind: 'choice', key: 'axis', label: 'First direction', options: axes(['x', 'y', 'z']), get: n => self<typeof node>(n).axis, set: (n, v) => replace(n, i, { ...self<typeof node>(n), axis: v as Axis }) });
+      number('spacing', 'First spacing', 'mm', n => num((n as typeof node).spacing), (n, v) => ({ ...(n as typeof node), spacing: v }));
+      number('count', 'First count', undefined, n => (n as typeof node).count, (n, v) => ({ ...(n as typeof node), count: v }));
+      out.push({ kind: 'choice', key: 'axis2', label: 'Second direction', options: axes(['x', 'y', 'z']), get: n => self<typeof node>(n).axis2, set: (n, v) => replace(n, i, { ...self<typeof node>(n), axis2: v as Axis }) });
+      number('spacing2', 'Second spacing', 'mm', n => num((n as typeof node).spacing2), (n, v) => ({ ...(n as typeof node), spacing2: v }));
+      number('count2', 'Second count', undefined, n => (n as typeof node).count2, (n, v) => ({ ...(n as typeof node), count2: v }));
+      break;
     case 'linear-feature-pattern':
       out.push({ kind: 'choice', key: 'axis', label: 'Direction', options: axes(['x', 'y', 'z']), get: n => self<typeof node>(n).axis, set: (n, v) => replace(n, i, { ...self<typeof node>(n), axis: v as Axis }) });
       number('spacing', 'Spacing', 'mm', n => num((n as typeof node).spacing), (n, v) => ({ ...(n as typeof node), spacing: v }));

@@ -783,6 +783,27 @@ const allCommands: Command[] = [
     },
   },
   {
+    id: 'rectangular-feature-pattern', label: 'Rectangular cut pattern', icon: 'cad-pattern-linear', hint: 'Repeat the cut along two global axes', group: 'pattern', keywords: 'feature cut repeat subtract',
+    available: ctx => { const why = linearCutProblem(ctx); return why ? no(why.message) : ok; },
+    fields: () => [{ key: 'axis', label: 'First direction', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] },
+      { key: 'spacing', label: 'First spacing', kind: 'mm', min: 0, max: 10000 }, { key: 'count', label: 'First count', kind: 'count', min: 1, max: 64 },
+      { key: 'axis2', label: 'Second direction', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] },
+      { key: 'spacing2', label: 'Second spacing', kind: 'mm', min: 0, max: 10000 }, { key: 'count2', label: 'Second count', kind: 'count', min: 1, max: 64 }],
+    defaults: () => ({ axis: 'x', spacing: 16, count: 3, axis2: 'y', spacing2: 16, count2: 2 }),
+    build: (ctx, v) => {
+      const why = linearCutProblem(ctx); if (why) throw why;
+      const axis = v.axis, spacing = Number(v.spacing), count = Number(v.count);
+      const axis2 = v.axis2, spacing2 = Number(v.spacing2), count2 = Number(v.count2);
+      if (axis !== 'x' && axis !== 'y' && axis !== 'z') throw refusal('VALUE', 'Direction must be X, Y or Z.');
+      if (!Number.isFinite(spacing) || spacing <= 0 || spacing > 10000) throw refusal('VALUE', 'Spacing must be positive and at most 10000 mm.');
+      if (!Number.isInteger(count) || count < 1 || count > 64) throw refusal('VALUE', 'Count must be a whole number from 1 to 64, including the original cut.');
+      if (axis2 !== 'x' && axis2 !== 'y' && axis2 !== 'z' || axis === axis2) throw refusal('VALUE', 'Select two different global directions X, Y or Z.');
+      if (!Number.isFinite(spacing2) || spacing2 <= 0 || spacing2 > 10000) throw refusal('VALUE', 'Second spacing must be positive and at most 10000 mm.');
+      if (!Number.isInteger(count2) || count2 < 1 || count2 > 64 || !Number.isSafeInteger(count * count2) || count * count2 > 64) throw refusal('VALUE', 'Each count must be from 1 to 64, and their product must be at most 64, including the original cut.');
+      return withNode(ctx.doc, { kind: 'rectangular-feature-pattern', parent: refOf(oneBody(ctx)!), axis, spacing, count, axis2, spacing2, count2 });
+    },
+  },
+  {
     id: 'linear-pattern', label: 'Linear pattern', icon: 'cad-pattern-linear', hint: 'Copies of a body in a row', shortcut: 'P', group: 'pattern', keywords: 'array repeat copy',
     available: ctx => oneBody(ctx) ? ok : no('Select one body to pattern.'),
     fields: () => [{ key: 'axis', label: 'Direction', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] },

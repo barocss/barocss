@@ -11,7 +11,7 @@ export { BarocssError, type FacadeCode, type RefusalWhere } from './refusal';
 export type { LibraryPartInput } from './library';
 export { Plane, Location, Sketch, sketch, param, withParameters, type PlaneData, type PoseData, type SketchData, type Param, type Dim, type FeatureInfo } from '@barocss/cad/api';
 export type {
-  BoxOptions, CylinderOptions, ExtrudeOptions, RevolveOptions, HoleOptions, FilletOptions, ChamferOptions, ShellOptions, LinearPatternOptions, CircularPatternOptions, Density, Tool,
+  BoxOptions, CylinderOptions, ExtrudeOptions, RevolveOptions, HoleOptions, FilletOptions, ChamferOptions, ShellOptions, LinearPatternOptions, RectangularFeaturePatternOptions, CircularPatternOptions, Density, Tool,
 } from '@barocss/cad/api';
 export { Robot, RobotPath } from './robot';
 export { assembly, Assembly, type MateEnd, type MateOptions, type FrameOptions } from './assembly';

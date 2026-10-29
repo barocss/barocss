@@ -79,6 +79,7 @@ const BINDS: Record<string, Record<string, readonly [node: number, field: string
   shell: { t: [0, 't'] },
   'linear-pattern': { spacing: [0, 'spacing'], count: [0, 'count'] },
   'linear-feature-pattern': { spacing: [0, 'spacing'] },
+  'rectangular-feature-pattern': { spacing: [0, 'spacing'], spacing2: [0, 'spacing2'] },
   scale: { factor: [0, 'k'] },
   split: { at: [0, 'at'] },
 };

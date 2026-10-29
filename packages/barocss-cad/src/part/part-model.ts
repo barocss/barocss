@@ -180,6 +180,8 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'linear-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number }
   /** Repeat the tool of the active difference producer; count includes the original cut. */
   | { readonly kind: 'linear-feature-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number }
+  /** Repeat an active difference tool on two distinct global axes; both counts include the original cut. */
+  | { readonly kind: 'rectangular-feature-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number; readonly axis2: CadPartAxis; readonly spacing2: CadPartDim; readonly count2: number }
   /** Copies k·angle about the axis through `pivot` (about X or Y: multiples of 90°). */
   | { readonly kind: 'circular-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly angle: number; readonly count: number; readonly pivot?: CadPartPoint3 }
   /**
@@ -1038,17 +1040,17 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
     };
     const cutSource: Tools['cutSource'] = r => {
       const selected = ref(r, 'target'), author = doc.features.find(f => f.id === selected.id);
-      if (author?.kind !== 'difference') return fail('REFERENCE', 'linear feature pattern target must be a direct difference result');
-      if ('suppressed' in author && author.suppressed) return fail('REFERENCE', 'linear feature pattern target must be an unsuppressed difference');
+      if (author?.kind !== 'difference') return fail('REFERENCE', 'feature pattern target must be a direct difference result');
+      if ('suppressed' in author && author.suppressed) return fail('REFERENCE', 'feature pattern target must be an unsuppressed difference');
       const used = consumed.get(selected.id);
-      if (used === 'all' || used?.has(0)) return fail('REFERENCE', 'linear feature pattern target must still be active');
-      if (selected.result.kind !== 'solid' || selected.result.parts.length !== 1 || empty(selected.result.parts[0].solid)) return fail('REFERENCE', 'linear feature pattern target must be one nonempty solid');
+      if (used === 'all' || used?.has(0)) return fail('REFERENCE', 'feature pattern target must still be active');
+      if (selected.result.kind !== 'solid' || selected.result.parts.length !== 1 || empty(selected.result.parts[0].solid)) return fail('REFERENCE', 'feature pattern target must be one nonempty solid');
       // One Part may hold several B-rep bodies; count the existing representation without mutating the cached Part.
       const selectedBrep = brepOf({ solid: selected.result.parts[0].solid }, selected.id);
-      if (selectedBrep.bodies.length !== 1 || selectedBrep.bodies[0].kind !== 'solid') return fail('REFERENCE', 'linear feature pattern target must be one nonempty solid');
+      if (selectedBrep.bodies.length !== 1 || selectedBrep.bodies[0].kind !== 'solid') return fail('REFERENCE', 'feature pattern target must be one nonempty solid');
       // Resolve the original operands as dependencies; never replace or truncate their history.
       const base = solids(author.target, 'difference target', true), tool = solids(author.tool, 'difference tool', true);
-      if (base.length !== 1) return fail('REFERENCE', 'linear feature pattern difference must have one base solid');
+      if (base.length !== 1) return fail('REFERENCE', 'feature pattern difference must have one base solid');
       return { seed: solids(r, 'target')[0], tool };
     };
 
@@ -1896,6 +1898,28 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         return one(cut);
       };
     }
+    case 'rectangular-feature-pattern': {
+      const axis = axisOf(f.axis), axis2 = axisOf(f.axis2);
+      if (axis === axis2) fail('INPUT', 'rectangular feature pattern axes must be distinct');
+      const spacing = dim(f.spacing as CadPartDim, 'spacing'), spacing2 = dim(f.spacing2 as CadPartDim, 'spacing2');
+      if (spacing === 0 || spacing2 === 0) fail('PARAMETER', 'rectangular feature pattern spacing must not be zero');
+      const count = integer(f.count, 'count', 1, CadPartLimits.copies), count2 = integer(f.count2, 'count2', 1, CadPartLimits.copies);
+      const cells = count * count2;
+      if (!Number.isSafeInteger(cells) || cells > CadPartLimits.copies) fail('INPUT', `rectangular feature pattern must have at most ${CadPartLimits.copies} cells`);
+      const { seed, tool } = t.cutSource(f.target), first = 'xyz'.indexOf(axis), second = 'xyz'.indexOf(axis2);
+      const matrix: BrepAffine['matrix'] = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+      return () => {
+        if (cells === 1 || !tool.length) return { kind: 'solid', parts: [seed] };
+        const joined = unionAll(tool.map(p => p.solid), at);
+        let cut = seed.solid;
+        for (let j = 0; j < count2; j++) for (let i = 0; i < count; i++) {
+          if (i === 0 && j === 0) continue;
+          const offset: Point = [0, 0, 0]; offset[first] = spacing * i; offset[second] = spacing2 * j;
+          cut = boolean(cut, affine(joined, matrix, offset, `@${i},${j}`), 'difference', at);
+        }
+        return one(cut);
+      };
+    }
     case 'circular-pattern': {
       const target = solids(f.target, 'target', true), axis = axisOf(f.axis), deg = f.angle as number, count = integer(f.count, 'count', 1, CadPartLimits.copies);
       const pivot = f.pivot === undefined ? [0, 0, 0] as Point : xyz(f.pivot as CadPartPoint3, 'pivot');
@@ -2602,7 +2626,7 @@ function unionAll(list: Solid[], at: string): Solid {
 }
 const volumeOfSolid = (s: Solid) => s.kind === 'upright' ? prismaticVolume(s.solid) : s.brep.bodies.length ? brepMassProperties(s.brep, 1, { segmentsPerQuarter: 8, quadratureSegments: 0 }).volume : 0;
 
-function affine(s: Solid, m: BrepAffine['matrix'], o: readonly number[], rename?: (n: string) => string): Solid {
+function affine(s: Solid, m: BrepAffine['matrix'], o: readonly number[], rename?: ((n: string) => string) | string): Solid {
   // Upright solids stay upright when XY maps by a similarity and Z only scales and shifts.
   if (s.kind === 'upright' && m[2] === 0 && m[5] === 0 && m[6] === 0 && m[7] === 0)
     return { kind: 'upright', solid: transformPrismatic(s.solid, { matrix: [m[0], m[1], m[3], m[4]], offset: [o[0], o[1]], zScale: m[8], zOffset: o[2], ...(rename ? { retag: rename } : {}) }) };

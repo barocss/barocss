@@ -220,6 +220,43 @@ export function textDocumentProblem(input: unknown): string | null {
   }
   return null;
 }
+/** Validate the public rectangular cut recipe before command, saved-file or evaluation admission. */
+export function rectangularFeaturePatternProblem(node: Record<string, unknown>, nodes: readonly ModelNode[], parameters: Record<string, number>): string | null {
+  const allowed = new Set(['kind', 'parent', 'axis', 'spacing', 'count', 'axis2', 'spacing2', 'count2', ...NODE_EXTRA_FIELDS]);
+  if (Object.keys(node).some(key => !allowed.has(key))) return '[VALUE] Rectangular cut pattern contains an unknown field.';
+  if (!['x', 'y', 'z'].includes(String(node.axis)) || !['x', 'y', 'z'].includes(String(node.axis2)) || node.axis === node.axis2) return '[VALUE] Rectangular cut pattern needs two different global directions X, Y or Z.';
+  const count = node.count, count2 = node.count2;
+  if (typeof count !== 'number' || typeof count2 !== 'number' || !Number.isSafeInteger(count) || !Number.isSafeInteger(count2) || count < 1 || count2 < 1 || count > 64 || count2 > 64 || !Number.isSafeInteger(count * count2) || count * count2 > 64) return '[VALUE] Rectangular cut pattern counts must be whole numbers from 1 to 64, with product at most 64 including the original cut.';
+  for (const key of ['spacing', 'spacing2']) {
+    const dim = node[key], value = typeof dim === 'number' ? dim : textRecord(dim) && typeof dim.parameter === 'string' && Object.keys(dim).length === 1 ? parameters[dim.parameter] : undefined;
+    if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0 || value > 10000) return `[VALUE] Rectangular cut pattern ${key} must be positive and at most 10000.`;
+  }
+  const parent = node.parent;
+  if (!textRecord(parent) || !Number.isInteger(parent.node) || parent.side !== 'solid' || Object.keys(parent).some(key => key !== 'node' && key !== 'side')) return '[BAD_REFERENCE] Rectangular cut pattern needs a solid difference reference.';
+  const source = nodes[parent.node as number];
+  if (source?.kind !== 'difference' || source.suppressed || !leafBodies(nodes).some(r => r.node === parent.node && r.side === 'solid')) return '[BAD_REFERENCE] Rectangular cut pattern needs a current unsuppressed difference body.';
+  return null;
+}
+/** Check saved and nested part recipes without geometry evaluation. */
+export function rectangularPatternDocumentProblem(input: unknown): string | null {
+  const stack: unknown[] = [input], seen = new Set<object>();
+  while (stack.length) {
+    const value = stack.pop();
+    if (!textRecord(value) || seen.has(value)) continue;
+    seen.add(value);
+    if (seen.size > 2048) return '[VALUE] Rectangular cut pattern part tree exceeds the document budget.';
+    const parameters = textRecord(value.parameters) ? value.parameters as Record<string, number> : {};
+    if (Array.isArray(value.nodes)) for (let i = 0; i < value.nodes.length; i++) {
+      const node = value.nodes[i];
+      if (!textRecord(node) || node.kind !== 'rectangular-feature-pattern' || node.suppressed === true) continue;
+      const why = rectangularFeaturePatternProblem(node, value.nodes.slice(0, i) as ModelNode[], parameters);
+      if (why) return why;
+    }
+    if (Array.isArray(value.instances)) for (const instance of value.instances) if (textRecord(instance)) stack.push(instance.doc);
+    if (textRecord(value.pendingParts)) for (const pending of Object.values(value.pendingParts)) if (textRecord(pending)) stack.push(pending.doc);
+  }
+  return null;
+}
 /** A sheet's K (R12.4, D120): one K-factor, or a bend table (the shop's, loaded from a file) giving each bend's. */
 export type SheetK = { kFactor: number; bendTable?: undefined } | { bendTable: BendTable; kFactor?: undefined };
 export type LoopSegment = { kind: 'line'; start: [Dim, Dim] } | { kind: 'arc'; start: [Dim, Dim]; center: [Dim, Dim]; direction: 'ccw' | 'cw' };
@@ -291,6 +328,7 @@ type ModelNodeBase = SketchNode | TextNode | TextReliefNode | CylindricalWrapNod
   | { kind: 'linear-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
   /** Repeat a current difference's cut; spacing keeps the stored dimension reference. */
   | { kind: 'linear-feature-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
+  | { kind: 'rectangular-feature-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number; axis2: Axis; spacing2: Dim; count2: number }
   /** About `axis` through `pivot` (default the origin). */
   | { kind: 'circular-pattern'; parent: BodyRef; axis: Axis; angle: number; count: number; pivot?: [Dim, Dim, Dim] }
   | { kind: 'union'; left: BodyRef; right: BodyRef; made?: Made }
@@ -994,6 +1032,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'scale': return `Scale ×${node.factor}`;
     case 'linear-pattern': return `Pattern ×${node.count}`;
     case 'linear-feature-pattern': return `Cut pattern ×${node.count}`;
+    case 'rectangular-feature-pattern': return `Cut pattern ${node.count} × ${node.count2}`;
     case 'circular-pattern': return `Circular ×${node.count}`;
     case 'split': return node.normal ? `Split ${planeText(node.normal)} = ${n(node.at)}` : `Split ${node.axis.toUpperCase()}=${n(node.at)}`;
     case 'separate': return 'Separate pieces';

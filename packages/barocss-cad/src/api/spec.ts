@@ -37,6 +37,7 @@ type BaseSpec =
   | { readonly command: BooleanCommand; readonly tool: string; readonly values: Record<string, never> }
   | { readonly command: 'linear-pattern'; readonly values: { readonly axis: AxisName; readonly spacing: number; readonly count: number } }
   | { readonly command: 'linear-feature-pattern'; readonly values: { readonly axis: AxisName; readonly spacing: number; readonly count: number } }
+  | { readonly command: 'rectangular-feature-pattern'; readonly values: { readonly axis: AxisName; readonly spacing: number; readonly count: number; readonly axis2: AxisName; readonly spacing2: number; readonly count2: number } }
   | { readonly command: 'circular-pattern'; readonly values: { readonly axis: AxisName; readonly count: number; readonly span: number; readonly px: number; readonly py: number } }
   | { readonly command: 'move'; readonly values: { readonly x: number; readonly y: number; readonly z: number } }
   | { readonly command: 'mirror'; readonly values: { readonly plane: 'yz' | 'xz' | 'xy'; readonly at: number } }
@@ -75,6 +76,8 @@ export interface ChamferOptions { distance: Dim }
 export interface ShellOptions { t: Dim }
 /** `linear-pattern`: `count` copies (the original among them) `spacing` apart along an axis, joined into one body. */
 export interface LinearPatternOptions { axis: AxisName; spacing: Dim; count: Dim }
+/** Repeat a difference tool on two distinct global axes; each count includes the original cut. */
+export interface RectangularFeaturePatternOptions { axis: AxisName; spacing: Dim; count: Dim; axis2: AxisName; spacing2: Dim; count2: Dim }
 /**
  * `circular-pattern`: `count` copies (the original among them) about an axis, joined into one body. About Z they spread
  * over `span` (360, the default: an even full turn) round the axis through (px, py); about X or Y the kernel steps by
@@ -171,6 +174,14 @@ export function linearPatternSpec(o: Resolved<LinearPatternOptions>): FeatureSpe
 
 export function linearFeaturePatternSpec(o: Resolved<LinearPatternOptions>): FeatureSpec {
   return { command: 'linear-feature-pattern', values: { axis: axisName(o.axis), spacing: positive('spacing', o.spacing), count: count(o.count) } };
+}
+
+export function rectangularFeaturePatternSpec(o: Resolved<RectangularFeaturePatternOptions>): FeatureSpec {
+  const axis = axisName(o.axis), axis2 = axisName(o.axis2);
+  if (axis === axis2) throw refuse('VALUE', 'rectangular feature pattern axes must be distinct');
+  if (!Number.isSafeInteger(o.count) || o.count < 1 || !Number.isSafeInteger(o.count2) || o.count2 < 1)
+    throw refuse('VALUE', 'rectangular feature pattern counts must be safe whole numbers of at least 1');
+  return { command: 'rectangular-feature-pattern', values: { axis, spacing: positive('spacing', o.spacing), count: o.count, axis2, spacing2: positive('spacing2', o.spacing2), count2: o.count2 } };
 }
 
 export function circularPatternSpec(o: Resolved<CircularPatternOptions>): FeatureSpec {

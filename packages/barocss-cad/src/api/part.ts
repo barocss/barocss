@@ -8,9 +8,9 @@
 // body that body is meant. The choice is the facade's view of the document, never written into it: `.doc` is the same
 // with or without it. It follows the body through the verbs that replace it (a fillet's result is the filleted body).
 import {
-  booleanSpec, cylindricalWrapSpec, boxSpec, chamferSpec, circularPatternSpec, cylinderSpec, extrudeSpec, filletSpec, holeSpec, linearFeaturePatternSpec, linearPatternSpec, mirrorSpec, moveSpec, revolveSpec, rotateSpec, scaleSpec, shellSpec, splitSpec,
+  booleanSpec, cylindricalWrapSpec, boxSpec, chamferSpec, circularPatternSpec, cylinderSpec, extrudeSpec, filletSpec, holeSpec, linearFeaturePatternSpec, rectangularFeaturePatternSpec, linearPatternSpec, mirrorSpec, moveSpec, revolveSpec, rotateSpec, scaleSpec, shellSpec, splitSpec,
   type BooleanCommand, type CylindricalWrapOptions, type BoxOptions, type ChamferOptions, type CircularPatternOptions, type CylinderOptions, type ExtrudeOptions, type FeatureSpec, type FilletOptions,
-  type HoleOptions, type LinearPatternOptions, type MirrorOptions, type RevolveOptions, type ScaleOptions, type ShellOptions, type SplitOptions,
+  type HoleOptions, type RectangularFeaturePatternOptions, type LinearPatternOptions, type MirrorOptions, type RevolveOptions, type ScaleOptions, type ShellOptions, type SplitOptions,
   type Bound, type Resolved, isParam,
 } from './spec.js';
 import type { BodyQuery, EdgeQuery, FaceQuery } from './select.js';
@@ -199,6 +199,8 @@ export class Part<D> {
   linearPattern(options: LinearPatternOptions): this { return this.#act(this.#spec(options, o => linearPatternSpec(o))); }
   /** Repeat the current difference's cut along an axis, including the original cut. */
   linearFeaturePattern(options: LinearPatternOptions): this { return this.#act(this.#spec(options, o => linearFeaturePatternSpec(o))); }
+  /** Repeat the current difference's cut on two distinct global axes. */
+  rectangularFeaturePattern(options: RectangularFeaturePatternOptions): this { return this.#act(this.#spec(options, o => rectangularFeaturePatternSpec(o))); }
   /** `circular-pattern`: copies of the body round an axis, joined into one body. */
   circularPattern(options: CircularPatternOptions): this { return this.#act(this.#spec(options, o => circularPatternSpec(o))); }
 

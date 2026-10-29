@@ -42,6 +42,16 @@ Data rules:
 - Lists a shop owns, such as stock, are the user's to load; none is built in.
 - No standard's text or tables are copied.
 
+### Rectangular cut patterns
+
+`part.rectangularFeaturePattern({ axis: 'x', spacing: 16, count: 3, axis2: 'y', spacing2: 16, count2: 2 })`
+repeats the tool of the current unsuppressed subtract feature. It keeps the original stock and cut.
+It adds one editable `rectangular-feature-pattern` document node. The two directions are distinct global
+X, Y or Z axes. Each count is a whole number from 1 to 64. Their product is at most 64, including the
+original cut. Both spacings must be positive and at most 10000. Both spacings can bind to parameters;
+the two counts cannot. The command defaults to a 3 × 2 grid on global X and Y. Existing schema-3 files
+store the node, its stable ID, body reference and spacing bindings without a migration.
+
 ## Status
 
 Version `0.0.0-experimental`. The API may change between versions: there is no compatibility promise yet. The

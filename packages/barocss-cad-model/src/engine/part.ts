@@ -14,7 +14,7 @@ import { bearingInExternalHousing } from './bearingHousing';
 import { mirrorCage, sprocketPitchDiameter, timingPitchDiameter } from '@barocss/cad';
 import type { BendTable, BeadSharedComponent, CadPartDocument, CadPartFeature, CadPartFrameOverride, CadPartNameSignature, CadPartSection } from '@barocss/cad';
 import type { Sig } from './references';
-import { frameGeometry, holeCentres, bevelSpiral, prefixDoc, textDocumentProblem, textNodeProblem, textReliefNodeProblem, type TextNode, type TextReliefNode, type DocPlane, type Dim, type SketchNode, type BodyRef, type FrameOverride, type InlineSection, type MemberSection, type ModelNode, type PartInstance, type StudioDoc } from './doc';
+import { frameGeometry, holeCentres, bevelSpiral, prefixDoc, rectangularPatternDocumentProblem, textDocumentProblem, textNodeProblem, textReliefNodeProblem, type TextNode, type TextReliefNode, type DocPlane, type Dim, type SketchNode, type BodyRef, type FrameOverride, type InlineSection, type MemberSection, type ModelNode, type PartInstance, type StudioDoc } from './doc';
 import { bodyNodeOf, featureId, nodeIndexOf, serialOf, withIds } from './ids';
 import { keyClasses } from './fits';
 import type { StudioRingRow } from './rings';
@@ -22,7 +22,7 @@ import { rotationSteps } from './placement';
 import { documentBeadOwnershipError } from '../frames/beadOwnership';
 import { canonical, modelContent } from '../util/revision';
 import { resolveSkeletons, SKELETON_CODES } from '../frames/skeleton';
-import { isRefusal, refusal } from './refusal';
+import { coded, isRefusal, refusal } from './refusal';
 import { assertRouteBundleDocument } from './routeBundle';
 import { bodyMesh } from './mesh';
 import { faceProfile } from '../app/faceProfile';
@@ -132,6 +132,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'scale': return { ...at, kind: 'scale', target: ref(node.parent), factor: node.factor, ...(node.pivot ? { pivot: node.pivot } : {}) };
     case 'linear-pattern': return { ...at, kind: 'linear-pattern', target: ref(node.parent), axis: node.axis, spacing: node.spacing, count: node.count };
     case 'linear-feature-pattern': return { ...at, kind: 'linear-feature-pattern', target: ref(node.parent), axis: node.axis, spacing: node.spacing, count: node.count };
+    case 'rectangular-feature-pattern': return { ...at, kind: 'rectangular-feature-pattern', target: ref(node.parent), axis: node.axis, spacing: node.spacing, count: node.count, axis2: node.axis2, spacing2: node.spacing2, count2: node.count2 };
     case 'circular-pattern': return { ...at, kind: 'circular-pattern', target: ref(node.parent), axis: node.axis, angle: node.angle, count: node.count, ...(node.pivot ? { pivot: node.pivot } : {}) };
     case 'split': return { ...at, kind: 'split', target: ref(node.parent), ...(node.normal ? { normal: node.normal } : { axis: node.axis }), at: node.at };
     case 'separate': return { ...at, kind: 'separate', target: ref(node.parent) };
@@ -495,6 +496,8 @@ export function resolveAssociativeSketch(doc: StudioDoc, index: number): SketchN
 export function toPartDocument(doc: StudioDoc): CadPartDocument { return buildPartDocument(doc); }
 
 function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
+  const patternProblem = rectangularPatternDocumentProblem(doc);
+  if (patternProblem) throw coded(patternProblem.startsWith('[BAD_REFERENCE]') ? 'BAD_REFERENCE' : 'VALUE', patternProblem);
   const textProblem = textDocumentProblem(doc);
   if (textProblem) throw refusal('BAD_VALUE', textProblem, { source: 'text-solid' });
   assertRouteBundleDocument(doc);
@@ -552,7 +555,7 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
     }
     // Active cut patterns, ribs and reliefs must reach kernel source admission even when their parent is gone.
     // Suppressing the pattern itself keeps the ordinary parent pass-through below.
-    if ((node.kind === 'linear-feature-pattern' || node.kind === 'rib' || node.kind === 'rectangular-relief' || node.kind === 'text-relief') && !node.suppressed) { features.push(...featuresOf(node, i, CadPartLimits.features - features.length)); return; }
+    if ((node.kind === 'linear-feature-pattern' || node.kind === 'rectangular-feature-pattern' || node.kind === 'rib' || node.kind === 'rectangular-relief' || node.kind === 'text-relief') && !node.suppressed) { features.push(...featuresOf(node, i, CadPartLimits.features - features.length)); return; }
     const parent = (node as { parent: BodyRef }).parent;
     if (gone.has(parent.node)) { gone.add(i); return; }
     if (node.suppressed) { pass(i, parent); return; }

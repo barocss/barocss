@@ -84,6 +84,10 @@ function featuresOf(doc: CadPartDocument, spec: FeatureSpec, body: string | null
       const { axis, spacing, count } = spec.values;
       return [{ id: nextId(doc, 'linear-feature-pattern'), kind: 'linear-feature-pattern', target: target(), axis, spacing, count }];
     }
+    case 'rectangular-feature-pattern': {
+      const { axis, spacing, count, axis2, spacing2, count2 } = spec.values;
+      return [{ id: nextId(doc, 'rectangular-feature-pattern'), kind: 'rectangular-feature-pattern', target: target(), axis, spacing, count, axis2, spacing2, count2 }];
+    }
     case 'circular-pattern': {
       const { axis, count, span, px, py } = spec.values;
       return [{ id: nextId(doc, 'circular-pattern'), kind: 'circular-pattern', target: target(), axis, angle: axis === 'z' ? step(span, count) : 90, count, ...(axis === 'z' && (px || py) ? { pivot: [px, py, 0] } : {}) }];
@@ -132,6 +136,7 @@ const BINDS: Record<string, Record<string, readonly [feature: number, path: read
   'cylindrical-wrap': { height: [0, ['height']] },
   'linear-pattern': { spacing: [0, ['spacing']] },
   'linear-feature-pattern': { spacing: [0, ['spacing']] },
+  'rectangular-feature-pattern': { spacing: [0, ['spacing']], spacing2: [0, ['spacing2']] },
   split: { at: [0, ['at']] },
 };
 

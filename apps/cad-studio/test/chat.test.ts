@@ -167,7 +167,7 @@ test('tool schemas: every buildable command is exposed and documented with the H
       assert.deepEqual(keys, new Set(Object.keys(COMMAND_DOCS[id].values)), id);
       continue;
     }
-    if (id === 'linear-feature-pattern') {
+    if (id === 'linear-feature-pattern' || id === 'rectangular-feature-pattern') {
       // (A linear cut pattern takes the current result of a subtract: a plate with one slot cut.)
       const cut = await stateOf(part('slotted').box({ w: 60, d: 30, h: 10 }).subtract(p => p.box({ w: 4, d: 4, h: 10, x: 0, y: 8 }).moved(Location.at([8, 0, 0]))).doc);
       const ctx: Ctx = { doc: cut.doc, bodies: cut.bodies, selection: sel({ bodies: [0] }) }, cmd = commandById(id)!;

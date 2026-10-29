@@ -5,7 +5,7 @@
 // (engine/ids.ts), so they stay as they are.
 import { type BoundConstraint3D, type V3 } from '../frames/sketch3d';
 import { boundConstraints, boundRefusal, followersOf, SKELETON_CODES } from '../frames/skeleton';
-import { frameGeometry, cylindricalWrapNodeProblem, textNodeProblem, textReliefNodeProblem, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type PartInstance, type StudioDoc } from '../engine/doc';
+import { rectangularFeaturePatternProblem, frameGeometry, cylindricalWrapNodeProblem, textNodeProblem, textReliefNodeProblem, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type PartInstance, type StudioDoc } from '../engine/doc';
 import { BASE, mateLabel } from '../assembly/mates';
 import type { CentreRef, DimPoint, DrawingDimension } from '../drawing/types';
 import { bodyKeyFor, bodyNodeOf, featureId, nextSerial, nodesOfName, renameFeatureIds, serialOf } from '../engine/ids';
@@ -27,6 +27,7 @@ const SPECS: Record<string, Spec> = {
   mirror: { parent: 'ref', plane: 'enum:xy|xz|yz' },
   scale: { parent: 'ref', factor: 'pos', 'pivot?': 'dim3' },
   'linear-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'count' },
+  'rectangular-feature-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'positive-index', axis2: 'enum:x|y|z', spacing2: 'dim', count2: 'positive-index' },
   'linear-feature-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'count' },
   'circular-pattern': { parent: 'ref', axis: 'enum:x|y|z', angle: 'num', count: 'count' },
   union: { left: 'ref', right: 'ref' },
@@ -138,6 +139,7 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
   if (kind === 'text') return textNodeProblem(node, parameters);
   if (kind === 'cylindrical-wrap') return cylindricalWrapNodeProblem(node, parameters);
   if (kind === 'text-relief') return textReliefNodeProblem(node, parameters);
+  if (kind === 'rectangular-feature-pattern') return rectangularFeaturePatternProblem(node, nodes, parameters);
   if (kind === 'linear-feature-pattern') {
     const parent = node.parent as unknown as BodyRef, source = nodes[parent.node];
     if (parent.side !== 'solid' || source?.kind !== 'difference' || source.suppressed === true) return '[BAD_REFERENCE] A linear feature pattern needs a current unsuppressed difference body.';
