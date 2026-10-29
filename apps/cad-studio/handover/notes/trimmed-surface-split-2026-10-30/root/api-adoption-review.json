@@ -1,0 +1,10 @@
+{
+  "status": "JUSTIFIED_ADOPTION",
+  "semanticAddedRootExports": 6,
+  "semanticRemovals": 0,
+  "semanticExistingChanges": 0,
+  "presentationOnlyExistingChanges": 7,
+  "reason": "Six intended D340 helper exports; seven existing records differ only in literal-union presentation order. All other fields and member sets are equal.",
+  "beforeSHA256": "b392b2ff485bfd590b21ff30d6f0504ec9f9aa7c44f009a6ef34e7ffea152680",
+  "afterSHA256": "265f4b8e15914ed089e87be6428ea7094f66ca1df34d68108f1840fce6fe3af4"
+}

@@ -1,0 +1,25 @@
+{
+  "status": "PASS_SCOPED_VISUAL_REVIEW",
+  "sourceCommit": "5a8515aa0af0b74524670b75467b35cadececbfa",
+  "imagesViewed": [
+    "03-inside-split-three-regions.png",
+    "14-outside-three-regions-with-pocket.png",
+    "18-empty-upper-no-object.png",
+    "09-renamed-reeditable.png",
+    "guard-nonaffine-original-split.png"
+  ],
+  "observations": [
+    "Inside U material remains visible as three selected components with no missing arms or bridge through the notch.",
+    "Outside complement retains the central pocket and outer material; no visible coincident-source interference.",
+    "Empty upper output shows only one lower object and retains original material.",
+    "Renamed upper component remains separately selectable after native Save/fresh Open.",
+    "Unsupported nonaffine original presents explicit DIRECT_VALUE refusal without replacing the retained material."
+  ],
+  "limits": [
+    "Selected purple rectangular support boundary is an overlay, not filled material.",
+    "Visual inspection is bounded to these five images and fixture views.",
+    "Numeric material moments/component ownership are separate independent-oracle evidence.",
+    "No generic curved material, exact display clipping or closed-solid mass claim."
+  ],
+  "numericRunStatus": "PASS"
+}

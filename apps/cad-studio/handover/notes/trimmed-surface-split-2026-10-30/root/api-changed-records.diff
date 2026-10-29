@@ -1,0 +1,91 @@
+### @barocss/cad / . / AxisBoxSolidMassFrameDiagnosticCode
+--- before
+
++++ after
+
+@@ -23,5 +23,5 @@
+
+         },
+         "shape": {
+-          "type": "\"INPUT\" | \"BUDGET\" | \"SELECTION\" | \"REPRESENTABILITY\" | \"MASS\" | \"OWNED\" | \"POSE\"",
++          "type": "\"INPUT\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SELECTION\" | \"MASS\" | \"OWNED\" | \"POSE\"",
+           "declarationSignatures": [
+             {
+### @barocss/cad / . / AxisBoxSolidPrincipalInertiaDiagnosticCode
+--- before
+
++++ after
+
+@@ -23,5 +23,5 @@
+
+         },
+         "shape": {
+-          "type": "\"INPUT\" | \"BUDGET\" | \"SELECTION\" | \"REPRESENTABILITY\" | \"MASS\" | \"OWNED\"",
++          "type": "\"INPUT\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SELECTION\" | \"MASS\" | \"OWNED\"",
+           "declarationSignatures": [
+             {
+### @barocss/cad / . / BezierCurveAffinePlaneIntersectionReport
+--- before
+
++++ after
+
+@@ -35,5 +35,5 @@
+
+               "optional": false,
+               "readonly": false,
+-              "type": "{ support: boolean; finiteContainment: \"control-hull-contained\" | \"not-proven\" | \"not-applicable\"; controlPoleUV: Point[]; }"
++              "type": "{ support: boolean; finiteContainment: \"not-applicable\" | \"control-hull-contained\" | \"not-proven\"; controlPoleUV: Point[]; }"
+             },
+             {
+### @barocss/cad / . / BooleanExtrusionFeatureGraphDiagnosticCode
+--- before
+
++++ after
+
+@@ -23,5 +23,5 @@
+
+         },
+         "shape": {
+-          "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"PARAMETER\" | \"REPRESENTABILITY\" | \"DEPENDENCY\" | \"IDENTITY\" | \"JSON\" | \"OWNED\" | \"REVISION\"",
++          "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"PARAMETER\" | \"DEPENDENCY\" | \"IDENTITY\" | \"JSON\" | \"OWNED\" | \"REVISION\"",
+           "declarationSignatures": [
+             {
+### @barocss/cad / . / CadErrorCode
+--- before
+
++++ after
+
+@@ -23,5 +23,5 @@
+
+         },
+         "shape": {
+-          "type": "\"INPUT\" | \"CONTINUITY\" | \"ARITHMETIC\" | \"NATIVE\" | \"TOPOLOGY\" | \"GEOMETRY\" | \"CURVED_ARRANGEMENT\" | \"BUDGET\" | \"SELF_INTERSECTION\" | \"PRISMATIC_SOLID\" | \"PLANAR_ARRANGEMENT\" | \"SURFACE_INTERSECTION\" | \"SOLID_MASS\" | \"TANGENT_FACES\" | \"RADIUS_EXCEEDS_FACE\" | \"RADIUS_EXCEEDS_CURVATURE\" | \"NOT_ANALYTIC_PAIR\" | \"CONTACT_LEAVES_FACE\" | \"APPROX_TOLERANCE_NOT_MET\" | \"SELECTION\" | \"CAPABILITY\" | \"PARAMETER\" | \"REPRESENTABILITY\" | \"FORMAT\" | \"REFERENCE\" | \"LIMIT\" | \"SYNTAX\" | \"FUNCTION_ARGUMENT\" | \"VALUE\" | \"UNIT\" | \"CYCLE\" | \"DEGREE\" | \"DIMENSION\" | \"DIVISION_ZERO\" | \"DUPLICATE\" | \"FIELD\" | \"FUNCTION_CAPTURE\" | \"FUNCTION_RECURSION\" | \"FUNCTION_REFERENCE\" | \"FUNCTION_TYPE\" | \"KIND\" | \"KNOTS\" | \"TYPE\" | \"VERSION\" | \"WEIGHTS\" | \"SUPPORT\" | \"SOURCE\" | \"BINDING\" | \"UNRESOLVED\" | \"MESH_BREP\" | \"INVALID_INPUT\" | \"UNSUPPORTED_PROFILE_SHIFT\" | \"UNSUPPORTED_GEAR_KIND\" | \"PROFILE_BUDGET_EXCEEDED\" | \"ROOT_TRANSITION_UNVALIDATED\" | \"BORE_INTERSECTION\" | \"MATE_INCOMPATIBLE\" | \"UNDERCUT\" | \"INVOLUTE_INTERFERENCE\" | \"TROCHOID_INTERFERENCE\" | \"TRIMMING_INTERFERENCE\" | \"RIM_INTERSECTION\" | \"IDEAL_MODEL\" | \"FIT_TABLE\" | \"FIT_TABLE_MISS\" | \"FIT_FACE\" | \"FIT_PAIR\" | \"GLAND_DIMENSIONS\" | \"SQUEEZE_RANGE\" | \"FILL_RANGE\" | \"STRETCH_RANGE\" | \"SHAFT_STEPS\" | \"KEYSEAT_DIMENSIONS\" | \"GROOVE_DIMENSIONS\" | \"HOLE_DIMENSIONS\" | \"KEY_FIT\" | \"RING_FIT\" | \"PIN_FIT\" | \"SEAT_ABUTMENT\" | \"SEAT_FIT\" | \"UNSUPPORTED_TOOTH_FORM\" | \"TOOTH_FORM\" | \"BELT_GEOMETRY\" | \"SECTION_DIMENSIONS\" | \"CONNECTOR_PLACEMENT\" | \"CONNECTOR_FIT\" | \"CAM_UNDERCUT\" | \"COILS_OVERLAP\" | \"UNSUPPORTED_SPRING_KIND\" | \"LEG_OVERLAP\" | \"DERIVATIVE\" | \"REGULARITY\" | \"NOT_FINITE\" | \"BAD_ENTITY\" | \"BAD_NAME\" | \"DUPLICATE_NAME\" | \"UNKNOWN_LAYER\" | \"UNKNOWN_LINETYPE\" | \"UNKNOWN_STYLE\" | \"UNKNOWN_BLOCK\" | \"BLOCK_CYCLE\" | \"BAD_TEXT\" | \"TEXT_TOO_LONG\" | \"R12_UNSUPPORTED\" | \"R12_NEEDS_TOLERANCE\" | \"ARC\" | \"SOLID\" | \"SECTION\" | \"NOT_A_SHEET\" | \"NON_NORMAL_CUT\" | \"BEND_NOT_CYLINDRICAL\" | \"FLAT_OVERLAPS\" | \"CUT_ACROSS_BEND\" | \"BEND_TABLE_MISS\" | \"SEW\" | \"ARC_MEMBER\" | \"BEAD_ANGLE\" | \"BEAD_KIND\" | \"BEAD_SEAM_NOT_PLANAR\" | \"BEAD_SHARED_UNSUPPORTED\" | \"BEAD_SIZE\" | \"BEND_ANGLE\" | \"BEND_DOES_NOT_FIT\" | \"BEND_RADIUS\" | \"BEND_TABLE\" | \"BUTT_NOT_ON_A_FACE\" | \"BUTT_ON_CURVED_MEMBER\" | \"BUTT_ON_OPEN_SIDE\" | \"CAP_END\" | \"CONE_TOP_CHAMFER_SCOPE\" | \"CONE_TOP_CHAMFER_SIZE\" | \"CORNER_ANGLE\" | \"CORNER_NOT_A_JOINT\" | \"CORNER_NOT_CLEAR\" | \"CORNER_NOT_SQUARE\" | \"DENSITY\" | \"EDGE_NOT_SHEET\" | \"FACE_FILLET_FACE\" | \"FACE_FILLET_FACES\" | \"FACE_FILLET_NOT_CLEAR\" | \"FACE_FILLET_PARALLEL\" | \"FACE_FILLET_RADIUS\" | \"FACE_THREAD_FACE\" | \"FACE_THREAD_NOT_CLEAR\" | \"FACE_THREAD_RELIEF\" | \"FACE_THREAD_SIZE\" | \"FLANGES_COLLIDE\" | \"FULL_ROUND_FACE\" | \"FULL_ROUND_NOT_CLEAR\" | \"GAP_SIZE\" | \"GUSSET_FIT\" | \"MEMBERS_CLASH\" | \"MEMBER_DUPLICATE\" | \"MESH_WALL_THIN\" | \"MITRE_SECTIONS_DIFFER\" | \"NOTCH_CUTTER\" | \"NOT_A_MEMBER\" | \"OBSTRUCTED_ABOVE\" | \"OFFSET_FOLDS\" | \"OPENING_AT_A_VERTEX\" | \"REFERENCE_MOVED\" | \"RELIEF_REQUIRED\" | \"SECTION_TABLE\" | \"SECTION_TABLE_MISS\" | \"SEGMENT_ZERO_LENGTH\" | \"SHEET_CROSSES_ITSELF\" | \"SHEET_IN_PIECES\" | \"SHELL_FACE_KIND\" | \"SHELL_MESH_NOT_CLOSED\" | \"SHELL_NOT_CLOSED\" | \"SHELL_OPENING_NOT_PLANAR\" | \"SHELL_PLANE_NOT_BOUNDING\" | \"SHELL_REGIONS_SHARP\" | \"SHELL_VARIABLE_RADIUS\" | \"SHELL_WALL_UNION\" | \"SKELETON_OVERLAP\" | \"TRIM_EMPTY\" | \"TRIM_LEAVES_PIECES\" | \"TRIM_MISSES\" | \"TRIM_PARALLEL\" | \"VERTEX_BLEND_UNSUPPORTED\" | \"WALL_NEAR_RADIUS\" | \"WALL_TOO_THIN\" | \"AFFINE\" | \"ASSOCIATION\" | \"AXIS\" | \"BAND\" | \"BASIS\" | \"BODY\" | \"BOOLEAN\" | \"BOUNDARY\" | \"BRANCH\" | \"BREP_EULER\" | \"CAP\" | \"CHART\" | \"CLOSURE\" | \"CODEC\" | \"COLLAPSE\" | \"COMPILATION\" | \"CONDITION\" | \"CONDITIONING\" | \"CONFLICT\" | \"CONNECTED\" | \"CONSTRUCTION\" | \"CONTACT\" | \"CONVEXITY\" | \"COVERAGE\" | \"CROSSING\" | \"CUT\" | \"CUT_LIST\" | \"DEGENERATE\" | \"DEGENERATE_GEOMETRY\" | \"DEPENDENCY\" | \"DIRECTORY\" | \"DISTANCE\" | \"DOMAIN\" | \"EMBEDDING\" | \"EXPRESSION\" | \"EXTRUSION\" | \"FACE\" | \"FILE\" | \"FRAME\" | \"GLOBAL\" | \"GRAPH\" | \"HIERARCHY\" | \"IDENTITY\" | \"INCIDENCE\" | \"INSERTION\" | \"INTERVAL\" | \"INVALID_DOCUMENT\" | \"ISO\" | \"JSON\" | \"LOCAL\" | \"LOCALITY\" | \"LOFT\" | \"MASS\" | \"MATERIAL\" | \"MATRIX\" | \"MESH\" | \"METRIC\" | \"NATIVE_CAPACITY\" | \"NESTING\" | \"NONCONVERGENCE\" | \"NORMAL\" | \"NUMBER\" | \"NUMERICAL\" | \"OBSERVATION\" | \"ORIENTATION\" | \"OWNED\" | \"OWNERSHIP\" | \"PAIR\" | \"PARENT\" | \"PARTITION\" | \"PLACEMENT\" | \"POSE\" | \"PROFILE\" | \"QUERY\" | \"RANGE\" | \"RECIPE\" | \"RECORD\" | \"REGION\" | \"REQUEST\" | \"REVISION\" | \"RULED\" | \"SHELL\" | \"SLAB\" | \"SOLVER\" | \"SPAN\" | \"STAGNATION\" | \"STALE\" | \"STATIONS\" | \"STRUCTURE\" | \"TANGENCY\" | \"TARGET\" | \"TOO_FEW\" | \"TRANSLATION\" | \"TRIANGULATION\" | \"TRIM\" | \"UNCERTAINTY\" | \"UNSUPPORTED\" | \"UV\" | \"VOLUME\" | \"WIDTH\" | \"WORK\" | \"XY_AFFINE_SKETCH_PRISM\"",
++          "type": "\"INPUT\" | \"CONTINUITY\" | \"ARITHMETIC\" | \"NATIVE\" | \"TOPOLOGY\" | \"GEOMETRY\" | \"CURVED_ARRANGEMENT\" | \"BUDGET\" | \"SELF_INTERSECTION\" | \"PRISMATIC_SOLID\" | \"REPRESENTABILITY\" | \"PLANAR_ARRANGEMENT\" | \"SURFACE_INTERSECTION\" | \"SOLID_MASS\" | \"TANGENT_FACES\" | \"RADIUS_EXCEEDS_FACE\" | \"RADIUS_EXCEEDS_CURVATURE\" | \"NOT_ANALYTIC_PAIR\" | \"CONTACT_LEAVES_FACE\" | \"APPROX_TOLERANCE_NOT_MET\" | \"SELECTION\" | \"CAPABILITY\" | \"PARAMETER\" | \"FORMAT\" | \"REFERENCE\" | \"LIMIT\" | \"SYNTAX\" | \"FUNCTION_ARGUMENT\" | \"VALUE\" | \"UNIT\" | \"CYCLE\" | \"DEGREE\" | \"DIMENSION\" | \"DIVISION_ZERO\" | \"DUPLICATE\" | \"FIELD\" | \"FUNCTION_CAPTURE\" | \"FUNCTION_RECURSION\" | \"FUNCTION_REFERENCE\" | \"FUNCTION_TYPE\" | \"KIND\" | \"KNOTS\" | \"TYPE\" | \"VERSION\" | \"WEIGHTS\" | \"SUPPORT\" | \"SOURCE\" | \"BINDING\" | \"UNRESOLVED\" | \"MESH_BREP\" | \"INVALID_INPUT\" | \"UNSUPPORTED_PROFILE_SHIFT\" | \"UNSUPPORTED_GEAR_KIND\" | \"PROFILE_BUDGET_EXCEEDED\" | \"ROOT_TRANSITION_UNVALIDATED\" | \"BORE_INTERSECTION\" | \"MATE_INCOMPATIBLE\" | \"UNDERCUT\" | \"INVOLUTE_INTERFERENCE\" | \"TROCHOID_INTERFERENCE\" | \"TRIMMING_INTERFERENCE\" | \"RIM_INTERSECTION\" | \"IDEAL_MODEL\" | \"FIT_TABLE\" | \"FIT_TABLE_MISS\" | \"FIT_FACE\" | \"FIT_PAIR\" | \"GLAND_DIMENSIONS\" | \"SQUEEZE_RANGE\" | \"FILL_RANGE\" | \"STRETCH_RANGE\" | \"SHAFT_STEPS\" | \"KEYSEAT_DIMENSIONS\" | \"GROOVE_DIMENSIONS\" | \"HOLE_DIMENSIONS\" | \"KEY_FIT\" | \"RING_FIT\" | \"PIN_FIT\" | \"SEAT_ABUTMENT\" | \"SEAT_FIT\" | \"UNSUPPORTED_TOOTH_FORM\" | \"TOOTH_FORM\" | \"BELT_GEOMETRY\" | \"SECTION_DIMENSIONS\" | \"CONNECTOR_PLACEMENT\" | \"CONNECTOR_FIT\" | \"CAM_UNDERCUT\" | \"COILS_OVERLAP\" | \"UNSUPPORTED_SPRING_KIND\" | \"LEG_OVERLAP\" | \"DERIVATIVE\" | \"REGULARITY\" | \"NOT_FINITE\" | \"BAD_ENTITY\" | \"BAD_NAME\" | \"DUPLICATE_NAME\" | \"UNKNOWN_LAYER\" | \"UNKNOWN_LINETYPE\" | \"UNKNOWN_STYLE\" | \"UNKNOWN_BLOCK\" | \"BLOCK_CYCLE\" | \"BAD_TEXT\" | \"TEXT_TOO_LONG\" | \"R12_UNSUPPORTED\" | \"R12_NEEDS_TOLERANCE\" | \"ARC\" | \"SOLID\" | \"SECTION\" | \"NOT_A_SHEET\" | \"NON_NORMAL_CUT\" | \"BEND_NOT_CYLINDRICAL\" | \"FLAT_OVERLAPS\" | \"CUT_ACROSS_BEND\" | \"BEND_TABLE_MISS\" | \"SEW\" | \"ARC_MEMBER\" | \"BEAD_ANGLE\" | \"BEAD_KIND\" | \"BEAD_SEAM_NOT_PLANAR\" | \"BEAD_SHARED_UNSUPPORTED\" | \"BEAD_SIZE\" | \"BEND_ANGLE\" | \"BEND_DOES_NOT_FIT\" | \"BEND_RADIUS\" | \"BEND_TABLE\" | \"BUTT_NOT_ON_A_FACE\" | \"BUTT_ON_CURVED_MEMBER\" | \"BUTT_ON_OPEN_SIDE\" | \"CAP_END\" | \"CONE_TOP_CHAMFER_SCOPE\" | \"CONE_TOP_CHAMFER_SIZE\" | \"CORNER_ANGLE\" | \"CORNER_NOT_A_JOINT\" | \"CORNER_NOT_CLEAR\" | \"CORNER_NOT_SQUARE\" | \"DENSITY\" | \"EDGE_NOT_SHEET\" | \"FACE_FILLET_FACE\" | \"FACE_FILLET_FACES\" | \"FACE_FILLET_NOT_CLEAR\" | \"FACE_FILLET_PARALLEL\" | \"FACE_FILLET_RADIUS\" | \"FACE_THREAD_FACE\" | \"FACE_THREAD_NOT_CLEAR\" | \"FACE_THREAD_RELIEF\" | \"FACE_THREAD_SIZE\" | \"FLANGES_COLLIDE\" | \"FULL_ROUND_FACE\" | \"FULL_ROUND_NOT_CLEAR\" | \"GAP_SIZE\" | \"GUSSET_FIT\" | \"MEMBERS_CLASH\" | \"MEMBER_DUPLICATE\" | \"MESH_WALL_THIN\" | \"MITRE_SECTIONS_DIFFER\" | \"NOTCH_CUTTER\" | \"NOT_A_MEMBER\" | \"OBSTRUCTED_ABOVE\" | \"OFFSET_FOLDS\" | \"OPENING_AT_A_VERTEX\" | \"REFERENCE_MOVED\" | \"RELIEF_REQUIRED\" | \"SECTION_TABLE\" | \"SECTION_TABLE_MISS\" | \"SEGMENT_ZERO_LENGTH\" | \"SHEET_CROSSES_ITSELF\" | \"SHEET_IN_PIECES\" | \"SHELL_FACE_KIND\" | \"SHELL_MESH_NOT_CLOSED\" | \"SHELL_NOT_CLOSED\" | \"SHELL_OPENING_NOT_PLANAR\" | \"SHELL_PLANE_NOT_BOUNDING\" | \"SHELL_REGIONS_SHARP\" | \"SHELL_VARIABLE_RADIUS\" | \"SHELL_WALL_UNION\" | \"SKELETON_OVERLAP\" | \"TRIM_EMPTY\" | \"TRIM_LEAVES_PIECES\" | \"TRIM_MISSES\" | \"TRIM_PARALLEL\" | \"VERTEX_BLEND_UNSUPPORTED\" | \"WALL_NEAR_RADIUS\" | \"WALL_TOO_THIN\" | \"AFFINE\" | \"ASSOCIATION\" | \"AXIS\" | \"BAND\" | \"BASIS\" | \"BODY\" | \"BOOLEAN\" | \"BOUNDARY\" | \"BRANCH\" | \"BREP_EULER\" | \"CAP\" | \"CHART\" | \"CLOSURE\" | \"CODEC\" | \"COLLAPSE\" | \"COMPILATION\" | \"CONDITION\" | \"CONDITIONING\" | \"CONFLICT\" | \"CONNECTED\" | \"CONSTRUCTION\" | \"CONTACT\" | \"CONVEXITY\" | \"COVERAGE\" | \"CROSSING\" | \"CUT\" | \"CUT_LIST\" | \"DEGENERATE\" | \"DEGENERATE_GEOMETRY\" | \"DEPENDENCY\" | \"DIRECTORY\" | \"DISTANCE\" | \"DOMAIN\" | \"EMBEDDING\" | \"EXPRESSION\" | \"EXTRUSION\" | \"FACE\" | \"FILE\" | \"FRAME\" | \"GLOBAL\" | \"GRAPH\" | \"HIERARCHY\" | \"IDENTITY\" | \"INCIDENCE\" | \"INSERTION\" | \"INTERVAL\" | \"INVALID_DOCUMENT\" | \"ISO\" | \"JSON\" | \"LOCAL\" | \"LOCALITY\" | \"LOFT\" | \"MASS\" | \"MATERIAL\" | \"MATRIX\" | \"MESH\" | \"METRIC\" | \"NATIVE_CAPACITY\" | \"NESTING\" | \"NONCONVERGENCE\" | \"NORMAL\" | \"NUMBER\" | \"NUMERICAL\" | \"OBSERVATION\" | \"ORIENTATION\" | \"OWNED\" | \"OWNERSHIP\" | \"PAIR\" | \"PARENT\" | \"PARTITION\" | \"PLACEMENT\" | \"POSE\" | \"PROFILE\" | \"QUERY\" | \"RANGE\" | \"RECIPE\" | \"RECORD\" | \"REGION\" | \"REQUEST\" | \"REVISION\" | \"RULED\" | \"SHELL\" | \"SLAB\" | \"SOLVER\" | \"SPAN\" | \"STAGNATION\" | \"STALE\" | \"STATIONS\" | \"STRUCTURE\" | \"TANGENCY\" | \"TARGET\" | \"TOO_FEW\" | \"TRANSLATION\" | \"TRIANGULATION\" | \"TRIM\" | \"UNCERTAINTY\" | \"UNSUPPORTED\" | \"UV\" | \"VOLUME\" | \"WIDTH\" | \"WORK\" | \"XY_AFFINE_SKETCH_PRISM\"",
+           "declarationSignatures": [
+             {
+### @barocss/cad / . / ConvexPlanarSolidChamferDiagnosticCode
+--- before
+
++++ after
+
+@@ -23,5 +23,5 @@
+
+         },
+         "shape": {
+-          "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"SELECTION\" | \"REPRESENTABILITY\" | \"BINDING\" | \"DEGENERATE\" | \"IDENTITY\" | \"INCIDENCE\" | \"LOCALITY\" | \"METRIC\" | \"OWNED\"",
++          "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SELECTION\" | \"BINDING\" | \"DEGENERATE\" | \"IDENTITY\" | \"INCIDENCE\" | \"LOCALITY\" | \"METRIC\" | \"OWNED\"",
+           "declarationSignatures": [
+             {
+### @barocss/cad / . / CubicCurveAffinePlaneIntersectionReport
+--- before
+
++++ after
+
+@@ -49,5 +49,5 @@
+
+               "optional": false,
+               "readonly": false,
+-              "type": "{ support: boolean; finiteContainment: \"control-hull-contained\" | \"not-proven\" | \"not-applicable\"; controlPoleUV: Point[]; }"
++              "type": "{ support: boolean; finiteContainment: \"not-applicable\" | \"control-hull-contained\" | \"not-proven\"; controlPoleUV: Point[]; }"
+             },
+             {

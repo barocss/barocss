@@ -1,0 +1,23 @@
+{
+  "head": "477d76eae2d7401388755fcb625a64a0fd86c508",
+  "UTC": "2026-10-29T17:59:50.498555+00:00",
+  "scope": "Kernel owned8 frozen inputs; root/Model worktree may change independently; fullSuite/browser/APIinventory NOT_RUN by Kernel owner",
+  "owned": {
+    "packages/barocss-cad/src/brep/planar-arrangement.ts": "7e985f7e9d3b8c0cb17e9828d5ffc5cd83d0bca2ad40ccaf8862dde49bda07fb",
+    "packages/barocss-cad/src/index.ts": "00bdf76eca5c6132afe82bc284c16ee42226f85ac946167a5a2b0606764a6024",
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-parameter-split.ts": "ee8b67447c7aa412519b575f1a4afcd2b4d44ea2dd4eb19fb5edbdac2fd048e7",
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-split-binding.ts": "aa83ec0b799f73969ddc7d2ba6e2ffaa5d4bc7581112e5ea3df0fca2ab95bb25",
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-split-common.ts": "45758063bbe0d132cdcc2428a5d0b836084053d6b108b18f635451d359a678db",
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-split-topology.ts": "9f818c18869c638de6adf9a6f7f49cbc5d6d7d23f34bc33d3947e018b84ea657",
+    "packages/barocss-cad/test/planar-arrangement-exact.test.mjs": "b7af215f262b72ac5aafedf86337e0dc4232531f356e94c13a47d89131b10949",
+    "packages/barocss-cad/test/trimmed-surface-parameter-split.test.mjs": "cc34be43ba5ab83297b855528f31bb4e02b927759b3c20f16b44b35548356db1"
+  },
+  "unchangedParentBytesAgainstHEAD": {
+    "packages/barocss-cad/src/nurbs/surfaces/surface-parameter-split.ts": true,
+    "packages/barocss-cad/src/nurbs/surfaces/surface-knot-insertion.ts": true,
+    "packages/barocss-cad/src/nurbs/curves/curve-knot-insertion.ts": true,
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-axis-reversal.ts": true,
+    "packages/barocss-cad/src/numeric-policy.ts": true,
+    "packages/barocss-cad/src/core/math.ts": true
+  }
+}

@@ -1,0 +1,282 @@
+{
+  "workId": "D340",
+  "date": "2026-10-30",
+  "status": "BOUNDED_QUALIFIED",
+  "source": {
+    "baselinePublishedD339": "477d76eae2d7401388755fcb625a64a0fd86c508",
+    "checkpoint": "5a8515aa0af0b74524670b75467b35cadececbfa",
+    "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+    "branch": "local/cad-dev",
+    "checkpointFiles": 16
+  },
+  "contract": {
+    "helper": "splitTrimmedSurfaceAtParameter",
+    "input": "Original exact affine degree1x1/equal-positive-weight plane, one own simple3..160-point stored loop, both axes/keep flags, finite nonunit/fractional charts.",
+    "components": "Lower then upper in exact canonical order; inside outer AND outside holes; one object per positive interior-connected material component. Zero unused side adds no object.",
+    "arrangement": "New exact-decision internal leaf shares segments/half-edges; exact areas/nesting, approximate bbox disabled. Legacy branch unchanged.",
+    "child": "Actual rational-bilinear child not assumed exact affine. Nine H-W*A coefficients/minweight whole-child residual plus UV rounding share old1e-7 world budget. Positive weights/strictconvex projected corners/all9positive Jacobian certify used-child regularity.",
+    "rounding": "One shared nearest-once map, exact-to-stored incidence/containment/simple orientation/inter-ring relationships, distinct exact vertices must not collapse.",
+    "unchanged": [
+      "Section200000operations/GCD8192bits fixed request contexts",
+      "native parent128",
+      "D337Reverse160",
+      "schema",
+      "runtime dependencies",
+      "WASM",
+      "numeric tolerance"
+    ],
+    "structuralBounds": {
+      "vertices": 326,
+      "edges": 651,
+      "components": 434,
+      "boundaryOccurrences": 1302,
+      "status": "SOURCE_REVIEWED_DERIVATION_NOT_MEASURED_MAXIMUM"
+    }
+  },
+  "checks": {
+    "KernelFocused": {
+      "status": "PASS",
+      "pass": 13,
+      "fail": 0,
+      "arrangementPass": 5,
+      "splitPass": 8,
+      "source": "kernel/focused-final.log.gz",
+      "firstFailure": null
+    },
+    "KernelRelated": {
+      "status": "PASS",
+      "pass": 17,
+      "legacy": 3,
+      "polyhedral": 6,
+      "D337Reverse": 8,
+      "source": "kernel/related-first.log.gz"
+    },
+    "KernelBuildTypesLint": {
+      "status": "PASS",
+      "source": "kernel/receipt.md"
+    },
+    "KernelWhole": {
+      "status": "PASS",
+      "pass": 2263,
+      "fail": 0,
+      "existingSkip": 6,
+      "total": 2269,
+      "source": "root/kernel-full-first.log.gz",
+      "boundary": "Coordinator once after final source freeze, not reviewer run."
+    },
+    "HighSource": {
+      "status": "NO_REQUIRED_FINDING",
+      "productionHashes": 7,
+      "unchanged": true,
+      "runtime": "NOT_RUN",
+      "source": "review/review.md",
+      "coverageGap": "Generated-intersection UV-collapse test required then added; final source gap closed. Author13PASS is separate runtime evidence."
+    },
+    "NodeModelOracleReview": {
+      "status": "NO_REQUIRED_ARITHMETIC_OR_INDEPENDENCE_FINDING",
+      "runtime": "NOT_RUN",
+      "productImports": 0,
+      "source": "review/model-oracle-review.md",
+      "boundary": "Exact BigInt slabs/positivewidth connectivity; source-only, not ModelPASS.",
+      "finalTestMatching": "Earlier area-only sorting note fixed before first runtime with area-plus-centroid matching; final Model hashes/current source authoritative."
+    },
+    "KernelCurve160Material": {
+      "status": "PASS_SCOPED_KERNEL_STORED_MATERIAL",
+      "source": "kernel/independent-material.json",
+      "insideCounts": [
+        1,
+        2
+      ],
+      "outsideCounts": [
+        2,
+        1
+      ],
+      "fractionDifferences": 0,
+      "boundary": "Kernel public Curve160/helper only; not same as actual ModeltrimByCurve producer."
+    },
+    "RootGuideOracleSanity": {
+      "status": "PASS_REFERENCE_ONLY",
+      "pass": 3,
+      "boundary": "Eightpoint guide only, not public160 or product. Initial Fraction reader strings TypeError retained/corrected with integer parse.",
+      "initialError": "root/oracle-sanity-first-error.txt"
+    },
+    "Model": {
+      "status": "PASS",
+      "pass": 46,
+      "fail": 0,
+      "skip": 0,
+      "splitTests": 13,
+      "types": "PASS",
+      "ownedLint": "PASS",
+      "whitespace": "PASS",
+      "firstFailure": null,
+      "gate": "RELEASED_holder_none_slots_0",
+      "receipt": "model/checks.json",
+      "focusedLog": "model/focused-first.log.gz",
+      "boundary": "Focused and related46 total,13Split tests; not wholeModel or actualStudio/browser."
+    },
+    "API": {
+      "status": "SCOPED_PASS_JUSTIFIED_ADOPTION",
+      "semanticAddedRootExports": 6,
+      "semanticRemovals": 0,
+      "semanticExistingChanges": 0,
+      "presentationOnlyExistingChanges": 7,
+      "beforeExposures": 6818,
+      "afterExposures": 6824,
+      "review": "root/api-adoption-review.json",
+      "checks": "root/api-studio-checks.json",
+      "log": "root/api-check-first.log.gz",
+      "boundary": "Seven existing literal-union order-only changes; all other fields/member sets equal. Six existing inventory rules only."
+    },
+    "browser": {
+      "status": "NUMERIC_AND_UI_FLOW_PASS",
+      "receipt": "studio/run-01/receipt.json",
+      "invocations": 1,
+      "chromeProcesses": 1,
+      "backend": "Chrome WebGPU",
+      "serialContextsClosed": 9,
+      "observationalStates": 30,
+      "independentMaterialReads": 7,
+      "nativeFilesDownloads": 4,
+      "refusals": 4,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "watchedSourceChanges": 0,
+      "actualAxes": [
+        "v"
+      ],
+      "actualProfiles": [
+        "insideV3.7 lower1 upper2",
+        "outsideV3.7 lower2 upper1",
+        "insideV5.7 lower1 upper0",
+        "nonaffine original refusal and valid retry"
+      ],
+      "Uactual": "NOT_RUN; U/bothflags focused Kernel/Model only",
+      "maximumLocalTrimVertexCoordinateError": 7.105427357601002e-15,
+      "capturedMaskVertexCounts": {
+        "inside": 166,
+        "outside": 174,
+        "empty": 160
+      },
+      "boundary": "Thirty observations are not thirty tests. Local vertex comparisons are not whole-child proof or global evaluator guarantees."
+    },
+    "docs": {
+      "status": "PASS",
+      "exitCode": 0,
+      "source": "root/check-docs-first.log.gz",
+      "metrics": {
+        "pages": 68,
+        "beingWritten": 0,
+        "shots": 55,
+        "shotKB": 4811,
+        "labels": 861
+      },
+      "boundary": "Final post-assembly documentation check; no product runtime claim."
+    },
+    "Studio": {
+      "status": "PASS",
+      "chatPass": 23,
+      "types": "PASS",
+      "build": "PASS",
+      "driverLint": "PASS",
+      "checks": "root/api-studio-checks.json",
+      "warnings": "Existing module directive/ineffective dynamic imports; raw build log preserved."
+    },
+    "generatedToolsRefusals": {
+      "status": "PASS",
+      "logs": [
+        "root/agent-tools-check-first.log.gz",
+        "root/refusals-check-first.log.gz"
+      ]
+    },
+    "visualReview": {
+      "status": "PASS_SCOPED_VISUAL_REVIEW",
+      "source": "root/visual-review.json",
+      "images": [
+        "03-inside-split-three-regions.png",
+        "14-outside-three-regions-with-pocket.png",
+        "18-empty-upper-no-object.png",
+        "09-renamed-reeditable.png",
+        "guard-nonaffine-original-split.png"
+      ],
+      "boundary": "Coordinator viewed5actual images, clean shape/no visible missing regions/zfight. Selected purple shared-support boundary is overlay, not material fill. U-shaped material observation is shape, not actual U-axis Split."
+    }
+  },
+  "parentProbe": {
+    "status": "ACTUAL_OLD_PARENT_SCOPE",
+    "source": "plan/child-probe/results.json",
+    "listedSrcDist": 892,
+    "beforeAfterMatch": 892,
+    "newSourceBuild": false,
+    "collapsedCuts": [
+      1e-16,
+      "Number.MIN_VALUE"
+    ],
+    "planeX": [
+      9998,
+      9999
+    ],
+    "observationErrorOrder": 1e-16,
+    "boundary": "Parent report not-certified; no parent bug claim. New consumer requires used regularity, unused empty child may retain collapsed native support."
+  },
+  "oracle": {
+    "originalGuideInsideArea": 240,
+    "originalGuideInsideCentroid": [
+      25,
+      6,
+      3
+    ],
+    "originalGuideOutsideArea": 960,
+    "originalGuideOutsideCentroid": [
+      31.25,
+      9.75,
+      3
+    ],
+    "fixture": "Actual represented stored160/cut fractions authoritative; guides separate.",
+    "NodeTest": "Independent BigInt slabs, no product imports or Python process.",
+    "initialPythonTestPreparation": "NOT_RUN_REMOVED_BEFORE_TEST",
+    "externalPython": "Qualification reference allowed, not production/test runtime dependency.",
+    "surfaceAreaBoundary": "Stored masked surface area/moments, not exact generic curved area or closed-solid mass.",
+    "witness": {
+      "volume": 420,
+      "centroid": [
+        86,
+        0.5,
+        3.5
+      ],
+      "boundary": "Unrelated accepted solid only."
+    }
+  },
+  "notProven": [
+    "Actual U-axis browser Split (focused Kernel/Model only)",
+    "Generic curved/multiloop/repeated-operation closure",
+    "Global binary64 evaluator guarantee",
+    "Closed-solid mass or generic exact curved area",
+    "Exact sampled display clipping",
+    "Full Model/Studio/GPU/Viewer",
+    "Performance/remoteCI/release/whole08"
+  ],
+  "next": "Continue remaining08 consumer/generality investigation before09; delivered07 and queued Electron15 unchanged. No new queue.",
+  "actualProof": {
+    "producer": "Actual public Studio Trim by curve stored160, then existing SplitV; actual original storedUV and represented cut feed independent oracle, no ideal substitution.",
+    "inside": "V3.7 lower1/upper2, original/source exact trim retained hidden; three component objects with owned masks/shared support refs.",
+    "outside": "V3.7 lower2/upper1 including isolated lower pocket, no missing exterior region.",
+    "empty": "V5.7 lower1/upper0; no object for unused upper support.",
+    "ownership": "Undo restores exact original160; Redo components, native Save/fresh Open/reselection and rename preserve doc/IDs/order/UV/keep/shared sources semantically. Four accepted files; no raw-byte identity claim.",
+    "refusals": "Component IGES/Thicken/Sew and unsupported nonaffine original Split refuse with accepted document/selection/no-download preservation and valid retry.",
+    "witness": "Unrelated accepted solidb1/sixnames/volume420/centroid[86,.5,3.5]stable; not trimmed surface solid mass.",
+    "cleanup": "Nine contexts/browser/server closed.",
+    "materialBoundary": "Independent surface material moments and local coordinate observations are separate from Kernel whole-child coefficient/Jacobian proof, display clipping or closed-solid mass."
+  },
+  "provenance": {
+    "initialSubset": 15,
+    "initialSubsetMatchesFrozen": 15,
+    "frozenInputs": 726,
+    "frozenAfterBrowserCleanupMatch": 726,
+    "parentProbeSrcDistInputs": 892,
+    "parentProbeBeforeAfterMatch": 892,
+    "boundary": "Different scopes: initial15/frozen726 UI/seed inputs; old parent892src/dist probe. No726before-generation/full served-graph claim. Hashes prove provenance, not geometry.",
+    "manifest": "artifact-manifest.json",
+    "decodedStoredHashes": "source-provenance.json"
+  }
+}

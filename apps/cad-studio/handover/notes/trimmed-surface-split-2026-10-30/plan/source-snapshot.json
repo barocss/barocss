@@ -1,0 +1,24 @@
+{
+  "head": "883b9027003d4f97572830217cc9e68548ea49af",
+  "scope": "D340 source-only listed18 inputs during D339 root browser freeze; no candidate execution/build/test/browser/heavy; repository not written",
+  "files": {
+    "packages/barocss-cad/src/brep/planar-arrangement.ts": "22e854469661193cf02749ed52dde99ac7ef8ec03010bbf9142f312bdd80cd47",
+    "packages/barocss-cad/src/brep/polyhedral-boolean.ts": "e63a3cb5fa792dc83ae5536d610f13f2d87292564a11b72268870ea02dfaa58b",
+    "packages/barocss-cad/src/exact-proof/exact-affine-plane-internal.ts": "41507a3bea818742fdf70b7896f92a1c3e3e0f7c4ca718e2050d1c26965b7242",
+    "packages/barocss-cad/src/section-rational-internal.ts": "8ed40c435eec1c242c0ce58c9d9eb4cb3809443b5f7661877445262433765e38",
+    "packages/barocss-cad/src/numeric-policy.ts": "860ee982f9ac01559a38db48dd7be7e8b550e3c17fa753fa66f4c9e0677335ae",
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-axis-reversal.ts": "5dec26b81bc0847e656326981213e874726c42f89cc988c6eff4941d6a5a7875",
+    "packages/barocss-cad/src/nurbs/surfaces/surface-parameter-split.ts": "7ba4fc4edbd191797c36324f4f00761ec2dead236efc4e9ca854b520a9168767",
+    "packages/barocss-cad/src/nurbs/surfaces/surface-knot-insertion.ts": "957a9260bc7182f64cc348cce6bd14afe74edd54a318c21fefce8be9f154a8c8",
+    "packages/barocss-cad/src/nurbs/curves/curve-knot-insertion.ts": "a9e0bb4e31dfc20edd6f0a901573508efbbb6dd9de997ea47bd681712c24e71d",
+    "packages/barocss-cad/src/features/section-exact-surface-binding.ts": "3c197210351ccddcac56e5d6b94d75cda6f22a696c7b8ae79e890bed9a9fa981",
+    "packages/barocss-cad/src/planar-solids/coplanar-face-boolean.ts": "52cbba98801bd8ef80e34ef99b21a649c47a2c398de7d5010594eb902613081c",
+    "packages/barocss-cad/src/index.ts": "d9fa55486635f1da6c843f2fb6c3dc5e8cdc0480d49f8b2c58a06993a75d5bad",
+    "packages/barocss-cad-model/src/engine/direct.ts": "015b03b810c0754b187409a4c1b459d3209f15a6249085802934b5301449dd05",
+    "packages/barocss-cad-model/src/engine/trim.ts": "d8d0e4f6b1468381cf5baa0960ceea1042678037c2b1a1f9b9ed154b4bdc9467",
+    "packages/barocss-cad-model/src/engine/doc.ts": "2c455b38f91762d01cc4a925d30aaa132b401f56b2cdd0799928214320745da6",
+    "packages/barocss-cad-model/src/engine/container.ts": "50a1ed89cc9f354882932a1a8a701cfc9b5f44669cad6f92ee235cd0810d38fc",
+    "apps/cad-studio/src/ui/DirectPanel.tsx": "705eb1397edfa07e294ba6d91d4da275dbca66ea8f6e848f3d69a5e4b0707adc",
+    "apps/cad-studio/src/App.tsx": "fd7460aeef6c800d1de457039f34574fcff825dad3a23463e15800e729c517b0"
+  }
+}

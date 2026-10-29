@@ -1,0 +1,67 @@
+{
+  "status": "API_STUDIO_CHECKS_PASS_SOURCE_FROZEN",
+  "node": "v22.19.0",
+  "gate": "RELEASED_holder_none_slots_0",
+  "checks": {
+    "api-check-first": {
+      "exitCode": 0,
+      "status": "PASS",
+      "log": "/tmp/d340-root/api-check-first.log"
+    },
+    "agent-tools-check-first": {
+      "exitCode": 0,
+      "status": "PASS",
+      "log": "/tmp/d340-root/agent-tools-check-first.log"
+    },
+    "refusals-check-first": {
+      "exitCode": 0,
+      "status": "PASS",
+      "log": "/tmp/d340-root/refusals-check-first.log"
+    },
+    "studio-chat-first": {
+      "exitCode": 0,
+      "status": "PASS",
+      "log": "/tmp/d340-root/studio-chat-first.log"
+    },
+    "studio-types-first": {
+      "exitCode": 0,
+      "status": "PASS",
+      "log": "/tmp/d340-root/studio-types-first.log"
+    },
+    "studio-vite-first": {
+      "exitCode": 0,
+      "status": "PASS",
+      "log": "/tmp/d340-root/studio-vite-first.log"
+    },
+    "studio-browser-lint-first": {
+      "exitCode": 0,
+      "status": "PASS",
+      "log": "/tmp/d340-root/studio-browser-lint-first.log"
+    }
+  },
+  "studioChat": {
+    "tests": 23,
+    "pass": 23,
+    "fail": 0,
+    "skip": 0,
+    "filter": "chat.test (chat.test.ts and o17-chat.test.ts)"
+  },
+  "apiReview": {
+    "beforeExposures": 6818,
+    "afterExposures": 6824,
+    "semanticAdded": 6,
+    "removed": 0,
+    "existingSemanticChanges": 0,
+    "existingUnionOrderOnlyRecords": 7,
+    "delta": "/tmp/d340-root/api-semantic-delta.json",
+    "changedDiff": "/tmp/d340-root/api-changed-records.diff"
+  },
+  "firstFailure": null,
+  "buildWarnings": "Vite emitted module-level directive and ineffective dynamic import warnings; build exit0. Full raw log preserved.",
+  "ownedSourceEdit": "apps/library-docs/scripts/api-inventory.expected.json",
+  "limits": [
+    "No browser execution",
+    "No commit/push",
+    "No other product source changes"
+  ]
+}

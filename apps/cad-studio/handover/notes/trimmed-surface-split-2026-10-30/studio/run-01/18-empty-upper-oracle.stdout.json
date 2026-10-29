@@ -1,0 +1,126 @@
+{
+  "status": "PASS",
+  "expectedExactSweep": {
+    "lower": [
+      {
+        "areaUV": {
+          "numerator": "1557689057560448041581745333768005",
+          "denominator": "162259276829213363391578010288128"
+        },
+        "areaWorld": {
+          "numerator": "38942226439011201039543633344200125",
+          "denominator": "162259276829213363391578010288128"
+        },
+        "centroidWorld": [
+          {
+            "numerator": "280608314367533303795908066263605407199984504046011",
+            "denominator": "11224332574701332632144551252448717026742153248768"
+          },
+          {
+            "numerator": "25254748293077999464289412404480556493427251329607",
+            "denominator": "4209124715512999737054206719668268885028307468288"
+          },
+          {
+            "numerator": "3",
+            "denominator": "1"
+          }
+        ]
+      }
+    ],
+    "upper": []
+  },
+  "actualStoredComponents": {
+    "lower": [
+      {
+        "id": "obj_3",
+        "areaWorld": {
+          "numerator": "38942226439011201039543633344200125",
+          "denominator": "162259276829213363391578010288128",
+          "value": 239.99999999999997
+        },
+        "centroidWorld": [
+          {
+            "numerator": "280608314367533303795908066263605407199984504046011",
+            "denominator": "11224332574701332632144551252448717026742153248768",
+            "value": 25.0
+          },
+          {
+            "numerator": "25254748293077999464289412404480556493427251329607",
+            "denominator": "4209124715512999737054206719668268885028307468288",
+            "value": 6.0
+          },
+          {
+            "numerator": "3",
+            "denominator": "1",
+            "value": 3.0
+          }
+        ]
+      }
+    ],
+    "upper": []
+  },
+  "probes": [
+    {
+      "world": [
+        18,
+        11.25,
+        3
+      ],
+      "originalMaterial": true,
+      "componentOwners": [
+        "obj_3"
+      ]
+    },
+    {
+      "world": [
+        32,
+        11.25,
+        3
+      ],
+      "originalMaterial": true,
+      "componentOwners": [
+        "obj_3"
+      ]
+    },
+    {
+      "world": [
+        25,
+        6.25,
+        3
+      ],
+      "originalMaterial": false,
+      "componentOwners": []
+    },
+    {
+      "world": [
+        25,
+        11.25,
+        3
+      ],
+      "originalMaterial": false,
+      "componentOwners": []
+    },
+    {
+      "world": [
+        25,
+        3,
+        3
+      ],
+      "originalMaterial": true,
+      "componentOwners": [
+        "obj_3"
+      ]
+    },
+    {
+      "world": [
+        45,
+        20,
+        3
+      ],
+      "originalMaterial": false,
+      "componentOwners": []
+    }
+  ],
+  "tolerance": 1e-07,
+  "scope": "Independent Fraction Green moments, positive-interior slab sweep and ray parity over actual stored original/result masks; no solid mass or child embedding claim"
+}

@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "<stdin>", line 12, in <module>
+  File "<stdin>", line 12, in <genexpr>
+  File "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/lib/python3.13/fractions.py", line 294, in __new__
+    raise TypeError("both arguments should be "
+                    "Rational instances")
+TypeError: both arguments should be Rational instances

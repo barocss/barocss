@@ -1,0 +1,20 @@
+{
+  "count": 15,
+  "hashes": {
+    "apps/cad-studio/src/App.tsx": "fd7460aeef6c800d1de457039f34574fcff825dad3a23463e15800e729c517b0",
+    "apps/cad-studio/src/ui/DirectInspector.tsx": "00b5e04f82b5e008992da73847763f1f9a14e8313ab795da8eb78f895549c9cd",
+    "apps/cad-studio/src/ui/DirectPanel.tsx": "705eb1397edfa07e294ba6d91d4da275dbca66ea8f6e848f3d69a5e4b0707adc",
+    "apps/cad-studio/test/trimmed-surface-split-browser.mjs": "3f8a88c3c20f325c4fec28b653a87142a26bbafc88df97f1182c66674bde95fe",
+    "apps/cad-studio/vite.config.ts": "67b607e6374107bf07c232ad7ebe46a9f93e0d3bce887579c3d46ed363be5407",
+    "packages/barocss-cad-model/src/engine/direct.ts": "799da53c2807df661ac094b1794b897421f21d97d2cba8052296d722d5c27fe8",
+    "packages/barocss-cad-model/src/engine/trim.ts": "d8d0e4f6b1468381cf5baa0960ceea1042678037c2b1a1f9b9ed154b4bdc9467",
+    "packages/barocss-cad/dist/index.js": "9fc94d7d369b381b50b3ac6e91d813d4cdb5cfee2a89906f95ba50f81fad1622",
+    "packages/barocss-cad/src/brep/planar-arrangement.ts": "7e985f7e9d3b8c0cb17e9828d5ffc5cd83d0bca2ad40ccaf8862dde49bda07fb",
+    "packages/barocss-cad/src/index.ts": "00bdf76eca5c6132afe82bc284c16ee42226f85ac946167a5a2b0606764a6024",
+    "packages/barocss-cad/src/nurbs/surfaces/surface-parameter-split.ts": "7ba4fc4edbd191797c36324f4f00761ec2dead236efc4e9ca854b520a9168767",
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-parameter-split.ts": "ee8b67447c7aa412519b575f1a4afcd2b4d44ea2dd4eb19fb5edbdac2fd048e7",
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-split-binding.ts": "aa83ec0b799f73969ddc7d2ba6e2ffaa5d4bc7581112e5ea3df0fca2ab95bb25",
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-split-common.ts": "45758063bbe0d132cdcc2428a5d0b836084053d6b108b18f635451d359a678db",
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-split-topology.ts": "9f818c18869c638de6adf9a6f7f49cbc5d6d7d23f34bc33d3947e018b84ea657"
+  }
+}
