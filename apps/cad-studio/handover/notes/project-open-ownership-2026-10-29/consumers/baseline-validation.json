@@ -1,0 +1,130 @@
+{
+  "status": "BASELINE_REPRODUCED_PRODUCT_FAIL",
+  "baseline": "f841c0c34",
+  "meaning": "Safe-contract failure after actual normal B control, selected native A fulfilled-return hold, newer OpenB and baseline metadata-tail completion. Not a setup failure or repaired-source PASS.",
+  "selectedTests": {
+    "total": 1,
+    "pass": 0,
+    "fail": 1,
+    "skip": 0
+  },
+  "execution": {
+    "exit": 1,
+    "duration": 9133.716041,
+    "testDuration": 8974.594625,
+    "timeUnit": "ms"
+  },
+  "preflight": {
+    "syntax": 0,
+    "lint": 0
+  },
+  "firstFailure": {
+    "phase": "safe ownership assertions after original snapshots and bytes",
+    "message": "late native Open A must not replace completed public Open B\n+ actual - expected\n... Skipped lines\n\n  {\n    format: 'barocss-cad-model',\n    nextId: 2,\n    nodes: [\n      {\n...\n        max: [\n+         10,\n+         10\n-         12,\n-         13\n        ],\n        min: [\n          0,\n          0\n        ],\n...\n      {\n+       height: 10,\n-       height: 14,\n        id: 'n1',\n        kind: 'extrude',\n        made: {\n          command: 'box',\n          values: {\n+           d: 10,\n+           h: 10,\n+           w: 10,\n-           d: 13,\n-           h: 14,\n-           w: 12,\n            x: 0,\n            y: 0,\n            z: 0\n          }\n        },\n",
+    "stack": "AssertionError [ERR_ASSERTION]: late native Open A must not replace completed public Open B\n+ actual - expected\n... Skipped lines\n\n  {\n    format: 'barocss-cad-model',\n    nextId: 2,\n    nodes: [\n      {\n...\n        max: [\n+         10,\n+         10\n-         12,\n-         13\n        ],\n        min: [\n          0,\n          0\n        ],\n...\n      {\n+       height: 10,\n-       height: 14,\n        id: 'n1',\n        kind: 'extrude',\n        made: {\n          command: 'box',\n          values: {\n+           d: 10,\n+           h: 10,\n+           w: 10,\n-           d: 13,\n-           h: 14,\n-           w: 12,\n            x: 0,\n            y: 0,\n            z: 0\n          }\n        },\n\n    at TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/project-open-ownership-browser.mjs:130:12)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)"
+  },
+  "before": {
+    "fileName": "B",
+    "activePath": "B.bcad",
+    "versions": [
+      "Version B-version"
+    ],
+    "history": {
+      "present": true,
+      "type": "HTMLDivElement",
+      "rows": [
+        {
+          "tag": "BUTTON",
+          "label": "Box 12\u00d713\u00d714",
+          "index": "1"
+        }
+      ]
+    },
+    "dirty": false,
+    "recovery": null,
+    "offered": null,
+    "body": {
+      "fresh": true,
+      "bodies": [
+        {
+          "key": "b1",
+          "volume": 2184.0000000000005,
+          "centroid": [
+            6,
+            6.499999999999998,
+            7
+          ],
+          "massRef": null
+        }
+      ],
+      "massReady": true,
+      "colored": []
+    }
+  },
+  "after": {
+    "fileName": "A",
+    "activePath": "A.bcad",
+    "versions": [
+      "Version A-version"
+    ],
+    "history": {
+      "present": true,
+      "type": "HTMLDivElement",
+      "rows": [
+        {
+          "tag": "BUTTON",
+          "label": "Box 10\u00d710\u00d710",
+          "index": "1"
+        }
+      ]
+    },
+    "dirty": false,
+    "recovery": null,
+    "offered": null,
+    "body": {
+      "fresh": true,
+      "bodies": [
+        {
+          "key": "b1",
+          "volume": 1000.0000000000001,
+          "centroid": [
+            4.999999999999999,
+            4.999999999999999,
+            5
+          ],
+          "massRef": null
+        }
+      ],
+      "massReady": true,
+      "colored": []
+    }
+  },
+  "nativeByteChecks": {
+    "heldAEqualsOriginalSavedA": true,
+    "storedBUnchangedAfterLateA": true
+  },
+  "pageErrors": [],
+  "cleanup": {
+    "namespace": "REMOVED_AND_ABSENT",
+    "resources": "OWN_CONTEXT_BROWSER_SERVER_CLOSED"
+  },
+  "runnerProcess": 80098,
+  "runnerExited": true,
+  "gate": "Own slot released; holder:none after second run",
+  "sourceProfile": "baseline-second/source-profile.json",
+  "baselineSourceCapsules": "baseline-first/App.tsx.gz and baseline-first/useProject.ts.gz preserved before any producer edits",
+  "firstAttempt": "Driver setup race before A armed; first-observation.json and immutable first receipt/log/capsule preserve it.",
+  "boundaries": [
+    "Current live document/name/path/version/history overwritten; original stored B bytes unchanged, no data-loss claim",
+    "History HTMLDivElement exists with nonempty BUTTON rows before semantic comparisons; no missing-equals-missing proof",
+    "Dirty false/recovery null/offered null remained as observed; no demonstrated recovery or offer loss",
+    "Current baseline completion observes original versionsA/autosave metadata tail; a repaired stale path may skip it and requires reviewed final completion condition"
+  ],
+  "notRun": [
+    "General fileinput delayed Open baseline",
+    "Pending Close/New mutation variants after hold",
+    "Stale versions/autosave/linked secondary phases through native browser",
+    "Repair validation",
+    "Other tabs/processes/external folders/crash/whole suites"
+  ]
+}

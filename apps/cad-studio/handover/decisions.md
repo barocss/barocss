@@ -16293,3 +16293,32 @@ Full other-package/browser suites, caps/effects/orthographic/native off-axis/two
 world-coordinate certification, device loss/memory/performance remain NOT_RUN. Incoming Studio UX maps
 existing15/20/21 only; preserve D321 Render-history gap and D322 ownership. Normal feature push is
 authorized; no PR/release. Next D326: existing12/O9 A05 late Open request ownership, baseline first.
+
+
+## D326 — Bind project and serialized Open completion to its current owner (2026-10-29)
+
+At f841 the actual hook/codec baseline control passes and6 stale ownership cases fail. Native Studio
+reproduces B(volume2184/doc/name/path/version/real History) being replaced by A(volume1000) after a
+held original A read return. Native B bytes remain; first actual setup mass-pending failure is separate.
+Retain both baselines. Add opaque request/session/store/path and shared App intent checks through
+picker/use/refresh/part/log/autosave/linked/errors. Close/detach invalidate even empty; Check captures
+read-only scope without minting new intent. onOpened synchronously hands off its accepted scope.
+
+App dispatch rotates Open scope independently of D321 work and D322 Save ownership. Serialized
+bcad/json/extensionless reads check both awaits; old errors and fit cannot apply to a newer owner.
+verifyOpened captures actual accepted doc/intent/dispatch and checks after awaits before reference
+problems/dirty/direct update; equal nodes are not ownership and no ref is mutated inside an updater.
+Keep existing D321 replacement/Stop/Undo and D322 Save receipt/tag/queued React semantics.
+
+High source-only review identifies and resolves missing reopen owner and standalone Check external
+scope before final validation. Focused29(new20+Save9), wholeStudio423/0fail/0skip, types/lint pass;
+focused counts overlap whole. Actual Chrome156/WebGPU/DPR1 selected5 passes projectA→B/New/Close
+and genuine fileinputA→New/projectB, actual current recovery/history/native B bytes retained. Root
+views baseline2/final3 PNGs. Native data/results are unchanged; only original fulfilled read return
+is delayed. Asset-free plain JSON completion uses native-return+MessageChannel/UI observation;
+old operation promise is not exposed, no general blob/crypto/linked completion claim. Own5namespaces
+removed/absence checked, browser/server/PID/gate cleanup retained. Evidence: notes/project-open-ownership-
+2026-10-29/qualification.json. No other-format/stage/allA05/native negative matrix/fullotherpackage/
+remoteCI/performance acceptance. No schema/dependency/WASM/public telemetry. Normal feature push
+is authorized; no PR/release. New direct owner priority selects D327 urgent App.tsx decomposition,
+keeping D321/D322/D326 semantics, remaining A05/A06 and07→08→09 scopes explicit.

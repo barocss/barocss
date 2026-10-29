@@ -1,0 +1,33 @@
+{
+  "worktree": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+  "baseline": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+  "sources": [
+    {
+      "path": "apps/cad-studio/src/App.tsx",
+      "sha256": "3408486cb5ba46cb87091c9916be0c99ceee09ce7662779d6742adfe982ded35",
+      "capsule": "App.tsx.gz",
+      "gzipSha256": "7bc06c6b45b0d5479d00de634288bade5ff919b398e6569d67c612424ee46875"
+    },
+    {
+      "path": "apps/cad-studio/src/storage/useProject.ts",
+      "sha256": "b137e624895a31f76527efd7183913aec72161d07121cd2ecf3f0000d89ed94a",
+      "capsule": "useProject.ts.gz",
+      "gzipSha256": "de0e1b1fd4c193fb802b759556420980df1976d16fd8a98338a0d8108879fc58"
+    },
+    {
+      "path": "apps/cad-studio/src/storage/project.ts",
+      "sha256": "a927fd79a0db9be5d5b60f5380f2ad2ac114e4b5c33c0c9f5240da8772a815ad"
+    },
+    {
+      "path": "apps/cad-studio/src/storage/handleStore.ts",
+      "sha256": "73e879642071ec3db0597189946edb952804c523fc4159c0d7b584263b46c2a5"
+    },
+    {
+      "path": "apps/cad-studio/test/project-open-ownership-browser.mjs",
+      "sha256": "15b760cb4a1a21e72c458a09fb45077c279f43136398e7ccc6bcc7c7da8870b3",
+      "capsule": "project-open-ownership-browser.mjs.gz",
+      "gzipSha256": "4c28da8b310cf852f5773900f0f18072491e41c44df69d0151dfc6a5ac20074b"
+    }
+  ],
+  "schedule": "Original native OPFS File.arrayBuffer fulfilled return A only; actual public OpenB finishes before release; baseline metadata-tail observation independent of wrong Doc state."
+}

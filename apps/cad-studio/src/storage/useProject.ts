@@ -13,6 +13,7 @@ import type { ProjectStore, StoreEntry } from './store';
 import type { DirHandle } from './handleStore';
 import { linkedRevisions, type Linked } from './linked';
 import { acceptSaveReceipt } from '../state/saveOwnership';
+import type { OpenIntentBridge, OpenScope } from '../state/openOwnership';
 
 export interface ProjectView {
   store: ProjectStore | null;
@@ -23,13 +24,14 @@ export interface ProjectView {
   /** Autosaved work found for the open document, offered back. */
   offered: StudioDoc | null;
 }
-export interface ProjectCallbacks {
+export interface ProjectCallbacks extends OpenIntentBridge {
   /** A document of the project opened (as Open opens a file): the App replaces its document. */
-  onOpened(doc: StudioDoc, path: string, notes: string[]): void;
+  onOpened(doc: StudioDoc, path: string, notes: string[]): OpenScope | void;
   onError(title: string, hint: string): void;
   /** Placed parts whose project files differ (offered as waiting revisions), or that the project no longer has. */
   onLinked?(linked: Linked): void;
 }
+interface OpenOwner { request: object; scope?: OpenScope; session?: object; store?: ProjectStore; path?: string | null }
 const EMPTY: ProjectView = { store: null, part: null, parts: [], log: null, offered: null };
 /** A file name as a project path: `<name>.bcad`. */
 export const partPathOf = (name: string) => /\.bcad$/i.test(name) ? name : `${name}.bcad`;
@@ -41,6 +43,7 @@ export function useProject(cb: ProjectCallbacks) {
   const [recent, setRecent] = useState<DirHandle | null>(null);
   // (The tags read with — not shown, so not state — and the view as the async actions see it.)
   const tags = useRef<{ part: string | null; log: string | null }>({ part: null, log: null });
+  const opening = useRef<object>({}), projectSession = useRef<object>({});
   const saves = useRef({ path: null as string | null, next: 0, success: 0 });
   const live = useRef(view); live.current = view;
   const call = useRef(cb); call.current = cb;
@@ -48,21 +51,46 @@ export function useProject(cb: ProjectCallbacks) {
   const wanted = useRef<string[]>([]);
 
   const actions = useMemo(() => {
+    const beginOpen = (): OpenOwner => {
+      const request = {}; opening.current = request;
+      return { request, scope: call.current.onOpenIntent?.() };
+    };
+    const currentOpen = (owner: OpenOwner) => opening.current === owner.request
+      && (owner.session === undefined || projectSession.current === owner.session)
+      && (owner.store === undefined || live.current.store === owner.store)
+      && (owner.path === undefined || live.current.part === owner.path)
+      && (owner.scope === undefined || call.current.isOpenCurrent?.(owner.scope) !== false);
     const invalidateSaves = (path: string | null = null) => { saves.current = { path, next: saves.current.next, success: 0 }; };
     const set = (next: Partial<ProjectView>) => { live.current = { ...live.current, ...next }; setView(live.current); };
     const fail = (title: string, e: unknown) => { call.current.onError(title, say(e)); return false; };
-    const refresh = async (store: ProjectStore) => set({ parts: await partsOf(store) });
-    const loadLog = async (store: ProjectStore, part: string) => {
+    const refresh = async (store: ProjectStore, current: () => boolean) => {
+      const parts = await partsOf(store);
+      if (current()) set({ parts });
+    };
+    const loadLog = async (store: ProjectStore, part: string, current?: () => boolean) => {
       const r = await readVersions(store, part);
+      if (current && !current()) return;
       if (r && 'error' in r) { call.current.onError('The versions could not be read', `${r.error} The document itself is unchanged.`); tags.current.log = null; set({ log: null }); return; }
       tags.current.log = r?.tag ?? null; set({ log: r?.log ?? null });
     };
-    const use = async (store: ProjectStore | null) => {
-      if (!store) return;
+    const use = async (store: ProjectStore | null, owner: OpenOwner) => {
+      if (!store || !currentOpen(owner)) return;
+      // Picker, store adoption and refresh retain one request; a late picker must not mint new authority.
+      owner.session = projectSession.current = {}; owner.store = store;
       invalidateSaves();
       tags.current = { part: null, log: null };
       set({ ...EMPTY, store });
-      await refresh(store).catch(e => fail('The project could not be read', e));
+      await refresh(store, () => currentOpen(owner)).catch(e => { if (currentOpen(owner)) fail('The project could not be read', e); });
+    };
+    const checkLinked = async (doc: StudioDoc, store: ProjectStore, current: () => boolean): Promise<boolean> => {
+      if (!doc.instances?.length) return current();
+      try {
+        const linked = await linkedRevisions(doc, store);
+        if (!current()) return false;
+        // The callback can commit its own accepted revision; do not classify that synchronous change as stale.
+        if (linked.offered.length || linked.missing.length) call.current.onLinked?.(linked);
+        return true;
+      } catch (e) { if (!current()) return false; fail('The placed parts could not be checked', e); return true; }
     };
     /** The log written back; on a change meanwhile, read again and said. */
     const keepLog = async (store: ProjectStore, part: string, log: VersionLog) => {
@@ -74,27 +102,41 @@ export function useProject(cb: ProjectCallbacks) {
     };
     const actions = {
       async loadRecent() { setRecent(await recentFolder()); },
-      async openFolder() { try { await use(await pickFolder()); } catch (e) { fail('The folder could not be opened', e); } },
-      async reopen() { if (!recent) return; try { const s = await reopenFolder(recent); if (s) await use(s); else call.current.onError('No access to the folder', 'The browser did not allow it. Open the folder again.'); } catch (e) { fail('The folder could not be opened', e); } },
-      async openInBrowser(name: string) { try { await use(await browserProject(name)); } catch (e) { fail('The project could not be opened', e); } },
-      close() { invalidateSaves(); tags.current = { part: null, log: null }; set(EMPTY); },
+      async openFolder() { const owner = beginOpen(); try { await use(await pickFolder(), owner); } catch (e) { if (currentOpen(owner)) fail('The folder could not be opened', e); } },
+      async reopen() {
+        const owner = beginOpen(); if (!recent) return;
+        try {
+          const store = await reopenFolder(recent);
+          if (!currentOpen(owner)) return;
+          if (store) await use(store, owner);
+          else call.current.onError('No access to the folder', 'The browser did not allow it. Open the folder again.');
+        } catch (e) { if (currentOpen(owner)) fail('The folder could not be opened', e); }
+      },
+      async openInBrowser(name: string) { const owner = beginOpen(); try { await use(await browserProject(name), owner); } catch (e) { if (currentOpen(owner)) fail('The project could not be opened', e); } },
+      close() { beginOpen(); projectSession.current = {}; invalidateSaves(); tags.current = { part: null, log: null }; set(EMPTY); },
       /** The document no longer the open one of the project (a new part, another file): the project stays open, the next save is a new file in it. */
-      detach() { invalidateSaves(); if (!live.current.part && !live.current.log) return; tags.current = { part: null, log: null }; set({ part: null, log: null, offered: null }); },
+      detach() { beginOpen(); projectSession.current = {}; invalidateSaves(); if (!live.current.part && !live.current.log) return; tags.current = { part: null, log: null }; set({ part: null, log: null, offered: null }); },
       /** A document of the project opened, its versions read, its autosaved work offered when there is some. */
       async openPart(path: string) {
-        const store = live.current.store; if (!store) return false;
+        const owner = beginOpen(), store = live.current.store; if (!store) return false;
+        owner.session = projectSession.current; owner.store = store;
         invalidateSaves(path);
+        const current = () => currentOpen(owner);
         try {
           const r = await readPart(store, path);
+          if (!current()) return false;
           if ('error' in r) return fail(`Could not open ${path}`, new Error(r.error));
-          tags.current.part = r.tag; set({ part: path, offered: null });
-          call.current.onOpened(r.doc, path, r.notes);
-          await loadLog(store, path);
+          tags.current.part = r.tag; set({ part: path, offered: null }); owner.path = path;
+          const accepted = call.current.onOpened(r.doc, path, r.notes);
+          if (accepted) owner.scope = accepted;
+          if (!current()) return false;
+          await loadLog(store, path, current);
+          if (!current()) return false;
           const a = await readAutosave(store, path);
+          if (!current()) return false;
           if (a && 'doc' in a) set({ offered: a.doc });
-          await actions.checkLinked(r.doc);
-          return true;
-        } catch (e) { return fail(`Could not open ${path}`, e); }
+          return await checkLinked(r.doc, store, current);
+        } catch (e) { if (!current()) return false; return fail(`Could not open ${path}`, e); }
       },
       /** Saved into the project: over the file it was read from (its tag expected), or as `name` when new there. */
       async save(doc: StudioDoc, name: string, onCurrent?: () => void) {
@@ -137,8 +179,9 @@ export function useProject(cb: ProjectCallbacks) {
       /** Placed parts referenced by their project path checked against their files (storage/linked.ts). */
       async checkLinked(doc: StudioDoc) {
         const store = live.current.store; if (!store || !doc.instances?.length) return;
-        try { const l = await linkedRevisions(doc, store); if (l.offered.length || l.missing.length) call.current.onLinked?.(l); }
-        catch (e) { fail('The placed parts could not be checked', e); }
+        const owner: OpenOwner = { request: opening.current, session: projectSession.current, store,
+          path: live.current.part, scope: call.current.currentOpenScope?.() };
+        await checkLinked(doc, store, () => currentOpen(owner));
       },
       /** A document of the project as a file (to insert it as a placed part). */
       async fileOf(path: string): Promise<File | null> {

@@ -3,6 +3,7 @@ import { Fragment, Profiler, Suspense, lazy, useCallback, useEffect, useMemo, us
 import { EngineClient, type ProposalOverlay } from './engine/client';
 import { beginWork, createWorkOwnership, finishWork, invalidateWork, reserveAcceptedChange, settleWorkReservation, stopOwnedWork, workEditRefusal, type WorkHistory } from './state/workOwnership';
 import { currentDocumentSave } from './state/saveOwnership';
+import type { OpenScope } from './state/openOwnership';
 import { PROPOSAL_ADDED, PROPOSAL_REMOVED, type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
 import { multiply } from '@barocss/gpu/viewer';
 import { resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
@@ -383,9 +384,14 @@ export function App() {
   // Save completion belongs to a document dispatch, independently of evaluation/Stop ownership.
   // Even a no-op dispatch invalidates an older receipt; functional updates retain React's queued semantics.
   const saveDocumentToken = useRef<object>({});
+  const openIntent = useRef<OpenScope>({});
+  const beginOpenIntent = useCallback((): OpenScope => { const scope = {}; openIntent.current = scope; return scope; }, []);
+  const currentOpenScope = useCallback(() => openIntent.current, []);
+  const isOpenCurrent = useCallback((scope: OpenScope) => openIntent.current === scope, []);
   const saveAcceptanceScope = saveDocumentToken.current;
   const setDocState = useCallback((update: StudioDoc | ((previous: StudioDoc) => StudioDoc)) => {
     saveDocumentToken.current = {};
+    openIntent.current = {};
     if (typeof update === 'function') setDocStateRaw(update);
     else { docNow.current = update; setDocStateRaw(update); }
   }, []);
@@ -576,7 +582,16 @@ export function App() {
   const recoveryOff = useRef<string | null>(null);
   // (CG6: with a project open and the document saved in it, the work is kept in the project instead: storage/project.ts.)
   const project = useProject({
-    onOpened: (d, path, notes) => { replaceDoc(d, true); setFileName(path.replace(/\.bcad$/i, '').split('/').pop()!); setDirty(notes.length > 0); setTimeout(() => viewport.current?.fit(), 300); },
+    onOpenIntent: beginOpenIntent,
+    currentOpenScope,
+    isOpenCurrent,
+    onOpened: (d, path, notes) => {
+      replaceDoc(d, true);
+      const accepted = openIntent.current;
+      setFileName(path.replace(/\.bcad$/i, '').split('/').pop()!); setDirty(notes.length > 0);
+      setTimeout(() => { if (isOpenCurrent(accepted)) viewport.current?.fit(); }, 300);
+      return accepted;
+    },
     onError: (title, hint) => setToast({ title, hint, detail: '' }),
     onLinked: l => {
       if (l.offered.length) commitParts(l.doc);
@@ -2164,6 +2179,7 @@ export function App() {
     commit({ ...doc, nodes: doc.nodes.map((x, i) => i === a.node ? rest : x) }, false);
   };
   const open = async (file: File) => {
+    const scope = beginOpenIntent();
     try {
       // A DWG is not read (O61): its routes named, the part unchanged.
       if (/\.dwg$/i.test(file.name)) { const e = dwgRefusal(new TextDecoder('latin1').decode(new Uint8Array(await file.slice(0, 6).arrayBuffer()))); setToast({ title: 'DWG files are not read', hint: e ? e.message.replace(/^\[[A-Z_]+\] /, '') : `This is not a DWG file the studio knows. ${DWG_ROUTES}`, detail: '' }); return; }
@@ -2227,14 +2243,19 @@ export function App() {
       // tried as a model below.)
       if (/\.[^./\\]+$/.test(file.name) && !/\.(bcad|json)$/i.test(file.name)) { setToast({ title: `Can’t open ${file.name}`, hint: OPEN_READS, detail: '' }); return; }
       // Checked and, for an older file, brought up to date (said what was filled in); the file is left as it is.
-      const read = await readStudioFile(new Uint8Array(await file.arrayBuffer()));
+      const bytes = await file.arrayBuffer();
+      if (!isOpenCurrent(scope)) return;
+      const read = await readStudioFile(new Uint8Array(bytes));
+      if (!isOpenCurrent(scope)) return;
       if ('error' in read) { setToast({ title: 'Could not open this file', hint: `${read.error} Your part is unchanged.`, detail: '' }); return; }
       const parsed = read.doc;
-      replaceDoc({ ...parsed, ...(parsed.render ? { render: readRender(parsed.render) } : {}), ...(parsed.drawing ? { drawing: readDrawing(parsed.drawing) } : {}) }); setFileName(file.name.replace(/\.(bcad|json)$/, '')); setDirty(read.notes.length > 0);
+      const acceptedDoc = { ...parsed, ...(parsed.render ? { render: readRender(parsed.render) } : {}), ...(parsed.drawing ? { drawing: readDrawing(parsed.drawing) } : {}) };
+      replaceDoc(acceptedDoc); setFileName(file.name.replace(/\.(bcad|json)$/, '')); setDirty(read.notes.length > 0);
+      const accepted = openIntent.current, dispatch = saveDocumentToken.current;
       if (read.notes.length) setToast({ title: 'Opened an older model', hint: `${read.notes.join('; ')}. Save to keep it in the current form (the file is unchanged until then).`, detail: '' });
-      setTimeout(() => viewport.current?.fit(), 300);
-      void verifyOpened(parsed);
-    } catch (e) { setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); }
+      setTimeout(() => { if (isOpenCurrent(accepted)) viewport.current?.fit(); }, 300);
+      void verifyOpened(acceptedDoc, accepted, dispatch);
+    } catch (e) { if (isOpenCurrent(scope)) setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); }
   };
   // The references read (each on its own, in its own coordinates) and the keep-outs' solids made, when they change.
   useEffect(() => {
@@ -2437,20 +2458,20 @@ export function App() {
   const showRefChoices = async (index: number) => setRefChoices({ index, names: await candidatesFor(doc, index, bodies, d => engine.part(d, revision.current++, 'refs')) });
   // The opened file's stored references checked against their signatures (no prior document: a newer kernel may
   // number faces otherwise, engine/references.ts); what moved is substituted, marked, and said.
-  const verifyOpened = async (opened: StudioDoc) => {
+  const verifyOpened = async (opened: StudioDoc, scope: OpenScope, dispatch: object) => {
+    const current = () => isOpenCurrent(scope) && saveDocumentToken.current === dispatch && docNow.current === opened;
     // (O19: one that does not build because a stored name moved, REFERENCE_MOVED, is checked too — its moved names matched again, or held.)
-    const r = await engine.part(opened, revision.current++, 'refs'); if (!r || (!r.ok && r.error.code !== 'REFERENCE_MOVED')) return;
+    const r = await engine.part(opened, revision.current++, 'refs'); if (!current() || !r || (!r.ok && r.error.code !== 'REFERENCE_MOVED')) return;
     const v = await verifyReferences(opened, r.ok ? r.bodies : [], d => engine.part(d, revision.current++, 'refs'));
+    if (!current()) return;
     setRefProblems(v.problems);
     if (!v.changes.length && !v.problems.length) return;
-    setDocState(cur => {
-      if (cur.nodes !== opened.nodes && JSON.stringify(cur.nodes) !== JSON.stringify(opened.nodes)) return cur;
-      const next = { ...v.doc, render: cur.render, ...(v.doc.drawing ? { drawing: readDrawing(v.doc.drawing) } : {}) };
-      // Reference checking must not restore older print controls after a newer user change.
-      if (cur.print === undefined) delete next.print; else next.print = cur.print;
-      if (cur.printPreview === undefined) delete next.printPreview; else next.printPreview = cur.printPreview;
-      return next;
-    }); setDirty(true);
+    const cur = docNow.current;
+    const next = { ...v.doc, render: cur.render, ...(v.doc.drawing ? { drawing: readDrawing(v.doc.drawing) } : {}) };
+    // Apply only to this accepted dispatch, before any later edit or replacement.
+    if (cur.print === undefined) delete next.print; else next.print = cur.print;
+    if (cur.printPreview === undefined) delete next.printPreview; else next.printPreview = cur.printPreview;
+    setDocState(next); setDirty(true);
 
   };
   /** A sketch's profile as DXF, 1:1 in its plane (R11b, O1). */

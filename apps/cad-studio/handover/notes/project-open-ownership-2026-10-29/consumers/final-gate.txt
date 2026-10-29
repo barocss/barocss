@@ -1,0 +1,2 @@
+GATE: waiting — running: ; load 69.00; 1 queued
+GATE: go after 40 s (load 39.78, slot 1 of 1)

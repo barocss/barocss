@@ -1,0 +1,3 @@
+b137e624895a31f76527efd7183913aec72161d07121cd2ecf3f0000d89ed94a  src/storage/useProject.ts
+a927fd79a0db9be5d5b60f5380f2ad2ac114e4b5c33c0c9f5240da8772a815ad  src/storage/project.ts
+cf9a1880278c05da53578c5682d00dd89cae4454dc1a42689512a98b588eed63  test/project-open-ownership.test.ts
