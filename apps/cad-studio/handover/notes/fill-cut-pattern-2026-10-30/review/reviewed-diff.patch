@@ -1,0 +1,674 @@
+diff --git a/apps/cad-studio/src/App.tsx b/apps/cad-studio/src/App.tsx
+index 8f242e1b0..1aaab55b7 100644
+--- a/apps/cad-studio/src/App.tsx
++++ b/apps/cad-studio/src/App.tsx
+@@ -30,7 +30,7 @@ import { SelectionInspector } from './ui/SelectionInspector';
+ import { useMeshImport } from './files/useMeshImport';
+ import { MeshFileDialogs } from './files/MeshFileDialogs';
+ import { useRouteBundleEditor } from './state/useRouteBundleEditor';
+-import { curvePatternInputKey, curvePatternDocumentProblem, directCommandDocument, insertedCurvePartProblem, prepareDirectCurveCandidate } from './app/directCurveCandidate';
++import { curvePatternInputKey, curvePatternDocumentProblem, directCommandDocument, insertedCurvePartProblem, prepareDirectCurveCandidate, preparePatternNodeCandidate } from './app/directCurveCandidate';
+ import { ReferenceDecisions } from './ui/ReferenceDecisions';
+ import { useRobotExports } from './robot/useRobotExports';
+ import { RobotInspector } from './robot/RobotInspector';
+@@ -265,7 +265,7 @@ export function App() {
+   const [bodiesFor, setBodiesFor] = useState<StudioDoc | null>(null);
+   // Parameter candidates use the normal evaluation lane before the accepted document changes.
+   const parameterRequest = useRef(0);
+-  const [parameterEdit, setParameterEdit] = useState<{ kind?: 'direct'; request: number; base: StudioDoc; baseInput: StudioDoc; input: StudioDoc; next: StudioDoc; accept(next: StudioDoc): void } | null>(null);
++  const [parameterEdit, setParameterEdit] = useState<{ kind?: 'direct'; failureTitle?: string; request: number; base: StudioDoc; baseInput: StudioDoc; input: StudioDoc; next: StudioDoc; accept(next: StudioDoc): void } | null>(null);
+   const parameterEditNow = useRef(parameterEdit); parameterEditNow.current = parameterEdit;
+   const acceptedEvaluation = useRef<{ key: string; result: Extract<EvalResult, { ok: true }> } | null>(null);
+   // Only a parameter transition may hand a result to the next effect once; ordinary evaluations still run.
+@@ -678,7 +678,7 @@ export function App() {
+       if (parameterMass.current?.request === edit?.request && !parameterMass.current?.target) parameterMass.current = null;
+       if (edit.kind === 'direct') parameterEditNow.current = null;
+       setParameterEdit(null); setBusy(false);
+-      setToast({ title: edit.kind === 'direct' ? 'Direct geometry not changed' : 'Parameters not changed', hint: 'The accepted part and its references are unchanged.', detail });
++      setToast({ title: edit.failureTitle ?? (edit.kind === 'direct' ? 'Direct geometry not changed' : 'Parameters not changed'), hint: 'The accepted part and its references are unchanged.', detail });
+     };
+     setBusy(true);
+     const run = async () => {
+@@ -827,8 +827,8 @@ export function App() {
+     pushUndo();
+     if (!setDoc({ ...doc, drawing: next })) return; setDirty(true);
+   }, [doc, marker, acceptanceScope]);
+-  const stageCurveCandidate = useCallback((candidate: { next: StudioDoc; input: StudioDoc }, select?: string[]) => {
+-    if (bodiesFor !== evaluatedRef.current || !massReady || shownVariant.current) { setToast({ title: 'Direct geometry not changed', hint: 'Wait for the accepted part and its mass results to finish evaluating.', detail: '' }); return; }
++  const stageCurveCandidate = useCallback((candidate: { next: StudioDoc; input: StudioDoc; failureTitle?: string }, select?: string[]) => {
++    if (bodiesFor !== evaluatedRef.current || !massReady || shownVariant.current) { setToast({ title: candidate.failureTitle ?? 'Direct geometry not changed', hint: 'Wait for the accepted part and its mass results to finish evaluating.', detail: '' }); return; }
+     const edit = { ...candidate, kind: 'direct' as const, request: ++parameterRequest.current, base: doc, baseInput: evaluatedRef.current,
+       accept: (accepted: StudioDoc) => { if (commit(accepted, false) && select) setDirectSel(select); } };
+     // Reserve before React renders so a second edit cannot change the accepted input.
+@@ -1925,11 +1925,12 @@ export function App() {
+       {skel.session && !rendering && !drawing && <SkeletonPanel editor={skel} name={skel.session.node === null ? 'new skeleton' : featureLabel(doc.nodes[skel.session.node], skel.session.node, doc.nodes)} />}
+       {!cageEd.session && !skel.session && !rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <SelectionInspector model={{ doc, evaluated, bodies, fresh, busy, massReady }} selection={selection} materialSettings={{ material, setMaterial }}
+         display={{ showBox, setShowBox, inertiaAt, setInertiaAt }} changes={{ commit, setSelection, edgesToCurves, loadBendTable, setFlatView, setCutListView, separate }}>
+-        {editNode !== null && <NodeEditor nodes={doc.nodes} parameters={doc.parameters} doc={doc} pending={parameterEdit?.kind === 'direct'} pendingLabel="Checking the path cut pattern…" bearingAssembly={{ root: doc, owner: 'base' }} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode} onEditSketch={(() => { const n = doc.nodes[editNode]; const s = n?.kind === 'sketch' ? editNode : n && 'sketch' in n ? n.sketch : null; return s !== null && doc.nodes[s]?.kind === 'sketch' ? () => editSketch(s) : undefined; })()} onApply={nodes => {
++        {editNode !== null && <NodeEditor nodes={doc.nodes} parameters={doc.parameters} doc={doc} pending={parameterEdit?.kind === 'direct'} pendingLabel={doc.nodes[editNode]?.kind === 'fill-feature-pattern' ? 'Checking the fill cut pattern…' : 'Checking the path cut pattern…'} bearingAssembly={{ root: doc, owner: 'base' }} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode} onEditSketch={(() => { const n = doc.nodes[editNode]; const s = n?.kind === 'sketch' ? editNode : n && 'sketch' in n ? n.sketch : null; return s !== null && doc.nodes[s]?.kind === 'sketch' ? () => editSketch(s) : undefined; })()} onApply={nodes => {
+           if (!canChangeDocument()) return;
+           const scope = bearingEditScope.current;
+           const next = { ...doc, nodes: dropStaleMade(doc.nodes, nodes) };
+-          if (doc.nodes[editNode]?.kind === 'curve-feature-pattern' || nodes[editNode]?.kind === 'curve-feature-pattern') { stageCurveCandidate({ next, input: prefixDoc(next, next.nodes.length) }); return; }
++          const candidate = preparePatternNodeCandidate(doc, next, editNode);
++          if (candidate) { stageCurveCandidate(candidate); return; }
+           engine.evaluate(next, revision.current++).then(r => { if (!r || bearingEditScope.current !== scope) return; if (r.ok) commit(next); else setToast({ ...r.error, hint: 'The design was not changed. Adjust the values and try again.' }); });
+         }} onDelete={() => deleteNode(editNode)} onClose={() => { discardDirectCandidateRef.current(); setEditNode(null); }} />}
+       </SelectionInspector>}
+diff --git a/apps/cad-studio/src/app/directCurveCandidate.ts b/apps/cad-studio/src/app/directCurveCandidate.ts
+index 5d50384c6..65998c0b2 100644
+--- a/apps/cad-studio/src/app/directCurveCandidate.ts
++++ b/apps/cad-studio/src/app/directCurveCandidate.ts
+@@ -27,6 +27,14 @@ export function prepareDirectCurveCandidate(before: StudioDoc, direct: DirectGeo
+   return { next, input: prefixDoc(next, next.nodes.length) };
+ }
+ 
++/** Edited CUT recipes use the same unaccepted Worker lane as a consumed direct path. */
++export function preparePatternNodeCandidate(before: StudioDoc, next: StudioDoc, index: number): { next: StudioDoc; input: StudioDoc; failureTitle?: string } | null {
++  const oldKind = before.nodes[index]?.kind, nextKind = next.nodes[index]?.kind;
++  const fill = oldKind === 'fill-feature-pattern' || nextKind === 'fill-feature-pattern';
++  if (!fill && oldKind !== 'curve-feature-pattern' && nextKind !== 'curve-feature-pattern') return null;
++  return { next, input: prefixDoc(next, next.nodes.length), ...(fill ? { failureTitle: 'Fill cut pattern not changed' } : {}) };
++}
++
+ /** Part insertion must check the placed context before its direct geometry is stripped. */
+ export function insertedCurvePartProblem(part: StudioDoc): string | null {
+   return curvePatternDocumentProblem({ instances: [{ doc: part }] });
+diff --git a/apps/cad-studio/src/ui/Hud.tsx b/apps/cad-studio/src/ui/Hud.tsx
+index e9b6d1bd9..497fe39e1 100644
+--- a/apps/cad-studio/src/ui/Hud.tsx
++++ b/apps/cad-studio/src/ui/Hud.tsx
+@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
+ import { Input } from '@/components/ui/input';
+ import { NativeSelect } from '@/components/ui/native-select';
+ import { Icon } from './atoms';
++import { FillPatternHints } from './FillPatternHints';
+ 
+ /** The HUD's field box: 26 px, the studio's mono type, the accent ring when focused. */
+ const FIELD = 'h-[26px]! w-full px-1.5! text-xs! font-medium [font-family:var(--mono)] bg-[var(--bg)] focus-visible:ring-1 focus-visible:ring-primary';
+@@ -63,6 +64,7 @@ export function Hud({ store, onChange, onApply, onCancel, onFile }: Props) {
+       <div className="hud-fields">
+         {fields.map(renderField)}
+       </div>
++      {active.cmd.id === 'fill-feature-pattern' && <FillPatternHints />}
+       {active.preview === 'error' && active.error && <div className="hud-error" role="status">
+         <div className="hud-error-title">{active.error.title}</div><div>{active.error.hint}</div>
+         {active.error.detail && <details><summary onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); }}>Kernel detail</summary><code>{active.error.detail}</code></details>}
+diff --git a/apps/cad-studio/src/ui/NodeEditor.tsx b/apps/cad-studio/src/ui/NodeEditor.tsx
+index b8cb98641..dfac2a93e 100644
+--- a/apps/cad-studio/src/ui/NodeEditor.tsx
++++ b/apps/cad-studio/src/ui/NodeEditor.tsx
+@@ -4,6 +4,7 @@ import type { BearingAssemblyInput } from '@barocss/cad-model/engine/bearingCont
+ import { editFields, type BindableField } from '@barocss/cad-model/app/editFields';
+ import { ToolIconButton } from '@/components/ui/tool-button';
+ import { Icon } from './atoms';
++import { FillPatternHints } from './FillPatternHints';
+ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDelete, parameters, onRefuse, bearingAssembly, doc, pending = false, pendingLabel = 'Checking the current bearing and housing…' }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[]): void; onClose(): void; onEditSketch?(): void; onDelete?(): void; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; doc?: Pick<StudioDoc, 'direct'>; pending?: boolean; pendingLabel?: string }) {
+   // The draft is the whole node list: a sketch dimension changes the sketch the feature is made from.
+   const [draft, setDraft] = useState<ModelNode[]>(nodes);
+@@ -27,6 +28,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDel
+             : <input type="checkbox" className="check" disabled={pending} aria-label={f.label} checked={f.get(draft)} onChange={e => setDraft(d => f.set(d, e.target.checked))} />}
+         </label>
+       )) : <div className="empty">This feature has no editable dimensions.</div>}
++      {draft[index]?.kind === 'fill-feature-pattern' && <FillPatternHints />}
+       {onDelete && <button className="ghost danger" disabled={pending} aria-label="Delete feature" title="Delete this feature (and the sketch only it uses) · Undo restores it" onClick={onDelete}><Icon name="delete" small /> Delete feature</button>}
+       {pending && <div className="empty" role="status">{pendingLabel}</div>}
+       {fields.length > 0 && <div className="row-actions"><button className="primary" disabled={!changed || pending} onClick={() => onApply(draft)}>Apply</button><button className="ghost" disabled={!changed || pending} onClick={() => { setDraft(nodes); setTyped({}); }}>Reset</button></div>}
+diff --git a/apps/cad-studio/test/chat.test.ts b/apps/cad-studio/test/chat.test.ts
+index ef2718801..21d6afbd6 100644
+--- a/apps/cad-studio/test/chat.test.ts
++++ b/apps/cad-studio/test/chat.test.ts
+@@ -167,7 +167,7 @@ test('tool schemas: every buildable command is exposed and documented with the H
+       assert.deepEqual(keys, new Set(Object.keys(COMMAND_DOCS[id].values)), id);
+       continue;
+     }
+-    if (id === 'curve-feature-pattern' || id === 'linear-feature-pattern' || id === 'rectangular-feature-pattern') {
++    if (id === 'fill-feature-pattern' || id === 'curve-feature-pattern' || id === 'linear-feature-pattern' || id === 'rectangular-feature-pattern') {
+       // (A linear cut pattern takes the current result of a subtract: a plate with one slot cut.)
+       const cut = await stateOf(part('slotted').box({ w: 60, d: 30, h: 10 }).subtract(p => p.box({ w: 4, d: 4, h: 10, x: 0, y: 8 }).moved(Location.at([8, 0, 0]))).doc);
+       const ctx: Ctx = { doc: cut.doc, bodies: cut.bodies, selection: sel({ bodies: [0] }) }, cmd = commandById(id)!;
+diff --git a/packages/barocss-cad-model/README.md b/packages/barocss-cad-model/README.md
+index b319e0bb1..ebd77efc8 100644
+--- a/packages/barocss-cad-model/README.md
++++ b/packages/barocss-cad-model/README.md
+@@ -95,3 +95,20 @@ are checked separately from displayed callout text.
+ Pass the same resolver to the trailing `autoDimensions` argument when using that function directly.
+ The normal document/Studio pipelines supply it. A custom string formatter alone does not establish
+ compound ownership; absent or unresolved ownership keeps independent locations conservative.
++
++### Fill cut patterns
++
++`part.fillFeaturePattern({ region: { points }, anchor: [8.5, 8.5], spacing: 12,
++count: 4, spacing2: 10, count2: 3 })` repeats the current difference's original CUT tool
++on a finite world XY grid. The simple straight region has 3–16 finite vertices.
++Each count is 1–64, including the original; their product is at most 64 before masking.
++Both positive spacings can bind to parameters. Counts and reference coordinates cannot bind.
++
++The region tests authored reference points, including exact boundary points. A cutter can cross
++the region boundary. The original CUT always remains, even when its reference lies outside.
++Stable names use original grid indices, `@i,j`.
++
++The command's **Region snapshot** captures resolved points from one eligible closed straight
++world XY sketch. Later sketch edits do not change the pattern. The feature editor can capture
++a new snapshot. Curved, holed, multiple, unresolved and unsupported framed regions are refused.
++The copied inline region and reference survive native Save/Open and nested part placement.
+diff --git a/packages/barocss-cad-model/src/api/index.ts b/packages/barocss-cad-model/src/api/index.ts
+index f13390970..52030d581 100644
+--- a/packages/barocss-cad-model/src/api/index.ts
++++ b/packages/barocss-cad-model/src/api/index.ts
+@@ -11,7 +11,7 @@ export { BarocssError, type FacadeCode, type RefusalWhere } from './refusal';
+ export type { LibraryPartInput } from './library';
+ export { Plane, Location, Sketch, sketch, param, withParameters, type PlaneData, type PoseData, type SketchData, type Param, type Dim, type FeatureInfo } from '@barocss/cad/api';
+ export type {
+-  BoxOptions, CylinderOptions, ExtrudeOptions, RevolveOptions, HoleOptions, FilletOptions, ChamferOptions, ShellOptions, LinearPatternOptions, RectangularFeaturePatternOptions, CurveFeaturePatternOptions, CurveFeaturePatternPath, RawNurbsPath, CircularPatternOptions, Density, Tool,
++  BoxOptions, CylinderOptions, ExtrudeOptions, RevolveOptions, HoleOptions, FilletOptions, ChamferOptions, ShellOptions, LinearPatternOptions, RectangularFeaturePatternOptions, FillFeaturePatternOptions, FillFeaturePatternRegion, CurveFeaturePatternOptions, CurveFeaturePatternPath, RawNurbsPath, CircularPatternOptions, Density, Tool,
+ } from '@barocss/cad/api';
+ export { Robot, RobotPath } from './robot';
+ export { assembly, Assembly, type MateEnd, type MateOptions, type FrameOptions } from './assembly';
+diff --git a/packages/barocss-cad-model/src/api/studio.ts b/packages/barocss-cad-model/src/api/studio.ts
+index 92b84d79a..b5f810d57 100644
+--- a/packages/barocss-cad-model/src/api/studio.ts
++++ b/packages/barocss-cad-model/src/api/studio.ts
+@@ -42,6 +42,7 @@ function apply(doc: StudioDoc, spec: FeatureSpec, body: string | null): StudioDo
+   const { selection, unknown } = resolveNames(bodies, namesOf(spec, body));
+   if (unknown.length) throw refuse('SELECTION_UNKNOWN', `no face, edge or body named ${unknown.join(', ')} on the part`);
+   const cmd = commandById(spec.command)!, ctx: Ctx = { doc: withSketch(doc, spec), bodies, selection };
++  if (spec.command === 'fill-feature-pattern') { ctx.fillPatternRegion = spec.region; ctx.fillPatternAnchor = spec.anchor; }
+   if (spec.command === 'curve-feature-pattern') ctx.curvePatternPath = spec.path;
+   const avail = cmd.available(ctx);
+   // (A command that can't run says why; a reason that carries the core's own code — [FASTENER_SIZE_ROW] — keeps it, §6.)
+@@ -79,6 +80,7 @@ const BINDS: Record<string, Record<string, readonly [node: number, field: string
+   chamfer: { distance: [0, 'd'] },
+   shell: { t: [0, 't'] },
+   'linear-pattern': { spacing: [0, 'spacing'], count: [0, 'count'] },
++  'fill-feature-pattern': { spacing: [0, 'spacing'], spacing2: [0, 'spacing2'] },
+   'curve-feature-pattern': { spacing: [0, 'spacing'] },
+   'linear-feature-pattern': { spacing: [0, 'spacing'] },
+   'rectangular-feature-pattern': { spacing: [0, 'spacing'], spacing2: [0, 'spacing2'] },
+diff --git a/packages/barocss-cad-model/src/app/commands.ts b/packages/barocss-cad-model/src/app/commands.ts
+index 33b18ce71..3fc2ef778 100644
+--- a/packages/barocss-cad-model/src/app/commands.ts
++++ b/packages/barocss-cad-model/src/app/commands.ts
+@@ -1,3 +1,5 @@
++import { eligibleFillPatternRegions, fillFeaturePatternProblem, fillRegionSnapshot } from '../engine/fillFeaturePattern';
++import type { FillFeaturePatternRegion } from '@barocss/cad/api';
+ import { curveFeaturePatternProblem, eligibleCurvePatternPaths, type CurveFeaturePatternPath } from '../engine/curveFeaturePattern';
+ // Commands are driven by the current selection. Each one says whether it applies (and why not),
+ // which fields its HUD shows, and how it changes the document.
+@@ -38,7 +40,7 @@ export interface EdgeSel { body: number; edge: number }
+ /** `vertices`: corners picked (ends of edges), by body and position. */
+ export interface Selection { faces: FaceSel[]; edges: EdgeSel[]; bodies: number[]; sketches?: number[]; vertices?: { body: number; at: [number, number, number] }[] }
+ /** `direct`: the direct curves and surfaces picked (their ids). */
+-export interface Ctx { curvePatternPath?: CurveFeaturePatternPath; doc: StudioDoc; bodies: BodyResult[]; selection: Selection; pick?: [number, number, number]; direct?: string[]; bearingAssembly?: BearingAssemblyInput }
++export interface Ctx { fillPatternRegion?: FillFeaturePatternRegion; fillPatternAnchor?: readonly [number, number]; curvePatternPath?: CurveFeaturePatternPath; doc: StudioDoc; bodies: BodyResult[]; selection: Selection; pick?: [number, number, number]; direct?: string[]; bearingAssembly?: BearingAssemblyInput }
+ 
+ export type Values = Record<string, number | string>;
+ /** `when`: shown (and required) only for these values. */
+@@ -783,6 +785,23 @@ const allCommands: Command[] = [
+       return withNode(ctx.doc, { kind: 'linear-feature-pattern', parent: refOf(oneBody(ctx)!), axis, spacing, count });
+     },
+   },
++  {
++    id: 'fill-feature-pattern', label: 'Fill cut pattern', icon: 'cad-pattern-linear', hint: 'Capture a region snapshot. Later sketch edits do not change it. Reference points control placement; a cut may cross the region boundary.', group: 'pattern', keywords: 'fill region feature cut repeat subtract',
++    available: ctx => { const why = linearCutProblem(ctx); return why ? no(why.message) : ok; },
++    fields: ctx => [...(ctx.fillPatternRegion ? [] : [{ key: 'region', label: 'Region snapshot', kind: 'choice' as const, options: eligibleFillPatternRegions(ctx.doc), empty: 'Add a closed straight world XY sketch without holes.' }]),
++      { key: 'anchorX', label: 'Reference X', kind: 'number', min: -10000, max: 10000 }, { key: 'anchorY', label: 'Reference Y', kind: 'number', min: -10000, max: 10000 },
++      { key: 'spacing', label: 'X spacing', kind: 'mm', min: 0, max: 10000 }, { key: 'count', label: 'Columns', kind: 'count', min: 1, max: 64 },
++      { key: 'spacing2', label: 'Y spacing', kind: 'mm', min: 0, max: 10000 }, { key: 'count2', label: 'Rows', kind: 'count', min: 1, max: 64 }],
++    defaults: ctx => ({ region: eligibleFillPatternRegions(ctx.doc)[0]?.value ?? '', anchorX: ctx.fillPatternAnchor?.[0] ?? 0, anchorY: ctx.fillPatternAnchor?.[1] ?? 0, spacing: 12, count: 4, spacing2: 10, count2: 3 }),
++    build: (ctx, v) => {
++      const why = linearCutProblem(ctx); if (why) throw why;
++      if (!ctx.fillPatternRegion && (typeof v.region !== 'string' || !/^(0|[1-9][0-9]*)$/.test(v.region))) throw refusal('VALUE', 'Select a region snapshot.');
++      const node = { kind: 'fill-feature-pattern' as const, parent: refOf(oneBody(ctx)!), region: ctx.fillPatternRegion ?? fillRegionSnapshot(ctx.doc, Number(v.region)), anchor: ctx.fillPatternAnchor ?? [Number(v.anchorX), Number(v.anchorY)] as const, spacing: Number(v.spacing), count: Number(v.count), spacing2: Number(v.spacing2), count2: Number(v.count2) };
++      const problem = fillFeaturePatternProblem(node, ctx.doc.nodes, ctx.doc.parameters);
++      if (problem) throw coded(problem.startsWith('[BAD_REFERENCE]') ? 'BAD_REFERENCE' : 'VALUE', problem);
++      return withNode(ctx.doc, structuredClone(node));
++    },
++  },
+   {
+     id: 'curve-feature-pattern', label: 'Path cut pattern', icon: 'cad-pattern-linear', hint: 'Repeat a cut on an open polyline with fixed orientation', group: 'pattern', keywords: 'curve path feature cut repeat subtract',
+     available: ctx => { const why = linearCutProblem(ctx); return why ? no(why.message) : ok; },
+diff --git a/packages/barocss-cad-model/src/app/editFields.ts b/packages/barocss-cad-model/src/app/editFields.ts
+index ff7388c0e..046b44bb8 100644
+--- a/packages/barocss-cad-model/src/app/editFields.ts
++++ b/packages/barocss-cad-model/src/app/editFields.ts
+@@ -1,3 +1,4 @@
++import { eligibleFillPatternRegions, fillRegionSnapshot } from '../engine/fillFeaturePattern';
+ import { eligibleCurvePatternPaths } from '../engine/curveFeaturePattern';
+ import type { StudioDoc } from '../engine/doc';
+ // The editable dimensions of a feature, including those of the sketch it is made from: each field
+@@ -85,9 +86,9 @@ export type BindableField = Extract<EditField, { kind: 'number' }> & { param(nod
+  * Where a part-scoped edit stands (O167, F6), when no assembly input is given: the part draft's bearing context (its
+  * occurrence and the other parts, as the bearing command reads it) and the fit tables the draft sees.
+  */
+-export interface EditScope { readonly context?: BearingAssemblyContext; readonly fits?: StudioFits; readonly doc?: Pick<StudioDoc, 'direct'> }
++export interface EditScope { readonly context?: BearingAssemblyContext; readonly fits?: StudioFits; readonly doc?: Pick<StudioDoc, 'direct' | 'parameters'> }
+ export function editFields(nodes: Nodes, i: number, params?: Record<string, number>, bearingAssembly?: BearingAssemblyInput, scope?: EditScope): EditField[] {
+-  const raw = editFieldsRaw(nodes, i, bearingAssembly, scope);
++  const raw = editFieldsRaw(nodes, i, bearingAssembly, scope, params ?? scope?.doc?.parameters ?? {});
+   if (!params) return raw;
+   return raw.map(f => f.kind !== 'number' ? f : {
+     ...f,
+@@ -95,7 +96,8 @@ export function editFields(nodes: Nodes, i: number, params?: Record<string, numb
+     set: (n, v) => within(params, () => f.set(n, v)).value,
+     param: (n: Nodes) => { const r = within(params, () => f.get(n)); return r.seen.length === 1 ? r.seen[0] : null; },
+     bind: (n: Nodes, name: string) => {
+-      if (((n[i]?.kind === 'linear-feature-pattern' || n[i]?.kind === 'curve-feature-pattern') && f.key === 'count') || (n[i]?.kind === 'rectangular-feature-pattern' && (f.key === 'count' || f.key === 'count2'))) return null;
++      if (((n[i]?.kind === 'linear-feature-pattern' || n[i]?.kind === 'curve-feature-pattern') && f.key === 'count') || ((n[i]?.kind === 'rectangular-feature-pattern' || n[i]?.kind === 'fill-feature-pattern') && (f.key === 'count' || f.key === 'count2'))) return null;
++      if (n[i]?.kind === 'fill-feature-pattern' && (f.key === 'anchorX' || f.key === 'anchorY')) return null;
+       if (!(name in params)) return null;
+       const next = within(params, () => f.set(n, params[name])).value;
+       // (The value must land as it is in one place: then that place holds the reference.)
+@@ -119,7 +121,7 @@ const MEMBER_FIELD_LABELS: Record<string, string> = {
+   legX: 'Leg along x', legY: 'Leg along y', thickness: 'Thickness', rootRadius: 'Root radius', toeRadius: 'Toe radius', web: 'Web', flange: 'Flange thickness at overhang midpoint', flangeSlope: 'Flange slope (rise/run)',
+   size: 'Size', opening: 'Slot opening', lip: 'Slot lip', undercut: 'Slot undercut', depth: 'Slot depth', bore: 'Core bore',
+ };
+-function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssemblyInput, scope?: EditScope): EditField[] {
++function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssemblyInput, scope?: EditScope, parameters: Record<string, number> = {}): EditField[] {
+   const node = nodes[i], out: EditField[] = [];
+   if (!node) return out;
+   const self = <T extends ModelNode>(n: Nodes) => n[i] as T;
+@@ -553,6 +555,14 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
+       out.push({ kind: 'choice', key: 'plane', label: 'Plane', options: [{ value: 'yz', label: 'YZ' }, { value: 'xz', label: 'XZ' }, { value: 'xy', label: 'XY' }], get: n => self<typeof node>(n).plane, set: (n, v) => replace(n, i, { ...self<typeof node>(n), plane: v as typeof node.plane }) });
+       break;
+     case 'scale': number('k', 'Factor', undefined, n => (n as typeof node).factor, (n, v) => ({ ...(n as typeof node), factor: v })); break;
++    case 'fill-feature-pattern':
++      out.push({ kind: 'choice', key: 'region', label: 'Region snapshot', options: [{ value: '', label: 'Current region snapshot' }, ...eligibleFillPatternRegions({ nodes: [...nodes], parameters })], get: () => '', set: (n, v) => v === '' ? [...n] : replace(n, i, { ...self<typeof node>(n), region: fillRegionSnapshot({ nodes: [...n], parameters }, Number(v)) }) });
++      [0, 1].forEach(k => number('anchor' + 'XY'[k], 'Reference ' + 'XY'[k], undefined, n => (n as typeof node).anchor[k], (n, v) => { const anchor = [...(n as typeof node).anchor] as [number, number]; anchor[k] = v; return { ...(n as typeof node), anchor }; }));
++      number('spacing', 'X spacing', 'mm', n => num((n as typeof node).spacing), (n, v) => ({ ...(n as typeof node), spacing: v }));
++      number('count', 'Columns', undefined, n => (n as typeof node).count, (n, v) => ({ ...(n as typeof node), count: v }));
++      number('spacing2', 'Y spacing', 'mm', n => num((n as typeof node).spacing2), (n, v) => ({ ...(n as typeof node), spacing2: v }));
++      number('count2', 'Rows', undefined, n => (n as typeof node).count2, (n, v) => ({ ...(n as typeof node), count2: v }));
++      break;
+     case 'curve-feature-pattern':
+       out.push({ kind: 'choice', key: 'path', label: 'Path', options: [...('objectId' in node.path ? [] : [{ value: '', label: 'Inline path' }]), ...eligibleCurvePatternPaths(scope?.doc ?? {})], get: n => { const p = self<typeof node>(n).path; return 'objectId' in p ? p.objectId : ''; }, set: (n, v) => v === '' ? [...n] : replace(n, i, { ...self<typeof node>(n), path: { objectId: v } }) });
+       number('spacing', 'Spacing', 'mm', n => num((n as typeof node).spacing), (n, v) => ({ ...(n as typeof node), spacing: v }));
+diff --git a/packages/barocss-cad-model/src/assembly/definitions.ts b/packages/barocss-cad-model/src/assembly/definitions.ts
+index 813a6cafa..da577d093 100644
+--- a/packages/barocss-cad-model/src/assembly/definitions.ts
++++ b/packages/barocss-cad-model/src/assembly/definitions.ts
+@@ -1,3 +1,4 @@
++import { fillPatternDocumentProblem } from '../engine/fillFeaturePattern';
+ // Shared part definitions: instances placing the same part (inserted once, then duplicated) share its
+ // definition, so a new revision accepted for it is every one of theirs; a copy made independent gets a
+ // definition of its own. A new revision is loaded on purpose and waits beside the assembly until it is
+@@ -29,7 +30,7 @@ export function makeIndependent(doc: StudioDoc, instance: string): StudioDoc {
+  * placed one, else the next after it. Refused when the file is the part as placed.
+  */
+ export function offerRevision(doc: StudioDoc, id: string, part: StudioDoc, name: string): { doc: StudioDoc } | { error: string } {
+-  const pathProblem = curvePatternDocumentProblem({ instances: [{ doc: part }] });
++  const pathProblem = fillPatternDocumentProblem(part) ?? curvePatternDocumentProblem({ instances: [{ doc: part }] });
+   if (pathProblem) return { error: pathProblem };
+   const placed = sharing(doc, id)[0]; if (!placed?.part) return { error: 'That part is not placed any more.' };
+   const strip = (d: StudioDoc) => JSON.stringify({ ...d, render: undefined, direct: undefined, drawing: undefined });
+diff --git a/packages/barocss-cad-model/src/assembly/edit.ts b/packages/barocss-cad-model/src/assembly/edit.ts
+index 7508d5573..80e5e6b87 100644
+--- a/packages/barocss-cad-model/src/assembly/edit.ts
++++ b/packages/barocss-cad-model/src/assembly/edit.ts
+@@ -1,3 +1,4 @@
++import { fillPatternDocumentProblem } from '../engine/fillFeaturePattern';
+ import { readConnector, validateBallOptions, validateFastenedOptions, validateUniversalOptions, validateCylindricalOptions, withConnector, type Connector } from './connectors';
+ // R7.3c (api-conventions §3): the assembly's edits as core functions, verb(doc, options) → result — what the agent's
+ // add_part, place_part, add_mate and edit_mate write, and set_frames' write. The tools (chat/assembly.ts,
+@@ -39,7 +40,7 @@ export interface Edited { doc: StudioDoc; problems: { mate: string; reason: stri
+ 
+ /** add_part: a part placed by a rotation and a move, the assembly solved again; its id. */
+ export function addPart(doc: StudioDoc, o: AddPartOptions): Edited & { id: string } {
+-  const pathProblem = o.doc && curvePatternDocumentProblem({ instances: [{ doc: o.doc }] });
++  const pathProblem = o.doc && (fillPatternDocumentProblem(o.doc) ?? curvePatternDocumentProblem({ instances: [{ doc: o.doc }] }));
+   if (pathProblem) throw refusal('VALUE', pathProblem);
+   const instances = doc.instances ?? [], id = nextFreeId('p', new Set(instances.map(i => i.id)));
+   const inst: PartInstance = { id, name: o.name, doc: o.doc ?? emptyDoc(), position: o.position ?? [0, 0, 0], rotation: o.rotation ?? [0, 0, 0], ...(o.grounded ? { grounded: true } : {}) };
+@@ -50,7 +51,7 @@ export function addPart(doc: StudioDoc, o: AddPartOptions): Edited & { id: strin
+ export function partCopy(doc: StudioDoc, part: string): StudioDoc {
+   const src = partDocOf(doc, part);
+   if (!src) throw refusal('NO_PART', `No part "${part}" to copy; parts: ${partList(doc)}.`);
+-  const pathProblem = curvePatternDocumentProblem({ instances: [{ doc: src }] });
++  const pathProblem = fillPatternDocumentProblem(src) ?? curvePatternDocumentProblem({ instances: [{ doc: src }] });
+   if (pathProblem) throw refusal('VALUE', pathProblem);
+   return { ...src, instances: undefined, mates: undefined, render: undefined, drawing: undefined, direct: undefined };
+ }
+diff --git a/packages/barocss-cad-model/src/chat/features.ts b/packages/barocss-cad-model/src/chat/features.ts
+index e24e2e261..b05fc05ee 100644
+--- a/packages/barocss-cad-model/src/chat/features.ts
++++ b/packages/barocss-cad-model/src/chat/features.ts
+@@ -1,3 +1,4 @@
++import { fillFeaturePatternProblem } from '../engine/fillFeaturePattern';
+ import { curveFeaturePatternProblem } from '../engine/curveFeaturePattern';
+ // Feature nodes written by the model (add_features / edit_feature), checked before the kernel sees
+ // them: every field of the node's kind with the right type, references to earlier sketches and to
+@@ -28,6 +29,7 @@ const SPECS: Record<string, Spec> = {
+   mirror: { parent: 'ref', plane: 'enum:xy|xz|yz' },
+   scale: { parent: 'ref', factor: 'pos', 'pivot?': 'dim3' },
+   'linear-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'count' },
++  'fill-feature-pattern': { parent: 'ref', region: 'any', anchor: 'any', spacing: 'dim', count: 'positive-index', spacing2: 'dim', count2: 'positive-index' },
+   'curve-feature-pattern': { parent: 'ref', path: 'any', spacing: 'dim', count: 'positive-index' },
+   'rectangular-feature-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'positive-index', axis2: 'enum:x|y|z', spacing2: 'dim', count2: 'positive-index' },
+   'linear-feature-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'count' },
+@@ -141,6 +143,7 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
+   if (kind === 'text') return textNodeProblem(node, parameters);
+   if (kind === 'cylindrical-wrap') return cylindricalWrapNodeProblem(node, parameters);
+   if (kind === 'text-relief') return textReliefNodeProblem(node, parameters);
++  if (kind === 'fill-feature-pattern') return fillFeaturePatternProblem(node, nodes, parameters);
+   if (kind === 'curve-feature-pattern') return curveFeaturePatternProblem(node, nodes, parameters);
+   if (kind === 'rectangular-feature-pattern') return rectangularFeaturePatternProblem(node, nodes, parameters);
+   if (kind === 'linear-feature-pattern') {
+diff --git a/packages/barocss-cad-model/src/chat/part/features.ts b/packages/barocss-cad-model/src/chat/part/features.ts
+index 8e57bde7c..a3bf28489 100644
+--- a/packages/barocss-cad-model/src/chat/part/features.ts
++++ b/packages/barocss-cad-model/src/chat/part/features.ts
+@@ -106,6 +106,7 @@ export const COMMAND_DOCS: Record<string, { selection: string; values: Record<st
+   duplicate: { selection: 'bodies: [one body]', values: { dx: 'copy offset X', dy: 'copy offset Y', dz: 'copy offset Z' } },
+   mirror: { selection: 'bodies: [one body]', values: { plane: 'yz | xz | xy; keeps the original', at: 'where the plane crosses its axis (yz: X; 0: through the origin)' } },
+   'linear-pattern': { selection: 'bodies: [one body]', values: { axis: 'x | y | z', spacing: 'mm between copies', count: 'copies including the original', result: 'one (joined) | separate (each its own body)' } },
++  'fill-feature-pattern': { selection: 'bodies: [one current unsuppressed subtract result]', values: { region: 'stable sketch index to capture one closed straight world XY region snapshot; later sketch edits do not change it', anchorX: 'authored reference X', anchorY: 'authored reference Y', spacing: 'positive X distance at most 10000', count: 'columns 1–64', spacing2: 'positive Y distance at most 10000', count2: 'rows 1–64; count × count2 at most 64 including original' } },
+   'curve-feature-pattern': { selection: 'bodies: [one current unsuppressed subtract result]', values: { path: 'stable direct curve object id (open polyline or straight quadratic spans; fixed orientation)', spacing: 'positive distance at most 10000; total distance must fit the current path', count: 'whole number 1–64 including original' } },
+   'rectangular-feature-pattern': { selection: 'bodies: [one current unsuppressed subtract result]', values: { axis: 'x | y | z (first global direction)', spacing: 'positive distance between cuts (at most 10000)', count: 'whole number 1–64', axis2: 'x | y | z (different from axis)', spacing2: 'positive distance between cuts (at most 10000)', count2: 'whole number 1–64; count × count2 at most 64 including original' } },
+   'linear-feature-pattern': { selection: 'bodies: [one current unsuppressed subtract result]', values: { axis: 'x | y | z', spacing: 'positive mm between cuts (at most 10000)', count: 'whole number 2–64, including the original cut' } },
+diff --git a/packages/barocss-cad-model/src/engine/doc.ts b/packages/barocss-cad-model/src/engine/doc.ts
+index 749c286bf..86643aac5 100644
+--- a/packages/barocss-cad-model/src/engine/doc.ts
++++ b/packages/barocss-cad-model/src/engine/doc.ts
+@@ -1,4 +1,4 @@
+-import type { CurveFeaturePatternPath } from '@barocss/cad/api';
++import type { FillFeaturePatternRegion, CurveFeaturePatternPath } from '@barocss/cad/api';
+ import { flattenShopView, resolveShopTree } from './shopRows';
+ import { refusal } from './refusal';
+ import { CadNumericPolicy, CadPartLimits } from '@barocss/cad';
+@@ -329,6 +329,7 @@ type ModelNodeBase = SketchNode | TextNode | TextReliefNode | CylindricalWrapNod
+   | { kind: 'linear-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
+   /** Repeat a current difference's cut; spacing keeps the stored dimension reference. */
+   | { kind: 'linear-feature-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
++  | { kind: 'fill-feature-pattern'; parent: BodyRef; region: FillFeaturePatternRegion; anchor: readonly [number, number]; spacing: Dim; count: number; spacing2: Dim; count2: number }
+   | { kind: 'curve-feature-pattern'; parent: BodyRef; path: CurveFeaturePatternPath; spacing: Dim; count: number }
+   | { kind: 'rectangular-feature-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number; axis2: Axis; spacing2: Dim; count2: number }
+   /** About `axis` through `pivot` (default the origin). */
+@@ -1034,6 +1035,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
+     case 'scale': return `Scale ×${node.factor}`;
+     case 'linear-pattern': return `Pattern ×${node.count}`;
+     case 'linear-feature-pattern': return `Cut pattern ×${node.count}`;
++    case 'fill-feature-pattern': return `Fill cut pattern ${node.count} × ${node.count2}`;
+     case 'curve-feature-pattern': return `Path cut pattern ×${node.count}`;
+     case 'rectangular-feature-pattern': return `Cut pattern ${node.count} × ${node.count2}`;
+     case 'circular-pattern': return `Circular ×${node.count}`;
+diff --git a/packages/barocss-cad-model/src/engine/flatten.ts b/packages/barocss-cad-model/src/engine/flatten.ts
+index eb3497115..8ec6166be 100644
+--- a/packages/barocss-cad-model/src/engine/flatten.ts
++++ b/packages/barocss-cad-model/src/engine/flatten.ts
+@@ -1,3 +1,4 @@
++import { fillPatternDocumentProblem } from './fillFeaturePattern';
+ // A sub-assembly as one part: a document's own features, then each visible instance's features placed as
+ // they stand (their mates were solved when the file was saved), renumbered after them. Inserted into
+ // another assembly, it is then one instance with several bodies whose faces mate like any part's.
+@@ -9,7 +10,7 @@ import { curvePatternDocumentProblem } from './curveFeaturePattern';
+ 
+ /** The document with its instances folded in as features (nested sub-assemblies too). */
+ export function flattenAssembly(doc: StudioDoc): StudioDoc {
+-  const pathProblem = curvePatternDocumentProblem({ instances: [{ doc }] });
++  const pathProblem = fillPatternDocumentProblem(doc) ?? curvePatternDocumentProblem({ instances: [{ doc }] });
+   if (pathProblem) throw refusal('VALUE', pathProblem);
+   assertRouteBundleDocument(doc);
+   if (doc.schema === 4 || Object.prototype.hasOwnProperty.call(doc, 'routeBundles') || doc.nodes.some(n => Object.prototype.hasOwnProperty.call(n, 'routeBundleMember'))) throw refusal('BAD_REFERENCE', 'Route bundle: flattening linked route documents is not supported.');
+diff --git a/packages/barocss-cad-model/src/engine/migrate.ts b/packages/barocss-cad-model/src/engine/migrate.ts
+index 2d80b2e05..0bd9ccded 100644
+--- a/packages/barocss-cad-model/src/engine/migrate.ts
++++ b/packages/barocss-cad-model/src/engine/migrate.ts
+@@ -1,3 +1,4 @@
++import { fillPatternDocumentProblem } from './fillFeaturePattern';
+ import { curvePatternDocumentProblem } from './curveFeaturePattern';
+ import { documentConnectorError } from '../assembly/connectors';
+ // Reading a saved .bcad file: its format and schema checked, an older one brought up to the current
+@@ -21,7 +22,7 @@ import { sketch3dRefusal, type Constraint3D, type V3 } from '../frames/sketch3d'
+ // Legacy documents still migrate to 3; explicit route bundles require reader support for 4.
+ export const SCHEMA = 3;
+ const MAX_READ_SCHEMA = 4;
+-const KINDS = new Set(['skeleton', 'cylindrical-wrap', 'text', 'text-relief', 'sketch', 'extrude', 'revolve', 'decimate', 'translate', 'rotate', 'mirror', 'scale', 'linear-pattern', 'linear-feature-pattern', 'rectangular-feature-pattern', 'curve-feature-pattern', 'circular-pattern', 'union', 'intersect', 'difference', 'rib', 'rectangular-relief', 'split', 'separate', 'sweep', 'sweep-curve', 'loft', 'import', 'mesh', 'thread', 'shell', 'chamfer', 'fillet', 'draft', 'full-round', 'face-fillet', 'face-thread', 'thicken', 'sew', 'subd', 'gear', 'internal-gear', 'bevel-gear', 'worm', 'worm-wheel', 'spring', 'cam', 'sprocket', 'pulley', 'belt', 'coupling', 'connector-opening', 'connector-body', 'gusset', 'end-cap', 'shaft', 'key', 'keyway', 'retaining-ring', 'pin', 'bearing', 'oring-gland', 'oring', 'rack', 'library', 'hole', 'sheet-base', 'sheet-contour', 'sheet-flange', 'sheet-corner-relief', 'frame-member', 'frame']);
++const KINDS = new Set(['skeleton', 'cylindrical-wrap', 'text', 'text-relief', 'sketch', 'extrude', 'revolve', 'decimate', 'translate', 'rotate', 'mirror', 'scale', 'linear-pattern', 'linear-feature-pattern', 'rectangular-feature-pattern', 'curve-feature-pattern', 'fill-feature-pattern', 'circular-pattern', 'union', 'intersect', 'difference', 'rib', 'rectangular-relief', 'split', 'separate', 'sweep', 'sweep-curve', 'loft', 'import', 'mesh', 'thread', 'shell', 'chamfer', 'fillet', 'draft', 'full-round', 'face-fillet', 'face-thread', 'thicken', 'sew', 'subd', 'gear', 'internal-gear', 'bevel-gear', 'worm', 'worm-wheel', 'spring', 'cam', 'sprocket', 'pulley', 'belt', 'coupling', 'connector-opening', 'connector-body', 'gusset', 'end-cap', 'shaft', 'key', 'keyway', 'retaining-ring', 'pin', 'bearing', 'oring-gland', 'oring', 'rack', 'library', 'hole', 'sheet-base', 'sheet-contour', 'sheet-flange', 'sheet-corner-relief', 'frame-member', 'frame']);
+ 
+ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] } | { error: string } {
+   let raw: unknown;
+@@ -57,6 +58,8 @@ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] }
+   if (skeletonProblem) return { error: skeletonProblem };
+   // (Stable ids: a schema-1 file named node i `n<i>`, which is the id it now keeps, so no stored name changes.)
+   if (schema < 2) notes.push('features given stable ids (their names stay as they were)');
++  const fillProblem = fillPatternDocumentProblem({ ...o, parameters });
++  if (fillProblem) return { error: fillProblem };
+   const curveProblem = curvePatternDocumentProblem({ ...o, parameters });
+   if (curveProblem) return { error: curveProblem };
+   const patternProblem = rectangularPatternDocumentProblem({ ...o, parameters });
+diff --git a/packages/barocss-cad-model/src/engine/part.ts b/packages/barocss-cad-model/src/engine/part.ts
+index 52b09d4d8..391c44ced 100644
+--- a/packages/barocss-cad-model/src/engine/part.ts
++++ b/packages/barocss-cad-model/src/engine/part.ts
+@@ -1,3 +1,4 @@
++import { fillPatternDocumentProblem } from './fillFeaturePattern';
+ import { curvePatternDocumentProblem, resolveCurveFeaturePatternPath } from './curveFeaturePattern';
+ import { resolveShopTree } from './shopRows';
+ // The studio document as a kernel part document: a node is the feature of its stable id (`n<k>`, see ids.ts),
+@@ -134,6 +135,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
+     case 'scale': return { ...at, kind: 'scale', target: ref(node.parent), factor: node.factor, ...(node.pivot ? { pivot: node.pivot } : {}) };
+     case 'linear-pattern': return { ...at, kind: 'linear-pattern', target: ref(node.parent), axis: node.axis, spacing: node.spacing, count: node.count };
+     case 'linear-feature-pattern': return { ...at, kind: 'linear-feature-pattern', target: ref(node.parent), axis: node.axis, spacing: node.spacing, count: node.count };
++    case 'fill-feature-pattern': return { ...at, kind: 'fill-feature-pattern', target: ref(node.parent), region: node.region, anchor: node.anchor, spacing: node.spacing, count: node.count, spacing2: node.spacing2, count2: node.count2 };
+     case 'curve-feature-pattern': return { ...at, kind: 'curve-feature-pattern', target: ref(node.parent), path: resolveCurveFeaturePatternPath(curvePathDoc, node.path), spacing: node.spacing, count: node.count };
+     case 'rectangular-feature-pattern': return { ...at, kind: 'rectangular-feature-pattern', target: ref(node.parent), axis: node.axis, spacing: node.spacing, count: node.count, axis2: node.axis2, spacing2: node.spacing2, count2: node.count2 };
+     case 'circular-pattern': return { ...at, kind: 'circular-pattern', target: ref(node.parent), axis: node.axis, angle: node.angle, count: node.count, ...(node.pivot ? { pivot: node.pivot } : {}) };
+@@ -499,6 +501,8 @@ export function resolveAssociativeSketch(doc: StudioDoc, index: number): SketchN
+ export function toPartDocument(doc: StudioDoc): CadPartDocument { return buildPartDocument(doc); }
+ 
+ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
++  const fillProblem = fillPatternDocumentProblem(doc);
++  if (fillProblem) throw coded(fillProblem.startsWith('[BAD_REFERENCE]') ? 'BAD_REFERENCE' : 'VALUE', fillProblem);
+   const curveProblem = curvePatternDocumentProblem(doc);
+   if (curveProblem) throw coded(curveProblem.startsWith('[BAD_REFERENCE]') ? 'BAD_REFERENCE' : 'VALUE', curveProblem);
+   curvePathDoc = doc;
+@@ -561,7 +565,7 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
+     }
+     // Active cut patterns, ribs and reliefs must reach kernel source admission even when their parent is gone.
+     // Suppressing the pattern itself keeps the ordinary parent pass-through below.
+-    if ((node.kind === 'curve-feature-pattern' || node.kind === 'linear-feature-pattern' || node.kind === 'rectangular-feature-pattern' || node.kind === 'rib' || node.kind === 'rectangular-relief' || node.kind === 'text-relief') && !node.suppressed) { features.push(...featuresOf(node, i, CadPartLimits.features - features.length)); return; }
++    if ((node.kind === 'fill-feature-pattern' || node.kind === 'curve-feature-pattern' || node.kind === 'linear-feature-pattern' || node.kind === 'rectangular-feature-pattern' || node.kind === 'rib' || node.kind === 'rectangular-relief' || node.kind === 'text-relief') && !node.suppressed) { features.push(...featuresOf(node, i, CadPartLimits.features - features.length)); return; }
+     const parent = (node as { parent: BodyRef }).parent;
+     if (gone.has(parent.node)) { gone.add(i); return; }
+     if (node.suppressed) { pass(i, parent); return; }
+diff --git a/packages/barocss-cad-model/src/engine/wireDoc.ts b/packages/barocss-cad-model/src/engine/wireDoc.ts
+index c2fbd70c1..9d96b5b8e 100644
+--- a/packages/barocss-cad-model/src/engine/wireDoc.ts
++++ b/packages/barocss-cad-model/src/engine/wireDoc.ts
+@@ -1,3 +1,4 @@
++import { fillPatternDocumentProblem } from './fillFeaturePattern';
+ import { curvePatternDocumentProblem } from './curveFeaturePattern';
+ import { refusal } from './refusal';
+ import { provenanceOfTree, registerShopRowProvenance, resolveShopTree, type ShopTreeProvenance } from './shopRows';
+@@ -31,6 +32,8 @@ const PRUNE_EVERY = 64, KEEP_FOR = 256;
+ 
+ /** What evaluation reads of a document (an instance's part likewise). */
+ export function evaluatedPart(doc: StudioDoc): StudioDoc {
++  const fillProblem = fillPatternDocumentProblem(doc);
++  if (fillProblem) throw refusal('VALUE', fillProblem);
+   const pathProblem = curvePatternDocumentProblem(doc);
+   if (pathProblem) throw refusal('VALUE', pathProblem);
+   doc = resolveShopTree(doc);
+diff --git a/packages/barocss-cad/README.md b/packages/barocss-cad/README.md
+index dedce0114..94f3aecb1 100644
+--- a/packages/barocss-cad/README.md
++++ b/packages/barocss-cad/README.md
+@@ -11585,3 +11585,23 @@ displacement; they are not claimed unchanged. Pcurves are regenerated under the
+ existing whole UV policy, without sampled cross-copy D1 bit identity. The pivot
+ branch retains its original failure cause and completed-work report. No fusion,
+ persistent naming, mass, STL, editor, GPU or manufacturing acceptance is added.
++
++## Reference-point fill CUT pattern
++
++`part.fillFeaturePattern({ region: { points }, anchor: [x, y], spacing, count, spacing2, count2 })`
++repeats the current active, unsuppressed difference's original tool in world XY. The region is an owned numeric
++snapshot of one simple straight polygon with 3..16 distinct finite vertices, implicit closure, either winding,
++and coordinates within ±10000 mm. Concave outlines are supported. Holes, curves, live region references, repeated
++vertices and self-touching or crossing boundaries are refused. The explicit reference anchor has the same coordinate bound.
++
++Counts include the original cut. Each count is 1..64 and their product must be at most 64 **before** masking.
++The grid has offsets `[i * spacing, j * spacing2, 0]`, in row-major order. The original cut stays even if its
++reference is outside the region. Additional cuts are admitted when the authored anchor plus the represented offset
++is inside or exactly on the boundary. The sum and polygon tests use exact rational predicates without rounding the
++sum to a Number. This tests reference points; a cutter can cross the boundary. It does not clip cutter geometry.
++
++The public spacings are positive and at most 10000 mm. The Kernel document also accepts signed nonzero spacings
++with absolute value at most 10000 mm, as rectangular CUT patterns do. Only the two spacings can bind parameters;
++counts cannot. No cumulative offset cap is added. Surviving cell names use their original `@i,j` indices. The
++recipe, source history, region snapshot and anchor survive native Save/Open without a schema change. One-cell,
++empty-tool and zero-additional-placement cases keep the seed and still validate the recipe and source.
+diff --git a/packages/barocss-cad/src/api/index.ts b/packages/barocss-cad/src/api/index.ts
+index 2fa61ee1e..e18317b35 100644
+--- a/packages/barocss-cad/src/api/index.ts
++++ b/packages/barocss-cad/src/api/index.ts
+@@ -4,10 +4,10 @@
+ export { part, KernelPart, kernelBackend } from './kernel.js';
+ export { Part, withParameters, type PartBackend, type Density, type Tool, type FeatureInfo } from './part.js';
+ export {
+-  boxSpec, cylindricalWrapSpec, cylinderSpec, extrudeSpec, revolveSpec, holeSpec, filletSpec, chamferSpec, shellSpec, booleanSpec, linearPatternSpec, rectangularFeaturePatternSpec, curveFeaturePatternSpec, circularPatternSpec, moveSpec, rotateSpec, mirrorSpec, scaleSpec, splitSpec, studioSpec, type StudioCommand,
++  boxSpec, cylindricalWrapSpec, cylinderSpec, extrudeSpec, revolveSpec, holeSpec, filletSpec, chamferSpec, shellSpec, booleanSpec, linearPatternSpec, rectangularFeaturePatternSpec, fillFeaturePatternSpec, curveFeaturePatternSpec, circularPatternSpec, moveSpec, rotateSpec, mirrorSpec, scaleSpec, splitSpec, studioSpec, type StudioCommand,
+   param, isParam, type Param, type Dim, type Bound, type Resolved,
+   type FeatureSpec, type BooleanCommand, type BoxOptions, type CylindricalWrapOptions, type CylinderOptions, type ExtrudeOptions, type RevolveOptions, type HoleOptions, type FilletOptions, type ChamferOptions,
+-  type ShellOptions, type RectangularFeaturePatternOptions, type CurveFeaturePatternOptions, type CurveFeaturePatternPath, type RawNurbsPath, type LinearPatternOptions, type CircularPatternOptions, type MirrorOptions, type ScaleOptions, type SplitOptions,
++  type ShellOptions, type RectangularFeaturePatternOptions, type FillFeaturePatternOptions, type FillFeaturePatternRegion, type CurveFeaturePatternOptions, type CurveFeaturePatternPath, type RawNurbsPath, type LinearPatternOptions, type CircularPatternOptions, type MirrorOptions, type ScaleOptions, type SplitOptions,
+ } from './spec.js';
+ export { Plane, Location, Sketch, SketchStart, SketchPath, sketch, type PlaneData, type PoseData, type SketchData, type LoopSegment, type Vec2 } from './sketch.js';
+ export type { MassResult, MeshData } from './core.js';
+diff --git a/packages/barocss-cad/src/api/kernel.ts b/packages/barocss-cad/src/api/kernel.ts
+index fa786adc2..080aef62f 100644
+--- a/packages/barocss-cad/src/api/kernel.ts
++++ b/packages/barocss-cad/src/api/kernel.ts
+@@ -89,6 +89,10 @@ function featuresOf(doc: CadPartDocument, spec: FeatureSpec, body: string | null
+       const { axis, spacing, count, axis2, spacing2, count2 } = spec.values;
+       return [{ id: nextId(doc, 'rectangular-feature-pattern'), kind: 'rectangular-feature-pattern', target: target(), axis, spacing, count, axis2, spacing2, count2 }];
+     }
++    case 'fill-feature-pattern': {
++      const { spacing, count, spacing2, count2 } = spec.values;
++      return [{ id: nextId(doc, 'fill-feature-pattern'), kind: 'fill-feature-pattern', target: target(), region: spec.region, anchor: spec.anchor, spacing, count, spacing2, count2 }];
++    }
+     case 'curve-feature-pattern': {
+       const { spacing, count } = spec.values;
+       // The evaluator gives a typed CAPABILITY refusal for a direct reference: the kernel has no direct sources.
+@@ -143,6 +147,7 @@ const BINDS: Record<string, Record<string, readonly [feature: number, path: read
+   'linear-pattern': { spacing: [0, ['spacing']] },
+   'linear-feature-pattern': { spacing: [0, ['spacing']] },
+   'rectangular-feature-pattern': { spacing: [0, ['spacing']], spacing2: [0, ['spacing2']] },
++  'fill-feature-pattern': { spacing: [0, ['spacing']], spacing2: [0, ['spacing2']] },
+   'curve-feature-pattern': { spacing: [0, ['spacing']] },
+   split: { at: [0, ['at']] },
+ };
+diff --git a/packages/barocss-cad/src/api/part.ts b/packages/barocss-cad/src/api/part.ts
+index 95ac6bacb..3c8b7058b 100644
+--- a/packages/barocss-cad/src/api/part.ts
++++ b/packages/barocss-cad/src/api/part.ts
+@@ -8,9 +8,9 @@
+ // body that body is meant. The choice is the facade's view of the document, never written into it: `.doc` is the same
+ // with or without it. It follows the body through the verbs that replace it (a fillet's result is the filleted body).
+ import {
+-  booleanSpec, cylindricalWrapSpec, boxSpec, chamferSpec, circularPatternSpec, curveFeaturePatternSpec, cylinderSpec, extrudeSpec, filletSpec, holeSpec, linearFeaturePatternSpec, rectangularFeaturePatternSpec, linearPatternSpec, mirrorSpec, moveSpec, revolveSpec, rotateSpec, scaleSpec, shellSpec, splitSpec,
++  booleanSpec, cylindricalWrapSpec, boxSpec, chamferSpec, circularPatternSpec, fillFeaturePatternSpec, curveFeaturePatternSpec, cylinderSpec, extrudeSpec, filletSpec, holeSpec, linearFeaturePatternSpec, rectangularFeaturePatternSpec, linearPatternSpec, mirrorSpec, moveSpec, revolveSpec, rotateSpec, scaleSpec, shellSpec, splitSpec,
+   type BooleanCommand, type CylindricalWrapOptions, type BoxOptions, type ChamferOptions, type CircularPatternOptions, type CylinderOptions, type ExtrudeOptions, type FeatureSpec, type FilletOptions,
+-  type HoleOptions, type RectangularFeaturePatternOptions, type CurveFeaturePatternOptions, type LinearPatternOptions, type MirrorOptions, type RevolveOptions, type ScaleOptions, type ShellOptions, type SplitOptions,
++  type HoleOptions, type RectangularFeaturePatternOptions, type FillFeaturePatternOptions, type CurveFeaturePatternOptions, type LinearPatternOptions, type MirrorOptions, type RevolveOptions, type ScaleOptions, type ShellOptions, type SplitOptions,
+   type Bound, type Resolved, isParam,
+ } from './spec.js';
+ import type { BodyQuery, EdgeQuery, FaceQuery } from './select.js';
+@@ -201,6 +201,8 @@ export class Part<D> {
+   linearFeaturePattern(options: LinearPatternOptions): this { return this.#act(this.#spec(options, o => linearFeaturePatternSpec(o))); }
+   /** Repeat the current difference's cut on two distinct global axes. */
+   rectangularFeaturePattern(options: RectangularFeaturePatternOptions): this { return this.#act(this.#spec(options, o => rectangularFeaturePatternSpec(o))); }
++  /** Repeat the original CUT tool on a finite XY grid, masked by reference points in a region snapshot. */
++  fillFeaturePattern(options: FillFeaturePatternOptions): this { return this.#act(this.#spec(options, o => fillFeaturePatternSpec(o))); }
+   /** Repeat a difference's cut along an open polyline without rotating its tool. */
+   curveFeaturePattern(options: CurveFeaturePatternOptions): this { return this.#act(this.#spec(options, o => curveFeaturePatternSpec(o))); }
+   /** `circular-pattern`: copies of the body round an axis, joined into one body. */
+diff --git a/packages/barocss-cad/src/api/spec.ts b/packages/barocss-cad/src/api/spec.ts
+index 791937f22..327c56093 100644
+--- a/packages/barocss-cad/src/api/spec.ts
++++ b/packages/barocss-cad/src/api/spec.ts
+@@ -5,6 +5,8 @@
+ // own command, as the agent's run_command does. The body a spec acts on (the part's one body, or the chosen one) is the
+ // backend's argument beside it.
+ import { refuse } from './refusal.js';
++import { fillCutSnapshot, type FillFeaturePatternRegion } from '../features/fill-cut-pattern.js';
++export type { FillFeaturePatternRegion } from '../features/fill-cut-pattern.js';
+ import { Sketch, type SketchData } from './sketch.js';
+ import type { AxisName, EdgeInfo } from './select.js';
+ import type { RawNurbsPath } from '../features/curve-cut-pattern.js';
+@@ -40,6 +42,7 @@ type BaseSpec =
+   | { readonly command: 'linear-pattern'; readonly values: { readonly axis: AxisName; readonly spacing: number; readonly count: number } }
+   | { readonly command: 'linear-feature-pattern'; readonly values: { readonly axis: AxisName; readonly spacing: number; readonly count: number } }
+   | { readonly command: 'rectangular-feature-pattern'; readonly values: { readonly axis: AxisName; readonly spacing: number; readonly count: number; readonly axis2: AxisName; readonly spacing2: number; readonly count2: number } }
++  | { readonly command: 'fill-feature-pattern'; readonly region: FillFeaturePatternRegion; readonly anchor: readonly [number, number]; readonly values: { readonly spacing: number; readonly count: number; readonly spacing2: number; readonly count2: number } }
+   | { readonly command: 'curve-feature-pattern'; readonly path: CurveFeaturePatternPath; readonly values: { readonly spacing: number; readonly count: number } }
+   | { readonly command: 'circular-pattern'; readonly values: { readonly axis: AxisName; readonly count: number; readonly span: number; readonly px: number; readonly py: number } }
+   | { readonly command: 'move'; readonly values: { readonly x: number; readonly y: number; readonly z: number } }
+@@ -81,6 +84,8 @@ export interface ShellOptions { t: Dim }
+ export interface LinearPatternOptions { axis: AxisName; spacing: Dim; count: Dim }
+ /** Repeat a difference tool on two distinct global axes; each count includes the original cut. */
+ export interface RectangularFeaturePatternOptions { axis: AxisName; spacing: Dim; count: Dim; axis2: AxisName; spacing2: Dim; count2: Dim }
++/** An inline XY region snapshot masks authored reference points; counts include the original cut. */
++export interface FillFeaturePatternOptions { region: FillFeaturePatternRegion; anchor: readonly [number, number]; spacing: Dim; count: Dim; spacing2: Dim; count2: Dim }
+ /** Raw authored geometry, or a cad-model direct curve's stable object id. */
+ export type CurveFeaturePatternPath = RawNurbsPath | { readonly objectId: string };
+ /** Fixed-orientation cuts along an open polyline; count includes the original cut (1..64). */
+@@ -191,6 +196,14 @@ export function rectangularFeaturePatternSpec(o: Resolved<RectangularFeaturePatt
+   return { command: 'rectangular-feature-pattern', values: { axis, spacing: positive('spacing', o.spacing), count: o.count, axis2, spacing2: positive('spacing2', o.spacing2), count2: o.count2 } };
+ }
+ 
++export function fillFeaturePatternSpec(o: Resolved<FillFeaturePatternOptions>): Extract<FeatureSpec, { readonly command: 'fill-feature-pattern' }> {
++  const spacing = positive('spacing', o.spacing), spacing2 = positive('spacing2', o.spacing2);
++  if (spacing > 10000 || spacing2 > 10000) throw refuse('VALUE', 'fill cut pattern spacing must be at most 10000 mm');
++  if (!Number.isSafeInteger(o.count) || o.count < 1 || o.count > 64 || !Number.isSafeInteger(o.count2) || o.count2 < 1 || o.count2 > 64 || o.count * o.count2 > 64) throw refuse('VALUE', 'fill cut pattern needs at most 64 candidate cells, with each count from 1 to 64');
++  const snapshot = fillCutSnapshot(o.region, o.anchor, (_code, message) => { throw refuse('VALUE', message); });
++  return { command: 'fill-feature-pattern', ...snapshot, values: { spacing, count: o.count, spacing2, count2: o.count2 } };
++}
++
+ export function curveFeaturePatternSpec(o: Resolved<CurveFeaturePatternOptions>): FeatureSpec {
+   const spacing = positive('spacing', o.spacing);
+   if (spacing > 10000) throw refuse('VALUE', 'path cut pattern spacing must be at most 10000 mm');
+diff --git a/packages/barocss-cad/src/part/part-model.ts b/packages/barocss-cad/src/part/part-model.ts
+index 4e039fe4b..5aa791954 100644
+--- a/packages/barocss-cad/src/part/part-model.ts
++++ b/packages/barocss-cad/src/part/part-model.ts
+@@ -27,6 +27,7 @@ import { polynomialFaceFillet } from '../blend/polynomial-face-fillet.js';
+ import { draftedExtrusion } from '../features/drafted-extrusion.js';
+ import { profileRelief, type ReliefSketch } from '../features/profile-relief.js';
+ import { cylindricalWrapFeature, type CylindricalWrapReport } from '../features/cylindrical-wrap-feature.js';
++import { fillCutSnapshot, fillCutPlacements, type FillFeaturePatternRegion } from '../features/fill-cut-pattern.js';
+ import { curveCutOffsets, type RawNurbsPath } from '../features/curve-cut-pattern.js';
+ import { stepTessellatedChars } from '../io/step.js';
+ import { brepFromTriangles, isMeshBrepError } from '../mesh/mesh-brep.js';
+@@ -183,6 +184,8 @@ export type CadPartFeature = Base & (
+   | { readonly kind: 'linear-feature-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number }
+   /** Repeat an active difference tool on two distinct global axes; both counts include the original cut. */
+   | { readonly kind: 'rectangular-feature-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number; readonly axis2: CadPartAxis; readonly spacing2: CadPartDim; readonly count2: number }
++  /** Repeat the original CUT tool on a finite XY grid, masked by an inline reference-point region. */
++  | { readonly kind: 'fill-feature-pattern'; readonly target: string; readonly region: FillFeaturePatternRegion; readonly anchor: readonly [number, number]; readonly spacing: CadPartDim; readonly count: number; readonly spacing2: CadPartDim; readonly count2: number }
+   /** Repeat a difference's cut tool along an open polyline, with its original orientation. */
+   | { readonly kind: 'curve-feature-pattern'; readonly target: string; readonly path: RawNurbsPath; readonly spacing: CadPartDim; readonly count: number }
+   /** Copies k·angle about the axis through `pivot` (about X or Y: multiples of 90°). */
+@@ -1923,6 +1926,23 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
+         return one(cut);
+       };
+     }
++    case 'fill-feature-pattern': {
++      const spacing = dim(f.spacing as CadPartDim, 'spacing'), spacing2 = dim(f.spacing2 as CadPartDim, 'spacing2');
++      if (spacing === 0 || spacing2 === 0) fail('PARAMETER', 'fill feature pattern spacing must not be zero');
++      const count = integer(f.count, 'count', 1, CadPartLimits.copies), count2 = integer(f.count2, 'count2', 1, CadPartLimits.copies);
++      if (count * count2 > CadPartLimits.copies) fail('INPUT', `fill feature pattern must have at most ${CadPartLimits.copies} candidate cells`);
++      const snapshot = fillCutSnapshot(f.region, f.anchor, fail);
++      const placements = fillCutPlacements(snapshot.region, snapshot.anchor, spacing, count, spacing2, count2);
++      const { seed, tool } = t.cutSource(f.target);
++      const matrix: BrepAffine['matrix'] = [1, 0, 0, 0, 1, 0, 0, 0, 1];
++      return () => {
++        if (!placements.length || !tool.length) return { kind: 'solid', parts: [seed] };
++        const joined = unionAll(tool.map(p => p.solid), at);
++        let cut = seed.solid;
++        for (const placement of placements) cut = boolean(cut, affine(joined, matrix, placement.offset, placement.suffix), 'difference', at);
++        return one(cut);
++      };
++    }
+     case 'curve-feature-pattern': {
+       const spacing = dim(f.spacing as CadPartDim, 'spacing', true), count = integer(f.count, 'count', 1, CadPartLimits.copies);
+       const offsets = curveCutOffsets(f.path, spacing, count, CadPartLimits.length, fail);

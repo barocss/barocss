@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: fill API uses exact inline snapshot, original CUT history, both spacing bindings and independent mass/cell/name oracle
+ok 1 - fill API uses exact inline snapshot, original CUT history, both spacing bindings and independent mass/cell/name oracle
+  ---
+  duration_ms: 152.253541
+  type: 'test'
+  ...
+# Subtest: snapshot source edits stay independent; editor reselect captures new region and chat edits retain feature identity
+ok 2 - snapshot source edits stay independent; editor reselect captures new region and chat edits retain feature identity
+  ---
+  duration_ms: 103.637708
+  type: 'test'
+  ...
+# Subtest: snapshot native file, wire, nested and placed document roundtrips preserve authored data and names
+ok 3 - snapshot native file, wire, nested and placed document roundtrips preserve authored data and names
+  ---
+  duration_ms: 54.461792
+  type: 'test'
+  ...
+# Subtest: fill real command accepts body-only CUT selection, copies snapshot and rejects invalid edits atomically
+ok 4 - fill real command accepts body-only CUT selection, copies snapshot and rejects invalid edits atomically
+  ---
+  duration_ms: 30.188666
+  type: 'test'
+  ...
+# Subtest: native and chat admission reject malformed, suppressed and nested recipes without changing accepted document
+ok 5 - native and chat admission reject malformed, suppressed and nested recipes without changing accepted document
+  ---
+  duration_ms: 26.278625
+  type: 'test'
+  ...
+# Subtest: count one and no admitted extras retain original source; source tool size and position parameters still recompute
+ok 6 - count one and no admitted extras retain original source; source tool size and position parameters still recompute
+  ---
+  duration_ms: 85.40175
+  type: 'test'
+  ...
+# Subtest: snapshot picker admits solved GUI line outlines and resolved coordinates while refusing unsupported profiles
+ok 7 - snapshot picker admits solved GUI line outlines and resolved coordinates while refusing unsupported profiles
+  ---
+  duration_ms: 8.437125
+  type: 'test'
+  ...
+# Subtest: an empty original tool retains stock and one-cell recipes still validate source activity
+ok 8 - an empty original tool retains stock and one-cell recipes still validate source activity
+  ---
+  duration_ms: 12.284
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 614.877333

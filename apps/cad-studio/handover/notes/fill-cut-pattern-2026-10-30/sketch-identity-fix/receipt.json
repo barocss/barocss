@@ -1,0 +1,26 @@
+{
+  "status": "SOURCE_FROZEN",
+  "heavy": "RELEASED",
+  "base": "84c30e0aa",
+  "scope": [
+    "apps/cad-studio/src/sketch/useSketchActions.ts",
+    "apps/cad-studio/test/sketch-edit-identity.test.ts"
+  ],
+  "cause": "Only linked edited sketches retained the previous stable node id. The unlinked edit evaluated an id-filled prefix copy but committed the id-less next document.",
+  "fix": "All edited existing sketches preserve their existing id. New sketch withNode allocation unchanged.",
+  "checks": {
+    "before": "FAIL 1/2: edited n5 became undefined; new sketch allocator PASS",
+    "after": "PASS 2/2 actual useSketchActions SSR callbacks with only worker transport and state dispatch replaced; real native encode/read",
+    "studioTypes": "PASS",
+    "vite": "PASS; existing dynamic import warnings",
+    "eslint": "PASS targeted files",
+    "diffCheck": "PASS"
+  },
+  "boundaries": {
+    "browser": "NOT_RUN by Studio worker; root owns actual UI retake",
+    "kernelGeometry": "NOT_RUN by new regression",
+    "commit": "NOT_RUN",
+    "push": "NOT_RUN",
+    "schemaMigrationDependencies": "UNCHANGED"
+  }
+}

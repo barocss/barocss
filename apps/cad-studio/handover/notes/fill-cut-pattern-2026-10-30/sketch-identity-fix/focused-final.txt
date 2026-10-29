@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: Edit sketch then Finish retains source and fill IDs, nextId, captured snapshot and native file identity
+ok 1 - Edit sketch then Finish retains source and fill IDs, nextId, captured snapshot and native file identity
+  ---
+  duration_ms: 59.217709
+  type: 'test'
+  ...
+# Subtest: Finish a new sketch allocates exactly one new stable ID and preserves all previous features through native read
+ok 2 - Finish a new sketch allocates exactly one new stable ID and preserves all previous features through native read
+  ---
+  duration_ms: 32.956292
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 228.310333

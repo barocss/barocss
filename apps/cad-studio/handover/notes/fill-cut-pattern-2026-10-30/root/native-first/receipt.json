@@ -1,0 +1,2232 @@
+{
+  "status": "FAIL",
+  "mode": "FULL_FLOW",
+  "profiles": 1,
+  "backend": "webgpu",
+  "states": [
+    {
+      "label": "01-seed",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              7,
+              6
+            ],
+            "max": [
+              10,
+              11
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 3,
+                "d": 5,
+                "h": 10,
+                "x": 7,
+                "y": 6,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 3,
+              "side": "solid"
+            },
+            "id": "n4"
+          }
+        ],
+        "outputs": {
+          "b4": {
+            "node": 4,
+            "side": "solid"
+          }
+        },
+        "nextId": 5
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b4",
+            "volume": 23849.999999999993,
+            "centroid": [
+              30.135220125786176,
+              20.072327044025165,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "feedback": []
+    },
+    {
+      "label": "02-authored-L",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              7,
+              6
+            ],
+            "max": [
+              10,
+              11
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 3,
+                "d": 5,
+                "h": 10,
+                "x": 7,
+                "y": 6,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 3,
+              "side": "solid"
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "sketch",
+            "profile": "loop",
+            "segments": [
+              {
+                "kind": "line",
+                "start": [
+                  4,
+                  4
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  52,
+                  4
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  52,
+                  20
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  28,
+                  20
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  28,
+                  36
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  4,
+                  36
+                ]
+              }
+            ],
+            "outline": {
+              "points": [
+                [
+                  4,
+                  4
+                ],
+                [
+                  52,
+                  4
+                ],
+                [
+                  52,
+                  20
+                ],
+                [
+                  28,
+                  20
+                ],
+                [
+                  28,
+                  36
+                ],
+                [
+                  4,
+                  36
+                ]
+              ],
+              "hv": {
+                "h": [
+                  0,
+                  2,
+                  4
+                ],
+                "v": [
+                  1,
+                  3,
+                  5
+                ]
+              }
+            },
+            "sideTags": {
+              "outer": [
+                "e1",
+                "e2",
+                "e3",
+                "e4",
+                "e5",
+                "e6"
+              ]
+            },
+            "id": "n5"
+          }
+        ],
+        "outputs": {
+          "b4": {
+            "node": 4,
+            "side": "solid"
+          }
+        },
+        "nextId": 6
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b4",
+            "volume": 23849.999999999993,
+            "centroid": [
+              30.135220125786176,
+              20.072327044025165,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "feedback": []
+    },
+    {
+      "label": "03-preview",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              7,
+              6
+            ],
+            "max": [
+              10,
+              11
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 3,
+                "d": 5,
+                "h": 10,
+                "x": 7,
+                "y": 6,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 3,
+              "side": "solid"
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "sketch",
+            "profile": "loop",
+            "segments": [
+              {
+                "kind": "line",
+                "start": [
+                  4,
+                  4
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  52,
+                  4
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  52,
+                  20
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  28,
+                  20
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  28,
+                  36
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  4,
+                  36
+                ]
+              }
+            ],
+            "outline": {
+              "points": [
+                [
+                  4,
+                  4
+                ],
+                [
+                  52,
+                  4
+                ],
+                [
+                  52,
+                  20
+                ],
+                [
+                  28,
+                  20
+                ],
+                [
+                  28,
+                  36
+                ],
+                [
+                  4,
+                  36
+                ]
+              ],
+              "hv": {
+                "h": [
+                  0,
+                  2,
+                  4
+                ],
+                "v": [
+                  1,
+                  3,
+                  5
+                ]
+              }
+            },
+            "sideTags": {
+              "outer": [
+                "e1",
+                "e2",
+                "e3",
+                "e4",
+                "e5",
+                "e6"
+              ]
+            },
+            "id": "n5"
+          }
+        ],
+        "outputs": {
+          "b4": {
+            "node": 4,
+            "side": "solid"
+          }
+        },
+        "nextId": 6
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b4",
+            "volume": 23849.999999999993,
+            "centroid": [
+              30.135220125786176,
+              20.072327044025165,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "hud": "Fill cut patternpreviewRegion snapshotSketch 1 (snapshot)Sketch 3 (snapshot)Sketch 6 (snapshot)Reference XReference YX spacingmmColumnsY spacingmmRowsA snapshot. Editing the source sketch does not change this pattern. Choose a new snapshot to update it.The region tests these reference points. A cut may cross the region boundary.CancelApply",
+      "feedback": []
+    },
+    {
+      "label": "04-product-refused",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              7,
+              6
+            ],
+            "max": [
+              10,
+              11
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 3,
+                "d": 5,
+                "h": 10,
+                "x": 7,
+                "y": 6,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 3,
+              "side": "solid"
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "sketch",
+            "profile": "loop",
+            "segments": [
+              {
+                "kind": "line",
+                "start": [
+                  4,
+                  4
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  52,
+                  4
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  52,
+                  20
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  28,
+                  20
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  28,
+                  36
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  4,
+                  36
+                ]
+              }
+            ],
+            "outline": {
+              "points": [
+                [
+                  4,
+                  4
+                ],
+                [
+                  52,
+                  4
+                ],
+                [
+                  52,
+                  20
+                ],
+                [
+                  28,
+                  20
+                ],
+                [
+                  28,
+                  36
+                ],
+                [
+                  4,
+                  36
+                ]
+              ],
+              "hv": {
+                "h": [
+                  0,
+                  2,
+                  4
+                ],
+                "v": [
+                  1,
+                  3,
+                  5
+                ]
+              }
+            },
+            "sideTags": {
+              "outer": [
+                "e1",
+                "e2",
+                "e3",
+                "e4",
+                "e5",
+                "e6"
+              ]
+            },
+            "id": "n5"
+          }
+        ],
+        "outputs": {
+          "b4": {
+            "node": 4,
+            "side": "solid"
+          }
+        },
+        "nextId": 6
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b4",
+            "volume": 23849.999999999993,
+            "centroid": [
+              30.135220125786176,
+              20.072327044025165,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "hud": "Fill cut patternrefusedRegion snapshotSketch 1 (snapshot)Sketch 3 (snapshot)Sketch 6 (snapshot)Reference XReference YX spacingmmColumnsY spacingmmRowsA snapshot. Editing the source sketch does not change this pattern. Choose a new snapshot to update it.The region tests these reference points. A cut may cross the region boundary.Invalid inputBarocssError: [VALUE] fill cut pattern needs at most 64 candidate cells, with each count from 1 to 64CancelApply",
+      "feedback": []
+    },
+    {
+      "label": "05-ten-cuts-applied",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              7,
+              6
+            ],
+            "max": [
+              10,
+              11
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 3,
+                "d": 5,
+                "h": 10,
+                "x": 7,
+                "y": 6,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 3,
+              "side": "solid"
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "sketch",
+            "profile": "loop",
+            "segments": [
+              {
+                "kind": "line",
+                "start": [
+                  4,
+                  4
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  52,
+                  4
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  52,
+                  20
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  28,
+                  20
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  28,
+                  36
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  4,
+                  36
+                ]
+              }
+            ],
+            "outline": {
+              "points": [
+                [
+                  4,
+                  4
+                ],
+                [
+                  52,
+                  4
+                ],
+                [
+                  52,
+                  20
+                ],
+                [
+                  28,
+                  20
+                ],
+                [
+                  28,
+                  36
+                ],
+                [
+                  4,
+                  36
+                ]
+              ],
+              "hv": {
+                "h": [
+                  0,
+                  2,
+                  4
+                ],
+                "v": [
+                  1,
+                  3,
+                  5
+                ]
+              }
+            },
+            "sideTags": {
+              "outer": [
+                "e1",
+                "e2",
+                "e3",
+                "e4",
+                "e5",
+                "e6"
+              ]
+            },
+            "id": "n5"
+          },
+          {
+            "kind": "fill-feature-pattern",
+            "parent": {
+              "node": 4,
+              "side": "solid"
+            },
+            "region": {
+              "points": [
+                [
+                  4,
+                  4
+                ],
+                [
+                  52,
+                  4
+                ],
+                [
+                  52,
+                  20
+                ],
+                [
+                  28,
+                  20
+                ],
+                [
+                  28,
+                  36
+                ],
+                [
+                  4,
+                  36
+                ]
+              ]
+            },
+            "anchor": [
+              8.5,
+              8.5
+            ],
+            "spacing": 12,
+            "count": 4,
+            "spacing2": 10,
+            "count2": 3,
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 22499.99999999989,
+            "centroid": [
+              30.393333333333448,
+              20.23333333333341,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "feedback": []
+    },
+    {
+      "label": "06-undo",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              7,
+              6
+            ],
+            "max": [
+              10,
+              11
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 3,
+                "d": 5,
+                "h": 10,
+                "x": 7,
+                "y": 6,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 3,
+              "side": "solid"
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "sketch",
+            "profile": "loop",
+            "segments": [
+              {
+                "kind": "line",
+                "start": [
+                  4,
+                  4
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  52,
+                  4
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  52,
+                  20
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  28,
+                  20
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  28,
+                  36
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  4,
+                  36
+                ]
+              }
+            ],
+            "outline": {
+              "points": [
+                [
+                  4,
+                  4
+                ],
+                [
+                  52,
+                  4
+                ],
+                [
+                  52,
+                  20
+                ],
+                [
+                  28,
+                  20
+                ],
+                [
+                  28,
+                  36
+                ],
+                [
+                  4,
+                  36
+                ]
+              ],
+              "hv": {
+                "h": [
+                  0,
+                  2,
+                  4
+                ],
+                "v": [
+                  1,
+                  3,
+                  5
+                ]
+              }
+            },
+            "sideTags": {
+              "outer": [
+                "e1",
+                "e2",
+                "e3",
+                "e4",
+                "e5",
+                "e6"
+              ]
+            },
+            "id": "n5"
+          }
+        ],
+        "outputs": {
+          "b4": {
+            "node": 4,
+            "side": "solid"
+          }
+        },
+        "nextId": 6
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b4",
+            "volume": 23849.999999999993,
+            "centroid": [
+              30.135220125786176,
+              20.072327044025165,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "feedback": []
+    },
+    {
+      "label": "07-redo",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              7,
+              6
+            ],
+            "max": [
+              10,
+              11
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 3,
+                "d": 5,
+                "h": 10,
+                "x": 7,
+                "y": 6,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 3,
+              "side": "solid"
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "sketch",
+            "profile": "loop",
+            "segments": [
+              {
+                "kind": "line",
+                "start": [
+                  4,
+                  4
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  52,
+                  4
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  52,
+                  20
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  28,
+                  20
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  28,
+                  36
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  4,
+                  36
+                ]
+              }
+            ],
+            "outline": {
+              "points": [
+                [
+                  4,
+                  4
+                ],
+                [
+                  52,
+                  4
+                ],
+                [
+                  52,
+                  20
+                ],
+                [
+                  28,
+                  20
+                ],
+                [
+                  28,
+                  36
+                ],
+                [
+                  4,
+                  36
+                ]
+              ],
+              "hv": {
+                "h": [
+                  0,
+                  2,
+                  4
+                ],
+                "v": [
+                  1,
+                  3,
+                  5
+                ]
+              }
+            },
+            "sideTags": {
+              "outer": [
+                "e1",
+                "e2",
+                "e3",
+                "e4",
+                "e5",
+                "e6"
+              ]
+            },
+            "id": "n5"
+          },
+          {
+            "kind": "fill-feature-pattern",
+            "parent": {
+              "node": 4,
+              "side": "solid"
+            },
+            "region": {
+              "points": [
+                [
+                  4,
+                  4
+                ],
+                [
+                  52,
+                  4
+                ],
+                [
+                  52,
+                  20
+                ],
+                [
+                  28,
+                  20
+                ],
+                [
+                  28,
+                  36
+                ],
+                [
+                  4,
+                  36
+                ]
+              ]
+            },
+            "anchor": [
+              8.5,
+              8.5
+            ],
+            "spacing": 12,
+            "count": 4,
+            "spacing2": 10,
+            "count2": 3,
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 22499.99999999989,
+            "centroid": [
+              30.393333333333448,
+              20.23333333333341,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "feedback": []
+    },
+    {
+      "label": "08-fresh-open",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              7,
+              6
+            ],
+            "max": [
+              10,
+              11
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 3,
+                "d": 5,
+                "h": 10,
+                "x": 7,
+                "y": 6,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 3,
+              "side": "solid"
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "sketch",
+            "profile": "loop",
+            "segments": [
+              {
+                "kind": "line",
+                "start": [
+                  4,
+                  4
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  52,
+                  4
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  52,
+                  20
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  28,
+                  20
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  28,
+                  36
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  4,
+                  36
+                ]
+              }
+            ],
+            "outline": {
+              "points": [
+                [
+                  4,
+                  4
+                ],
+                [
+                  52,
+                  4
+                ],
+                [
+                  52,
+                  20
+                ],
+                [
+                  28,
+                  20
+                ],
+                [
+                  28,
+                  36
+                ],
+                [
+                  4,
+                  36
+                ]
+              ],
+              "hv": {
+                "h": [
+                  0,
+                  2,
+                  4
+                ],
+                "v": [
+                  1,
+                  3,
+                  5
+                ]
+              }
+            },
+            "sideTags": {
+              "outer": [
+                "e1",
+                "e2",
+                "e3",
+                "e4",
+                "e5",
+                "e6"
+              ]
+            },
+            "id": "n5"
+          },
+          {
+            "kind": "fill-feature-pattern",
+            "parent": {
+              "node": 4,
+              "side": "solid"
+            },
+            "region": {
+              "points": [
+                [
+                  4,
+                  4
+                ],
+                [
+                  52,
+                  4
+                ],
+                [
+                  52,
+                  20
+                ],
+                [
+                  28,
+                  20
+                ],
+                [
+                  28,
+                  36
+                ],
+                [
+                  4,
+                  36
+                ]
+              ]
+            },
+            "anchor": [
+              8.5,
+              8.5
+            ],
+            "spacing": 12,
+            "count": 4,
+            "spacing2": 10,
+            "count2": 3,
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 22499.99999999989,
+            "centroid": [
+              30.393333333333448,
+              20.23333333333341,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "feedback": []
+    },
+    {
+      "label": "09-eight-cuts-Y-spacing",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              7,
+              6
+            ],
+            "max": [
+              10,
+              11
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 3,
+                "d": 5,
+                "h": 10,
+                "x": 7,
+                "y": 6,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 3,
+              "side": "solid"
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "sketch",
+            "profile": "loop",
+            "segments": [
+              {
+                "kind": "line",
+                "start": [
+                  4,
+                  4
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  52,
+                  4
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  52,
+                  20
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  28,
+                  20
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  28,
+                  36
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  4,
+                  36
+                ]
+              }
+            ],
+            "outline": {
+              "points": [
+                [
+                  4,
+                  4
+                ],
+                [
+                  52,
+                  4
+                ],
+                [
+                  52,
+                  20
+                ],
+                [
+                  28,
+                  20
+                ],
+                [
+                  28,
+                  36
+                ],
+                [
+                  4,
+                  36
+                ]
+              ],
+              "hv": {
+                "h": [
+                  0,
+                  2,
+                  4
+                ],
+                "v": [
+                  1,
+                  3,
+                  5
+                ]
+              }
+            },
+            "sideTags": {
+              "outer": [
+                "e1",
+                "e2",
+                "e3",
+                "e4",
+                "e5",
+                "e6"
+              ]
+            },
+            "id": "n5"
+          },
+          {
+            "kind": "fill-feature-pattern",
+            "parent": {
+              "node": 4,
+              "side": "solid"
+            },
+            "region": {
+              "points": [
+                [
+                  4,
+                  4
+                ],
+                [
+                  52,
+                  4
+                ],
+                [
+                  52,
+                  20
+                ],
+                [
+                  28,
+                  20
+                ],
+                [
+                  28,
+                  36
+                ],
+                [
+                  4,
+                  36
+                ]
+              ]
+            },
+            "anchor": [
+              8.5,
+              8.5
+            ],
+            "spacing": 12,
+            "count": 4,
+            "spacing2": 12,
+            "count2": 3,
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 22799.999999999927,
+            "centroid": [
+              30.500000000000068,
+              20.131578947368475,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "feedback": []
+    },
+    {
+      "label": "failure",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              7,
+              6
+            ],
+            "max": [
+              10,
+              11
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 3,
+                "d": 5,
+                "h": 10,
+                "x": 7,
+                "y": 6,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 3,
+              "side": "solid"
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "sketch",
+            "profile": "loop",
+            "segments": [
+              {
+                "kind": "line",
+                "start": [
+                  4,
+                  4
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  52,
+                  4
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  52,
+                  20
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  28,
+                  20
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  28,
+                  36
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  4,
+                  36
+                ]
+              }
+            ],
+            "outline": {
+              "points": [
+                [
+                  4,
+                  4
+                ],
+                [
+                  52,
+                  4
+                ],
+                [
+                  52,
+                  20
+                ],
+                [
+                  28,
+                  20
+                ],
+                [
+                  28,
+                  36
+                ],
+                [
+                  4,
+                  36
+                ]
+              ],
+              "hv": {
+                "h": [
+                  0,
+                  2,
+                  4
+                ],
+                "v": [
+                  1,
+                  3,
+                  5
+                ]
+              }
+            },
+            "sideTags": {
+              "outer": [
+                "e1",
+                "e2",
+                "e3",
+                "e4",
+                "e5",
+                "e6"
+              ]
+            },
+            "id": "n5"
+          },
+          {
+            "kind": "fill-feature-pattern",
+            "parent": {
+              "node": 4,
+              "side": "solid"
+            },
+            "region": {
+              "points": [
+                [
+                  4,
+                  4
+                ],
+                [
+                  52,
+                  4
+                ],
+                [
+                  52,
+                  20
+                ],
+                [
+                  28,
+                  20
+                ],
+                [
+                  28,
+                  36
+                ],
+                [
+                  4,
+                  36
+                ]
+              ]
+            },
+            "anchor": [
+              8.5,
+              8.5
+            ],
+            "spacing": 12,
+            "count": 4,
+            "spacing2": 10,
+            "count2": 3,
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 22499.99999999989,
+            "centroid": [
+              30.393333333333448,
+              20.23333333333341,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "feedback": []
+    }
+  ],
+  "errors": [],
+  "consoleErrors": [],
+  "changes": [],
+  "files": [
+    {
+      "file": "/tmp/d335-root/native-first/accepted.bcad",
+      "sha256": "4e8510572fe815da600815d33ef5122573c72087cd6479f116d61931abb3f829",
+      "semanticEquality": true,
+      "byteIdentityClaim": false
+    }
+  ],
+  "cleanup": [
+    "CONTEXT_CLOSED",
+    "CONTEXT_CLOSED",
+    "BROWSER_CLOSED",
+    "SERVER_CLOSED"
+  ],
+  "seed": {
+    "file": "/tmp/d335-root/native-first/seed.bcad",
+    "sha256": "0ca176036b84a172b586535a177287100c696c022147074f7b11bc224194755b",
+    "generatorSHA256": "98b79a26c195db8a2e74b91af769173407467785d8902f51152fc2bf61fc9d0d",
+    "bundleSHA256": "a100db0b2de9d1272c4c30ae865da7fe4904492288da4b15afc5f6bab31d2fed"
+  },
+  "sketchIndex": 5,
+  "featureId": "n6",
+  "parent": {
+    "node": 4,
+    "side": "solid"
+  },
+  "failure": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.history .hs[data-node-index=\"5\"]')\u001b[22m\n\n    at openEditor (/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/fill-cut-pattern-browser.mjs:88:66)\n    at /Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/fill-cut-pattern-browser.mjs:191:9",
+  "phase": "source sketch edit retains accepted snapshot and mass"
+}

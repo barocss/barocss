@@ -1,0 +1,244 @@
+{
+  "workId": "D335",
+  "date": "2026-10-30",
+  "status": "BOUNDED_QUALIFIED_ACROSS_RETAINED_PREFIX_AND_TAIL",
+  "scope": "One fixed-XY reference-point polygon-mask CUT grid; whole08 remains open. No clean whole-flow PASS.",
+  "source": {
+    "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+    "branch": "local/cad-dev",
+    "base": "9229acb83c77fa56d4b1649df84e412d05e8e4df",
+    "feature": "1fc5c49615399bc7cf247f9563226481e157de23",
+    "apiInventory": "7a94b4aaeec623a8c9482c3016ecba22545c7272",
+    "driverSelectorResume": "733c9a68185308859d88d08b7c93ed11291ad5da",
+    "driverHistoryLabel": "84c30e0aa12fce5ffaf1a1f9d7f9525a8dd31ce4",
+    "sketchIdentityFix": "0e76152def0b24bb97615c4a3301ee1f8ee0a316"
+  },
+  "contract": {
+    "region": "Owned numeric snapshot of one simple concave-capable world-XY loop with 3..16 finite binary64 points, admitted by the native qualifier. No holes, curved boundaries or arbitrary frames.",
+    "mask": "Test exact rational authored anchor plus represented binary64 grid offset. Inside or exact boundary admits. Reference-point mask does not prove full-tool containment and does not clip tools.",
+    "grid": "Safe counts1..64 with count*count2<=64 checked BEFORE masking. No automatic enumeration or new cumulative-offset cap. Fixed XY translation, row-major grid order.",
+    "spacing": "Both public spacings finite positive <=10000 mm; direct core uses D333 signed finite nonzero absolute<=10000. Both Model spacings bind; count and anchor parameter bindings refuse.",
+    "cut": "Retain original CUT even if anchor is outside mask. cutSource runs before all one-cell/empty-tool/no-placement returns. Current active unsuppressed difference must produce one solid. Empty tools preserve stock. Original translated tools use stable @i,j grid indices, never compact retained indices.",
+    "ownership": "Copy resolved numeric world-XY straight-sketch snapshot. Visible hint says source edits do not change it; reselect to take a new snapshot. Nested/placed snapshots are allowed after strict admission before flatten/copy/revision source loss.",
+    "changes": "No schema, migration, dependency or WASM change."
+  },
+  "checks": {
+    "kernelWhole": {
+      "status": "PASS",
+      "pass": 2229,
+      "fail": 0,
+      "existingSkip": 6,
+      "total": 2235,
+      "log": "root/kernel-whole.txt",
+      "build": "root/kernel-build.txt",
+      "sourceBoundary": "At feature1fc5c496; subsequent Studio identity/driver/API metadata commits leave Kernel bytes unchanged. No full repeat for the UI fix."
+    },
+    "kernelFocused": {
+      "status": "PASS",
+      "fillPass": 10,
+      "relatedPass": 18,
+      "log": "kernel/fill-rerun.log",
+      "relatedLog": "kernel/focused.log",
+      "boundary": "Initial combined28:23PASS/5FAIL due only to test treating body.shells IDs as objects. Fix fixture; rerun affected fill10 only. Related18 already passed."
+    },
+    "model": {
+      "status": "PASS",
+      "fillPass": 8,
+      "relatedPass": 15,
+      "studioChatPass": 23,
+      "types": "PASS",
+      "logs": [
+        "model/fill-tests-final.log",
+        "model/focused-tests.log",
+        "model/studio-chat-tests.log",
+        "root/model-final-types.txt"
+      ],
+      "boundary": "Initial related+fill22:20PASS/2FAIL. Initial region eligibility and empty-tool fixtures corrected; intermediate failures retained. Final fill8 plus related15 are separate receipts, not a clean first run."
+    },
+    "rootModelCodeShape": {
+      "status": "PASS",
+      "pass": 8,
+      "types": "PASS",
+      "logs": [
+        "root/model-code-shape-fill.txt",
+        "root/model-code-shape-types.txt"
+      ],
+      "boundary": "Overlap with final fill tests; not extra unique tests. Dense finite Vec3/canonical XY and malformed holes containers repaired. EditScope parameters optional preserves prior direct-only callers."
+    },
+    "studio": {
+      "status": "PASS",
+      "fillPass": 5,
+      "relatedCurvePass": 7,
+      "relatedStopPass": 13,
+      "typesBuildLint": "PASS",
+      "logs": [
+        "studio/focused.txt",
+        "studio/focused-fill-final.txt",
+        "studio/types.txt",
+        "studio/types-final.txt",
+        "studio/vite.txt",
+        "studio/lint.txt"
+      ],
+      "boundary": "Initial focused25:24PASS/1FAIL missing HV fixture metadata. Only new fill5 rerun; related20 already passed. Initial type failure: NodeEditor docPick narrower than required parameters; fixed props and optional EditScope slice."
+    },
+    "sketchIdentity": {
+      "status": "PASS",
+      "before": "1PASS/1FAIL undefined != n5",
+      "after": "2PASS/0FAIL",
+      "receipt": "sketch-identity-fix/receipt.json",
+      "boundary": "Actual hook SSR with replaced Worker transport/dispatch and real Model native encode/read. Existing n5/fill n6/nextId7 preserved; new sketch n7/nextId8 unchanged. Separate actual native retake below."
+    },
+    "sourceReview": {
+      "status": "NO_REMAINING_ACTIONABLE_FINDING_IN_BOUNDED_REVIEW",
+      "report": "review/review.md",
+      "reviewerRuntime": "NOT_RUN",
+      "boundary": "Initial P3 empty-vector vacuous every issue source-resolved. Separate identity-fix review source-only; hashes and resolved source copies retained."
+    },
+    "api": {
+      "status": "SCOPED_PASS",
+      "rules": 6,
+      "added": 11,
+      "removed": 0,
+      "rawChanged": 13,
+      "semanticChanged": 12,
+      "representationOnly": "FinitePlaneCylinderEquation union order",
+      "snapshotDelta": "coreResultChecks feature-kind union only",
+      "review": "root/api-reviewed-delta.json",
+      "log": "root/api-check.txt",
+      "boundary": "Bounded six-rule check; no whole API acceptance."
+    },
+    "agentTools": {
+      "status": "PASS",
+      "exit": 0,
+      "log": "root/agent-tools-first.txt"
+    },
+    "refusals": {
+      "status": "PASS",
+      "exit": 0,
+      "log": "root/refusals-first.txt"
+    },
+    "finalTypesLint": {
+      "status": "PASS",
+      "logs": [
+        "root/studio-final-types.txt",
+        "root/model-final-types.txt",
+        "root/final-lint.txt",
+        "root/driver-lint-identity-final.txt"
+      ]
+    },
+    "docs": {
+      "status": "PASS",
+      "exit": 0,
+      "metrics": {
+        "pages": 68,
+        "beingWritten": 0,
+        "shots": 55,
+        "shotKB": 4811,
+        "labels": 860
+      },
+      "boundary": "Post-assembly check; only receipt, copied log and manifest updated afterward."
+    }
+  },
+  "native": {
+    "backend": "Chrome WebGPU",
+    "profiles": 1,
+    "wholeFlowStatus": "NO_CLEAN_WHOLE_FLOW_PASS",
+    "runs": [
+      {
+        "status": "FAIL",
+        "receipt": "root/native-first/receipt.json",
+        "classification": "DRIVER_SELECTOR_FAILURE",
+        "firstFailure": "Free sketch has no data-node-index attribute. Failure occurs after successful public L creation and retained feature prefix.",
+        "retainedPrefix": "Preview; product66 refusal; Cancel/repair; Apply ten cuts22500; Undo/Redo; native Save/fresh Open; Yspacing12 eight cuts22800; Undo to ten-cut base. accepted.bcad retains ten cuts."
+      },
+      {
+        "status": "FAIL",
+        "receipt": "root/native-tail/receipt.json",
+        "classification": "DRIVER_HISTORY_LABEL_FAILURE",
+        "firstFailure": "Driver sought Sketch 6 while actual History label is Sketch \u00b7 outline. No new product proof."
+      },
+      {
+        "status": "FAIL",
+        "receipt": "root/native-tail-retake/receipt.json",
+        "classification": "REAL_PRODUCT_SKETCH_ID_LOSS",
+        "retainedPrefix": "Source notch28\u219216 preserves ten-cut snapshot; explicit reselect gives nine cuts22650; Undo/Redo and Save succeed.",
+        "firstFailure": "Fresh Open assigns source n7 instead of n5 and nextId8 instead of7 because ordinary edited sketch lost saved id. Geometry remains correct. Only id/nextId differ; semantic equality was not normalized to conceal this defect."
+      },
+      {
+        "status": "PASS",
+        "mode": "RESUME_REGION_TAIL",
+        "receipt": "root/native-identity-retake/receipt.json",
+        "retainedPrefix": "Opens original ten-cut accepted.bcad; creation prefix NOT_RERUN.",
+        "checks": "Source edit preserves n5/nextId7 and ten-cut snapshot28; explicit reselect nine-cut snapshot16, stable filln6/parent; Undo/Redo; native Save/fresh Open, reeditable fields and semantic document identity PASS."
+      }
+    ],
+    "oracle": {
+      "kind": "Independent stock minus disjoint rectangular prisms; Python Fraction planning oracle does not import CAD",
+      "tolerance": 1e-07,
+      "base": {
+        "cuts": 10,
+        "volume": 22500,
+        "centroid": [
+          "4559/150",
+          "607/30",
+          "5"
+        ]
+      },
+      "spacingY12": {
+        "cuts": 8,
+        "volume": 22800,
+        "centroid": [
+          "61/2",
+          "765/38",
+          "5"
+        ]
+      },
+      "notch16": {
+        "cuts": 9,
+        "volume": 22650,
+        "centroid": [
+          "9159/302",
+          "6127/302",
+          "5"
+        ]
+      },
+      "planningBoundary": "plan/plan.md and independent-oracle.py/json are PLANNING evidence, not runtime PASS. Runtime observations live in native receipts."
+    },
+    "visualReview": "Root viewed native-first/05-ten-cuts-applied.png and native-identity-retake/13-final-fresh-open.png.",
+    "cleanup": "All four receipts:0 page errors,0 console errors,0 source changes; contexts/browser/server CLOSED. One browser, serial contexts; public UI mutates and read-only hooks observe.",
+    "fileIdentity": "Semantic native document identity checked; no raw byte identity claim."
+  },
+  "sourceIntegrity": {
+    "checkpoint": "root/source-checkpoint.json:32 listed inputs at1fc5c496.",
+    "first": "Before/after native-first33/33 match.",
+    "firstTail": "Before/after native-tail33/33 match.",
+    "failingIdentityRetake": "Before33 capsule plus later prior Git commit match; no working-tree after-run attestation claimed. Vite watch changes0.",
+    "final": "Before/after native-identity-retake35/35 match and final35/35 match Git0e76152de, including identity source/test.",
+    "boundary": "Capsules do not attest the full served graph. Hashes establish integrity, not geometry. No unknown-writer issue observed in this feature."
+  },
+  "preservedFirstFailures": [
+    "kernel/focused.log:23PASS/5FAIL shell-ID fixture error",
+    "model/focused-tests.log and fill-tests-rerun.log/fill-tests-corrected.log: eligibility/empty-tool fixtures",
+    "studio/focused.txt:24PASS/1FAIL missing HV metadata",
+    "studio/types.txt:NodeEditor docPick/parameters type error",
+    "root/driver-syntax-first.txt:driver preparation SyntaxError fixed before browser; not product error",
+    "sketch-identity-fix/focused-before.txt:undefined source id",
+    "All three failed browser receipts retained as FAIL"
+  ],
+  "notRunOrNotProven": [
+    "Actual natural Boolean failure",
+    "Full stale/Stop matrix",
+    "Full Model/Studio/GPU/Viewer suites",
+    "Performance or benchmark",
+    "Remote CI",
+    "Release",
+    "Commercial acceptance",
+    "Whole CG2 or whole08/09/12"
+  ],
+  "next": "D336: select next actual remaining08 consumer gap; broader curve/fill, holes/curves/frames/containment and direct-face/surface gaps remain.09 follows08. Identity fix is a bounded existing09/12 repair, not whole09/12 completion. Electron15 queued; no implementation or new queue.",
+  "artifacts": {
+    "manifest": "artifact-manifest.json",
+    "compressedProvenance": "source-provenance.json",
+    "selection": "Selected complete lane evidence; api-candidate.json and native-first/seed-generator.mjs gzip-compressed with original hashes. api-previous.json.gz preserved byte-for-byte. No duplicate old/new API fragments."
+  }
+}

@@ -1,0 +1,2 @@
+src/ui/NodeEditor.tsx(14,74): error TS2322: Type 'Pick<StudioDoc, "direct"> | undefined' is not assignable to type 'Pick<StudioDoc, "parameters" | "direct"> | undefined'.
+  Property 'parameters' is missing in type 'Pick<StudioDoc, "direct">' but required in type 'Pick<StudioDoc, "parameters" | "direct">'.

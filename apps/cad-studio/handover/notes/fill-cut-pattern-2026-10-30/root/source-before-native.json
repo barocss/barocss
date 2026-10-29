@@ -1,0 +1,138 @@
+{
+  "head": "7a94b4aaeec623a8c9482c3016ecba22545c7272",
+  "kernelCheckpointInputsMatch": 32,
+  "files": [
+    {
+      "path": "apps/cad-studio/src/App.tsx",
+      "sha256": "7b77b98d715d8018a861e500f2607b50d2a09a49c01b78398a68efbd3a220a77"
+    },
+    {
+      "path": "apps/cad-studio/src/app/directCurveCandidate.ts",
+      "sha256": "d49b15379bfd9818b5ccaa12f2257f019534046aeb15a777506d2811d87c5b9c"
+    },
+    {
+      "path": "apps/cad-studio/src/ui/FillPatternHints.tsx",
+      "sha256": "e99927956bbb24c2014bc3bbe8edd00b3775fd7b473d84e4bdf60efe6d43b0e4"
+    },
+    {
+      "path": "apps/cad-studio/src/ui/Hud.tsx",
+      "sha256": "777545d109ae7482f64128ccdec0f53ba8627f8a06f750a5d672f0704734c2a7"
+    },
+    {
+      "path": "apps/cad-studio/src/ui/NodeEditor.tsx",
+      "sha256": "25d592886d4829b0d2140a842d8e19251b28f407059dd4d6d5370928c482d459"
+    },
+    {
+      "path": "apps/cad-studio/test/chat.test.ts",
+      "sha256": "6782e8a6a753eb592e0cf1194f3dcb3a9820f608a59fcf58c0073da02b2b7a5f"
+    },
+    {
+      "path": "apps/cad-studio/test/fill-cut-pattern-browser.mjs",
+      "sha256": "acb6ccd309787a8b445979a55d0e40608da0407251518ebb5379e5af48c5494b"
+    },
+    {
+      "path": "apps/cad-studio/test/fill-pattern-candidate.test.ts",
+      "sha256": "98b6145baf8219b7b52123764d697ae824e8a46773239c5ecd016e91057c38a5"
+    },
+    {
+      "path": "packages/barocss-cad-model/README.md",
+      "sha256": "d653530425a9ae65a6aa1ccdaf0328d5d0639f9973d3db6a4de834c87527bc89"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/api/index.ts",
+      "sha256": "6538627963e4aea3a676b1663ae6e5025c4fbadd3d0f45f4f578ea56a4aa8376"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/api/studio.ts",
+      "sha256": "76fb06700ebf9cbfe8f7660cb12640dfcc511a59b9d88700b5110b69529d3116"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/app/commands.ts",
+      "sha256": "bd7f718053aa00b387e98873bbb0eed73bf55a3e9c2b22d78daf2afb270b05e9"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/app/editFields.ts",
+      "sha256": "7c0a13bc9b5d2a9a16704b5555c788428faf74e6f400819c8242eb15d475aa9b"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/assembly/definitions.ts",
+      "sha256": "eb1781779618f63037e2e27aee608387b9957db63a83f05044382f66d80fbb83"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/assembly/edit.ts",
+      "sha256": "22be4ea1a891f5f936f4effbcd22004134dcb2c1644483614a2b5cd980690490"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/chat/features.ts",
+      "sha256": "6e9ad662c8738db6cbeab9a47e87bd62e402d23bee6ddbdf3d50f9d76ff0e0ac"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/chat/part/features.ts",
+      "sha256": "81a409ce65dcf86369f6c32108482d975a36e349543e508efd05c0b76b53767d"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/doc.ts",
+      "sha256": "2c455b38f91762d01cc4a925d30aaa132b401f56b2cdd0799928214320745da6"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/fillFeaturePattern.ts",
+      "sha256": "bce31ee96e3fc0c386240df265ff03dd46bfcbd50932e6c23b9401738df9c94f"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/flatten.ts",
+      "sha256": "be35ca822189f9d7cf0661b01742a3f5f196b2dda7087edf76ea34d91cf0b724"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/migrate.ts",
+      "sha256": "bb19df68a365e2b936f24f3ebf225c4d590c739ac95812ebc0e0f16731ce4bdf"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/part.ts",
+      "sha256": "5438fca9b26a696cc71fb27e5c8c350b75c950413c52d4d8674138603bbc7dfa"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/wireDoc.ts",
+      "sha256": "7c2158396131afc42a6982725defccde4c9d2c170a1247a360ce0a89f8ca8fe0"
+    },
+    {
+      "path": "packages/barocss-cad-model/test/api-fill-feature-pattern.test.ts",
+      "sha256": "cdd17d0a9dd0003474d88a6f80961999e13737ba44f8b6932894aee2d8862d32"
+    },
+    {
+      "path": "packages/barocss-cad/README.md",
+      "sha256": "cd34a9f5c34b79be8514434758e966acdab132cc6b4dd3e7478edbcab88a0a8c"
+    },
+    {
+      "path": "packages/barocss-cad/src/api/index.ts",
+      "sha256": "f431ba435b5403efaad693c4c47eb74164490a97d660ebe0c8df7f183d4ba8fd"
+    },
+    {
+      "path": "packages/barocss-cad/src/api/kernel.ts",
+      "sha256": "c6e70c28225a90b2af578659872e65c13928439eaac90293f590270a7da8e430"
+    },
+    {
+      "path": "packages/barocss-cad/src/api/part.ts",
+      "sha256": "828c9359412e017a35da37865081e079c27ca0d6d79227e585cfb0574d31c852"
+    },
+    {
+      "path": "packages/barocss-cad/src/api/spec.ts",
+      "sha256": "fcb4b0a1d703d357bf8a78d206542670c49530f1ce8461e5070a601e6b881add"
+    },
+    {
+      "path": "packages/barocss-cad/src/features/fill-cut-pattern.ts",
+      "sha256": "3252a00f9f7c5cbf4c66e094027450ba92fe7bb9f30dc5667fa65a30c18158b5"
+    },
+    {
+      "path": "packages/barocss-cad/src/part/part-model.ts",
+      "sha256": "59848c6894ee65717fd46f2e043af7b67b4ac12f2a2fb44fd32a1d6b4456baa3"
+    },
+    {
+      "path": "packages/barocss-cad/test/fill-cut-pattern.test.mjs",
+      "sha256": "70c6ea5ddd26f158ccf37a74921a6387f6412addecb52b3045122fddbae228fb"
+    },
+    {
+      "path": "apps/library-docs/scripts/api-inventory.expected.json",
+      "sha256": "8b0303653011744a8a1bb21956f418c6bcc760157d47e1a80e50a62a4ebe2b1a"
+    }
+  ]
+}

@@ -16565,3 +16565,70 @@ notes/curve-cut-pattern-2026-10-29/qualification.json. Documentation assembly ha
 check. No real native Boolean failure, stale/Stop whole matrix, full final suites, performance,
 remoteCI/release/commercial or wholeCG2 acceptance. Continue remaining08 before09. Electron15 stays
 queued with no implementation; no new queue.
+
+
+## D335 — Mask a finite cut grid with an owned XY region snapshot (2026-10-30)
+
+Qualify one fixed-XY reference-point fill CUT pattern under08. Own a copied snapshot of3..16
+finite binary64 points in a simple concave-capable world-XY loop, admitted by the native qualifier.
+No holes, curves or arbitrary frames. Test the exact rational authored anchor plus each represented
+grid offset; inside or exact boundary admits. This tests reference points, permits tools to cross
+the boundary and does not clip tools or prove full-tool containment. Retain the original CUT even
+when its anchor is outside. Check safe counts1..64 and count×count2<=64 BEFORE masking. Public
+spacings are positive<=10000; core retains D333 signed nonzero absolute<=10000. No new cumulative
+offset cap. Both Model spacings bind; count and anchor bindings refuse. Fixed translation reuses
+original tools and stable original-grid @i,j names. cutSource validates a current active unsuppressed
+one-solid difference before all no-op/empty-tool returns; empty tools retain stock. Snapshot hints
+state that source edits do not update the feature; editor reselection takes a new numeric straight
+world-XY snapshot. Nested/placed snapshots use strict admission before flatten/copy/revision source
+loss. No schema, migration, dependency or WASM change.
+
+WholeKernel at feature1fc5c496 passes2229/0FAIL/6existingSKIP (2235total), with buildPASS. Later
+Studio identity/driver/API metadata changes leave Kernel bytes unchanged. Initial focused28 records
+23PASS/5FAIL from a test treating shell IDs as objects; fixture-only repair reruns fill10PASS and
+reuses related18PASS. Model final fill8 plus related15 and Studiochat23 pass; initial eligibility/
+empty-tool fixture failures remain. Root final code-shape8/types pass overlap fill coverage. The
+review's P3 empty-vector vacuous every guard is source-resolved by dense finite3-component canonical
+XY checks and strict holes containers. EditScope keeps parameters optional for prior direct-only
+callers. Studio initial25:24PASS/1FAIL lacks HV fixture metadata; corrected fill5PASS reuses curve7
+and Stop13. Initial docPick/parameters types fail; final Model/Studio types/build/lint pass. Source
+review has no remaining actionable finding in its bounded scope; reviewer runtime NOT_RUN. API
+six-rule SCOPED_PASS adds11/removes0, changes13 raw/12 semantic rows; the remaining row is
+FinitePlaneCylinderEquation union order. coreResultChecks changes only the feature-kind union.
+Agent-tools/refusals exit0. There is no performance claim.
+
+Four actual serial Chrome/WebGPU invocations retain three FAIL receipts. Native-first proves public
+L creation, preview, product66 refusal, Cancel/repair, ten-cut Apply22500/UndoRedo/SavefreshOpen,
+Yspacing12 eightcuts22800 and Undo to base. It then fails because the driver selects a free sketch
+by a nonexistent data-node-index. Native-tail fails on assumed History label Sketch6 instead of
+Sketch · outline; no new product proof. Driver preparation SyntaxError is retained separately and
+fixed before browser use. Native-tail-retake proves snapshot lifetime during source notch28→16,
+explicit nine-cut reselection22650, UndoRedo/Save, but fresh Open exposes REAL PRODUCT ID LOSS:
+ordinary source edit drops n5; reader allocates n7 and advances nextId7→8. Geometry is correct;
+semantic equality is not normalized to hide this defect. The existing Finish sketch path now retains
+the prior id for every edited existing sketch. New-node allocation is unchanged. Actual hook SSR
+and real native encode/read move from1PASS/1FAIL to2PASS/0FAIL; separate source review finds no issue.
+
+Native-identity-retake PASS resumes the original accepted ten-cut file. Source edit preserves n5,
+nextId7 and snapshot28/ten cuts; explicit reselect gives snapshot16/nine cuts with stable filln6/parent.
+UndoRedo, native Save/freshOpen, semantic document identity and reeditable fields pass. Independent
+stock-minus-prism Fraction volume/centroid tolerance1e-7: ten22500/[4559/150,607/30,5], eight22800/
+[61/2,765/38,5], nine22650/[9159/302,6127/302,5]. Planning oracle files are PLANNING, not runtime PASS.
+Root views applied ten-hole and final fresh-open nine-hole images. All four receipts record0page/
+console errors/sourcechanges and CLOSED contexts/browser/server; one browser, serial contexts.
+One bounded profile across retained creation prefix and final saved-prefix retake; no clean whole-flow
+PASS, raw-byte identity or whole08 acceptance.
+
+Checkpoint32 inputs match feature1fc5c496. First and first-tail before/after33 match. Failed identity
+retake retains before33 plus later prior-commit match, not a working-tree after attestation. Final
+before/after35 and Git35/35 match at0e76152de; no edits during flows. Capsules do not attest the full
+served graph, and hashes do not prove geometry. Feature1fc5c49615399bc7cf247f9563226481e157de23;
+API7a94b4aaeec623a8c9482c3016ecba22545c7272; selector733c9a68185308859d88d08b7c93ed11291ad5da;
+label84c30e0aa12fce5ffaf1a1f9d7f9525a8dd31ce4; identity0e76152def0b24bb97615c4a3301ee1f8ee0a316.
+Evidence: notes/fill-cut-pattern-2026-10-30/qualification.json and artifact-manifest.json; compressed
+provenance retains original hashes. Docs status is PENDING coordinator post-assembly check. No actual
+natural Boolean failure, full stale/Stop matrix, full Model/Studio/GPU/Viewer suites, performance,
+remoteCI/release/commercial or wholeCG2 acceptance. The identity repair also belongs to existing09/12;
+it does not complete those scopes. Next D336 selects a remaining08 consumer gap before09. Broader
+curve/fill, holes/curves/frames/containment and direct-face/surface gaps remain. Electron15 stays queued
+with no implementation. No new queue.

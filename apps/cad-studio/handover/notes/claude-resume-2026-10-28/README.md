@@ -3,6 +3,14 @@
 The owner asked: "지금까지 하던거 멈추고 인수인계 할 수 있도록 해줘". This note lets the next session continue the
 kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-10-27 to 2026-10-28.
 
+## Latest D335 checkpoint — 2026-10-30
+
+- D335 adds a finite XY cut grid filtered by a copied polygon region. The mask tests authored reference points, including the boundary; it does not clip tools or certify full tool containment. Native simple regions have3..16 vertices; at most64 candidate cells are admitted before masking. The original CUT remains.
+- Source: `1fc5c4961`; API inventory: `7a94b4aae`; driver corrections: `733c9a681`/`84c30e0aa`; ordinary sketch-edit identity repair: `0e76152de`. See [qualification](../fill-cut-pattern-2026-10-30/qualification.json).
+- Final Kernel2229 PASS/0 FAIL/6 existing SKIP, final Model fill8/types, Studio related candidate/ownership checks and types/build pass. The later ID repair has focused actual-hook/native-codec2 PASS and Studio types/build. These are separate overlapping scopes, not whole Model/Studio acceptance.
+- Preserve the three earlier native FAIL receipts: two driver selectors, then a real source-sketch ID loss during Save/fresh Open. The final resumed tail passes source snapshot preservation, explicit region replacement, Undo/Redo and Save/fresh Open/re-edit with n5/nextId7 stable. This is not one clean whole-flow PASS.
+- Continue remaining08 before09; delivered07 stays closed at its limits. D333/D334/D335 are bounded pattern profiles. Electron execution remains queued under15. Next decision: D336. Normal per-feature push is authorized; no PR/release.
+
 ## Latest D334 checkpoint — 2026-10-29
 
 - Delivered07 remains bounded-complete. D333 rectangular cut grids and D334 fixed-orientation open-polyline cut patterns now cover two08 profiles. Continue remaining08 before09; Electron execution stays queued under15.

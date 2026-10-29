@@ -1,0 +1,21 @@
+{
+  "reviewKind": "bounded source-only sketch identity fix review",
+  "capturedAtUTC": "2026-10-29T15:41:58.715579+00:00",
+  "worktree": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+  "headSHA": "84c30e0aa12fce5ffaf1a1f9d7f9525a8dd31ce4",
+  "productionDiffFile": "apps/cad-studio/src/sketch/useSketchActions.ts",
+  "sha256": {
+    "apps/cad-studio/src/sketch/useSketchActions.ts": "86995291fe858fffddc813926e914fab9329b37bb16c431a62c96f6a98df2c4f"
+  },
+  "reviewedExternalReceiptHashes": {
+    "/tmp/d335-sketch-identity-fix/focused-before.txt": "b14b79beb8d0236c4462b3cfde4bb5561b1b3a8c678c3f3ea11d8d384da2e95d",
+    "/tmp/d335-sketch-identity-fix/focused-final.txt": "f5861464f64e1783a046f872b8bfca0660b4229f1b875a657947ee4beeeb712b",
+    "/tmp/d335-root/native-tail-retake/receipt.json": "6212b5bff901fd25dbf5b619ff8aebc86a8220f9dac3e95e17837f77708261e5"
+  },
+  "reviewerTestsRun": [],
+  "reviewerBuildRun": false,
+  "reviewerBrowserRun": false,
+  "reviewerGeometryRun": false,
+  "finding": "NO_ACTIONABLE_FINDING_IN_THIS_DIFF",
+  "identityFix": "SUPPORTED_BY_SOURCE_INSPECTION"
+}

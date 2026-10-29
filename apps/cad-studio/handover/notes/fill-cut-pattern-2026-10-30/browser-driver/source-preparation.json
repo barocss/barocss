@@ -1,0 +1,16 @@
+{
+  "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/fill-cut-pattern-browser.mjs",
+  "sha256": "acb6ccd309787a8b445979a55d0e40608da0407251518ebb5379e5af48c5494b",
+  "syntax": "PASS node --check",
+  "runtime": "NOT_RUN",
+  "browser": "NOT_RUN",
+  "geometry": "NOT_RUN",
+  "freeze": "WAITING_ROOT",
+  "notes": [
+    "Only the new browser driver was edited.",
+    "Mass and centroid arithmetic are independent constants from D335 planning oracle.",
+    "Native Save supplies fresh Open inputs. No synthetic feature document.",
+    "Retained face names and checkBrep need focused Kernel evidence; browser development hooks do not expose B-rep.",
+    "No source edits may occur during browser flow. Vite change events force failure."
+  ]
+}

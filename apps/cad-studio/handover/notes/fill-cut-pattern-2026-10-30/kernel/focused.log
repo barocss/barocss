@@ -1,0 +1,281 @@
+TAP version 13
+# Subtest: an admitted accumulated endpoint uses the authored point without extrapolation
+ok 1 - an admitted accumulated endpoint uses the authored point without extrapolation
+  ---
+  duration_ms: 1.054958
+  type: 'test'
+  ...
+# Subtest: path cut: public API stores one feature and preserves inputs, history and fixed orientation
+ok 2 - path cut: public API stores one feature and preserves inputs, history and fixed orientation
+  ---
+  duration_ms: 52.544167
+  type: 'test'
+  ...
+# Subtest: path cut: native quadratic line spans and translated/nonuniform parameterizations retain placement and names
+ok 3 - path cut: native quadratic line spans and translated/nonuniform parameterizations retain placement and names
+  ---
+  duration_ms: 49.453667
+  type: 'test'
+  ...
+# Subtest: path cut: source, spacing, count and path edits recompute without stale cache or renamed cuts
+ok 4 - path cut: source, spacing, count and path edits recompute without stale cache or renamed cuts
+  ---
+  duration_ms: 61.154125
+  type: 'test'
+  ...
+# Subtest: path cut: count one is an identity that still validates the path; copy and native curve caps remain bounded
+ok 5 - path cut: count one is an identity that still validates the path; copy and native curve caps remain bounded
+  ---
+  duration_ms: 173.176333
+  type: 'test'
+  ...
+# Subtest: path cut: exact unsupported curves are refused without projection, endpoint extension or partial mutation
+ok 6 - path cut: exact unsupported curves are refused without projection, endpoint extension or partial mutation
+  ---
+  duration_ms: 12.643042
+  type: 'test'
+  ...
+# Subtest: path cut: raw admission, facade refusals and active difference ownership stay explicit
+ok 7 - path cut: raw admission, facade refusals and active difference ownership stay explicit
+  ---
+  duration_ms: 19.744167
+  type: 'test'
+  ...
+# Subtest: fill cut: facade owns the region snapshot, retains complete history and binds both spacings
+not ok 8 - fill cut: facade owns the region snapshot, retains complete history and binds both spacings
+  ---
+  duration_ms: 72.126292
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/fill-cut-pattern.test.mjs:52:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(out.brep.bodies[0].shells.every(shell => shell.closed))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    geometry (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/fill-cut-pattern.test.mjs:35:10)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/fill-cut-pattern.test.mjs:63:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: fill cut: independent mass, corners and names survive both windings and native save/read
+not ok 9 - fill cut: independent mass, corners and names survive both windings and native save/read
+  ---
+  duration_ms: 18.656334
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/fill-cut-pattern.test.mjs:66:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(out.brep.bodies[0].shells.every(shell => shell.closed))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    geometry (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/fill-cut-pattern.test.mjs:35:10)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/fill-cut-pattern.test.mjs:67:117)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: fill cut: spacing and region edits use original grid indices and independent centroids
+not ok 10 - fill cut: spacing and region edits use original grid indices and independent centroids
+  ---
+  duration_ms: 22.014542
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/fill-cut-pattern.test.mjs:75:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(out.brep.bodies[0].shells.every(shell => shell.closed))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    geometry (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/fill-cut-pattern.test.mjs:35:10)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/fill-cut-pattern.test.mjs:78:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: fill cut: source position and size recompute geometry without changing the authored mask anchor
+not ok 11 - fill cut: source position and size recompute geometry without changing the authored mask anchor
+  ---
+  duration_ms: 14.552583
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/fill-cut-pattern.test.mjs:84:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(out.brep.bodies[0].shells.every(shell => shell.closed))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    geometry (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/fill-cut-pattern.test.mjs:35:10)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/fill-cut-pattern.test.mjs:85:69)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: fill cut: original CUT remains when its reference is outside, and empty/no-extra/one-cell are seed identities
+not ok 12 - fill cut: original CUT remains when its reference is outside, and empty/no-extra/one-cell are seed identities
+  ---
+  duration_ms: 4.124917
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/fill-cut-pattern.test.mjs:92:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(out.brep.bodies[0].shells.every(shell => shell.closed))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    geometry (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/fill-cut-pattern.test.mjs:35:10)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/fill-cut-pattern.test.mjs:95:17)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: fill cut: exact boundary, adjacent binary64 values and rational reference sums have no rounding mask
+ok 13 - fill cut: exact boundary, adjacent binary64 values and rational reference sums have no rounding mask
+  ---
+  duration_ms: 0.572375
+  type: 'test'
+  ...
+# Subtest: fill cut: finite candidate bound precedes masking and tiny spacing never enumerates an automatic grid
+ok 14 - fill cut: finite candidate bound precedes masking and tiny spacing never enumerates an automatic grid
+  ---
+  duration_ms: 11.080625
+  type: 'test'
+  ...
+# Subtest: fill cut: malformed regions, holes, repeated vertices, backtracks and non-simple loops refuse atomically
+ok 15 - fill cut: malformed regions, holes, repeated vertices, backtracks and non-simple loops refuse atomically
+  ---
+  duration_ms: 11.306333
+  type: 'test'
+  ...
+# Subtest: fill cut: typed dimension/count failures and count binding refusal preserve the accepted part
+ok 16 - fill cut: typed dimension/count failures and count binding refusal preserve the accepted part
+  ---
+  duration_ms: 28.124
+  type: 'test'
+  ...
+# Subtest: fill cut: source admission still runs for one-cell and zero-additional-placement recipes
+ok 17 - fill cut: source admission still runs for one-cell and zero-additional-placement recipes
+  ---
+  duration_ms: 10.753875
+  type: 'test'
+  ...
+# Subtest: linear feature pattern: public append preserves its direct cut and binds spacing without copying the body
+ok 18 - linear feature pattern: public append preserves its direct cut and binds spacing without copying the body
+  ---
+  duration_ms: 60.246459
+  type: 'test'
+  ...
+# Subtest: linear feature pattern: seed and spacing Dim edits, save/read and reevaluation preserve fixed cut positions
+ok 19 - linear feature pattern: seed and spacing Dim edits, save/read and reevaluation preserve fixed cut positions
+  ---
+  duration_ms: 63.3895
+  type: 'test'
+  ...
+# Subtest: linear feature pattern: stale, non-cut and invalid references refuse without discarding later history
+ok 20 - linear feature pattern: stale, non-cut and invalid references refuse without discarding later history
+  ---
+  duration_ms: 17.414792
+  type: 'test'
+  ...
+# Subtest: linear feature pattern: existing axis, count and spacing admission and count binding stay typed and atomic
+ok 21 - linear feature pattern: existing axis, count and spacing admission and count binding stay typed and atomic
+  ---
+  duration_ms: 39.171167
+  type: 'test'
+  ...
+# Subtest: rectangular cut: public append retains one editable feature and stock, with two spacing bindings
+ok 22 - rectangular cut: public append retains one editable feature and stock, with two spacing bindings
+  ---
+  duration_ms: 74.170084
+  type: 'test'
+  ...
+# Subtest: rectangular cut: source size and position, both spacings, and count edits recompute; names survive save/read
+ok 23 - rectangular cut: source size and position, both spacings, and count edits recompute; names survive save/read
+  ---
+  duration_ms: 103.099042
+  type: 'test'
+  ...
+# Subtest: rectangular cut: one row, one column, one cell, and swapped axes retain exact cuts
+ok 24 - rectangular cut: one row, one column, one cell, and swapped axes retain exact cuts
+  ---
+  duration_ms: 47.531708
+  type: 'test'
+  ...
+# Subtest: rectangular cut: X/Z and Z/Y grids use the B-rep transform path with stable cell names
+ok 25 - rectangular cut: X/Z and Z/Y grids use the B-rep transform path with stable cell names
+  ---
+  duration_ms: 113.841333
+  type: 'test'
+  ...
+# Subtest: rectangular cut: empty or outside tools do not create stock copies; cap boundary admits 64 cells
+ok 26 - rectangular cut: empty or outside tools do not create stock copies; cap boundary admits 64 cells
+  ---
+  duration_ms: 20.30325
+  type: 'test'
+  ...
+# Subtest: rectangular cut: stale, suppressed, non-cut, split and cyclic source references refuse atomically
+ok 27 - rectangular cut: stale, suppressed, non-cut, split and cyclic source references refuse atomically
+  ---
+  duration_ms: 13.42475
+  type: 'test'
+  ...
+# Subtest: rectangular cut: bad axes, dimensions, counts and total size refuse with typed errors and leave state intact
+ok 28 - rectangular cut: bad axes, dimensions, counts and total size refuse with typed errors and leave state intact
+  ---
+  duration_ms: 47.264083
+  type: 'test'
+  ...
+1..28
+# tests 28
+# suites 0
+# pass 23
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 831.730542
