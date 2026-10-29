@@ -3,7 +3,7 @@ export interface Fraction { numerator: string; denominator: string }
 interface Q { n: bigint; d: bigint }
 interface Line { slope: Q; offset: Q }
 interface OracleComponent { areaUV: Fraction; areaWorld: Fraction; centroidWorld: Fraction[] }
-interface OracleInput { uv: readonly (readonly number[])[]; domain: { u: number[]; v: number[] }; axis: 'u' | 'v'; parameter: number; keep: 'inside' | 'outside' }
+interface OracleInput { uv: readonly (readonly number[])[]; domain: { u: number[]; v: number[] }; axis: 'u' | 'v'; parameter: number; keep: 'inside' | 'outside'; crop?: { u: number[]; v: number[] } }
 const ZERO: Q = { n: 0n, d: 1n };
 function rational(n: bigint, d = 1n): Q {
   if (d === 0n) throw new Error('Zero oracle denominator.');
@@ -41,9 +41,22 @@ function integral(lo: Q, hi: Q, coefficients: Q[]): Q {
 export function trimSplitOracle(input: OracleInput): { lower: OracleComponent[]; upper: OracleComponent[] } {
   const selected = input.axis === 'u' ? 0 : 1, cut = fromNumber(input.parameter);
   const points = input.uv.map(p => [fromNumber(p[selected]), fromNumber(p[1 - selected])]);
-  const td = input.domain[input.axis].map(fromNumber), od = input.domain[input.axis === 'u' ? 'v' : 'u'].map(fromNumber);
+  const td = (input.crop ?? input.domain)[input.axis].map(fromNumber), od = input.domain[input.axis === 'u' ? 'v' : 'u'].map(fromNumber);
+  const cropO = input.crop?.[input.axis === 'u' ? 'v' : 'u'].map(fromNumber);
   const unique = new Map<string, Q>();
   for (const q of [...td, cut, ...points.map(p => p[0])]) if (cmp(q, td[0]) >= 0 && cmp(q, td[1]) <= 0) unique.set(`${q.n}/${q.d}`, q);
+  if (cropO) {
+    // Add every formula-switch level before choosing max/min interval endpoints in each slab.
+    for (let i = 0; i < points.length; i++) {
+      const a = points[i], b = points[(i + 1) % points.length];
+      if (cmp(a[0], b[0]) === 0 || cmp(a[1], b[1]) === 0) continue;
+      const slope = div(sub(b[1], a[1]), sub(b[0], a[0])), offset = sub(a[1], mul(slope, a[0]));
+      for (const border of cropO) {
+        const t = div(sub(border, offset), slope);
+        if (cmp(t, min(a[0], b[0])) >= 0 && cmp(t, max(a[0], b[0])) <= 0 && cmp(t, td[0]) >= 0 && cmp(t, td[1]) <= 0) unique.set(`${t.n}/${t.d}`, t);
+      }
+    }
+  }
   const levels = [...unique.values()].sort(cmp), parents: number[] = [];
   const nodes: { side: 'lower' | 'upper'; area: Q; momentT: Q; momentO: Q }[] = [];
   type Boundary = { index: number; right: Line; left: Line; hi: Q };
@@ -73,7 +86,12 @@ export function trimSplitOracle(input: OracleInput): { lower: OracleComponent[];
       intervals.push([left, { slope: ZERO, offset: od[1] }]);
     }
     const current: Boundary[] = [];
-    for (const [left, right] of intervals) {
+    for (const interval of intervals) {
+      let [left, right] = interval;
+      if (cropO) {
+        if (cmp(value(left, middle), cropO[0]) < 0) left = { slope: ZERO, offset: cropO[0] };
+        if (cmp(value(right, middle), cropO[1]) > 0) right = { slope: ZERO, offset: cropO[1] };
+      }
       if (cmp(value(right, middle), value(left, middle)) <= 0) continue;
       const da = sub(right.slope, left.slope), db = sub(right.offset, left.offset);
       const area = integral(lo, hi, [db, da]), momentT = integral(lo, hi, [ZERO, db, da]);
@@ -103,4 +121,10 @@ export function trimSplitOracle(input: OracleInput): { lower: OracleComponent[];
     output[sum.side].push({ areaUV: text(sum.area), areaWorld: text(mul(rational(25n), sum.area)), centroidWorld: [text(add(rational(20n), mul(rational(5n), u))), text(add(rational(-11n), mul(rational(5n), v))), text(rational(3n))] });
   }
   return output;
+}
+
+/** Crop material with an independent sweep; the cut lies at the crop end, so all output is one side. */
+export function trimRegionOracle(input: Omit<OracleInput, 'axis' | 'parameter' | 'crop'> & { crop: { u: number[]; v: number[] }; axis?: 'u' | 'v' }): OracleComponent[] {
+  const axis = input.axis ?? 'v';
+  return trimSplitOracle({ ...input, axis, parameter: input.crop[axis][1] }).lower;
 }

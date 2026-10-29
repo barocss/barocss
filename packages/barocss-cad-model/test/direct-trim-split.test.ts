@@ -95,7 +95,8 @@ for (const keep of ['inside', 'outside'] as const) {
       assert.equal(result.some(o => keptAt(o.trims!, u, v, 8, 6)), keptAt(panel.trims!, u, v, 8, 6));
     }
     assert.throws(() => directIGES(out), e => isRefusal(e, 'IGES_EXPORT'));
-    assert.throws(() => directOps.surfaceRegion(out, result[0].id, [-1, 1], [2, 3]), e => isRefusal(e, 'DIRECT_VALUE'));
+    const region = directOps.surfaceRegion(out, result[0].id, [-1, 1], [2, 3]);
+    assert.ok(region.objects.slice(out.objects.length).every(o => o.trims && o.trims.length > 0));
     assert.throws(() => directOps.extendSurface(out, result[0].id, 'u-max', 1), e => isRefusal(e, 'DIRECT_VALUE'));
   });
 }

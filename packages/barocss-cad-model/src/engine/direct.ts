@@ -3,7 +3,7 @@
 // sources and objects; an operation that makes new objects hides the ones it was made from (so they
 // can be shown again), one that refines an object's own source (poles, knots, degree, interval) moves the
 // object to the refined source.
-import { approximateCurvePlain, buildAlignedRationalRuledSurface, buildBezierCoonsSurface, buildMultiSectionLoftSurface, buildTranslationalSweepSurface, type CadAffineMatrix3x4, compileCadModel, type Curve, curveDomain, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide, elevateSourceCurveDegree, elevateSourceSurfaceAxisDegree, evaluateCurve, evaluateCurveCurvature, evaluateSurface, evaluateSurfaceCurvature, exportIGES, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, IGESImportError, importIGES, insertSourceCurveKnot, insertSourceSurfaceKnot, interpolateSurfacePlain, intersectPatches, joinCurves, type Model, removeCurveKnotPlain, reverseCurveWide, reverseSurfaceAxis, reverseTrimmedSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter, splitTrimmedSurfaceAtParameter, type Surface, surfaceDomain, surfaceEvaluator, SurfaceIntersectionError, transformNativeGeometryAffine, TrimmedSurfaceAxisReversalError, TrimmedSurfaceParameterSplitError } from '@barocss/cad';
+import { approximateCurvePlain, buildAlignedRationalRuledSurface, buildBezierCoonsSurface, buildMultiSectionLoftSurface, buildTranslationalSweepSurface, type CadAffineMatrix3x4, compileCadModel, type Curve, curveDomain, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide, elevateSourceCurveDegree, elevateSourceSurfaceAxisDegree, evaluateCurve, evaluateCurveCurvature, evaluateSurface, evaluateSurfaceCurvature, exportIGES, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, extractTrimmedSurfaceRegion, IGESImportError, importIGES, insertSourceCurveKnot, insertSourceSurfaceKnot, interpolateSurfacePlain, intersectPatches, joinCurves, type Model, removeCurveKnotPlain, reverseCurveWide, reverseSurfaceAxis, reverseTrimmedSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter, splitTrimmedSurfaceAtParameter, type Surface, surfaceDomain, surfaceEvaluator, SurfaceIntersectionError, transformNativeGeometryAffine, TrimmedSurfaceAxisReversalError, TrimmedSurfaceParameterSplitError, TrimmedSurfaceRegionError } from '@barocss/cad';
 import { curvesSource, surfacesSource } from './curveSource';
 import { keptAt, projectLoop, trimmedMesh, type TrimLoop } from './trim';
 import { nextFreeId } from '../util/ids';
@@ -183,7 +183,29 @@ export const directOps = {
     return add(d, [id], r.source, [{ geometry: r.lower.id, name: `${nameOf(d, id)} · ${axis} lower` }, { geometry: r.upper.id, name: `${nameOf(d, id)} · ${axis} upper` }]);
   },
   surfaceRegion(d: DirectGeometry, id: string, u: [number, number], v: [number, number]) {
-    const s = wholeSurfaceOf(d, id, 'Extract region'), used = usedIds(d), r = extractSurfaceRegion(s, { surfaceId: fresh(used, 'region'), uInterval: u, vInterval: v, resultIdPrefix: freshPrefix(used, 'rg') });
+    const picked = selectedSurface(d, id), trims = picked.object.trims;
+    if (trims !== undefined && !Array.isArray(trims)) requireWholeSurface(picked.object, 'Extract region', 'DIRECT_VALUE');
+    if (trims && trims.length > 0) {
+      let matches = 0;
+      for (const candidate of d.objects) if (candidate.id === id) matches++;
+      if (matches !== 1) throw refusal('DIRECT_PICK', 'The selected surface object ID is ambiguous.');
+      const used = usedIds(d), options = { surfaceId: fresh(used, 'region'), uInterval: u, vInterval: v, resultIdPrefix: freshPrefix(used, 'rg') };
+      let r;
+      try { r = extractTrimmedSurfaceRegion(picked.surface, trims, options); }
+      catch (e) {
+        if (e instanceof TrimmedSurfaceRegionError) throw refusal('DIRECT_VALUE', e.message);
+        throw e;
+      }
+      // Empty material refuses in the producer; own all masks before one successful publication.
+      const made = [];
+      for (const component of r.components) made.push({
+        geometry: component.surfaceId,
+        name: `${picked.object.name} · region ${component.componentIndex + 1}`,
+        trims: copyTrimLoops(component.trimLoops),
+      });
+      return add(d, [id], r.source, made);
+    }
+    const s = picked.surface, used = usedIds(d), r = extractSurfaceRegion(s, { surfaceId: fresh(used, 'region'), uInterval: u, vInterval: v, resultIdPrefix: freshPrefix(used, 'rg') });
     return add(d, [id], r.source, [{ geometry: r.surface.id, name: `${nameOf(d, id)} · region` }]);
   },
   isoCurve(d: DirectGeometry, id: string, axis: 'u' | 'v', p: number) {

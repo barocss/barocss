@@ -24,7 +24,6 @@ function freezeDeep(value: unknown): void {
   }
 }
 const consumers: { name: string; code: 'DIRECT_VALUE' | 'DIRECT_INTERSECT' | 'IGES_EXPORT'; run: (d: DirectGeometry) => unknown }[] = [
-  { name: 'Extract region', code: 'DIRECT_VALUE', run: d => directOps.surfaceRegion(d, panel, [-1, 3], [1.5, 5.5]) },
   { name: 'Extend surface', code: 'DIRECT_VALUE', run: d => directOps.extendSurface(d, panel, 'u-max', 5) },
   { name: 'Intersect surfaces', code: 'DIRECT_INTERSECT', run: d => surfaceIntersection(d, panel, wall) },
   { name: 'Export IGES', code: 'IGES_EXPORT', run: d => directIGES(d) },
@@ -44,7 +43,7 @@ function assertRefusals(d: DirectGeometry): void {
   }
 }
 
-test('direct trims: four unsupported consumers refuse exact outside and inside loops without state changes', () => {
+test('direct trims: three unsupported consumers refuse exact outside and inside loops without state changes', () => {
   assertRefusals(fixture('outside'));
   assertRefusals(fixture('inside'));
 });
@@ -56,10 +55,11 @@ test('direct trims: malformed non-array containers cannot bypass the consumer gu
     assertRefusals(d);
     assert.throws(() => directOps.reverseSurface(d, panel, 'u'), e => isRefusal(e, 'DIRECT_VALUE'));
     assert.throws(() => directOps.splitSurface(d, panel, 'u', 2), e => isRefusal(e, 'DIRECT_VALUE'));
+    assert.throws(() => directOps.surfaceRegion(d, panel, [-1, 3], [1.5, 5.5]), e => isRefusal(e, 'DIRECT_VALUE'));
   }
 });
 
-test('direct trims: four unsupported consumers refuse the actual public Trim by curve result', () => {
+test('direct trims: three unsupported consumers refuse the actual public Trim by curve result', () => {
   const projected = directOps.trimByCurve(structuredClone(imported), panel, hole, 'outside');
   assert.equal(projected.objects[0].trims?.[0].uv.length, 160);
   assertRefusals(projected);
@@ -100,7 +100,7 @@ test('direct trims: empty trims and explicit Untrim retain whole-surface operati
   for (const d of [whole, empty]) {
     const saved = structuredClone(d);
     freezeDeep(d);
-    for (const c of consumers.slice(0, 2)) {
+    for (const c of consumers.slice(0, 1)) {
       const result = c.run(d) as DirectGeometry;
       assert.equal(result.objects[0].hidden, true, c.name);
       assert.ok(result.objects.length > d.objects.length, c.name);
@@ -109,6 +109,9 @@ test('direct trims: empty trims and explicit Untrim retain whole-surface operati
     assert.equal(split.objects[0].hidden, true);
     assert.equal(split.objects.length, d.objects.length + 2);
     assert.ok(split.objects.slice(d.objects.length).every(o => o.trims === undefined));
+    const region = directOps.surfaceRegion(d, panel, [-1, 3], [1.5, 5.5]);
+    assert.equal(region.objects.length, d.objects.length + 1);
+    assert.equal(region.objects.at(-1)!.trims, undefined);
     const reversed = directOps.reverseSurface(d, panel, 'u');
     assert.equal(reversed.objects.at(-1)!.trims, undefined);
     assert.ok(surfaceIntersection(d, panel, wall).count > 0);

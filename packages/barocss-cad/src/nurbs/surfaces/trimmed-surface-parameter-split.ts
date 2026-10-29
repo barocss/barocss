@@ -44,7 +44,7 @@ function own(value: unknown, fields: readonly string[]|number): PropertyDescript
   else for(const key of fields)splitCheck(Object.hasOwn(descriptors,key),'INPUT','exact trim fields required');
   return descriptors;
 }
-function copyLoop(input: readonly SurfaceAxisTrimLoop[],domain: SurfaceParameterSplitResult['report']['domains']['original']): OwnedSurfaceAxisTrimLoop {
+export function copyLoop(input: readonly SurfaceAxisTrimLoop[],domain: SurfaceParameterSplitResult['report']['domains']['original']): OwnedSurfaceAxisTrimLoop {
   const list=own(input,1),data=own(list['0'].value,['keep','uv']),keep=data.keep.value,points=data.uv.value;
   splitCheck(keep==='inside'||keep==='outside','INPUT','trim keep must be inside or outside');
   splitCheck(Array.isArray(points),'INPUT','trim UV array required');

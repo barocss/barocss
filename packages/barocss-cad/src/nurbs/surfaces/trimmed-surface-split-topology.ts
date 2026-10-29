@@ -35,8 +35,8 @@ export function ringArea2(ring: readonly ExactPoint2[],q: SectionRationalContext
   }
   return sum;
 }
-export function simpleRing(ring: readonly ExactPoint2[],work: SplitTopologyWork): void {
-  splitCheck(ring.length>=3&&ring.length<=326,'BUDGET','strict simple material ring requires3..326 vertices');
+export function simpleRing(ring: readonly ExactPoint2[],work: SplitTopologyWork,maximumVertices: 326|484=326): void {
+  splitCheck(ring.length>=3&&ring.length<=maximumVertices,'BUDGET',`strict simple material ring requires3..${maximumVertices} vertices`);
   for(let i=0;i<ring.length;i++){
     const b=(i+1)%ring.length,c=(i+2)%ring.length;
     for(let j=i+1;j<ring.length;j++){work.vertexPairs++;splitCheck(!exactSame2(ring[i],ring[j]),'TOPOLOGY','repeated material ring vertex refused');}
@@ -47,9 +47,9 @@ export function simpleRing(ring: readonly ExactPoint2[],work: SplitTopologyWork)
     }
   }
 }
-export function canonicalRing(input: readonly ExactPoint2[],positive: boolean,q: SectionRationalContext,work: SplitTopologyWork): ExactPoint2[] {
+export function canonicalRing(input: readonly ExactPoint2[],positive: boolean,q: SectionRationalContext,work: SplitTopologyWork,maximumVertices: 326|484=326): ExactPoint2[] {
   const ring: ExactPoint2[]=[];for(const p of input)ring.push(p);
-  simpleRing(ring,work);
+  simpleRing(ring,work,maximumVertices);
   const area=ringArea2(ring,q);splitCheck(area.n!==0n,'TOPOLOGY','zero-area material ring refused');
   if((area.n>0n)!==positive)ring.reverse();
   let first=0;

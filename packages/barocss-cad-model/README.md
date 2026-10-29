@@ -133,7 +133,15 @@ The Kernel checks the actual child coefficients and stored boundary under one
 1e-7 mm world bound. This is a material mask operation, not a solid operation.
 Later Reverse can refuse output that exceeds its own 160-point or support profile.
 
-`surfaceRegion` and `extendSurface` still refuse surfaces with trims.
+`directOps.surfaceRegion` preserves the same original trim profile within ordered
+U/V ranges. Each positive material component becomes one object with an owned
+inside outer loop and outside hole loops on one shared native support. The hidden
+original retains its metadata. A crop with no positive material refuses atomically
+with `DIRECT_VALUE`; it does not hide the original or publish a whole support.
+The Kernel certifies the actual final support and stored boundary under one joint
+1e-7 mm world bound. Full-domain copies keep explicit masks and existing guards.
+
+`extendSurface` still refuses surfaces with trims.
 `surfaceIntersection` refuses either trimmed operand. These operations do not yet
 map or clip trim boundaries.
 
