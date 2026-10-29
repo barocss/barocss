@@ -1,0 +1,17 @@
+{
+  "rootScope": "Read supplied source/author-receipt review and register existing roadmap evidence only. No independent execution, artifact re-audit, product edit, issue reopening or cross-chat reply.",
+  "files": [
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/d325-viewer-clipping-receipt-review.md",
+      "copy": "d325-viewer-clipping-receipt-review.md",
+      "bytes": 11774,
+      "sha256": "2163d6d4454e38e2947550a20c72ba756ea79851528d7f7a91bec6deddd6b88e"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/verification/d325-viewer-clipping-receipt-review.json",
+      "copy": "d325-viewer-clipping-receipt-review.json",
+      "bytes": 85960,
+      "sha256": "4804d3753543da75376fb7909edbe1a466a2d54f197cb9022e5a13259c603957"
+    }
+  ]
+}

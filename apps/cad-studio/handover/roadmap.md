@@ -1895,3 +1895,39 @@ Only if expanding scope, capture the actual Viewer adapter, the specific missing
 and executing input graph. Do not rerun successful checks for this bounded receipt review. Root read
 and retained both supplied documents without independent execution, remote action or reply. Existing
 A05/A06 and other roadmap priorities remain unchanged.
+
+
+### D325/A08 clipping retained-receipt review — 2026-10-29
+
+Connect the [supplied review and verification](notes/viewer-clipping-contract-2026-10-29/retained-receipt-review/d325-viewer-clipping-receipt-review.md)
+to existing05/V1/V2,06/G15-accept and transferred #2239. Verdict: **APPROVE_BOUNDED_AUTHOR_RECEIPTS**
+for exactf841c0c3. SDK closed scene-unit near/far reaches actual Camera/manual pipeline and CPU axial
+candidate filtering. At quantized fragment depth zero, manual GPU pick changes only the depth-test
+value to the minimum positive normal; raw depth remains zero and IDs/face/instance remain observable.
+This is not general exact-far accuracy for arbitrary floating-point profiles or a new tolerance.
+
+Native is one selected test: twelve SDK observations (six conditions at each of scales1/.001), plus
+Core and autoClip guard in that same test. Retain center colors, covered9600 versus0, face71/triangle0/
+instance0/raw0 and original tolerances. Apple/metal-3 is a separate availability-adapter observation;
+actual SDK/Core Viewer adapter identity remains **UNKNOWN**. Delaying a fulfilled map return is
+controlled scheduling, not natural readback/device failure.
+
+Reviewer reports77 retained artifact bytes checked against author Git; manifests have118 references,
+76 unique paths and42 overlaps. Original/decoded source and driver bindings, including six gzip
+capsules, are retained in the supplied review. These are provenance counts, not runtime tests.
+The reported581-input sourcegraph has only count/hash: full input manifest, actual bundle bytes and
+emitted GPU dist are absent. Critical source/driver binding does not certify the entire runtime graph.
+Current GPU/Viewer source equivalence at the reviewed head is not current whole-runtime acceptance.
+
+Keep the original native product FAIL; GPU357 initially355PASS/2fixtureFAIL; SDK background fixture
+FAIL; harness lint and API expected FAIL. Final display26/camera29 overlap the initial357 and are not
+additional unique tests. SDK11 is separate. There is no final wholeGPU rerun. CPU off-axis/orthographic/
+two-square fixtures differ from the native frontal square/triangle profile. Native orthographic,
+off-axis, two-square, boundary-crossing polygons, arbitrary f32 ratios, world-coordinate accuracy,
+full effects/caps/pathtrace combinations and broader adapter/recovery/OOM/performance remain outside
+acceptance. No new defect is inferred from these missing profiles.
+
+Only for a broader claim, collect the requested missing native profile and complete executing input/
+dist binding. Do not repeat the successful selected native case. Transfer closure of #2239 is not
+fix-acceptance evidence; no reopening or new issue. Root read and retained the supplied report and
+parsed verification without independent execution or reply. Existing A05/A06 priority remains.
