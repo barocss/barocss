@@ -90,7 +90,12 @@ async function freshOpen(saved, key, label) {
 }
 async function openEditor(index) {
   const node = (await doc()).nodes[index];
-  if (node.kind === 'sketch') await page.getByRole('group', { name: 'History', exact: true }).getByRole('button', { name: `Sketch ${index + 1}`, exact: true }).click();
+  if (node.kind === 'sketch') {
+    const history = page.getByRole('group', { name: 'History', exact: true });
+    const target = history.getByRole('button', { name: `Sketch · ${node.profile === 'loop' ? 'outline' : node.profile}`, exact: true });
+    assert.equal(await target.count(), 1, 'One source sketch editor: ' + JSON.stringify(await history.getByRole('button').evaluateAll(buttons => buttons.map(button => button.getAttribute('aria-label')))));
+    await target.click();
+  }
   else await page.locator(`.history .hs[data-node-index="${index}"]`).click();
   await editor().waitFor();
 }
