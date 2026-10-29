@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: cylindrical wrap facade, hand recipe and HUD use the same immutable document and core results
+ok 1 - cylindrical wrap facade, hand recipe and HUD use the same immutable document and core results
+  ---
+  duration_ms: 246.047084
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap history edit preserves its face, signatures and downstream recipe
+ok 2 - cylindrical wrap history edit preserves its face, signatures and downstream recipe
+  ---
+  duration_ms: 75.97575
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap uses the current package and JSON readers with no schema change
+ok 3 - cylindrical wrap uses the current package and JSON readers with no schema change
+  ---
+  duration_ms: 73.193333
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap rejects unsupported UV, height, missing signatures and exact-face changes without mutation
+ok 4 - cylindrical wrap rejects unsupported UV, height, missing signatures and exact-face changes without mutation
+  ---
+  duration_ms: 20.068208
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap agent command equals the facade and refuses unsupported edits atomically
+ok 5 - cylindrical wrap agent command equals the facade and refuses unsupported edits atomically
+  ---
+  duration_ms: 151.417916
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap authority survives the worker mesh and mesh-token paths as plain data
+ok 6 - cylindrical wrap authority survives the worker mesh and mesh-token paths as plain data
+  ---
+  duration_ms: 68.870292
+  type: 'test'
+  ...
+# Subtest: native-half signatures and wrap selection do not depend on viewport quality
+ok 7 - native-half signatures and wrap selection do not depend on viewport quality
+  ---
+  duration_ms: 12.560834
+  type: 'test'
+  ...
+# Subtest: bound wrap height remains authored through history editing and Save/Open admission
+ok 8 - bound wrap height remains authored through history editing and Save/Open admission
+  ---
+  duration_ms: 66.807417
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 859.06675

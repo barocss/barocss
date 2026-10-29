@@ -1,0 +1,118 @@
+TAP version 13
+# Subtest: the assembly facade writes what the agent's assembly tools write, byte for byte
+ok 1 - the assembly facade writes what the agent's assembly tools write, byte for byte
+  ---
+  duration_ms: 152.9745
+  type: 'test'
+  ...
+# Subtest: its placements, unmet mates, variant, frame poses and meshes are the core's on that document
+ok 2 - its placements, unmet mates, variant, frame poses and meshes are the core's on that document
+  ---
+  duration_ms: 106.221333
+  type: 'test'
+  ...
+# Subtest: every method returns a new assembly; a part reads back as a studio part in its own coordinates
+ok 3 - every method returns a new assembly; a part reads back as a studio part in its own coordinates
+  ---
+  duration_ms: 25.7695
+  type: 'test'
+  ...
+# Subtest: the assembly's refusals are typed: the facade's own, and the core's passed through with its code
+ok 4 - the assembly's refusals are typed: the facade's own, and the core's passed through with its code
+  ---
+  duration_ms: 231.372917
+  type: 'test'
+  ...
+# Subtest: lock: the studio's Lock — the mate it writes, the part carried along when the other moves, a fixed joint
+ok 5 - lock: the studio's Lock — the mate it writes, the part carried along when the other moves, a fixed joint
+  ---
+  duration_ms: 31.36475
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap facade, hand recipe and HUD use the same immutable document and core results
+ok 6 - cylindrical wrap facade, hand recipe and HUD use the same immutable document and core results
+  ---
+  duration_ms: 251.041417
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap history edit preserves its face, signatures and downstream recipe
+ok 7 - cylindrical wrap history edit preserves its face, signatures and downstream recipe
+  ---
+  duration_ms: 77.117334
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap uses the current package and JSON readers with no schema change
+ok 8 - cylindrical wrap uses the current package and JSON readers with no schema change
+  ---
+  duration_ms: 72.63075
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap rejects unsupported UV, height, missing signatures and exact-face changes without mutation
+ok 9 - cylindrical wrap rejects unsupported UV, height, missing signatures and exact-face changes without mutation
+  ---
+  duration_ms: 20.459709
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap agent command equals the facade and refuses unsupported edits atomically
+ok 10 - cylindrical wrap agent command equals the facade and refuses unsupported edits atomically
+  ---
+  duration_ms: 174.151791
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap authority survives the worker mesh and mesh-token paths as plain data
+ok 11 - cylindrical wrap authority survives the worker mesh and mesh-token paths as plain data
+  ---
+  duration_ms: 73.3045
+  type: 'test'
+  ...
+# Subtest: native-half signatures and wrap selection do not depend on viewport quality
+ok 12 - native-half signatures and wrap selection do not depend on viewport quality
+  ---
+  duration_ms: 13.427625
+  type: 'test'
+  ...
+# Subtest: bound wrap height remains authored through history editing and Save/Open admission
+ok 13 - bound wrap height remains authored through history editing and Save/Open admission
+  ---
+  duration_ms: 69.610041
+  type: 'test'
+  ...
+# Subtest: placed and exploded display bodies do not carry source-space native-half metadata
+ok 14 - placed and exploded display bodies do not carry source-space native-half metadata
+  ---
+  duration_ms: 2.09725
+  type: 'test'
+  ...
+# Subtest: eager structuredClone binds only the exact source/body/fields; public MMGS and default JSON inertia stay identical
+ok 15 - eager structuredClone binds only the exact source/body/fields; public MMGS and default JSON inertia stay identical
+  ---
+  duration_ms: 20.926417
+  type: 'test'
+  ...
+# Subtest: placed tensors retain raw SI in the exact legacy R I R-transpose order, across repeated placements and clones
+ok 16 - placed tensors retain raw SI in the exact legacy R I R-transpose order, across repeated placements and clones
+  ---
+  duration_ms: 2.368459
+  type: 'test'
+  ...
+# Subtest: deferred placed patches require body identity, current epoch/request/revision/ref and unchanged public signatures
+ok 17 - deferred placed patches require body identity, current epoch/request/revision/ref and unchanged public signatures
+  ---
+  duration_ms: 25.110875
+  type: 'test'
+  ...
+# Subtest: malformed, missing and non-JSON provenance never binds; explicit Kernel unavailable remains unavailable
+ok 18 - malformed, missing and non-JSON provenance never binds; explicit Kernel unavailable remains unavailable
+  ---
+  duration_ms: 2.98625
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1750.850375

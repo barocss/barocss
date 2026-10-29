@@ -1,0 +1,74 @@
+TAP version 13
+# Subtest: cylindrical wrap: public feature owns one nine-face reference and audits independent asymmetric mass at each density
+ok 1 - cylindrical wrap: public feature owns one nine-face reference and audits independent asymmetric mass at each density
+  ---
+  duration_ms: 190.235375
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap: document save/load and reevaluation restore owned provider; output copies supply no mass authority
+not ok 2 - cylindrical wrap: document save/load and reevaluation restore owned provider; output copies supply no mass authority
+  ---
+  duration_ms: 73.096291
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-feature.test.mjs:54:1'
+  failureType: 'testCodeFailure'
+  error: 'Cannot convert undefined or null to object'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    Function.entries (<anonymous>)
+    reevaluate (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/part/part-model.js:539:33)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-feature.test.mjs:57:11)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: cylindrical wrap: native face and strict UV bounds refuse atomically without remapping
+not ok 3 - cylindrical wrap: native face and strict UV bounds refuse atomically without remapping
+  ---
+  duration_ms: 68.068
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-feature.test.mjs:64:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    CadPartError: wrap: [REFERENCE_MOVED] cylindrical-wrap face post.side0#2 is no longer the face it named (was at (0, 0, 0), now at (0, 6.3457, 8); it is a curved face now, was plane)
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    refused (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-feature.test.mjs:39:10)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-feature.test.mjs:69:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: cylindrical wrap: shared public facade writes the same bounded recipe and preserves typed refusal
+ok 4 - cylindrical wrap: shared public facade writes the same bounded recipe and preserves typed refusal
+  ---
+  duration_ms: 305.820792
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap: actual display triangles retain the strict outer trim, source hole and outward side orientation
+ok 5 - cylindrical wrap: actual display triangles retain the strict outer trim, source hole and outward side orientation
+  ---
+  duration_ms: 43.722833
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 3
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 911.68725
