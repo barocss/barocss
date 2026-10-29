@@ -1729,3 +1729,29 @@ GMAT-1 supplementary author run at1266 reports1standalone test/50assertions, nat
 and disposal/rebind fallback; not50tests, not package test:browser/CI/fullGPU/parity/recovery/OOM.
 Root read exact4documents/740lines and retained copies; no independent runtime rerun or cross-chat
 reply. These attach to existing work and do not interrupt D327 or A05/A06 priority.
+
+
+### DA-1a supplementary document/API receipt — 2026-10-29
+
+Retain the [supplied report and summary](notes/drawing-assistant-maps-intake-2026-10-29/da1a-supplement/da1a-084920.md)
+under existing CG5/DR1–8/O26/RS7.6 DA-1. The author reports one isolated exact1266 CPU/API run with nine
+assertion groups passing: A4/four views, proposal ownership, native drawing/reference roundtrip and
+preserved outputs. This is not nine independent tests or Studio App/UI acceptance. Two TEXT_OVER_LINES
+errors and one DUPLICATE warning remain in the draft. Public issue-to-anchor details are NOT_EXPOSED.
+Next existing completion checks: independently inspect saved SVG/PDF, address residual layout using
+existing move/remove/fix paths while preserving manual references, then apply independent original
+dimension/hole oracles. UI/Undo/live AI/manufacturing acceptance remains open. Existing research issue
+[#2243 comment](https://github.com/barocss/barocss/issues/2243#issuecomment-6492346764) holds author evidence;
+no duplicate issue or immediate implementation. Root read both reports; no independent rerun or reply.
+Direct App decomposition and existing A05/A06 priority remain unchanged.
+
+
+### D328 second App decomposition — qualified (2026-10-29)
+
+[Source map and qualification](notes/app-decomposition-second-2026-10-29/README.md): App 2,308→2,046
+lines; seven modules expose nine clear domain blocks. Central document/evaluation/Open/Save/work
+owners stay in App. Build/types, production lint and Studio 429 pass. Eleven selected actual cases plus
+starter pass across preserved runs; initial A6.4 dialog-driver failure and final isolated pass remain
+separate. Initial leftover-dialog screenshots do not certify clean whole-screen acceptance. No whole
+browser/other-package/performance acceptance. Normal push follows. Resume existing A05/A06 priority;
+keep incoming DA-1a attached to existing CG5/DR1–8/O26/RS7.6, then original 07→08→09 order.

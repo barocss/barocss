@@ -1,0 +1,10 @@
+{
+  "baseline": "30fa825a3d372cf86f29b304c38d950d427fda13",
+  "task": "Second behavior-preserving App decomposition",
+  "sourceOwner": "app_second_split",
+  "reviewOwner": "app_second_review",
+  "rootChecks": ["Studio build including TypeScript", "Scoped ESLint on changed production files", "All Studio tests once at final boundary", "Selected existing real Studio flows on frozen sources"],
+  "browserCandidateRegex": "^O9: the section plane|^G19\\.2:|^G3 display modes:|^G24 3D annotations:|^G23 CNC:|^G22 clearance:|^G23 print layers:|^G6: the analysis maps|^requirements:|^A6\\.3:|^A6\\.4:",
+  "browserCount": "11 selected cases plus mandatory starter, subject to final changed scope",
+  "limits": ["No full kernel/model/GPU suites", "No whole browser-suite pass claim", "No performance claim", "No source edits during actual flow", "Do not repair unrelated baseline behavior in this refactor"]
+}

@@ -1,0 +1,50 @@
+
+/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/browser-flow.mjs
+    31:28   warning  Unexpected console statement  no-console
+    79:131  warning  Unexpected console statement  no-console
+   185:7    warning  Unexpected console statement  no-console
+  2064:15   warning  Unexpected console statement  no-console
+  2565:15   warning  Unexpected console statement  no-console
+  3128:5    warning  Unexpected console statement  no-console
+  3538:33   warning  Unexpected console statement  no-console
+  3539:10   warning  Unexpected console statement  no-console
+  3541:5    warning  Unexpected console statement  no-console
+  3845:7    warning  Unexpected console statement  no-console
+  6259:13   warning  Unexpected console statement  no-console
+  6657:15   warning  Unexpected console statement  no-console
+  7234:32   warning  Unexpected console statement  no-console
+  7857:7    warning  Unexpected console statement  no-console
+  8169:5    warning  Unexpected console statement  no-console
+  8212:7    warning  Unexpected console statement  no-console
+  8261:5    warning  Unexpected console statement  no-console
+  8295:5    warning  Unexpected console statement  no-console
+  8384:5    warning  Unexpected console statement  no-console
+  8605:15   warning  Unexpected console statement  no-console
+  8632:15   warning  Unexpected console statement  no-console
+  8688:5    warning  Unexpected console statement  no-console
+  8724:5    warning  Unexpected console statement  no-console
+  8735:14   warning  Unexpected console statement  no-console
+  8779:5    warning  Unexpected console statement  no-console
+  8821:15   warning  Unexpected console statement  no-console
+  8829:15   warning  Unexpected console statement  no-console
+  8920:5    warning  Unexpected console statement  no-console
+  8983:5    warning  Unexpected console statement  no-console
+  9029:5    warning  Unexpected console statement  no-console
+  9137:5    warning  Unexpected console statement  no-console
+  9189:5    warning  Unexpected console statement  no-console
+  9225:7    warning  Unexpected console statement  no-console
+  9274:5    warning  Unexpected console statement  no-console
+  9278:17   warning  Unexpected console statement  no-console
+  9469:5    warning  Unexpected console statement  no-console
+  9505:7    warning  Unexpected console statement  no-console
+  9562:7    warning  Unexpected console statement  no-console
+  9845:7    warning  Unexpected console statement  no-console
+  9873:7    warning  Unexpected console statement  no-console
+  9930:26   warning  Unexpected console statement  no-console
+  9931:20   warning  Unexpected console statement  no-console
+  9932:14   warning  Unexpected console statement  no-console
+  9933:26   warning  Unexpected console statement  no-console
+  9934:1    warning  Unexpected console statement  no-console
+
+✖ 45 problems (0 errors, 45 warnings)
+

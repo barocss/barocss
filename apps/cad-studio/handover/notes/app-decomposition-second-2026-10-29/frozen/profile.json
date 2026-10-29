@@ -1,0 +1,62 @@
+{
+  "baseline": "30fa825a3d372cf86f29b304c38d950d427fda13",
+  "kind": "Source provenance only, not product checksum testing",
+  "files": [
+    {
+      "path": "apps/cad-studio/src/App.tsx",
+      "lines": 2046,
+      "bytes": 188513,
+      "sha256": "d100518493b456e2f5ab055b1c552642341e07b5471753b52aac7e24aaeebfd2",
+      "capsule": "apps__cad-studio__src__App.tsx.gz"
+    },
+    {
+      "path": "apps/cad-studio/src/state/useSpecificationActions.ts",
+      "lines": 67,
+      "bytes": 5970,
+      "sha256": "3454923cb0c02eaf510d302e4d992709c589c17f19a466a17c0479f7ef531298",
+      "capsule": "apps__cad-studio__src__state__useSpecificationActions.ts.gz"
+    },
+    {
+      "path": "apps/cad-studio/src/viewport/useAnalysisMaps.ts",
+      "lines": 43,
+      "bytes": 3920,
+      "sha256": "a00af559ae8c4ea67b6a2727b77b6d8f9cf996dbac24f872ab47fc716dde5cde",
+      "capsule": "apps__cad-studio__src__viewport__useAnalysisMaps.ts.gz"
+    },
+    {
+      "path": "apps/cad-studio/src/viewport/useSectionDisplay.ts",
+      "lines": 38,
+      "bytes": 3387,
+      "sha256": "ad62a2fb7722c892d92e1e320df426b5bdcd9f874c37e88447007cbdc595ac1d",
+      "capsule": "apps__cad-studio__src__viewport__useSectionDisplay.ts.gz"
+    },
+    {
+      "path": "apps/cad-studio/src/viewport/useSectionEvaluation.ts",
+      "lines": 43,
+      "bytes": 3562,
+      "sha256": "32ad7094a5c6e7f620e611f83a469cc603822c06a07bb83fbf76aacf033a4e29",
+      "capsule": "apps__cad-studio__src__viewport__useSectionEvaluation.ts.gz"
+    },
+    {
+      "path": "apps/cad-studio/src/viewport/useSectionState.ts",
+      "lines": 40,
+      "bytes": 3295,
+      "sha256": "c8a5984ad242802fff2c6ddc9b7be19061bbc51749b9955eb0d9d518d87a2258",
+      "capsule": "apps__cad-studio__src__viewport__useSectionState.ts.gz"
+    },
+    {
+      "path": "apps/cad-studio/src/viewport/useViewportPicking.ts",
+      "lines": 91,
+      "bytes": 7489,
+      "sha256": "89ea2b64b1f14c32058363bbb20667c17c017eacae8841fe05d4200f2b266f69",
+      "capsule": "apps__cad-studio__src__viewport__useViewportPicking.ts.gz"
+    },
+    {
+      "path": "apps/cad-studio/src/viewport/useWorkspacePreviews.ts",
+      "lines": 160,
+      "bytes": 14509,
+      "sha256": "e6123661334187008645c80ebacd256c9e2f850007386441a29e7431545af516",
+      "capsule": "apps__cad-studio__src__viewport__useWorkspacePreviews.ts.gz"
+    }
+  ]
+}

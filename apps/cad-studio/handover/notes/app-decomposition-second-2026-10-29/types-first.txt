@@ -1,0 +1,8 @@
+src/App.tsx(1676,30): error TS2322: Type '{ id: string; drag: InstanceDrag; settling: boolean; key: string; } | null' is not assignable to type 'undefined'.
+  Type 'null' is not assignable to type 'undefined'.
+src/App.tsx(1679,101): error TS2322: Type 'ProcessProfile | null' is not assignable to type 'ProcessProfile | undefined'.
+  Type 'null' is not assignable to type 'ProcessProfile | undefined'.
+src/viewport/useWorkspacePreviews.ts(50,124): error TS2493: Tuple type '[doc: StudioDoc, instanceBodies: ReadonlyMap<string, { key: string; sourceKey: string; inst: PartInstance; bodies: BodyResult[]; }>, bodies: BodyResult[], jointFk: ... 5 more ..., explode: { ...; } | null]' of length '9' has no element at index '9'.
+src/viewport/useWorkspacePreviews.ts(66,57): error TS2339: Property 'drag' does not exist on type 'never'.
+src/viewport/useWorkspacePreviews.ts(66,92): error TS2339: Property 'id' does not exist on type 'never'.
+src/viewport/useWorkspacePreviews.ts(66,118): error TS2339: Property 'id' does not exist on type 'never'.

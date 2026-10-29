@@ -7137,7 +7137,10 @@ try {
     await page.setInputFiles('input[aria-label="Model file"]', file);
     await page.waitForFunction(() => window.__studioDoc?.nodes?.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
     await snap('a6-4-drafts');
-    const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Export STL"]')]);
+    await page.click('[aria-label="Export STL"]');
+    const dialog = page.getByRole('dialog', { name: 'STL export', exact: true });
+    await dialog.waitFor();
+    const [dl] = await Promise.all([page.waitForEvent('download', { predicate: d => d.suggestedFilename().endsWith('.stl'), timeout: 15000 }), dialog.getByRole('button', { name: 'Export', exact: true }).click()]);
     await dl.cancel().catch(() => {});
     await page.waitForFunction(() => /This part is a draft: 1 dimension/.test(document.querySelector('.toast[role="alert"]')?.textContent ?? ''), null, { timeout: 10000 });
   });

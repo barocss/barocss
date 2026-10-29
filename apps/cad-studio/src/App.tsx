@@ -1,3 +1,10 @@
+import { useSpecificationActions } from './state/useSpecificationActions';
+import { useViewportPicking } from './viewport/useViewportPicking';
+import { useSectionState } from './viewport/useSectionState';
+import { useSectionEvaluation } from './viewport/useSectionEvaluation';
+import { useSectionDisplay } from './viewport/useSectionDisplay';
+import { useAnalysisMaps } from './viewport/useAnalysisMaps';
+import { useClearancePreview, useManufacturingPreviews, usePmiPreview } from './viewport/useWorkspacePreviews';
 import { ViewDisplayControls } from './ui/ViewDisplayControls';
 import { isImportedFile, openImportedFile } from './files/importedFile';
 import { FeatureHistoryBar } from './ui/FeatureHistoryBar';
@@ -45,10 +52,9 @@ import { beginWork, createWorkOwnership, finishWork, invalidateWork, reserveAcce
 import { currentDocumentSave } from './state/saveOwnership';
 import type { OpenScope } from './state/openOwnership';
 import { type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
-import { multiply } from '@barocss/gpu/viewer';
 import { placedDoc, type PartInstance } from '@barocss/cad-model/engine/doc';
 import { placementOf } from '@barocss/cad-model/engine/placement';
-import { instanceEvaluationCurrent, instanceEvaluationSources } from './viewport/instanceEvaluation';
+import { instanceEvaluationSources } from './viewport/instanceEvaluation';
 import { contentKey, evaluationKey } from '@barocss/cad-model/engine/evalMemo';
 import { bearingEditCurrent, bearingFaceInput, captureBearingEditSession, prepareBearingEdit, type BearingEditSession } from './app/bearingEdit';
 import { resolveSkeletons, SKELETON_CODES } from '@barocss/cad-model/frames/skeleton';
@@ -66,13 +72,11 @@ import { carrySelection, commands, patchValues, refOf, selectedBodies, subdNodeO
 import { measureBetween, type MeasurePick } from '@barocss/cad-model/app/measure';
 import { DRAG_TYPE, snapshotInstanceIsolation, type FeatureHandle, type Spot, type SketchAnchor, type SketchShape, type SketchState, type TransformGizmo, type ViewportHandle } from './viewport/Viewport';
 import { ClearancePanel } from './viewport/ClearancePanel';
-import { useClearanceAnalysis } from './viewport/useClearanceAnalysis';
 import { PrintPanel } from './viewport/PrintPanel';
 import { CamPanel } from './viewport/CamPanel';
 import { AnalysisPanel } from './viewport/AnalysisPanel';
 import { Button } from '@/components/ui/button';
 import { ToolIconButton } from '@/components/ui/tool-button';
-import { useGpuAccessMaps } from './viewport/useGpuMaps';
 import { countRender, onBlockRender } from './devRenders';
 import { OutlinerInstances } from './ui/OutlinerInstances';
 import { useJoints } from './state/useJoints';
@@ -83,14 +87,9 @@ import { SceneViewport } from './viewport/SceneViewport';
 import { GravityExperimentPanel } from './ui/GravityExperimentPanel';
 import { useScenePoses } from './state/useScenePoses';
 import { CommandStrip, commandStates } from './ui/ToolButton';
-import { useDrawingSheet } from './ui/useDrawingSheet';
-import { pmiSelection } from './viewport/pmiGeometry';
-import { useCamPreview } from './viewport/camPreview';
 import type { CamOptions } from './viewport/camDisplay';
-import { usePrintLayers, type PrintOptions } from './viewport/usePrintLayers';
-import { printOptionsOf, printSourceMeshes, withPrintPreviewSettings, type PrintPreviewPatch } from './viewport/printSettings';
-import { checkDocumentPrintPreview } from '@barocss/cad-model/engine/printPreview';
-import { firstProblem, isRefusal, refusal } from '@barocss/cad-model/engine/refusal';
+import { withPrintPreviewSettings, type PrintPreviewPatch } from './viewport/printSettings';
+import { isRefusal, refusal } from '@barocss/cad-model/engine/refusal';
 import { Icon, Kbd } from './ui/atoms';
 import { FlatPatternDialog } from './ui/FlatPatternDialog';
 import { CutListDialog } from './ui/CutListDialog';
@@ -143,25 +142,20 @@ import { addedHoles, holeGroup, holeRegions, type ToolRegion } from '@barocss/ca
 import { threadLines, threadsOf } from '@barocss/cad-model/app/threads';
 import { fastenerSizesOf } from '@barocss/cad-model/engine/fastenerSizeRows';
 import type { Analysis } from './viewport/analysis';
-import { poseMatrix } from './viewport/instancePose';
-import { asSection, exactBodies, hatchSpacing, planeFromFace, sectionHatch, sectionPlanes, sectionSplits, sectionedBodies, type AxisSection, type Section } from './viewport/sectionView';
+import { asSection, sectionHatch, sectionPlanes, type AxisSection, type Section } from './viewport/sectionView';
 import { sectionHandles } from './ui/SectionBar';
-import { mapsOf, type MapKind } from './viewport/scalarMaps';
-import { isoclinePolylines } from '@barocss/cad-model/mould/parting';
+import { type MapKind } from './viewport/scalarMaps';
 import { edgeChain } from '@barocss/cad-model/app/edgeChain';
 import { joinOpen } from '@barocss/cad-model/sketch/trim';
 import { faceProfile } from '@barocss/cad-model/app/faceProfile';
 import { sketchShapes } from '@barocss/cad-model/sketch/reopen';
-import { bodyName, describeChange, lookOf, rootOf } from '@barocss/cad-model/app/bodies';
-import { applyBrief, confirmField, readBrief } from '@barocss/cad-model/chat/brief';
-import type { BriefKey } from '@barocss/cad-model/engine/schema/brief';
+import { bodyName, describeChange, rootOf } from '@barocss/cad-model/app/bodies';
+import { readBrief } from '@barocss/cad-model/chat/brief';
 import { BriefPanel } from './ui/BriefPanel';
 import { SpecifyPanel } from './ui/SpecifyPanel';
 import { ReferencesPanel } from './ui/ReferencesPanel';
-import { placeReference, readReferences, runReferenceTool } from '@barocss/cad-model/chat/references';
-import type { Placement } from '@barocss/cad-model/engine/schema/references';
-import { acceptAssumptions, answerBatch } from '@barocss/cad-model/chat/questions';
-import { confirmDimension, liveDrafts, runDraftTool } from '@barocss/cad-model/chat/drafts';
+import { placeReference, readReferences } from '@barocss/cad-model/chat/references';
+import { confirmDimension, liveDrafts } from '@barocss/cad-model/chat/drafts';
 import { DraftsPanel } from './ui/DraftsPanel';
 import { extrudeProfile } from '@barocss/cad-model/app/profileCommands';
 import { editCommand } from '@barocss/cad-model/app/editCommand';
@@ -171,7 +165,6 @@ import { alignMove, gizmoAxes, movedInstance, previewMatrix, turnedInstance, typ
 import { BASE, type Mate } from '@barocss/cad-model/assembly/mates';
 import type { DirectGeometry } from '@barocss/cad-model/engine/direct';
 import { directNow, loadDirect } from '@barocss/cad-model/engine/directModule';
-import { meshInMM, readMeshFile } from '@barocss/cad-model/engine/meshImport';
 import { FontUpload } from './app/fontUpload';
 import { boundsOf } from '@barocss/cad-model/engine/bounds';
 import { defaultRender, readRender, type RenderCamera, type RenderSettings } from '@barocss/cad-model/engine/render';
@@ -541,37 +534,8 @@ export function App() {
   useEffect(() => { setLibraryStore(browserStore()); loadUserLibraries(); }, []);
   /** The view's field of view (degrees; the Render panel sets it, a saved view keeps it). */
   const [fov, setFov] = useState(32);
-  // (G19: one plane, a box or two or three planes — the kept region their intersection; the next face click sets plane `sectionFacePick`.)
-  // (Dev/test: the exact section held back, and the CPU's path forced, to compare the two clips through one viewer.)
-  const [sectionDebug, setSectionDebug] = useState({ hold: false, cpu: false });
-  // The section as committed, and the plane being dragged (R1c (3c)): a drag sets `sectionLive`, outside React state.
-  // On WebGPU only SceneViewport follows it in each frame, the App once as the drag starts. On WebGL2 the App follows it,
-  // as before: its CPU copies are cut again in each frame. The release commits it.
-  const [committedSection, setCommittedSection] = useState<Section | null>(null);
-  const sectionLive = useMemo(() => createValueStore<Section | null>(null), []);
-  const cpuSectionPath = viewBackend !== 'webgpu' || sectionDebug.cpu;
-  const liveSection = useStoreValue(sectionLive, !!committedSection && cpuSectionPath);
-  // (On WebGPU the App takes the plane as the drag started — its exact section waits for the release; R1c (3c).)
-  const [sectionDragFrom, setSectionDragFrom] = useState<Section | null>(null);
-  const section = cpuSectionPath ? liveSection ?? committedSection : sectionDragFrom ?? committedSection;
-  const committedSectionRef = useRef(committedSection); committedSectionRef.current = committedSection;
-  /** A section set (the toggle, the bar, a face, the hooks): committed, a drag's plane with it. */
-  const setSection = useCallback((next: Section | null | ((s: Section | null) => Section | null)) => {
-    const base = sectionLive.get();
-    setCommittedSection(prev => typeof next === 'function' ? next(base ?? prev) : next);
-    sectionLive.set(null); setSectionDragFrom(null);
-  }, [sectionLive]);
-  /** A section handle dragged: its plane into the store at each step, the App told once as it starts; the release commits. */
-  const dragSection = useCallback((f: (s: Section | null) => Section | null, done: boolean) => {
-    const was = sectionLive.get(), next = f(was ?? committedSectionRef.current);
-    if (done) { setSection(() => next); return; }
-    if (!was) setSectionDragFrom(next);
-    sectionLive.set(next);
-  }, [sectionLive, setSection]);
-  const [sectionFacePick, setSectionFacePick] = useState<number | null>(null);
-  const sectionFacePickRef = useRef(sectionFacePick); sectionFacePickRef.current = sectionFacePick;
-  const [sectionExact, setSectionExact] = useState<{ key: string; source: StudioDoc; sourceBodies: readonly BodyResult[]; bodies: BodyResult[]; from: ReadonlyMap<string, string> } | null>(null);
-  const sectionRef = useRef(section); sectionRef.current = section;
+  const { sectionDragFrom, sectionDebug, setSectionDebug, sectionLive, section, setSection, dragSection, sectionFacePick, setSectionFacePick,
+    sectionFacePickRef, sectionExact, setSectionExact, sectionRef } = useSectionState(viewBackend);
   const activeRef = useRef<Active | null>(null);
   /** The body whose browser row the pointer is on (lit in the viewport). */
   const [rowHover, setRowHover] = useState<number | null>(null);
@@ -665,31 +629,8 @@ export function App() {
   }, [referenceLabelOwner]);
   const referenceLabels = referenceLabelCache?.owner === referenceLabelOwner ? referenceLabelCache.labels : [];
 
-  const sectionRun = useRef<{ busy: boolean; next: (() => Promise<void>) | null }>({ busy: false, next: null });
-  // The section: the part with each body that crosses the plane split there (the rest kept or left out whole).
-  useEffect(() => {
-    if (!section) { setSectionExact(null); return; }
-    if (sectionDragFrom) return;
-    const key = JSON.stringify(section);
-    // (G19: each body split by each plane that crosses what is left of it, the kept pieces' keys.)
-    const { doc, kept, from } = sectionSplits(evaluated, bodies, section);
-    // Latest wins: while one section is worked out, only the newest plane waits behind it. (R4b: on the section's O9 lane —
-    // a reply overtaken by a newer plane, or by the effect's cleanup, comes back stale.)
-    const run = sectionRun.current;
-    run.next = async () => { const at = revision.current++, reply = await lanes.run('section', { revision: at, source: key }, () => engine.section(doc, at)), r = reply.stale ? null : reply.result; if (r?.ok) { const x = exactBodies(r.bodies, kept, from); setSectionExact({ key, source: evaluated, sourceBodies: bodies, bodies: x.bodies, from: x.from }); } };
-    if (!run.busy) void (async () => { run.busy = true; try { while (run.next) { const j = run.next; run.next = null; await j(); } } finally { run.busy = false; } })();
-    return () => lanes.cancel('section');
-  }, [section, bodies, evaluated, engine, sectionDragFrom]);
-  // At once (while the plane is dragged, until the exact section arrives): on WebGPU the bodies whole, cut and capped by
-  // the viewer's clip plane (G2); on WebGL2 the meshes clipped and capped on the CPU.
-  const gpuSection = viewport.current?.backend === 'webgpu' && !sectionDebug.cpu;
-  const sectionClipped = useMemo(() => {
-    if (!section) return null;
-    // (The section's first split is the next feature: its cut faces are named after the next id, engine/ids.ts.)
-    return sectionedBodies(bodies, section, gpuSection, `n${nextSerial(evaluated)}.cut`);
-  }, [section, bodies, evaluated, gpuSection]);
-  const sectionExactShown = !!section && !sectionDragFrom && sectionExact?.key === JSON.stringify(section) && sectionExact.source === evaluated && sectionExact.sourceBodies === bodies && !sectionDebug.hold;
-  const sectionBodies = section ? (sectionExactShown ? sectionExact!.bodies : sectionClipped) : null;
+  const { gpuSection, sectionExactShown, sectionBodies } = useSectionEvaluation({ section, sectionDragFrom, sectionDebug, sectionExact,
+    setSectionExact, evaluated, bodies, viewport, engine, revision, lanes });
   const render = useMemo(() => doc.render ?? defaultRender(), [doc.render]);
 
   // A display-only commit does not rerun the main effect: release its reservation on the same exact input.
@@ -1190,69 +1131,10 @@ export function App() {
     worker: { engine, nextRevision: () => revision.current++ }, viewport, changes: { canChangeDocument, commit, commitDirect, setSelection, setEditNode, setActive, setPreviewBodies }, onNotice: setToast });
   const { placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, editSketch, linkSketchInset, finishSketch } = sketchActions;
 
-  const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number }; instanceCap?: { body: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean) => {
-    // (The section view shows cut copies of the bodies: picks wait until it is closed.)
-    // (G19: a face for a section plane — its plane, the material behind it kept.)
-    if (sectionRef.current && sectionFacePickRef.current !== null && hit.face) {
-      const i = sectionFacePickRef.current, f = viewBodiesRef.current[hit.face.body]?.mesh.faces[hit.face.face];
-      if (f && f.kind === 'plane') { const q = planeFromFace(f, sectionBoxRef.current); setSection(sc => sc && { ...sc, planes: sc.planes.map((p, j) => j === i ? q : p) }); setSectionFacePick(null); }
-      else setToast({ title: 'Not a flat face', hint: 'A section plane is taken from a flat face.', detail: '' });
-      return;
-    }
-    const validInstance = !!hit.instance && !!doc.instances?.some(inst => inst.id === hit.instance && !inst.hidden);
-    if (hit.instance && !validInstance) return;
-    // Section copies still block base-body edits. A current visible instance keeps its own selection route.
-    if (sectionRef.current && !activeRef.current && !validInstance) return;
-    // (G6: while the mould's halves show, picks reach only them — none here.)
-    if (halvesShownRef.current && !activeRef.current) return;
-    const cur = activeStore.get();
-    if (cur) {
-      // A command that takes a pick (a revolve's axis edge) gets the click; others ignore it. (R1d: its values as they are
-      // now, from the store.)
-      if (!cur.cmd.onPick) return;
-      const r = cur.cmd.onPick(cur.ctx, cur.values, { face: hit.face, edge: hit.edge });
-      if (!r) return;
-      if ('error' in r && typeof r.error === 'string' && Object.keys(r).length === 1) { setToast({ title: `${cur.cmd.label}: not that one`, hint: r.error, detail: '' }); return; }
-      setActive(a => a && { ...a, values: r as Values, preview: 'busy' }); return;
-    }
-    if (validInstance && !hit.instanceFace) {
-      setPick(null); setInstanceSel([hit.instance!]); setSelection(emptySel); setDirectSel([]);
-      if (hit.instanceCap) setToast({ title: 'Instance selected', hint: 'The section cap selects this instance. Use an original face for face operations.', detail: '' });
-      return; // A generated cap or unknown face never enters native mate-face picking.
-    }
-    if (assembly.pick(hit)) return;
-    setPick(hit.point);
-    if (hit.direct) {
-      const id = hit.direct;
-      setDirectSel(prev => additive ? (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]) : [id]);
-      setSelection(emptySel); setInstanceSel([]); return;
-    }
-    if (hit.instance) { setInstanceSel([hit.instance]); setSelection(emptySel); setDirectSel([]); return; }
-    if (!additive) { setDirectSel([]); setInstanceSel([]); }
-    if (measure) {
-      if (!hit.face && !hit.edge && !hit.vertex) return;
-      const p: MeasurePick = hit.vertex ? { body: hit.vertex.body, vertex: hit.vertex.at } : hit.edge ? { body: hit.edge.body, edge: hit.edge.edge } : { body: hit.face!.body, face: hit.face!.face };
-      setMeasure(m => !m || m.length >= 2 ? [p] : [...m, p]); return;
-    }
-    // A corner: picked on its own (Shift adds or takes back another).
-    if (hit.vertex) { const v = hit.vertex; setPick(null); setSelection(prev => { const list = prev.vertices ?? [], same = (a: typeof v) => a.body === v.body && a.at.every((x, k) => Math.abs(x - v.at[k]) < 1e-9); return { ...emptySel, vertices: additive ? (list.some(same) ? list.filter(a => !same(a)) : [...list, v]) : [v] }; }); return; }
-    setSelection(prev => {
-      if (!hit.face && !hit.edge) return emptySel;
-      // Bodies only: the body under the click (Shift adds or takes it back).
-      if (pickFilterRef.current === 'body') { const b = hit.face?.body ?? hit.edge!.body, list = selectedBodies(prev); return { faces: [], edges: [], bodies: additive ? (list.includes(b) ? list.filter(x => x !== b) : [...list, b]) : [b] }; }
-      if (additive) {
-        // Shift-click adds (or takes back) another of what is selected: edges to round or chamfer, faces to
-        // open in a shell; with bodies picked (or a mix), the clicked body (two for a Boolean).
-        const toggle = <T,>(list: T[], x: T, same: (a: T, b: T) => boolean) => list.some(y => same(x, y)) ? list.filter(y => !same(x, y)) : [...list, x];
-        const none = !prev.faces.length && !prev.edges.length && !prev.bodies.length;
-        if (hit.edge && !prev.faces.length && !prev.bodies.length) return { ...emptySel, edges: toggle(prev.edges, hit.edge, (a, b) => a.body === b.body && a.edge === b.edge) };
-        if (hit.face && !prev.edges.length && !prev.bodies.length && (none || prev.faces.length)) return { ...emptySel, faces: toggle(prev.faces, hit.face, (a, b) => a.body === b.body && a.face === b.face) };
-        const b = hit.face?.body ?? hit.edge!.body; const list = selectedBodies(prev);
-        return { faces: [], edges: [], bodies: list.includes(b) ? list.filter(x => x !== b) : [...list, b] };
-      }
-      return hit.edge ? { faces: [], edges: [hit.edge], bodies: [] } : { faces: [hit.face!], edges: [], bodies: [] };
-    });
-  }, [activeStore, measure, assembly, doc.instances]);
+  const viewBodiesRef = useRef<BodyResult[]>(null!);
+  const sectionBoxRef = useRef<{ min: Vec3; max: Vec3 }>(null!);
+  const { onPick } = useViewportPicking({ doc, activeStore, setActive, measure, assembly, sectionRef, sectionFacePickRef, viewBodiesRef,
+    sectionBoxRef, setSection, setSectionFacePick, setToast, activeRef, halvesShownRef, setPick, setInstanceSel, setSelection, setDirectSel, setMeasure, pickFilterRef });
   pickRef.current = onPick;
   // Finished sketches waiting for a feature, drawn and picked in the viewport and the History.
   const freeSketches = useMemo(() => unusedSketches(evaluated.nodes), [evaluated.nodes]);
@@ -1487,54 +1369,8 @@ export function App() {
     void lanes.run('proposal-diff', { revision: at, source: key }, () => engine.proposalDiff(compareBase.doc, doc, at, { revision: modelHash(doc), proposal: key })).then(reply => { if (!reply.stale) setCompareOverlay('error' in reply.result ? null : reply.result); });
     return () => lanes.cancel('proposal-diff');
   }, [compareBase, doc]);
-  /** An assumed (or ambiguous) requirement's value set by the user, and confirmed: stated from now on, with who and when. */
-  const setRequirement = (id: string, value: number) => {
-    if (!Number.isFinite(value)) return;
-    commit({ ...doc, requirements: doc.requirements!.map(q => q.id !== id ? q : { ...q, basis: 'stated' as const, confirmed: { by: 'user', at: new Date().toISOString() }, check: q.check.op === 'between' ? q.check : { ...q.check, value } }) }, false);
-  };
-  /** The user's answers to the agent's questions, or all its assumptions accepted (A6.2): written as the user's, and
-   * sent to the chat as their message. */
-  const answerQuestions = (answers: Record<string, string | number | null>) => {
-    const r = answerBatch(doc, answers, new Date().toISOString());
-    if ('error' in r) { setToast({ title: 'Answer not taken', hint: r.error, detail: '' }); return; }
-    if (!commit(applyBrief(r.doc, readBrief(r.doc.brief)), false)) return; setChat(true); setChatOutbox({ id: Date.now(), text: r.message });
-  };
-  const acceptAll = () => {
-    const r = acceptAssumptions(doc, new Date().toISOString()); if (!r.count) return;
-    if (!commit(applyBrief(r.doc, readBrief(r.doc.brief)), false)) return; setChat(true); setChatOutbox({ id: Date.now(), text: r.message });
-  };
-  /** The References card's actions (A6.3): through the same tool code the agent uses; a reference itself is the user's. */
-  const refTool = async (name: string, args: Record<string, unknown>) => {
-    const out = await runReferenceTool(doc, bodies, name, args, d => engine.part(d, revision.current++, 'read'));
-    if ('error' in out) { setToast({ title: 'Reference not changed', hint: out.error.replace(/^\[[A-Z_]+\] /, ''), detail: out.error }); return; }
-    if (out.changed) commit(out.doc, false);
-  };
-  /** A DXF drawing added to the part as a sketch draft (A6.4): its dimensions the user's to confirm. */
-  const addDrawingFile = async (file: File) => {
-    const out = runDraftTool(doc, 'import_drawing', { dxf: await file.text(), name: file.name.replace(/\.dxf$/i, '') });
-    if ('error' in out) { setToast({ title: 'Could not read this drawing', hint: out.error.replace(/^\[[A-Z_]+\] /, ''), detail: out.error }); return; }
-    if (!commit(out.doc)) return;
-    const c = out.content as { draft: string | null; dims?: { key: string }[]; unit: string; underlay?: Record<string, number>; left_out?: Record<string, number> };
-    // (O68: what came in as the underlay, to trace over — never geometry.)
-    const list = (r: Record<string, number>) => Object.entries(r).map(([t, n]) => `${n} ${t}`).join(', '), under = c.underlay ? ` Shown as an underlay: ${list(c.underlay)}.` : '';
-    setToast(c.draft ? { title: 'Drawing added as a draft', hint: `A sketch in ${c.unit}; ${c.dims!.length} dimensions to confirm in Drafts.${under}${c.left_out ? ` Left out: ${list(c.left_out)}.` : ''}`, detail: '' }
-      : { title: 'Drawing added as an underlay', hint: `No closed profile to make a sketch of: the drawing is shown to trace over, in ${c.unit}.${under}${c.left_out ? ` Left out: ${list(c.left_out)}.` : ''}`, detail: '' });
-  };
-  const addReferenceFile = async (file: File) => {
-    const name = file.name.replace(/\.[^.]+$/, '');
-    if (/\.(step|stp)$/i.test(file.name)) return refTool('add_reference', { name, step: await file.text() });
-    const m = meshInMM(readMeshFile(file.name, new Uint8Array(await file.arrayBuffer())), 'mm');
-    return refTool('add_reference', { name, mesh: { positions: m.positions, indices: m.indices } });
-  };
-  const placeRef = (id: string, at: Placement) => { const set = readReferences(doc.references); commit({ ...doc, references: { ...set, references: set.references.map(r => (r.id === id ? { ...r, at } : r)) } }, false); };
-  const removeRef = (id: string) => {
-    if (!/^ref\d+$/.test(id)) { void refTool('delete_reference_item', { id }); return; }
-    // (The user's: the reference, with the datums taken from it and the keep-outs around it.)
-    const set = readReferences(doc.references);
-    commit({ ...doc, references: { ...set, references: set.references.filter(r => r.id !== id), datums: set.datums.filter(d => d.of?.reference !== id), keepouts: set.keepouts.filter(k => k.around?.reference !== id) } }, false);
-  };
-  /** A brief field confirmed by the user as it is (A6.1): stated from now on; a stated process becomes the part's. */
-  const confirmBrief = (key: BriefKey) => { const b = readBrief(doc.brief); if (!b) return; const next = confirmField(b, key, new Date().toISOString()); if ('error' in next) return; commit(applyBrief(doc, next), false); };
+  const { setRequirement, answerQuestions, acceptAll, refTool, addDrawingFile, addReferenceFile, placeRef, removeRef, confirmBrief } =
+    useSpecificationActions({ doc, bodies, commit, engine, revision, setToast, setChat, setChatOutbox });
   // The references marked matched again (until confirmed), and the user's say on them and on the problems.
   const refMarks = useMemo(() => markedReferences(doc), [doc]);
   const referenceDimension = (where: string) => doc.drawing?.dimensions.find(d => where === `dimension ${d.id}`);
@@ -1682,48 +1518,10 @@ export function App() {
   const sectioned = !!(section && sectionBodies && !sketch && !previewBodies);
   // (G2: the viewer's clip plane while the section is open on WebGPU — on the bodies until their exact section is shown,
   // on the placed parts always; none in a sketch, where the section is not shown.)
-  // (G25b: on WebGPU the access map is the GPU's estimate, the CPU's when there is no device; the panels keep the CPU's numbers.)
-  const mapsShown = (mapKind === 'thickness' || mapKind === 'draft' || mapKind === 'access') && !rendering && !sketch && !previewBodies;
-  const computeDevice = useCallback(() => viewport.current?.computeDevice() ?? null, []);
-  const gpuAccess = useGpuAccessMaps(mapsShown && mapKind === 'access', shownBodies, computeDevice);
-  const cpuMaps = useMemo(() => mapsShown && !(mapKind === 'access' && gpuAccess.state !== 'cpu' && gpuAccess.state !== 'error') ? mapsOf(mapKind as MapKind, doc, shownBodies) : null, [mapsShown, mapKind, gpuAccess.state, shownBodies, doc]);
-  const scalarMaps = mapKind === 'access' && gpuAccess.state === 'ready' ? gpuAccess.maps : mapKind === 'access' && gpuAccess.state === 'pending' ? null : cpuMaps;
-  // (With the draft map, each body's isoclines n·d = 0 on its straddling faces, from the exact surface.)
-  const isoclines = useMemo(() => mapKind === 'draft' && scalarMaps && doc.mould?.pull ? shownBodies.flatMap(b => isoclinePolylines(doc, b, doc.mould!.pull!)) : null, [mapKind, scalarMaps, doc, shownBodies]);
-  // (The mould's view: asked again when the part, its pull or its sides change; none outside its two maps.)
-  const mouldWanted = (mapKind === 'parting' || mapKind === 'halves') && !rendering && !sketch && !previewBodies && !!doc.mould?.pull;
-  useEffect(() => {
-    if (!mouldWanted) { setMouldResult(null); return; }
-    setMouldResult('working');
-    // (R4b: on the O9 'mould' lane — a reply for a part, pull or map since changed comes back stale.)
-    const at = revision.current++;
-    void lanes.run('mould', { revision: at, source: mapKind }, () => engine.mould(doc, at, mapKind === 'halves')).then(reply => { if (!reply.stale) setMouldResult(reply.result); });
-    return () => lanes.cancel('mould');
-  }, [mouldWanted, mapKind, evaluated, doc.mould, engine]);
-  const mouldShown = useMemo(() => mouldResult && mouldResult !== 'working' && !('error' in mouldResult)
-    ? { pull: mouldResult.pull, loops: mouldResult.loops, plus: mapKind === 'halves' ? mouldResult.plus : [], minus: mapKind === 'halves' ? mouldResult.minus : [], spread: mouldSpread } : null, [mouldResult, mapKind, mouldSpread]);
-  halvesShownRef.current = !!mouldShown && (mouldShown.plus.length + mouldShown.minus.length) > 0;
-  const mapLegend = scalarMaps?.[0] && viewBackend === 'webgpu' ? scalarMaps[0] : null;
-  // The part's and its placed parts' box: the section's handles and planes in it (G19), its hatch's spacing (G19.3).
-  const sectionBox = useMemo(() => {
-    const all = [...bodies, ...instancesPlaced.flatMap(i => i.bodies)];
-    if (!all.length) return { min: [0, 0, 0] as Vec3, max: [0, 0, 0] as Vec3 };
-    return { min: [0, 1, 2].map(i => Math.min(...all.map(b => b.mesh.bounds.min[i]))) as Vec3, max: [0, 1, 2].map(i => Math.max(...all.map(b => b.mesh.bounds.max[i]))) as Vec3 };
-  }, [bodies, instancesPlaced]);
-  // The hatch on the cut (G19.3; on by default): on the GPU in the caps' shader while the planes move; as lines on
-  // WebGL2's clipped caps and on the exact section's cut faces (either renderer).
-  const [sectionHatchOn, setSectionHatchOn] = useState(true);
-  const hatchStep = useMemo(() => hatchSpacing(sectionBox), [sectionBox]);
-  const sectionClip = useMemo(() => section && !sketch && gpuSection ? { planes: sectionPlanes(section), bodies: shownBodies === sectionBodies && !sectionExactShown, hatch: sectionHatchOn ? hatchStep : null, cutout: section.mode === 'cutout' } : null, [section, sketch, gpuSection, shownBodies, sectionBodies, sectionExactShown, sectionHatchOn, hatchStep]);
-  // (R1c (3c): a dragged plane's clip and handles, made as the App's are — SceneViewport draws them in each frame of the
-  // drag on WebGPU, the App not rendering. On WebGL2 the App does, so there is none.)
-  const sectionLiveView = gpuSection && !sketch ? {
-    store: sectionLive,
-    clip: (s: Section) => ({ planes: sectionPlanes(s), bodies: shownBodies === sectionBodies && !sectionExactShown, hatch: sectionHatchOn ? hatchStep : null, cutout: s.mode === 'cutout' }),
-    handles: (s: Section) => !active && bodies.length ? sectionHandles(s, sectionBox, dragSection) : [],
-  } : null;
-  const sectionHatchLines = useMemo(() => section && !sketch && sectionHatchOn && shownBodies === sectionBodies && (!gpuSection || sectionExactShown) ? sectionHatch(shownBodies, sectionPlanes(section), hatchStep) : null,
-    [section, sketch, sectionHatchOn, shownBodies, sectionBodies, gpuSection, sectionExactShown, hatchStep]);
+  const { scalarMaps, isoclines, mouldShown, mapLegend } = useAnalysisMaps({ doc, evaluated, shownBodies, mapKind, rendering, sketch,
+    previewBodies, viewport, engine, revision, lanes, mouldResult, setMouldResult, mouldSpread, halvesShownRef, viewBackend });
+  const { sectionBox, sectionHatchOn, setSectionHatchOn, hatchStep, sectionClip, sectionLiveView, sectionHatchLines } = useSectionDisplay({
+    bodies, instancesPlaced, section, sketch, gpuSection, shownBodies, sectionBodies, sectionExactShown, sectionLive, active, dragSection });
   useEffect(() => {
     if (!import.meta.env.DEV) return;
     const w = window as unknown as { __studioSection: () => unknown; __studioSectionDebug: (d: { hold: boolean; cpu: boolean }) => void };
@@ -1755,14 +1553,14 @@ export function App() {
   // (The locked references and the keep-outs, A6.3: drawn ghosted after the part's bodies, never picked.)
   const refShown = useMemo(() => { const set = readReferences(doc.references); return [...set.references.flatMap(r => placeReference(refLocal.get(r.id) ?? [], r.at)), ...keepoutBodies]; }, [doc.references, refLocal, keepoutBodies]);
   const viewBodies = useMemo(() => (refShown.length ? [...shownBodies, ...refShown] : shownBodies), [shownBodies, refShown]);
-  const viewBodiesRef = useRef(viewBodies); viewBodiesRef.current = viewBodies;
+  viewBodiesRef.current = viewBodies;
   const sketchGhost = useMemo(() => new Set([...(sketch ? shownBodies.map((_, i) => i) : []), ...refShown.map((_, i) => shownBodies.length + i)]), [sketch, shownBodies, refShown]);
   const commandGizmos = useCommandGizmos({ model: { doc, evaluated, bodies, selection, marker, editNode }, command: { active, ctx, setActive, handleDrag, previewFor },
     context: { sketch, rendering, drawing, measure, assemblyDraft: assembly.draft, instanceCount: instanceSel.length, snapStep }, drag: { bodyDrag, setBodyDrag } });
   const { gizmo, handles, cmdBody } = commandGizmos;
   useEffect(() => commandGizmos.settleDrag(), [previewBodies, bodyDrag, active]);
   useEffect(() => commandGizmos.resetDrag(), [active?.cmd.id]);
-  const sectionBoxRef = useRef(sectionBox); sectionBoxRef.current = sectionBox;
+  sectionBoxRef.current = sectionBox;
   // (Where the camera is: a cut-out's default corner faces it, G20.)
   const cameraEye = (): Vec3 | null => { const c = viewport.current?.getCamera(); if (!c) return null; const cp = Math.cos(c.pitch); return [c.target[0] + c.distance * cp * Math.cos(c.yaw), c.target[1] + c.distance * cp * Math.sin(c.yaw), c.target[2] + c.distance * Math.sin(c.pitch)]; };
   const sectionDrag: FeatureHandle[] = section && !active && !sketch && bodies.length ? sectionHandles(section, sectionBox, dragSection) : [];
@@ -1861,75 +1659,16 @@ export function App() {
   useEffect(() => setHistoryNatural(historyNaturalNow), [historyNaturalNow]);
   const selBodies = selectedBodies(selection).map(i => bodies[i]).filter(Boolean);
 
-  // Match the actual viewport props. Unsupported contexts keep the requested session mode,
-  // show the safe default, and restore the request when ordinary modelling is available.
-  // G22 consumes the actual Model API in its own worker; only the current evaluated pose can reach the Canvas.
-  const clearanceDoc = useMemo(() => prefixDoc(doc, marker ?? doc.nodes.length), [doc, marker]);
-  const clearanceMotions = useMemo(() => {
-    const motions = new Map(instancePoseMap);
-    if (instDrag) { const drag = previewMatrix(instDrag.drag), pose = motions.get(instDrag.id); motions.set(instDrag.id, pose ? multiply(drag, pose) : drag); }
-    bodies.forEach((body, index) => { const matrix = dragTransforms?.get(index), offset = animatedOffsets?.get(shownBodies.findIndex(b => b.key === body.key)); if (matrix) motions.set(body.key, matrix); else if (offset) motions.set(body.key, poseMatrix(undefined, offset)); });
-    return [...motions];
-  }, [instancePoseMap, instDrag, bodies, dragTransforms, animatedOffsets, shownBodies]);
-  // (O10: the root's shown bodies and every placed copy's, by the one key every producer gives a body — the worker matches them exactly.)
-  const clearanceVisibleKeys = useMemo(() => [...bodies.filter(b => !lookOf(doc, b).hidden).map(b => b.key), ...instancesPlaced.flatMap(i => i.bodies.map(b => `${i.id}/${b.key}`))], [bodies, doc, instancesPlaced]);
-  const clearanceVisibleInstances = useMemo(() => instancesPlaced.map(i => i.id), [instancesPlaced]);
-  const clearanceLabels = useMemo(() => new Map([...bodies.map(b => [b.key, bodyName(doc, b)] as const), ...(doc.instances ?? []).map(i => [i.id + '/', i.name ?? i.id] as const)]), [bodies, doc]);
-  const clearanceReady = (doc.instances ?? []).filter(i => !i.hidden).every(i => instanceEvaluationCurrent(instanceBodies.get(i.id), i, instanceSources.get(i.id)));
-  const clearanceReason = rendering || drawing ? 'Assembly clearance is available in Model view.'
-    : sketch || previewBodies || active || ghost || assembly.draft || cageEd.overlay || skel.tool ? 'Pending · finish the current edit to classify its geometry.'
-    : viewAnalysis || scalarMaps?.length || mouldShown || directShown.length ? 'Assembly clearance requires the ordinary solid view.'
-    : !fresh || !clearanceReady ? 'Pending · waiting for the current source geometry.' : undefined;
-  const clearanceResult = useClearanceAnalysis(clearanceEnabled && !clearanceReason, clearanceDoc, clearanceNear, clearanceMotions, clearanceVisibleKeys, clearanceVisibleInstances);
-  const clearanceClip = useMemo(() => section && !sketch ? { planes: sectionPlanes(section), cutout: section.mode === 'cutout' } : undefined, [section, sketch]);
-  const clearanceDisplay = useMemo(() => {
-    if (!clearanceResult) return null;
-    const ids = !instancePreview && isolatedInstances?.length ? isolatedInstances : null;
-    const overlays = ids ? clearanceResult.overlays.map(o => ids.some(id => o.bodyKey.startsWith(id + '/')) ? o : { ...o, opacity: o.opacity * 0.15 }) : clearanceResult.overlays;
-    return { ...clearanceResult, overlays, clip: clearanceClip };
-  }, [clearanceResult, clearanceClip, isolatedInstances, instancePreview]);
-  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioClearance: () => unknown }).__studioClearance = () => clearanceDisplay; }, [clearanceDisplay]);
-
-  const printMeshes = useMemo(() => printSourceMeshes(doc, bodies), [bodies, doc.bodies, doc.nodes]);
-  const printInputProblem = useMemo(() => firstProblem(checkDocumentPrintPreview(doc)), [doc]);
-  const printOptions = useMemo<PrintOptions>(() => printInputProblem ? { layer: 0, supports: true, printed: true } : printOptionsOf(doc, printing?.thresholds.maxOverhangDeg.value), [printInputProblem, doc.printPreview, doc.print, printing]);
-  const printReason = printInputProblem ?? (rendering || drawing ? 'Print layers are available in Model view.'
-    : doc.instances?.some(i => !i.hidden) ? 'Print layers currently support root part solids. Placed assemblies are not supported.'
-    : refShown.length ? 'Hide reference parts and keep-outs to preview print layers of the root part.'
-    : sketch || active || previewBodies || ghost || assembly.draft || cageEd.overlay || skel.tool || bodyDrag ? 'Finish the current edit to preview print layers.'
-    : section ? 'Close Section view to preview print layers. Its settings are preserved.'
-    : viewAnalysis || scalarMaps?.length || mouldShown || directShown.length ? 'Close the current analysis or direct-geometry display to preview print layers.'
-    : !fresh ? 'Pending · waiting for current geometry.'
-    : !printMeshes.some(m => m.indices.length) ? 'No visible solid mesh to preview.' : undefined);
-  const printState = usePrintLayers(printEnabled && !printReason, printMeshes, printOptions);
-  const printDisplay = printEnabled && !printReason ? printState.display : null;
-  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioPrint: () => unknown }).__studioPrint = () => ({ reason: printReason, stage: printState.stage, display: printDisplay }); }, [printReason, printState.stage, printDisplay]);
-  // (G23 CNC: the root part's program from the document's machining stock, one setup at a time; the other previews closed.)
-  const camReason = rendering || drawing ? 'The CNC preview is available in Model view.'
-    : doc.instances?.some(i => !i.hidden) ? 'The CNC preview supports the root part. Placed assemblies are not supported.'
-    : refShown.length ? 'Hide reference parts and keep-outs to preview CNC removal of the root part.'
-    : sketch || active || previewBodies || ghost || assembly.draft || cageEd.overlay || skel.tool || bodyDrag ? 'Finish the current edit to preview CNC removal.'
-    : section ? 'Close Section view to preview CNC removal.'
-    : viewAnalysis || scalarMaps?.length || mouldShown || directShown.length ? 'Close the current analysis or direct-geometry display to preview CNC removal.'
-    : !fresh ? 'Pending · waiting for current geometry.'
-    : !bodies.some(b => b.mesh.indices.length) ? 'No solid to preview.' : undefined;
-  const camState = useCamPreview(camEnabled && !camReason, doc, bodies, camOptions);
-  const camDisplay = camEnabled && !camReason ? camState.display : null;
-  const patchCam = useCallback((patch: Partial<CamOptions>) => setCamOptions(o => ({ ...o, ...patch })), []);
-  // (G24: the drawing's own sheet, built as the Drawing workspace builds it, its annotations lifted onto the model.)
-  const pmiReason = rendering || drawing ? '3D annotations are shown in Model view (the Drawing workspace shows the sheet).'
-    : sketch || active || cageEd.overlay || skel.tool ? 'Finish the current edit to show the 3D annotations.'
-    : printEnabled || camEnabled ? 'Close the print or CNC preview to show the 3D annotations.' : undefined;
-  const pmiDoc = useMemo(() => ({ ...evaluated, instances: doc.instances }), [evaluated, doc.instances]);
-  const pmiSheet = useDrawingSheet(pmiEnabled && !pmiReason, { engine, doc: pmiDoc, bodies, settings: doc.drawing ?? defaultDrawing(), fileName, annotations: true });
-  const pmiItems = pmiEnabled && !pmiReason ? pmiSheet.annotations?.items ?? null : null;
-  const pickAnnotation = useCallback((id: string) => {
-    const a = pmiItems?.find(x => x.id === id); if (!a) return;
-    setPmiSelected(id); const sel = pmiSelection(a, bodies);
-    setInstanceSel([]); setDirectSel([]); setSelection({ faces: sel.faces, edges: sel.edges, bodies: [] });
-  }, [pmiItems, bodies]);
-  useEffect(() => { if (!pmiEnabled) setPmiSelected(null); }, [pmiEnabled]);
-  useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioPmi: () => unknown }).__studioPmi = () => ({ reason: pmiReason, busy: pmiSheet.busy, error: pmiSheet.error, items: pmiItems?.map(a => ({ id: a.id, kind: a.kind, text: a.text, anchor: a.anchor, targets: a.targets })) ?? null, left: pmiSheet.annotations?.left ?? null, selected: pmiSelected }); }, [pmiReason, pmiSheet.busy, pmiSheet.error, pmiItems, pmiSheet.annotations, pmiSelected]);
+  const { clearanceReason, clearanceDisplay, clearanceLabels } = useClearancePreview({
+    model: { doc, bodies, marker, fresh, instanceBodies, instanceSources }, editing: { rendering, drawing, sketch, active, previewBodies, ghost, assembly, cageEd, skel },
+    display: { viewAnalysis, scalarMaps, mouldShown, directShown, section, instancePreview },
+    pose: { instancePoseMap, instDrag, dragTransforms, animatedOffsets, shownBodies, instancesPlaced }, settings: { clearanceEnabled, clearanceNear, isolatedInstances } });
+  const { printOptions, printReason, printState, printDisplay, camReason, camState, camDisplay, patchCam } = useManufacturingPreviews({
+    model: { doc, bodies, fresh, refShown }, editing: { rendering, drawing, sketch, active, previewBodies, ghost, assembly, cageEd, skel, bodyDrag },
+    display: { viewAnalysis, scalarMaps, mouldShown, directShown, section }, print: { printEnabled, printing }, cam: { camEnabled, camOptions, setCamOptions } });
+  const { pmiReason, pmiSheet, pmiItems, pickAnnotation } = usePmiPreview({ model: { doc, evaluated, bodies, engine, fileName },
+    editing: { rendering, drawing, sketch, active, cageEd, skel }, settings: { printEnabled, camEnabled, pmiEnabled, pmiSelected, setPmiSelected },
+    selection: { setInstanceSel, setDirectSel, setSelection } });
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioCam: () => unknown }).__studioCam = () => ({ reason: camReason, stage: camState.stage, error: camState.error, display: camDisplay }); }, [camReason, camState.stage, camState.error, camDisplay]);
 
   const displayScopeReason = instancePreview ? 'CAD display modes are not available while an instance is dragged.'
@@ -2185,7 +1924,6 @@ export function App() {
           const title = hit.edge ? 'EDGE' : hit.face ? 'FACE' : selectedBodies(next).length ? `${selectedBodies(next).length} BOD${selectedBodies(next).length > 1 ? 'IES' : 'Y'}` : 'VIEW';
           setMenu({ at, selection: next, title });
         }} />
-
 
       <TooltipLayer />
       <Profiler id="toolbar" onRender={onBlockRender}><nav className="card toolbar" aria-label="Tools" hidden={rendering || drawing}>

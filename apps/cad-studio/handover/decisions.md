@@ -16343,3 +16343,28 @@ No other-format/stage A05, A06, native route geometry, STL pending-generation ca
 package suites, remote CI or performance acceptance. No schema/dependency/WASM/API changes.
 Evidence: notes/app-decomposition-2026-10-29/qualification.json. Normal feature push authorized;
 no PR/release. Resume existing A05/A06 priority, then07→08→09; incoming reports are roadmap intake.
+
+
+## D328 — Separate remaining App domain controllers (2026-10-29)
+
+The owner requests another App refactor. Reduce App from 2,308 to 2,046 lines and from 214,011 to
+188,513 bytes. Seven modules group specification/reference actions, viewport picking, section state,
+section evaluation, section display, analysis maps and workspace previews. The preview module exposes
+three separate domain hooks for clearance, manufacturing previews and PMI. Central document adoption,
+evaluation, Open/Save/work ownership, Undo/Redo and Stop remain in App.
+
+Sol Medium implements; Sol High reviews baseline 30fa825a3 against the final source. Preserve effect
+order, dependency lists, cleanup, memo conditions, current refs and render-captured async inputs. Fix
+intermediate eager-ref access, wrong tuple/nullable input types and unused destructure before final
+qualification. No schema, dependency, public package API or runtime-value changes.
+
+Final build/types and changed-production lint pass. Studio suite: 429 PASS, 0 FAIL, 0 SKIP. Actual
+Chrome/WebGPU selected 11 unique cases plus starter pass across two source-identical runs. First run
+11 PASS / 1 FAIL includes starter; old A6.4 skipped the existing STL dialog confirmation. Correct only
+the driver and rerun that case: 2 PASS / 0 FAIL includes starter. Original raw timeout remains. Later
+first-run captures retain that dialog, so domain assertion PASS is not clean whole-screen acceptance.
+Preserve the root post-run wrong-directory receipt error; correct-root checks confirm all eight frozen
+production files unchanged. No whole other-package/browser suites, remote CI or performance claim.
+Prior D321 Render-history gap and remaining A05/A06 remain open. Evidence:
+notes/app-decomposition-second-2026-10-29/qualification.json. Normal feature push is authorized; no PR
+or release. Incoming DA-1a results attach to the existing drawing roadmap without changing priority.
