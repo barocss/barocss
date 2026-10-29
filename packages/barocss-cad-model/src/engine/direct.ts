@@ -3,7 +3,7 @@
 // sources and objects; an operation that makes new objects hides the ones it was made from (so they
 // can be shown again), one that refines an object's own source (poles, knots, degree, interval) moves the
 // object to the refined source.
-import { approximateCurvePlain, buildAlignedRationalRuledSurface, buildBezierCoonsSurface, buildMultiSectionLoftSurface, buildTranslationalSweepSurface, type CadAffineMatrix3x4, compileCadModel, type Curve, curveDomain, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide, elevateSourceCurveDegree, elevateSourceSurfaceAxisDegree, evaluateCurve, evaluateCurveCurvature, evaluateSurface, evaluateSurfaceCurvature, exportIGES, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, IGESImportError, importIGES, insertSourceCurveKnot, insertSourceSurfaceKnot, interpolateSurfacePlain, intersectPatches, joinCurves, type Model, removeCurveKnotPlain, reverseCurveWide, reverseSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter, type Surface, surfaceDomain, surfaceEvaluator, SurfaceIntersectionError, transformNativeGeometryAffine } from '@barocss/cad';
+import { approximateCurvePlain, buildAlignedRationalRuledSurface, buildBezierCoonsSurface, buildMultiSectionLoftSurface, buildTranslationalSweepSurface, type CadAffineMatrix3x4, compileCadModel, type Curve, curveDomain, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide, elevateSourceCurveDegree, elevateSourceSurfaceAxisDegree, evaluateCurve, evaluateCurveCurvature, evaluateSurface, evaluateSurfaceCurvature, exportIGES, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, IGESImportError, importIGES, insertSourceCurveKnot, insertSourceSurfaceKnot, interpolateSurfacePlain, intersectPatches, joinCurves, type Model, removeCurveKnotPlain, reverseCurveWide, reverseSurfaceAxis, reverseTrimmedSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter, type Surface, surfaceDomain, surfaceEvaluator, SurfaceIntersectionError, transformNativeGeometryAffine, TrimmedSurfaceAxisReversalError } from '@barocss/cad';
 import { curvesSource, surfacesSource } from './curveSource';
 import { keptAt, projectLoop, trimmedMesh, type TrimLoop } from './trim';
 import { nextFreeId } from '../util/ids';
@@ -95,12 +95,23 @@ function wholeSurfaceOf(d: DirectGeometry, id: string, operation: string): Surfa
   return picked.surface;
 }
 
+/** Copy accepted trim metadata before the new direct object is published. */
+function copyReversedTrimLoops(loops: readonly TrimLoop[]): TrimLoop[] {
+  const owned: TrimLoop[] = [];
+  for (const loop of loops) {
+    const uv: [number, number][] = [];
+    for (const point of loop.uv) uv.push([point[0], point[1]]);
+    owned.push({ keep: loop.keep, uv });
+  }
+  return owned;
+}
+
 /** Add a result source with new objects; hide the objects they came from. */
-function add(d: DirectGeometry, from: string[], text: string, made: { geometry: string; name: string }[]): DirectGeometry {
+function add(d: DirectGeometry, from: string[], text: string, made: { geometry: string; name: string; trims?: TrimLoop[] }[]): DirectGeometry {
   const used = usedIds(d), key = fresh(new Set(Object.keys(d.sources)), 'src');
   return {
     sources: { ...d.sources, [key]: text },
-    objects: [...d.objects.map(o => from.includes(o.id) ? { ...o, hidden: true } : o), ...made.map(m => ({ id: fresh(used, 'obj'), name: m.name, source: key, geometry: m.geometry }))],
+    objects: [...d.objects.map(o => from.includes(o.id) ? { ...o, hidden: true } : o), ...made.map(m => ({ id: fresh(used, 'obj'), name: m.name, source: key, geometry: m.geometry, ...(m.trims === undefined ? {} : { trims: m.trims }) }))],
   };
 }
 /** Move an object to a refined source of its own (same geometry id). */
@@ -159,7 +170,24 @@ export const directOps = {
     return add(d, [], r.source, [{ geometry: r.curve.id, name: `${nameOf(d, id)} · ${axis} = ${p}` }]);
   },
   reverseSurface(d: DirectGeometry, id: string, axis: 'u' | 'v') {
-    const s = wholeSurfaceOf(d, id, 'Reverse surface'), used = usedIds(d), r = reverseSurfaceAxis(s, { surfaceId: fresh(used, 'reversed'), axis, resultIdPrefix: freshPrefix(used, 'sr') });
+    const picked = selectedSurface(d, id), trims = picked.object.trims;
+    if (trims !== undefined && !Array.isArray(trims)) requireWholeSurface(picked.object, 'Reverse surface', 'DIRECT_VALUE');
+    const used = usedIds(d), options = { surfaceId: fresh(used, 'reversed'), axis, resultIdPrefix: freshPrefix(used, 'sr') };
+    if (trims && trims.length > 0) {
+      let matches = 0;
+      for (const candidate of d.objects) if (candidate.id === id) matches++;
+      if (matches !== 1) throw refusal('DIRECT_PICK', 'The selected surface object ID is ambiguous.');
+      let r;
+      try { r = reverseTrimmedSurfaceAxis(picked.surface, trims, options); }
+      catch (e) {
+        if (e instanceof TrimmedSurfaceAxisReversalError) throw refusal('DIRECT_VALUE', e.message);
+        throw e;
+      }
+      // Copy the sidecar before publishing the result; the hidden source retains its original trims.
+      const owned = copyReversedTrimLoops(r.trimLoops);
+      return add(d, [id], r.source, [{ geometry: r.surface.id, name: `${nameOf(d, id)} · ${axis} reversed`, trims: owned }]);
+    }
+    const r = reverseSurfaceAxis(picked.surface, options);
     return add(d, [id], r.source, [{ geometry: r.surface.id, name: `${nameOf(d, id)} · ${axis} reversed` }]);
   },
   insertSurfaceKnot(d: DirectGeometry, id: string, axis: 'u' | 'v', knot: number) {

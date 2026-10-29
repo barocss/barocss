@@ -106933,6 +106933,56 @@
     {
       "package": "@barocss/cad",
       "subpath": ".",
+      "exportName": "OwnedSurfaceAxisTrimLoop",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/nurbs/surfaces/trimmed-surface-axis-reversal.ts",
+            "name": "OwnedSurfaceAxisTrimLoop",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "OwnedSurfaceAxisTrimLoop",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "keep",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"inside\" | \"outside\""
+              },
+              {
+                "name": "uv",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "[number, number][]"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": ".",
       "exportName": "PairedRoofBodySplitDiagnosticCode",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -125240,6 +125290,129 @@
                 "optional": false,
                 "readonly": false,
                 "type": "Surface"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": ".",
+      "exportName": "ReversedTrimmedSurfaceAxisResult",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/nurbs/surfaces/trimmed-surface-axis-reversal.ts",
+            "name": "ReversedTrimmedSurfaceAxisResult",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "ReversedTrimmedSurfaceAxisResult",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration",
+                "heritage": [
+                  " extends ReversedSurfaceAxisResult"
+                ]
+              }
+            ],
+            "members": [
+              {
+                "name": "model",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Model"
+              },
+              {
+                "name": "options",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "SurfaceAxisReversalOptions"
+              },
+              {
+                "name": "original",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Surface"
+              },
+              {
+                "name": "originalModel",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Model"
+              },
+              {
+                "name": "originalSource",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "provenance",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "SurfaceAxisReversalProvenance"
+              },
+              {
+                "name": "report",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "ReversedSurfaceAxisReport"
+              },
+              {
+                "name": "source",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "sourceVersion",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "0"
+              },
+              {
+                "name": "surface",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Surface"
+              },
+              {
+                "name": "trimLoops",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "OwnedSurfaceAxisTrimLoop[]"
+              },
+              {
+                "name": "trimTransport",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "TrimmedSurfaceAxisTransportReport"
               }
             ],
             "indexSignatures": []
@@ -146115,6 +146288,56 @@
     {
       "package": "@barocss/cad",
       "subpath": ".",
+      "exportName": "SurfaceAxisTrimLoop",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/nurbs/surfaces/trimmed-surface-axis-reversal.ts",
+            "name": "SurfaceAxisTrimLoop",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "SurfaceAxisTrimLoop",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "keep",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"inside\" | \"outside\""
+              },
+              {
+                "name": "uv",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly (readonly [number, number])[]"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": ".",
       "exportName": "SurfaceBezierAxisD1Evaluation",
       "space": "type",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -158389,6 +158612,275 @@
                 "optional": true,
                 "readonly": true,
                 "type": "number | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": ".",
+      "exportName": "TrimmedSurfaceAxisReversalDiagnosticCode",
+      "space": "type+value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/nurbs/surfaces/trimmed-surface-axis-reversal.ts",
+            "name": "TrimmedSurfaceAxisReversalDiagnosticCode",
+            "kind": "const"
+          },
+          "shape": {
+            "type": "\"INPUT\" | \"TOPOLOGY\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"BINDING\" | \"DOMAIN\"",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              },
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "typeof TrimmedSurfaceAxisReversalDiagnosticCode[keyof typeof TrimmedSurfaceAxisReversalDiagnosticCode]"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": ".",
+      "exportName": "TrimmedSurfaceAxisReversalError",
+      "space": "type+value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/nurbs/surfaces/trimmed-surface-axis-reversal.ts",
+            "name": "TrimmedSurfaceAxisReversalError",
+            "kind": "class"
+          },
+          "shape": {
+            "type": "TrimmedSurfaceAxisReversalError",
+            "declarationSignatures": [
+              {
+                "kind": "ClassDeclaration",
+                "heritage": [
+                  " extends KernelError"
+                ]
+              }
+            ],
+            "members": [
+              {
+                "name": "cause",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "unknown",
+                "notProven": "any/unknown property; JSON and callability are not certified"
+              },
+              {
+                "name": "code",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "TrimmedSurfaceAxisReversalDiagnosticCode"
+              },
+              {
+                "name": "details",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "Record<string, unknown> | undefined"
+              },
+              {
+                "name": "message",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "stack",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "where",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "string | undefined"
+              }
+            ],
+            "indexSignatures": [],
+            "bases": [
+              "KernelError"
+            ],
+            "constructSignatures": [
+              "new (code: TrimmedSurfaceAxisReversalDiagnosticCode, detail: string, cause?: unknown) => TrimmedSurfaceAxisReversalError"
+            ],
+            "staticMembers": [],
+            "abstract": false,
+            "role": "resource-or-facade-NOT_PROVEN"
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": ".",
+      "exportName": "TrimmedSurfaceAxisTransportReport",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/nurbs/surfaces/trimmed-surface-axis-reversal.ts",
+            "name": "TrimmedSurfaceAxisTransportReport",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "TrimmedSurfaceAxisTransportReport",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "axis",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"u\" | \"v\""
+              },
+              {
+                "name": "bindingCount",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "chartPolicy",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"exact-or-one-rounding-certified-v1\""
+              },
+              {
+                "name": "family",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"affine-plane-single-stored-trim-loop-axis-reversal\""
+              },
+              {
+                "name": "limits",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ maximumLoops: 1; maximumPoints: 160; maximumBindings: 160; maximumOrientationTests: 102400; maximumEdgePairTests: 25120; maximumVertexPairTests: 25440; rationalOperationsPerContext: 200000; rationalIntegerBits: 8192; }"
+              },
+              {
+                "name": "maximumChartRounding",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "maximumPointDifference",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "maximumWorldRoundingBound",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "originalWinding",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"ccw\" | \"cw\""
+              },
+              {
+                "name": "pointCount",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "quality",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ linearComparison: 1e-7; uvComparison: 1e-7; segmentBound: \"affine-endpoint-displacement\"; keepPreserved: true; pointOrderPreserved: true; nonselectedCoordinateBitsPreserved: true; doubleReversalBitsCertified: false; solidMass: \"not-applicable\"; }"
+              },
+              {
+                "name": "reversedWinding",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"ccw\" | \"cw\""
+              },
+              {
+                "name": "roundedPointCount",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "work",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ orientationTests: number; edgePairTests: number; vertexPairTests: number; inputTopology: { operations: number; gcdSteps: number; floatSearchSteps: number; floatConversions: number; maximumObservedBits: number; }; outputTopology: { operations: number; gcdSteps: number; floatSearchSteps: number; floatConversions: number; maximumObservedBits: number; }; transport: { operations: number; gcdSteps: number; floatSearchSteps: number; floatConversions: number; maximumObservedBits: number; }; }"
               }
             ],
             "indexSignatures": []
@@ -207371,6 +207863,42 @@
             ],
             "callSignatures": [
               "(surfaceInput: Surface, inputOptions: SurfaceAxisReversalOptions) => ReversedSurfaceAxisResult"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": ".",
+      "exportName": "reverseTrimmedSurfaceAxis",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/nurbs/surfaces/trimmed-surface-axis-reversal.ts",
+            "name": "reverseTrimmedSurfaceAxis",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(surfaceInput: Surface, trimLoopsInput: readonly SurfaceAxisTrimLoop[], inputOptions: SurfaceAxisReversalOptions) => ReversedTrimmedSurfaceAxisResult",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(surfaceInput: Surface, trimLoopsInput: readonly SurfaceAxisTrimLoop[], inputOptions: SurfaceAxisReversalOptions) => ReversedTrimmedSurfaceAxisResult"
             ]
           }
         }

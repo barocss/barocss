@@ -115,9 +115,17 @@ The copied inline region and reference survive native Save/Open and nested part 
 
 ### Trimmed direct surfaces
 
-`directOps.reverseSurface`, `splitSurface`, `surfaceRegion` and `extendSurface` refuse
-surfaces with trims before making a new result. `surfaceIntersection` refuses either
-trimmed operand. These operations do not yet map or clip trim boundaries.
+`directOps.reverseSurface` preserves one simple stored trim loop of 3..160 UV points on
+an affine planar degree-1, 2-by-2 support with equal positive weights. Both axes and
+nonunit domains are supported. It keeps the loop order and keep flag, maps the UV
+coordinates, and checks topology and world binding under the existing 1e-7 mm limit.
+The new object owns its trim arrays. The hidden original retains its source, name,
+ID and trims. Unsupported trimmed inputs refuse with `DIRECT_VALUE` before publication.
+This operation preserves the stored polyline, not an ideal trimming curve or a solid.
+
+`splitSurface`, `surfaceRegion` and `extendSurface` still refuse surfaces with trims.
+`surfaceIntersection` refuses either trimmed operand. These operations do not yet map
+or clip trim boundaries.
 
 `directIGES` refuses the whole export when any visible surface has trims. Hidden trimmed
 objects do not block export of the other visible curves and surfaces. Explicit `Untrim`
