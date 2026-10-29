@@ -1,0 +1,24 @@
+{
+  "head": "91edfdfe72e866d1a3b4eb7b0595013a990ead90",
+  "UTC": "2026-10-29T18:23:42.212031+00:00",
+  "scope": "D341 Kernel owned6 final freeze; other workers preserve independent files; no fullsuite/browser/commit/push by this owner",
+  "owned": {
+    "packages/barocss-cad/src/index.ts": "85880c6f98c4193b9abc36209699f3210cdcea84e61d9cba94f91fab2b3cd976",
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-region.ts": "894de212eca8ff92d893d03ad426fc68aca4194878980adb22c54909f70dfb5f",
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-parameter-split.ts": "63a002c2c6287b2509e71988c853ac33b64837c63b3e733ed582093b705500e8",
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-split-topology.ts": "705d5cc7aa012a26a40dc5d920f104e9c5dd6011b9679b88e3b2418044c5085c",
+    "packages/barocss-cad/test/trimmed-surface-region.test.mjs": "fd3d06ee8cc374ea48aaf92a2b6d2f54342e41d741551cd1ffe31402d9c5b471",
+    "packages/barocss-cad/test/helpers/trim-region-oracle.mjs": "11943438f7e23d99ef2755864f9673787f8364f815cd9c9ad66935de4765cc56"
+  },
+  "unchangedParentBytesAgainstHEAD": {
+    "packages/barocss-cad/src/nurbs/surfaces/surface-region.ts": true,
+    "packages/barocss-cad/src/nurbs/surfaces/surface-parameter-split.ts": true,
+    "packages/barocss-cad/src/nurbs/surfaces/surface-knot-insertion.ts": true,
+    "packages/barocss-cad/src/nurbs/curves/curve-knot-insertion.ts": true,
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-split-binding.ts": true,
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-split-common.ts": true,
+    "packages/barocss-cad/src/brep/planar-arrangement.ts": true,
+    "packages/barocss-cad/src/numeric-policy.ts": true,
+    "packages/barocss-cad/src/core/math.ts": true
+  }
+}

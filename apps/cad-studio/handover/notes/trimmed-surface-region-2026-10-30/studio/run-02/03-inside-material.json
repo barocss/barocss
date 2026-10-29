@@ -1,0 +1,446 @@
+{
+  "label": "03-inside",
+  "crop": {
+    "u": [
+      -0.8,
+      2.8
+    ],
+    "v": [
+      3.7,
+      5
+    ]
+  },
+  "count": 2,
+  "verified": {
+    "status": "PASS",
+    "expectedExactRectangleComponents": [
+      {
+        "areaWorld": {
+          "numerator": "1318356624237358843550424325161175",
+          "denominator": "40564819207303340847894502572032",
+          "value": 32.50000000000001
+        },
+        "centroidWorld": [
+          {
+            "numerator": "105447343133424670380149938431242580387565345856975",
+            "denominator": "5699856385590522531006995374644146357430374105088",
+            "value": 18.5
+          },
+          {
+            "numerator": "957397752267158137212167378136850214429016247463",
+            "denominator": "89060256024851914546984302728814786834849595392",
+            "value": 10.75
+          },
+          {
+            "numerator": "3",
+            "denominator": "1",
+            "value": 3
+          }
+        ]
+      },
+      {
+        "areaWorld": {
+          "numerator": "82397289014834891394037338603475",
+          "denominator": "2535301200456458802993406410752",
+          "value": 32.49999999999999
+        },
+        "centroidWorld": [
+          {
+            "numerator": "1870265376521889343389188407090743908955363423035",
+            "denominator": "59373504016567916854337973772897274993129291776",
+            "value": 31.5
+          },
+          {
+            "numerator": "159566292044526285039292326043799655061843974551",
+            "denominator": "14843376004141979213584493443224318748282322944",
+            "value": 10.75
+          },
+          {
+            "numerator": "3",
+            "denominator": "1",
+            "value": 3
+          }
+        ]
+      }
+    ],
+    "actualStoredComponents": [
+      {
+        "id": "obj_3",
+        "areaWorld": {
+          "numerator": "1318356624237358843550424325161175",
+          "denominator": "40564819207303340847894502572032",
+          "value": 32.50000000000001
+        },
+        "centroidWorld": [
+          {
+            "numerator": "105447343133424670380149938431242580387565345856975",
+            "denominator": "5699856385590522531006995374644146357430374105088",
+            "value": 18.5
+          },
+          {
+            "numerator": "957397752267158137212167378136850214429016247463",
+            "denominator": "89060256024851914546984302728814786834849595392",
+            "value": 10.75
+          },
+          {
+            "numerator": "3",
+            "denominator": "1",
+            "value": 3
+          }
+        ]
+      },
+      {
+        "id": "obj_4",
+        "areaWorld": {
+          "numerator": "82397289014834891394037338603475",
+          "denominator": "2535301200456458802993406410752",
+          "value": 32.49999999999999
+        },
+        "centroidWorld": [
+          {
+            "numerator": "1870265376521889343389188407090743908955363423035",
+            "denominator": "59373504016567916854337973772897274993129291776",
+            "value": 31.5
+          },
+          {
+            "numerator": "159566292044526285039292326043799655061843974551",
+            "denominator": "14843376004141979213584493443224318748282322944",
+            "value": 10.75
+          },
+          {
+            "numerator": "3",
+            "denominator": "1",
+            "value": 3
+          }
+        ]
+      }
+    ],
+    "slabLevelsIncludingPerpendicularBoundarySwitches": 34,
+    "probes": [
+      {
+        "world": [
+          18,
+          11.25,
+          3
+        ],
+        "inCrop": true,
+        "expectedMaterial": true,
+        "owners": [
+          "obj_3"
+        ]
+      },
+      {
+        "world": [
+          32,
+          11.25,
+          3
+        ],
+        "inCrop": true,
+        "expectedMaterial": true,
+        "owners": [
+          "obj_4"
+        ]
+      },
+      {
+        "world": [
+          25,
+          6.25,
+          3
+        ],
+        "inCrop": false,
+        "expectedMaterial": false,
+        "owners": []
+      },
+      {
+        "world": [
+          25,
+          11.25,
+          3
+        ],
+        "inCrop": true,
+        "expectedMaterial": false,
+        "owners": []
+      },
+      {
+        "world": [
+          25,
+          3,
+          3
+        ],
+        "inCrop": false,
+        "expectedMaterial": false,
+        "owners": []
+      },
+      {
+        "world": [
+          13,
+          -3,
+          3
+        ],
+        "inCrop": false,
+        "expectedMaterial": false,
+        "owners": []
+      },
+      {
+        "world": [
+          44,
+          19,
+          3
+        ],
+        "inCrop": false,
+        "expectedMaterial": false,
+        "owners": []
+      },
+      {
+        "world": [
+          23,
+          9,
+          3
+        ],
+        "inCrop": true,
+        "expectedMaterial": false,
+        "owners": []
+      },
+      {
+        "world": [
+          18.5,
+          10.75,
+          3
+        ],
+        "inCrop": true,
+        "expectedMaterial": true,
+        "owners": [
+          "obj_3"
+        ]
+      },
+      {
+        "world": [
+          31.5,
+          10.75,
+          3
+        ],
+        "inCrop": true,
+        "expectedMaterial": true,
+        "owners": [
+          "obj_4"
+        ]
+      },
+      {
+        "world": [
+          42,
+          2,
+          3
+        ],
+        "inCrop": false,
+        "expectedMaterial": false,
+        "owners": []
+      },
+      {
+        "world": [
+          18,
+          10,
+          3
+        ],
+        "inCrop": true,
+        "expectedMaterial": true,
+        "owners": [
+          "obj_3"
+        ]
+      },
+      {
+        "world": [
+          25,
+          10,
+          3
+        ],
+        "inCrop": true,
+        "expectedMaterial": false,
+        "owners": []
+      }
+    ],
+    "tolerance": 1e-7,
+    "scope": "Independent exact Fraction rectangle sweep and stored Green moments/ray parity; no CAD or production predicates"
+  },
+  "localNativeObservations": {
+    "vertices": 32,
+    "maxCoordinateError": 7.105427357601002e-15,
+    "tolerance": 1e-7,
+    "scope": "Local stored trim-vertex observations; not whole-support coefficient or regularity proof"
+  },
+  "children": [
+    {
+      "id": "obj_3",
+      "name": "D341 · panel · region 1",
+      "source": "src_2",
+      "geometry": "region_1",
+      "domain": {
+        "u": [
+          -0.8,
+          2.8
+        ],
+        "v": [
+          3.7,
+          5
+        ]
+      },
+      "trims": [
+        {
+          "keep": "inside",
+          "uv": [
+            [
+              -0.8,
+              3.7
+            ],
+            [
+              0.19999999999999948,
+              3.7
+            ],
+            [
+              0.2000000000000002,
+              3.8
+            ],
+            [
+              0.2000000000000002,
+              3.8999999999999995
+            ],
+            [
+              0.2000000000000002,
+              4.000000000000001
+            ],
+            [
+              0.2000000000000002,
+              4.1000000000000005
+            ],
+            [
+              0.2000000000000002,
+              4.2
+            ],
+            [
+              0.2000000000000002,
+              4.299999999999999
+            ],
+            [
+              0.2000000000000002,
+              4.3999999999999995
+            ],
+            [
+              0.20000000000000093,
+              4.500000000000001
+            ],
+            [
+              0.20000000000000093,
+              4.6000000000000005
+            ],
+            [
+              0.20000000000000093,
+              4.7
+            ],
+            [
+              0.1999999999999995,
+              4.8
+            ],
+            [
+              0.20000000000000023,
+              4.8999999999999995
+            ],
+            [
+              0.20000000000000023,
+              5
+            ],
+            [
+              -0.8,
+              5
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "obj_4",
+      "name": "D341 · panel · region 2",
+      "source": "src_2",
+      "geometry": "region_1",
+      "domain": {
+        "u": [
+          -0.8,
+          2.8
+        ],
+        "v": [
+          3.7,
+          5
+        ]
+      },
+      "trims": [
+        {
+          "keep": "inside",
+          "uv": [
+            [
+              1.7999999999999992,
+              4.2
+            ],
+            [
+              1.7999999999999998,
+              4.1000000000000005
+            ],
+            [
+              1.8000000000000012,
+              4
+            ],
+            [
+              1.7999999999999998,
+              3.9000000000000004
+            ],
+            [
+              1.7999999999999998,
+              3.7999999999999994
+            ],
+            [
+              1.7999999999999998,
+              3.7
+            ],
+            [
+              2.8,
+              3.7
+            ],
+            [
+              2.8,
+              5
+            ],
+            [
+              1.7999999999999998,
+              5
+            ],
+            [
+              1.8000000000000005,
+              4.9
+            ],
+            [
+              1.7999999999999992,
+              4.799999999999999
+            ],
+            [
+              1.7999999999999998,
+              4.699999999999999
+            ],
+            [
+              1.7999999999999998,
+              4.6000000000000005
+            ],
+            [
+              1.7999999999999998,
+              4.499999999999999
+            ],
+            [
+              1.7999999999999998,
+              4.4
+            ],
+            [
+              1.8000000000000005,
+              4.299999999999999
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

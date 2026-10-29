@@ -1,0 +1,40 @@
+{
+  "status": "MODEL_FOCUSED_TYPES_LINT_PASS_SOURCE_FROZEN",
+  "node": "v22.19.0",
+  "gate": "RELEASED_holder_none_slots_0",
+  "firstRun": {
+    "tests": 64,
+    "pass": 63,
+    "fail": 1,
+    "skip": 0,
+    "log": "/tmp/d341-model/focused-first.log"
+  },
+  "firstFailure": {
+    "test": "used collapsed support maps to atomic refusal and ordinary nonexact-affine child remains admitted",
+    "cause": "Test expected Jacobian/material text, but unchanged native Region parent refuses first: original/extracted native U/V partial observation exceeds local policy. Model correctly mapped DIRECT_VALUE.",
+    "fix": "Changed only the two tiny control test assertions and title to native-first diagnostic. No product source change. Normal admitted empty DOMAIN crop controls retained."
+  },
+  "finalCoverage": {
+    "status": "PASS",
+    "uniqueTests": 64,
+    "unaffected46": "PASS in first run; not repeated",
+    "region18": {
+      "status": "PASS",
+      "tests": 18,
+      "pass": 18,
+      "fail": 0,
+      "skip": 0,
+      "log": "/tmp/d341-model/region-repair.log"
+    }
+  },
+  "types": {
+    "status": "PASS",
+    "log": "/tmp/d341-model/types-first.log"
+  },
+  "ownedLint": {
+    "status": "PASS",
+    "log": "/tmp/d341-model/lint-first.log"
+  },
+  "whitespace": "PASS",
+  "noBrowserOrCommit": true
+}

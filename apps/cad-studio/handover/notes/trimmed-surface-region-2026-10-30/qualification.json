@@ -1,0 +1,263 @@
+{
+  "workId": "D341",
+  "status": "BOUNDED_QUALIFIED",
+  "source": {
+    "baselinePublishedD340": "91edfdfe72e866d1a3b4eb7b0595013a990ead90",
+    "checkpoint": "53a2007084b79b1448d01689193f6c7a95b364e1",
+    "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+    "checkpointFiles": 4,
+    "initialFeature": "ecab49052b3adfe114aeaef663d586e0f85a99e2",
+    "initialFeatureFiles": 14,
+    "displayFix": "53a2007084b79b1448d01689193f6c7a95b364e1",
+    "displayFixFiles": 4,
+    "distinctImplementationPaths": 16
+  },
+  "contract": {
+    "operation": "extractTrimmedSurfaceRegion with existing SurfaceRegionOptions",
+    "input": "One original affine degree1x1/equal-positive-weight support and one simple3..160-point stored loop; both keep flags, nonunit/fractional charts covered by focused Kernel/Model and qualified actual rectangle profiles.",
+    "output": "One positive material component per object; canonical insideouter/outsideholes; same finalsupport/source; ownedmasks.",
+    "emptyCrop": "After valid native parent staging, no positive retained material throws own DOMAIN before support proof/publication. Original visibility/selection/source/Undo preserved. Native parent admission/D1/binding errors retain earlier NATIVE precedence; do not force parent-rejected tiny crops into DOMAIN.",
+    "proof": "Reuse D340 actualfinalchild residual/Jacobian plus one-roundingUV under original1e-7jointworld/separateUV.",
+    "limits": "Native region/split128,Reverse160,fixedSection200k/8192 unchanged.",
+    "structuralBounds": {
+      "V": 484,
+      "E": 804,
+      "boundaryOccurrences": 1608,
+      "components": 536,
+      "status": "SOURCE_REVIEWED_CONTACT_INCLUSIVE_BOUND_NOT_MEASURED_MAXIMUM"
+    },
+    "measuredComb": {
+      "V": 476,
+      "E": 788,
+      "insideComponents": 78,
+      "outsideComponents": 79,
+      "status": "MEASURED_KERNEL_FOCUSED_INDEPENDENT_MOMENTS_PASS"
+    }
+  },
+  "checks": {
+    "Kernel": {
+      "status": "PASS",
+      "focusedFinal": 10,
+      "related": 14,
+      "build": "PASS",
+      "types": "PASS",
+      "lint": "PASS",
+      "receipt": "kernel/receipt.md",
+      "firstFocused": {
+        "pass": 9,
+        "fail": 1,
+        "cause": "Equal-area float sort paired toothcentroid633.999 with-6; test area+centroid matcher repaired, no product change."
+      },
+      "finalLog": "kernel/focused-final.log.gz",
+      "contextMaxOperations": {
+        "arrangement": 85966,
+        "material": 42875,
+        "binding": 149458
+      },
+      "oldCaps": {
+        "operations": 200000,
+        "bits": 8192
+      },
+      "measuredComb": {
+        "V": 476,
+        "E": 788,
+        "inside": 78,
+        "outside": 79,
+        "componentIndependentAreaCentroid": "PASS"
+      },
+      "nonexactFinalControl": {
+        "poleZ": [
+          0.3,
+          1.2999999999999998
+        ],
+        "jointBound": 1.942890293094024e-16,
+        "boundary": "Actual fourth-pole affine identity fails exactly; bounded proof admits this control."
+      },
+      "collapsedControl": "Unchanged native parent SurfaceRegionError BINDING/D1 refuses first; preserved as new-family NATIVE, not claimedJacobian refusal."
+    },
+    "Model": {
+      "status": "PASS_UNIQUE_COVERAGE_AFTER_TEST_CORRECTION",
+      "uniqueTests": 64,
+      "firstRun": {
+        "pass": 63,
+        "fail": 1,
+        "skip": 0
+      },
+      "finalRegion": {
+        "pass": 18,
+        "fail": 0,
+        "skip": 0
+      },
+      "unaffectedFirstRunPassReused": 46,
+      "types": "PASS",
+      "ownedLint": "PASS",
+      "gate": "RELEASED",
+      "receipt": "model/checks.json",
+      "firstFailure": "Wrong test native-priority expectation;2test assertions/title corrected, no product change. No cleanfirst64PASS claimed."
+    },
+    "independentReview": {
+      "status": "NO_REQUIRED_PRODUCTION_FINDING",
+      "runtime": "NOT_RUN",
+      "finalKernelHashesMatch": 6,
+      "unchangedParentFiles": 9,
+      "source": "review/review.md",
+      "oracleReview": "review/oracle-review.md",
+      "boundary": "Source and supplied author receipts, not reviewer candidate runtime."
+    },
+    "API": {
+      "status": "SCOPED_PASS_JUSTIFIED_ADOPTION",
+      "added": 6,
+      "removed": 0,
+      "semanticExistingChanges": 0,
+      "presentationOnlyExistingChanges": 0,
+      "source": "root/api-studio-checks.json",
+      "postfixReuse": "root/postfix-api-reuse.md; module-private display change has no publicinventory/chatinput delta, priorvalidchecks reused."
+    },
+    "browserPreparation": {
+      "status": "SOURCE_PREPARED_NODECHECK_PASS",
+      "lines": 186,
+      "source": "studio/preparation.md"
+    },
+    "browser": {
+      "status": "NUMERIC_AND_UI_FLOW_PASS",
+      "receipt": "studio/run-02/receipt.json",
+      "chromeProcesses": 1,
+      "serialContextsClosed": 10,
+      "observationalStates": 33,
+      "materialReads": 10,
+      "positiveMaterialReads": 9,
+      "emptyOracleReads": 1,
+      "nativeFilesDownloads": 5,
+      "refusals": 5,
+      "rendererProbes": 16,
+      "rendererProbesAllPass": true,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "watchedSourceChanges": 0,
+      "boundary": "Retake after held visual failure.33 observations are not33 tests; raw receipt remains numeric/UI-only with separate visual review."
+    },
+    "docs": {
+      "status": "PASS",
+      "exitCode": 0,
+      "source": "root/check-docs-first.log.gz",
+      "metrics": {
+        "pages": 68,
+        "beingWritten": 0,
+        "shots": 55,
+        "shotKB": 4811,
+        "labels": 861
+      },
+      "boundary": "Post-assembly documentation check only."
+    },
+    "Studio": {
+      "status": "PASS",
+      "chatPass": 23,
+      "types": "PASS",
+      "build": "PASS",
+      "driverLint": "PASS",
+      "generatedToolsRefusals": "PASS",
+      "source": "root/api-studio-checks.json",
+      "postfixTypesBuildDriverLint": "PASS"
+    },
+    "visualReview": {
+      "status": "PASS_SCOPED_VISUAL_REVIEW_AFTER_FIX",
+      "source": "root/visual-review-run02.json",
+      "images": [
+        "03-inside-two-components.png",
+        "14-outside-pocket-two-components.png",
+        "18-outside-one-component-with-hole.png",
+        "19-outside-hole-reopen.png",
+        "22-outside-full-retained-explicit-mask.png",
+        "23-retained-rectangle-reopen.png"
+      ],
+      "boundary": "Root views six actual images;16sampled readonly renderer probes supplement them. Not every raster point or exact display clipping."
+    },
+    "initialBrowser": {
+      "status": "NUMERIC_UI_PASS_VISUAL_FAIL",
+      "receipt": "studio/run-01/receipt.json",
+      "visualReview": "root/visual-review-run01.json",
+      "source": "ecab49052b3adfe114aeaef663d586e0f85a99e2",
+      "boundary": "Positive native material/files passed, but hole18 and retainedrectangle22 had no filled surface. Product qualification held; no clean first product PASS."
+    },
+    "displayRepair": {
+      "status": "PASS",
+      "cause": "Generated trim mesh/grid/iso coordinates overshot nativeclosed-domain endpoints. Existing displayOf caught nativeParameter-outside error and returned no surface.",
+      "fix": "Module-private sampling preserves exact endpoints and bounds generated interior display coordinates; authoredUV/source/nativegeometry/tolerance/APIunchanged.",
+      "baselineHarness": "ERR_MODULE_NOT_FOUND retained; not product result.",
+      "immutableBaselineRegression": {
+        "pass": 2,
+        "fail": 2,
+        "boundary": "Actual missing target surface in two cases; baselineecab direct.ts/trim.ts retained."
+      },
+      "newRegression": {
+        "pass": 4,
+        "fail": 0
+      },
+      "related": {
+        "pass": 57,
+        "fail": 0
+      },
+      "types": "PASS",
+      "lint": "PASS",
+      "source": "display/receipt.md",
+      "postfixStudio": "root/postfix-checks.json",
+      "postfixSourceReview": "root/postfix-source-review.json",
+      "HighDisplayReview": {
+        "status": "NO_REQUIRED_SOURCE_FINDING",
+        "source": "review/display-review.md",
+        "ownedHashesMatch": 3,
+        "runtime": "NOT_RUN",
+        "boundary": "Independent postdisplay source review, separate from originalRegionreview and rootactualvisual."
+      },
+      "boundary": "First57command preceded newtestfile; new4 separate. Initial High review covers initialRegion, laterdisplayreview separate."
+    }
+  },
+  "oracle": {
+    "Node": "Independent BigInt rectangle slabs with perpendicular-boundary exact crossing switchlevels; no product imports/Pythonprocess.",
+    "actualInput": "Actual publictrimByCurve stored160 plus represented crop bounds; idealguides separate.",
+    "execution": "Focused Kernel/Model independent Node oracle PASS; actualStudio independent rectangle verifier PASS with9positive/1empty reads in run02.",
+    "boundary": "Prepared tests/oracle source not runtime evidence."
+  },
+  "notProven": [
+    "Generic curved/multiloop/repeatedclosure",
+    "Closedsolidmass/exactgenericcurvedarea",
+    "Exactdisplayclipping/everyrasterpoint",
+    "Performance/fullsuites/remoteCI/release/whole08"
+  ],
+  "next": "Continue remaining08 source-grounded consumer/generality work before09. D342 is unrun source plan only, not delivered.07 remains delivered/Electron15queued;nonewqueue.",
+  "provenance": {
+    "initialSubset": 16,
+    "frozenInputs": 727,
+    "afterInputs": 727,
+    "cleanupInputs": 727,
+    "matches": true,
+    "boundary": "Each run owns separateinitial16/frozen727caps; no727before-generation/fullservedgraph. Hashesproveprovenance only.",
+    "manifest": "artifact-manifest.json",
+    "decodedStoredHashes": "source-provenance.json"
+  },
+  "actualProof": {
+    "producer": "Actual publictrimByCurve stored160/representedrectangle inputs feed independentexactrectangle slabs withperpendicular switchlevels; noideal substitution.",
+    "positiveProfiles": [
+      "inside2arms",
+      "outside2includingpocket",
+      "outside1withhole",
+      "outside1retainedexplicitrectangle"
+    ],
+    "empty": "Inside notchcrop gives independent0material and atomicDOMAIN/DIRECT_VALUE refusal, original/source/visibility/selection/Undo preserved; valid retry succeeds. Nativeparent errors retain earlierprecedence in separate focusedcontrols.",
+    "ownership": "UndoRedo/nativeSavefreshOpen/rename/reopen/reselect preserve ownedcomponentmasks/sharedsupportrefs/IDs/order/labels semantically.5files; no raw-byte identity.",
+    "remainingGuards": "IGES/Thicken/Sew on nonempty results refuse; 5totalrefusalsincludeempty/unsupportedprofile. NoextraUndo/doc/selection/downloadchange.",
+    "witness": "b1/sixnames/420/[86,.5,3.5]stable, separateacceptedsolidonly.",
+    "displayBoundary": "Sampledholemesh552.1118096508944; ideal eight-point guide552; actual run01 stored160 exactarea89567120809725791629670217469133475/162259276829213363391578010288128 (displayed552.0000000000001). Distinct authorities; rectangle sample24/[25,10,3] onecontrol. Localvertex checks not wholechildproof.",
+    "cleanup": "All10contexts/browser/serverCLOSED."
+  },
+  "actualBrowserProfiles": [
+    "inside twoarms",
+    "outside pocket",
+    "outside onehole",
+    "outside retainedrectangle explicitmask",
+    "inside emptycrop DOMAINrefusal+validretry",
+    "UndoRedo/nativeSavefreshOpen/rename/reselect",
+    "IGES/Thicken/Sewguard/noextraUndo",
+    "separate rootactualimage review"
+  ]
+}

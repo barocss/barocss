@@ -1,0 +1,8 @@
+{
+  "base": "ecab49052b3adfe114aeaef663d586e0f85a99e2",
+  "files": {
+    "packages/barocss-cad-model/src/engine/direct.ts": "7ee57af3cc985b45c5e537037f343125e889c554b5f63ed1f5f1715e69b53218",
+    "packages/barocss-cad-model/src/engine/trim.ts": "04ebe4da5a39608a8e115006efecc3f31200725d6ae14595824af6408a07f67a",
+    "packages/barocss-cad-model/test/direct-display-domain.test.ts": "80ef1b214c66cc30eb80d03cf23379bf1a009bad68d9dffc9207f5e748eabd4c"
+  }
+}

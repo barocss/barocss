@@ -1,0 +1,22 @@
+{
+  "status": "PASS_SCOPED_SOURCE_REVIEW",
+  "scope": "Post-ecab49052 display-domain correction and renderer-probe driver only; separate from original High Kernel/oracle review.",
+  "files": [
+    "packages/barocss-cad-model/src/engine/direct.ts",
+    "packages/barocss-cad-model/src/engine/trim.ts",
+    "packages/barocss-cad-model/test/direct-display-domain.test.ts",
+    "apps/cad-studio/test/trimmed-surface-region-browser.mjs"
+  ],
+  "findings": [
+    "Both module-private parameter samplers copy exact native endpoints and bound generated interior display samples within the existing domain.",
+    "Field/grid positions and isocurve parameters use the same safe sample function within their module. Authored trim UV, native surface coefficients and numeric policy are untouched.",
+    "Regression tests use actual public160 Trim then native Region, require each result surface by its object ID, nonempty finite mesh/normals/isos, valid indices, corner/domain checks and unchanged source/cache read.",
+    "New browser renderer probes derive expected IDs from independent stored-mask classification, then read the existing renderer pick hook. Hole absence is tested separately. No authoring hook or new App mutation path."
+  ],
+  "limits": [
+    "No runtime or browser result is inferred from this source review.",
+    "Generated display-coordinate bounding does not clamp authored material vertices or relax native evaluation admission.",
+    "Sampled display mesh remains approximate; no full raster or exact material-coverage certificate.",
+    "No performance optimization or public API/export addition. Prior API/chat checks remain relevant; Model targeted checks and Studio types/build must cover changed runtime graph."
+  ]
+}
