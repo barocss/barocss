@@ -1,3 +1,4 @@
+import { sewTolerance } from '../engine/sew';
 import { eligibleFillPatternRegions, fillRegionSnapshot } from '../engine/fillFeaturePattern';
 import { eligibleCurvePatternPaths } from '../engine/curveFeaturePattern';
 import type { StudioDoc } from '../engine/doc';
@@ -90,7 +91,7 @@ export interface EditScope { readonly context?: BearingAssemblyContext; readonly
 export function editFields(nodes: Nodes, i: number, params?: Record<string, number>, bearingAssembly?: BearingAssemblyInput, scope?: EditScope): EditField[] {
   const raw = editFieldsRaw(nodes, i, bearingAssembly, scope, params ?? scope?.doc?.parameters ?? {});
   if (!params) return raw;
-  return raw.map(f => f.kind !== 'number' ? f : {
+  return raw.map(f => f.kind !== 'number' || (nodes[i]?.kind === 'sew' && f.key === 'tol') ? f : {
     ...f,
     get: n => within(params, () => f.get(n)).value,
     set: (n, v) => within(params, () => f.set(n, v)).value,
@@ -539,7 +540,7 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
           return replace(ns, i, next);
         } });
       break;
-    case 'sew': number('tol', 'Tolerance', 'mm', n => (n as typeof node).tolerance ?? 0, (n, v) => { const next = { ...(n as typeof node) }; if (v > 0) next.tolerance = Math.min(1, v); else delete next.tolerance; return next; }); break;
+    case 'sew': number('tol', 'Tolerance', 'mm', n => (n as typeof node).tolerance ?? 0, (n, v) => { const next = { ...(n as typeof node) }; sewTolerance(next.surfaces, v); if (v > 0) next.tolerance = v; else delete next.tolerance; return next; }); break;
     case 'draft':
       number('deg', 'Angle', '°', n => (n as typeof node).angle, (n, v) => ({ ...(n as typeof node), angle: v }));
       if (node.neutral !== undefined) number('neutral', 'Neutral coordinate', 'mm', n => num((n as typeof node).neutral!), (n, v) => ({ ...(n as typeof node), neutral: v }));

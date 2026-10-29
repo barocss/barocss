@@ -223106,6 +223106,13 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
+                "type": "\"sew\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
                 "type": "\"shell\""
               },
               {
@@ -223184,6 +223191,13 @@
                 "optional": false,
                 "readonly": true,
                 "type": "RawNurbsSurface"
+              },
+              {
+                "name": "surfaces",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly RawNurbsSurface[]"
               },
               {
                 "name": "tool",
@@ -223317,6 +223331,13 @@
                 "optional": false,
                 "readonly": true,
                 "type": "{ readonly t: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly tol: number; }"
               },
               {
                 "name": "values",
@@ -223823,6 +223844,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "() => BodyQuery"
+              },
+              {
+                "name": "sew",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surfaces: readonly RawNurbsSurface[], options?: SewOptions) => KernelPart"
               },
               {
                 "name": "shell",
@@ -224578,6 +224606,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "() => BodyQuery"
+              },
+              {
+                "name": "sew",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surfaces: readonly RawNurbsSurface[], options?: SewOptions) => Part<D>"
               },
               {
                 "name": "shell",
@@ -225737,6 +225772,49 @@
                 "optional": true,
                 "readonly": false,
                 "type": "readonly [number, number, number] | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": "./api",
+      "exportName": "SewOptions",
+      "space": "type",
+      "observedRole": "facade-exposure; immutability NOT_PROVEN",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/api/spec.ts",
+            "name": "SewOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "SewOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "tol",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
               }
             ],
             "indexSignatures": []
@@ -228365,6 +228443,42 @@
             ],
             "callSignatures": [
               "(o: Resolved<ScaleOptions>) => FeatureSpec"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": "./api",
+      "exportName": "sewSpec",
+      "space": "value",
+      "observedRole": "facade-exposure; immutability NOT_PROVEN",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/api/spec.ts",
+            "name": "sewSpec",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(surfaces: readonly RawNurbsSurface[], o?: SewOptions) => { readonly command: \"sew\"; readonly surfaces: readonly RawNurbsSurface[]; readonly values: { readonly tol: number; }; } & { readonly bound?: Bound | undefined; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(surfaces: readonly RawNurbsSurface[], o?: SewOptions) => { readonly command: \"sew\"; readonly surfaces: readonly RawNurbsSurface[]; readonly values: { readonly tol: number; }; } & { readonly bound?: Bound | undefined; }"
             ]
           }
         }
@@ -234368,6 +234482,44 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./api",
+      "exportName": "SewOptions",
+      "space": "type",
+      "observedRole": "facade-exposure; immutability NOT_PROVEN",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/api/spec.ts",
+            "name": "SewOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "SewOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "tol",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api",
       "exportName": "ShellOptions",
       "space": "type",
       "observedRole": "facade-exposure; immutability NOT_PROVEN",
@@ -235021,6 +235173,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "() => BodyQuery"
+              },
+              {
+                "name": "sew",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surfaces: readonly RawNurbsSurface[], options?: SewOptions) => StudioPart"
               },
               {
                 "name": "shell",
@@ -242100,6 +242259,44 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./api/index",
+      "exportName": "SewOptions",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/api/spec.ts",
+            "name": "SewOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "SewOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "tol",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/index",
       "exportName": "ShellOptions",
       "space": "type",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -242753,6 +242950,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "() => BodyQuery"
+              },
+              {
+                "name": "sew",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surfaces: readonly RawNurbsSurface[], options?: SewOptions) => StudioPart"
               },
               {
                 "name": "shell",
@@ -244804,6 +245008,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "() => BodyQuery"
+              },
+              {
+                "name": "sew",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surfaces: readonly RawNurbsSurface[], options?: SewOptions) => StudioPart"
               },
               {
                 "name": "shell",
@@ -249026,6 +249237,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "Selection"
+              },
+              {
+                "name": "sewSnapshot",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "SewSnapshot | undefined"
               },
               {
                 "name": "thickenSnapshot",
@@ -253658,6 +253876,34 @@
             ],
             "callSignatures": [
               "(nodes: readonly ModelNode[]) => number[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./app/sewCommand",
+      "exportName": "sewCommand",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/app/sewCommand.ts",
+            "name": "sewCommand",
+            "kind": "const"
+          },
+          "shape": {
+            "type": "Command",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
             ]
           }
         }
@@ -338572,6 +338818,175 @@
               }
             ],
             "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/sew",
+      "exportName": "SewSnapshot",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/sew.ts",
+            "name": "SewSnapshot",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "SewSnapshot",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "names",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "readonly string[]"
+              },
+              {
+                "name": "surfaces",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "readonly RawNurbsSurface[]"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/sew",
+      "exportName": "sewNode",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/sew.ts",
+            "name": "sewNode",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(snapshot: SewSnapshot, tol: number) => { kind: \"sew\"; names: string[]; surfaces: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][]; }[]; tolerance?: number | undefined; } & NodeExtras",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(snapshot: SewSnapshot, tol: number) => { kind: \"sew\"; names: string[]; surfaces: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][]; }[]; tolerance?: number | undefined; } & NodeExtras"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/sew",
+      "exportName": "sewNodeProblem",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/sew.ts",
+            "name": "sewNodeProblem",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(node: Record<string, unknown>) => string | null",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(node: Record<string, unknown>) => string | null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/sew",
+      "exportName": "sewSnapshot",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/sew.ts",
+            "name": "sewSnapshot",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(ctx: Pick<Ctx, \"direct\" | \"doc\" | \"sewSnapshot\">) => SewSnapshot",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(ctx: Pick<Ctx, \"direct\" | \"doc\" | \"sewSnapshot\">) => SewSnapshot"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/sew",
+      "exportName": "sewTolerance",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/sew.ts",
+            "name": "sewTolerance",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(surfaces: readonly RawNurbsSurface[], value: number) => number",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(surfaces: readonly RawNurbsSurface[], value: number) => number"
+            ]
           }
         }
       ]

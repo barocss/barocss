@@ -1,3 +1,4 @@
+import { sewNodeProblem } from '../engine/sew';
 import { thickenNodeProblem } from '../engine/thicken';
 import { fillFeaturePatternProblem } from '../engine/fillFeaturePattern';
 import { curveFeaturePatternProblem } from '../engine/curveFeaturePattern';
@@ -43,6 +44,7 @@ const SPECS: Record<string, Spec> = {
   'cylindrical-wrap': { parent: 'ref', faces: 'names1', rectangle: 'any', height: 'dim' },
   'text-relief': { parent: 'ref', faces: 'names1', text: 'text', font: 'any', size: 'dim', depth: 'dim', at: 'dim2', mode: 'enum:emboss|engrave', tolerance: 'num', 'tracking?': 'dim' },
   split: { parent: 'ref', at: 'dim', axis: 'enum:x|y|z' },
+  sew: { names: 'any', surfaces: 'any', 'tolerance?': 'num' },
   thicken: { name: 'text', surface: 'any', thickness: 'dim', 'side?': 'enum:normal|reverse|both' },
   shell: { parent: 'ref', thickness: 'dim', open: 'names' },
   draft: { parent: 'ref', faces: 'names1', angle: 'num', 'pull?': 'enum:x|y|z|-x|-y|-z', 'neutral?': 'dim' },
@@ -142,6 +144,7 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
     const why = checkValue(v, type, nodes, parameters, leaves);
     if (why) return `${kind}.${key}: ${why}`;
   }
+  if (kind === 'sew') return sewNodeProblem(node);
   if (kind === 'thicken') return thickenNodeProblem(node, parameters);
   if (kind === 'text') return textNodeProblem(node, parameters);
   if (kind === 'cylindrical-wrap') return cylindricalWrapNodeProblem(node, parameters);

@@ -71,7 +71,7 @@ export function bindParameter(doc: StudioDoc, b: Binding): StudioDoc {
   const i = typeof b.feature === 'number' ? b.feature : nodeIndexOf(doc.nodes, b.feature);
   if (!Number.isInteger(i) || i < 0 || i >= doc.nodes.length) throw refusal('NO_FEATURE', `no feature ${JSON.stringify(b.feature)} (features 0–${doc.nodes.length - 1})`);
   const fields = editFields(doc.nodes, i, doc.parameters), f = fields.find(x => x.key === b.value);
-  if (!f || f.kind !== 'number') throw refusal('PARAMETER_UNBINDABLE', `feature ${i}'s ${b.value} can't take a parameter (its values that can are ${fields.filter(x => x.kind === 'number').map(x => x.key).join(', ') || 'none'})`);
+  if (!f || f.kind !== 'number' || !('bind' in f)) throw refusal('PARAMETER_UNBINDABLE', `feature ${i}'s ${b.value} can't take a parameter (its values that can are ${fields.filter(x => x.kind === 'number' && 'bind' in x).map(x => x.key).join(', ') || 'none'})`);
   const nodes = (f as BindableField).bind(doc.nodes, b.parameter);
   if (!nodes) throw refusal('PARAMETER_UNBINDABLE', `feature ${i}'s ${b.value} doesn't land as it is in one place, so it can't take ${b.parameter}`);
   return { ...doc, nodes };

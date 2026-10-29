@@ -1030,9 +1030,9 @@ export function App() {
     // (R1d: the command as it is now, its values and preview state — the App may not have rendered since they changed.)
     const active = activeStore.get();
     if (!active?.cmd.build || !canChangeDocument()) return;
-    if (active.cmd.id === 'thicken' && active.ctx.doc !== commandDoc) {
+    if ((active.cmd.id === 'thicken' || active.cmd.id === 'sew') && active.ctx.doc !== commandDoc) {
       applyWhenReady.current = null;
-      setToast({ title: 'Source changed', hint: 'Start Thicken again to copy the current surface.', detail: '' });
+      setToast({ title: 'Source changed', hint: `Start ${active.cmd.label} again to copy the current surfaces.`, detail: '' });
       return;
     }
     if (active.upload) { applyWhenReady.current = null; return; }
@@ -1045,7 +1045,7 @@ export function App() {
     const next = active.cmd.build(active.ctx, active.values);
     // (Not when it places an instance: those bodies are the instance's, shown once it is evaluated.)
     if (!commit(next)) return;
-    if (active.cmd.id === 'thicken') setDirectSel([]);
+    if (active.cmd.id === 'thicken' || active.cmd.id === 'sew') setDirectSel([]);
     if (previewBodies && Object.keys(next.outputs).length && (next.instances?.length ?? 0) === (active.ctx.doc.instances?.length ?? 0)) { setBodies(previewBodies); claimBodies.current = true; }
     setActive(null); setPreviewBodies(null); setSketch(null);
   }, [activeStore, commit, previewBodies, bearingRootCurrent, commandDoc, setSketch, acceptanceScope]);
@@ -1923,9 +1923,11 @@ export function App() {
       {!rendering && !drawing && !sketch && !measure && !instanceSel.length && <GravityExperimentPanel doc={doc} joints={jointTree?.joints ?? []} />}
       {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || instanceSel.length === 1) && <MatePanel assembly={assembly} instances={doc.instances} instance={instanceSel.length === 1 ? instanceSel[0] : undefined}
         onRefused={why => setToast({ title: 'The mate was refused', hint: why, detail: '' })} />}
-      {!rendering && !active && !sketch && !measure && !instanceSel.length && directSel.length > 0 && doc.direct && <DirectInspector doc={doc} evaluated={evaluated} directSel={directSel} D={D}
-        changes={{ commit, commitDirect, setDirectSel }} onThicken={(id, t, side) => {
+      {!rendering && !active && !sketch && !measure && !instanceSel.length && directSel.length > 0 && doc.direct && <DirectInspector doc={doc} directSel={directSel}
+        changes={{ commitDirect }} onThicken={(id, t, side) => {
           if (directSel.length === 1 && directSel[0] === id) start(commands.find(c => c.id === 'thicken')!, { t, side });
+        }} onSew={(ids, tol) => {
+          if (ids.length === directSel.length && ids.every((id, i) => id === directSel[i])) start(commands.find(c => c.id === 'sew')!, { tol });
         }} onNotice={setToast} />}
       {clashes && !rendering && !sketch && <InterferenceInspector doc={doc} bodies={bodies} clashes={clashes} setClashes={setClashes} setSelection={setSelection} />}
       {/* (A running command's HUD takes this place at the right.) */}

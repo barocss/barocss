@@ -45,6 +45,8 @@ function featuresOf(doc: CadPartDocument, spec: FeatureSpec, body: string | null
       const sketch = nextId(doc, 'sketch'), { h, draft } = spec.values;
       return [{ id: sketch, kind: 'sketch', ...spec.sketch } as CadPartFeature, { id: nextId(doc, 'extrude'), kind: 'extrude', sketch, height: h, ...(draft ? { draft } : {}) }];
     }
+    case 'sew':
+      return [{ id: nextId(doc, 'sew'), kind: 'sew', surfaces: spec.surfaces, ...(spec.values.tol ? { tolerance: spec.values.tol } : {}) }];
     case 'thicken':
       return [{ id: nextId(doc, 'thicken'), kind: 'thicken', surface: spec.surface, thickness: spec.values.t, ...(spec.values.side ? { side: spec.values.side } : {}) }];
     case 'revolve': {

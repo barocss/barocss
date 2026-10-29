@@ -13,6 +13,8 @@ import { glandCommands } from './glandCommands';
 import { driveCommands } from './driveCommands';
 import { connectorCommands } from './connectorCommands';
 import { weldmentCommands } from './weldmentCommands';
+import { sewCommand } from './sewCommand';
+import type { SewSnapshot } from '../engine/sew';
 import { thickenCommand } from './thickenCommand';
 import type { ThickenSnapshot } from '../engine/thicken';
 import { textCommand } from './textCommand';
@@ -42,7 +44,7 @@ export interface EdgeSel { body: number; edge: number }
 /** `vertices`: corners picked (ends of edges), by body and position. */
 export interface Selection { faces: FaceSel[]; edges: EdgeSel[]; bodies: number[]; sketches?: number[]; vertices?: { body: number; at: [number, number, number] }[] }
 /** `direct`: the direct curves and surfaces picked (their ids). */
-export interface Ctx { thickenSnapshot?: ThickenSnapshot; fillPatternRegion?: FillFeaturePatternRegion; fillPatternAnchor?: readonly [number, number]; curvePatternPath?: CurveFeaturePatternPath; doc: StudioDoc; bodies: BodyResult[]; selection: Selection; pick?: [number, number, number]; direct?: string[]; bearingAssembly?: BearingAssemblyInput }
+export interface Ctx { sewSnapshot?: SewSnapshot; thickenSnapshot?: ThickenSnapshot; fillPatternRegion?: FillFeaturePatternRegion; fillPatternAnchor?: readonly [number, number]; curvePatternPath?: CurveFeaturePatternPath; doc: StudioDoc; bodies: BodyResult[]; selection: Selection; pick?: [number, number, number]; direct?: string[]; bearingAssembly?: BearingAssemblyInput }
 
 export type Values = Record<string, number | string>;
 /** `when`: shown (and required) only for these values. */
@@ -447,6 +449,7 @@ const allCommands: Command[] = [
   ...weldmentCommands,
   textCommand,
   thickenCommand,
+  sewCommand,
   textReliefCommand,
   cylindricalWrapCommand,
   {

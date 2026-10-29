@@ -44,6 +44,7 @@ function apply(doc: StudioDoc, spec: FeatureSpec, body: string | null): StudioDo
   const cmd = commandById(spec.command)!, ctx: Ctx = { doc: withSketch(doc, spec), bodies, selection };
   if (spec.command === 'fill-feature-pattern') { ctx.fillPatternRegion = spec.region; ctx.fillPatternAnchor = spec.anchor; }
   if (spec.command === 'curve-feature-pattern') ctx.curvePatternPath = spec.path;
+  if (spec.command === 'sew') ctx.sewSnapshot = { surfaces: spec.surfaces, names: spec.surfaces.map((_, i) => `Whole surface snapshot ${i + 1}`) };
   if (spec.command === 'thicken') ctx.thickenSnapshot = { surface: spec.surface, name: 'Whole surface snapshot' };
   const avail = cmd.available(ctx);
   // (A command that can't run says why; a reason that carries the core's own code — [FASTENER_SIZE_ROW] — keeps it, §6.)

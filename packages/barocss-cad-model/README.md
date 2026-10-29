@@ -162,3 +162,30 @@ const surface: RawNurbsSurface = {
 const wall = part('Wall').parameter('wall', 2).thicken(surface, { t: param('wall') });
 const wider = wall.withParameters({ wall: 3 });
 ```
+
+### Whole-surface Sew
+
+`part().sew(surfaces, { tol })` copies an ordered list of 2 to 64 whole raw
+NURBS surfaces into one new closed body. It also works on an empty part.
+The six fields of each surface are the same as for Thicken. Existing bodies
+and the chosen body focus are retained. The input order defines the native
+`<feature-id>.surface<index>` relation. API labels are `Whole surface snapshot 1`
+through `N`; these labels are not topology keys.
+
+`tol` is a number in mm. Omitted or 0 uses the existing native automatic
+tolerance. Positive values up to 1 are stored exactly; other values refuse.
+This field cannot bind to a parameter. Automatic tolerance depends on the
+maximum absolute control coordinate. It does not mean zero matching allowance.
+
+The Studio Sew command copies every selected whole support and source name.
+It validates all original trim containers before loading source geometry.
+Trimmed, malformed, stale, ambiguous and non-surface selections refuse.
+Preview and Cancel retain source visibility and selection. Apply hides the
+copied sources in the same Undo step that adds the body. Later source edits
+or deletion do not change the saved snapshots. Raw API calls hide no sources.
+The saved Tolerance field remains editable after reopening; 0 selects automatic.
+
+Sew retains the existing natural-boundary matching, orientation and closed
+B-rep checks. Open or disconnected inputs refuse. Boundary fitting and volume
+orientation use native sampling. This route does not add trim sewing, healing
+or a general overlap or self-intersection certificate.

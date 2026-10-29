@@ -64,6 +64,29 @@ with `VALUE`. Accepted geometry owns its coefficients; later caller or source
 edits do not change the body. A second body preserves the current body choice;
 use `.body(newBodyName)` to query the new body in a part with several bodies.
 
+## Whole-surface snapshot sew facade
+
+`part().sew(surfaces, { tol: 0.01 })` copies 2 to 64 whole, untrimmed
+`RawNurbsSurface` values in caller order and creates one new closed body.
+The outer list must be a plain dense array. Each surface uses the same strict
+six-field admission as `thicken`. Source edits do not change accepted snapshots.
+The API does not hide source objects. Existing bodies and the chosen body remain;
+use `.body(newBodyName)` to query the new body.
+
+`SewOptions.tol` is a number in mm. Omission or 0 selects the existing native
+automatic tolerance, `max(1e-6, maxAbsControlCoordinate * 1e-3)`. An explicit value
+must be finite, positive and at most 1. Invalid values refuse with `VALUE`;
+values are never clamped. Tolerance cannot bind to a parameter.
+`sewSpec(surfaces, options)` returns the shared owned recipe with numeric
+`values.tol`, including 0 for automatic tolerance.
+
+Sew uses the existing natural-boundary matching and outward orientation algorithm.
+It retains source surface coefficients, uses sampled edge fitting and volume
+orientation, and refuses open, nonmanifold or disconnected shells. Input order
+sets face names and the first paired edge's boundary authority. The facade does
+not sort, deduplicate, reorient, trim or heal surfaces. Planar box checks do not
+certify arbitrary curved surface intersections or exact tolerance-gap repair.
+
 ## Mounting-plate through-hole
 
 A direct origin-aligned rectangular extrusion can author
