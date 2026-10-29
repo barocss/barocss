@@ -1,0 +1,6 @@
+[local/cad-dev 2ae761831] fix(studio): release worker and wire resources on retirement
+ 8 files changed, 543 insertions(+), 77 deletions(-)
+ create mode 100644 apps/cad-studio/test/engine-client-lifecycle-browser.mjs
+ create mode 100644 apps/cad-studio/test/engine-client-lifecycle.test.ts
+ create mode 100644 apps/cad-studio/test/fixtures/engine-lifecycle-entry.ts
+ create mode 100644 packages/barocss-cad-model/test/wire-sender-disposal.test.ts

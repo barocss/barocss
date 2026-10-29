@@ -16396,3 +16396,32 @@ Evidence: notes/import-open-stage-ownership-2026-10-29/qualification.json. Wider
 matrices, native IGES/fit/project negatives, A06 resources, full other-package/browser suites, remoteCI
 and performance/heap remain outside scope. Normal feature push authorized; no PR/release. Next A06
 sender/worker disposal. Record the owner's77-prop SceneViewport feedback as further App decomposition.
+
+
+## D330 — Release worker and wire resources on retirement (2026-10-29)
+
+A06 starts at baseline 3420adb4f. EngineClient now allocates its worker and sender lazily. Retirement
+invalidates the epoch, detaches handlers, terminates the worker, disposes the sender subscription,
+clears transport state and settles pending callers. Final disposal is idempotent and terminal.
+Constructor, error, messageerror, pack and post failures require explicit restart. App owns disposal
+on committed unmount and the public Retry path. WireSender.dispose releases its eviction subscription
+and state without clearing the shared blob store. The bounded API inventory records this one added
+public method. No schema, dependency or WASM change. Source commits 2ae761831 and e88e6af9f preserve
+implementation and the API/native-driver followup.
+
+Raw baseline Model 0 PASS / 2 FAIL and Studio 2 PASS / 8 FAIL remain. Focused Model 12 and Studio 17
+overlap full Model 1853 PASS / 0 FAIL / 0 SKIP and Studio 476 PASS / 0 FAIL / 0 SKIP. Build, types and
+scoped lint pass. API changes from FAIL to SCOPED_PASS for its six listed rules. Preserve the first
+harness PASS-versus-SCOPED_PASS assertion as a root explanatory excerpt; the complete original tool
+log is unavailable. Final docs receipt exit 0 (68 pages / 55 shots / 4811 KB / 860 labels) predates
+assembly of this note. Source review is reported separately; no raw review receipt is in this bundle.
+
+Serial native lifecycle 1, stage 2 and main 2 plus starter 1 pass: 5 selected cases and 1 starter.
+Three real App committed mount/unmount cycles terminate owned native workers; unused construction
+allocates none. A controlled ErrorEvent retires the transport and public Retry recovers. Public
+Undo/Redo, D329 Stop/retry, D321 Stop and D327 STL export pass in the selected cases. Source watch
+21 observations and three final checks match scoped 3 production and 4 driver/fixture paths. This
+does not freeze the full dependency graph. Evidence: notes/worker-wire-lifetime-2026-10-29/
+qualification.json and manifest.json. No StrictMode, natural crash, OOM, heap/performance, full
+kernel/GPU/Viewer/browser or remote CI acceptance. Wider A05/A06 paths need their own evidence.
+No PR or release.

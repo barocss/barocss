@@ -1,0 +1,471 @@
+{
+  "scenario": "mesh-diagnose-stop-retry",
+  "status": "PASS",
+  "runnerProcess": 66539,
+  "states": [
+    {
+      "label": "normal-current-control",
+      "state": {
+        "doc": {
+          "format": "barocss-cad-model",
+          "schema": 3,
+          "units": "mm",
+          "parameters": {},
+          "nodes": [
+            {
+              "kind": "sketch",
+              "profile": "rectangle",
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                8,
+                9
+              ],
+              "id": "n0"
+            },
+            {
+              "kind": "extrude",
+              "sketch": 0,
+              "height": 11,
+              "id": "n1",
+              "made": {
+                "command": "box",
+                "values": {
+                  "w": 8,
+                  "d": 9,
+                  "h": 11,
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "b1": {
+              "node": 1,
+              "side": "solid"
+            }
+          },
+          "nextId": 2
+        },
+        "body": {
+          "fresh": true,
+          "bodies": [
+            {
+              "key": "b1",
+              "volume": 792,
+              "centroid": [
+                4,
+                4.5,
+                5.5
+              ],
+              "massRef": null
+            }
+          ],
+          "massReady": true,
+          "colored": []
+        },
+        "name": "C-current",
+        "dirty": true,
+        "recovery": "{\"fileName\":\"C-current\",\"savedAt\":1793277158627,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[8,9],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":11,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":8,\"d\":9,\"h\":11,\"x\":0,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"}},\"nextId\":2}}",
+        "history": {
+          "present": true,
+          "type": "HTMLDivElement",
+          "labels": [
+            "Box 8×9×11"
+          ]
+        },
+        "working": null,
+        "units": null,
+        "repair": null,
+        "toast": null
+      },
+      "transport": {
+        "selected": null,
+        "events": []
+      }
+    },
+    {
+      "label": "original-return-held",
+      "state": {
+        "doc": {
+          "format": "barocss-cad-model",
+          "schema": 3,
+          "units": "mm",
+          "parameters": {},
+          "nodes": [
+            {
+              "kind": "sketch",
+              "profile": "rectangle",
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                8,
+                9
+              ],
+              "id": "n0"
+            },
+            {
+              "kind": "extrude",
+              "sketch": 0,
+              "height": 11,
+              "id": "n1",
+              "made": {
+                "command": "box",
+                "values": {
+                  "w": 8,
+                  "d": 9,
+                  "h": 11,
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "b1": {
+              "node": 1,
+              "side": "solid"
+            }
+          },
+          "nextId": 2
+        },
+        "body": {
+          "fresh": true,
+          "bodies": [
+            {
+              "key": "b1",
+              "volume": 792,
+              "centroid": [
+                4,
+                4.5,
+                5.5
+              ],
+              "massRef": null
+            }
+          ],
+          "massReady": true,
+          "colored": []
+        },
+        "name": "C-current",
+        "dirty": true,
+        "recovery": "{\"fileName\":\"C-current\",\"savedAt\":1793277158627,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[8,9],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":11,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":8,\"d\":9,\"h\":11,\"x\":0,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"}},\"nextId\":2}}",
+        "history": {
+          "present": true,
+          "type": "HTMLDivElement",
+          "labels": [
+            "Box 8×9×11"
+          ]
+        },
+        "working": "Working… checking the meshCancel",
+        "units": "straightenOpen A.stl: in what unit?STL files carry no unit. In mm it is 4 × 2 × 1 mm.MillimetresCentimetresMetresInchesOpenCancel",
+        "repair": null,
+        "toast": null
+      },
+      "transport": {
+        "selected": {
+          "kind": "diagnose",
+          "fulfilled": true,
+          "returned": false
+        },
+        "events": [
+          {
+            "kind": "original-worker-reply-held",
+            "sequence": 0
+          }
+        ]
+      }
+    },
+    {
+      "label": "current-before-release",
+      "state": {
+        "doc": {
+          "format": "barocss-cad-model",
+          "schema": 3,
+          "units": "mm",
+          "parameters": {},
+          "nodes": [
+            {
+              "kind": "sketch",
+              "profile": "rectangle",
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                8,
+                9
+              ],
+              "id": "n0"
+            },
+            {
+              "kind": "extrude",
+              "sketch": 0,
+              "height": 11,
+              "id": "n1",
+              "made": {
+                "command": "box",
+                "values": {
+                  "w": 8,
+                  "d": 9,
+                  "h": 11,
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "b1": {
+              "node": 1,
+              "side": "solid"
+            }
+          },
+          "nextId": 2
+        },
+        "body": {
+          "fresh": true,
+          "bodies": [
+            {
+              "key": "b1",
+              "volume": 792,
+              "centroid": [
+                4,
+                4.5,
+                5.5
+              ],
+              "massRef": null
+            }
+          ],
+          "massReady": true,
+          "colored": []
+        },
+        "name": "C-current",
+        "dirty": true,
+        "recovery": "{\"fileName\":\"C-current\",\"savedAt\":1793277158627,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[8,9],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":11,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":8,\"d\":9,\"h\":11,\"x\":0,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"}},\"nextId\":2}}",
+        "history": {
+          "present": true,
+          "type": "HTMLDivElement",
+          "labels": [
+            "Box 8×9×11"
+          ]
+        },
+        "working": null,
+        "units": "straightenOpen A.stl: in what unit?STL files carry no unit. In mm it is 4 × 2 × 1 mm.MillimetresCentimetresMetresInchesOpenCancel",
+        "repair": null,
+        "toast": null
+      },
+      "transport": {
+        "selected": {
+          "kind": "diagnose",
+          "fulfilled": true,
+          "returned": false
+        },
+        "events": [
+          {
+            "kind": "original-worker-reply-held",
+            "sequence": 0
+          }
+        ]
+      }
+    },
+    {
+      "label": "current-after-release",
+      "state": {
+        "doc": {
+          "format": "barocss-cad-model",
+          "schema": 3,
+          "units": "mm",
+          "parameters": {},
+          "nodes": [
+            {
+              "kind": "sketch",
+              "profile": "rectangle",
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                8,
+                9
+              ],
+              "id": "n0"
+            },
+            {
+              "kind": "extrude",
+              "sketch": 0,
+              "height": 11,
+              "id": "n1",
+              "made": {
+                "command": "box",
+                "values": {
+                  "w": 8,
+                  "d": 9,
+                  "h": 11,
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "b1": {
+              "node": 1,
+              "side": "solid"
+            }
+          },
+          "nextId": 2
+        },
+        "body": {
+          "fresh": true,
+          "bodies": [
+            {
+              "key": "b1",
+              "volume": 792,
+              "centroid": [
+                4,
+                4.5,
+                5.5
+              ],
+              "massRef": null
+            }
+          ],
+          "massReady": true,
+          "colored": []
+        },
+        "name": "C-current",
+        "dirty": true,
+        "recovery": "{\"fileName\":\"C-current\",\"savedAt\":1793277158627,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[8,9],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":11,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":8,\"d\":9,\"h\":11,\"x\":0,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"}},\"nextId\":2}}",
+        "history": {
+          "present": true,
+          "type": "HTMLDivElement",
+          "labels": [
+            "Box 8×9×11"
+          ]
+        },
+        "working": null,
+        "units": "straightenOpen A.stl: in what unit?STL files carry no unit. In mm it is 4 × 2 × 1 mm.MillimetresCentimetresMetresInchesOpenCancel",
+        "repair": null,
+        "toast": null
+      },
+      "transport": {
+        "selected": {
+          "kind": "diagnose",
+          "fulfilled": true,
+          "returned": true
+        },
+        "events": [
+          {
+            "kind": "original-worker-reply-held",
+            "sequence": 0
+          },
+          {
+            "kind": "release-requested",
+            "sequence": 1
+          },
+          {
+            "kind": "original-worker-reply-delivered",
+            "sequence": 2
+          }
+        ]
+      }
+    },
+    {
+      "label": "retry-accepted",
+      "state": {
+        "doc": {
+          "format": "barocss-cad-model",
+          "schema": 3,
+          "units": "mm",
+          "parameters": {},
+          "nodes": [
+            {
+              "kind": "mesh",
+              "name": "A",
+              "unit": "mm",
+              "representation": "facets",
+              "blob": {
+                "positions": "0b9dbecb77ecf85d8f9c15b93ec6e32ea19b7d872807bbb80b83e16040547ac9",
+                "indices": "e1da6d245ecaacec7a83e4beecf27fadddafbd03ef7d228074555e4dd9be3e3a"
+              },
+              "id": "n0"
+            }
+          ],
+          "outputs": {
+            "b0": {
+              "node": 0,
+              "side": "solid"
+            }
+          },
+          "nextId": 1
+        },
+        "body": {
+          "fresh": true,
+          "bodies": [
+            {
+              "key": "b0",
+              "volume": 7.000000000000003,
+              "centroid": [
+                2,
+                1,
+                0.5
+              ],
+              "massRef": null
+            }
+          ],
+          "massReady": true,
+          "colored": []
+        },
+        "name": "A",
+        "dirty": true,
+        "recovery": "{\"fileName\":\"C-current\",\"savedAt\":1793277158627,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[8,9],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":11,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":8,\"d\":9,\"h\":11,\"x\":0,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"}},\"nextId\":2}}",
+        "history": {
+          "present": true,
+          "type": "HTMLDivElement",
+          "labels": [
+            "Mesh A"
+          ]
+        },
+        "working": null,
+        "units": null,
+        "repair": null,
+        "toast": "infoSTL openedA mesh solid of 10 regions — 32 triangles read in millimetres; 7 mm³. Splits, sections, holes and Booleans with modelled bodies work at any size (up to 16,000 triangles near the tool; 5,000 in a preview); Booleans of two meshes up to 16,000 triangles; fillets, shells and drafts on mesh faces come later.close"
+      },
+      "transport": {
+        "selected": {
+          "kind": "diagnose",
+          "fulfilled": true,
+          "returned": true
+        },
+        "events": [
+          {
+            "kind": "original-worker-reply-held",
+            "sequence": 0
+          },
+          {
+            "kind": "release-requested",
+            "sequence": 1
+          },
+          {
+            "kind": "original-worker-reply-delivered",
+            "sequence": 2
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "boundary": "Original native return scheduling only; public UI; no OS chooser/natural failure/general operation-Promise completion claim",
+  "retry": "ORIGINAL_UNIT_QUESTION_RETRY_ACCEPTED",
+  "context": "CLOSED",
+  "browser": "CLOSED",
+  "server": "CLOSED"
+}

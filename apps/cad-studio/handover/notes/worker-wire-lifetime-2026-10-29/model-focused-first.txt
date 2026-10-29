@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: PERF3 B13 S0 P1: the store keeps every blob for the session — a mesh feature deleted, its arrays still held (nothing evicts)
+ok 1 - PERF3 B13 S0 P1: the store keeps every blob for the session — a mesh feature deleted, its arrays still held (nothing evicts)
+  ---
+  duration_ms: 4.377792
+  type: 'test'
+  ...
+# Subtest: PERF3 B13 S0 P2 (fixed in O135): a blob named only in an open proposal's ops — blobRefs sees it now, so a sweep keeps what accepting it needs
+ok 2 - PERF3 B13 S0 P2 (fixed in O135): a blob named only in an open proposal's ops — blobRefs sees it now, so a sweep keeps what accepting it needs
+  ---
+  duration_ms: 0.919125
+  type: 'test'
+  ...
+# Subtest: PERF3 B13 S0 P3: the worker wire's sender sends a blob once — packed again after it is gone from the store and put back, it is not sent (the worker would need it: a forget is needed)
+ok 3 - PERF3 B13 S0 P3: the worker wire's sender sends a blob once — packed again after it is gone from the store and put back, it is not sent (the worker would need it: a forget is needed)
+  ---
+  duration_ms: 1.106625
+  type: 'test'
+  ...
+# Subtest: a blob no root reaches: kept one sweep (put since the last), dropped the next with its bytes; one reached stays
+ok 4 - a blob no root reaches: kept one sweep (put since the last), dropped the next with its bytes; one reached stays
+  ---
+  duration_ms: 4.681708
+  type: 'test'
+  ...
+# Subtest: random sessions: after every sweep, every blob the document, undo, redo or an open proposal names is still there
+ok 5 - random sessions: after every sweep, every blob the document, undo, redo or an open proposal names is still there
+  ---
+  duration_ms: 39.954208
+  type: 'test'
+  ...
+# Subtest: a holder the sweep does not see keeps its hash across one sweep, is reported, and asking for it after is an error logged
+ok 6 - a holder the sweep does not see keeps its hash across one sweep, is reported, and asking for it after is an error logged
+  ---
+  duration_ms: 0.495208
+  type: 'test'
+  ...
+# Subtest: no sweep while held (a chat turn, a pending repair, the recovery store mid-write)
+ok 7 - no sweep while held (a chat turn, a pending repair, the recovery store mid-write)
+  ---
+  duration_ms: 0.297833
+  type: 'test'
+  ...
+# Subtest: the worker's wire in step: a dropped blob is forgotten as sent, the worker told; put back, it is sent again
+ok 8 - the worker's wire in step: a dropped blob is forgotten as sent, the worker told; put back, it is sent again
+  ---
+  duration_ms: 1.210833
+  type: 'test'
+  ...
+# Subtest: wire documents: each node crosses once, the worker rebuilds the document, both sides forget alike
+ok 9 - wire documents: each node crosses once, the worker rebuilds the document, both sides forget alike
+  ---
+  duration_ms: 10.035459
+  type: 'test'
+  ...
+# Subtest: wire documents: route creation and total move preserve exact bindings through structured clone and preview
+ok 10 - wire documents: route creation and total move preserve exact bindings through structured clone and preview
+  ---
+  duration_ms: 1604.360792
+  type: 'test'
+  ...
+# Subtest: retiring a sender removes its real eviction callback while the live sender still receives it
+ok 11 - retiring a sender removes its real eviction callback while the live sender still receives it
+  ---
+  duration_ms: 4.800875
+  type: 'test'
+  ...
+# Subtest: sender disposal is idempotent and terminal without clearing the shared blob store
+ok 12 - sender disposal is idempotent and terminal without clearing the shared blob store
+  ---
+  duration_ms: 1.069584
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1727.94025

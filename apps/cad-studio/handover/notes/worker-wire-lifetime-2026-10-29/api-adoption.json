@@ -1,0 +1,16 @@
+{
+  "before": "FAIL",
+  "generation": "GENERATED_FOR_REVIEW",
+  "after": "SCOPED_PASS",
+  "addedMembers": [
+    {
+      "name": "dispose",
+      "kind": "method",
+      "optional": false,
+      "readonly": false,
+      "type": "() => void"
+    }
+  ],
+  "otherChanges": 0,
+  "reason": "Release eviction subscription and retained sender state; disposed pack rejects, forget is harmless"
+}

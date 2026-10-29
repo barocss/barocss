@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: A05 imported Open ownership: step-stage-stop
+ok 1 - A05 imported Open ownership: step-stage-stop
+  ---
+  duration_ms: 7517.330834
+  type: 'test'
+  ...
+# Subtest: A05 imported Open ownership: mesh-diagnose-stop-retry
+ok 2 - A05 imported Open ownership: mesh-diagnose-stop-retry
+  ---
+  duration_ms: 6895.893709
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 14616.66125

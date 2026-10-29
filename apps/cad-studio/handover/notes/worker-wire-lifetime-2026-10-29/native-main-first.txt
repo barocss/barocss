@@ -1,0 +1,5 @@
+flow display: {"requestedDpr":1,"renderer":"webgpu","devicePixelRatio":1,"cssWidth":1140,"cssHeight":900,"backingWidth":1140,"backingHeight":900}
+ok 1 starter plate loads
+ok 55 D321: Stop rolls back its owned Box while pending Render and Drawing edits refuse
+ok 322 D327: extracted STL dialog resets quality, cancels before export and writes a literal box with its source record
+screenshots: /tmp/d330/native-main-first

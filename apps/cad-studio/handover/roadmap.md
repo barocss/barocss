@@ -26,7 +26,7 @@ actual existing CG6 project selected1+separate starter, generated/API/docs pass.
 [Evidence](notes/canonical-version-snapshot-2026-10-29/qualification.json). D324 qualifies selected
 A07/#2237 readback ownership under06/R2: GPU emit/types, normal CPU357 incl new15, native selected1/6groups,
 lint/generated/API/docs pass. [Evidence](notes/gpu-pick-instance-ownership-2026-10-29/qualification.json).
-D325 qualifies A08/#2239 closed SDK display/CPU/GPU clipping under05/V1/V2 with native selected1/12SDK observations and exact-far GPU ownership. [Evidence](notes/viewer-clipping-contract-2026-10-29/qualification.json). D326 now qualifies selected project/serialized-document Open ownership under12/O9: Studio423, focused29 and actual5 pass. [Evidence](notes/project-open-ownership-2026-10-29/qualification.json). Next D327 is the owner's direct urgent App.tsx refactor; preserve D321/D322/D326. Other-format/stage A05 and A06 remain queued before optional extensions.
+D325 qualifies A08/#2239 closed SDK display/CPU/GPU clipping under05/V1/V2 with native selected1/12SDK observations and exact-far GPU ownership. [Evidence](notes/viewer-clipping-contract-2026-10-29/qualification.json). D326 now qualifies selected project/serialized-document Open ownership under12/O9: Studio423, focused29 and actual5 pass. [Evidence](notes/project-open-ownership-2026-10-29/qualification.json). D327/D328 complete the selected App decomposition. D329 qualifies the selected nonserialized import/stage A05 ownership. D330 qualifies normal-root Worker retirement, explicit Retry and WireSender disposal under12/O9 A06; see [evidence](notes/worker-wire-lifetime-2026-10-29/qualification.json). Wider ownership matrices remain open. Next: reproduce the existing confirmed DA-DUP-1/#2243 drawing duplicate/location diagnostic defect on current source before optional07 extensions. Preserve other owners and HOLD boundaries.
 The research reconciliation below attaches
 existing GitHub investigations to these numbered scopes; it creates no second implementation queue.
 
@@ -72,7 +72,7 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
 
 | 번호 | 작업·기존 ID | 남은 범위 | 담당·선행 조건 | 완료 조건 |
 |---|---|---|---|---|
-| 07 | Advanced modeling — CG1 | D313 runtime`f29df9217` connects one original-native-UV rectangular cylindrical pad through Part/API/Model/agent/Studio. Full kernel2187pass/0fail/6existing skips, Model1833/1833, Studio365/365, types, actual Chrome/WebGPU create/edit/Undo/Redo/Save/Open and generated/docs pass. Closed-reference mass is qualified; literal rounded-shell closure/mass and native SI remain unqualified. [Current scope and evidence](notes/cylindrical-wrap-product-2026-10-29/README.md). D314 runtime`bb92da70b` adds measured long-thread boundary-distance pruning: kernel2192pass/0fail/6existing skips, Model1833/1833, Studio365/365 and generated/docs pass; geometry/mass bits match. D315 runtime`dbfe93216` repairs17/64-control native surfaces and64-control inner-section cuts under unchanged caps. Related Kernel94/94, Model19, actual17/64 Studio flows and final kernel2197pass/0fail/6existing skips pass; docs/API checks pass. [Repair and evidence](notes/loft-guide-control-range-2026-10-29/README.md). D316 certified raw frames pass related Kernel102/102, Model4/4/types/lint and actual17/64-control Studio edit/Undo/file flows; final whole-Kernel/docs evidence is in [qualification](notes/framed-polynomial-guide-2026-10-29/qualification.json). D317 closes the selected STEP SI unit-loss admission (#2240) with actual Studio proof. D318 supplies skeleton Save/Open/re-edit identity #2235. D319 supplies Presenter Geometry lifetime #2238 with actual SDK WebGPU proof. D320 supplies same-store/path write ownership #2241 with actual native OPFS proof. D321 supplies origin-bound Stop/refusal/Redo with actual Studio evidence. D322 supplies late Save document/session/receipt ownership with actual3-case evidence. D323 supplies canonical snapshot persistence #2236. D324 supplies bounded delayed GPU instance readback ownership #2237. D325 supplies bounded SDK display/CPU/GPU clipping #2239. D326 supplies selected project/serialized Open ownership. Next: direct urgent D327 App.tsx decomposition; keep remaining A05/A06 correctness and07→08→09 extensions queued. | Kernel → Model/API → Studio. Existing bounded guided loft, Coons, variable/full-round/analytic and polynomial face fillets, draft, rib, original-font Text, +Z text relief, modeled threads and rectangular wrap are preserved (D288–D313). Remaining: polynomial guides on different/uncertified frames; two/rational guides and smooth guided sections; general free-form/multi-span/rational face fillets; arbitrary-depth/outline/glyph/curved wrap and text shaping. Reuse existing source and selected fonts; no new runtime dependency. | One admitted feature at a time: preserve original coordinates, tolerances, references and refusal atomicity; independent geometry/mass oracles, actual public consumer and editable file flow. Performance needs measured before/after and unchanged bits or accepted shape evidence. Bounded completion does not close general families. |
+| 07 | Advanced modeling — CG1 | **DELIVERED for the recorded bounded profiles (D288–D316); do not restart these features.** Guided polynomial loft, supported face fillets, original-font editable Text/+Z relief, modeled threads, measured thread optimization and one rectangular cylindrical wrap are implemented and qualified at their recorded limits. See the status ledger below. | Optional/general extensions remain separately scoped: uncertified/multiple/rational guide frames, general multi-span/rational fillets, arbitrary-depth/outline/glyph/curved wrap and text shaping. Preserve existing refusal boundaries; these are not missing implementations of the delivered profiles. | A new extension needs its own bounded input, original tolerances, geometry/mass oracle and actual editable Studio/file proof. No whole-family or release acceptance is implied by the delivered profiles. |
 | 08 | Feature patterns, direct editing and surfaces — CG2 | Remaining curve/fill feature patterns and current move/delete/replace/thicken/offset/knit/trim/extend gaps. Reuse03 and existing body-copy/affine/Boolean/surface consumers; the research mapping attaches #2227/#2215 and #2032/#2036 controls. | Kernel/Model → actual Studio, after the selected07 closures. Inspect the current producer/consumer before implementing another surface command. | Distinguish body copies from repeated cut tools. Preserve source/history, dual-UV/trim ownership, exact names, ambiguous/missing references and atomic refusal; verify actual edit/file results. |
 | 09 | Advanced sketch — CG3 | Remaining spline handles, conics, text/blocks and diagnostic/edit consumers. Reuse existing solver and corrected sketch adapter; attach #2210/#2215 and #2033/#2038 controls.  D318 supplies skeleton raw admission/ID preservation with Model41/Studio7 affected checks, both types/lint and actual fresh-context edit/Undo/file proof; see [qualification](notes/skeleton-file-admission-2026-10-29/qualification.json). | Kernel/Model → actual Studio after08. Existing2D→3D/extrude-cut and dimension-expression decisions remain. | Returned geometry meets the original residual limits. Distinguish DOF, conflict, redundancy and nonconvergence; preserve authored coordinates/dimensions/references through actual constraint edit, downstream feature and Save/fresh Open. |
 | 10 | 조립 확장 — CG4 | 유연한 하위 조립, 반복 occurrence 참조, 조립 피처, 승인된 motion/대형 조립 범위. | Model/Outer + Kernel/GPU. 같은 revision의 배치/관절 기반이 선행. | 계층·part-local/world/display 변환과 반복 인스턴스를 보존한다. pose 표시를 동역학 완료로 쓰지 않는다. |
@@ -92,6 +92,23 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
 사용자 정정: 아직 릴리스가 없으므로 최신 reader/writer만 기준으로 삼는다. 구 미출시 바이너리 호환과 장기 migration을 위해 schema5를 강제하지 않는다. 현재 일반 schema3과 route schema4를 유지하고 standalone/composite의 raw 입력 검사와 필드 보존을 구현한다. 실제 사용자 파일과 snapshot key/id/parent/bytes는 보존한다. 기존 Model448→3b8 및 Drawing 후보 정상 commit은 이력으로 남기고 필요한 정확 delta만 새 계약에 맞춰 연결한다. Outer 저장·복구, 합동 실행·파일 흐름·제품은 아직 미완료다.
 
 공통16의 공개 API 방향은 [설계 기록](api-public-model-direction-20261027.md)에 있다. CAD Model을 사용자 편집 원본과 기본 Part/Assembly 진입점으로 삼고 커널은 독립 계산 계층으로 유지한다. 메서드별 계약/파일/API 호환 이행과 물리적 패키지 통합은 아직 완료·확정되지 않았다. 명칭 변경만으로 이 과제를 닫지 않는다.
+
+### 07 delivery ledger — reconciled 2026-10-29
+
+The initial07 work has already been implemented. Keep completed profiles separate from broader
+future support; do not describe the whole row as unstarted or rerun completed qualification.
+
+| Delivered profile | Decision and evidence | Separate extension still open |
+| --- | --- | --- |
+| One polynomial B-spline guide through Model/API/chat/Studio; renderable17/64 controls; certified raw frames | D288, D315, [D316 qualification](notes/framed-polynomial-guide-2026-10-29/qualification.json) | Uncertified frames, multiple/rational guides and smooth guided sections |
+| Bounded polynomial face-end and corner fillets, alongside existing analytic/variable/full-round support | D289/D291; recorded in decisions.md | General free-form, multi-span and rational face pairs |
+| Original TrueType assets, editable Text and supported +Z emboss/engrave | D292–D296; recorded in decisions.md | General text shaping and unsupported relief faces |
+| Rectangular cylindrical wrap connected through Part/API/Model/Studio, with closed-reference mass | D297–D313, [product qualification](notes/cylindrical-wrap-product-2026-10-29/README.md) | Arbitrary outline/glyph/curved/depth support; literal native rounded-shell closure/mass and native SI remain unqualified |
+| Modeled threads and measured boundary-distance pruning | D290, [D314 measured results](notes/thread-basis-performance-2026-10-29/README.md) | Further performance work only after current-source measurements |
+
+D317–D330 are subsequent correctness and maintainability work; they do not mean07 was never done.
+The feature order remains07→08→09. At a feature boundary, handle confirmed urgent defects first;
+then select a real remaining profile rather than reopening the delivered profiles above.
 
 ### GitHub research reconciliation — 2026-10-29
 
@@ -2109,3 +2126,42 @@ contracts; move each derived value and callback to its owning module. Preserve m
 body provenance, current refs and event ordering. Also retain command start/apply/cancel and keyboard
 routing as coherent candidates. Complete active A05/A06 before optional structural changes; no new
 queue or automatic whole-App acceptance from moving JSX or wrapping all props in a bag.
+
+
+### Commercial-readiness issue intake and bounded Studio recovery — 2026-10-29
+
+See [scope, completion evidence and retained audit references](notes/commercial-readiness-intake-2026-10-29/README.md).
+User requested continued remaining-issue reading and additions to this existing roadmap. The first
+focused batch read26 issue details(18OPEN/8CLOSED);77 search discoveries are not77 complete discussions.
+
+| Existing issue | Existing target | Minimum remaining acceptance |
+| --- | --- | --- |
+| [#2107](https://github.com/barocss/barocss/issues/2107) Viewer initialization rejection cleanup |05 SDK/06 GPU/G15-accept; Viewer app4.3 | Compare current source first. Candidate no-context/later setup rejection must retire its device/context/buffer/listeners, preserve accepted Viewer and original error/cause; do not count harness orphan cleanup as product cleanup. |
+| [#2144](https://github.com/barocss/barocss/issues/2144) disposed image/source retention |06/GMAT-5/G15-accept lifetime +05 SDK; Rendering2135 dependency | Current fix NOT_VERIFIED. Original100-replacement/source-retention plateau with shared accepted/candidate and upload/failure/queuedframe/recovery/dispose controls; do not close caller sources or infer GC/VRAM. |
+
+Both were OPEN at audit time;#2144 remains BACKLOG/not dispatched. Preserve A05/A06, owner queue and
+Rendering HOLD. Closed transfer/intake is not implementation acceptance; no new issue or code dispatch.
+
+Separate actual Studio proof at exacta7264f0e: one profile/attempt/32 assertions passed for document,
+selection, History widget, dirty/recovery, camera, original resources and native RGBA continuity after
+explicit Core.frame/capture. Automatic host scheduling and full served/optimized/virtual/assets graph
+remain NOT_QUALIFIED. Raw32PASS is preserved. This does not qualify whole Studio, SDK/Viewer App native
+recovery, Undo/Redo, initialization rejection cleanup, repeated texture retention or commercial release.
+Next missing runtime gate observes spontaneous vs normal-user-triggered host presentation without
+explicit Core rendering first and with passive actual-response provenance prepared before execution.
+
+
+### D330 Worker and wire lifetime — qualified (2026-10-29)
+
+[Evidence and limits](notes/worker-wire-lifetime-2026-10-29/README.md) qualify lazy construction,
+terminal retirement, pending-request settlement, normal committed-root unmount, explicit public Retry
+and additive WireSender.dispose. Build/types/scoped lint/docs pass; Model1853 and Studio476 pass
+with zero failures/skips. API inventory accepts exactly one additive method under its six-rule
+SCOPED_PASS. Actual selected5 plus starter1 pass sequentially; each browser/server closes before
+the next case. No new full-browser, StrictMode, natural crash/OOM, heap/performance or remoteCI proof.
+Qualification records preserve baseline failures and source-watch boundaries. Normal push follows.
+
+Next selected existing confirmed defect: DA-DUP-1/#2243 under01/16. Reproduce current drawing
+duplicate and independent-hole location diagnostics before repair; keep numerical tolerances and
+legitimate orthographic duplicate controls. Incoming GPU2107/2144 and explicit-frame recovery reports
+remain intake at their existing owner/priority. Resume07→08→09 after urgent correctness work.

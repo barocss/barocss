@@ -1,0 +1,19 @@
+# D330 — Worker and wire resource lifetime
+
+A06 now gives each EngineClient a lazy worker and wire sender. Retirement detaches handlers, terminates the worker, disposes the sender subscription, clears transport bookkeeping and settles pending callers. Final disposal is idempotent and prevents revival. Worker errors, message errors, constructor errors, pack errors and post errors enter a failed state. Only an explicit restart can acquire a replacement. App releases its owned client on committed unmount and exposes the existing public retry path after failure. The shared blob store remains owned by its host.
+
+`WireSender.dispose(): void` releases its eviction subscription and retained sender state. A disposed sender rejects pack and ignores forget. This public API addition is recorded and reviewed by the bounded inventory check. Source commits: `2ae76183101af2d07688e0bade97cd44e29484e3` and `e88e6af9f9a923a6e8529eed549c45f80919fe90`.
+
+## Verification
+
+Raw regression baselines: Model **0 PASS / 2 FAIL**, Studio **2 PASS / 8 FAIL**. The first failures show a retained eviction callback and eager Worker allocation. Keep these failures as evidence. Focused Model12 and Studio17 pass; these counts overlap the full suites. Full CAD Model: **1853 PASS / 0 FAIL / 0 SKIP**. Full Studio: **476 PASS / 0 FAIL / 0 SKIP**. Build, types and scoped lint return exit0. Existing bundler warnings remain in the build log.
+
+API inventory initially fails on the added member. After exact adoption of `dispose`, it returns **SCOPED_PASS** for EX001/EX002/EX003/DA001/IV001/IV002. This does not accept all API conventions. The first review harness incorrectly expected `PASS`. Its preserved explanatory excerpt is in `api-review-first-failure.txt`; the complete original tool log is unavailable. The corrected harness returns exit0. The reviewed candidate and original expected inventory are gzip encoded. The redundant candidate was byte-identical and is omitted.
+
+Three serial browser invocations pass **5 selected cases plus 1 starter**: lifecycle1, import-stage2, main-flow2 and starter1. The lifecycle case uses the real App with a controlled React root and native Worker constructor/termination delegation. Three committed mount/unmount cycles terminate the owned worker without revival. A controlled ErrorEvent retires the native transport; public Retry acquires a new worker. Public Undo/Redo remains intact. Import-stage cases preserve current work after Stop and allow the original units question to retry. Main-flow cases cover D321 Stop and D327 STL export.
+
+The lifecycle case does not test StrictMode effect replay or a natural crash. Worker call counts do not measure heap, RSS or driver memory. Import gates hold original native returns; they do not alter bytes or results. Lifecycle and stage receipts report owned browser/context/server closure. Root reports serial execution for all three invocations.
+
+The source watcher records21 matching observations for3 production files and4 driver/fixture files. The three post-run source checks also match. This proves scoped source provenance only; the full dependency graph is not frozen. Source capsules, all raw unit/build/type/lint logs, exit receipts and native captures are retained. [Qualification](qualification.json) gives counts and exclusions. [Manifest](manifest.json) records SHA-256 and size for each retained artifact, with decoded hashes for gzip files. The existing docs receipt passes at68pages/55shots/4811KB/860labels; it predates assembly of this note.
+
+There is no StrictMode, natural crash, OOM, heap/performance, full kernel/GPU/Viewer/browser or remote-CI acceptance. Wider A05 and A06 paths remain separate. Root reports source review separately; no raw review receipt is present here. This documentation task runs no tests or browsers and makes no commit, push, PR or release.
