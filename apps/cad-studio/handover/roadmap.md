@@ -1834,3 +1834,32 @@ same-measurement orthographic duplicate and manual/auto controls. Do not repeat 
 baseline reproduction merely to acknowledge this receipt. Studio UI/Undo, manual dimensions, external
 PDF, native roundtrip and independent numerical/manufacturing accuracy remain separate. Root read the
 full report/receipt; no independent execution, issue change or reply. Keep existing roadmap priority.
+
+
+### D323/A04 snapshot retained-receipt review — 2026-10-29
+
+Attach the [supplied bounded review and verification](notes/canonical-version-snapshot-2026-10-29/independent-receipt-review/d323-canonical-snapshot-receipt-review.md)
+to existing12/CG6/O9 and transferred #2236. Verdict: **APPROVE_BOUNDED_AUTHOR_RECEIPTS** for exact
+a5d1acfa source/test definitions and retained author logs. Actual Version write/read in project.ts
+use existing encodeStudioSnapshot/readStudioSnapshot; ordinary Open/autosave normalization and
+missing/corrupt/write-once protections remain. This is a source/retained-receipt review, not a new
+independent runtime or current whole-App acceptance.
+
+Counts: twelve unique related tests (five new snapshot, seven storage); final five repeat the earlier
+set and are not added. Author selected CG6 project1 and separate starter1, types/lint/docs receipts,
+original baseline FAIL and three fixture type errors remain. Reviewer reports33 unique artifact paths
+from45 references (twelve overlap) and eleven source bindings matching author Git bytes/hashes.
+Core project/container/version sources remain equivalent at the reviewed current head, while App,
+useProject and the full browser driver changed later. Do not extend author UI acceptance to latest App.
+
+Boundary: schema3/schema4 rare-input binary semantics and byte-equal:true are supported by test
+definitions and author execution logs. Actual binary input/output capsules are absent, so independent
+raw-byte/decode comparison remains incomplete. The complete consumer bundle graph is also absent.
+Normal CG6 UI does not establish rare-input creation. Whole suites, independent runtime, OS native
+folder, fresh context, cross-tab and crash/primary-file-loss are NOT_RUN. Transfer closure of #2236
+is not fix-acceptance evidence; no reopening or new issue is needed.
+
+Only if broader byte/provenance acceptance is required, preserve the original two fixture input/output
+bytes, hashes and executing source graph in that future scoped verification. Do not rerun successful
+checks merely to accept this bounded review. Root read/copies both supplied documents without product
+execution or cross-chat reply. Current roadmap priority remains unchanged.

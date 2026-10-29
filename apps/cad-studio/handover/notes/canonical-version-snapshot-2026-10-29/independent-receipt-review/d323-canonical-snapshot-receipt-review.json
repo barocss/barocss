@@ -1,0 +1,291 @@
+{
+  "verdict": "APPROVE_BOUNDED_AUTHOR_RECEIPTS",
+  "reviewMode": "SOURCE_AND_RETAINED_AUTHOR_RECEIPTS_ONLY",
+  "independentRuntime": "NOT_RUN",
+  "authorCommit": "a5d1acfa7e6834951819eaaeeaf6da314cae9b8f",
+  "authorParent": "27500e219febc591845cd5e4c53341a24ca9d39b",
+  "headAtReview": "436451c9ffe5225e0696591be932cd77ff4cfb3e",
+  "dirtyAtReview": "?? .claude/\n",
+  "productMutation": false,
+  "stateLedgerMutation": false,
+  "artifactIntegrity": {
+    "references": 45,
+    "uniquePaths": 33,
+    "overlap": 12,
+    "allHashAndLengthMatch": true
+  },
+  "sourceBindings": [
+    {
+      "path": "apps/cad-studio/src/storage/project.ts",
+      "authoredSha256": "a927fd79a0db9be5d5b60f5380f2ad2ac114e4b5c33c0c9f5240da8772a815ad",
+      "currentSha256": "a927fd79a0db9be5d5b60f5380f2ad2ac114e4b5c33c0c9f5240da8772a815ad",
+      "currentIdentical": true,
+      "authoredGitBlob": "3a5bab030fb8b8e759dc42d1bd98d9eaa47c2c82"
+    },
+    {
+      "path": "apps/cad-studio/src/storage/useProject.ts",
+      "authoredSha256": "b137e624895a31f76527efd7183913aec72161d07121cd2ecf3f0000d89ed94a",
+      "currentSha256": "4cfc5b96100c382ea06056c85c8c80843f6efc64622b60e43c8711458dfbaa63",
+      "currentIdentical": false,
+      "authoredGitBlob": "0b0c4d55748bc5710e9e2de603c528f85c918762"
+    },
+    {
+      "path": "apps/cad-studio/src/storage/VersionsPanel.tsx",
+      "authoredSha256": "f28c03d0aa3032f8180be6470d67942fe37ad69567e10569ac715ca44ccb8a14",
+      "currentSha256": "f28c03d0aa3032f8180be6470d67942fe37ad69567e10569ac715ca44ccb8a14",
+      "currentIdentical": true,
+      "authoredGitBlob": "dc3624cf7ea5e3c591a4b8ab98852686f33cb356"
+    },
+    {
+      "path": "apps/cad-studio/src/App.tsx",
+      "authoredSha256": "3408486cb5ba46cb87091c9916be0c99ceee09ce7662779d6742adfe982ded35",
+      "currentSha256": "d100518493b456e2f5ab055b1c552642341e07b5471753b52aac7e24aaeebfd2",
+      "currentIdentical": false,
+      "authoredGitBlob": "e7039761c079df03bd0ac4ad5029cae115b5c595"
+    },
+    {
+      "path": "apps/cad-studio/test/storage-version-snapshot.test.ts",
+      "authoredSha256": "8f9c195c8c82ad980753977f8a9e7f862e30d592cd1ab548e869c3fc52038d14",
+      "currentSha256": "8f9c195c8c82ad980753977f8a9e7f862e30d592cd1ab548e869c3fc52038d14",
+      "currentIdentical": true,
+      "authoredGitBlob": "a9e8bfafb8f2abf18d1f131b02dba0116012593e"
+    },
+    {
+      "path": "apps/cad-studio/test/storage.test.ts",
+      "authoredSha256": "ea97dc1bc3397a64a8b802fcddeadbb46ecf5c06acf0f415608f7d866b704a0a",
+      "currentSha256": "ea97dc1bc3397a64a8b802fcddeadbb46ecf5c06acf0f415608f7d866b704a0a",
+      "currentIdentical": true,
+      "authoredGitBlob": "e08b96dca48d7279e450077700cb79dd34d31fd9"
+    },
+    {
+      "path": "apps/cad-studio/test/browser-flow.mjs",
+      "authoredSha256": "9a031f112e8b0388bdbd16ba5d215fe0bb3a5d58456da85ad2cd0f87cf039a4c",
+      "currentSha256": "0ce7169fb797bb799587b35e88bbed177f4ac075989def887b673f2cd2ca0d3b",
+      "currentIdentical": false,
+      "authoredGitBlob": "edbc2a069b9f6fa8df3b4dfec5e686f36398865f"
+    },
+    {
+      "path": "apps/cad-studio/scripts/test.mjs",
+      "authoredSha256": "1240d658e6c5ba1c91b352bea713ac6c19a1328428e6912fd8d3752007772648",
+      "currentSha256": "1240d658e6c5ba1c91b352bea713ac6c19a1328428e6912fd8d3752007772648",
+      "currentIdentical": true,
+      "authoredGitBlob": "972c75fafe1be5ab99b8a0e4d41285bdd8e15ab0"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/container.ts",
+      "authoredSha256": "50a1ed89cc9f354882932a1a8a701cfc9b5f44669cad6f92ee235cd0810d38fc",
+      "currentSha256": "50a1ed89cc9f354882932a1a8a701cfc9b5f44669cad6f92ee235cd0810d38fc",
+      "currentIdentical": true,
+      "authoredGitBlob": "25a7c3f3f3d082caec229ed4541ddb934fdb5262"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/versions/log.ts",
+      "authoredSha256": "577680fa0a208b157d16fa00afab2bc7c719a85da85c9d3e756473b288b575f2",
+      "currentSha256": "577680fa0a208b157d16fa00afab2bc7c719a85da85c9d3e756473b288b575f2",
+      "currentIdentical": true,
+      "authoredGitBlob": "f77ce226b34e1fc766bda0b5c6810e7cfe7202bb"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/util/revision.ts",
+      "authoredSha256": "e91f38727cfbfac297838cccf14cd9c93b08ba8ba681060873d537b8c0f6a23a",
+      "currentSha256": "e91f38727cfbfac297838cccf14cd9c93b08ba8ba681060873d537b8c0f6a23a",
+      "currentIdentical": true,
+      "authoredGitBlob": "f09ff10d9a6b666e788ccbf348b96a8f5fb89bfc"
+    }
+  ],
+  "selectedDriverBlock": {
+    "originalLines": [
+      9566,
+      9638
+    ],
+    "authorSha256": "f609afeedbd76cf3b47b41c1b6417df76287e14f7b035826ac7799bb97da2e9f",
+    "currentSha256": "f609afeedbd76cf3b47b41c1b6417df76287e14f7b035826ac7799bb97da2e9f",
+    "identical": true
+  },
+  "qualificationSourceHashesMatch": true,
+  "consumerProfileSourceHashesMatch": true,
+  "authorUnitResults": [
+    {
+      "file": "unit/baseline.log",
+      "counts": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "skipped": 0
+      },
+      "testNames": [
+        "project versions preserve an admitted snapshot with omitted nextId under its original canonical key"
+      ],
+      "binaryByteEqualDiagnostics": []
+    },
+    {
+      "file": "unit/focused.log",
+      "counts": {
+        "tests": 12,
+        "pass": 12,
+        "fail": 0,
+        "skipped": 0
+      },
+      "testNames": [
+        "project versions preserve an admitted snapshot with omitted nextId under its original canonical key",
+        "project versions: schema3 raw optional fields, original identifiers and binary mesh survive",
+        "project versions: schema4 raw optional fields, original identifiers and binary mesh survive",
+        "project versions retain missing-snapshot refusal and refuse a different document stored under an original key",
+        "ordinary part and autosave Open still normalize omitted nextId while version snapshot remains raw",
+        "store (memory): write, read, list, remove; tags; paths",
+        "store (handle): write, read, list, remove; tags; paths",
+        "paths: what a project path may be",
+        "project (memory): parts as Save writes them, version logs with write-once documents, autosave",
+        "project (handle): parts as Save writes them, version logs with write-once documents, autosave",
+        "project: a document with mesh data keeps it — the container written and read back with its arrays",
+        "linked parts: a part inserted from the project is offered again when its file changes, accepted keeps the link; unchanged, waiting or from disk: nothing"
+      ],
+      "binaryByteEqualDiagnostics": [
+        [
+          "3",
+          "true"
+        ],
+        [
+          "4",
+          "true"
+        ]
+      ]
+    },
+    {
+      "file": "unit/focused-final.log",
+      "counts": {
+        "tests": 5,
+        "pass": 5,
+        "fail": 0,
+        "skipped": 0
+      },
+      "testNames": [
+        "project versions preserve an admitted snapshot with omitted nextId under its original canonical key",
+        "project versions: schema3 raw optional fields, original identifiers and binary mesh survive",
+        "project versions: schema4 raw optional fields, original identifiers and binary mesh survive",
+        "project versions retain missing-snapshot refusal and refuse a different document stored under an original key",
+        "ordinary part and autosave Open still normalize omitted nextId while version snapshot remains raw"
+      ],
+      "binaryByteEqualDiagnostics": [
+        [
+          "3",
+          "true"
+        ],
+        [
+          "4",
+          "true"
+        ]
+      ]
+    }
+  ],
+  "uniqueRelatedTests": 12,
+  "newSnapshotTests": 5,
+  "retainedStorageTests": 7,
+  "finalFocusedOverlap": 5,
+  "preservedFirstTypeErrors": [
+    "TS2345",
+    "TS2352",
+    "TS2339"
+  ],
+  "finalAuthorExits": {
+    "focused": 0,
+    "types": 0,
+    "lint": 0
+  },
+  "authorConsumerResult": {
+    "selectedCG6Project": 1,
+    "starterSmoke": 1,
+    "exit": 0,
+    "profile": "WebGPU DPR1 1140x900; OPFS directory handle picker substitute",
+    "scope": "normal-version UI positive control; not rare-input UI creation"
+  },
+  "binaryEvidence": {
+    "retainedBinaryContainerFiles": [],
+    "authorFixtureInput": "Explicit test source constructs admitted schema3 and actual route-bundle schema4 plus two mesh blob arrays",
+    "authorObservedSemantics": "Final focused5 raw log + test canonical/readVersion/key/assertions; not independently re-executed",
+    "selectedReencodeByteEquality": "Two true log diagnostics; no raw binary input/output capsule retained for independent byte comparison",
+    "independentRawContainerDecode": "NOT_RUN_NO_RETAINED_BINARY_ARTIFACT"
+  },
+  "consumerActualFiles": [
+    {
+      "path": "apps/cad-studio/handover/notes/canonical-version-snapshot-2026-10-29/consumers/actual/01-starter-plate-loads.png",
+      "sha256": "b1dee710e376cb0e44ca49f6dd05a1bfcd8a6201b277ab073a9ef05f0555c7d7",
+      "currentFilesystemMatchesAuthorGit": true,
+      "namedOriginalOutputPath": "/tmp/d323-project-version/01-starter-plate-loads.png",
+      "namedOutputMatches": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/canonical-version-snapshot-2026-10-29/consumers/actual/316-cg6-project-open-a-folder-save-into-it-two-versions-compare-restore-the-first-autosave-kept-in-the-project-and-offered-back-after-a-reload.png",
+      "sha256": "1dcf345fc5273c5ced92fdcbbcb46fcaaf233af17174ac06891b1bfef0c3a0a7",
+      "currentFilesystemMatchesAuthorGit": true,
+      "namedOriginalOutputPath": "/tmp/d323-project-version/316-cg6-project-open-a-folder-save-into-it-two-versions-compare-restore-the-first-autosave-kept-in-the-project-and-offered-back-after-a-reload.png",
+      "namedOutputMatches": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/canonical-version-snapshot-2026-10-29/consumers/actual/316a-cg6-compare.png",
+      "sha256": "42cb5dde302022a9626aeb093c2671401a71d02e672069f533f484f49330e72c",
+      "currentFilesystemMatchesAuthorGit": true,
+      "namedOriginalOutputPath": "/tmp/d323-project-version/316a-cg6-compare.png",
+      "namedOutputMatches": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/canonical-version-snapshot-2026-10-29/consumers/actual/316b-cg6-versions.png",
+      "sha256": "f325be3104fe01e599b903fdb84043319a8ae244bc3044864882a1a1eebeee7b",
+      "currentFilesystemMatchesAuthorGit": true,
+      "namedOriginalOutputPath": "/tmp/d323-project-version/316b-cg6-versions.png",
+      "namedOutputMatches": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/canonical-version-snapshot-2026-10-29/consumers/actual/display.json",
+      "sha256": "52cf6d93babdc65bf357a917e2b25b91a79aece76fca76fe1f0c7a7223475c95",
+      "currentFilesystemMatchesAuthorGit": true,
+      "namedOriginalOutputPath": "/tmp/d323-project-version/display.json",
+      "namedOutputMatches": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/canonical-version-snapshot-2026-10-29/consumers/actual/source-profile.json",
+      "sha256": "b8567b78cafa3f2c3acbdca96b2f77c87c187077153d412393f5e752c75856bc",
+      "currentFilesystemMatchesAuthorGit": true,
+      "namedOriginalOutputPath": "/tmp/d323-project-version/source-profile.json",
+      "namedOutputMatches": true
+    }
+  ],
+  "provenanceBoundary": "project/test/driver hashes verified. Complete consumer bundle input graph and executable baseline/final build capsules are not retained by these manifests; runner removes temporary bundles. No complete graph PASS claim.",
+  "sourceAnchors": {
+    "project.ts": "9,25-40,46-79",
+    "container.ts": "60-83,87-127",
+    "versions/log.ts": "47,66-84,107-114,125-130",
+    "util/revision.ts": "6-11",
+    "useProject.ts": "55-58,68-73,84-95,150-159",
+    "VersionsPanel.tsx": "85-108",
+    "App.tsx": "578-593,3261-3263",
+    "storage-version-snapshot.test.ts": "14-132",
+    "browser-flow.mjs": "9566-9638",
+    "scripts/test.mjs": "13-17"
+  },
+  "notQualified": [
+    "general raw-byte identity",
+    "independent retained binary decode/byte comparison",
+    "whole consumer runtime input graph",
+    "current full App runtime",
+    "whole suites",
+    "OS native folder",
+    "fresh context",
+    "cross-tab",
+    "crash/primary file loss"
+  ],
+  "nextEvidenceOnlyIfExpandedClaim": [
+    "retain actual two binary fixture input/output capsules with sha256 and source binding",
+    "retain authored consumer bundle/input graph for complete runtime provenance"
+  ],
+  "historicalA04": "preserved baseline repro only; no claim of current failure",
+  "issue2236": "closed for transfer; not current fix acceptance; no reopen/comment",
+  "inventory": {
+    "path": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/d323-receipt-review-20261029T093450/inventory.json",
+    "sha256": "4c1528690babda88497d272f58a839e3b297ab72fed4d7c62234c9be1830da6b"
+  },
+  "report": {
+    "path": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/d323-canonical-snapshot-receipt-review.md",
+    "sha256": "ea7467db0ff7429d3e8d7e536c7e4fb3d9a0a11b88ede8a866802882dd501348"
+  }
+}
