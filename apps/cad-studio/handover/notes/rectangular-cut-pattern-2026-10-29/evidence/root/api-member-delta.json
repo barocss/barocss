@@ -1,0 +1,299 @@
+[
+  {
+    "exposure": [
+      "@barocss/cad",
+      ".",
+      "CadPartFeature",
+      "type"
+    ],
+    "variants": [
+      {
+        "addedMembers": [
+          {
+            "kind": "property",
+            "name": "axis2",
+            "optional": false,
+            "readonly": true,
+            "type": "CadPartAxis"
+          },
+          {
+            "kind": "property",
+            "name": "count2",
+            "optional": false,
+            "readonly": true,
+            "type": "number"
+          },
+          {
+            "kind": "property",
+            "name": "kind",
+            "optional": false,
+            "readonly": true,
+            "type": "\"rectangular-feature-pattern\""
+          },
+          {
+            "kind": "property",
+            "name": "spacing2",
+            "optional": false,
+            "readonly": true,
+            "type": "CadPartDim"
+          }
+        ],
+        "removedOrWidenedBeforeMembers": []
+      }
+    ]
+  },
+  {
+    "exposure": [
+      "@barocss/cad",
+      ".",
+      "CadPartSnapshot",
+      "type"
+    ],
+    "variants": [
+      {
+        "addedMembers": [
+          {
+            "kind": "property",
+            "name": "features",
+            "optional": false,
+            "readonly": true,
+            "type": "readonly { readonly id: string; readonly kind: \"shell\" | \"union\" | \"difference\" | \"sweep\" | \"key\" | \"hole\" | \"split\" | \"mesh\" | \"revolve\" | \"fillet\" | \"chamfer\" | \"extrude\" | \"frame\" | \"subd\" | \"worm\" | \"shaft\" | \"sketch\" | \"intersect\" | \"rib\" | \"rectangular-relief\" | \"profile-relief\" | \"cylindrical-wrap\" | \"full-round\" | \"face-thread\" | \"face-fillet\" | \"translate\" | \"rotate\" | \"mirror\" | \"scale\" | \"linear-pattern\" | \"linear-feature-pattern\" | \"rectangular-feature-pattern\" | \"circular-pattern\" | \"loft\" | \"import\" | \"sweep-curve\" | \"draft\" | \"split-face\" | \"thicken\" | \"sew\" | \"spur-gear\" | \"spur-rack\" | \"internal-gear\" | \"bevel-gear\" | \"worm-wheel\" | \"spring\" | \"cam\" | \"sprocket\" | \"pulley\" | \"belt\" | \"coupling\" | \"connector-opening\" | \"connector-body\" | \"gusset\" | \"end-cap\" | \"weld-bead\" | \"keyway\" | \"retaining-ring\" | \"oring-gland\" | \"oring\" | \"bearing\" | \"pin\" | \"thread\" | \"separate\" | \"decimate\" | \"sheet-base\" | \"sheet-contour\" | \"frame-member\" | \"sheet-corner-relief\" | \"sheet-flange\"; readonly dependencies: readonly string[]; }[]"
+          }
+        ],
+        "removedOrWidenedBeforeMembers": [
+          {
+            "kind": "property",
+            "name": "features",
+            "optional": false,
+            "readonly": true,
+            "type": "readonly { readonly id: string; readonly kind: \"shell\" | \"union\" | \"difference\" | \"sweep\" | \"key\" | \"hole\" | \"split\" | \"mesh\" | \"revolve\" | \"fillet\" | \"chamfer\" | \"extrude\" | \"frame\" | \"subd\" | \"worm\" | \"shaft\" | \"sketch\" | \"intersect\" | \"rib\" | \"rectangular-relief\" | \"profile-relief\" | \"cylindrical-wrap\" | \"full-round\" | \"face-thread\" | \"face-fillet\" | \"translate\" | \"rotate\" | \"mirror\" | \"scale\" | \"linear-pattern\" | \"linear-feature-pattern\" | \"circular-pattern\" | \"loft\" | \"import\" | \"sweep-curve\" | \"draft\" | \"split-face\" | \"thicken\" | \"sew\" | \"spur-gear\" | \"spur-rack\" | \"internal-gear\" | \"bevel-gear\" | \"worm-wheel\" | \"spring\" | \"cam\" | \"sprocket\" | \"pulley\" | \"belt\" | \"coupling\" | \"connector-opening\" | \"connector-body\" | \"gusset\" | \"end-cap\" | \"weld-bead\" | \"keyway\" | \"retaining-ring\" | \"oring-gland\" | \"oring\" | \"bearing\" | \"pin\" | \"thread\" | \"separate\" | \"decimate\" | \"sheet-base\" | \"sheet-contour\" | \"frame-member\" | \"sheet-corner-relief\" | \"sheet-flange\"; readonly dependencies: readonly string[]; }[]"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "exposure": [
+      "@barocss/cad",
+      ".",
+      "transformBrep",
+      "value"
+    ],
+    "variants": [
+      {
+        "addedMembers": [],
+        "removedOrWidenedBeforeMembers": []
+      }
+    ]
+  },
+  {
+    "exposure": [
+      "@barocss/cad",
+      ".",
+      "transformPrismatic",
+      "value"
+    ],
+    "variants": [
+      {
+        "addedMembers": [],
+        "removedOrWidenedBeforeMembers": []
+      }
+    ]
+  },
+  {
+    "exposure": [
+      "@barocss/cad",
+      "./api",
+      "FeatureSpec",
+      "type"
+    ],
+    "variants": [
+      {
+        "addedMembers": [
+          {
+            "kind": "property",
+            "name": "command",
+            "optional": false,
+            "readonly": true,
+            "type": "\"rectangular-feature-pattern\""
+          },
+          {
+            "kind": "property",
+            "name": "values",
+            "optional": false,
+            "readonly": true,
+            "type": "{ readonly axis: AxisName; readonly spacing: number; readonly count: number; readonly axis2: AxisName; readonly spacing2: number; readonly count2: number; }"
+          }
+        ],
+        "removedOrWidenedBeforeMembers": []
+      }
+    ]
+  },
+  {
+    "exposure": [
+      "@barocss/cad",
+      "./api",
+      "KernelPart",
+      "type+value"
+    ],
+    "variants": [
+      {
+        "addedMembers": [
+          {
+            "kind": "method",
+            "name": "rectangularFeaturePattern",
+            "optional": false,
+            "readonly": false,
+            "type": "(options: RectangularFeaturePatternOptions) => KernelPart"
+          }
+        ],
+        "removedOrWidenedBeforeMembers": []
+      }
+    ]
+  },
+  {
+    "exposure": [
+      "@barocss/cad",
+      "./api",
+      "Part",
+      "type+value"
+    ],
+    "variants": [
+      {
+        "addedMembers": [
+          {
+            "kind": "method",
+            "name": "rectangularFeaturePattern",
+            "optional": false,
+            "readonly": false,
+            "type": "(options: RectangularFeaturePatternOptions) => Part<D>"
+          }
+        ],
+        "removedOrWidenedBeforeMembers": []
+      }
+    ]
+  },
+  {
+    "exposure": [
+      "@barocss/cad-model",
+      "./api",
+      "StudioPart",
+      "type+value"
+    ],
+    "variants": [
+      {
+        "addedMembers": [
+          {
+            "kind": "method",
+            "name": "rectangularFeaturePattern",
+            "optional": false,
+            "readonly": false,
+            "type": "(options: RectangularFeaturePatternOptions) => StudioPart"
+          }
+        ],
+        "removedOrWidenedBeforeMembers": []
+      }
+    ]
+  },
+  {
+    "exposure": [
+      "@barocss/cad-model",
+      "./api/index",
+      "StudioPart",
+      "type+value"
+    ],
+    "variants": [
+      {
+        "addedMembers": [
+          {
+            "kind": "method",
+            "name": "rectangularFeaturePattern",
+            "optional": false,
+            "readonly": false,
+            "type": "(options: RectangularFeaturePatternOptions) => StudioPart"
+          }
+        ],
+        "removedOrWidenedBeforeMembers": []
+      }
+    ]
+  },
+  {
+    "exposure": [
+      "@barocss/cad-model",
+      "./api/part",
+      "StudioPart",
+      "type+value"
+    ],
+    "variants": [
+      {
+        "addedMembers": [
+          {
+            "kind": "method",
+            "name": "rectangularFeaturePattern",
+            "optional": false,
+            "readonly": false,
+            "type": "(options: RectangularFeaturePatternOptions) => StudioPart"
+          }
+        ],
+        "removedOrWidenedBeforeMembers": []
+      }
+    ]
+  },
+  {
+    "exposure": [
+      "@barocss/cad-model",
+      "./engine/doc",
+      "ModelNode",
+      "type"
+    ],
+    "variants": [
+      {
+        "addedMembers": [
+          {
+            "kind": "property",
+            "name": "axis2",
+            "optional": false,
+            "readonly": false,
+            "type": "Axis"
+          },
+          {
+            "kind": "property",
+            "name": "count2",
+            "optional": false,
+            "readonly": false,
+            "type": "number"
+          },
+          {
+            "kind": "property",
+            "name": "kind",
+            "optional": false,
+            "readonly": false,
+            "type": "\"rectangular-feature-pattern\""
+          },
+          {
+            "kind": "property",
+            "name": "spacing2",
+            "optional": false,
+            "readonly": false,
+            "type": "Dim"
+          }
+        ],
+        "removedOrWidenedBeforeMembers": []
+      }
+    ]
+  },
+  {
+    "exposure": [
+      "@barocss/cad-model",
+      "./engine/doc",
+      "isSolidNode",
+      "value"
+    ],
+    "variants": [
+      {
+        "addedMembers": [],
+        "removedOrWidenedBeforeMembers": []
+      }
+    ]
+  }
+]

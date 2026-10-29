@@ -1,0 +1,16 @@
+{
+  "head": "c99cb121c42da75005d31cacacaa088f4b18a122",
+  "node": "22.19.0",
+  "focused": {
+    "tests": 14,
+    "pass": 14,
+    "fail": 0,
+    "skip": 0,
+    "exit": 0
+  },
+  "model_typecheck_exit": 0,
+  "scoped_lint_exit": 0,
+  "owned_file_count": 13,
+  "allMatchHEAD": true,
+  "allUnchanged": true
+}

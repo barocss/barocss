@@ -1,0 +1,23 @@
+{
+  "scope": "Read-only incoming report intake; hashes identify copied source bytes, not runtime qualification.",
+  "sources": [
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/cad-api-boundary-review-20261029/review.md",
+      "copy": "/tmp/d333-intake/review.md",
+      "bytes": 6575,
+      "sha256": "5caf251e20c95c8ed649893471754707217e54a30014b263bdf4a7ad9af31df6"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/verification/cad-api-boundary-review-20261029.json",
+      "copy": "/tmp/d333-intake/cad-api-boundary-review-20261029.json",
+      "bytes": 2664,
+      "sha256": "901a5f9ab6619ad58f6e38f9d3a2f3586d89e95b157efec1b9c8c9f5dc013333"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/verification/cad-api-current-delta-parent-20261029.json",
+      "copy": "/tmp/d333-intake/cad-api-current-delta-parent-20261029.json",
+      "bytes": 5110,
+      "sha256": "c0a45a5a3156708000545c8dba07f42dbe89bc558281e7bfe8b97cb80f783df0"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "status": "FAIL",
+  "phase": "public History/NodeEditor second spacing edit",
+  "output": "/tmp/d333-root/native-first",
+  "cleanup": {
+    "contexts": [
+      "CLOSED",
+      "CLOSED"
+    ],
+    "browser": "CLOSED",
+    "server": "CLOSED"
+  },
+  "firstFailure": {
+    "phase": "public History/NodeEditor second spacing edit",
+    "message": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Close editor', exact: true })\u001b[22m\n",
+    "stack": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Close editor', exact: true })\u001b[22m\n\n    at edit (/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/rectangular-cut-pattern-browser.mjs:105:73)\n    at async file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/rectangular-cut-pattern-browser.mjs:135:60"
+  }
+}

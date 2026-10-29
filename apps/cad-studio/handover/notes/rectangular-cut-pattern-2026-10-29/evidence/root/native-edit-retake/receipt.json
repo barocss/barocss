@@ -1,0 +1,974 @@
+{
+  "status": "PASS",
+  "profiles": 1,
+  "backend": "webgpu",
+  "mode": "RESUME_EDIT_TAIL",
+  "prefix": "NOT_RERUN_REUSE_ORIGINAL_RECEIPT",
+  "states": [
+    {
+      "label": "resume-original-accepted",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {
+          "seedX": 8,
+          "spacing": 16,
+          "spacing2": 16,
+          "copies": 3
+        },
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              8
+            ],
+            "max": [
+              4,
+              12
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 4,
+                "d": 4,
+                "h": 10,
+                "x": 0,
+                "y": 8,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "translate",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "offset": [
+              {
+                "parameter": "seedX"
+              },
+              0,
+              0
+            ],
+            "id": "n4"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 4,
+              "side": "solid"
+            },
+            "id": "n5"
+          },
+          {
+            "kind": "rectangular-feature-pattern",
+            "parent": {
+              "node": 5,
+              "side": "solid"
+            },
+            "axis": "x",
+            "spacing": 16,
+            "count": 3,
+            "axis2": "y",
+            "spacing2": 16,
+            "count2": 2,
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 23040.000000000065,
+            "centroid": [
+              30.16666666666651,
+              20.08333333333332,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "selection": {
+        "selection": {
+          "faces": [],
+          "edges": [],
+          "bodies": [
+            0
+          ]
+        },
+        "bodies": 1,
+        "active": null,
+        "sketch": false,
+        "measure": false
+      },
+      "backend": "webgpu",
+      "hud": null,
+      "hudStatus": null,
+      "shownMesh": {
+        "gpu": true,
+        "exact": false,
+        "clip": null,
+        "hatch": {
+          "spacing": 1,
+          "lines": null
+        },
+        "bodies": 1,
+        "mode": null,
+        "planes": null,
+        "volume": null,
+        "shownVolume": 23040,
+        "shownKeys": [
+          "b6"
+        ],
+        "sources": [
+          "b6"
+        ],
+        "offsets": null
+      },
+      "inspector": "BODYName Colour Visible Bounds 60 × 40 × 10 boxVolume 23040 mm³Mass 62.2 gMaterial · defaultAluminium 6061Steel (mild)Stainless 304BrassTitanium Ti-6Al-4VABSPLANylon PA12PolycarbonatePolypropylenePETGAcetal (POM)Standard resin (SLA)Zinc alloy (Zamak 3 class)Aluminium die-casting alloy (A380 class)Magnesium die-casting alloy (AZ91D class)Aluminium casting alloy (A356 class)Grey cast ironCentre of mass 30.17, 20.08, 5Inertiaabout the centre of massabout the originIxx Iyy Izz 8978 · 19469 · 27411 g·mm²Ixy Iyz Ixz 21.6 · 0 · 0Surface area 7568 mm²Faces 30Point testTest",
+      "editor": null,
+      "feedback": []
+    },
+    {
+      "label": "edit-second-spacing",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {
+          "seedX": 8,
+          "spacing": 16,
+          "spacing2": 16,
+          "copies": 3
+        },
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              8
+            ],
+            "max": [
+              4,
+              12
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 4,
+                "d": 4,
+                "h": 10,
+                "x": 0,
+                "y": 8,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "translate",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "offset": [
+              {
+                "parameter": "seedX"
+              },
+              0,
+              0
+            ],
+            "id": "n4"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 4,
+              "side": "solid"
+            },
+            "id": "n5"
+          },
+          {
+            "kind": "rectangular-feature-pattern",
+            "parent": {
+              "node": 5,
+              "side": "solid"
+            },
+            "axis": "x",
+            "spacing": 16,
+            "count": 3,
+            "axis2": "y",
+            "spacing2": 12,
+            "count2": 2,
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 23040.00000000009,
+            "centroid": [
+              30.166666666666476,
+              20.16666666666659,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "selection": {
+        "selection": {
+          "faces": [],
+          "edges": [],
+          "bodies": [
+            0
+          ]
+        },
+        "bodies": 1,
+        "active": null,
+        "sketch": false,
+        "measure": false
+      },
+      "backend": "webgpu",
+      "hud": null,
+      "hudStatus": null,
+      "shownMesh": {
+        "gpu": true,
+        "exact": false,
+        "clip": null,
+        "hatch": {
+          "spacing": 1,
+          "lines": null
+        },
+        "bodies": 1,
+        "mode": null,
+        "planes": null,
+        "volume": null,
+        "shownVolume": 23040,
+        "shownKeys": [
+          "b6"
+        ],
+        "sources": [
+          "b6"
+        ],
+        "offsets": null
+      },
+      "inspector": "BODYName Colour Visible Bounds 60 × 40 × 10 boxVolume 23040 mm³Mass 62.2 gMaterial · defaultAluminium 6061Steel (mild)Stainless 304BrassTitanium Ti-6Al-4VABSPLANylon PA12PolycarbonatePolypropylenePETGAcetal (POM)Standard resin (SLA)Zinc alloy (Zamak 3 class)Aluminium die-casting alloy (A380 class)Magnesium die-casting alloy (AZ91D class)Aluminium casting alloy (A356 class)Grey cast ironCentre of mass 30.17, 20.17, 5Inertiaabout the centre of massabout the originIxx Iyy Izz 9018 · 19469 · 27451 g·mm²Ixy Iyz Ixz 43.2 · 0 · 0Surface area 7568 mm²Faces 30Point testTest",
+      "editor": null,
+      "feedback": []
+    },
+    {
+      "label": "edit-first-count",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {
+          "seedX": 8,
+          "spacing": 16,
+          "spacing2": 16,
+          "copies": 3
+        },
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              8
+            ],
+            "max": [
+              4,
+              12
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 4,
+                "d": 4,
+                "h": 10,
+                "x": 0,
+                "y": 8,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "translate",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "offset": [
+              {
+                "parameter": "seedX"
+              },
+              0,
+              0
+            ],
+            "id": "n4"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 4,
+              "side": "solid"
+            },
+            "id": "n5"
+          },
+          {
+            "kind": "rectangular-feature-pattern",
+            "parent": {
+              "node": 5,
+              "side": "solid"
+            },
+            "axis": "x",
+            "spacing": 16,
+            "count": 2,
+            "axis2": "y",
+            "spacing2": 12,
+            "count2": 2,
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 23360.000000000055,
+            "centroid": [
+              30.32876712328753,
+              20.109589041095845,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "selection": {
+        "selection": {
+          "faces": [],
+          "edges": [],
+          "bodies": [
+            0
+          ]
+        },
+        "bodies": 1,
+        "active": null,
+        "sketch": false,
+        "measure": false
+      },
+      "backend": "webgpu",
+      "hud": null,
+      "hudStatus": null,
+      "shownMesh": {
+        "gpu": true,
+        "exact": false,
+        "clip": null,
+        "hatch": {
+          "spacing": 1,
+          "lines": null
+        },
+        "bodies": 1,
+        "mode": null,
+        "planes": null,
+        "volume": null,
+        "shownVolume": 23360,
+        "shownKeys": [
+          "b6"
+        ],
+        "sources": [
+          "b6"
+        ],
+        "offsets": null
+      },
+      "inspector": "BODYName Colour Visible Bounds 60 × 40 × 10 boxVolume 23360 mm³Mass 63.1 gMaterial · defaultAluminium 6061Steel (mild)Stainless 304BrassTitanium Ti-6Al-4VABSPLANylon PA12PolycarbonatePolypropylenePETGAcetal (POM)Standard resin (SLA)Zinc alloy (Zamak 3 class)Aluminium die-casting alloy (A380 class)Magnesium die-casting alloy (AZ91D class)Aluminium casting alloy (A356 class)Grey cast ironCentre of mass 30.33, 20.11, 5Inertiaabout the centre of massabout the originIxx Iyy Izz 9073 · 19597 · 27619 g·mm²Ixy Iyz Ixz 85.2 · 0 · 0Surface area 7312 mm²Faces 22Point testTest",
+      "editor": null,
+      "feedback": []
+    },
+    {
+      "label": "10-edited-fresh-open",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {
+          "seedX": 8,
+          "spacing": 16,
+          "spacing2": 16,
+          "copies": 3
+        },
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              8
+            ],
+            "max": [
+              4,
+              12
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 4,
+                "d": 4,
+                "h": 10,
+                "x": 0,
+                "y": 8,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "translate",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "offset": [
+              {
+                "parameter": "seedX"
+              },
+              0,
+              0
+            ],
+            "id": "n4"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 4,
+              "side": "solid"
+            },
+            "id": "n5"
+          },
+          {
+            "kind": "rectangular-feature-pattern",
+            "parent": {
+              "node": 5,
+              "side": "solid"
+            },
+            "axis": "x",
+            "spacing": 16,
+            "count": 2,
+            "axis2": "y",
+            "spacing2": 12,
+            "count2": 2,
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 23360.000000000055,
+            "centroid": [
+              30.32876712328753,
+              20.109589041095845,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "selection": {
+        "selection": {
+          "faces": [],
+          "edges": [],
+          "bodies": [
+            0
+          ]
+        },
+        "bodies": 1,
+        "active": null,
+        "sketch": false,
+        "measure": false
+      },
+      "backend": "webgpu",
+      "hud": null,
+      "hudStatus": null,
+      "shownMesh": {
+        "gpu": true,
+        "exact": false,
+        "clip": null,
+        "hatch": {
+          "spacing": 1,
+          "lines": null
+        },
+        "bodies": 1,
+        "mode": null,
+        "planes": null,
+        "volume": null,
+        "shownVolume": 23360,
+        "shownKeys": [
+          "b6"
+        ],
+        "sources": [
+          "b6"
+        ],
+        "offsets": null
+      },
+      "inspector": "BODYName Colour Visible Bounds 60 × 40 × 10 boxVolume 23360 mm³Mass 63.1 gMaterial · defaultAluminium 6061Steel (mild)Stainless 304BrassTitanium Ti-6Al-4VABSPLANylon PA12PolycarbonatePolypropylenePETGAcetal (POM)Standard resin (SLA)Zinc alloy (Zamak 3 class)Aluminium die-casting alloy (A380 class)Magnesium die-casting alloy (AZ91D class)Aluminium casting alloy (A356 class)Grey cast ironCentre of mass 30.33, 20.11, 5Inertiaabout the centre of massabout the originIxx Iyy Izz 9073 · 19597 · 27619 g·mm²Ixy Iyz Ixz 85.2 · 0 · 0Surface area 7312 mm²Faces 22Point testTest",
+      "editor": null,
+      "feedback": []
+    },
+    {
+      "label": "11-reeditable",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {
+          "seedX": 8,
+          "spacing": 16,
+          "spacing2": 16,
+          "copies": 3
+        },
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              8
+            ],
+            "max": [
+              4,
+              12
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 4,
+                "d": 4,
+                "h": 10,
+                "x": 0,
+                "y": 8,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "translate",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "offset": [
+              {
+                "parameter": "seedX"
+              },
+              0,
+              0
+            ],
+            "id": "n4"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 4,
+              "side": "solid"
+            },
+            "id": "n5"
+          },
+          {
+            "kind": "rectangular-feature-pattern",
+            "parent": {
+              "node": 5,
+              "side": "solid"
+            },
+            "axis": "x",
+            "spacing": 16,
+            "count": 2,
+            "axis2": "y",
+            "spacing2": 12,
+            "count2": 2,
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 23360.000000000055,
+            "centroid": [
+              30.32876712328753,
+              20.109589041095845,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "selection": {
+        "selection": {
+          "faces": [],
+          "edges": [],
+          "bodies": [
+            0
+          ]
+        },
+        "bodies": 1,
+        "active": null,
+        "sketch": false,
+        "measure": false
+      },
+      "backend": "webgpu",
+      "hud": null,
+      "hudStatus": null,
+      "shownMesh": {
+        "gpu": true,
+        "exact": false,
+        "clip": null,
+        "hatch": {
+          "spacing": 1,
+          "lines": null
+        },
+        "bodies": 1,
+        "mode": null,
+        "planes": null,
+        "volume": null,
+        "shownVolume": 23360,
+        "shownKeys": [
+          "b6"
+        ],
+        "sources": [
+          "b6"
+        ],
+        "offsets": null
+      },
+      "inspector": "BODYName Colour Visible Bounds 60 × 40 × 10 boxVolume 23360 mm³Mass 63.1 gMaterial · defaultAluminium 6061Steel (mild)Stainless 304BrassTitanium Ti-6Al-4VABSPLANylon PA12PolycarbonatePolypropylenePETGAcetal (POM)Standard resin (SLA)Zinc alloy (Zamak 3 class)Aluminium die-casting alloy (A380 class)Magnesium die-casting alloy (AZ91D class)Aluminium casting alloy (A356 class)Grey cast ironCentre of mass 30.33, 20.11, 5Inertiaabout the centre of massabout the originIxx Iyy Izz 9073 · 19597 · 27619 g·mm²Ixy Iyz Ixz 85.2 · 0 · 0Surface area 7312 mm²Faces 22Point testTestEDIT FEATURE closeFirst directionXYZFirst spacingmmƒseedXspacingspacing2copiesFirst countƒseedXspacingspacing2copiesSecond directionXYZSecond spacingmmƒseedXspacingspacing2copiesSecond countƒseedXspacingspacing2copiesdelete Delete featureApplyReset",
+      "editor": "EDIT FEATURE closeFirst directionXYZFirst spacingmmƒseedXspacingspacing2copiesFirst countƒseedXspacingspacing2copiesSecond directionXYZSecond spacingmmƒseedXspacingspacing2copiesSecond countƒseedXspacingspacing2copiesdelete Delete featureApplyReset",
+      "feedback": []
+    }
+  ],
+  "errors": [],
+  "consoleErrors": [],
+  "changes": [],
+  "cleanup": {
+    "contexts": [
+      "CLOSED",
+      "CLOSED"
+    ],
+    "browser": "CLOSED",
+    "server": "CLOSED"
+  },
+  "limits": [
+    "One bounded rectangular cut grid",
+    "Preview screenshot and HUD status; accepted mass is not preview mass",
+    "UI bounds are displayed extents, not an independent B-rep topology oracle",
+    "No curve/fill family, rendering matrix or release acceptance"
+  ],
+  "resumeInput": {
+    "file": "/tmp/d333-root/native-first/accepted.bcad",
+    "sha256": "ff80362274bb554c67dbdb8e5901a6b7a370436a7115885a61eda39b0e262075",
+    "nodeCount": 7,
+    "prefix": "NOT_RERUN",
+    "expectedCentroid": [
+      30.166666666666668,
+      20.083333333333332,
+      5
+    ],
+    "reusedPrefix": "Original creation/refusal/Cancel/Apply/Undo/Redo/Save/fresh Open receipt remains separate"
+  },
+  "editOracles": [
+    {
+      "field": "spacing2",
+      "value": 12,
+      "expectedVolume": 23040,
+      "expectedCentroid": [
+        30.166666666666668,
+        20.166666666666668,
+        5
+      ],
+      "basis": "Independent stock first moments minus disjoint authored 4×4×10 cut prisms; volume and centroid tolerance 1e-7"
+    },
+    {
+      "field": "count",
+      "value": 2,
+      "expectedVolume": 23360,
+      "expectedCentroid": [
+        30.328767123287673,
+        20.10958904109589,
+        5
+      ],
+      "basis": "Independent stock first moments minus disjoint authored 4×4×10 cut prisms; volume and centroid tolerance 1e-7"
+    }
+  ],
+  "files": [
+    {
+      "file": "/tmp/d333-root/native-edit-retake/edited.bcad",
+      "sha256": "3318d3b405fce376ec71639c6445e1349effb326ce376c20df075bef9528376f"
+    }
+  ],
+  "phase": "Save edited pattern and fresh Open"
+}

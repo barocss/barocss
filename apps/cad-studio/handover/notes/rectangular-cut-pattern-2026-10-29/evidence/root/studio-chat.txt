@@ -1,0 +1,148 @@
+TAP version 13
+# Subtest: tool schemas: every buildable command is exposed and documented with the HUD’s own value keys
+ok 1 - tool schemas: every buildable command is exposed and documented with the HUD’s own value keys
+  ---
+  duration_ms: 1065.710041
+  type: 'test'
+  ...
+# Subtest: run_command text relief preserves the prepared original and atomically refuses unsupported placement
+ok 2 - run_command text relief preserves the prepared original and atomically refuses unsupported placement
+  ---
+  duration_ms: 28.939333
+  type: 'test'
+  ...
+# Subtest: run_command applies the UI’s rules: availability reasons, value keys and ranges, names, kernel refusals
+ok 3 - run_command applies the UI’s rules: availability reasons, value keys and ranges, names, kernel refusals
+  ---
+  duration_ms: 7.694167
+  type: 'test'
+  ...
+# Subtest: a scripted model drives the MCP tool server: the plate with four corner holes and R2 vertical edges, correcting a refused hole
+ok 4 - a scripted model drives the MCP tool server: the plate with four corner holes and R2 vertical edges, correcting a refused hole
+  ---
+  duration_ms: 99.068666
+  type: 'test'
+  ...
+# Subtest: add_features checks nodes before the kernel; revolve and polygon profiles build
+ok 5 - add_features checks nodes before the kernel; revolve and polygon profiles build
+  ---
+  duration_ms: 9.140292
+  type: 'test'
+  ...
+# Subtest: edit_feature uses the feature editor’s fields; delete_feature renumbers later features, their names stay (A1)
+ok 6 - edit_feature uses the feature editor’s fields; delete_feature renumbers later features, their names stay (A1)
+  ---
+  duration_ms: 18.993
+  type: 'test'
+  ...
+# Subtest: measure, select and the part summary read the evaluated part by name
+ok 7 - measure, select and the part summary read the evaluated part by name
+  ---
+  duration_ms: 2.146667
+  type: 'test'
+  ...
+# Subtest: the chat server sends a state only when a tool changed the part since the last one (version, PERF3 A3)
+ok 8 - the chat server sends a state only when a tool changed the part since the last one (version, PERF3 A3)
+  ---
+  duration_ms: 91.597333
+  type: 'test'
+  ...
+# Subtest: the chat server runs the claude CLI with only the studio tools and streams text, tool calls, previews and the result
+ok 9 - the chat server runs the claude CLI with only the studio tools and streams text, tool calls, previews and the result
+  ---
+  duration_ms: 99.897541
+  type: 'test'
+  ...
+# Subtest: the chat server reports a missing CLI, failed turns, and kills the CLI when the browser stops a turn
+ok 10 - the chat server reports a missing CLI, failed turns, and kills the CLI when the browser stops a turn
+  ---
+  duration_ms: 4080.173958
+  type: 'test'
+  ...
+# Subtest: chat images: the server checks type, count, encoding and size; the browser scales to the model’s full-detail size
+ok 11 - chat images: the server checks type, count, encoding and size; the browser scales to the model’s full-detail size
+  ---
+  duration_ms: 5.819583
+  type: 'test'
+  ...
+# Subtest: the tracer splits a character bitmap into a silhouette and its colour regions, with holes
+ok 12 - the tracer splits a character bitmap into a silhouette and its colour regions, with holes
+  ---
+  duration_ms: 100.064417
+  type: 'test'
+  ...
+# Subtest: image width input: schema and describe use mm width; old keys and nonpositive widths are refused without changing the part
+ok 13 - image width input: schema and describe use mm width; old keys and nonpositive widths are refused without changing the part
+  ---
+  duration_ms: 38.628334
+  type: 'test'
+  ...
+# Subtest: extrude_image_layer builds a relief: the silhouette base and colour layers stacked at one scale
+ok 14 - extrude_image_layer builds a relief: the silhouette base and colour layers stacked at one scale
+  ---
+  duration_ms: 63.828042
+  type: 'test'
+  ...
+# Subtest: inflate_image_layer rounds the silhouette into a 3D body and sets features on its surface
+ok 15 - inflate_image_layer rounds the silhouette into a 3D body and sets features on its surface
+  ---
+  duration_ms: 766.071083
+  type: 'test'
+  ...
+# Subtest: the chat server refuses other sites: Origin or Host must be the studio’s, and turns must be JSON
+ok 16 - the chat server refuses other sites: Origin or Host must be the studio’s, and turns must be JSON
+  ---
+  duration_ms: 18.617625
+  type: 'test'
+  ...
+# Subtest: assembly tools: an agent proposes assembly changes (refused directly at every level); proposed and accepted they apply
+ok 17 - assembly tools: an agent proposes assembly changes (refused directly at every level); proposed and accepted they apply
+  ---
+  duration_ms: 8.45625
+  type: 'test'
+  ...
+# Subtest: assembly tools: a pin added as its own part, built, mated into a plate’s hole through the real solver
+ok 18 - assembly tools: a pin added as its own part, built, mated into a plate’s hole through the real solver
+  ---
+  duration_ms: 35.079292
+  type: 'test'
+  ...
+# Subtest: deleting a feature keeps the names mates and drawing dimensions use and the render keys (A1); refuses a mate on its faces
+ok 19 - deleting a feature keeps the names mates and drawing dimensions use and the render keys (A1); refuses a mate on its faces
+  ---
+  duration_ms: 0.488167
+  type: 'test'
+  ...
+# Subtest: mesh blobs reach the chat server once a conversation: later turns name them; a server without them answers 409 with their hashes
+ok 20 - mesh blobs reach the chat server once a conversation: later turns name them; a server without them answers 409 with their hashes
+  ---
+  duration_ms: 21.297958
+  type: 'test'
+  ...
+# Subtest: general loft guide: chat feature admission and the HUD keep the polynomial guide contract
+ok 21 - general loft guide: chat feature admission and the HUD keep the polynomial guide contract
+  ---
+  duration_ms: 15.166375
+  type: 'test'
+  ...
+# Subtest: O17: a turn through the AI SDK's Chat — text runs and tool parts in one assistant message; states and the end as data only
+ok 22 - O17: a turn through the AI SDK's Chat — text runs and tool parts in one assistant message; states and the end as data only
+  ---
+  duration_ms: 15.9695
+  type: 'test'
+  ...
+# Subtest: O17: an error and a stop — an error's notice stays in the turn's message; stopped, the stream is read no further; sendMessage settles
+ok 23 - O17: an error and a stop — an error's notice stays in the turn's message; stopped, the stream is read no further; sendMessage settles
+  ---
+  duration_ms: 55.232916
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 6734.386125

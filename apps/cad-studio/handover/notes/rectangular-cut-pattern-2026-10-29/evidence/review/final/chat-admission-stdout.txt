@@ -1,0 +1,2 @@
+source_sha256 packages/barocss-cad-model/src/chat/features.ts 01138bd2883b4a679ec177b0d23d51334fb83403d0135a3c3ea437b9758f0da0
+valid_rectangular_checkNode_actual null

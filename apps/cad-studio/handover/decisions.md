@@ -16484,3 +16484,38 @@ suites, naturalfailure/OOM/performance, Electron runtime or remoteCI/release acc
 Source d5c5d7a20; readinessfollowup5f845139c. Evidence: notes/selection-visibility-2026-10-29/qualification.json.
 Normal push authorized. Electron/WebGPU-only question is feasible support-policy discussion under15,
 not an adopted wrapper/backend-removal action. Next regular08 bounded two-axis cut feature pattern.
+
+
+## D333 — Repeat the original cut on two global axes (2026-10-29)
+
+Add one editable rectangular-feature-pattern node and public Part.rectangularFeaturePattern over the
+existing difference seed/tool path. Use two distinct global axes; positive public spacings<=10000,
+finite nonzero signed direct-core spacings with absolute value<=10000; safe counts1..64 and safe
+product<=64 including the original cut. Both Model spacings bind; count bindings refuse. Translate
+original tools, never stock copies. Stable string suffixes retain transform callbacks without per-cell
+rename closures. Default3×2XY; no schema bump, new engine, dependency or WASM change.
+
+Final candidate Kernel build and whole tests2212PASS/0FAIL/6existingSKIP (2218total, finalrectangular9),
+related Model70 and focused14 overlap; Studiochat23, types/build/scopedlint/APItools/refusals pass.
+Six-ruleAPI SCOPED_PASS is bounded; reviewed inventory adds6 exposure rows/changes12/removes0,
+coreResultChecks changes only snapshot feature-kind union. Independent review closes missing
+raw/chat wiring after exact three-piece restoration from preserved candidate. Retain initial missing
+API-export import failure and strict1×1 rawBrepID test failure. Earlier source flip cause UNKNOWN;
+44 matching sourcewatch observations cover22 listed inputs across2 segments, excluding that flip.
+Final wholeKernel started on the working-tree candidate; c99cb121 checkpoint metadata was committed
+during that run without changing Kernel bytes. Tests finished afterward. Changed inputs match
+before/after, without a full-graph claim. Latest22 listed inputs match Git, with the intentional
+tracked API expected not-profile baseline follow-up.
+
+Actual WebGPU creation prefix proves preview/seed23840, refusal/Cancel, product66 refusal/repair,
+Apply23040, Undo/Redo and Save/freshOpen. Entire first invocation remains FAIL: after spacing2 edit
+Apply auto-closed editor but obsolete Close editor click timed out. Resumed edit-tail PASS reopens
+original accepted.bcad and checks only spacing2=12 with authored volume+independent centroid,
+then count=2/fourcuts23360, Save/freshOpen/reeditable12/2. Old-centroid same-volume snapshot is not
+new-mass-readiness proof; corrected driver waits authored geometry oracle, not a product fix.
+One finite profile across retained prefix+tail, not one clean whole-flow PASS; captures/states are not
+testcases. Both receipts close all contexts/browser/server with0page/console errors/sourcechanges.
+Root views six-hole applied and four-hole fresh-open captures. Featurec99cb121c; API/driver17493e8f6.
+No fullModel/Studio/GPU/Viewer/assembly, wholeCG2, perf, naturalfailure, remoteCI/release or commercial
+acceptance. Post-assembly docs check exits0 (68pages/55shots/4811KB/860labels). Evidence:
+notes/rectangular-cut-pattern-2026-10-29/qualification.json. IncomingAPIboundary intake is separate.
