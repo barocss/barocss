@@ -138,3 +138,13 @@ Finish the selected D316 boundary, then select the most urgent registered task. 
 loss, wrong physical units and runtime failures precede optional extensions. Existing holds and
 source ownership remain in force. Push each qualified roadmap feature to `origin/local/cad-dev`
 with a normal push. Exclude unfinished changes. PR and release need direct owner instructions.
+
+### Additional package conditions received after transfer
+
+Seven source-only conditions are attached to existing roadmap acceptance scopes; see
+[the roadmap](../roadmap.md#additional-package-acceptance-gates--2026-10-29) and
+[retained report](commercial-capabilities-source-2026-10-29.md). The incoming report is preserved
+without starting implementation or creating issues. Model004 and GPU002 remain NOT_RUN after
+the reporting session's exit75 guard refusal. This intake ran no product probe. D316 remains selected.
+
+Retained source SHA256: `61ec10ca85052a676096de007c0e818cefe45eaecfeceacc4e24bb1d025ac515`.

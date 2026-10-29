@@ -138,6 +138,30 @@ closing all six after roadmap transfer. Fresh reads confirm6/6 CLOSED with bodie
 writes. Closure means transfer, not defect repair or product acceptance. All six acceptance tasks
 remain incomplete here. This intake reran no product test; apply the execution priority above.
 
+### Additional package acceptance gates — 2026-10-29
+
+An incoming investigation adds seven acceptance conditions to existing tasks only.
+[Retained source assessment](notes/commercial-capabilities-source-2026-10-29.md) uses baseline
+`5463dbf32` and comparison `b3de047be`; its cited production paths were unchanged between those
+commits. This is source assessment, not a new runtime or independent numeric qualification.
+No new issue, implementation queue or paused lane is activated. D316 remains selected.
+
+| Existing destination | Attached condition and minimum evidence |
+| --- | --- |
+| 16 CG10 / EA A14; #2210/#2215 | Follow mass fallback cause, method, units and density through the actual consumer. Kernel already defines `volumeBound` as an estimate and Studio already warns about mesh mass. Do not advertise that difference as certified enclosure or as centroid/inertia error. Compare one admitted fallback case independently, without changing tolerance. |
+| 12/16 public Model; #2181/#2184/#2208/#2228 | Reuse immutable Part and CandidateBoard. Identify the actual public edit acceptance owner. A second-operation failure preserves document/IDs/refs and Undo depth; successful acceptance is one identified Undo/Redo action. Cancel, late completion and idempotent retry must preserve the accepted state. Do not assume a new batch API is needed. |
+| 06/15/20 Studio recovery; #2228 | Verify host recovery wiring and actionable success/failure feedback while retaining unsaved document, dirty state and Undo. Device recreation and a newly completed frame are separate observations. Existing GPU recovery is present; no duplicate renderer is requested. |
+| O9/12/16 Stop; #2188/#2228 | Verify that Stop rolls back only its originating work. If the busy UI prevents unrelated commits, record that invariant and close the probe without code. Otherwise retain newer accepted edits and check subsequent work and Undo. No wrong-Undo defect is asserted by source inspection. |
+| 06 R2/22 and V6; #2213/#2188 | After the existing geometry-lifetime defect, measure one bounded long-session scene/capture/recovery sequence in a harness. Separate retained CPU arrays, live GPU objects, uploaded bytes and driver memory. Require stabilization/release; a new public telemetry API is conditional on a real host need. |
+| 05 V2/V5/16; #2228/#2180 | Choose the actual job's metric before adding measurement. Coaxial radius5 shaft/radius6 bore has axis distance0 but surface clearance1; offset0.25 gives0.25 and0.75. These are analytic expectations, not executed proof. Preserve revision/occurrence binding. Existing explicit point measurement may suffice. Repair pick/clipping first. |
+| 05 V1/V4/V5 plus06/16; #2228/#2213 | Reuse existing recovery guidance. Verify a completed frame, same revision, camera, selection and native measurement continuity after recreation; retain data and actionable feedback on forced failure. Callback tests alone do not qualify recovered pixels. |
+
+Prepared Model004 concurrent-save and GPU002 clear-lifetime probes remain **NOT_RUN**.
+The source report records guard refusal after31 seconds, exit75, load49; it did not bypass or
+retry in that cycle. Neither probe is a reproduced data-loss/leak defect. Its proposed later
+order Model004 then GPU002 is a deferred investigation plan, not permission to preempt D316.
+Issues2235–2240 already have roadmap ownership and are not registered again.
+
 ### 제품 완료와 인계의 공통 조건
 
 1. 기능의 입력·단위·좌표·참조·지원/거부 계약을 고정한다.
