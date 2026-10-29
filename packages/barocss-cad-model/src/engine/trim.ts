@@ -101,6 +101,13 @@ function nearestSeed(grid: readonly { uv: UV; p: number[] }[], p: readonly numbe
   return best.uv;
 }
 
+/** A generated display sample stays in the native closed domain, including its exact endpoints. */
+function displayParameter(lo: number, hi: number, index: number, count: number): number {
+  if (index === 0) return lo;
+  if (index === count) return hi;
+  return Math.max(lo, Math.min(hi, lo + (hi - lo) * index / count));
+}
+
 /** A mesh under construction: vertices by their (u, v) (shared by the triangles round them). */
 interface Mesh { at: At; u0: number; u1: number; v0: number; v1: number; su: number; sv: number; pos: number[]; nrm: number[]; idx: number[]; seen: Map<string, number> }
 function vertexOf(m: Mesh, u: number, v: number): number {
@@ -130,9 +137,9 @@ function clipInto(m: Mesh, t: readonly number[], ids: number[]): void {
 export function trimmedMesh(s: Surface, loops: readonly TrimLoop[], n = 64): { positions: Float32Array; normals: Float32Array; indices: Uint32Array } {
   const { u: [u0, u1], v: [v0, v1] } = surfaceDomain(s), su = u1 - u0, sv = v1 - v0;
   const F: number[][] = [];
-  for (let i = 0; i <= n; i++) { const row: number[] = []; for (let j = 0; j <= n; j++) row.push(field(loops, u0 + su * i / n, v0 + sv * j / n, su, sv)); F.push(row); }
+  for (let i = 0; i <= n; i++) { const row: number[] = []; for (let j = 0; j <= n; j++) row.push(field(loops, displayParameter(u0, u1, i, n), displayParameter(v0, v1, j, n), su, sv)); F.push(row); }
   const m: Mesh = { at: surfaceEvaluator(s), u0, u1, v0, v1, su, sv, pos: [], nrm: [], idx: [], seen: new Map() }, t = Array<number>(9).fill(0), ids: number[] = [];
-  const set = (k: number, a: number, b: number) => { t[3 * k] = u0 + su * a / n; t[3 * k + 1] = v0 + sv * b / n; t[3 * k + 2] = F[a][b]; };
+  const set = (k: number, a: number, b: number) => { t[3 * k] = displayParameter(u0, u1, a, n); t[3 * k + 1] = displayParameter(v0, v1, b, n); t[3 * k + 2] = F[a][b]; };
   for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
     set(0, i, j); set(1, i + 1, j); set(2, i + 1, j + 1); clipInto(m, t, ids);
     set(0, i, j); set(1, i + 1, j + 1); set(2, i, j + 1); clipInto(m, t, ids);

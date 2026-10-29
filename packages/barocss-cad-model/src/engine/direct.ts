@@ -526,6 +526,12 @@ export function directDisplay(d: DirectGeometry | undefined): DirectDisplay[] {
   displays = used;
   return shown;
 }
+/** A generated isocurve sample stays in the native closed domain, including its exact endpoints. */
+function displayParameter(lo: number, hi: number, index: number, count: number): number {
+  if (index === 0) return lo;
+  if (index === count) return hi;
+  return Math.max(lo, Math.min(hi, lo + (hi - lo) * index / count));
+}
 function displayOf(d: DirectGeometry, o: DirectGeometry['objects'][number]): DirectDisplay[] {
   try {
     const g = geometryOf(d, o);
@@ -545,11 +551,11 @@ function displayOf(d: DirectGeometry, o: DirectGeometry['objects'][number]): Dir
     // (Redrawn on every pole drag step: one evaluator, validated once, for all its samples.)
     const dom = surfaceDomain(g), at = surfaceEvaluator(g), iso: number[] = [], N = 32, su = dom.u[1] - dom.u[0], sv = dom.v[1] - dom.v[0];
     for (const [fixU, a, b] of [[true, dom.u, dom.v], [false, dom.v, dom.u]] as const) for (let k = 0; k <= 7; k++) {
-      const c = a[0] + (a[1] - a[0]) * k / 7;
+      const c = displayParameter(a[0], a[1], k, 7);
       let prev: readonly number[] | null = null;
       let was = true;
       for (let i = 0; i <= N; i++) {
-        const t = b[0] + (b[1] - b[0]) * i / N, u = fixU ? c : t, v = fixU ? t : c, q = at(u, v), keep = !trims || keptAt(trims, u, v, su, sv);
+        const t = displayParameter(b[0], b[1], i, N), u = fixU ? c : t, v = fixU ? t : c, q = at(u, v), keep = !trims || keptAt(trims, u, v, su, sv);
         if (prev && keep && was) iso.push(...prev, ...q); prev = q; was = keep;
       }
     }
