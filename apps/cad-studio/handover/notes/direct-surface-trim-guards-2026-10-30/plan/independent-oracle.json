@@ -1,0 +1,247 @@
+{
+  "sourceSupport": {
+    "domainU": [
+      -2,
+      6
+    ],
+    "domainV": [
+      1,
+      7
+    ],
+    "areaMM2": {
+      "exact": "1200",
+      "number": 1200.0
+    },
+    "centroidMM": [
+      {
+        "exact": "30",
+        "number": 30.0
+      },
+      {
+        "exact": "9",
+        "number": 9.0
+      },
+      {
+        "exact": "3",
+        "number": 3.0
+      }
+    ]
+  },
+  "outsideHole": {
+    "areaMM2": {
+      "exact": "1100",
+      "number": 1100.0
+    },
+    "centroidMM": [
+      {
+        "exact": "340/11",
+        "number": 30.90909090909091
+      },
+      {
+        "exact": "104/11",
+        "number": 9.454545454545455
+      },
+      {
+        "exact": "3",
+        "number": 3.0
+      }
+    ],
+    "volume": "NOT_APPLICABLE_OPEN_SURFACE"
+  },
+  "insideIsland": {
+    "areaMM2": {
+      "exact": "100",
+      "number": 100.0
+    },
+    "centroidMM": [
+      {
+        "exact": "20",
+        "number": 20.0
+      },
+      {
+        "exact": "4",
+        "number": 4.0
+      },
+      {
+        "exact": "3",
+        "number": 3.0
+      }
+    ],
+    "volume": "NOT_APPLICABLE_OPEN_SURFACE"
+  },
+  "trimLossCounterexample": {
+    "lostAreaMM2": {
+      "exact": "100",
+      "number": 100.0
+    },
+    "wrongFullSupportAreaMM2": {
+      "exact": "1200",
+      "number": 1200.0
+    },
+    "wrongFullSupportThickenT2VolumeMM3": {
+      "exact": "2400",
+      "number": 2400.0
+    },
+    "hypotheticalTrimmedExtrusionT2VolumeMM3": {
+      "exact": "2200",
+      "number": 2200.0
+    },
+    "expectedProductBehavior": "REFUSE_TRIMMED_THICKEN_NOT_CREATE_EITHER_SOLID"
+  },
+  "independentWitnessBox": {
+    "min": [
+      80,
+      -3,
+      1
+    ],
+    "max": [
+      92,
+      4,
+      6
+    ],
+    "volumeMM3": {
+      "exact": "420",
+      "number": 420.0
+    },
+    "centroidMM": [
+      {
+        "exact": "86",
+        "number": 86.0
+      },
+      {
+        "exact": "1/2",
+        "number": 0.5
+      },
+      {
+        "exact": "7/2",
+        "number": 3.5
+      }
+    ]
+  },
+  "parameterMappingForPossibleLaterReversal": {
+    "u": [
+      {
+        "sourceUV": [
+          "-1",
+          "2"
+        ],
+        "mappedUV": [
+          "5",
+          "2"
+        ],
+        "world": [
+          "15",
+          "-1",
+          "3"
+        ]
+      },
+      {
+        "sourceUV": [
+          "1",
+          "2"
+        ],
+        "mappedUV": [
+          "3",
+          "2"
+        ],
+        "world": [
+          "25",
+          "-1",
+          "3"
+        ]
+      },
+      {
+        "sourceUV": [
+          "1",
+          "4"
+        ],
+        "mappedUV": [
+          "3",
+          "4"
+        ],
+        "world": [
+          "25",
+          "9",
+          "3"
+        ]
+      },
+      {
+        "sourceUV": [
+          "-1",
+          "4"
+        ],
+        "mappedUV": [
+          "5",
+          "4"
+        ],
+        "world": [
+          "15",
+          "9",
+          "3"
+        ]
+      }
+    ],
+    "v": [
+      {
+        "sourceUV": [
+          "-1",
+          "2"
+        ],
+        "mappedUV": [
+          "-1",
+          "6"
+        ],
+        "world": [
+          "15",
+          "-1",
+          "3"
+        ]
+      },
+      {
+        "sourceUV": [
+          "1",
+          "2"
+        ],
+        "mappedUV": [
+          "1",
+          "6"
+        ],
+        "world": [
+          "25",
+          "-1",
+          "3"
+        ]
+      },
+      {
+        "sourceUV": [
+          "1",
+          "4"
+        ],
+        "mappedUV": [
+          "1",
+          "4"
+        ],
+        "world": [
+          "25",
+          "9",
+          "3"
+        ]
+      },
+      {
+        "sourceUV": [
+          "-1",
+          "4"
+        ],
+        "mappedUV": [
+          "-1",
+          "4"
+        ],
+        "world": [
+          "15",
+          "9",
+          "3"
+        ]
+      }
+    ]
+  }
+}

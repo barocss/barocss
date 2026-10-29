@@ -3,6 +3,14 @@
 The owner asked: "지금까지 하던거 멈추고 인수인계 할 수 있도록 해줘". This note lets the next session continue the
 kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-10-27 to 2026-10-28.
 
+## Latest D336 checkpoint — 2026-10-30
+
+- D336 prevents silent trim loss at existing direct-surface Reverse/Split/Region/Extend, surface intersection and visible IGES export. These inputs now refuse before a partial result, selection change or file download. Explicit Untrim and ordinary untrimmed operations remain available. This adds no trim mapping or clipping support.
+- Source `7ab1a23c9`; [qualification](../direct-surface-trim-guards-2026-10-30/qualification.json). Pre-fix Model execution confirms all six material-loss paths; original objects remain hidden with trims. Mathematical area1100 is separate from the existing sampled display area1100.081380233.
+- Related Model24 and final focused7/types/lint pass. Studio types/build, unchanged API inventory, agent-tools and refusals pass. No Kernel code changed; the D335 Kernel result is an earlier unchanged-code receipt, not a new D336 full-suite run.
+- Actual one-browser serial-context WebGPU FULL_FLOW passes all six new-notice/no-download/document/selection refusals, explicit Untrim/Reverse, two Undo/Redo pairs, positive IGES download/public reimport and native Save/fresh Open. Witness volume420 and centroid[86,0.5,3.5] remain stable. No thicken UI or trimmed-solid acceptance is claimed.
+- Continue remaining08 before09. Functional trim mapping/clipping and broader direct-surface editing remain open. Existing async IGES document ownership is a source-only NOT_REPRODUCED candidate under12/O9/R4. Next decision: D337. Electron15 remains queued; normal per-feature push is authorized, no PR/release.
+
 ## Latest D335 checkpoint — 2026-10-30
 
 - D335 adds a finite XY cut grid filtered by a copied polygon region. The mask tests authored reference points, including the boundary; it does not clip tools or certify full tool containment. Native simple regions have3..16 vertices; at most64 candidate cells are admitted before masking. The original CUT remains.

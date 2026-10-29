@@ -1,0 +1,50 @@
+{
+  "head": "7ab1a23c9ed2aed24d8281430eff04591f118171",
+  "scope": "Listed changed inputs and actual Studio/file consumer witnesses, not complete served graph",
+  "files": [
+    {
+      "path": "packages/barocss-cad-model/src/engine/direct.ts",
+      "sha256": "a0c927e4e2af7d61f15f88d431c99f88e8d3882ea3563e95ee331a797b90f9ac"
+    },
+    {
+      "path": "packages/barocss-cad-model/test/direct-trim-guards.test.ts",
+      "sha256": "10c483e5ff521ba2c04b2d1721c9f7d35d3c9f3344ae25f443f3f3880b328b7d"
+    },
+    {
+      "path": "apps/cad-studio/test/direct-trim-guards-browser.mjs",
+      "sha256": "c6d49ae14888e1036153b674b57df35913192ab596a70fa90abbe84fcf4ac73a"
+    },
+    {
+      "path": "apps/cad-studio/src/App.tsx",
+      "sha256": "7b77b98d715d8018a861e500f2607b50d2a09a49c01b78398a68efbd3a220a77"
+    },
+    {
+      "path": "apps/cad-studio/src/ui/DirectPanel.tsx",
+      "sha256": "705eb1397edfa07e294ba6d91d4da275dbca66ea8f6e848f3d69a5e4b0707adc"
+    },
+    {
+      "path": "apps/cad-studio/src/ui/DirectInspector.tsx",
+      "sha256": "01926adf85aa8c05645f6a24743c8f2dcfb1ba066bb1b83c7808985293b81ebc"
+    },
+    {
+      "path": "apps/cad-studio/src/app/directGeometry.ts",
+      "sha256": "8d2a849da71a8ef4ee08dd1dc45b6d680b319f772c7033037529d8a46c5ba885"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/trim.ts",
+      "sha256": "d8d0e4f6b1468381cf5baa0960ceea1042678037c2b1a1f9b9ed154b4bdc9467"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/container.ts",
+      "sha256": "50a1ed89cc9f354882932a1a8a701cfc9b5f44669cad6f92ee235cd0810d38fc"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/migrate.ts",
+      "sha256": "bb19df68a365e2b936f24f3ebf225c4d590c739ac95812ebc0e0f16731ce4bdf"
+    },
+    {
+      "path": "apps/library-docs/scripts/api-inventory.expected.json",
+      "sha256": "8b0303653011744a8a1bb21956f418c6bcc760157d47e1a80e50a62a4ebe2b1a"
+    }
+  ]
+}

@@ -112,3 +112,13 @@ The command's **Region snapshot** captures resolved points from one eligible clo
 world XY sketch. Later sketch edits do not change the pattern. The feature editor can capture
 a new snapshot. Curved, holed, multiple, unresolved and unsupported framed regions are refused.
 The copied inline region and reference survive native Save/Open and nested part placement.
+
+### Trimmed direct surfaces
+
+`directOps.reverseSurface`, `splitSurface`, `surfaceRegion` and `extendSurface` refuse
+surfaces with trims before making a new result. `surfaceIntersection` refuses either
+trimmed operand. These operations do not yet map or clip trim boundaries.
+
+`directIGES` refuses the whole export when any visible surface has trims. Hidden trimmed
+objects do not block export of the other visible curves and surfaces. Explicit `Untrim`
+removes trims when that is intended; ordinary untrimmed operations remain available.

@@ -1,0 +1,679 @@
+{
+  "label": "06-undo-reverse",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          80,
+          -3
+        ],
+        "max": [
+          92,
+          4
+        ],
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 5,
+        "from": 1,
+        "id": "n1",
+        "made": {
+          "command": "box",
+          "values": {
+            "w": 12,
+            "d": 7,
+            "h": 5,
+            "x": 80,
+            "y": -3,
+            "z": 1
+          }
+        }
+      }
+    ],
+    "outputs": {
+      "b1": {
+        "node": 1,
+        "side": "solid"
+      }
+    },
+    "nextId": 2,
+    "direct": {
+      "sources": {
+        "src_1": "@model d336 { version:0; length-unit:mm;\n @surface #panel { type:nurbs; degree-u:1; degree-v:1; knots-u:[-2,-2,6,6]; knots-v:[1,1,7,7]; control-points:[[[10,-6,3],[10,24,3]],[[50,-6,3],[50,24,3]]]; weights:[[1,1],[1,1]]; }\n @curve #hole { type:nurbs; degree:1; knots:[0,0,1,2,3,4,4]; control-points:[[15,-1,3],[25,-1,3],[25,9,3],[15,9,3],[15,-1,3]]; weights:[1,1,1,1,1]; }\n @surface #wall { type:nurbs; degree-u:1; degree-v:1; knots-u:[0,0,1,1]; knots-v:[0,0,1,1]; control-points:[[[20,-8,-2],[20,-8,8]],[[20,26,-2],[20,26,8]]]; weights:[[1,1],[1,1]]; }\n}"
+      },
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "D336 · panel",
+          "source": "src_1",
+          "geometry": "panel"
+        },
+        {
+          "id": "obj_2",
+          "name": "D336 · hole",
+          "source": "src_1",
+          "geometry": "hole",
+          "hidden": true
+        },
+        {
+          "id": "obj_3",
+          "name": "D336 · wall",
+          "source": "src_1",
+          "geometry": "wall"
+        }
+      ]
+    }
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b1",
+        "volume": 420.0000000000001,
+        "centroid": [
+          85.99999999999996,
+          0.4999999999999998,
+          3.5
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 1,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "directRows": [
+    {
+      "text": "gestureD336 · panel",
+      "className": "ol direct",
+      "title": "D336 · panel"
+    },
+    {
+      "text": "visibility_offD336 · hole",
+      "className": "ol direct hidden-obj",
+      "title": "Hidden: click to show"
+    },
+    {
+      "text": "gestureD336 · wall",
+      "className": "ol direct",
+      "title": "D336 · wall"
+    }
+  ],
+  "feedback": [],
+  "buttonLabels": [
+    {
+      "text": "",
+      "aria": "Box"
+    },
+    {
+      "text": "",
+      "aria": "Cylinder"
+    },
+    {
+      "text": "",
+      "aria": "Sphere"
+    },
+    {
+      "text": "",
+      "aria": "Cone"
+    },
+    {
+      "text": "",
+      "aria": "Torus"
+    },
+    {
+      "text": "",
+      "aria": "Spur gear"
+    },
+    {
+      "text": "more_horiz",
+      "aria": "More shapes"
+    },
+    {
+      "text": "Model",
+      "aria": null
+    },
+    {
+      "text": "Sketch",
+      "aria": null
+    },
+    {
+      "text": "Render",
+      "aria": null
+    },
+    {
+      "text": "Drawing",
+      "aria": null
+    },
+    {
+      "text": "chat",
+      "aria": "Chat"
+    },
+    {
+      "text": "undo",
+      "aria": "Undo"
+    },
+    {
+      "text": "redo",
+      "aria": "Redo"
+    },
+    {
+      "text": "add_box",
+      "aria": "New part"
+    },
+    {
+      "text": "library_add",
+      "aria": "New from a template"
+    },
+    {
+      "text": "menu_book",
+      "aria": "Library"
+    },
+    {
+      "text": "function",
+      "aria": "Parameters"
+    },
+    {
+      "text": "folder_open",
+      "aria": "Open"
+    },
+    {
+      "text": "save",
+      "aria": "Save"
+    },
+    {
+      "text": "history",
+      "aria": "Project and versions"
+    },
+    {
+      "text": "download",
+      "aria": "Export STL"
+    },
+    {
+      "text": "print",
+      "aria": "Export 3MF"
+    },
+    {
+      "text": "deployed_code_update",
+      "aria": "Export STEP"
+    },
+    {
+      "text": "polyline",
+      "aria": "Export IGES"
+    },
+    {
+      "text": "add_to_photos",
+      "aria": "Insert part"
+    },
+    {
+      "text": "",
+      "aria": "Sketch"
+    },
+    {
+      "text": "",
+      "aria": "Extrude"
+    },
+    {
+      "text": "",
+      "aria": "Revolve"
+    },
+    {
+      "text": "",
+      "aria": "Pipe"
+    },
+    {
+      "text": "",
+      "aria": "Sweep"
+    },
+    {
+      "text": "",
+      "aria": "Loft"
+    },
+    {
+      "text": "",
+      "aria": "Sheet plate"
+    },
+    {
+      "text": "",
+      "aria": "Sheet profile"
+    },
+    {
+      "text": "",
+      "aria": "Structural member"
+    },
+    {
+      "text": "",
+      "aria": "Frame"
+    },
+    {
+      "text": "",
+      "aria": "Shaft"
+    },
+    {
+      "text": "",
+      "aria": "Key"
+    },
+    {
+      "text": "",
+      "aria": "Retaining ring"
+    },
+    {
+      "text": "",
+      "aria": "Dowel pin"
+    },
+    {
+      "text": "",
+      "aria": "Bearing"
+    },
+    {
+      "text": "",
+      "aria": "Sprocket"
+    },
+    {
+      "text": "",
+      "aria": "Pulley"
+    },
+    {
+      "text": "",
+      "aria": "Belt or chain"
+    },
+    {
+      "text": "",
+      "aria": "Coupling"
+    },
+    {
+      "text": "text_fields",
+      "aria": "Text"
+    },
+    {
+      "text": "",
+      "aria": "Worm gear pair"
+    },
+    {
+      "text": "",
+      "aria": "Spring"
+    },
+    {
+      "text": "",
+      "aria": "Cam"
+    },
+    {
+      "text": "",
+      "aria": "Meshing gear"
+    },
+    {
+      "text": "",
+      "aria": "Gear rack"
+    },
+    {
+      "text": "",
+      "aria": "Mount"
+    },
+    {
+      "text": "",
+      "aria": "Hole"
+    },
+    {
+      "text": "",
+      "aria": "Offset face"
+    },
+    {
+      "text": "",
+      "aria": "Flange"
+    },
+    {
+      "text": "",
+      "aria": "Corner relief"
+    },
+    {
+      "text": "",
+      "aria": "Keyway"
+    },
+    {
+      "text": "",
+      "aria": "O-ring gland"
+    },
+    {
+      "text": "",
+      "aria": "Connector opening"
+    },
+    {
+      "text": "",
+      "aria": "Gusset"
+    },
+    {
+      "text": "",
+      "aria": "End cap"
+    },
+    {
+      "text": "text_fields",
+      "aria": "Text relief"
+    },
+    {
+      "text": "wrap_text",
+      "aria": "Cylindrical wrap"
+    },
+    {
+      "text": "",
+      "aria": "Draft"
+    },
+    {
+      "text": "",
+      "aria": "Face fillet"
+    },
+    {
+      "text": "",
+      "aria": "Thread"
+    },
+    {
+      "text": "",
+      "aria": "Full round"
+    },
+    {
+      "text": "",
+      "aria": "Chamfer"
+    },
+    {
+      "text": "",
+      "aria": "Fillet"
+    },
+    {
+      "text": "",
+      "aria": "Simplify mesh"
+    },
+    {
+      "text": "",
+      "aria": "Shell"
+    },
+    {
+      "text": "",
+      "aria": "Move"
+    },
+    {
+      "text": "",
+      "aria": "Rotate"
+    },
+    {
+      "text": "",
+      "aria": "Scale"
+    },
+    {
+      "text": "",
+      "aria": "Align"
+    },
+    {
+      "text": "",
+      "aria": "Split"
+    },
+    {
+      "text": "",
+      "aria": "Hollow for printing"
+    },
+    {
+      "text": "",
+      "aria": "Fill with a lattice"
+    },
+    {
+      "text": "",
+      "aria": "Split to fit the bed"
+    },
+    {
+      "text": "",
+      "aria": "Edit cage"
+    },
+    {
+      "text": "",
+      "aria": "Mirror"
+    },
+    {
+      "text": "",
+      "aria": "Duplicate"
+    },
+    {
+      "text": "",
+      "aria": "Linear cut pattern"
+    },
+    {
+      "text": "",
+      "aria": "Fill cut pattern"
+    },
+    {
+      "text": "",
+      "aria": "Path cut pattern"
+    },
+    {
+      "text": "",
+      "aria": "Rectangular cut pattern"
+    },
+    {
+      "text": "",
+      "aria": "Linear pattern"
+    },
+    {
+      "text": "",
+      "aria": "Circular pattern"
+    },
+    {
+      "text": "",
+      "aria": "Union"
+    },
+    {
+      "text": "",
+      "aria": "Subtract"
+    },
+    {
+      "text": "",
+      "aria": "Intersect"
+    },
+    {
+      "text": "",
+      "aria": "Fit class"
+    },
+    {
+      "text": "",
+      "aria": "Fit pair"
+    },
+    {
+      "text": "",
+      "aria": "Interference"
+    },
+    {
+      "text": "",
+      "aria": "Measure"
+    },
+    {
+      "text": "",
+      "aria": "BOM"
+    },
+    {
+      "text": "",
+      "aria": "Rebuild"
+    },
+    {
+      "text": "tune",
+      "aria": "Variants"
+    },
+    {
+      "text": "short_text",
+      "aria": "Show history step names"
+    },
+    {
+      "text": "",
+      "aria": "Box 12×7×5"
+    },
+    {
+      "text": "",
+      "aria": "Roll forward to the end"
+    },
+    {
+      "text": "Display",
+      "aria": "Display and previews"
+    },
+    {
+      "text": "Iso",
+      "aria": null
+    },
+    {
+      "text": "Top",
+      "aria": null
+    },
+    {
+      "text": "Front",
+      "aria": null
+    },
+    {
+      "text": "Right",
+      "aria": null
+    },
+    {
+      "text": "fit_screen",
+      "aria": null
+    },
+    {
+      "text": "",
+      "aria": "Section view"
+    },
+    {
+      "text": "Ortho",
+      "aria": null
+    },
+    {
+      "text": "AO",
+      "aria": null
+    },
+    {
+      "text": "Analyse",
+      "aria": "Surface analysis"
+    },
+    {
+      "text": "Maps",
+      "aria": "Analysis map"
+    },
+    {
+      "text": "light_mode",
+      "aria": "Toggle light or dark theme"
+    },
+    {
+      "text": "ads_clickPick all",
+      "aria": "Selection filter"
+    },
+    {
+      "text": "adjustSnap 1 mm",
+      "aria": "Snap"
+    },
+    {
+      "text": "left_panel_close",
+      "aria": "Collapse the browser"
+    },
+    {
+      "text": "chevron_right",
+      "aria": "Show its features"
+    },
+    {
+      "text": "visibility",
+      "aria": "Hide body"
+    },
+    {
+      "text": "Box",
+      "aria": null
+    },
+    {
+      "text": "gestureD336 · panel",
+      "aria": null
+    },
+    {
+      "text": "visibility_offD336 · hole",
+      "aria": null
+    },
+    {
+      "text": "gestureD336 · wall",
+      "aria": null
+    },
+    {
+      "text": "Save setup",
+      "aria": null
+    },
+    {
+      "text": "Open setup",
+      "aria": null
+    },
+    {
+      "text": "Use inputs",
+      "aria": null
+    },
+    {
+      "text": "Run saved setup",
+      "aria": null
+    },
+    {
+      "text": "Bind setup to current design",
+      "aria": null
+    },
+    {
+      "text": "Calculate holding torque",
+      "aria": null
+    },
+    {
+      "text": "Download previous calculation record",
+      "aria": null
+    },
+    {
+      "text": "Open gravity record",
+      "aria": null
+    },
+    {
+      "text": "Pin this record",
+      "aria": null
+    },
+    {
+      "text": "Unpin record",
+      "aria": null
+    },
+    {
+      "text": "PREVIEW & ANALYSISNoneexpand_less",
+      "aria": "Collapse Preview & analysis"
+    },
+    {
+      "text": "None",
+      "aria": "Preview: None"
+    },
+    {
+      "text": "CNC",
+      "aria": "Preview: CNC"
+    },
+    {
+      "text": "Print",
+      "aria": "Preview: Print"
+    },
+    {
+      "text": "Clearance",
+      "aria": "Preview: Clearance"
+    },
+    {
+      "text": "Analysis",
+      "aria": "Preview: Analysis"
+    },
+    {
+      "text": "chat",
+      "aria": "Open chat"
+    }
+  ]
+}

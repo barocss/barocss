@@ -79,9 +79,12 @@ is kept in the project instead.
 | Export | What it writes |
 |---|---|
 | **Export STEP** | Exact solids and mesh bodies in the selected STEP representation |
-| **Export IGES** | The visible curves and surfaces, when the part has some |
+| **Export IGES** | Visible curves and untrimmed surfaces; a visible trimmed surface refuses the whole export |
 | **Export STL** | Triangles in millimetres, one file per body, with no colours, names or exact curves |
 | **Export 3MF** | For a slicer: bodies, materials, colours and the print orientation |
+
+Hidden trimmed surfaces do not block IGES export of the other visible geometry.
+Use **Untrim** only when you intend to remove a surface's trims.
 
 ### Choose how STEP writes mesh bodies
 

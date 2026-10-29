@@ -1,0 +1,17 @@
+{
+  "direct": {
+    "sources": {
+      "src_1": "@model D336_roundtrip { version:0; length-unit:mm;\n@surface #D336_roundtrip_d1 { type:nurbs; degree-u:1; degree-v:1; knots-u:[-2,-2,6,6]; knots-v:[1,1,7,7]; control-points:[[[10,-6,3],[10,24,3]],[[50,-6,3],[50,24,3]]]; weights:[[1,1],[1,1]]; }\n}\n"
+    },
+    "objects": [
+      {
+        "id": "obj_1",
+        "name": "D336 roundtrip · D336_roundtrip_d1",
+        "source": "src_1",
+        "geometry": "D336_roundtrip_d1"
+      }
+    ]
+  },
+  "curves": 0,
+  "surfaces": 1
+}

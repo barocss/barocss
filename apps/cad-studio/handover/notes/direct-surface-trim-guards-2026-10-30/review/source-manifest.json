@@ -1,0 +1,21 @@
+{
+  "reviewKind": "independent bounded read-only D336 source review",
+  "capturedAtUTC": "2026-10-29T16:06:34.572970+00:00",
+  "worktree": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+  "headSHA": "1fb2d11e9e4713bac3bfbc1131fc45302aa558f3",
+  "status": " M packages/barocss-cad-model/src/engine/direct.ts\n?? .claude/\n?? packages/barocss-cad-model/test/direct-trim-guards.test.ts\n",
+  "sha256": {
+    "packages/barocss-cad-model/src/engine/direct.ts": "a0c927e4e2af7d61f15f88d431c99f88e8d3882ea3563e95ee331a797b90f9ac",
+    "packages/barocss-cad-model/test/direct-trim-guards.test.ts": "10c483e5ff521ba2c04b2d1721c9f7d35d3c9f3344ae25f443f3f3880b328b7d",
+    "packages/barocss-cad-model/src/engine/refusal.ts": "146cd27e221827bee3453a9ffc1b1ee6751ecc9b093986c3762e9e6300468c19",
+    "apps/cad-studio/src/ui/DirectPanel.tsx": "705eb1397edfa07e294ba6d91d4da275dbca66ea8f6e848f3d69a5e4b0707adc",
+    "apps/cad-studio/src/ui/DirectInspector.tsx": "01926adf85aa8c05645f6a24743c8f2dcfb1ba066bb1b83c7808985293b81ebc",
+    "apps/cad-studio/src/App.tsx": "7b77b98d715d8018a861e500f2607b50d2a09a49c01b78398a68efbd3a220a77"
+  },
+  "reviewerTestsRun": [],
+  "reviewerBuildRun": false,
+  "reviewerBrowserRun": false,
+  "reviewerGeometryRun": false,
+  "diffCheck": "PASS",
+  "finding": "NO_ACTIONABLE_FINDING_IN_APPROVED_GUARD_SCOPE"
+}

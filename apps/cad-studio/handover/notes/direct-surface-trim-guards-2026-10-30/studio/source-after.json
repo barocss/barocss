@@ -1,0 +1,5 @@
+{
+  "apps/cad-studio/src/App.tsx": "7b77b98d715d8018a861e500f2607b50d2a09a49c01b78398a68efbd3a220a77",
+  "apps/cad-studio/src/ui/DirectPanel.tsx": "705eb1397edfa07e294ba6d91d4da275dbca66ea8f6e848f3d69a5e4b0707adc",
+  "apps/cad-studio/src/ui/DirectInspector.tsx": "01926adf85aa8c05645f6a24743c8f2dcfb1ba066bb1b83c7808985293b81ebc"
+}

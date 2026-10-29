@@ -1,0 +1,109 @@
+{
+  "source": "1fb2d11e9e4713bac3bfbc1131fc45302aa558f3",
+  "probeKind": "immutable pre-fix own fixture programmatic source consumer",
+  "before": {
+    "objects": [
+      {
+        "id": "obj_1",
+        "name": "D336 · panel",
+        "source": "src_1",
+        "geometry": "panel",
+        "hidden": false,
+        "trims": [
+          {
+            "keep": "outside",
+            "uv": [
+              [
+                -1,
+                2
+              ],
+              [
+                1,
+                2
+              ],
+              [
+                1,
+                4
+              ],
+              [
+                -1,
+                4
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "id": "obj_2",
+        "name": "D336 · hole",
+        "source": "src_1",
+        "geometry": "hole",
+        "hidden": true,
+        "trims": null
+      },
+      {
+        "id": "obj_3",
+        "name": "D336 · wall",
+        "source": "src_1",
+        "geometry": "wall",
+        "hidden": true,
+        "trims": null
+      }
+    ],
+    "visible": [
+      {
+        "id": "obj_1",
+        "name": "D336 · panel",
+        "kind": "surface",
+        "materialMesh": {
+          "area": 1100.0813802331686,
+          "centroid": [
+            30.90835273127176,
+            9.453775916211143,
+            3
+          ],
+          "triangleCount": 7698
+        }
+      }
+    ]
+  },
+  "witnessBefore": {
+    "ok": true,
+    "bodies": [
+      {
+        "key": "b1",
+        "volume": 420.0000000000001,
+        "centroid": [
+          85.99999999999996,
+          0.4999999999999998,
+          3.5
+        ],
+        "bounds": {
+          "min": [
+            80,
+            -3,
+            1
+          ],
+          "max": [
+            92,
+            4,
+            6
+          ]
+        },
+        "faces": [
+          "n1.side0",
+          "n1.side1",
+          "n1.side2",
+          "n1.side3",
+          "n1.bottom",
+          "n1.top"
+        ]
+      }
+    ]
+  },
+  "cases": {},
+  "thickenStudioConsumer": {
+    "status": "NOT_PROVEN",
+    "reason": "No public Model command/facade for thicken is available. DirectInspector UI callback not invoked through private hooks; source guard chain is source evidence only."
+  }
+}

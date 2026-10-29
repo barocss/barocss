@@ -1,0 +1,5 @@
+import{readFileSync,writeFileSync}from'node:fs';import{createHash}from'node:crypto';import{execFileSync}from'node:child_process';import{resolve}from'node:path';
+const root='/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b',meta=JSON.parse(readFileSync('/tmp/d336-probe/metafile.json','utf8'));
+const files=[...new Set([...Object.keys(meta.inputs).filter(p=>!p.startsWith('<')).map(p=>resolve(root,p)),...['apps/cad-studio/src/ui/DirectInspector.tsx','apps/cad-studio/src/ui/DirectPanel.tsx','apps/cad-studio/src/App.tsx','packages/barocss-cad-model/src/engine/refusal.ts'].map(p=>resolve(root,p))])].sort();
+const hashes=files.map(path=>({path,sha256:createHash('sha256').update(readFileSync(path)).digest('hex')}));
+writeFileSync('/tmp/d336-probe/capsule-'+process.argv[2]+'.json',JSON.stringify({head:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),status:execFileSync('git',['status','--short'],{cwd:root,encoding:'utf8'}),node:process.version,hashes},null,2));
