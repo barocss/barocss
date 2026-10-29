@@ -131,7 +131,7 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     const placedNode: ModelNode = { ...node, ...(isDefaultPlane(sketch.plane) ? {} : { plane: { origin: [...sketch.plane.origin], normal: [...sketch.plane.normal], xAxis: [...sketch.plane.xAxis] } }), ...(sketch.association ? { association: sketch.association } : {}), ...((sketch.association || sketch.associationDetached) && sketch.base ? { on: sketch.base } : {}) } as SketchNode;
     if (sketch.editNode !== undefined) {
       const at = sketch.editNode;
-      const replacement = linked && doc.nodes[at].id !== undefined ? { ...placedNode, id: doc.nodes[at].id } : placedNode;
+      const replacement = doc.nodes[at].id !== undefined ? { ...placedNode, id: doc.nodes[at].id } : placedNode;
       const edited = { ...doc, nodes: dropStaleMade(doc.nodes, doc.nodes.map((n, k) => k === at ? replacement : n)) };
       // (A sketch from before R10a getting its side ids: the features on it keep their references, by the new names.)
       const tags = (placedNode as SketchNode).sideTags, next = sketch.positional && tags && !(doc.nodes[at] as SketchNode).sideTags ? renameToTagged(edited, at, sketch.positional, tags, featureId) : edited;

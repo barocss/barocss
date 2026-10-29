@@ -220,6 +220,8 @@ try {
   const beforeSource = await doc(); await sketchPanel().getByLabel('Point 4 X', { exact: true }).fill('16');
   await finishSketch(beforeSource); await ready('base');
   const sourceEdited = await doc(); assert.deepEqual(sketchPoints(sourceEdited.nodes[sketchIndex]), editedRegion);
+  assert.equal(sourceEdited.nodes[sketchIndex].id, beforeSource.nodes[sketchIndex].id, 'source sketch identity survives Finish');
+  assert.equal(sourceEdited.nextId, beforeSource.nextId, 'editing does not allocate a new source identity');
   assert.deepEqual(sourceEdited.nodes[index], feature, 'source edit leaves captured snapshot recipe unchanged');
   await snapshot('10-source-edit-snapshot-unchanged');
 
