@@ -255040,6 +255040,37 @@
     },
     {
       "package": "@barocss/cad-model",
+      "subpath": "./app/nativeOffsetFace",
+      "exportName": "validateNativeOffsetResult",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/app/nativeOffsetFace.ts",
+            "name": "validateNativeOffsetResult",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(ctx: Ctx, candidate: StudioDoc, profile: NativeOffsetFaceProfile, distance: number) => void",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(ctx: Ctx, candidate: StudioDoc, profile: NativeOffsetFaceProfile, distance: number) => void"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
       "subpath": "./app/primitives",
       "exportName": "STEEL_E_ESTIMATE_MPA",
       "space": "value",

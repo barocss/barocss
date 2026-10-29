@@ -138,15 +138,15 @@ test('native Offset face: positive represented near-full residue must also pass 
   validateNativeOffsetDistance(p, distance + .001);
 });
 
-test('native Offset face: curved strict-valid near-full residue also needs a representable mass interval', () => {
+test('native Offset face: curved strict-valid near-full residue retains a representable mass interval after longitudinal repair', () => {
   const doc = withNode(cylinderPart(3, 5.00009), { kind: 'translate', parent: { node: 1, side: 'solid' }, offset: [.1234567, -.2345678, .3456789] });
   const ctx = context(doc), p = resolveNativeOffsetFace(ctx), distance = -(p.coordinate - p.opposite), before = structuredClone(doc);
   assert.ok(p.coordinate + distance > p.opposite);
-  assert.throws(() => validateNativeOffsetDistance(p, distance), e => isRefusal(e, 'FACE_DISTANCE') && /mass centroid/.test(e.message));
+  validateNativeOffsetDistance(p, distance);
   assert.deepEqual(doc, before);
-  // The shared current-source proof keeps only its last target result; valid retry then refusal works.
+  // The unchanged current-source proof must retain corrected success after an ordinary retry.
   validateNativeOffsetDistance(resolveNativeOffsetFace(ctx), distance + .001);
-  rejected(() => validateNativeOffsetDistance(resolveNativeOffsetFace(ctx), distance), 'FACE_DISTANCE');
+  validateNativeOffsetDistance(resolveNativeOffsetFace(ctx), distance);
   validateNativeOffsetDistance(resolveNativeOffsetFace(ctx), distance + .001);
 });
 

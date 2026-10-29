@@ -8,6 +8,7 @@ import { cylinderPart, emptyDoc, rectanglePart, withNode, type StudioDoc } from 
 import { evaluateDoc, partBreps } from '../src/engine/evaluate';
 import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 import { isRefusal } from '../src/engine/refusal';
+import { part } from '../src/api/index';
 
 function near(a: number, b: number, tolerance = 1e-7): void { assert.ok(Math.abs(a - b) <= tolerance, `${a} != ${b}`); }
 function bodyOf(doc: StudioDoc): Brep { const native = partBreps(doc); assert.equal(native.length, 1); return native[0].brep; }
@@ -169,12 +170,20 @@ test('Offset native face: frozen factory proof becomes an owned mutable authored
 });
 
 for (const kind of ['polygon', 'circle'] as const) {
-  test(`Offset native ${kind}: translated near-full cut refuses atomically and a positive 0.001 interval retry remains valid`, t => {
+  test(`Offset native ${kind}: translated near-full cut ${kind === 'polygon' ? 'refuses strict-invalid geometry' : 'retains corrected strict-valid mass'} and a positive 0.001 interval retry remains valid`, t => {
     const base = kind === 'polygon' ? rectanglePart(20.00003, 10.00007, 5.00009) : cylinderPart(3, 5.00009);
     const doc = withNode(base, { kind: 'translate', parent: { node: 1, side: 'solid' }, offset: [0.1234567, -0.2345678, 0.3456789] });
     const ctx = context(doc), initial = bounds(bodyOf(doc)), coordinate = initial.max[2], opposite = initial.min[2], span = coordinate - opposite, distance = -span;
     const before = structuredClone(doc), selection = structuredClone(ctx.selection), exactGap = sub(add(q(coordinate), q(distance)), q(opposite)); freezeDoc(doc);
-    assert.throws(() => offsetFaceCommand.build!(ctx, { d: distance }), error => isRefusal(error, 'FACE_DISTANCE'));
+    if (kind === 'polygon') assert.throws(() => offsetFaceCommand.build!(ctx, { d: distance }), error => isRefusal(error, 'FACE_DISTANCE'));
+    else {
+      const thin = offsetFaceCommand.build!(ctx, { d: distance }), thinBrep = bodyOf(thin); closed(thinBrep); const thinBounds = bounds(thinBrep), thinModel = evaluateDoc(thin, 3); assert.ok(thinModel.ok);
+      assert.equal(thinBounds.min[2], opposite); assert.equal(thinBounds.max[2], coordinate + distance); assert.ok(thinBounds.max[2] > thinBounds.min[2]);
+      const facade = part('corrected near-full circle', thin), publicMass = facade.body(facade.bodies()[0]).mass({ density: 1 });
+      for (const mass of [thinModel.bodies[0], publicMass]) { assert.ok(mass.volume !== null && mass.volume > 0 && Number.isFinite(mass.volume)); assert.ok(mass.centroid); assert.ok(mass.centroid[2] >= thinBounds.min[2] && mass.centroid[2] <= thinBounds.max[2]); }
+      assert.deepEqual(thin.nodes.slice(0, doc.nodes.length), doc.nodes);
+      t.diagnostic(JSON.stringify({ correctedCircle: { min: thinBounds.min, max: thinBounds.max, publicMass, model: { volume: thinModel.bodies[0].volume, centroid: thinModel.bodies[0].centroid } }, scope: 'Verified Z-upright corrected provider success; native quadrature remains separate' }));
+    }
     assert.deepEqual(doc, before); assert.deepEqual(ctx.selection, selection);
     const retryDistance = 0.001 - span, out = offsetFaceCommand.build!(ctx, { d: retryDistance }), brep = bodyOf(out); closed(brep);
     const native = bounds(brep), stored = coordinate + retryDistance, mass = brepMassProperties(brep, 1), evaluated = evaluateDoc(out, 2); assert.ok(evaluated.ok);
@@ -185,6 +194,22 @@ for (const kind of ['polygon', 'circle'] as const) {
     else { near(mass.volume, Math.PI * 9 * (stored - opposite)); near(mass.centroid[2], (stored + opposite) / 2); }
     assert.deepEqual(doc, before); assert.deepEqual(ctx.selection, selection);
     t.diagnostic(JSON.stringify({ kind, coordinate, opposite, distance, intendedGap: { numerator: String(exactGap.n), denominator: String(exactGap.d) }, storedGap: coordinate + distance - opposite,
-      nearfull: 'FACE_DISTANCE atomic refusal', retryDistance, retryNative: { min: native.min, max: native.max, volume: mass.volume, centroid: mass.centroid, modelCentroid: evaluated.bodies[0].centroid } }));
+      nearfull: kind === 'polygon' ? 'FACE_DISTANCE strict-invalid atomic refusal' : 'strict-valid corrected Z-upright mass success', retryDistance, retryNative: { min: native.min, max: native.max, volume: mass.volume, centroid: mass.centroid, modelCentroid: evaluated.bodies[0].centroid } }));
+  });
+}
+
+for (const axis of [0, 1] as const) {
+  test(`Offset native rotated cylinder axis${axis}: an empty actual near-full Boolean result cannot be accepted`, () => {
+    const rotated = withNode(cylinderPart(3, 5.00009), { kind: 'rotate', parent: { node: 1, side: 'solid' }, axis: axis === 0 ? 'y' : 'x', angle: axis === 0 ? 90 : -90 });
+    const doc = withNode(rotated, { kind: 'translate', parent: { node: 2, side: 'solid' }, offset: [.1234567, -.2345678, .3456789] }), ctx = context(doc, axis), before = structuredClone(doc), selection = structuredClone(ctx.selection);
+    freezeDoc(doc);
+    assert.throws(() => offsetFaceCommand.build!(ctx, { d: -5.00009 }), error => isRefusal(error, 'FACE_DISTANCE'));
+    assert.deepEqual(doc, before); assert.deepEqual(ctx.selection, selection);
+    const retry = offsetFaceCommand.build!(ctx, { d: 2 }), retryBrep = bodyOf(retry); closed(retryBrep);
+    const initial = bounds(bodyOf(doc)), actual = bounds(retryBrep), model = evaluateDoc(retry, 4); assert.ok(model.ok); assert.equal(model.bodies.length, 1);
+    near(actual.min[axis], initial.min[axis]); near(actual.max[axis], initial.max[axis] + 2);
+    assert.ok(model.bodies[0].volume !== null && model.bodies[0].volume > 0); assert.ok(model.bodies[0].centroid);
+    assert.ok(model.bodies[0].centroid[axis] >= actual.min[axis] && model.bodies[0].centroid[axis] <= actual.max[axis]);
+    assert.deepEqual(doc, before); assert.deepEqual(ctx.selection, selection);
   });
 }

@@ -7,7 +7,7 @@ import { toLocal, toWorld } from '../sketch/plane';
 import { framedLoftSections, loftSections, pickedSketches, planeOf, profileMiddle } from './profiles';
 import { copyLoftGuide } from './loftGuides';
 import { faceProfile } from './faceProfile';
-import { resolveNativeOffsetFace, validateNativeOffsetDistance } from './nativeOffsetFace';
+import { resolveNativeOffsetFace, validateNativeOffsetDistance, validateNativeOffsetResult } from './nativeOffsetFace';
 import { directNow } from '../engine/directModule';
 import type { Command, Ctx, Field, Values } from './commands';
 
@@ -113,8 +113,10 @@ export const offsetFaceCommand: Command = {
     const d = Number(v.d), profile = resolveNativeOffsetFace(ctx);
     validateNativeOffsetDistance(profile, d);
     const doc = withNode(ctx.doc, structuredClone(profile.sketch)), index = doc.nodes.length - 1;
-    return extrudeCommand.build!({ ...ctx, doc, selection: { sketches: [index], faces: [], edges: [], bodies: [], vertices: [] }, direct: [] },
+    const candidate = extrudeCommand.build!({ ...ctx, doc, selection: { sketches: [index], faces: [], edges: [], bodies: [], vertices: [] }, direct: [] },
       { h: Math.abs(d), draft: 0, op: d > 0 ? 'join' : 'cut', depth: 'distance' });
+    validateNativeOffsetResult(ctx, candidate, profile, d);
+    return candidate;
   },
   handles: ctx => {
     try {

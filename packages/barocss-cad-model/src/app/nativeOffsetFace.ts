@@ -1,9 +1,9 @@
 // Offset face owns a native cap snapshot. Display data identifies the pick only; it never authors a profile.
 import { CadNumericPolicy, CadPartLimits, brepFromPrismatic, checkBrep, prismaticFromProfile, prismaticMassProperties, transformBrep, type Brep, type BrepFace, type Curve, type Surface } from '@barocss/cad';
 import { fillFeaturePatternSpec } from '@barocss/cad/api';
-import { type SketchNode, type StudioDoc } from '../engine/doc';
-import { evaluateDoc, partBreps, type BodyResult } from '../engine/evaluate';
-import { bodyKeyFor } from '../engine/ids';
+import { leafBodies, type SketchNode, type StudioDoc } from '../engine/doc';
+import { evaluateDoc, massOfRef, partBreps, type BodyResult } from '../engine/evaluate';
+import { bodyKeyFor, withIds } from '../engine/ids';
 import { refusal } from '../engine/refusal';
 import { canonical, modelContent } from '../util/revision';
 import { refOf } from './bodyRef';
@@ -273,14 +273,15 @@ function consistent(a: BodyResult, b: BodyResult): boolean {
   }
   return true;
 }
-interface TargetWitness { next?: number; refusal?: { message: string; details?: Record<string, unknown> } }
+interface ResultWitness { candidate: WeakRef<StudioDoc>; content: string; refusal?: { message: string; details?: Record<string, unknown> } }
+interface TargetWitness { next?: number; refusal?: { message: string; details?: Record<string, unknown> }; result?: ResultWitness }
 interface Cached { content: string; profiles: Map<string, { body: BodyResult; profile: NativeOffsetFaceProfile; bound: bigint; target: TargetWitness }> }
-const proofs = new WeakMap<NativeOffsetFaceProfile, { bound: bigint; snapshot: string; target: TargetWitness }>();
+const proofs = new WeakMap<NativeOffsetFaceProfile, { bound: bigint; snapshot: string; target: TargetWitness; source: string }>();
 function freezeOwned(value: unknown): void {
   if (value && typeof value === 'object') { for (const child of Object.values(value)) freezeOwned(child); Object.freeze(value); }
 }
-function owned(profile: NativeOffsetFaceProfile, bound: bigint, target: TargetWitness): NativeOffsetFaceProfile {
-  const copy = structuredClone(profile); freezeOwned(copy); proofs.set(copy, { bound, snapshot: canonical(copy), target }); return copy;
+function owned(profile: NativeOffsetFaceProfile, bound: bigint, target: TargetWitness, source: string): NativeOffsetFaceProfile {
+  const copy = structuredClone(profile); freezeOwned(copy); proofs.set(copy, { bound, snapshot: canonical(copy), target, source }); return copy;
 }
 const cache = new WeakMap<StudioDoc, Cached>();
 /** Current native semantic identity is resolved before qualification; every returned snapshot is owned. */
@@ -301,7 +302,7 @@ export function resolveNativeOffsetFace(ctx: Ctx): NativeOffsetFaceProfile {
   const key = `${body.key}\u0000${display.id}\u0000${display.name}\u0000${body.mesh.quality ?? 8}`, have = saved.profiles.get(key);
   if (have) {
     if (!consistent(body, have.body)) return missing('the picked display no longer agrees with the current document.');
-    return owned(have.profile, have.bound, have.target);
+    return owned(have.profile, have.bound, have.target, content);
   }
   const evaluated = evaluateDoc(ctx.doc, 0, body.mesh.quality ?? 8);
   if (!evaluated.ok) return missing('the current document cannot resolve the selected native body.');
@@ -337,7 +338,7 @@ export function resolveNativeOffsetFace(ctx: Ctx): NativeOffsetFaceProfile {
   const profile: NativeOffsetFaceProfile = { sketch, kind: isCircle ? 'circle' : 'polygon', axis, sign, coordinate, opposite, thickness: Math.abs(coordinate - opposite) };
   const target: TargetWitness = {};
   saved.profiles.set(key, { body: structuredClone(current), profile, bound: footprint, target });
-  return owned(profile, footprint, target);
+  return owned(profile, footprint, target, content);
 }
 
 /** Check the complete prospective remaining prism with the native producer and its existing strict
@@ -416,4 +417,110 @@ export function validateNativeOffsetDistance(profile: NativeOffsetFaceProfile, d
   if (BigInt(sign) * (intended - other) <= 0n || BigInt(sign) * (exact(next) - other) <= 0n) throw refusal('FACE_DISTANCE', 'The offset must leave positive prism thickness before the opposite cap.');
   if (abs(exact(next) - intended) + proof.bound > exact(CadNumericPolicy.linearTolerance)) throw refusal('FACE_DISTANCE', 'The rounded cap coordinate exceeds the existing linear policy.');
   validateRemainingTarget(profile, next, proof.target);
+}
+
+
+const resultFailure = (message: string): never => { throw refusal('FACE_DISTANCE', `Offset result: ${message}`); };
+function withoutId(value: object): object { const copy = { ...value } as Record<string, unknown>; delete copy.id; return copy; }
+/** Validate the ACTUAL shared Offset composition before it can be returned to any caller.
+ * The prospective target remains an admission witness; it does not certify a Boolean result. */
+export function validateNativeOffsetResult(ctx: Ctx, candidate: StudioDoc, profile: NativeOffsetFaceProfile, distance: number): void {
+  validateNativeOffsetDistance(profile, distance);
+  const proof = proofs.get(profile)!;
+  if (canonical(modelContent(ctx.doc)) !== proof.source) return resultFailure('the source document no longer matches the owned cap.');
+  const base = ctx.doc.nodes.length, last = candidate.nodes.length - 1, parent = profile.sketch.on;
+  if (!parent || candidate.nodes.length !== base + 3 || canonical(candidate.nodes.slice(0, base)) !== canonical(withIds(ctx.doc).nodes)) return resultFailure('the candidate must retain the source prefix and the three shared composition nodes.');
+  const sourceContent = modelContent(ctx.doc), candidateContent = modelContent(candidate);
+  candidateContent.nodes = sourceContent.nodes; candidateContent.outputs = sourceContent.outputs;
+  const expectedOutputs: StudioDoc['outputs'] = {};
+  for (const ref of leafBodies(candidate.nodes)) expectedOutputs[bodyKeyFor(candidate.nodes, ref.node, ref.side)] = ref;
+  if (canonical(candidateContent) !== canonical(sourceContent) || canonical(candidate.outputs) !== canonical(expectedOutputs)) return resultFailure('the candidate changed source inputs or omitted its current target output.');
+  const sketch = candidate.nodes[base], tool = candidate.nodes[base + 1], operation = candidate.nodes[last];
+  if (canonical(withoutId(sketch)) !== canonical(profile.sketch)) return resultFailure('the authored footprint is not the owned native cap snapshot.');
+  const height = Math.abs(distance), expectedTool = distance < 0 ? { kind: 'extrude', sketch: base, height, from: -height } : { kind: 'extrude', sketch: base, height };
+  const toolRef = { node: base + 1, side: 'solid' }, expectedOperation = distance > 0 ? { kind: 'union', left: parent, right: toolRef } : { kind: 'difference', parent, tool: toolRef };
+  if (canonical(withoutId(tool)) !== canonical(expectedTool) || canonical(withoutId(operation)) !== canonical(expectedOperation)) return resultFailure('the last Boolean must consume the selected source and the requested cap tool.');
+  const sourceKey = bodyKeyFor(ctx.doc.nodes, parent.node, parent.side), targetKey = bodyKeyFor(candidate.nodes, last), sourceMatches = [];
+  for (const body of ctx.bodies) if (body.key === sourceKey) sourceMatches.push(body);
+  if (sourceMatches.length !== 1) return resultFailure('the selected source body is missing or ambiguous.');
+  const content = canonical(modelContent(candidate)), have = proof.target.result;
+  if (have?.candidate.deref() === candidate && have.content === content) { if (have.refusal) throw refusal('FACE_DISTANCE', have.refusal.message, structuredClone(have.refusal.details)); return; }
+  const witness: ResultWitness = { candidate: new WeakRef(candidate), content }; proof.target.result = witness;
+  try {
+    const evaluated = evaluateDoc(candidate, 0, sourceMatches[0].mesh.quality ?? 8);
+    if (!evaluated.ok) return resultFailure('the actual candidate cannot be evaluated.');
+    let model: BodyResult | undefined, count = 0;
+    for (const body of evaluated.bodies) if (body.key === targetKey) { model = body; count++; }
+    const outputs = partBreps(candidate); let native: Brep | undefined, nativeCount = 0;
+    for (const output of outputs) if (output.key === targetKey) { native = output.brep; nativeCount++; }
+    if (count !== 1 || !model || nativeCount !== 1 || !native || model.ref?.node !== last || model.ref.side !== 'solid') return resultFailure('the requested last-node target is empty, missing, or ambiguous; another body cannot replace it.');
+    if (native.bodies.length !== 1 || native.bodies[0].kind !== 'solid' || native.bodies[0].shells.length !== 1 || native.shells.length !== 1 || !native.shells[0].closed) return resultFailure('the actual target must be one native closed solid.');
+    const report = checkBrep(native, { strict: true });
+    if (!report.valid) throw refusal('FACE_DISTANCE', 'Offset result: the actual target fails native strict validity.', { issues: [...report.issues] });
+    const { axis, sign, coordinate, opposite } = profile, next = coordinate + sign * distance, lo = Math.min(next, opposite), hi = Math.max(next, opposite);
+    let normalMin = Infinity, normalMax = -Infinity;
+    const actualMin: XY = [Infinity, Infinity], actualMax: XY = [-Infinity, -Infinity];
+    for (const vertex of native.vertices) {
+      const value = vertex.point[axis]; if (!Number.isFinite(value) || value < lo || value > hi) return resultFailure('a native target vertex leaves the intended stored interval.');
+      normalMin = Math.min(normalMin, value); normalMax = Math.max(normalMax, value);
+    }
+    if (!(normalMax > normalMin)) return resultFailure('the actual target vertices collapsed their positive normal interval.');
+    for (const edge of native.edges) {
+      for (const weight of edge.curve.weights) if (!(weight > 0) || !Number.isFinite(weight)) return resultFailure('the actual target boundary needs finite positive native weights.');
+      for (const point of edge.curve.controlPoints) {
+        if (!finite(point[axis]) || point[axis] < lo || point[axis] > hi) return resultFailure('a complete native boundary curve leaves the intended stored interval.');
+        for (let k = 0; k < 2; k++) { const value = point[(axis + 1 + k) % 3]; if (!finite(value)) return resultFailure('a native target boundary coordinate is invalid.'); actualMin[k] = Math.min(actualMin[k], value); actualMax[k] = Math.max(actualMax[k], value); }
+      }
+    }
+    let lowerCap = false, upperCap = false, nativeCapBound = 0n;
+    for (const face of native.faces) {
+      const surface = face.surface;
+      if (surface.kind !== 'surface') return resultFailure('the actual target must retain native parametric supports.');
+      // A trimmed side may retain an unused extended support. Its material is bounded by
+      // native loops above, not by that support's full pole range. Only actual cap planes bind here.
+      if (!affine(surface)) continue;
+      const plane = surface.controlPoints[0][0][axis]; let constant = true;
+      for (const row of surface.controlPoints) for (const point of row) if (point[axis] !== plane) constant = false;
+      if (!constant) continue;
+      if (!finite(plane) || plane < lo || plane > hi) return resultFailure('an actual cap support leaves the intended stored interval.');
+      const orientation = crossSign(surface.controlPoints[0][0] as XYZ, surface.controlPoints[1][0] as XYZ, surface.controlPoints[0][1] as XYZ, axis);
+      if (orientation === 0n) return resultFailure('an actual cap support is degenerate.');
+      const outward = (orientation > 0n ? 1 : -1) * (face.sense === 'forward' ? 1 : -1), level = outward > 0 ? hi : lo;
+      if (plane !== level) return resultFailure('both actual cap support planes must retain their intended stored levels.');
+      let bound = abs(exact(plane) - exact(level));
+      for (const id of face.loops) {
+        const loop = loopById(native, id); if (!loop) return resultFailure('an actual cap boundary is missing.');
+        for (const cid of loop.coedges) {
+          const coedge = coedgeById(native, cid), edge = coedge && edgeById(native, coedge.edge); if (!edge) return resultFailure('an actual cap edge is missing.');
+          for (const point of edge.curve.controlPoints) { const error = abs(exact(point[axis]) - exact(level)); if (error > bound) bound = error; }
+        }
+      }
+      if (bound > nativeCapBound) nativeCapBound = bound;
+      if (outward > 0) upperCap = true; else lowerCap = true;
+    }
+    if (!lowerCap || !upperCap) return resultFailure('the actual composition must retain both complete native cap supports.');
+    // This is a bounded axis-extent check, not a generic material or curved-mass certificate.
+    const expectedMin: XY = [Infinity, Infinity], expectedMax: XY = [-Infinity, -Infinity];
+    if (profile.sketch.profile !== 'loop') return resultFailure('the owned footprint has no loop.');
+    if (profile.kind === 'circle') {
+      const segment = profile.sketch.segments[0]; if (segment.kind !== 'arc') return resultFailure('the owned circle arc is missing.');
+      const center: XY = [Number(segment.center[0]), sign * Number(segment.center[1])], radius = Math.abs(Number(segment.start[0]) - center[0]);
+      for (let k = 0; k < 2; k++) { expectedMin[k] = center[k] - radius; expectedMax[k] = center[k] + radius; }
+    } else for (const segment of profile.sketch.segments) {
+      const point: XY = [Number(segment.start[0]), sign * Number(segment.start[1])];
+      for (let k = 0; k < 2; k++) { expectedMin[k] = Math.min(expectedMin[k], point[k]); expectedMax[k] = Math.max(expectedMax[k], point[k]); }
+    }
+    let extentBound = 0n;
+    for (let k = 0; k < 2; k++) { const a = abs(exact(actualMin[k]) - exact(expectedMin[k])), b = abs(exact(actualMax[k]) - exact(expectedMax[k])); extentBound += a > b ? a : b; }
+    const capBound = abs(exact(next) - exact(coordinate) - BigInt(sign) * exact(distance));
+    if (extentBound + nativeCapBound + proof.bound + capBound > exact(CadNumericPolicy.linearTolerance)) return resultFailure('the actual native footprint extents exceed the existing joint binding policy.');
+    const mass = model.massRef === undefined ? model : massOfRef(model.massRef, model.massPlace ?? []);
+    if (!mass || !(mass.volume !== null && mass.volume > 0) || !Number.isFinite(mass.volume) || !mass.centroid) return resultFailure('the actual Model mass provider has no finite positive target mass.');
+    for (const value of mass.centroid) if (!Number.isFinite(value)) return resultFailure('the actual Model mass centroid is nonfinite.');
+    const center = mass.centroid[axis];
+    if (center < lo || center > hi || abs(2n * exact(center) - exact(lo) - exact(hi)) > 2n * exact(CadNumericPolicy.linearTolerance)) return resultFailure('the actual Model mass centroid does not bind the stored target interval.');
+  } catch (cause) {
+    const error = cause && typeof cause === 'object' && 'code' in cause && cause.code === 'FACE_DISTANCE' ? cause : refusal('FACE_DISTANCE', 'Offset result: actual native target validation failed.', { cause: cause instanceof Error ? cause.message : String(cause) });
+    const typed = error as ReturnType<typeof refusal>; witness.refusal = { message: typed.message.replace(/^\[FACE_DISTANCE\] /, ''), details: structuredClone(typed.details) }; throw error;
+  }
 }
