@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
-import { brepMassProperties, checkBrep, importStep, stepValidationProperties, type Brep } from '@barocss/cad';
+import { brepMassProperties, checkBrep, importStep, stepValidationProperties, CadNumericPolicy, type Brep } from '@barocss/cad';
 import { cylinderPart, withNode, type StudioDoc } from '../src/engine/doc';
 import { evaluateDoc, exportStudioStep, partBreps } from '../src/engine/evaluate';
 import { offsetFaceCommand } from '../src/app/profileCommands';
@@ -42,7 +42,15 @@ function verifyStep(doc: StudioDoc, expectedLevels: number[]) {
   assert.ok(Math.abs(properties.volume / guide - 1) < 1e-11, 'Rounded circle volume guide is separate from the independent native-node reference');
   for (let axis = 0; axis < 3; axis++) oracle.assertNearRational(properties.centroid[axis], reference.centroid[axis], 1e-7, `STEP centroid ${axis}`);
   assert.ok(properties.centroid[2] >= expectedLevels[0] && properties.centroid[2] <= expectedLevels[1]);
-  assert.equal(properties.box.min[2], expectedLevels[0]); assert.equal(properties.box.max[2], expectedLevels[1]);
+  // Metadata bounds include sampled extrema; an outward D0 rounding step is not an authored cap plane.
+  const box = properties.box;
+  for (let axis = 0; axis < 3; axis++) {
+    assert.ok(Number.isFinite(box.min[axis]) && Number.isFinite(box.max[axis]) && box.min[axis] <= box.max[axis]);
+    for (const vertex of brep.vertices) assert.ok(box.min[axis] <= vertex.point[axis] && vertex.point[axis] <= box.max[axis]);
+  }
+  assert.ok(box.min[2] <= expectedLevels[0] && box.max[2] >= expectedLevels[1]);
+  assert.ok(expectedLevels[0] - box.min[2] <= CadNumericPolicy.linearTolerance);
+  assert.ok(box.max[2] - expectedLevels[1] <= CadNumericPolicy.linearTolerance);
   const raw = brepMassProperties(brep, 1); assert.equal(raw.method, 'quadrature');
   assert.equal(properties.volume, raw.volume, 'STEP default metadata uses native BRep volume, without upright mass override');
   // Keep the physical residue. A refusal or collapsed readback is a failure, not a larger replacement fixture.
