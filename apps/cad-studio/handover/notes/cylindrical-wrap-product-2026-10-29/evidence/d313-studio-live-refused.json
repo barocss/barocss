@@ -1,0 +1,45 @@
+{
+  "hud": "wrap_textCylindrical wraprefusedU start (native)U end (native)V start (native)V end (native)Height (must equal radius)mmThis cylindrical wrap is not supportedSelect the original cylinder wall. Use one rectangle in its +Y half and first native quarter. Keep the rectangle clear of its edges and use the radius as its height.Kernel detailcylindrical wrap: Cylindrical wrap closed reference: original coefficient bits differ from the required reference bindingCancelApply",
+  "document": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "circle",
+        "center": [
+          0,
+          0
+        ],
+        "radius": 10,
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 30,
+        "id": "n1",
+        "made": {
+          "command": "cylinder",
+          "values": {
+            "r": 10,
+            "h": 30,
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      }
+    ],
+    "outputs": {
+      "b1": {
+        "node": 1,
+        "side": "solid"
+      }
+    },
+    "nextId": 2
+  },
+  "errors": []
+}

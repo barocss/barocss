@@ -211,9 +211,17 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   diagnostics remain preserved. No literal B-rep/Part/product qualification or feature push.
   See `../exact-rational-wrap-performance-2026-10-29/README.md`. Next D313 is bounded provider/
   API/Model/Studio integration with actual physical/trim/render admission and product checks.
-- Next: roadmap07's remaining wrap provider and broader face-fillet/thread ranges, then08,09. General/curved,
-  rational/smooth wrapping, shaping, kerning, bidi and normalization remain unimplemented. D291's broader
-  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D313.
+- D313 runtime`f29df9217` connects the bounded native-quarter rectangular cylindrical wrap through
+  Part/provider/API/Model/agent/Studio. Full kernel2187pass/0fail/6existing skips, Model1833/1833,
+  Studio365/365, types/lint, actual Chrome/WebGPU normal-input/selected scripted create/edit/
+  Undo/Redo/Save/fresh Open/re-edit, and generated/API/docs checks pass. Actual Chrome's asymmetric
+  affine cap is proved without changing original coefficients or budgets. Live reference mass is
+  qualified; literal stored-coefficient closure/mass, native SI and general glyph/depth wrapping
+  remain unqualified. Original failures and exact limits: `../cylindrical-wrap-product-2026-10-29/README.md`.
+- Next: D314 measured thread quadrature performance, GitHub investigation-issue reconciliation,
+  then remaining07 before08,09. General/curved/rational/smooth wrapping, shaping/kerning/bidi/
+  normalization and D291's broader free-form/concave/multi-span ranges remain open. No feature
+  push, new PR or release. Next decision:D314.
 
 The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
 
@@ -222,7 +230,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D313**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D314**).
 
 ## 0. State at the stop
 

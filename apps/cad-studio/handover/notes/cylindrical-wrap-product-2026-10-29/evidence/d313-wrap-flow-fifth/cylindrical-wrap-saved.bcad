@@ -1,0 +1,75 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": {},
+  "nodes": [
+    {
+      "kind": "sketch",
+      "profile": "circle",
+      "center": [
+        0,
+        0
+      ],
+      "radius": 10,
+      "id": "n0"
+    },
+    {
+      "kind": "extrude",
+      "sketch": 0,
+      "height": 30,
+      "id": "n1",
+      "made": {
+        "command": "cylinder",
+        "values": {
+          "r": 10,
+          "h": 30,
+          "x": 0,
+          "y": 0,
+          "z": 0
+        }
+      }
+    },
+    {
+      "kind": "cylindrical-wrap",
+      "parent": {
+        "node": 1,
+        "side": "solid"
+      },
+      "faces": [
+        "n1.side0#2"
+      ],
+      "rectangle": {
+        "u": [
+          0.15,
+          0.4
+        ],
+        "v": [
+          0.2,
+          0.7
+        ]
+      },
+      "height": 10,
+      "id": "n2",
+      "sigs": {
+        "n1.side0#2": {
+          "k": "curved",
+          "p": [
+            0,
+            6.345731,
+            15
+          ],
+          "s": 940.9645469999999,
+          "r": 10
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "b2": {
+      "node": 2,
+      "side": "solid"
+    }
+  },
+  "nextId": 3
+}

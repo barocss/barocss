@@ -1,0 +1,10 @@
+flow display: {"requestedDpr":1,"renderer":"webgpu","devicePixelRatio":1,"cssWidth":1140,"cssHeight":900,"backingWidth":1140,"backingHeight":900}
+Expected values to be strictly equal:
++ actual - expected
+
++ '{\n  "for'
+- 'BCADPACK'
+
+ok 1 starter plate loads
+FAIL 36 CG1 cylindrical wrap: native quarter preview, apply, undo, edit and portable Save/Open — Expected values to be strictly equal:
+screenshots: /tmp/d313-wrap-flow-fourth

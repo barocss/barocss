@@ -1,0 +1,31 @@
+{
+  "savedDocumentSemanticEquality": true,
+  "saveFormat": "asset-free current-schema JSON",
+  "normalCanvasSelection": true,
+  "applyUndoRedo": true,
+  "freshOpen": true,
+  "reeditAfterOpen": true,
+  "volume": 11443.322154307714,
+  "expectedVolume": 11443.322154307714,
+  "invalidHeightRefused": true,
+  "collapsedIntervalRefused": true,
+  "cancelRestores": true,
+  "viewports": [
+    [
+      1440,
+      900
+    ],
+    [
+      1024,
+      768
+    ]
+  ],
+  "smallHudBounds": {
+    "x": 745,
+    "y": 206.5,
+    "width": 279,
+    "height": 354.5
+  },
+  "pageErrors": [],
+  "driverRecovery": "Previous node REPL timed out on an incorrect history selector; fresh context reopened the real saved file and repeated Save/Open and edit checks."
+}

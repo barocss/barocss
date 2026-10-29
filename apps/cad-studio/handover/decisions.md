@@ -15805,3 +15805,58 @@ notes/exact-rational-wrap-performance-2026-10-29/README.md. Literal stored-B-rep
 native SI and Part/provider/product integration remain unqualified. Next D313 is bounded
 Part/provider/API/Model/Studio integration with physical/trim/render admission and actual
 product checks, followed by remaining07 before08->09.
+
+
+## D313 — Connect the bounded cylindrical reference to the product (2026-10-29)
+
+**Decision.** Runtime `f29df9217` exposes `cylindrical-wrap` through Part, both public facades, the current Model
+recipe, the shared agent command and Studio. The input is one original origin-centered upright
+circle extrusion, its exact original +Y half-wall, and one rectangle strictly inside the first
+native quarter: 0<u0<u1<0.5 and0<v0<v1<1. Outward height equals the source radius, giving radial
+factor2. General depth, text, holes, engraving, seams and tilted sources remain unsupported.
+
+A fresh evaluation owns the frozen source and complete closed-reference mass provider. Density1
+uses its initial audited result; other densities run a fresh complete proof. Serialized/copied
+outputs have no mass authority. Re-evaluating a saved recipe reconstructs the provider. The
+public report explicitly retains false literalStoredBrepClosureCertified/literalStoredBrepMass/
+nativeSIAccuracy flags. Public native-SI provenance reads refuse with reason combined; private
+MMGS proof values are unchanged. Further consuming features refuse atomically. This is a bounded
+product reference, not an exact rounded-coefficient shell or general glyph-wrap qualification.
+
+The ordinary merged display wall remains unchanged. Canonical quality8 member geometry resolves
+the positive-Y native half without suffix inference; only wrap reference matching admits these
+individual candidates. Placed/exploded display bodies omit source-space member metadata. Authored
+circle radius supplies the default height. Create/edit HUDs show Region and Limits; History opens
+the command editor. Current-schema recipe/signature/parameter and existing JSON/package paths
+are reused without a version increase or migration.
+
+Actual Chrome exposed a valid affine cap with original bounds[-10.000000000000002,10], where the
+Node fixture had centered bounds. The old ideal +/-R binding refused it. The correction proves
+the actual four poles, unit knots/weights, positive affine spans and outward paired cap frames.
+The whole-disk map includes exact center displacement; its L1 bound is the maximum of center
+shift and the fresh boundary residual. No original coefficient is changed and no tolerance or
+work/scalar cap is raised. Complete standard/centered/lower/upper/asymmetric/mirrored requests
+use138001/137005/137595/137599/150593/150607 operations under the original200000 cap.
+
+Actual Chrome/WebGPU scripted startup and selected wrap flow pass. A separate normal canvas
+selection/input pass verifies preview, Apply, Undo/Redo, History edit, real Save/fresh Open and
+re-edit. The asset-free saved file is current-schema JSON with full semantic document equality.
+After fresh Open and V-end.75 edit, independent sector volume and returned volume both equal
+11443.322154307714. Invalid height/UV refuse without changing the accepted document; Cancel
+restores values. Screenshots at1440x900 and1024x768 show the full controls and result. Page errors
+are empty. An interactive-driver selector timeout required a fresh context and repeated checks;
+it is recorded separately from product failures. Unsupported-modifier UI, other browsers/DPRs,
+WebGL2 and arbitrary material-density accuracy are NOT_RUN, not implied by focused contracts.
+
+Final full kernel build passes;2193total/2187pass/0fail/6existing skips,308293.825625ms.
+Whole Model1833/1833,236112.783583ms and Studio365/365,24258.692542ms pass without failures
+or skips. Model/Studio type checks and focused lint pass. Generated tools/refusals and reviewed API six-rule SCOPED_PASS pass. Inventory6737->6751
+adds14 exposures with no removals;154 prior rows change,16 for the wrap contract and138 only
+for equivalent union/member/property order. Package exports are unchanged; CadPartOutput gains
+one optional report. Docs pass:68 pages,54 shots,4668KiB,858 labels. The initial IV001 inventory
+drift is retained separately from the reviewed refresh.
+Evidence: notes/cylindrical-wrap-product-2026-10-29/README.md. Initial focused fixture/type/lint
+and four browser failures remain verbatim with their corrections. No source checksum pin,
+dependency, WASM, lockfile/schema change, push, PR or release. Next D314 measures call-local
+quadrature basis reuse for thread performance. After this implementation is qualified, reconcile
+existing GitHub investigation issues into the roadmap, then continue remaining07 before08->09.

@@ -1,0 +1,4 @@
+flow display: {"requestedDpr":1,"renderer":"webgpu","devicePixelRatio":1,"cssWidth":1140,"cssHeight":900,"backingWidth":1140,"backingHeight":900}
+ok 1 starter plate loads
+ok 36 CG1 cylindrical wrap: native quarter preview, apply, undo, edit and portable Save/Open
+screenshots: /tmp/d313-wrap-flow-fifth
