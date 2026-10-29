@@ -1,0 +1,87 @@
+{
+  "status": "SOURCE_EXTRACTED_TYPES_LINT_TEST_NATIVE_NOT_RUN",
+  "baseline": "1266cdf24943acc5963bf5e346339e32c9f3da41",
+  "sourceRanges": [
+    {
+      "kind": "calculations",
+      "start": 1138,
+      "end": 1155
+    },
+    {
+      "kind": "motionError",
+      "start": 1161,
+      "end": 1163
+    },
+    {
+      "kind": "partAndClosures",
+      "start": 1186,
+      "end": 1189
+    },
+    {
+      "kind": "inspector",
+      "start": 3364,
+      "end": 3448
+    }
+  ],
+  "hook": "useRobotExports({model,assembly,fileName,onNotice})",
+  "model": [
+    "doc:StudioDoc",
+    "bodies:BodyResult[]",
+    "instanceBodies:ReadonlyMap<string,{inst:PartInstance,sourceKey:string,bodies:BodyResult[]}>",
+    "instanceSources:ReadonlyMap<string,InstanceEvaluationSource>",
+    "fresh:boolean",
+    "busy:boolean",
+    "massReady:boolean"
+  ],
+  "assembly": "Pick<Assembly,'problems'|'tables'>",
+  "notice": "onNotice(FriendlyError):void",
+  "returned": [
+    "model",
+    "fileName",
+    "onNotice",
+    "jointTree",
+    "robotReady",
+    "linkInertias",
+    "jointMasses",
+    "reportMotionError",
+    "exportUrdfFile",
+    "exportMjcfFile",
+    "exportSdfFile",
+    "exportUsdFile"
+  ],
+  "inspectorProps": [
+    "controller:RobotExportController",
+    "motion:ReturnType<typeof useJoints>",
+    "loopMotionContext?:LoopMotionContext",
+    "chosenMotion:{duration?:number,problem?:string}",
+    "video:{busy:boolean,record(seconds,draw,name):Promise<void>}",
+    "changes:{canChangeDocument,pushUndo,setDoc(StudioDoc):boolean,setDirty}"
+  ],
+  "appRetained": [
+    "useJoints call/subscriptions/stores",
+    "loopMotionContext",
+    "chosenMotion",
+    "motion-contact effect",
+    "visible panel condition",
+    "central document dispatch refs"
+  ],
+  "preserved": [
+    "memo dependencies and placed world-body identity resolver",
+    "robot readiness instance/source identity guard",
+    "URDF/MJCF/SDF/USD current refusals/notes/filenames/source sidecars/zip timing",
+    "same document change guard/undo/setDoc return/dirty ordering",
+    "workspace/waypoint/path computations copied from existing UI without new algorithms",
+    "video freeze/pause/export callback order"
+  ],
+  "nullControllerBoundary": "Export methods and view no-op when no jointTree; original App panel condition already excluded this case.",
+  "files": [
+    {
+      "path": "apps/cad-studio/src/robot/useRobotExports.ts",
+      "sha256": "d55773278216fc49fbae2de0561c34b5051519c659d9f3847e6e5f54baf4d679"
+    },
+    {
+      "path": "apps/cad-studio/src/robot/RobotInspector.tsx",
+      "sha256": "d0f893f7839ce0ca1631d6dccd17583f05d768ab694f7973350015effcedb129"
+    }
+  ]
+}

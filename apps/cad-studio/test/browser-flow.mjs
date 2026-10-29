@@ -209,27 +209,27 @@ try {
   await check('hole on a supported plate', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
     await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
-    await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.locator('.history .hs[aria-label="Box 64×32×8"]').waitFor({ timeout: 15000 });
     await page.click('.views button:text-is("Top")'); await page.waitForTimeout(300);
     const [cx, cy] = await canvasCenter(); await page.mouse.move(cx, cy); await page.mouse.click(cx, cy);
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''));
     await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
     await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
   });
 
   await check('feature editor changes the sketch a feature is made from', async () => {
-    const bounds = () => page.locator('.props:not([aria-label$=" panel"])').innerText();
-    await page.locator('.history .hs', { hasText: 'Box 64' }).click();
+    const bounds = () => page.locator('[aria-label="Selection"]').innerText();
+    await page.locator('.history .hs[aria-label^="Box 64"]').click();
     const ed = (label) => page.locator('.node-editor .field', { has: page.locator(`span:text-is("${label}")`) }).locator('input, select');
     assert.equal(await ed('Width').inputValue(), '64');
     await ed('Width').fill(''); await ed('Width').fill('80');
     await page.locator('.node-editor button', { hasText: 'Apply' }).click(); await idle();
     await page.locator('.outliner .ol').nth(0).click();
-    await page.waitForFunction(() => /80 × 32 × 8/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /80 × 32 × 8/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 15000 });
     assert.match(await outliner(), /Hole Ø8/);
     await press('Escape'); await press('Meta+z'); await idle(); await page.locator('.outliner .ol').nth(0).click();
-    await page.waitForFunction(() => /64 × 32 × 8/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /64 × 32 × 8/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 15000 });
     assert.ok(!/80 ×/.test(await bounds()));
   });
 
@@ -667,12 +667,14 @@ try {
     const [cx, cy] = await canvasCenter();
     for (const [dx, dy] of [[-150, -80], [150, -80], [130, 80], [-160, 90], [-150, -80]]) await clickAt(cx + dx, cy + dy);
     await page.fill('#sk-len0', '60'); await page.evaluate(() => document.activeElement?.blur());
-    await press('Enter'); await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc?.nodes[0]?.kind === 'sketch' && window.__studioFresh === true && window.__studioBodies?.().massReady === true, null, { timeout: 15000 });
+    await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
-    await page.locator('.history .hs', { hasText: 'Extrude' }).last().click();
+    await page.locator('.history .hs[aria-label^="Extrude"]').last().click();
     await page.click('[aria-label="Edit sketch"]');
     assert.match(await page.locator('.sk-panel [role=list]').innerText(), /Length\s*edge 1 = 60/);
-    assert.match(await page.locator('.hint-bar .hint-title').innerText(), /Select/);
+    assert.match(await page.locator('.sk-panel .card-title').filter({ hasText: /^SKETCH · / }).innerText(), /SKETCH · Select/);
     await page.fill('#sk-len0', '45'); await page.evaluate(() => document.activeElement?.blur());
     await press('Enter');
     await page.waitForFunction(() => window.__studioDoc?.nodes[0]?.outline?.lengths?.[0] === 45, null, { timeout: 15000 });
@@ -1683,7 +1685,7 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'import' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 });
     // (The same body: its volume as before, 4022 mm³.)
     await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /4022 mm³/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /4022 mm³/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     // Size caps (D49): past 32 MiB in its meshes it still opens, and past 64 MiB (the owner's 128 MiB); past 128 MiB
     // it is refused, pointing to .bcad (the coordinates list padded with spaces; in memory below Playwright's 50 MB,
     // else a file removed once read).
@@ -9873,6 +9875,49 @@ try {
     await slide('Exposure', 1);
     await page.selectOption('.render-panel [aria-label="Studio environment"]', '');
     await page.click('.mode button:text-is("Model")');
+  });
+  await check('D327: extracted STL dialog resets quality, cancels before export and writes a literal box with its source record', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    for (const [label, value] of [['Width X', '12'], ['Depth Y', '13'], ['Height Z', '14']]) await field(label).fill(value);
+    await hudReady(); await press('Enter');
+    await page.waitForFunction(() => {
+      const node = window.__studioDoc?.nodes[1], state = window.__studioBodies?.();
+      return node?.made?.values?.w === 12 && node.made.values.d === 13 && node.height === 14
+        && state?.fresh && state.massReady && state.bodies.length === 1 && Math.abs(state.bodies[0].volume - 2184) < 1e-6;
+    }, null, { timeout: 30000 });
+    await page.locator('.doc-tab input').fill('D327-exports');
+    const downloads = [], record = download => downloads.push(download);
+    page.on('download', record);
+    try {
+      await page.click('[aria-label="Export STL"]');
+      const dialog = page.locator('[role="dialog"][aria-label="STL export"]');
+      await dialog.waitFor(); await dialog.locator('select').selectOption('32');
+      await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+      await dialog.waitFor({ state: 'hidden' }); assert.equal(downloads.length, 0, 'cancelled option selection starts no export');
+      await page.click('[aria-label="Export STL"]'); await dialog.waitFor();
+      assert.equal(await dialog.locator('select').inputValue(), 'automatic', 'opening the dialog resets its prior quality');
+      await dialog.locator('select').selectOption('8');
+      const pair = Promise.all([
+        page.waitForEvent('download', { predicate: d => d.suggestedFilename().endsWith('.stl'), timeout: 30000 }),
+        page.waitForEvent('download', { predicate: d => d.suggestedFilename().endsWith('.source.json'), timeout: 30000 }),
+      ]);
+      await dialog.getByRole('button', { name: 'Export', exact: true }).click();
+      const [stl, sidecar] = await pair, bytes = readFileSync(await stl.path()), sourceBytes = readFileSync(await sidecar.path());
+      writeFileSync(join(out, stl.suggestedFilename()), bytes); writeFileSync(join(out, sidecar.suggestedFilename()), sourceBytes);
+      const triangles = bytes.readUInt32LE(80); assert.ok(triangles > 0); assert.equal(bytes.length, 84 + 50 * triangles);
+      let volume = 0;
+      for (let i = 0; i < triangles; i++) {
+        const at = 84 + 50 * i + 12, p = new Array(9);
+        for (let k = 0; k < 9; k++) p[k] = bytes.readFloatLE(at + 4 * k);
+        assert.ok(p.every(Number.isFinite));
+        volume += p[0] * (p[4] * p[8] - p[5] * p[7]) - p[1] * (p[3] * p[8] - p[5] * p[6]) + p[2] * (p[3] * p[7] - p[4] * p[6]);
+      }
+      volume /= 6; assert.ok(Math.abs(volume - 2184) < 1e-5 * 2184, `literal STL volume ${volume} vs2184`);
+      const source = JSON.parse(sourceBytes); assert.equal(source.format, 'barocss-source'); assert.deepEqual(source.files, [stl.suggestedFilename()]);
+      await dialog.waitFor({ state: 'hidden' }); assert.match(await page.locator('.toast').innerText(), /STL written: 1 file/);
+      assert.equal(downloads.length, 2);
+      writeFileSync(join(out, 'd327-stl-observation.json'), JSON.stringify({ triangles, volume, expectedVolume: 2184, downloads: downloads.map(d => d.suggestedFilename()), source, pendingCancellation: 'NOT_RUN; only option dialog cancellation tested' }, null, 2));
+    } finally { page.off('download', record); }
   });
 } finally {
   await browser.close(); await server.close();

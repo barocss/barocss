@@ -1691,3 +1691,41 @@ Private request/session/store/path+App-scope guards and accepted-scope handoff p
 Serialized File verification uses actual document/opaque intent/dispatch ownership, not equal nodes.
 STEP/STL/OBJ/IGES/.barocad completion/stage, wider A05/version-write/linked stalls and A06 remain open.
 The newest direct owner priority selects D327 App.tsx decomposition next, before other optional work.
+
+
+### GPU material authoring and Studio evidence intake — 2026-10-29
+
+[Full supplied reports and exact copies](notes/gpu-material-authoring-intake-2026-10-29/README.md)
+attach GMAT-1–7 to existing06/G18.2/G18.3/G15-accept,05 SDK and R7.5b/Studio: current API/recipes/
+registration; optional typed frontend through existing CSS compiler; scene material-ID/PBR/stored shader;
+live sampler/UV/resource bridge; GPU last-good/stale-owner/cache measurements; bounded output/vertex/post;
+physical glass/pathtrace/backend subset. Reuse existing Material/Scene/compiler; no new language or queue.
+Existing CSS shader and Studio source editors, PBR/maps and public CPU TRS clip sampler are acknowledged.
+Reported actual fixed-d855 one quad/23 assertions validates uniform pixels and caller invalidDSL nonapply
+only; current D325/D326/App WIP, GPU swap/compile counts/loss/OOM/parity remain excluded. Later Studio
+fixed-d8556-view report supports existing15/20/21 SUX observations; preserve initial setupFAIL/guard75.
+Root read/copies all4 supplied documents, runs no product/runtime and sends no cross-chat reply.
+D327 App decomposition keeps the direct owner priority; these are registered followups, not a switch.
+
+
+### D327 direct-priority App decomposition — complete locally (2026-10-29)
+
+[Source map and qualification](notes/app-decomposition-2026-10-29/README.md): App4,012→2,308lines,
+42 cohesive modules. Central document/work/Open/Save/evaluation owners remain in App. Build/types/lint,
+Studio429(including route6), actual selectedUI11+starter and affectedOpen5 pass with per-run failures
+retained. D321 missing Render-history evidence remains open; no full-browser/performance acceptance.
+Normal feature push follows. Next: existing12/O9 remaining A05 nonserialized import/stage ownership,
+then A06; retain07→08→09 priority. No new queue from incoming messages.
+
+### Drawing assistant and material-map evidence intake — 2026-10-29
+
+[Full supplied reports and bounded external context](notes/drawing-assistant-maps-intake-2026-10-29/README.md)
+register DA-1 under existing CG5/DR1–8/O26/RS7.6: one fixed-bracket reviewable draft, original
+requirements/tolerances, proposal accept/reject/Undo, reference diagnostics, native semantic roundtrip,
+and same-sheet SVG/DXF/PDF provenance. Existing tools/planner/checker/export paths are recognized;
+source-only review is not live AI/runtime/manufacturing acceptance. DR7 standards and DR8 sets remain
+separate. Autodesk article is background only; no original standards or embedded tables imported.
+GMAT-1 supplementary author run at1266 reports1standalone test/50assertions, native map tolerances
+and disposal/rebind fallback; not50tests, not package test:browser/CI/fullGPU/parity/recovery/OOM.
+Root read exact4documents/740lines and retained copies; no independent runtime rerun or cross-chat
+reply. These attach to existing work and do not interrupt D327 or A05/A06 priority.

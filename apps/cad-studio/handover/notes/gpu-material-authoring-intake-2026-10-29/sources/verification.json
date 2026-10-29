@@ -1,0 +1,123 @@
+{
+  "status": "PASS_BOUNDED_PUBLIC_CSS_MATERIAL_PROFILE",
+  "verifiedAt": "2026-10-29T07:57:33.535605+00:00",
+  "sourceCommit": "d85558ce0031d812341d5871743f8535520eb8d4",
+  "currentHeadAtCompletion": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+  "currentGpuDeltaExcluded": " packages/barocss-gpu/src/viewer/camera.ts       | 20 ++++++++-\n packages/barocss-gpu/src/viewer/shaders/pick.ts | 16 +++++++\n packages/barocss-gpu/src/viewer/viewer.ts       | 57 ++++++++++++++++++-------\n 3 files changed, 75 insertions(+), 18 deletions(-)\n",
+  "codeExits": {
+    "gate": 0,
+    "syntax-browser": 0,
+    "syntax-run": 0,
+    "probe": 0,
+    "release": 0
+  },
+  "acceptanceSha256": "82da1da3ab041b6924124dd387cae31dd029c2a6d9dbd79863e412893e12a40c",
+  "acceptanceAndHarnessUnchangedAfterRun": true,
+  "originalReviewAndEvidence": [
+    {
+      "path": "research/gpu-material-authoring-20261029/source-review.md",
+      "sha256": "71b897835f1ce11d01621126c4412ba328f38b860cf51c9259be6877e4832523",
+      "unchanged": true
+    },
+    {
+      "path": "research/gpu-material-authoring-20261029/source-evidence.json",
+      "sha256": "11ba27db4dc99c2457f41ecd4cdf618a5fc32e3dd8ef003022f583e1e5ced53f",
+      "unchanged": true
+    }
+  ],
+  "sourceGraph": {
+    "status": "PASS_BEFORE_BROWSER",
+    "inputs": 548,
+    "committedSnapshotSourceInputs": 547,
+    "ownedFixtureInputs": 1,
+    "thirdPartyBrowserInputs": 0,
+    "externalImports": 0,
+    "bundleSha256": "dd80ed9bd82fa4cbc8005c3ae39685e4c1d3d939e87d5771231d2088a432e001"
+  },
+  "assertions": 23,
+  "uniformValues": [
+    0,
+    1
+  ],
+  "actualCenterRGBA": {
+    "time0": [
+      166,
+      102,
+      95,
+      255
+    ],
+    "time1": [
+      224,
+      128,
+      32,
+      255
+    ],
+    "invalidControl": [
+      224,
+      128,
+      32,
+      255
+    ]
+  },
+  "coveredPixels": {
+    "time0": 6084,
+    "time1": 6084,
+    "invalidControl": 6084
+  },
+  "colorDelta": [
+    58,
+    26,
+    -63,
+    0
+  ],
+  "invalidDSLDiagnostics": [
+    {
+      "code": "SYNTAX",
+      "message": "Material expression required",
+      "start": 37,
+      "end": 38
+    }
+  ],
+  "invalidControlComparison": {
+    "differentBytes": 0,
+    "maxDelta": 0,
+    "bytes": 65536
+  },
+  "viewerCleanup": {
+    "disposed": true,
+    "ready": false,
+    "deviceNull": true
+  },
+  "runtimeCleanup": {
+    "page": "CLOSED",
+    "context": "CLOSED",
+    "browser": "CLOSED",
+    "server": "CLOSED"
+  },
+  "browserErrors": [],
+  "firstFailure": null,
+  "pngVisualReview": {
+    "status": "ACTUALLY_VIEWED",
+    "files": [
+      "time0.png",
+      "time1.png",
+      "invalidControl.png"
+    ],
+    "finding": "Three128x128 GPU canvas captures viewed: centered non-background quad changes from muted brown at time0 to orange at time1; refused-source control keeps orange. Numeric acceptance is established by raw mapped pixels, not screenshot appearance."
+  },
+  "notRun": [
+    "pipeline creation count",
+    "invalid raw WGSL/GPU pipeline swap failure",
+    "vertex custom stage",
+    "programmable postpass",
+    "pathtrace shader parity",
+    "compute authoring",
+    "full Three.js parity",
+    "device loss",
+    "natural GPU failure",
+    "VRAM/OOM"
+  ],
+  "resultBoundary": "Immutable d855, one unlit white-base simple opaque quad, one Apple/Chrome profile. Current clipping changes are excluded. No product mutation or rerun.",
+  "preflightScopeClarification": "preflight-scope-clarification.json",
+  "runtimeFollowupSha256": "6ae166eac7c2daae858cd4aae0a8540581c26c59f2c49ab898d0b3154e19038f"
+}

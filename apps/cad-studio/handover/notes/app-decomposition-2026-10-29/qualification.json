@@ -1,0 +1,80 @@
+{
+  "status": "PASS_WITH_EXPLICIT_BOUNDARIES",
+  "baseline": "1266cdf24943acc5963bf5e346339e32c9f3da41",
+  "app": {
+    "beforeLines": 4012,
+    "afterLines": 2308,
+    "beforeBytes": 385325,
+    "afterBytes": 214011,
+    "newProductionModules": 42
+  },
+  "productionBinding": "qualification-source/profile.json",
+  "production45Unchanged": true,
+  "buildAndTypes": {
+    "exit": 0,
+    "log": "unit/build.txt"
+  },
+  "lint": {
+    "exit": 0,
+    "errors": 0,
+    "existingBrowserConsoleWarnings": 45,
+    "log": "unit/lint.txt"
+  },
+  "studio": {
+    "pass": 429,
+    "fail": 0,
+    "skip": 0,
+    "routeFocused6Included": true
+  },
+  "browser": {
+    "renderer": "Chrome156 WebGPU DPR1",
+    "uniqueSelectedCasesPass": 11,
+    "mandatoryStarterSmoke": "PASS, repeated across runs; counted separately",
+    "affectedOpenPass": 5,
+    "firstRun": {
+      "pass": 7,
+      "fail": 5,
+      "exit": 1
+    },
+    "targetedRun": {
+      "pass": 5,
+      "fail": 1,
+      "exit": 1
+    },
+    "isolatedSketchFirst": {
+      "pass": 1,
+      "fail": 1,
+      "exit": 1,
+      "cause": "Root-written title locator matched five headings"
+    },
+    "isolatedStop": {
+      "pass": 2,
+      "fail": 0,
+      "exit": 0
+    },
+    "finalSketch": {
+      "pass": 2,
+      "fail": 0,
+      "exit": 0
+    },
+    "interpretation": "Positive cases reused across source-identical runs; this is not a single all-pass whole browser-suite run. Preserve every raw failure. Driver locator/readiness changes only after each flow closed.",
+    "d321RenderHistory": "Missing-field comparisons excluded from history PASS; existing gap remains"
+  },
+  "notRun": [
+    "Whole kernel/model/GPU/browser suites",
+    "Remote CI",
+    "Performance comparison or speed acceptance",
+    "Remaining nonserialized import/stage A05 and A06 fixes",
+    "Native route geometry acceptance",
+    "STL pending-generation cancellation",
+    "D321 missing Render-history evidence repair"
+  ],
+  "cleanup": "Owned browser/server processes closed; namespace absence checked for affected Open; heavy gate released. No runtime source edits during flows.",
+  "docs": {
+    "exit": 0,
+    "pages": 68,
+    "shots": 55,
+    "shotKB": 4811,
+    "labels": 860
+  }
+}

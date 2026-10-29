@@ -1,0 +1,17 @@
+{
+  "productionCount": 45,
+  "productionProfile": "qualification-source/profile.json",
+  "sourceUnchangedBefore": true,
+  "drivers": [
+    {
+      "path": "apps/cad-studio/test/browser-flow.mjs",
+      "bytes": 964146,
+      "sha256": "6c4c4c411ff00f52b2d51f38dd4496b71af6b770a8df9fe098c30557e0292fce"
+    },
+    {
+      "path": "apps/cad-studio/test/stop-work-native-worker.mjs",
+      "bytes": 3160,
+      "sha256": "752e73f84a1a0d7d05e88ce7299f5f43aa9f5dddf485caabeec503c6682e5dc2"
+    }
+  ]
+}

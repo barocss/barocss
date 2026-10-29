@@ -1,0 +1,593 @@
+{
+  "status": "PASS_ONE_EXISTING_MATERIAL_MAP_SPEC_METADATA_ONLY",
+  "verifiedAt": "2026-10-29T08:35:01.611562+00:00",
+  "sourceCommit": "1266cdf24943acc5963bf5e346339e32c9f3da41",
+  "currentHeadAtCompletion": "1266cdf24943acc5963bf5e346339e32c9f3da41",
+  "currentGpuSourceStatus": "",
+  "attempts": 1,
+  "codeExits": {
+    "gate": 0,
+    "syntax-build": 0,
+    "syntax-run": 0,
+    "build": 0,
+    "probe": 0,
+    "release": 0
+  },
+  "runtimeElapsedMs": 3908.919542,
+  "tapCounts": {
+    "tests": 1,
+    "pass": 1,
+    "fail": 0,
+    "skipped": 0
+  },
+  "originalAssertionEvaluations": 50,
+  "assertionReviewMethod": "Each original assertion condition paired with retained executed result rows; not a test rerun or changed predicate.",
+  "checks": [
+    {
+      "name": "front:raster-reference",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "max<=1byte"
+    },
+    {
+      "name": "front:map-visible",
+      "status": "PASS",
+      "actual": {
+        "max": 13,
+        "mean": 13,
+        "different": 2304
+      },
+      "expected": "mean>3"
+    },
+    {
+      "name": "front:zero-scale",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "differentBytes=0"
+    },
+    {
+      "name": "mirrored:raster-reference",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "max<=1byte"
+    },
+    {
+      "name": "mirrored:map-visible",
+      "status": "PASS",
+      "actual": {
+        "max": 45,
+        "mean": 45,
+        "different": 2304
+      },
+      "expected": "mean>3"
+    },
+    {
+      "name": "mirrored:zero-scale",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "differentBytes=0"
+    },
+    {
+      "name": "scaled:raster-reference",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "max<=1byte"
+    },
+    {
+      "name": "scaled:map-visible",
+      "status": "PASS",
+      "actual": {
+        "max": 13,
+        "mean": 11.375,
+        "different": 2268
+      },
+      "expected": "mean>3"
+    },
+    {
+      "name": "scaled:zero-scale",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "differentBytes=0"
+    },
+    {
+      "name": "scaled-mirrored:raster-reference",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "max<=1byte"
+    },
+    {
+      "name": "scaled-mirrored:map-visible",
+      "status": "PASS",
+      "actual": {
+        "max": 45,
+        "mean": 39.375,
+        "different": 2268
+      },
+      "expected": "mean>3"
+    },
+    {
+      "name": "scaled-mirrored:zero-scale",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "differentBytes=0"
+    },
+    {
+      "name": "back:raster-reference",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "max<=1byte"
+    },
+    {
+      "name": "back:map-visible",
+      "status": "PASS",
+      "actual": {
+        "max": 13,
+        "mean": 11.375,
+        "different": 2268
+      },
+      "expected": "mean>3"
+    },
+    {
+      "name": "back:zero-scale",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "differentBytes=0"
+    },
+    {
+      "name": "max finite normalScale:raster-reference",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "max<=1byte"
+    },
+    {
+      "name": "max finite normalScale:map-visible",
+      "status": "PASS",
+      "actual": {
+        "max": 9,
+        "mean": 9,
+        "different": 2304
+      },
+      "expected": "mean>3"
+    },
+    {
+      "name": "max finite normalScale:zero-scale",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "differentBytes=0"
+    },
+    {
+      "name": "zero UV:fallback",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "differentBytes=0"
+    },
+    {
+      "name": "missing UV:fallback",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "differentBytes=0"
+    },
+    {
+      "name": "roughness G128:linear-reference",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "max<=1byte"
+    },
+    {
+      "name": "roughness G128:sRGB-negative-control",
+      "status": "PASS",
+      "actual": {
+        "max": 46,
+        "mean": 31.666666666666668,
+        "different": 9900
+      },
+      "expected": "mean>3"
+    },
+    {
+      "name": "metallic B128:linear-reference",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "max<=1byte"
+    },
+    {
+      "name": "metallic B128:sRGB-negative-control",
+      "status": "PASS",
+      "actual": {
+        "max": 7,
+        "mean": 4.666666666666667,
+        "different": 9900
+      },
+      "expected": "mean>3"
+    },
+    {
+      "name": "shared packed G128 B64:linear-reference",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "max<=1byte"
+    },
+    {
+      "name": "shared packed G128 B64:sRGB-negative-control",
+      "status": "PASS",
+      "actual": {
+        "max": 17,
+        "mean": 13,
+        "different": 9900
+      },
+      "expected": "mean>3"
+    },
+    {
+      "name": "lifecycle:live-map-visible",
+      "status": "PASS",
+      "actual": {
+        "max": 13,
+        "mean": 13,
+        "different": 9900
+      },
+      "expected": "mean>3"
+    },
+    {
+      "name": "lifecycle:literal-reference",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "max<=1byte"
+    },
+    {
+      "name": "lifecycle:dispose-fallback",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "differentBytes=0"
+    },
+    {
+      "name": "lifecycle:replacement",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "differentBytes=0"
+    },
+    {
+      "name": "progressive front normal:captured-samples",
+      "status": "PASS",
+      "actual": [
+        8,
+        8,
+        8
+      ],
+      "expected": "[8,8,8]"
+    },
+    {
+      "name": "progressive front normal:literal-reference",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "max<=2bytes"
+    },
+    {
+      "name": "progressive front normal:map-visible",
+      "status": "PASS",
+      "actual": {
+        "max": 13,
+        "mean": 13,
+        "different": 1161
+      },
+      "expected": "mean>3"
+    },
+    {
+      "name": "progressive mirrored scaled normal:captured-samples",
+      "status": "PASS",
+      "actual": [
+        8,
+        8,
+        8
+      ],
+      "expected": "[8,8,8]"
+    },
+    {
+      "name": "progressive mirrored scaled normal:literal-reference",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "max<=2bytes"
+    },
+    {
+      "name": "progressive mirrored scaled normal:map-visible",
+      "status": "PASS",
+      "actual": {
+        "max": 45,
+        "mean": 27.86328125,
+        "different": 1140
+      },
+      "expected": "mean>3"
+    },
+    {
+      "name": "progressive max finite normalScale:captured-samples",
+      "status": "PASS",
+      "actual": [
+        8,
+        8,
+        8
+      ],
+      "expected": "[8,8,8]"
+    },
+    {
+      "name": "progressive max finite normalScale:literal-reference",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "max<=2bytes"
+    },
+    {
+      "name": "progressive max finite normalScale:map-visible",
+      "status": "PASS",
+      "actual": {
+        "max": 9,
+        "mean": 9,
+        "different": 1161
+      },
+      "expected": "mean>3"
+    },
+    {
+      "name": "progressive roughness G128:captured-samples",
+      "status": "PASS",
+      "actual": [
+        8,
+        8,
+        8
+      ],
+      "expected": "[8,8,8]"
+    },
+    {
+      "name": "progressive roughness G128:literal-reference",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "max<=2bytes"
+    },
+    {
+      "name": "progressive roughness G128:map-visible",
+      "status": "PASS",
+      "actual": {
+        "max": 44,
+        "mean": 30,
+        "different": 1161
+      },
+      "expected": "mean>3"
+    },
+    {
+      "name": "progressive metallic B128:captured-samples",
+      "status": "PASS",
+      "actual": [
+        8,
+        8,
+        8
+      ],
+      "expected": "[8,8,8]"
+    },
+    {
+      "name": "progressive metallic B128:literal-reference",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "max<=2bytes"
+    },
+    {
+      "name": "progressive metallic B128:map-visible",
+      "status": "PASS",
+      "actual": {
+        "max": 13,
+        "mean": 9,
+        "different": 1161
+      },
+      "expected": "mean>3"
+    },
+    {
+      "name": "progressive shared packed G128 B64:captured-samples",
+      "status": "PASS",
+      "actual": [
+        8,
+        8,
+        8
+      ],
+      "expected": "[8,8,8]"
+    },
+    {
+      "name": "progressive shared packed G128 B64:literal-reference",
+      "status": "PASS",
+      "actual": {
+        "max": 0,
+        "mean": 0,
+        "different": 0
+      },
+      "expected": "max<=2bytes"
+    },
+    {
+      "name": "progressive shared packed G128 B64:map-visible",
+      "status": "PASS",
+      "actual": {
+        "max": 35,
+        "mean": 29.333333333333332,
+        "different": 1161
+      },
+      "expected": "mean>3"
+    },
+    {
+      "name": "texture-disposal",
+      "status": "PASS",
+      "actual": true,
+      "expected": true
+    },
+    {
+      "name": "browser-GPU-errors",
+      "status": "PASS",
+      "actual": [],
+      "expected": []
+    }
+  ],
+  "sourceGraph": {
+    "status": "PASS_BEFORE_BROWSER",
+    "inputs": 451,
+    "allInputsPinnedCommittedSnapshotSource": true,
+    "externalImports": [],
+    "thirdPartyBrowserInputs": 0,
+    "bundleSha256": "d2cbad3ad548f10ae513103d2f1a73fd76d94889899a18cb71a4d6f92ea5c028"
+  },
+  "frozenSourceFilesUnchangedAfterRun": 594,
+  "preparedExecutionFilesUnchanged": true,
+  "testTransformation": {
+    "authorization": "Parent explicitly allows read-only metadata for the same already-selected adapter and browser.version. No extra adapter/device request, launch/profile/expected/control/tolerance/body comparison change.",
+    "originalPath": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runtime/material-maps-1266/packages/barocss-gpu/tests/viewer-material-maps-browser.test.mjs",
+    "originalSha256": "6c3ec2da920c2bcc8044e43fd10056597ce380b938b6c8604b6e72c71b04c3a5",
+    "executionSpecPath": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runtime/material-maps-1266/packages/barocss-gpu/tests/viewer-material-maps-browser.metadata.test.mjs",
+    "executionSpecSha256": "418932904efb511cdba5c38e9de5c79fcb991d00866bc2ea682591b7c7f90210",
+    "diffFile": "metadata-only.diff",
+    "diffSha256": "5675e7bfb3321c961a670fadd064f4ed58ad89790e4a4df49e94f88727f8a9fe",
+    "allOriginalAssertLinesByteIdentical": true,
+    "additionalAdapterRequests": 0,
+    "additionalDeviceRequests": 0,
+    "limits": "Observed adapter is the existing availability probe adapter. The Viewer independently uses its normal high-performance adapter request; no interception was used to bind that object identity."
+  },
+  "environment": {
+    "nodeBinary": "/Users/user/Library/pnpm/nodejs/22.19.0/bin/node",
+    "chromeVersion": "156.0.8078.48",
+    "adapter": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "",
+      "description": "",
+      "isFallbackAdapter": null,
+      "observation": "Same adapter from original availability request; Viewer independently requests its device normally; no new adapter request added"
+    }
+  },
+  "referenceMaxObserved": {
+    "rasterNormals": 0,
+    "rasterScalars": 0,
+    "progressive": 0
+  },
+  "negativeControlMean": {
+    "roughness G128": 31.666666666666668,
+    "metallic B128": 4.666666666666667,
+    "shared packed G128 B64": 13
+  },
+  "comparisonRegion": "max/mean: original16x16 center RGB; different: whole-frame RGBA byte difference count",
+  "firstFailure": null,
+  "cleanup": {
+    "child": "EXITED",
+    "browser": "UNCHANGED_SPEC_FINALLY_AWAITED_BROWSER_CLOSE",
+    "server": "UNCHANGED_SPEC_FINALLY_AWAITED_SERVER_CLOSE",
+    "leaseReleaseExit": 0,
+    "textureDisposed": true
+  },
+  "pngReview": {
+    "status": "ACTUALLY_VIEWED",
+    "path": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/gpu-material-maps-20261029T081949/evidence/raster-maps-nsVTXh/images.png",
+    "sha256": "7e0c665ff2af981b3cf1db706300dac30005ae4f2daf7c914e7b83a2b83358b9",
+    "finding": "Actual retained GPU capture proof canvases: map/reference rows agree visibly; mapped/geometric and incorrect sRGB controls differ; zero/fallback/lifecycle rows match; progressive rows present. Numeric verdict follows unchanged spec, not visual judgement alone."
+  },
+  "runtimeFollowupSha256": "bc710c5d1cc5ccd36bd22fc88b5123d64f77d37635f3efcc62a05b3f8ee6faf3",
+  "registration": "Original spec still absent from package test:browser; standalone PASS does not register it or prove CI.",
+  "notRun": [
+    "default full GPU suite",
+    "CSSL23 rerun",
+    "Studio6 rerun",
+    "Viewer133 rerun",
+    "other adapters/backends",
+    "device loss/recovery",
+    "natural GPU failure/OOM",
+    "driver memory",
+    "whole Three.js parity"
+  ],
+  "mutations": "Only owned new snapshot/build/run/report files; no product, prior evidence/snapshot/review or branches modified."
+}

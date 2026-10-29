@@ -1,0 +1,72 @@
+{
+  "status": "SOURCE_EXTRACTED_TYPES_LINT_TEST_NATIVE_NOT_RUN",
+  "baseline": "1266cdf24943acc5963bf5e346339e32c9f3da41",
+  "ownership": [
+    "apps/cad-studio/src/files/useModelExports.ts",
+    "apps/cad-studio/src/files/ModelExportDialogs.tsx"
+  ],
+  "sourceCopyRanges": [
+    {
+      "kind": "state",
+      "start": 2484,
+      "end": 2489
+    },
+    {
+      "kind": "actions",
+      "start": 2500,
+      "end": 2579
+    },
+    {
+      "kind": "dialogs",
+      "start": 3839,
+      "end": 3863
+    }
+  ],
+  "hook": "useModelExports({model,engine,fileName,current,onNotice})",
+  "model": [
+    "doc:StudioDoc",
+    "evaluated:StudioDoc",
+    "bodies:BodyResult[]",
+    "fresh:boolean",
+    "busy:boolean",
+    "massReady:boolean",
+    "instanceBodies:ReadonlyMap<string,{bodies:BodyResult[]}>"
+  ],
+  "current": "{doc:RefObject<StudioDoc>,evaluated:RefObject<StudioDoc>} points to actual App synchronous refs",
+  "notice": "onNotice(FriendlyError):void",
+  "returned": [
+    "stepAsk",
+    "stlAsk",
+    "stlQuality",
+    "stlBusy",
+    "stlCancelButton",
+    "clearStepAsk",
+    "changeStlQuality",
+    "askStlExport",
+    "cancelStlExport",
+    "exportStepFile",
+    "exportStl",
+    "exportQuote",
+    "exportThreeMf"
+  ],
+  "dialog": "ModelExportDialogs({controller:ModelExportController}); type-only hook import, no App import",
+  "preserved": [
+    "STL generation/pending/cancel/ref focus and stale checks",
+    "STL prepare all files+sidecar before final current guard/download",
+    "STEP faceted mesh question/infill exclusion/localStorage choice",
+    "Existing STEP/quote/3MF await/notice behavior without new stale guards",
+    "Exact labels/classes/roles and Escape propagation",
+    "Quality change increments generation only for accepted options"
+  ],
+  "integrationOwner": "thread_next_scope edits App, handles layout reset through clearStepAsk and notice visibility using stepAsk/stlAsk",
+  "files": [
+    {
+      "path": "apps/cad-studio/src/files/useModelExports.ts",
+      "sha256": "d6792a33289aa85b8430b9b9b92fa3d0760be995604c8bafe093a9bb00276e96"
+    },
+    {
+      "path": "apps/cad-studio/src/files/ModelExportDialogs.tsx",
+      "sha256": "fc501e263e1c001b16570b4a0a88d965e335341450f288955bd85ec020a4070a"
+    }
+  ]
+}

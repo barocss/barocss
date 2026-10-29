@@ -1,0 +1,6 @@
+{
+  "productionProfile": "../qualification-source/profile.json",
+  "productionCount": 45,
+  "driverSHA256": "17b06d9d38c87c39acf485331e507f9c8f1dee31f194142c16d8fdddcddefcab",
+  "sourceUnchangedBefore": true
+}

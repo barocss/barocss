@@ -1,0 +1,97 @@
+{
+  "status": "SOURCE_EXTRACTED_TYPES_LINT_TEST_NATIVE_NOT_RUN",
+  "baseline": "1266cdf24943acc5963bf5e346339e32c9f3da41",
+  "sourceRanges": [
+    {
+      "kind": "meshQuestion",
+      "start": 2074,
+      "end": 2075
+    },
+    {
+      "kind": "stageAndRepairState",
+      "start": 2094,
+      "end": 2096
+    },
+    {
+      "kind": "handlers",
+      "start": 2108,
+      "end": 2180
+    },
+    {
+      "kind": "unitDialog",
+      "start": 3827,
+      "end": 3838
+    },
+    {
+      "kind": "repairDialog",
+      "start": 3864,
+      "end": 3868
+    }
+  ],
+  "hook": "useMeshImport({doc,engine,nextRevision,onNotice,onOpened,onCommit})",
+  "options": [
+    "doc:StudioDoc",
+    "engine:EngineClient",
+    "nextRevision():number",
+    "onNotice(FriendlyError):void",
+    "onOpened(StudioDoc,name):void",
+    "onCommit(StudioDoc,live:false):boolean"
+  ],
+  "returned": [
+    "meshAsk",
+    "setMeshAsk",
+    "meshInUnit",
+    "stage",
+    "setStage",
+    "repairAsk",
+    "setRepairAsk",
+    "stopStage",
+    "openMesh",
+    "openMeshNode",
+    "checkRepair",
+    "applyRepair",
+    "editRepair",
+    "removeRepair"
+  ],
+  "exportedTypes": [
+    "MeshQuestion",
+    "MeshOpenInput",
+    "RepairQuestion",
+    "MeshImportOptions",
+    "MeshImportController"
+  ],
+  "dialog": "MeshFileDialogs({controller:MeshImportController,children?:ReactNode}); children between unit and repair questions preserve original export-dialog order",
+  "appRetained": [
+    "blob eviction doc/undo/redo/evaluatedRef effect and repairAsk dependency",
+    "meshBadges/selection rendering",
+    "stage work bar rendering",
+    "DEV question reset",
+    "STEP/general file router using existing public setters/actions",
+    "central replace/name/dirty/fit callback and commit acceptance"
+  ],
+  "openedCallbackOriginalSequence": "setRepairAsk(null) in hook; App onOpened performs replaceDoc(next),setFileName(name),setDirty(true),setTimeout(fit,300); hook then computes and shows original import notice",
+  "preserved": [
+    "native mesh unit selection and fmt",
+    "worker diagnose/repair/stage callbacks and stopped-error suppression",
+    "mesh source/repair blob SHA records and pieces read lane/revision order",
+    "repair dialog steps/result invalidation/check/apply/as-is/remove",
+    "central commit(next,false) ignored-return behavior remains as original",
+    "engine.restart stopStage and existing stage lifetimes unchanged",
+    "Optional export dialog children slot keeps original unit \u2192 model export dialogs \u2192 repair order"
+  ],
+  "notClaimed": [
+    "Known A05 nonserialized format or stage async ownership fixes",
+    "New geometry/repair algorithm or import/export capability",
+    "Native browser or test proof"
+  ],
+  "files": [
+    {
+      "path": "apps/cad-studio/src/files/useMeshImport.ts",
+      "sha256": "211e0144388acfc001535b410de48d8da2ecdedebd7d1b2443967fecf9c24f0a"
+    },
+    {
+      "path": "apps/cad-studio/src/files/MeshFileDialogs.tsx",
+      "sha256": "b3d029596273144d970d86b081e73e4bfb7dcbe7c665d35142d31a83444fc621"
+    }
+  ]
+}

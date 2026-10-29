@@ -1,0 +1,18 @@
+{
+  "pass": 7,
+  "fail": 5,
+  "skip": 0,
+  "exit": 1,
+  "runtimeUnchangedAfterRun": true,
+  "driverUnchangedAfterRun": true,
+  "unexpectedPageReloads": 0,
+  "watcherNonRuntimeArtifacts": 2,
+  "scope": "Positive starter/3MF/mesh repair/RM1/RM4/RM5/STL; five failures preserved. Root viewed first-hole/sketch/STEP failure PNG3.",
+  "findings": [
+    "History labels false in original1266 and candidate: use actual public aria labels rather than absent text",
+    "GravityExperimentPanel precedes Selection in original/candidate: scope actual Selection",
+    "Sketch finish -> immediate Extrude lacks existing fresh-work barrier; source contract unchanged, needs actual retry",
+    "D321 recovery precondition failed before Stop; isolated replay required"
+  ],
+  "next": "Only driver selectors/readiness and selected schedules change; product45 source hashes remain frozen. Targeted rerun required before success classification."
+}

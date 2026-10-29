@@ -1,0 +1,23 @@
+flow display: {"requestedDpr":1,"renderer":"webgpu","devicePixelRatio":1,"cssWidth":1140,"cssHeight":900,"backingWidth":1140,"backingHeight":900}
+page.waitForFunction: Timeout 15000ms exceeded.
+locator.click: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('.history .hs').filter({ hasText: 'Box 64' })[22m
+
+page.waitForFunction: Timeout 15000ms exceeded.
+D321 must start without a prior recovery offer
+page.waitForFunction: Timeout 5000ms exceeded.
+ok 1 starter plate loads
+FAIL 5 hole on a supported plate — page.waitForFunction: Timeout 15000ms exceeded.
+FAIL 6 feature editor changes the sketch a feature is made from — locator.click: Timeout 30000ms exceeded.
+FAIL 25 a finished sketch reopens from the feature editor with its constraints and is written back in place — page.waitForFunction: Timeout 15000ms exceeded.
+ok 49 export a box as 3MF: the download read back independently (zlib CRC and inflate, Python zipfile and ElementTree), its triangles closed, its volume the box's, UUIDs, the toast
+FAIL 55 D321: Stop rolls back its owned Box while pending Render and Drawing edits refuse — D321 must start without a prior recovery offer
+ok 57 a mesh with a hole: checked, the repair gate (steps, holes, its numbers before it is applied), applied as a recorded step, its badge shows the fill and opens it again
+FAIL 58 STEP and meshes: asked how mesh bodies go out (tessellated AP242 or planar); a tessellated file reads back; a mesh-only STEP that does not close goes through the repair gate — page.waitForFunction: Timeout 5000ms exceeded.
+ok 236 RM1: an assembly opened — the Joints card reads its mates as a continuous joint about +Z; the base link moved to the arm
+ok 239 RM4: Export URDF from the Joints card — a zip of robot.urdf and each link's mesh and convex hull; the same URDF as cad-cli writes
+ok 240 RM5: the 6R arm opened, Export MJCF — a zip of robot.xml (seven nested bodies, six hinges) and its meshes, the CLI's model
+ok 322 D327: extracted STL dialog resets quality, cancels before export and writes a literal box with its source record
+note: 2 file changes under the dev server during the run, the first in step 5: /Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/handover/notes/app-decomposition-2026-10-29/browser-flow/browser-flow.mjs.gz, /Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/handover/notes/app-decomposition-2026-10-29/browser-flow/source-profile.json
+screenshots: /tmp/d327-browser-first

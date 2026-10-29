@@ -1,0 +1,64 @@
+{
+  "status": "SOURCE_EXTRACTED_TYPES_LINT_TEST_NATIVE_NOT_RUN",
+  "baseline": "1266cdf24943acc5963bf5e346339e32c9f3da41",
+  "sourceRange": {
+    "start": 2660,
+    "end": 2701
+  },
+  "sourceReview": "Current agreed App block is byte-for-byte identical to baseline O18-through-placeSkip block; copied as-is inside hook. This is source comparison, not runtime proof or a new mirror test.",
+  "hook": "useModelAppearance({model,preview,display})",
+  "model": [
+    "doc:StudioDoc",
+    "evaluated:StudioDoc",
+    "bodies:BodyResult[]"
+  ],
+  "preview": [
+    "active:Active|null",
+    "previewBodies:BodyResult[]|null",
+    "routePreviewBodies:BodyResult[]|null",
+    "ghost:{after:boolean}|null (original full object reference)",
+    "proposalOverlay:ProposalOverlay|null",
+    "compareOverlay:ProposalOverlay|null"
+  ],
+  "display": [
+    "bodyDrag:boolean",
+    "section:boolean",
+    "sketch:boolean",
+    "sectionBodies:BodyResult[]|null",
+    "sectionExactShown:boolean",
+    "sectionExact:{from:ReadonlyMap<string,string>}|null (original full object reference)",
+    "animatedAt:ReadonlyMap<string,Vec3>|null"
+  ],
+  "returned": [
+    "drawnBodies",
+    "shownBodies",
+    "animatedOffsets",
+    "previewNodes",
+    "bodyColors",
+    "hiddenBodies",
+    "proposalTint",
+    "faceColors",
+    "placeSkip"
+  ],
+  "preserved": [
+    "O18 sameMeshes ref gate and original drawn BodyResult array",
+    "drag > route preview > command preview > section > drawn precedence",
+    "Exact section source-key animated offsets",
+    "All original useMemo dependencies; input wrapper identity never enters deps",
+    "Original ghost/sectionExact object and body array identity",
+    "Proposal boolean-overlay suppression and before/after face tint precedence",
+    "Body indices/face indices/keys and placing skip set",
+    "Existing hot callbacks copied, no new per-element closures introduced"
+  ],
+  "remainingApp": [
+    "animatedAt derivation",
+    "GPU access maps hook and computeDevice callback",
+    "CPU/scalar maps, isoclines and async mould lane/effect",
+    "mate/section selection, clip/hatch/handles, references and gizmos",
+    "central refs/state/effects"
+  ],
+  "file": {
+    "path": "apps/cad-studio/src/viewport/useModelAppearance.ts",
+    "sha256": "298fbfdd6080487842469026bc3744cea3d972612ae1704aefd7a72b1766c3c2"
+  }
+}

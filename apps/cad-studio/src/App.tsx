@@ -1,38 +1,70 @@
+import { ViewDisplayControls } from './ui/ViewDisplayControls';
+import { isImportedFile, openImportedFile } from './files/importedFile';
+import { FeatureHistoryBar } from './ui/FeatureHistoryBar';
+import { FeatureHistoryMenu } from './ui/FeatureHistoryMenu';
+import { useRenderPlayback } from './viewport/useRenderPlayback';
+import { useModelChecks } from './state/useModelChecks';
+import { ViewContextMenu } from './ui/ViewContextMenu';
+import { TemplatePicker } from './ui/TemplatePicker';
+import { useCommandPreview } from './state/useCommandPreview';
+import { DirectInspector } from './ui/DirectInspector';
+import { ModelTools } from './ui/ModelTools';
+import { useCommandGizmos } from './viewport/useCommandGizmos';
+import { useModelAppearance } from './viewport/useModelAppearance';
+import { useSketchActions } from './sketch/useSketchActions';
+import { useProposalPreview } from './state/useProposalPreview';
+import { ProposalBrowser } from './ui/ProposalBrowser';
+import { useFeatureHistory } from './state/useFeatureHistory';
+import { BodyBrowserRows } from './ui/BodyBrowserRows';
+import { RequirementsBrowser } from './ui/RequirementsBrowser';
+import { DesignHistory } from './ui/DesignHistory';
+import { MeasurementInspector, InterferenceInspector } from './ui/MeasurementInspector';
+import { SelectionInspector } from './ui/SelectionInspector';
+import { useMeshImport } from './files/useMeshImport';
+import { MeshFileDialogs } from './files/MeshFileDialogs';
+import { useRouteBundleEditor } from './state/useRouteBundleEditor';
+import { ReferenceDecisions } from './ui/ReferenceDecisions';
+import { useRobotExports } from './robot/useRobotExports';
+import { RobotInspector } from './robot/RobotInspector';
+import { useModelExports } from './files/useModelExports';
+import { ModelExportDialogs } from './files/ModelExportDialogs';
+import { readDocumentFile, verifyDocumentFile, writeDocumentFile } from './files/documentFile';
+import { changesBeyondVariability } from './app/documentChanges';
+import { sameMeshes, withMasses, samePlacement, meshVolume } from './app/bodyResults';
+import { TOOLS, SKETCH_INSETS, sketchRegion, switchTool, detachSketchLink } from './app/sketchControls';
+import { activeKey, type Active } from './app/commandState';
+import { emptySel, NO_INSTANCES, GROUP_COMMANDS, PLACE_COMMANDS, BROWSER_PLACEMENT, PALETTE_EXTRA } from './app/studioConstants';
+import { routeMessage } from './app/routeSession';
+import { CursorReadout } from './ui/CursorReadout';
+import { iconFor } from './ui/featureIcon';
+import { NodeEditor } from './ui/NodeEditor';
 import { revokePersonRowFiles, isPersonRowFiles, type PersonRowFiles } from '@barocss/cad-model/engine/rowFiles';
-import { Fragment, Profiler, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
+import { Profiler, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { EngineClient, type ProposalOverlay } from './engine/client';
 import { beginWork, createWorkOwnership, finishWork, invalidateWork, reserveAcceptedChange, settleWorkReservation, stopOwnedWork, workEditRefusal, type WorkHistory } from './state/workOwnership';
 import { currentDocumentSave } from './state/saveOwnership';
 import type { OpenScope } from './state/openOwnership';
-import { PROPOSAL_ADDED, PROPOSAL_REMOVED, type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
+import { type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
 import { multiply } from '@barocss/gpu/viewer';
-import { resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
 import { placedDoc, type PartInstance } from '@barocss/cad-model/engine/doc';
 import { placementOf } from '@barocss/cad-model/engine/placement';
 import { instanceEvaluationCurrent, instanceEvaluationSources } from './viewport/instanceEvaluation';
 import { contentKey, evaluationKey } from '@barocss/cad-model/engine/evalMemo';
-import type { BearingAssemblyInput } from '@barocss/cad-model/engine/bearingContext';
 import { bearingEditCurrent, bearingFaceInput, captureBearingEditSession, prepareBearingEdit, type BearingEditSession } from './app/bearingEdit';
 import { resolveSkeletons, SKELETON_CODES } from '@barocss/cad-model/frames/skeleton';
-import { carryOver, dropStaleMade, emptyDoc, featureLabel, fmt, parentsOf, prefixDoc, starterDoc, withNode, type MeshRepairRecord, type ModelNode, type Side, type SketchNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
-import { bodyKeyFor, bodyNodeOf, cutAfter, featureId, nextSerial } from '@barocss/cad-model/engine/ids';
-import { MATERIALS } from '@barocss/cad-model/library/materials';
-import { checkSpec, expectedOf, modelHash } from '@barocss/cad-model/chat/spec';
-import type { Outcome } from '@barocss/cad-model/engine/schema/spec';
-import { rejectProposal, stripHistory } from '@barocss/cad-model/chat/proposals';
-import type { Proposal } from '@barocss/cad-model/engine/schema/proposals';
-import type { ProposalPart } from '@barocss/cad-model/chat/tools';
-import { candidatesFor, captureSignatures, confirmReference, markedReferences, referencesOf, refreshSignatures, verifyReferences, type Problem as RefProblem } from '@barocss/cad-model/engine/references';
-import { matchesNativeMassPatch } from '@barocss/cad-model/engine/nativeMassWire';
-import { evaluateDoc, placedMassFields, type BodyResult, type EvalResult } from '@barocss/cad-model/engine/evaluate';
+import { carryOver, dropStaleMade, emptyDoc, featureLabel, fmt, prefixDoc, starterDoc, withNode, type ModelNode, type SketchNode, type StudioDoc } from '@barocss/cad-model/engine/doc';
+import { bodyKeyFor, cutAfter, featureId, nextSerial } from '@barocss/cad-model/engine/ids';
+import { modelHash } from '@barocss/cad-model/chat/spec';
+import { stripHistory } from '@barocss/cad-model/chat/proposals';
+import { candidatesFor, captureSignatures, confirmReference, markedReferences, referencesOf, refreshSignatures, type Problem as RefProblem } from '@barocss/cad-model/engine/references';
+import { type BodyResult, type EvalResult } from '@barocss/cad-model/engine/evaluate';
 import { signaturesOf, type Signature } from '@barocss/cad-model/engine/rematch';
 import type { DrawingReferenceLabel, DrawingReferencePreview } from './ui/DrawingWorkspace';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
-import { carrySelection, commands, patchValues, refOf, selectedBodies, shownFields, subdNodeOf, type Command, type Ctx, type Field, type Selection, type Values } from '@barocss/cad-model/app/commands';
-import { measureBetween, measureItem, pointInBody, type MeasurePick } from '@barocss/cad-model/app/measure';
-import { editFields } from '@barocss/cad-model/app/editFields';
-import { DRAG_TYPE, snapshotInstanceIsolation, type FeatureHandle, type Spot, type SketchAnchor, type SketchShape, type SketchState, type SketchTool, type TransformGizmo, type ViewportHandle } from './viewport/Viewport';
+import { carrySelection, commands, patchValues, refOf, selectedBodies, subdNodeOf, type Command, type Ctx, type Selection, type Values } from '@barocss/cad-model/app/commands';
+import { measureBetween, type MeasurePick } from '@barocss/cad-model/app/measure';
+import { DRAG_TYPE, snapshotInstanceIsolation, type FeatureHandle, type Spot, type SketchAnchor, type SketchShape, type SketchState, type TransformGizmo, type ViewportHandle } from './viewport/Viewport';
 import { ClearancePanel } from './viewport/ClearancePanel';
 import { useClearanceAnalysis } from './viewport/useClearanceAnalysis';
 import { PrintPanel } from './viewport/PrintPanel';
@@ -40,20 +72,17 @@ import { CamPanel } from './viewport/CamPanel';
 import { AnalysisPanel } from './viewport/AnalysisPanel';
 import { Button } from '@/components/ui/button';
 import { ToolIconButton } from '@/components/ui/tool-button';
-import { Input } from '@/components/ui/input';
 import { useGpuAccessMaps } from './viewport/useGpuMaps';
 import { countRender, onBlockRender } from './devRenders';
 import { OutlinerInstances } from './ui/OutlinerInstances';
-import { poseKinematics, useJoints } from './state/useJoints';
-import { draftPath, pathLimits, refuseMotionSweep, timedMotion } from './state/motion';
-import { motionOf, timedPathOf } from '@barocss/cad-model/robot/motion';
+import { useJoints } from './state/useJoints';
+import { refuseMotionSweep, timedMotion } from './state/motion';
+import { timedPathOf } from '@barocss/cad-model/robot/motion';
 import { createValueStore, useStoreValue } from './state/valueStore';
 import { SceneViewport } from './viewport/SceneViewport';
-import { JointsPanelLive } from './ui/JointsPanelLive';
 import { GravityExperimentPanel } from './ui/GravityExperimentPanel';
-import { ExplodeButton } from './ui/ExplodeButton';
 import { useScenePoses } from './state/useScenePoses';
-import { CommandButtons, CommandStrip, commandStates } from './ui/ToolButton';
+import { CommandStrip, commandStates } from './ui/ToolButton';
 import { useDrawingSheet } from './ui/useDrawingSheet';
 import { pmiSelection } from './viewport/pmiGeometry';
 import { useCamPreview } from './viewport/camPreview';
@@ -78,98 +107,75 @@ import { partCutList } from '@barocss/cad-model/app/cutList';
 import { nestCutList } from '@barocss/cad-model/frames/nesting';
 import { Hud } from './ui/Hud';
 import { Palette } from './ui/Palette';
-import { ContextMenu } from './ui/ContextMenu';
 import { ShortcutHelp } from './ui/ShortcutHelp';
 import { SketchPanel } from './ui/SketchPanel';
 import { Timeline } from './ui/Timeline';
 import { clearRecovery, keepRecovery, offerRecovery, settleRecovery, type Recovery } from './app/recovery';
-import { blobStats, collectRecoveryBlobs, evictBlobs, getBlob, loadRecoveryBlobs, meshNodeBlobs, positionsArray, putBlob, saveRecoveryBlobs, setBlobStore } from '@barocss/cad-model/engine/blobs';
+import { blobStats, collectRecoveryBlobs, evictBlobs, loadRecoveryBlobs, saveRecoveryBlobs, setBlobStore } from '@barocss/cad-model/engine/blobs';
 import { indexedDbBlobStore } from './ui/blobStore';
 // (The recovery copy's blobs kept in this browser's IndexedDB: the store set before the studio reads or writes one — PKG-g2.)
 setBlobStore(indexedDbBlobStore());
-import { MeshRepairPanel } from './ui/MeshRepairPanel';
-import { DEFAULT_REPAIR, MESH_PLANAR_TRIANGLES, bendTableProblem, convexHull, type BendTable, type MeshDiagnosis, type MeshRepairResult, type MeshRepairSteps } from '@barocss/cad';
-import { encodeStudioFile, readStudioFile } from '@barocss/cad-model/engine/container';
+import { bendTableProblem, convexHull, type BendTable } from '@barocss/cad';
+import { readStudioFile } from '@barocss/cad-model/engine/container';
 import { ParametersPanel } from './ui/ParametersPanel';
 import { LibraryPanel } from './ui/LibraryPanel';
 import { CagePanel } from './ui/CagePanel';
 import { useCageEditor } from './subd/useCageEditor';
 import { SKETCH3D_COMMAND, useSkeletonEditor } from './skeleton/useSkeletonEditor';
 import { SkeletonPanel } from './ui/SkeletonPanel';
-import { RouteBundlePanel, type RouteBundleCreateDraft, type RouteBundlePanelProps } from './ui/RouteBundlePanel';
-import { assertRouteBundleDocument, createRouteBundle, detachRouteBundle, moveRouteBundle, routeBundleDocumentIdentity } from '@barocss/cad-model/engine/routeBundle';
+import { RouteBundlePanel } from './ui/RouteBundlePanel';
+import { assertRouteBundleDocument, routeBundleDocumentIdentity } from '@barocss/cad-model/engine/routeBundle';
 import { loadUserLibraries, setLibraryStore } from '@barocss/cad-model/library/libraries';
 import { browserStore } from './ui/browserStore';
 import { processProfile } from '@barocss/cad-model/library/materials';
-import type { BindableField } from '@barocss/cad-model/app/editFields';
 import { InstancePanel } from './ui/InstancePanel';
 import { TooltipLayer } from './ui/Tooltip';
 import { resolveNames, type NameSelection } from '@barocss/cad-model/chat/names';
-import { bodyNodes, deleteFeature, deleteFeatures, duplicateBody, featureDependents, moveFeature } from '@barocss/cad-model/chat/features';
+import { duplicateBody } from '@barocss/cad-model/chat/features';
 import { defaultDrawing, readDrawing, type DrawingSettings } from '@barocss/cad-model/drawing/types';
 import { MatePanel } from './ui/MatePanel';
-import { jointTreeOf } from '@barocss/cad-model/robot/joints';
-import { treeInertia } from '@barocss/cad-model/robot/inertia';
-import { linkMasses } from '@barocss/cad-model/robot/dynamics';
-import { exportUrdf } from '@barocss/cad-model/robot/urdf';
-import { exportMjcf, type MjcfClosure } from '@barocss/cad-model/robot/mjcf';
 import { sweepLinks } from '@barocss/cad-model/robot/sweep';
 import { sweepTimed } from '@barocss/cad-model/robot/ccd';
-import { workspaceMap } from '@barocss/cad-model/robot/workspace';
 import { Lanes } from './engine/lanes';
-import { exportSdf } from '@barocss/cad-model/robot/sdf';
-import { exportUsd } from '@barocss/cad-model/robot/usd';
-import { closureOfDoc } from '@barocss/cad-model/robot/loop';
-import { writeZip } from '@barocss/cad-model/io/zip';
 import { useAssembly } from './assembly/useAssembly';
 import { pickedSketches, planeOf, profileRings, unusedSketches } from '@barocss/cad-model/app/profiles';
-import { fastenerName, fastenerThread } from '@barocss/cad-model/app/fasteners';
 import { addedHoles, holeGroup, holeRegions, type ToolRegion } from '@barocss/cad-model/app/holeRegion';
 import { threadLines, threadsOf } from '@barocss/cad-model/app/threads';
 import { fastenerSizesOf } from '@barocss/cad-model/engine/fastenerSizeRows';
-import { sourceBytes, sourceRecord } from '@barocss/cad-model/team/source';
 import type { Analysis } from './viewport/analysis';
 import { poseMatrix } from './viewport/instancePose';
-import { asSection, axisSection, exactBodies, hatchSpacing, planeFromFace, sectionHatch, sectionPlanes, sectionSplits, sectionedBodies, type AxisSection, type Section } from './viewport/sectionView';
-import { SectionBar, sectionHandles } from './ui/SectionBar';
+import { asSection, exactBodies, hatchSpacing, planeFromFace, sectionHatch, sectionPlanes, sectionSplits, sectionedBodies, type AxisSection, type Section } from './viewport/sectionView';
+import { sectionHandles } from './ui/SectionBar';
 import { mapsOf, type MapKind } from './viewport/scalarMaps';
 import { isoclinePolylines } from '@barocss/cad-model/mould/parting';
-import { MapLegend, MouldLegend } from './ui/MapLegend';
 import { edgeChain } from '@barocss/cad-model/app/edgeChain';
-import { offsetShape } from '@barocss/cad-model/sketch/offset';
-import { extendAt, joinOpen, splitAt, trimAt } from '@barocss/cad-model/sketch/trim';
+import { joinOpen } from '@barocss/cad-model/sketch/trim';
 import { faceProfile } from '@barocss/cad-model/app/faceProfile';
 import { sketchShapes } from '@barocss/cad-model/sketch/reopen';
-import { renameToTagged } from '@barocss/cad-model/sketch/entityIds';
-import { BODY_COLOURS, bodyName, bodySteps, describeChange, lastFeature, lookOf, materialIdOf, rgbOf, rootOf, withLook } from '@barocss/cad-model/app/bodies';
-import { applyBrief, briefMaterial, confirmField, readBrief } from '@barocss/cad-model/chat/brief';
+import { bodyName, describeChange, lookOf, rootOf } from '@barocss/cad-model/app/bodies';
+import { applyBrief, confirmField, readBrief } from '@barocss/cad-model/chat/brief';
 import type { BriefKey } from '@barocss/cad-model/engine/schema/brief';
 import { BriefPanel } from './ui/BriefPanel';
 import { SpecifyPanel } from './ui/SpecifyPanel';
 import { ReferencesPanel } from './ui/ReferencesPanel';
-import { checkKeepouts, placeReference, readReferences, referenceLocal, runReferenceTool, withKeepout } from '@barocss/cad-model/chat/references';
-import type { KeepoutResult, Placement } from '@barocss/cad-model/engine/schema/references';
+import { placeReference, readReferences, runReferenceTool } from '@barocss/cad-model/chat/references';
+import type { Placement } from '@barocss/cad-model/engine/schema/references';
 import { acceptAssumptions, answerBatch } from '@barocss/cad-model/chat/questions';
-import { confirmDimension, draftWarning, liveDrafts, runDraftTool } from '@barocss/cad-model/chat/drafts';
+import { confirmDimension, liveDrafts, runDraftTool } from '@barocss/cad-model/chat/drafts';
 import { DraftsPanel } from './ui/DraftsPanel';
 import { extrudeProfile } from '@barocss/cad-model/app/profileCommands';
-import { editCommand, featureOfPick } from '@barocss/cad-model/app/editCommand';
+import { editCommand } from '@barocss/cad-model/app/editCommand';
 import { flattenAssembly } from '@barocss/cad-model/engine/flatten';
 import { acceptRevision, dismissRevision, freshPartId, makeIndependent, offerRevision, revisionOf, sharing } from '@barocss/cad-model/assembly/definitions';
 import { alignMove, gizmoAxes, movedInstance, previewMatrix, turnedInstance, type InstanceDrag } from '@barocss/cad-model/assembly/drag';
 import { BASE, type Mate } from '@barocss/cad-model/assembly/mates';
 import type { DirectGeometry } from '@barocss/cad-model/engine/direct';
 import { directNow, loadDirect } from '@barocss/cad-model/engine/directModule';
-import { stepLengthUnit } from '@barocss/cad-model/engine/stepUnits';
-import { FACET_EXPLODE_TRIANGLES, FACET_PREVIEW_TRIANGLES, MESH_UNITS, meshInMM, readMeshFile, type MeshUnit } from '@barocss/cad-model/engine/meshImport';
-import { circleCurve, curvesSource, edgeCurve, outlineCurve } from '@barocss/cad-model/engine/curveSource';
-import { BUILT_IN, fontTemplateProblem, removeTemplate, saveTemplate, savedTemplates } from './app/templates';
+import { meshInMM, readMeshFile } from '@barocss/cad-model/engine/meshImport';
 import { FontUpload } from './app/fontUpload';
-import { ROBOT_SAMPLES, robotSampleFile } from './app/samples';
-import { bodyMass, combined, inertiaAbout, sig3 } from '@barocss/cad-model/app/mass';
 import { boundsOf } from '@barocss/cad-model/engine/bounds';
-import { defaultRender, offsetsAt, readRender, type RenderCamera, type RenderSettings } from '@barocss/cad-model/engine/render';
-import { downloadBytes, lumpStls, meshToStl } from './ui/files';
+import { defaultRender, readRender, type RenderCamera, type RenderSettings } from '@barocss/cad-model/engine/render';
+import { downloadBytes } from './ui/files';
 import { useBottomRow, HISTORY_LEFT, HISTORY_LEFT_RAIL } from './ui/useBottomRow';
 import { useFitChips } from './ui/useFitChips';
 import { useLayout } from './layout/useLayout';
@@ -177,198 +183,21 @@ import { ChatColumn, columnShown } from './layout/ChatColumn';
 import { Dock } from './layout/Dock';
 import { PreviewSection, type PreviewMode } from './layout/PreviewSection';
 import { CHAT_DEFAULT, CHAT_STRIP } from './layout/useLayout';
-import { write3mf } from '@barocss/cad-model/print/threemf';
-import { threeMfModelOf } from '@barocss/cad-model/print/export3mf';
-import { quotePackage } from '@barocss/cad-model/mould/quote';
 import { sketchDxf } from '@barocss/cad-model/sketch/dxf';
-import { DWG_ROUTES, dwgRefusal } from '@barocss/cad-model/sketch/dxfRead';
 import { settleShape } from '@barocss/cad-model/sketch/settle';
-import { boxOnPlane, isDefaultPlane, offsetPlane, planeLabel, planeOfFace, standardPlane, tiltPlane, xyPlane, type SketchPlane } from '@barocss/cad-model/sketch/plane';
-import { profileOf, shapeNode } from '@barocss/cad-model/sketch/loops';
+import { planeLabel, planeOfFace, xyPlane } from '@barocss/cad-model/sketch/plane';
+import { shapeNode } from '@barocss/cad-model/sketch/loops';
 import { commitDimension, isSettled } from '@barocss/cad-model/sketch/rules';
-import { sketchClick, startPicking } from '@barocss/cad-model/sketch/select';
+import { sketchClick } from '@barocss/cad-model/sketch/select';
 import { SketchHistory } from '@barocss/cad-model/sketch/history';
 
 // Workspaces off the first screen load when first opened (the chat's tools, the drawing and the render panel).
 const ChatPanel = lazy(() => import('./ui/ChatPanel').then(m => ({ default: m.ChatPanel })));
 const DrawingWorkspace = lazy(() => import('./ui/DrawingWorkspace').then(m => ({ default: m.DrawingWorkspace })));
 const RenderPanel = lazy(() => import('./ui/RenderPanel').then(m => ({ default: m.RenderPanel })));
-const DirectPanel = lazy(() => import('./ui/DirectPanel').then(m => ({ default: m.DirectPanel })));
-const emptyDirect = (): DirectGeometry => ({ sources: {}, objects: [] });
-/** O11: whether a change touches anything of the document but its variability (fields compared as objects: an edit makes new ones). */
-function changesBeyondVariability(a: StudioDoc, b: StudioDoc): boolean {
-  const x = a as unknown as Record<string, unknown>, y = b as unknown as Record<string, unknown>;
-  for (const k of new Set([...Object.keys(x), ...Object.keys(y)])) if (k !== 'variability' && x[k] !== y[k]) return true;
-  return false;
-}
-type MassFields = Pick<BodyResult, 'volume' | 'mass' | 'centroid' | 'inertia' | 'volumeBasis'>;
 type ReferenceLabelOwner = { doc: StudioDoc; model: StudioDoc };
 /** What Open reads, said when it is given another kind of file. */
 const OPEN_READS = 'Open reads models (.bcad, .json), STEP (.step, .stp), STL, OBJ, IGES (.igs, .iges) and .barocad curve and surface sources. Your part is unchanged.';
-/** O18: the same bodies to draw — each key and mesh as before (only masses may differ). */
-function sameMeshes(a: readonly BodyResult[], b: readonly BodyResult[]): boolean {
-  if (a === b) return true;
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) if (a[i].mesh !== b[i].mesh || a[i].key !== b[i].key) return false;
-  return true;
-}
-/** O18: bodies with the masses that came for their refs (placed by their massPlace); the same array when none did. */
-function withMasses(bodies: BodyResult[], got: ReadonlyMap<number, MassFields>): BodyResult[] {
-  let out: BodyResult[] | null = null;
-  for (let i = 0; i < bodies.length; i++) {
-    const b = bodies[i], f = b.massRef !== undefined ? got.get(b.massRef) : undefined; if (!f || !matchesNativeMassPatch(b, f)) continue;
-    const { massRef: _ref, massPlace, ...rest } = b; void _ref;
-    (out ??= bodies.slice())[i] = { ...rest, ...placedMassFields(f, massPlace ?? []) };
-  }
-  return out ?? bodies;
-}
-/** A mesh's content, cheaply (its counts, its bounds and a weighted sum of its positions), once a mesh: the ghost's
- *  "the same body as before" — by its key and this, as the volume told it before masses came after the reply (O18). */
-const meshSigs = new WeakMap<object, string>();
-function meshSig(m: BodyResult['mesh']): string {
-  let sig = meshSigs.get(m);
-  if (sig === undefined) {
-    let sum = 0; const p = m.positions;
-    for (let i = 0; i < p.length; i++) sum += p[i] * ((i % 7) + 1);
-    sig = `${p.length}:${m.indices.length}:${Math.round(sum * 1e3)}`; meshSigs.set(m, sig);
-  }
-  return sig;
-}
-/** Where the Browser mounts (G12b): the dock's top section, or the stage's left as before. */
-const BROWSER_PLACEMENT = 'dock' as 'dock' | 'left';
-
-const TOOLS: { tool: SketchTool; key: string; label: string; icon: string; hint: string }[] = [
-  { tool: 'rectangle', key: 'R', label: 'Rectangle', icon: 'cad-sk-rect', hint: 'Click two corners' },
-  { tool: 'circle', key: 'C', label: 'Circle', icon: 'cad-sk-circle', hint: 'Click centre, then radius' },
-  { tool: 'polygon', key: 'L', label: 'Line', icon: 'cad-sk-line', hint: 'Click points, click the first point to close · A switches to arcs' },
-  { tool: 'arc', key: 'A', label: 'Arc', icon: 'cad-sk-arc', hint: 'Click the arc end, move to bend it, click to place · L back to lines' },
-  { tool: 'carc', key: 'Q', label: 'Centre arc', icon: 'cad-sk-carc', hint: 'Click the centre, then the start (the radius), then turn to the end and click · it joins lines that meet its ends' },
-  { tool: 'slot', key: 'O', label: 'Slot', icon: 'cad-sk-slot', hint: 'Click both centres, then the width' },
-  { tool: 'spline', key: 'P', label: 'Spline', icon: 'cad-sk-spline', hint: 'Click points the curve runs smoothly through · click the first point to close it · it is kept as tangent arcs' },
-  { tool: 'trim', key: 'T', label: 'Trim', icon: 'cad-sk-trim', hint: 'Click a piece to cut it back to where it crosses others · pieces meeting end to end join into one outline' },
-  { tool: 'extend', key: 'E', label: 'Extend', icon: 'cad-sk-extend', hint: 'Click near the open end of a line or arc to run it on to the next piece it meets' },
-  { tool: 'split', key: 'K', label: 'Split', icon: 'cad-sk-split', hint: 'Click a line, arc or circle to split it in two there (a new point to constrain or trim to)' },
-  { tool: 'select', key: 'S', label: 'Select', icon: 'cad-sk-select', hint: 'Click points and edges (Shift adds), then constrain them in the panel' },
-  { tool: 'dimension', key: 'D', label: 'Dimension', icon: 'cad-sk-dim', hint: 'Click an edge, an arc or two points, type the value, Enter · double-click to edit' },
-];
-/** Floating panels over the viewport while sketching: toolbar on the left, sketch panel on the right (CSS px). */
-const SKETCH_INSETS = { left: 64, right: 272 };
-/**
- * What the sketch camera frames: the bodies' XY extent (at least 60 mm, so the 1 mm snap stays usable),
- * or a 120 × 80 mm working area with the origin near the lower left when the part is empty.
- */
-/** The bodies' extent seen on a sketch plane (plane coordinates), at least 60 mm across. */
-function sketchRegion(bodies: BodyResult[], plane: SketchPlane): [[number, number], [number, number]] {
-  if (!bodies.length) return [[-20, -20], [100, 60]];
-  const min: [number, number] = [Infinity, Infinity], max: [number, number] = [-Infinity, -Infinity];
-  for (const b of bodies) { const [lo, hi] = boxOnPlane(plane, b.mesh.bounds.min, b.mesh.bounds.max); for (const k of [0, 1]) { min[k] = Math.min(min[k], lo[k]); max[k] = Math.max(max[k], hi[k]); } }
-  for (const k of [0, 1]) { const c = (min[k] + max[k]) / 2, half = Math.max(30, (max[k] - min[k]) / 2); min[k] = c - half; max[k] = c + half; }
-  return [min, max];
-}
-/** Line and arc tools share one open chain; switching between them keeps it. */
-const switchTool = (s: SketchState, tool: SketchTool): SketchState => {
-  if (tool === 'select' || tool === 'dimension') return startPicking(s, tool);
-  s = { ...s, picked: [], editDim: null };
-  const chain = s.shape?.kind === 'polygon' && !s.shape.closed && (tool === 'polygon' || tool === 'arc') && (s.tool === 'polygon' || s.tool === 'arc');
-  if (chain && s.shape?.kind === 'polygon') return { ...s, tool, shape: { ...s.shape, pending: false } };
-  // A closed shape stays in the sketch beside the next one; so does a construction line (open or not).
-  // (So do open lines and arcs: pieces meeting end to end join into an outline, and Trim works on them.)
-  const keep = s.shape && (shapeNode(s.shape) || ((s.shape.construction || s.shape.kind === 'polygon') && (s.shape.kind !== 'polygon' || s.shape.points.length > 1)));
-  return { ...s, tool, shape: null, ...(keep ? { done: joinOpen([...(s.done ?? []), { ...s.shape!, ...(s.shape!.kind === 'polygon' ? { pending: false } : {}) }]) } : {}) };
-};
-
-const emptySel: Selection = { faces: [], edges: [], bodies: [] };
-const NO_INSTANCES: PartInstance[] = [];
-// (The rail's groups and the shapes strip's commands, made once: the button lists compare them by identity.)
-const TOOL_GROUPS = ['create', 'modify', 'pattern', 'combine', 'inspect'] as const;
-const GROUP_COMMANDS = TOOL_GROUPS.map(g => commands.filter(c => c.group === g && !c.place));
-const PLACE_COMMANDS = commands.filter(c => c.place);
-/** What a command is about to add, in its preview. */
-const PREVIEW_TINT = '#7fb2f0';
-/** A history entry's time, local and short (as stored, if not a time). */
-const whenOf = (at: string) => { const d = new Date(at); return Number.isNaN(d.getTime()) ? at : d.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }); };
-
-/** `placing`: a new shape that follows the pointer until a click (or a drop from the rail) stands it there. */
-function missingCommandField(fields: readonly Field[], values: Values): Field | undefined {
-  for (const field of fields) {
-    const value = values[field.key];
-    if (field.kind === 'text' || field.kind === 'file') {
-      if (typeof value !== 'string' || !value.trim() || value.length > field.maxLength) return field;
-    } else if (field.kind !== 'choice' && (value === '' || !Number.isFinite(Number(value)))) return field;
-  }
-  return undefined;
-}
-
-interface Active { cmd: Command; values: Values; preview: 'busy' | 'ok' | 'error'; error?: FriendlyError; ctx: Ctx; placing?: boolean; upload?: 'busy' | 'error' }
-/** Stable numbers for objects (a command's context, its values), for the App's subscription key. */
-const objectIds = new WeakMap<object, number>();
-let nextObjectId = 0;
-const idOf = (o: object) => { let id = objectIds.get(o); if (id === undefined) { id = ++nextObjectId; objectIds.set(o, id); } return id; };
-/**
- * What of the running command the App renders for (R1d): its start and end, its command, context and placing — and its
- * values, unless the HUD typed them (`typed`, the values its last keystroke made) or the pointer is placing the shape. The
- * preview's state and error are the HUD's; a typed or placed value's preview renders the App once, with its result.
- */
-const activeKey = (a: Active | null, typed: Values | null) =>
-  a ? `${a.cmd.id}|${idOf(a.ctx)}|${a.placing ? 1 : 0}|${a.placing || a.values === typed ? '' : idOf(a.values)}` : '';
-
-/** The pointer's point to 0.1 mm (it renders again only when that text changes). */
-function CursorReadout({ sink }: { sink: React.MutableRefObject<((p: Vec3 | null) => void) | null> }) {
-  const [text, setText] = useState('');
-  useEffect(() => { sink.current = p => setText(p ? ` · ${p.map(v => fmt(Math.round(v * 10) / 10)).join(', ')}` : ''); return () => { sink.current = null; }; }, [sink]);
-  return <>{text}</>;
-}
-
-/** Whether an instance places the same part the same way (what its evaluation depends on). */
-function samePlacement(a: PartInstance, b: PartInstance): boolean {
-  if (a === b) return true;
-  if (a.position.some((v, k) => v !== b.position[k]) || a.rotation.some((v, k) => v !== b.rotation[k])) return false;
-  return a.doc === b.doc || JSON.stringify(a.doc) === JSON.stringify(b.doc);
-}
-
-/** A closed mesh's volume by its triangles (the divergence theorem), for the flow's section check (G19). */
-function meshVolume(m: { positions: Float32Array; indices: Uint32Array }): number {
-  let v = 0;
-  for (let t = 0; t < m.indices.length; t += 3) {
-    const a = 3 * m.indices[t], b = 3 * m.indices[t + 1], c = 3 * m.indices[t + 2], P = m.positions;
-    v += P[a] * (P[b + 1] * P[c + 2] - P[b + 2] * P[c + 1]) - P[a + 1] * (P[b] * P[c + 2] - P[b + 2] * P[c]) + P[a + 2] * (P[b] * P[c + 1] - P[b + 1] * P[c]);
-  }
-  return v / 6;
-}
-/** The studio's own commands in the palette, after the model's (G17's 3D sketch). */
-const PALETTE_EXTRA = [SKETCH3D_COMMAND];
-const CAD_DISPLAY_MODES: { value: DisplayMode; label: string }[] = [
-  { value: 'shaded-with-edges', label: 'Shaded with edges' },
-  { value: 'hidden-lines-removed', label: 'Hidden lines removed' },
-  { value: 'hidden-lines-dashed', label: 'Hidden lines dashed' },
-  { value: 'wireframe', label: 'Wireframe' },
-  { value: 'x-ray', label: 'X-ray' },
-];
-
-const detachSketchLink = (s: SketchState): SketchState => s.association ? { ...s, association: undefined, associationDetached: true } : s;
-
-type RouteBundleSession = {
-  token: number; accepted: StudioDoc; acceptedIdentity: string;
-  frozenStart: StudioDoc; frozenIdentity: string; bindings: string; bundleId: string;
-  gesture: number; pointerId: number | null; sequence: number;
-  purpose: 'draft' | 'preview' | 'final' | 'ready' | 'cancelled';
-  delta: Vec3; gestureBase: Vec3;
-  ready?: { candidate: StudioDoc; identity: string; evaluatedIdentity: string; result: Extract<EvalResult, { ok: true }>; sequence: number; gesture: number; pointerId: number | null };
-};
-// Optional GPU bridge contract; the GPU owner supplies these fields in the shared viewport.
-type RouteTransformGizmo = TransformGizmo & {
-  sessionKey: string;
-  onStart(pointerId: number): void;
-  onCancel(pointerId: number, reason: 'pointercancel' | 'lostpointercapture' | 'session-change' | 'unmount'): void;
-  onMove(delta: Vec3, done: boolean, pointerId?: number): void;
-};
-const routeBindings = (doc: StudioDoc) => JSON.stringify(doc.routeBundles?.map(b => ({ id: b.id, tie: b.tie, members: b.members })) ?? []);
-const routeNumbers = (values: [string, string, string]): Vec3 => {
-  if (values.some(v => !v.trim() || !Number.isFinite(Number(v)))) throw new Error('Enter three finite coordinates in mm.');
-  return values.map(Number) as Vec3;
-};
-const routeMessage = (error: unknown) => error && typeof error === 'object' && 'message' in error ? String(error.message) : String(error);
-
 export function App() {
   countRender('App');
   const engine = useMemo(() => new EngineClient(), []);
@@ -487,10 +316,8 @@ export function App() {
     // Retain candidate patches during reference refresh and the handoff to the accepted bodies.
     // withMasses applies the existing exact native-source/ref/field guard to both copies.
     if (parameterMass.current) parameterMass.current.result.bodies = withMasses(parameterMass.current.result.bodies, got);
-    const ready = routeSession.current?.ready;
-    if (ready) ready.result.bodies = withMasses(ready.result.bodies, got);
+    routeEditor.patchMasses(got);
     if (routeAcceptedHandoff.current) routeAcceptedHandoff.current.result.bodies = withMasses(routeAcceptedHandoff.current.result.bodies, got);
-    setRoutePreviewBodies(bs => bs && withMasses(bs, got));
     setBodies(bs => withMasses(bs, got));
     setInstanceBodies(map => { let next: typeof map | null = null; for (const [id, e] of map) { const bs = withMasses(e.bodies, got); if (bs !== e.bodies) (next ??= new Map(map)).set(id, { ...e, bodies: bs }); } return next ?? map; });
   }), [engine]);
@@ -499,28 +326,18 @@ export function App() {
   const partInput = useRef<HTMLInputElement>(null);
   /** Selected direct curves and surfaces (by object id). */
   const [directSel, setDirectSel] = useState<string[]>([]);
-  const [routePanelOpen, setRoutePanelOpen] = useState(false);
-  const [routeCreate, setRouteCreate] = useState<RouteBundleCreateDraft>({ id: 'bundle1', tieId: 'tie1', anchorMM: ['0', '0', '0'], members: [
-    { curveObjectId: '', handleKey: '1', sweepFeatureId: '' }, { curveObjectId: '', handleKey: '1', sweepFeatureId: '' },
-  ] });
-  const [routeMove, setRouteMove] = useState<[string, string, string]>(['0', '0', '0']);
-  const [routeSelected, setRouteSelected] = useState<string | null>(null);
-  const [routePhase, setRoutePhase] = useState<RouteBundlePanelProps['phase']>('idle');
-  const [routeError, setRouteError] = useState<RouteBundlePanelProps['error']>();
-  const [routeViewDoc, setRouteViewDoc] = useState<StudioDoc | null>(null);
-  const [routeVisualDoc, setRouteVisualDoc] = useState<StudioDoc | null>(null);
-  const [routePreviewBodies, setRoutePreviewBodies] = useState<BodyResult[] | null>(null);
-  const routeSession = useRef<RouteBundleSession | null>(null), routeToken = useRef(0);
   const routeContext = useRef({ blocked: true });
-  const routePreviewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const clearRouteTimer = () => { if (routePreviewTimer.current !== null) clearTimeout(routePreviewTimer.current); routePreviewTimer.current = null; };
-  const discardRoute = () => {
-    clearRouteTimer(); routeToken.current++;
-    if (routeSession.current) { routeSession.current.purpose = 'cancelled'; routeSession.current.sequence++; }
-    routeSession.current = null;
-    setRouteViewDoc(null); setRouteVisualDoc(null); setRoutePreviewBodies(null);
-    setRoutePhase('idle'); setRouteError(undefined); setRouteMove(['0', '0', '0']);
-  };
+  const routeEditor = useRouteBundleEditor({ owner: { docNow, blocked: routeContext, commandActive: () => !!activeStore.get() }, worker: { engine, nextRevision: () => revision.current++ }, onNotice: notice => setToast(notice),
+    acceptValidated: ready => {
+      const candidate = ready.candidate;
+      if (!canChangeDocument()) return false;
+      discardRouteRef.current();
+      routeAcceptedHandoff.current = { doc: candidate, identity: ready.identity, evaluatedIdentity: ready.evaluatedIdentity, revision: ready.result.revision, result: ready.result };
+      // The full candidate was evaluated against this exact accepted document; do not rebase it.
+      return commit(candidate, false, true);
+    } });
+  const { routePanelOpen, setRoutePanelOpen, routeCreate, setRouteCreate, routeMove, routeSelected, routePhase, setRoutePhase, routeError, routeViewDoc, routeVisualDoc, routePreviewBodies,
+    discardRoute, selectRouteBundle, createRoute, previewRoute, changeRouteMove, applyRoute, detachRoute } = routeEditor;
   discardRouteRef.current = discardRoute;
   /** The picked pole of the one selected direct object, and how far its gizmo has dragged it. */
   const [pole, setPole] = useState<{ id: string; key: string } | null>(null);
@@ -549,9 +366,6 @@ export function App() {
   // Closing chat keeps pending approvals usable; a new conversation explicitly clears/revokes this ref.
   const chatRowFiles = useRef<PersonRowFiles | undefined>(undefined);
   // (The references' bodies in their own coordinates, the keep-outs' solids, and the keep-outs' verdicts, A6.3.)
-  const [refLocal, setRefLocal] = useState<ReadonlyMap<string, BodyResult[]>>(new Map());
-  const [keepoutBodies, setKeepoutBodies] = useState<BodyResult[]>([]);
-  const [keepoutVerdicts, setKeepoutVerdicts] = useState<KeepoutResult[] | null>(null);
   // (A message the studio sends to the chat as the user's: the Specify panel's answers, A6.2.)
   const [chatOutbox, setChatOutbox] = useState<{ id: number; text: string } | null>(null);
   /** What a chat turn asked to show selected once its part is evaluated. */
@@ -1135,35 +949,15 @@ export function App() {
     return result.ok ? result.faceTable ?? null : null;
   }, [doc, engine]);
   const assembly = useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc: setDocState, commit: commitAssembly, readFaces: bomHasLinkedHousing(doc) ? readLinkedFaces : undefined });
-  // The assembly as a robot (RM1): its joint tree from the solved instances, the faces read, the parts' gears.
-  const jointTree = useMemo(() => !doc.mates?.length || !doc.instances?.length ? null : jointTreeOf(doc, { instances: doc.instances, problems: assembly.problems }, p => assembly.tables.get(p),
-    p => (p === BASE ? bodies : instanceBodies.get(p)?.bodies ?? []).flatMap(b => (b.gear ? [b.gear] : []))), [doc, assembly.problems, assembly.tables, bodies, instanceBodies]);
-  // (Every placed part evaluated with its bodies: until then the robot's masses, exports and sweeps wait, RM6 — a part
-  // not yet evaluated is not massless.)
-  const robotReady = fresh && !busy && massReady && (doc.instances ?? []).every(i => instanceEvaluationCurrent(instanceBodies.get(i.id), i, instanceSources.get(i.id)));
-  // Each link's mass properties (RM3): the bodies as placed (world), so each part's placement is the identity here.
-  const linkInertias = useMemo(() => !jointTree || !robotReady ? undefined : treeInertia(jointTree, p => {
-    if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] };
-    const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p);
-    return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null;
-  }), [jointTree, doc, bodies, instanceBodies, robotReady]);
-  // What each joint holds against gravity at the pose shown (RD1): the masses as placed (world), identity placements.
-  const jointMasses = useMemo(() => !jointTree || !robotReady ? null : linkMasses(jointTree, p => {
-    if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] };
-    const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p);
-    return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null;
-  }), [jointTree, robotReady, doc, bodies, instanceBodies]);
+  const robotExports = useRobotExports({ model: { doc, bodies, instanceBodies, instanceSources, fresh, busy, massReady }, assembly, fileName, onNotice: setToast });
+  const { jointTree, robotReady, reportMotionError } = robotExports;
   // The joint-slider pose (RM2): a preview only — the instances shown moved by forward kinematics, nothing saved.
   // (R1c (3b): the App follows the pose and the explode factor in each frame only where it uses them itself — a CPU
   // section's copies, the clearance check; elsewhere SceneViewport and the Joints card do, not the App.)
   const posesInApp = clearanceEnabled || (!!section && !sketch && !gpuSection);
   const loopMotionContext = useMemo(() => jointTree?.loops.length ? { doc, tree: jointTree } : undefined, [doc, jointTree]);
-  const reportMotionError = useCallback((error: unknown) => {
-    setToast({ title: 'Motion refused', hint: error instanceof Error ? error.message : String(error), detail: '' });
-  }, [setToast]);
-  const { poseStore, jointInputStore, readJointInputs, setJointValues, jointPlaying, setJointPlaying, pathCheck, setPathCheck, jointWaypoints, setJointWaypoints, workspace, setWorkspace, jointFk,
-    motionTime, motion, motionPlaying, setMotionPlaying, motionLoop, setMotionLoop, motionSpeed, setMotionSpeed, playMotion, scrubMotion, stopMotion, motionContact, setMotionContact, contactShown,
-    motionChoice, setMotionChoice, freezeMotion, showMotionAt } = useJoints(jointTree, posesInApp, doc.robot?.motions, loopMotionContext, reportMotionError);
+  const joints = useJoints(jointTree, posesInApp, doc.robot?.motions, loopMotionContext, reportMotionError);
+  const { poseStore, workspace, jointFk, motion, motionContact, setMotionContact, contactShown, motionChoice } = joints;
   // (RS2: the saved motion chosen, its length before it plays — timed once per choice.)
   const chosenMotion = useMemo<{ duration?: number; problem?: string }>(() => {
     const m = motionChoice === null || !jointTree ? undefined : doc.robot?.motions?.find(x => x.name === motionChoice);
@@ -1183,10 +977,6 @@ export function App() {
       setMotionContact(null); setToast({ title: 'Motion contact check refused', hint: error instanceof Error ? error.message : String(error), detail: '' });
     }
   }, [motion, jointTree, robotReady, bodies, instanceBodies, setMotionContact, setToast]);
-  /** A robot part for the exports (RM4–RM9c): the bodies as placed, so each part's placement is the identity here. */
-  const robotPartOf = (p: string) => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; };
-  /** The tree's planar loops closed at their pins (RM8), those that are not left out (the exports note them). */
-  const robotClosures = (): MjcfClosure[] => { const out: MjcfClosure[] = []; if (jointTree) for (const l of jointTree.loops) { try { out.push(closureOfDoc(doc, jointTree, l)); } catch { /* not planar: noted */ } } return out; };
   // (O68: the drawings' underlays not hidden, from their planes into the world — the XY plane by default.)
   const underlaysShown = useMemo(() => (doc.underlays ?? []).filter(u => !u.hidden).map(u => {
     const p = u.plane ?? { origin: [0, 0, 0], normal: [0, 0, 1], xAxis: [1, 0, 0] }, n = p.normal, x = p.xAxis, y: Vec3 = [n[1] * x[2] - n[2] * x[1], n[2] * x[0] - n[0] * x[2], n[0] * x[1] - n[1] * x[0]];
@@ -1224,274 +1014,22 @@ export function App() {
       setTimeout(() => viewport.current?.fit(), 600);
     } catch (e) { setToast({ title: 'Could not insert this part', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
   };
-  // Playing: time runs (looping), the bodies follow their keys and a turntable turns the camera.
-  useEffect(() => {
-    if (!playing) return;
-    let raf = 0, last = performance.now();
-    const step = (now: number) => {
-      const dt = (now - last) / 1000; last = now;
-      setTime(t => (t + dt) % Math.max(0.1, render.animation.duration));
-      raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [playing, render.animation.duration]);
-  useEffect(() => {
-    if (!rendering || !render.animation.turntable || !turnFrom.current) return;
-    viewport.current?.setCamera({ ...turnFrom.current, yaw: turnFrom.current.yaw + (2 * Math.PI * time) / render.animation.duration });
-  }, [time, rendering, render.animation.turntable, render.animation.duration]);
-  const play = (on: boolean) => {
-    if (on) turnFrom.current = viewport.current?.getCamera() ?? null;
-    else if (turnFrom.current && render.animation.turntable) { viewport.current?.setCamera(turnFrom.current); }
-    setPlaying(on);
-  };
-  // (By body key; put on the bodies shown — in a section the kept ones and the exact section's pieces, each moved as
-  // its body is: G19.5 — further down.)
-  const animatedAt = useMemo(() => !rendering || !Object.keys(render.animation.tracks).length ? null : offsetsAt(render.animation, time), [rendering, render.animation, time]);
-  // (RS2's recorder: a video of the motion at its own timing, or of the Render workspace's animation over its duration.)
-  const [videoBusy, setVideoBusy] = useState(false);
-  const recordVideo = async (seconds: number, draw: (t: number) => void, name: string) => {
-    if (!viewport.current || !(seconds > 0) || videoBusy) return;
-    setVideoBusy(true);
-    try {
-      const FPS = 30, n = Math.ceil(seconds * FPS) + 1;
-      const blob = await viewport.current.recordVideo(n, FPS, i => draw(Math.min(seconds, i / FPS)));
-      downloadBytes(new Uint8Array(await blob.arrayBuffer()), name, 'video/webm');
-    } catch (e) { setToast({ title: 'Could not record a video', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
-    finally { setVideoBusy(false); }
-  };
-  const exportImage = async () => {
-    const png = await viewport.current?.capture();
-    if (png) downloadBytes(new Uint8Array(await png.arrayBuffer()), `${fileName}.png`, 'image/png');
-    else setToast({ title: 'Could not export an image', hint: 'Rendering needs a browser with WebGPU.', detail: '' });
-  };
+  const { play, animatedAt, videoBusy, recordVideo, exportImage } = useRenderPlayback({ render, rendering, state: { time, setTime, playing, setPlaying, turnFrom }, viewport, fileName, onNotice: setToast });
 
   const cancel = useCallback(() => { discardRouteRef.current(); setActive(null); setPreviewBodies(null); setSketch(null); }, [setSketch]);
 
-  // A bundle session owns a frozen document. Preview and final replies never replace accepted bodies.
-  const routeCurrent = (session: RouteBundleSession) => {
-    if (routeSession.current !== session || session.token !== routeToken.current || session.purpose === 'cancelled' || routeContext.current.blocked || !!activeStore.get()) return false;
-    try {
-      return docNow.current === session.accepted && routeBundleDocumentIdentity(docNow.current) === session.acceptedIdentity
-        && routeBundleDocumentIdentity(session.frozenStart) === session.frozenIdentity && routeBindings(session.frozenStart) === session.bindings;
-    } catch { return false; }
-  };
-  const routeFail = (error: unknown) => {
-    clearRouteTimer();
-    const session = routeSession.current;
-    if (session) { session.sequence++; session.ready = undefined; session.purpose = 'draft'; }
-    const friendly = error && typeof error === 'object'
-      && 'title' in error && typeof error.title === 'string'
-      && 'hint' in error && typeof error.hint === 'string'
-      && 'detail' in error && typeof error.detail === 'string'
-      && (!('code' in error) || error.code === undefined || typeof error.code === 'string') ? error as FriendlyError : null;
-    if (friendly) setToast(friendly);
-    setRoutePreviewBodies(null); setRouteVisualDoc(null); setRoutePhase('error'); setRouteError({ message: friendly ? friendly.hint || friendly.title : routeMessage(error) });
-  };
-  const beginRoute = (frozenStart: StudioDoc, bundleId: string, resetMove = true) => {
-    const accepted = docNow.current;
-    assertRouteBundleDocument(accepted); assertRouteBundleDocument(frozenStart);
-    const session: RouteBundleSession = { token: ++routeToken.current, accepted, acceptedIdentity: routeBundleDocumentIdentity(accepted),
-      frozenStart, frozenIdentity: routeBundleDocumentIdentity(frozenStart), bindings: routeBindings(frozenStart), bundleId,
-      gesture: 0, pointerId: null, sequence: 0, purpose: 'draft', delta: [0, 0, 0], gestureBase: [0, 0, 0] };
-    routeSession.current = session; setRouteViewDoc(frozenStart); setRouteSelected(bundleId);
-    if (resetMove) setRouteMove(['0', '0', '0']);
-    setRouteVisualDoc(null); setRoutePreviewBodies(null); setRouteError(undefined); setRoutePhase('draft');
-    return session;
-  };
-  const routeEvaluate = async (session: RouteBundleSession, candidate: StudioDoc, final: boolean, withPreview = true) => {
-    if (!routeCurrent(session)) { discardRouteRef.current(); return; }
-    clearRouteTimer();
-    const identity = routeBundleDocumentIdentity(candidate), evaluationDoc = prefixDoc(candidate, candidate.nodes.length);
-    const evaluatedIdentity = routeBundleDocumentIdentity(evaluationDoc), sequence = ++session.sequence;
-    const gesture = session.gesture, pointerId = session.pointerId;
-    session.ready = undefined; session.purpose = withPreview ? 'preview' : 'final'; setRoutePhase(withPreview ? 'preview' : 'validating'); setRouteError(undefined); setRoutePreviewBodies(null); setRouteVisualDoc(candidate);
-    const current = (purpose: RouteBundleSession['purpose']) => routeCurrent(session) && session.sequence === sequence && session.gesture === gesture
-      && session.pointerId === pointerId && session.purpose === purpose && routeBundleDocumentIdentity(candidate) === identity;
-    try {
-      if (withPreview) {
-        const previewRevision = revision.current++, preview = await engine.preview(evaluationDoc, previewRevision);
-        if (!current('preview')) return;
-        if (preview.revision !== previewRevision) throw new Error('The preview was interrupted. Preview this draft again.');
-        if (!preview.ok) { routeFail(preview.error); return; }
-        setRoutePreviewBodies(preview.bodies);
-        if (!final) { session.purpose = 'draft'; setRoutePhase('draft'); return; }
-      }
-      session.purpose = 'final'; setRoutePhase('validating');
-      const finalRevision = revision.current++, result = await engine.evaluate(evaluationDoc, finalRevision);
-      if (!current('final')) return;
-      if (!result || result.revision !== finalRevision) throw new Error('The final check was interrupted. Preview this draft again.');
-      if (!result.ok) { routeFail(result.error); return; }
-      session.ready = { candidate, identity, evaluatedIdentity, result, sequence, gesture, pointerId }; session.purpose = 'ready';
-      setRoutePreviewBodies(result.bodies); setRoutePhase('ready');
-    } catch (error) { if (current(session.purpose)) routeFail(error); }
-  };
-  const selectRouteBundle = (id: string) => {
-    discardRouteRef.current(); setRouteSelected(id);
-    if (routeContext.current.blocked) return;
-    try {
-      if (!docNow.current.routeBundles?.some(b => b.id === id)) throw new Error('Select a current route bundle.');
-      beginRoute(JSON.parse(JSON.stringify(docNow.current)) as StudioDoc, id);
-    } catch (error) { routeFail(error); }
-  };
   const openRoute = () => {
-    cancel(); setRoutePanelOpen(true); setPole(null); setPoleDrag(null);
-    const id = docNow.current.routeBundles?.[0]?.id;
-    if (id) { selectRouteBundle(id); return; }
-    setRouteSelected(null);
-    setRouteCreate({ id: 'bundle1', tieId: 'tie1', anchorMM: ['0', '0', '0'], members: [0, 1].map(i => ({
-      curveObjectId: directSel[i] ?? '', handleKey: '1', sweepFeatureId: '',
-    })) as RouteBundleCreateDraft['members'] });
+    cancel(); setPole(null); setPoleDrag(null); routeEditor.open(directSel);
   };
-  const createRoute = () => {
-    if (routeContext.current.blocked) return;
-    try {
-      const accepted = docNow.current;
-      const members = routeCreate.members.map((member, index) => {
-        const sweep = accepted.nodes.find(n => n.id === member.sweepFeatureId);
-        if (!sweep || sweep.kind !== 'sweep-curve') throw new Error(`Member ${index + 1}: select a current copied sweep.`);
-        const profile = accepted.nodes[sweep.sketch];
-        if (!profile?.id) throw new Error(`Member ${index + 1}: the copied sweep needs a current profile. Reselect the curve and copied sweep.`);
-        return { ...member, id: `member${index + 1}`, profileFeatureId: profile.id };
-      }) as Parameters<typeof createRouteBundle>[1]['members'];
-      const candidate = createRouteBundle(accepted, { id: routeCreate.id, tieId: routeCreate.tieId, anchorMM: routeNumbers(routeCreate.anchorMM), members,
-        expectedDocumentIdentity: routeBundleDocumentIdentity(accepted) });
-      const session = beginRoute(candidate, routeCreate.id);
-      void routeEvaluate(session, candidate, false);
-    } catch (error) { routeFail(error); }
-  };
-  const previewRoute = () => {
-    if (routeContext.current.blocked || routePhase === 'validating') return;
-    try {
-      let session = routeSession.current;
-      if (!session && routeSelected) session = beginRoute(JSON.parse(JSON.stringify(docNow.current)) as StudioDoc, routeSelected, false);
-      if (!session || !routeCurrent(session)) throw new Error('Select the current bundle again. The document changed.');
-      const delta = routeNumbers(routeMove);
-      const candidate = moveRouteBundle(session.frozenStart, session.bundleId, delta, session.frozenIdentity);
-      session.delta = delta; session.pointerId = null; session.gesture++;
-      void routeEvaluate(session, candidate, true);
-    } catch (error) { routeFail(error); }
-  };
-  const changeRouteMove = (next: [string, string, string]) => {
-    clearRouteTimer();
-    const session = routeSession.current;
-    if (session) { session.sequence++; session.purpose = 'draft'; session.ready = undefined; session.pointerId = null; session.delta = [0, 0, 0]; }
-    setRouteMove(next); setRoutePhase('draft'); setRouteError(undefined); setRouteVisualDoc(null); setRoutePreviewBodies(null);
-  };
-  const applyRoute = () => {
-    const session = routeSession.current, ready = session?.ready;
-    if (!session || !ready || !routeCurrent(session) || session.purpose !== 'ready' || ready.sequence !== session.sequence
-      || ready.gesture !== session.gesture || ready.pointerId !== session.pointerId) { routeFail(new Error('Preview the current draft before applying it.')); return; }
-    try {
-      assertRouteBundleDocument(ready.candidate);
-      if (routeBundleDocumentIdentity(ready.candidate) !== ready.identity) throw new Error('The draft changed. Preview it again.');
-      const candidate = ready.candidate, id = session.bundleId;
-      if (!canChangeDocument()) return;
-      discardRouteRef.current();
-      routeAcceptedHandoff.current = { doc: candidate, identity: ready.identity, evaluatedIdentity: ready.evaluatedIdentity, revision: ready.result.revision, result: ready.result };
-      // The full candidate was evaluated against this exact accepted document; do not rebase it.
-      if (!commit(candidate, false, true)) return; setRouteSelected(candidate.routeBundles?.some(b => b.id === id) ? id : null);
-    } catch (error) { routeFail(error); }
-  };
-  const detachRoute = () => {
-    if (routeContext.current.blocked) return;
-    try {
-      const id = routeSelected;
-      if (!id || !docNow.current.routeBundles?.some(b => b.id === id)) { discardRouteRef.current(); return; }
-      const session = beginRoute(JSON.parse(JSON.stringify(docNow.current)) as StudioDoc, id);
-      const candidate = detachRouteBundle(session.frozenStart, id, session.frozenIdentity);
-      void routeEvaluate(session, candidate, true);
-    } catch (error) { routeFail(error); }
-  };
-  useEffect(() => { if (routeSession.current && routeSession.current.accepted !== doc) discardRouteRef.current(); }, [doc]);
-  useEffect(() => () => { clearRouteTimer(); routeToken.current++; if (routeSession.current) routeSession.current.purpose = 'cancelled'; }, []);
 
-  // Live preview: re-evaluate the candidate whenever HUD values change. One evaluation at a time, the
-  // newest values next (a drag sends many): the preview keeps up as fast as the kernel does, with no
-  // wait before it starts; values typed into a box wait a moment so each keystroke is not evaluated.
-  const previewRun = useRef<{ busy: boolean; next: (() => Promise<void>) | null }>({ busy: false, next: null });
-  /**
-   * A dimension handle being dragged: its last value the kernel accepted, and once a value fails, the side
-   * it failed on. The value goes back to the last good one and the drag stops there (no flicking between
-   * a broken and a good preview).
-   */
-  const handleDrag = useRef<{ key: string; lastOk: number; wall: number; dragging: boolean } | null>(null);
-  const lastTyped = useRef(0);
-  /**
-   * While a handle is dragged on a feature that later ones build on (a box under fillets), the preview
-   * is the part up to that feature — quick, so the body keeps up with the pointer — and the whole part
-   * follows when the drag pauses or ends (`fullTimer`).
-   */
-  const fullTimer = useRef(0);
+  useEffect(() => routeEditor.cancelIfChanged(doc), [doc]);
+  useEffect(() => () => routeEditor.dispose(), []);
+
   const bearingRootCurrent = active?.cmd.id !== 'bearing' || active.ctx.bearingAssembly?.root === doc;
-  useEffect(() => {
-    // (R1d: run on each change of the command's values, followed in the store — the App does not render for a value typed
-    // into the HUD or placed by the pointer.)
-    let seen: Values | undefined, stop: (() => void) | undefined;
-    const evaluate = (active: Active | null): (() => void) | undefined => {
-      if (!active?.cmd.build || active.upload) return;
-      if (!bearingRootCurrent) {
-        setPreviewBodies(null);
-        setActive(a => a && { ...a, preview: 'error', error: { title: 'Assembly changed', hint: 'Start Bearing again to use the current housing geometry.', detail: '' } });
-        return;
-      }
-      let live = true;
-      const missing = missingCommandField(shownFields(active.cmd.fields?.(active.ctx, active.values) ?? [], active.values), active.values);
-      if (missing) { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: { title: 'Enter a value', hint: `${missing.label} is empty.`, detail: '' } }); return; }
-      const values = active.values, cmd = active.cmd, ctx = active.ctx;
-      const job = async (full = false) => {
-        if (!live) return;
-        let candidate: StudioDoc;
-        try { candidate = cmd.build!(ctx, values); } catch (e) {
-          const current = activeStore.get();
-          if (live && current?.cmd === cmd && current.values === values) {
-            setPreviewBodies(null);
-            setActive(a => a && a.cmd === cmd && a.values === values ? { ...a, preview: 'error', error: { title: 'Invalid input', hint: String(e), detail: '' } } : a);
-          }
-          return;
-        }
-        let shown = candidate, rolled = false;
-        // A part it places as an instance (a fastener inserted as its own part) shows folded in as features.
-        const placed = (candidate.instances ?? []).filter(i => !(ctx.doc.instances ?? []).some(j => j.id === i.id));
-        if (placed.length) shown = flattenAssembly({ ...candidate, instances: placed });
-        if (!full && handleDrag.current?.dragging && candidate.nodes.length === ctx.doc.nodes.length) {
-          // (The last node the drag changed: nodes it left are the same objects, compared by content only if not.)
-          let k = -1; for (let i = 0; i < candidate.nodes.length; i++) { const n = candidate.nodes[i], o = ctx.doc.nodes[i]; if (n !== o && JSON.stringify(n) !== JSON.stringify(o)) k = i; }
-          if (k >= 0 && k < candidate.nodes.length - 1) { shown = prefixDoc(candidate, k + 1); rolled = true; }
-        }
-        window.clearTimeout(fullTimer.current);
-        const result = await engine.preview(shown, revision.current++);
-        if (cmd.id === 'bearing' && ctx.bearingAssembly?.root !== bearingEditScope.current.doc) return;
-        if (rolled && live) fullTimer.current = window.setTimeout(() => { if (!live) return; run.next = () => job(true); if (!run.busy) void pump(); }, 220);
-        // A queued update can use an intermediate result, unless this command was replaced or refused.
-        const current = activeStore.get();
-        // A replaced font invalidates every old ghost, including after the new upload finishes.
-        if (current?.upload || current?.values.font !== values.font) return;
-        if (!live && (!previewRun.current.next || !current || current.cmd !== cmd || current.ctx !== ctx || current.preview === 'error')) return;
-        const hd = handleDrag.current, hv = hd ? Number(values[hd.key]) : NaN;
-        if (hd && Number.isFinite(hv)) {
-          // (Only the whole part decides the wall: the part up to the feature may take what its later features refuse.)
-          if (result.ok) { if (!rolled && (hd.wall === 0 || Math.sign(hv - hd.lastOk) !== hd.wall)) hd.lastOk = hv; }
-          else if (hv !== hd.lastOk) {
-            hd.wall = Math.sign(hv - hd.lastOk);
-            setActive(a => a && a.cmd === cmd ? { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [hd.key]: hd.lastOk }), preview: 'busy' } : a);
-            return;
-          }
-        }
-        if (result.ok) { previewFor.current = rolled ? '' : JSON.stringify(values); setPreviewBodies(result.bodies); setActive(a => a && a.cmd === cmd ? { ...a, preview: !rolled && JSON.stringify(a.values) === JSON.stringify(values) ? 'ok' : 'busy', error: undefined } : a); }
-        else if (live) { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: result.error }); }
-      };
-      const run = previewRun.current;
-      const pump = async () => { while (run.next) { const j = run.next; run.next = null; run.busy = true; try { await j(); } finally { run.busy = false; } } };
-      const typed = Date.now() - lastTyped.current < 50;
-      const t = setTimeout(() => { run.next = job; if (!run.busy) void pump(); }, typed ? 140 : 0);
-      return () => { live = false; clearTimeout(t); };
-    };
-    const follow = () => { const a = activeStore.get(); if (a?.values === seen) return; seen = a?.values; stop?.(); stop = evaluate(a); };
-    follow();
-    const unsubscribe = activeStore.subscribe(follow);
-    return () => { unsubscribe(); stop?.(); };
-  }, [active?.cmd, engine, bearingRootCurrent, activeStore]);
+  const commandPreview = useCommandPreview({ command: { activeStore, bearingRootCurrent }, worker: { engine, nextRevision: () => revision.current++, currentBearingDoc: () => bearingEditScope.current.doc },
+    result: { setPreviewBodies, previewFor } });
+  const { handleDrag, lastTyped } = commandPreview;
+  useEffect(() => commandPreview.watch(), [active?.cmd, engine, bearingRootCurrent, activeStore]);
 
   /** The command to start again once what Shift-Enter applied is the part (its bodies evaluated). */
   const again = useRef<Command | null>(null);
@@ -1648,114 +1186,9 @@ export function App() {
     });
   }, [ctx]);
 
-  /** Moves the sketch to another plane (its shapes keep their plane coordinates) and faces it. */
-  const placeSketch = useCallback((kind: SketchAnchor['kind'], offset: number, angle = 0) => {
-    if (!sketch) return;
-    const face = sketch.anchor?.face, base = kind === 'face' ? face?.base ?? null : null;
-    const plane = offsetPlane(tiltPlane(kind === 'face' && face ? face.plane : standardPlane(kind === 'face' ? 'xy' : kind), angle), offset);
-    setSketch({ ...(JSON.stringify(sketch.plane) === JSON.stringify(plane) ? sketch : detachSketchLink(sketch)), plane, base, anchor: { ...(sketch.anchor ?? { offset: 0 }), kind, offset, angle } });
-    const [min, max] = sketchRegion(bodies, plane);
-    viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
-  }, [sketch, bodies, setSketch]);
-
-  /** The sketch's shapes as curves of the direct geometry (one per shape, through the sketch plane); the sketch is left. */
-  const sketchToCurves = async () => {
-    if (!sketch) return;
-    const shapes = [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])], P = sketch.plane;
-    const curves = shapes.flatMap(s => s.kind === 'circle' ? [circleCurve(P, s.c, s.r)]
-      : s.kind === 'rectangle' ? [outlineCurve(P, [s.a, [s.b[0], s.a[1]], s.b, [s.a[0], s.b[1]]], undefined, true)]
-        : s.kind === 'slot' ? (() => { const l = Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1]) || 1, n: [number, number] = [-(s.b[1] - s.a[1]) / l * s.r, (s.b[0] - s.a[0]) / l * s.r]; return [outlineCurve(P, [[s.a[0] - n[0], s.a[1] - n[1]], [s.b[0] - n[0], s.b[1] - n[1]], [s.b[0] + n[0], s.b[1] + n[1]], [s.a[0] + n[0], s.a[1] + n[1]]], [0, 1, 0, 1], true)]; })()
-          : s.points.length >= 2 ? [outlineCurve(P, s.points, s.bulges, s.closed)] : []);
-    if (!curves.length) { setToast({ title: 'Nothing to make curves of', hint: 'Draw lines, arcs or circles in the sketch first.', detail: '' }); return; }
-    if (curves.length > 16) { setToast({ title: 'Too many shapes', hint: 'Make curves of at most 16 shapes at a time.', detail: '' }); return; }
-    const { importSource } = await loadDirect();
-    const made = (doc.direct?.objects ?? []).filter(o => o.name.startsWith('Sketch curve')).length, next = importSource(doc.direct ?? emptyDirect(), curvesSource('sketch', curves), `Sketch curve ${made + 1}`);
-    if (!commitDirect(next, next.objects.slice(doc.direct?.objects.length ?? 0).map(o => o.id))) return;
-    setSketch(null);
-  };
-  /** The picked edges as curves of the direct geometry. */
-  const edgesToCurves = async () => {
-    const curves = selection.edges.flatMap(e => { const c = bodies[e.body] ? edgeCurve(bodies[e.body].mesh, e.edge) : null; return c ? [c] : []; });
-    if (!curves.length) return;
-    const { importSource } = await loadDirect();
-    const made = (doc.direct?.objects ?? []).filter(o => o.name.startsWith('Edge curve')).length, next = importSource(doc.direct ?? emptyDirect(), curvesSource('edges', curves.slice(0, 16)), `Edge curve ${made + 1}`);
-    commitDirect(next, next.objects.slice(doc.direct?.objects.length ?? 0).map(o => o.id));
-  };
-  /** Offsets the newest closed shape of the sketch by `d` (out when positive) as a shape beside it. */
-  const offsetSketch = (d: number) => {
-    if (!sketch) return;
-    const target = sketch.shape && shapeNode(sketch.shape) ? sketch.shape : [...(sketch.done ?? [])].reverse().find(x => !x.construction && shapeNode(x));
-    if (!target) { setToast({ title: 'Nothing to offset', hint: 'Draw a closed shape first.', detail: '' }); return; }
-    const r = offsetShape(target, d);
-    if ('error' in r) { setToast({ title: 'Cannot offset', hint: r.error, detail: '' }); return; }
-    setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [...(s.done ?? []), ...(s.shape ? [s.shape] : []), r.shape] });
-  };
-  /** Trims, extends or splits the piece of the sketch at `at` (plane mm); open pieces meeting end to end join. */
-  const trimSketch = (op: 'trim' | 'extend' | 'split', at: [number, number], tol: number) => {
-    if (!sketch) return;
-    const shapes = sketch.editNode !== undefined && sketch.shape ? [sketch.shape, ...(sketch.done ?? [])] : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])];
-    const r = (op === 'trim' ? trimAt : op === 'extend' ? extendAt : splitAt)(shapes.map(x => x.kind === 'polygon' ? { ...x, pending: false } : x), at, tol);
-    if ('error' in r) { setToast({ title: op === 'trim' ? 'Nothing to trim there' : op === 'extend' ? 'Nothing to extend there' : 'Nothing to split there', hint: r.error, detail: '' }); return; }
-    setSketch(s => s && { ...detachSketchLink(s), shape: null, done: r.shapes, picked: [] });
-  };
-  /** Reopens the sketch node `index` in the sketcher (Select tool, its kept constraints back); Finish writes it back in place. */
-  const editSketch = (index: number) => {
-    const stored = doc.nodes[index]; if (stored?.kind !== 'sketch') return;
-    let node: SketchNode;
-    try { node = stored.association !== undefined ? resolveAssociativeSketch(doc, index) : stored; }
-    catch (error) { setToast({ title: 'Cannot open linked sketch', hint: error instanceof Error ? error.message : String(error), detail: '' }); return; }
-    const { shape, done, positional } = sketchShapes(node), plane: SketchPlane = node.plane ? { origin: [...node.plane.origin], normal: [...node.plane.normal], xAxis: [...node.plane.xAxis] } : xyPlane();
-    setEditNode(null); setActive(null); setPreviewBodies(null); setSelection(emptySel);
-    setSketch(startPicking({ plane, tool: 'select', shape, done, base: node.association ? node.on ?? node.association.source : null, editNode: index, ...(node.association ? { association: node.association } : {}), ...(positional ? { positional } : {}) }, 'select'));
-    const [min, max] = sketchRegion(bodies, plane); viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
-  };
-  const linkSketchInset = (insetMM: number) => {
-    const source = sketch?.anchor?.face?.linkSource;
-    if (!sketch || !source) return;
-    if (!Number.isFinite(insetMM) || insetMM <= 0) { setToast({ title: 'Cannot link face outline', hint: 'Enter a finite positive inset distance.', detail: '' }); return; }
-    if (sketch.shape || sketch.done?.length) { setToast({ title: 'Cannot link face outline', hint: 'Start with an empty sketch. Existing shapes are preserved.', detail: '' }); return; }
-    try {
-      const association = { ...source, insetMM }, index = doc.nodes.length;
-      const candidate = withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [1, 1], association } as SketchNode);
-      const node = resolveAssociativeSketch(candidate, index), { shape, done } = sketchShapes(node);
-      const plane = planeOf(node);
-      setSketch({ ...sketch, plane, shape, done, base: association.source, association, associationDetached: false });
-    } catch (error) { setToast({ title: 'Cannot link face outline', hint: error instanceof Error ? error.message : String(error), detail: '' }); }
-  };
-  const finishSketch = useCallback(() => {
-    if (!canChangeDocument()) return;
-    if (!sketch || (!sketch.shape && !sketch.done?.length)) { setSketch(null); return; }
-    const requestedGeneration = sketchGeneration.current;
-    const linked = !!(sketch.association || sketch.associationDetached);
-    const requestCurrent = () => docNow.current === doc && sketchGeneration.current === requestedGeneration;
-    // A reopened sketch keeps its main profile first (the first outer shape is the main one).
-    // (Open lines and arcs meeting end to end are one outline.)
-    const shapes = joinOpen((sketch.editNode !== undefined && sketch.shape ? [sketch.shape, ...(sketch.done ?? [])] : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])]).map(x => x.kind === 'polygon' && !x.closed ? { ...x, pending: false } : x));
-    const profile = profileOf(shapes);
-    if ('error' in profile) { setToast({ title: 'Finish the profile first', hint: profile.error, detail: '' }); return; }
-    // Construction shapes are kept with the sketch (they come back when it is reopened).
-    const refs = shapes.filter(x => x.construction), node = refs.length ? { ...profile.node, construction: refs } as SketchNode : profile.node;
-    // The sketch keeps its plane; everything below is in the plane's own coordinates (Z along its normal).
-    const placedNode: ModelNode = { ...node, ...(isDefaultPlane(sketch.plane) ? {} : { plane: { origin: [...sketch.plane.origin], normal: [...sketch.plane.normal], xAxis: [...sketch.plane.xAxis] } }), ...(sketch.association ? { association: sketch.association } : {}), ...((sketch.association || sketch.associationDetached) && sketch.base ? { on: sketch.base } : {}) } as SketchNode;
-    if (sketch.editNode !== undefined) {
-      const at = sketch.editNode;
-      const replacement = linked && doc.nodes[at].id !== undefined ? { ...placedNode, id: doc.nodes[at].id } : placedNode;
-      const edited = { ...doc, nodes: dropStaleMade(doc.nodes, doc.nodes.map((n, k) => k === at ? replacement : n)) };
-      // (A sketch from before R10a getting its side ids: the features on it keep their references, by the new names.)
-      const tags = (placedNode as SketchNode).sideTags, next = sketch.positional && tags && !(doc.nodes[at] as SketchNode).sideTags ? renameToTagged(edited, at, sketch.positional, tags, featureId) : edited;
-      engine.evaluate(sketch.association || sketch.associationDetached ? next : prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r || (linked && !requestCurrent())) return; if (r.ok) { if (!commit(next)) return; setSketch(null); } else setToast(r.error); });
-      return;
-    }
-    // A finished sketch is a feature of its own (it remembers the body it was drawn on): picked, ready
-    // for Extrude, Revolve, Pipe or Loft.
-    const base = sketch.base ?? null, next = withNode(doc, { ...placedNode, ...(base ? { on: base } : {}) } as SketchNode);
-    if (sketch.association) {
-      engine.evaluate(next, revision.current++).then(r => { if (!r || !requestCurrent()) return; if (r.ok) { if (!commit(next)) return; setSketch(null); setSelection({ ...emptySel, sketches: [next.nodes.length - 1] }); } else setToast(r.error); });
-      return;
-    }
-    if (!commit(next)) return; setSketch(null);
-    setSelection({ ...emptySel, sketches: [next.nodes.length - 1] });
-  }, [sketch, doc, marker, commit, engine, setSketch, acceptanceScope]);
+  const sketchActions = useSketchActions({ model: { doc, bodies, selection, marker }, editor: { sketch, setSketch, sketchGeneration }, owner: { docNow, acceptanceScope },
+    worker: { engine, nextRevision: () => revision.current++ }, viewport, changes: { canChangeDocument, commit, commitDirect, setSelection, setEditNode, setActive, setPreviewBodies }, onNotice: setToast });
+  const { placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, editSketch, linkSketchInset, finishSketch } = sketchActions;
 
   const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number }; instanceCap?: { body: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean) => {
     // (The section view shows cut copies of the bodies: picks wait until it is closed.)
@@ -1878,24 +1311,9 @@ export function App() {
     setUndo(u => [...u, { doc, marker }]); setRedo(r => r.slice(0, -1)); setDocState(last.doc); setMarker(last.marker); cancel();
   }, [redo, doc, marker, cancel]);
 
-  // Deleting a feature (with the sketches only it used): later features, mates and drawing dimensions follow.
-  const deleteNode = (index: number) => {
-    if (!canChangeDocument()) return;
-    if (marker !== null) { setToast({ title: 'Roll forward to delete', hint: 'Features are deleted from the whole history: roll forward to the end first.', detail: '' }); return; }
-    const label = featureLabel(doc.nodes[index], index, doc.nodes), r = deleteFeature(doc, index);
-    if ('error' in r) {
-      // Others build on it: offer to delete them with it, after listing them.
-      const deps = featureDependents(doc, index);
-      if (deps.length && 'doc' in deleteFeatures(doc, [index, ...deps])) { setCascade({ index, label, deps: deps.map(k => featureLabel(doc.nodes[k], k, doc.nodes)), all: [index, ...deps] }); return; }
-      setToast({ title: `Cannot delete ${label}`, hint: r.error, detail: '' }); return;
-    }
-    engine.evaluate(prefixDoc(r.doc, r.doc.nodes.length), revision.current++).then(e => {
-      if (!e) return;
-      if (!e.ok) { setToast({ ...e.error, title: `Cannot delete ${label}: ${e.error.title}` }); return; }
-      if (!commit(r.doc)) return;
-      if (r.droppedDimensions) setToast({ title: `Removed ${r.droppedDimensions} drawing dimension${r.droppedDimensions > 1 ? 's' : ''}`, hint: `They measured ${label}. Undo restores them.`, detail: '' });
-    });
-  };
+  const featureHistory = useFeatureHistory({ model: { doc, marker, bodies, selection }, worker: { engine, nextRevision: () => revision.current++ },
+    changes: { canChangeDocument, commit, setSelection }, onNotice: setToast });
+  const { deleteNode, separate, reorder, toggleSuppress, cascade, setCascade, deleteCascade, deleteSelection } = featureHistory;
   /** A sketch on the section plane holding the exact section's cut outlines (its cut faces' outlines), the section closed. */
   const sketchSection = () => {
     // (One plane only: a sketch lies on one.)
@@ -1910,54 +1328,6 @@ export function App() {
     setSection(null); setSelection(emptySel);
     setSketch({ plane, anchor: { kind: 'face', offset: 0, face: { plane, base: null } }, tool: 'rectangle', shape: null, done: shapes, base: null });
     const [min, max] = sketchRegion(bodies, plane); viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
-  };
-  /** A body in several pieces made one body per piece (a Separate step), checked by evaluating first. */
-  const separate = (b: BodyResult) => {
-    if (!canChangeDocument()) return;
-    if (marker !== null) { setToast({ title: 'Roll forward first', hint: 'New steps go at the end of the history.', detail: '' }); return; }
-    const next = withNode(doc, { kind: 'separate', parent: refOf(b) });
-    engine.evaluate(prefixDoc(next, next.nodes.length), revision.current++).then(e => {
-      if (!e) return;
-      if (!e.ok) { setToast({ ...e.error, title: `Cannot separate it: ${e.error.title}` }); return; }
-      if (!commit(next)) return; setSelection(emptySel);
-    });
-  };
-  /** Moves a history step one earlier or later (refused before what it is built on), checked by evaluating first. */
-  const reorder = (i: number, dir: -1 | 1) => {
-    if (!canChangeDocument()) return;
-    if (marker !== null) { setToast({ title: 'Roll forward to reorder', hint: 'Steps are moved in the whole history: roll forward to the end first.', detail: '' }); return; }
-    const label = featureLabel(doc.nodes[i], i, doc.nodes), r = moveFeature(doc, i, dir);
-    if ('error' in r) { setToast({ title: `Cannot move ${label}`, hint: r.error, detail: '' }); return; }
-    engine.evaluate(prefixDoc(r.doc, r.doc.nodes.length), revision.current++).then(e => {
-      if (!e) return;
-      if (!e.ok) { setToast({ ...e.error, title: `Cannot move ${label} there: ${e.error.title}` }); return; }
-      commit(r.doc);
-    });
-  };
-  /** Leaves a feature out of the model (or brings it back): checked by evaluating first, like any edit. */
-  const toggleSuppress = (i: number) => {
-    if (!canChangeDocument()) return;
-    const n = doc.nodes[i]; if (!n) return;
-    const next = { ...doc, nodes: doc.nodes.map((x, k) => k !== i ? x : x.suppressed ? (({ suppressed: _s, ...rest }) => rest as ModelNode)(x) : { ...x, suppressed: true as const }) };
-    const label = featureLabel(n, i, doc.nodes);
-    engine.evaluate(prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(e => {
-      if (!e) return;
-      if (!e.ok) { setToast({ ...e.error, title: `Cannot ${n.suppressed ? 'unsuppress' : 'suppress'} ${label}: ${e.error.title}` }); return; }
-      commit(next);
-    });
-  };
-  /** A delete waiting on its review: the feature, and the ones built on it that would go with it. */
-  const [cascade, setCascade] = useState<{ index: number; label: string; deps: string[]; all: number[] } | null>(null);
-  const deleteCascade = () => {
-    if (!canChangeDocument()) return;
-    if (!cascade) return;
-    const r = deleteFeatures(doc, cascade.all), label = cascade.label; setCascade(null);
-    if ('error' in r) { setToast({ title: `Cannot delete ${label}`, hint: r.error, detail: '' }); return; }
-    engine.evaluate(prefixDoc(r.doc, r.doc.nodes.length), revision.current++).then(e => {
-      if (!e) return;
-      if (!e.ok) { setToast({ ...e.error, title: `Cannot delete ${label}: ${e.error.title}` }); return; }
-      commit(r.doc);
-    });
   };
   /** Copied body (⌘C) and how many copies were pasted (⌘V). */
   const clipboard = useRef<{ key: string; pastes: number } | null>(null);
@@ -1994,33 +1364,6 @@ export function App() {
     }
     setClashes(found);
   };
-  /**
-   * Delete (the key): picked sketches; a picked face or edge of a feature added to a body (a hole, a
-   * fillet …) takes that feature; picked bodies, or a face of what a body was first made as, take the body
-   * with all it was built from.
-   */
-  const deleteSelection = () => {
-    if (!canChangeDocument()) return;
-    if (marker !== null) { setToast({ title: 'Roll forward to delete', hint: 'Features are deleted from the whole history: roll forward to the end first.', detail: '' }); return; }
-    const nodes = doc.nodes, body = (k: number) => bodies[k] ? bodyNodes(nodes, refOf(bodies[k]).node) : [];
-    let indices: number[] = [], what = '';
-    if (selection.sketches?.length) { indices = selection.sketches; what = indices.length === 1 ? `Sketch ${indices[0] + 1}` : `${indices.length} sketches`; }
-    else if (selection.bodies.length) { indices = [...new Set(selection.bodies.flatMap(body))]; what = selection.bodies.length === 1 ? 'the body' : `${selection.bodies.length} bodies`; }
-    else if (selection.faces.length || selection.edges.length) {
-      const owner = featureOfPick(selection, bodies, nodes), k = (selection.faces[0] ?? selection.edges[0]).body;
-      const base = owner !== null && parentsOf(nodes[owner]).every(p => nodes[p]?.kind === 'sketch');
-      if (owner === null || base) { indices = body(k); what = 'the body'; } else { indices = [owner]; what = featureLabel(nodes[owner], owner, nodes); }
-    }
-    if (!indices.length) return;
-    const r = deleteFeatures(doc, indices);
-    if ('error' in r) { setToast({ title: `Cannot delete ${what}`, hint: r.error, detail: '' }); return; }
-    engine.evaluate(prefixDoc(r.doc, r.doc.nodes.length), revision.current++).then(e => {
-      if (!e) return;
-      if (!e.ok) { setToast({ ...e.error, title: `Cannot delete ${what}: ${e.error.title}` }); return; }
-      if (!commit(r.doc)) return; setSelection(emptySel);
-      if (r.droppedDimensions) setToast({ title: `Removed ${r.droppedDimensions} drawing dimension${r.droppedDimensions > 1 ? 's' : ''}`, hint: `They measured ${what}. Undo restores them.`, detail: '' });
-    });
-  };
   // A new or opened part replaces the document: an open sketch or tool would carry the old part's shapes
   // and face references into it, so they close first (U4).
   // (What was picked in the old part goes too: instances, direct-edit faces, measurements.)
@@ -2036,7 +1379,7 @@ export function App() {
   // (A document with mesh blobs is saved as the container, else as plain JSON: engine/container.ts. Saved, the
   // recovery copy and its blobs go.)
   const writeFile = (d: StudioDoc, name: string) => {
-    try { const bytes = encodeStudioFile(d); downloadBytes(bytes, name, bytes[0] === 0x7b ? 'application/json' : 'application/octet-stream'); return true; }
+    try { writeDocumentFile(d, name); return true; }
     catch (e) { setToast({ title: 'Could not save', hint: e instanceof Error ? e.message : String(e), detail: '' }); return false; }
   };
   // (A copy still offered keeps its blobs: Restore can still bring it back.)
@@ -2071,8 +1414,9 @@ export function App() {
   const [flatView, setFlatView] = useState<string | null>(null);
   // (FR4a: the part's cut list, open or not.)
   const [cutListView, setCutListView] = useState(false);
-  const [meshAsk, setMeshAsk] = useState<{ name: string; format: 'STL' | 'OBJ'; mesh: ReturnType<typeof readMeshFile>; unit: MeshUnit } | null>(null);
-  const meshInUnit = useMemo(() => meshAsk && meshInMM(meshAsk.mesh, meshAsk.unit), [meshAsk]);
+  const meshImport = useMeshImport({ doc, engine, nextRevision: () => revision.current++, onNotice: setToast,
+    onOpened: (next, name) => { replaceDoc(next); setFileName(name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300); }, onCommit: commit });
+  const { meshAsk, setMeshAsk, stage, repairAsk, setRepairAsk, stopStage, editRepair } = meshImport;
   /**
    * A mesh body's badges (M3, D47): repaired (its filled area; shows the fill faces and opens the repair again), an
    * open sheet (no volume, no Booleans), and where it crosses itself (marked in the viewport).
@@ -2090,10 +1434,6 @@ export function App() {
         onClick={() => setSelection({ faces: [], edges: [], bodies: [], vertices: n.crossings!.at.map(p => ({ body: i, at: p })) })}>crosses itself · {n.crossings.count}</button>}
     </span>;
   };
-  // ---- Opening a mesh: checked in the worker, repaired as a recorded step when it needs it (M3, D47) ----------
-  /** What the worker is doing that the user waits on (checking or repairing a mesh): shown with its stage, stoppable. */
-  const [stage, setStage] = useState<string | null>(null);
-  const [repairAsk, setRepairAsk] = useState<{ mode: 'import' | 'edit'; node?: number; name: string; format?: string; unit: string; positions: ArrayLike<number>; indices: ArrayLike<number>; diagnosis: MeshDiagnosis; steps: MeshRepairSteps; result: MeshRepairResult | null } | null>(null);
   // (PERF3 B13, O135: the mesh blobs no step reaches dropped at an idle point — two seconds after the last change, no
   // repair asked; a chat turn holds sweeps while it runs. The roots: the document, every undo and redo step. DEV: the
   // bytes each sweep freed, window.__studioBlobs.)
@@ -2105,148 +1445,20 @@ export function App() {
     }, 2000);
     return () => clearTimeout(t);
   }, [doc, undo, redo, repairAsk]);
-  const stopStage = () => { engine.restart(); setStage(null); setToast({ title: 'Stopped', hint: 'The mesh check or repair was stopped; nothing changed.', detail: '' }); };
-  const openMesh = async () => {
-    if (!meshAsk || !meshInUnit) return;
-    const { name, format, unit } = meshAsk;
-    setStage('checking the mesh');
-    const d = await engine.diagnose(meshInUnit.positions, meshInUnit.indices);
-    setStage(null);
-    if ('error' in d) { if (d.error !== 'stopped') setToast({ title: 'Could not read this mesh', hint: d.error, detail: '' }); return; }
-    setMeshAsk(null);
-    // (Anything a step would change, or crossings to say: the gate; else straight in.)
-    if (!d.closed || d.degenerate || d.duplicates || d.floaters || d.selfIntersections) { setRepairAsk({ mode: 'import', name, format, unit, positions: meshInUnit.positions, indices: meshInUnit.indices, diagnosis: d, steps: DEFAULT_REPAIR, result: null }); return; }
-    await openMeshNode({ name, format, unit, positions: meshInUnit.positions, indices: meshInUnit.indices, diagnosis: d });
-  };
-  /** The mesh node made (its import's blobs, a repair's beside them) and opened as the part. */
-  const openMeshNode = async (o: { name: string; format?: string; unit: string; positions: ArrayLike<number>; indices: ArrayLike<number>; diagnosis: MeshDiagnosis; repair?: { steps: MeshRepairSteps; result: MeshRepairResult } }) => {
-    // (Its arrays as blobs, by their SHA-256: the document names them, M1.)
-    const base = await meshNodeBlobs({ kind: 'mesh' as const, name: o.name, unit: o.unit, representation: 'facets' as const }, o.positions, o.indices);
-    const repair = o.repair ? await repairRecord(o.repair.steps, o.repair.result) : undefined;
-    const crossings = o.repair ? o.repair.result.report.selfIntersections : o.diagnosis.selfIntersections;
-    const node = { ...base, ...(repair ? { repair } : {}), ...(crossings ? { crossings: { count: crossings, at: o.diagnosis.selfIntersectionAt.map(p => [...p] as [number, number, number]) } } : {}) };
-    // Read before replacing the current part: a mesh that does not build keeps the part. Read piece by piece, so a
-    // file of several closed pieces (a kit, separate eyes) opens as that many bodies (D42).
-    const read = await engine.part(withNode(emptyDoc(), { ...node, pieces: 2 }), revision.current++, 'read');
-    if (!read.ok) { setToast({ title: 'Could not open this mesh', hint: `${read.error.detail || read.error.hint}. Your part is unchanged.`, detail: read.error.detail }); return; }
-    const pieces = read.bodies.length, next = withNode(emptyDoc(), { ...node, ...(pieces > 1 ? { pieces } : {}) });
-    setRepairAsk(null); replaceDoc(next); setFileName(o.name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300);
-    const faces = read.bodies.reduce((n, b) => n + b.mesh.faces.length, 0), volume = read.bodies.reduce((v, b) => v + (b.volume ?? 0), 0);
-    const r = repair?.report, sheet = r && !r.closed;
-    // (Pieces under 1% of the largest one's volume, kept: floaters, likely — the repair drops them when asked.)
-    const largest = Math.max(...read.bodies.map(b => b.volume ?? 0)), tiny = pieces > 1 ? read.bodies.filter(b => (b.volume ?? 0) < 0.01 * largest).length : 0;
-    setToast({ title: `${o.format ?? 'Mesh'} opened${repair ? ', repaired' : ''}`, hint: `${pieces > 1 ? `${pieces} pieces, each a body of its own (${faces.toLocaleString('en-US')} regions in all)` : `${sheet ? 'An open sheet' : 'A mesh solid'} of ${faces.toLocaleString('en-US')} region${faces === 1 ? '' : 's'}`} — ${(o.indices.length / 3).toLocaleString('en-US')} triangles read in ${MESH_UNITS.find(u => u.value === o.unit)?.label.toLowerCase() ?? o.unit}${sheet ? '' : `; ${Math.round(volume).toLocaleString('en-US')} mm³`}.${r?.holesFilled ? ` ${r.holesFilled} hole${r.holesFilled > 1 ? 's' : ''} filled (${Math.round(r.filledArea).toLocaleString('en-US')} mm² guessed: its badge shows where).` : ''}${sheet ? ' It is not closed: no volume, no Booleans.' : ''}${tiny ? ` ${tiny} of the pieces ${tiny === 1 ? 'is' : 'are'} tiny (under 1% of the largest): stray bits, likely — delete ${tiny === 1 ? 'it' : 'them'}, or open the mesh with its repair.` : ''}${crossings ? ` It crosses itself in ${crossings} place${crossings > 1 ? 's' : ''}: Booleans will refuse it.` : ''} Splits, sections, holes and Booleans with modelled bodies work at any size (up to ${FACET_EXPLODE_TRIANGLES.toLocaleString('en-US')} triangles near the tool; ${FACET_PREVIEW_TRIANGLES.toLocaleString('en-US')} in a preview); Booleans of two meshes up to ${FACET_EXPLODE_TRIANGLES.toLocaleString('en-US')} triangles; fillets, shells and drafts on mesh faces come later.`, detail: '' });
-  };
-  /** A repair's arrays as blobs, and the record the node keeps. */
-  const repairRecord = async (steps: MeshRepairSteps, r: MeshRepairResult): Promise<MeshRepairRecord> => {
-    const [positions, indices, fill] = await Promise.all([putBlob(positionsArray(r.positions)), putBlob(r.indices), putBlob(r.fill)]);
-    return { steps, result: { positions, indices, fill }, report: r.report };
-  };
-  /** The checked repair (in the worker, its stages shown, stoppable). */
-  const checkRepair = async () => {
-    if (!repairAsk) return;
-    setStage('weld');
-    const r = await engine.repair(repairAsk.positions, repairAsk.indices, repairAsk.steps, st => setStage(st));
-    setStage(null);
-    if ('error' in r) { if (r.error !== 'stopped') setToast({ title: 'Could not repair this mesh', hint: r.error, detail: '' }); return; }
-    setRepairAsk(a => a && { ...a, result: r });
-  };
-  const applyRepair = async () => {
-    const a = repairAsk; if (!a?.result) return;
-    if (a.mode === 'import') { await openMeshNode({ ...a, repair: { steps: a.steps, result: a.result } }); return; }
-    const n = doc.nodes[a.node!]; if (n?.kind !== 'mesh') return;
-    const repair = await repairRecord(a.steps, a.result), crossings = a.result.report.selfIntersections;
-    const rest = { ...n }; delete rest.crossings;
-    setRepairAsk(null);
-    commit({ ...doc, nodes: doc.nodes.map((x, i) => i === a.node ? { ...rest, repair, ...(crossings ? { crossings: { count: crossings, at: a.diagnosis.selfIntersectionAt.map(p => [...p] as [number, number, number]) } } : {}) } : x) }, false);
-  };
-  /** A mesh node's repair opened again: its import checked anew, its steps as they were. */
-  const editRepair = async (index: number) => {
-    const n = doc.nodes[index]; if (n?.kind !== 'mesh') return;
-    const positions = n.blob ? getBlob(n.blob.positions) : n.positions, indices = n.blob ? getBlob(n.blob.indices) : n.indices;
-    if (!positions || !indices) return;
-    setStage('checking the mesh');
-    const d = await engine.diagnose(positions, indices);
-    setStage(null);
-    if ('error' in d) return;
-    setRepairAsk({ mode: 'edit', node: index, name: n.name, unit: n.unit, positions, indices, diagnosis: d, steps: n.repair?.steps ?? DEFAULT_REPAIR, result: null });
-  };
-  const removeRepair = () => {
-    const a = repairAsk; if (!a || a.mode !== 'edit') return;
-    const n = doc.nodes[a.node!]; if (n?.kind !== 'mesh') return;
-    const rest = { ...n }; delete rest.repair;
-    setRepairAsk(null);
-    commit({ ...doc, nodes: doc.nodes.map((x, i) => i === a.node ? rest : x) }, false);
-  };
   const open = async (file: File) => {
     const scope = beginOpenIntent();
     try {
-      // A DWG is not read (O61): its routes named, the part unchanged.
-      if (/\.dwg$/i.test(file.name)) { const e = dwgRefusal(new TextDecoder('latin1').decode(new Uint8Array(await file.slice(0, 6).arrayBuffer()))); setToast({ title: 'DWG files are not read', hint: e ? e.message.replace(/^\[[A-Z_]+\] /, '') : `This is not a DWG file the studio knows. ${DWG_ROUTES}`, detail: '' }); return; }
-      // A STEP file starts a new part from its solids.
-      if (/\.(step|stp)$/i.test(file.name)) {
-        const name = file.name.replace(/\.(step|stp)$/i, ''), step = await file.text(), unit = stepLengthUnit(step);
-        // A file of meshes only (AP242 tessellated: scans, other systems' exports) is checked like an STL: closed and
-        // clean it imports as it is (its faces' names kept), else through the repair gate as a mesh (R3.5, D48).
-        setStage('reading the file');
-        const meshes = await engine.stepMeshes(step);
-        setStage(null);
-        if (meshes && 'error' in meshes) { if (meshes.error !== 'stopped') setToast({ title: 'Could not open this file', hint: `${meshes.error[0].toUpperCase()}${meshes.error.slice(1)}. Your part is unchanged.`, detail: meshes.error }); return; }
-        if (meshes) {
-          // (Typed arrays, not number lists: posted to the worker by copying bytes, not element by element; PERF3 B13.)
-          const k = unit.to, positions = new Float64Array(meshes.reduce((n, m) => n + m.positions.length, 0)), indices = new Uint32Array(meshes.reduce((n, m) => n + m.indices.length, 0));
-          let pv = 0, pi = 0;
-          for (const m of meshes) { const base = pv / 3; for (let i = 0; i < m.positions.length; i++) positions[pv++] = m.positions[i] * k; for (let i = 0; i < m.indices.length; i++) indices[pi++] = base + m.indices[i]; }
-          setStage('checking the mesh');
-          const d = await engine.diagnose(positions, indices);
-          setStage(null);
-          if ('error' in d) { if (d.error !== 'stopped') setToast({ title: 'Could not read this mesh', hint: d.error, detail: '' }); return; }
-          if (!d.closed || d.degenerate || d.duplicates || d.selfIntersections) { setRepairAsk({ mode: 'import', name, format: 'STEP', unit: 'mm', positions, indices, diagnosis: d, steps: DEFAULT_REPAIR, result: null }); return; }
-        }
-        // Read it before replacing the current part: a file the kernel cannot read keeps the part. Read
-        // solid by solid, so that a file holding several opens as that many bodies.
-        const read = await engine.part(withNode(emptyDoc(), { kind: 'import', name, step, solids: 2 }), revision.current++, 'read');
-        if (!read.ok) { setToast({ title: 'Could not open this file', hint: `The kernel can’t read it as STEP: ${read.error.detail}. Your part is unchanged.`, detail: read.error.detail }); return; }
-        let next = withNode(emptyDoc(), { kind: 'import', name, step, ...(read.bodies.length > 1 ? { solids: read.bodies.length } : {}) });
-        // In other units than millimetres: each solid scaled about the origin to its true size.
-        const n = read.bodies.length;
-        if (unit.to !== 1) for (let k = 0; k < n; k++) next = withNode(next, { kind: 'scale', parent: { node: 0, side: n > 1 ? `part${k}` as Side : 'solid' }, factor: unit.to, pivot: [0, 0, 0] });
-        replaceDoc(next); setFileName(name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300);
-        const vol = read.bodies.reduce((t, b) => t + (b.volume ?? 0), 0) * unit.to ** 3;
-        setToast({ title: 'STEP opened', hint: `${n} solid${n === 1 ? '' : 's'}, ${unit.declared ? `in ${unit.name}` : 'no length unit declared (read as millimetres)'}${unit.to !== 1 ? `, scaled ×${unit.to} to millimetres` : ''}; ${Math.round(vol).toLocaleString('en-US')} mm³ in all. Only the solids come in (no colours, names or assembly structure).`, detail: '' });
-        return;
-      }
-      // An STL or OBJ file starts a new part from its closed mesh, once its unit is chosen (the files say none).
-      if (/\.(stl|obj)$/i.test(file.name)) {
-        const name = file.name.replace(/\.(stl|obj)$/i, '');
-        try { setMeshAsk({ name, format: /\.obj$/i.test(file.name) ? 'OBJ' : 'STL', mesh: readMeshFile(file.name, new Uint8Array(await file.arrayBuffer())), unit: 'mm' }); }
-        catch (e) { setToast({ title: 'Could not open this file', hint: `${e instanceof Error ? e.message : String(e)}. Your part is unchanged.`, detail: '' }); }
-        return;
-      }
-      // An IGES file adds its curves and surfaces as direct geometry too, saying what came in.
-      if (/\.(igs|iges)$/i.test(file.name)) {
-        const r = (await loadDirect()).importIGESFile(doc.direct ?? emptyDirect(), await file.text(), file.name.replace(/\.(igs|iges)$/i, ''));
-        commitDirect(r.direct, r.direct.objects.slice((doc.direct?.objects.length ?? 0)).map(o => o.id));
-        setToast({ title: 'IGES opened', hint: `${r.curves} curve${r.curves === 1 ? '' : 's'} and ${r.surfaces} surface${r.surfaces === 1 ? '' : 's'} added as curves and surfaces (Direct), in mm.`, detail: '' });
-        setTimeout(() => viewport.current?.fit(), 300);
-        return;
-      }
-      // A .barocad source adds its curves and surfaces to the part as direct geometry. (Only .barocad: `.cad` is other
-      // programs' extension, owner 2026-10-24.)
-      if (/\.barocad$/i.test(file.name)) {
-        const next = (await loadDirect()).importSource(doc.direct ?? emptyDirect(), await file.text(), file.name.replace(/\.barocad$/i, ''));
-        commitDirect(next, next.objects.slice((doc.direct?.objects.length ?? 0)).map(o => o.id));
-        setTimeout(() => viewport.current?.fit(), 300);
+      if (isImportedFile(file.name)) {
+        await openImportedFile(file, { doc, worker: { engine, nextRevision: () => revision.current++ }, mesh: meshImport, onNotice: setToast,
+          changes: { commitDirect, fitLater: () => setTimeout(() => viewport.current?.fit(), 300), onOpened: (next, name) => { replaceDoc(next); setFileName(name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300); } } });
         return;
       }
       // Any other kind of file is named, with what Open reads; the part unchanged. (A file without an extension is still
       // tried as a model below.)
       if (/\.[^./\\]+$/.test(file.name) && !/\.(bcad|json)$/i.test(file.name)) { setToast({ title: `Can’t open ${file.name}`, hint: OPEN_READS, detail: '' }); return; }
       // Checked and, for an older file, brought up to date (said what was filled in); the file is left as it is.
-      const bytes = await file.arrayBuffer();
-      if (!isOpenCurrent(scope)) return;
-      const read = await readStudioFile(new Uint8Array(bytes));
-      if (!isOpenCurrent(scope)) return;
+      const read = await readDocumentFile(file, () => isOpenCurrent(scope));
+      if (!read || !isOpenCurrent(scope)) return;
       if ('error' in read) { setToast({ title: 'Could not open this file', hint: `${read.error} Your part is unchanged.`, detail: '' }); return; }
       const parsed = read.doc;
       const acceptedDoc = { ...parsed, ...(parsed.render ? { render: readRender(parsed.render) } : {}), ...(parsed.drawing ? { drawing: readDrawing(parsed.drawing) } : {}) };
@@ -2257,105 +1469,17 @@ export function App() {
       void verifyOpened(acceptedDoc, accepted, dispatch);
     } catch (e) { if (isOpenCurrent(scope)) setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); }
   };
-  // The references read (each on its own, in its own coordinates) and the keep-outs' solids made, when they change.
-  useEffect(() => {
-    const set = readReferences(doc.references); let live = true;
-    const read = (d: StudioDoc) => engine.part(d, revision.current++, 'read');
-    void (async () => {
-      const local = new Map<string, BodyResult[]>();
-      for (const r of set.references) { try { local.set(r.id, await referenceLocal(r, read)); } catch { local.set(r.id, []); } }
-      const solids: BodyResult[] = [];
-      for (const k of set.keepouts) { const p = withKeepout(emptyDoc(), k), e = await read(p.doc); if (e?.ok) solids.push(...e.bodies.map(b => ({ ...b, key: k.id }))); }
-      if (live) { setRefLocal(local); setKeepoutBodies(solids); }
-    })();
-    return () => { live = false; };
-  }, [doc.references, engine]);
-  // The keep-outs checked against the part as it stands.
-  useEffect(() => {
-    const set = readReferences(doc.references);
-    if (!set.keepouts.length || !fresh || busy) { if (!set.keepouts.length) setKeepoutVerdicts(null); return; }
-    let live = true;
-    const t = setTimeout(() => { void checkKeepouts({ ...evaluated, references: doc.references }, bodies, d => engine.part(d, revision.current++, 'check')).then(v => { if (live) setKeepoutVerdicts(v); }).catch(() => { if (live) setKeepoutVerdicts(null); }); }, 350);
-    return () => { live = false; clearTimeout(t); };
-  }, [doc.references, bodies, evaluated, fresh, busy, engine]);
-  // The requirements checked against the part as it stands (chat/spec.ts), whenever either changes.
-  // (After evaluation settles: debounced, a stale run dropped, none while a command previews or a sketch is open.
-  // A person's edit is never refused for breaking a requirement — a hard one that passed and now fails is said.)
-  const [spec, setSpec] = useState<{ summary: { pass: number; fail: number; unknown: number }; outcomes: Record<string, Outcome>; of: readonly unknown[] } | null>(null);
-  const [specRunning, setSpecRunning] = useState(false), [failingOnly, setFailingOnly] = useState(false);
-  const specPassed = useRef<Set<string>>(new Set());
-  useEffect(() => {
-    // (R1d: cleared only when there is something to clear — a set to the same null rendered the App again after each
-    // preview result.)
-    if (!doc.requirements?.length) { if (spec !== null) setSpec(null); specPassed.current = new Set(); return; }
-    if (busy || !fresh || active || sketch || previewBodies) return;
-    let live = true;
-    const t = setTimeout(() => {
-      setSpecRunning(true);
-      // (The evaluated model follows model edits only: the requirements are the document's own.)
-      void checkSpec({ ...evaluated, requirements: doc.requirements, ...(doc.references ? { references: doc.references } : {}) }, bodies, d => engine.part(d, revision.current++, 'check')).then(r => {
-        if (!live) return;
-        const broke = (doc.requirements ?? []).filter(q => q.hard && specPassed.current.has(q.id) && r.outcomes.get(q.id)?.status === 'fail').map(q => q.id);
-        specPassed.current = new Set([...r.outcomes].filter(([, o]) => o.status === 'pass').map(([id]) => id));
-        setSpec({ summary: r.summary, outcomes: Object.fromEntries(r.outcomes), of: evaluated.nodes });
-        if (broke.length) setToast({ title: `${broke.join(', ')} now fail${broke.length === 1 ? 's' : ''}`, hint: `A hard requirement that held no longer does: ${broke.map(id => { const o = r.outcomes.get(id); return `${id} measures ${String(o?.measured)}`; }).join('; ')}. Your change is kept; undo it or change the part.`, detail: '' });
-      }).finally(() => { if (live) setSpecRunning(false); });
-    }, 350);
-    return () => { live = false; clearTimeout(t); };
-  }, [doc.requirements, doc.references, bodies, evaluated, fresh, busy, active, sketch, previewBodies]);
-  // Proposals (A4.2): one shown as a ghost — the part it would leave, its changed bodies tinted — with a
-  // before/after toggle and the volume it adds or takes off; accepted (its ops replayed) or rejected (kept).
-  // (`full`: the part the whole proposal leaves; `parts`: its features, `leaveOut` those unticked, A4.3.)
-  // (`shown`: the part as previewed — the whole proposal's, or without what is left out; G12 diffs it with the part.)
-  const [ghost, setGhost] = useState<{ id: string; bodies: BodyResult[]; after: boolean; full: StudioDoc; shown: StudioDoc; parts: ProposalPart[]; leaveOut: string[] } | null>(null);
+  const { refLocal, keepoutBodies, keepoutVerdicts, spec, specRunning } = useModelChecks({ model: { doc, evaluated, bodies, fresh, busy, active, sketch, previewBodies },
+    worker: { engine, nextRevision: () => revision.current++ }, onNotice: setToast });
+  const [failingOnly, setFailingOnly] = useState(false);
+  const proposals = useProposalPreview({ model: { doc, bodies, marker, active: !!active, sketch: !!sketch }, worker: { engine, lanes, nextRevision: () => revision.current++ },
+    changes: { commit, setPreviewBodies }, chatRowFiles, onNotice: setToast });
+  const { ghost, proposalOverlay, proposalBusy, hashNow, partEval, acceptIt, rejectIt } = proposals;
+  const [decidedShown, setDecidedShown] = useState(false), [historyOpen, setHistoryOpen] = useState(false);
   routeContext.current = { blocked: busy || !fresh || !!parameterEdit || marker !== null || !!shownVariant.current || !!active || !!sketch || rendering || drawing || !!measure || !!assembly.draft || !!cageEd.session || !!skel.session || !!ghost };
-  useEffect(() => { if (routeContext.current.blocked && routeSession.current) discardRouteRef.current(); }, [busy, fresh, parameterEdit, marker, active, sketch, rendering, drawing, measure, assembly.draft, cageEd.session, skel.session, ghost, doc]);
-  /** G12: what the shown proposal adds and takes away (worked out in the engine worker), for the viewport's overlay. */
-  const [proposalOverlay, setProposalOverlay] = useState<ProposalOverlay | null>(null);
-  const [proposalBusy, setProposalBusy] = useState(false), [decidedShown, setDecidedShown] = useState(false), [historyOpen, setHistoryOpen] = useState(false);
-  const partEval = (d: StudioDoc) => engine.part(d, revision.current++, 'agent');
-  useEffect(() => { setGhost(g => { if (g) setPreviewBodies(null); return null; }); }, [doc.nodes, doc.parameters]);
-  // (Only wanted to show an open proposal stale.)
-  const hashNow = useMemo(() => doc.proposals?.some(p => p.status === 'open') ? modelHash(doc) : '', [doc]);
-  const showProposal = async (p: Proposal, from: StudioDoc = doc) => {
-    if (ghost?.id === p.id && from === doc) { setGhost(null); setPreviewBodies(null); return; }
-    if (active || sketch || marker !== null) return;
-    setProposalBusy(true);
-    const tools = await import('@barocss/cad-model/chat/tools'), r = await tools.previewProposal({ doc: from, bodies, rowFiles: chatRowFiles.current }, p.id, partEval);
-    setProposalBusy(false);
-    if ('error' in r) { setToast({ title: `${p.id} does not apply to the part as it is`, hint: r.error, detail: '' }); return; }
-    setGhost({ id: p.id, bodies: r.bodies, after: true, full: r.doc, shown: r.doc, parts: tools.proposalParts(from, r.doc), leaveOut: [] }); setPreviewBodies(r.bodies);
-  };
-  /** A stale proposal made again on the part as it is, then shown (D41): only the rebased one can be accepted. */
-  const rebaseIt = async (p: Proposal) => {
-    if (active || sketch || marker !== null) return;
-    setProposalBusy(true);
-    const r = await (await import('@barocss/cad-model/chat/tools')).rebaseProposal({ doc, bodies, rowFiles: chatRowFiles.current }, p.id, partEval);
-    setProposalBusy(false);
-    if ('error' in r) { setToast({ title: `${p.id} could not be rebased`, hint: r.error, detail: 'Nothing changed; the proposal stays open.' }); return; }
-    if (!commit(r.state.doc, false)) return;
-    await showProposal(r.state.doc.proposals!.find(q => q.id === p.id)!, r.state.doc);
-  };
-  /** A feature of the shown proposal ticked or unticked: the ghost rebuilt without what is left out. */
-  const tickPart = async (id: string, on: boolean) => {
-    if (!ghost) return;
-    const tools = await import('@barocss/cad-model/chat/tools'), leaveOut = tools.toggledLeaveOut(ghost.parts, ghost.leaveOut, id, on);
-    const partial = tools.partialDoc(doc, ghost.full, ghost.parts, leaveOut);
-    if ('error' in partial) { setToast({ title: 'Cannot leave that out', hint: partial.error, detail: '' }); return; }
-    setProposalBusy(true);
-    const r = await partEval(partial.doc);
-    setProposalBusy(false);
-    if (!r.ok) { setToast({ title: `Without ${leaveOut.join(', ')} the part does not build`, hint: `${r.error.title}. ${r.error.hint}`, detail: '' }); return; }
-    setGhost(g => g && { ...g, leaveOut, bodies: r.bodies, shown: partial.doc, after: true }); setPreviewBodies(r.bodies);
-  };
-  // (G12: the diff of the part as it is and the proposal as shown, again when what is shown changes; none without one.)
-  useEffect(() => {
-    if (!ghost) { setProposalOverlay(null); return; }
-    // (R4b: on the O9 'proposal-diff' lane — a reply for a proposal no longer shown comes back stale.)
-    const at = revision.current++, key = `${ghost.id}|${ghost.leaveOut.join(',')}`;
-    void lanes.run('proposal-diff', { revision: at, source: key }, () => engine.proposalDiff(doc, ghost.shown, at, { revision: modelHash(doc), proposal: key })).then(reply => { if (!reply.stale) setProposalOverlay('error' in reply.result ? null : reply.result); });
-    return () => lanes.cancel('proposal-diff');
-  }, [ghost?.id, ghost?.shown]);
+  useEffect(() => routeEditor.discardBlocked(), [busy, fresh, parameterEdit, marker, active, sketch, rendering, drawing, measure, assembly.draft, cageEd.session, skel.session, ghost, doc]);
+  useEffect(() => proposals.resetForModelChange(), [doc.nodes, doc.parameters]);
+  useEffect(() => proposals.updateDiff(), [ghost?.id, ghost?.shown]);
   // (CG6: a version compared with the working document — its geometry's difference on the same overlay, version → working.)
   useEffect(() => {
     if (!compareBase) { setCompareOverlay(null); return; }
@@ -2363,20 +1487,6 @@ export function App() {
     void lanes.run('proposal-diff', { revision: at, source: key }, () => engine.proposalDiff(compareBase.doc, doc, at, { revision: modelHash(doc), proposal: key })).then(reply => { if (!reply.stale) setCompareOverlay('error' in reply.result ? null : reply.result); });
     return () => lanes.cancel('proposal-diff');
   }, [compareBase, doc]);
-  const flipGhost = () => setGhost(g => { if (!g) return g; setPreviewBodies(g.after ? null : g.bodies); return { ...g, after: !g.after }; });
-  const acceptIt = async (p: Proposal) => {
-    if (active || sketch) return;
-    if (marker !== null) { setToast({ title: 'Roll forward to accept', hint: 'A proposal applies to the whole part: drag the rollback bar to the end first.', detail: '' }); return; }
-    setProposalBusy(true);
-    const leaveOut = ghost?.id === p.id ? ghost.leaveOut : [];
-    const r = await (await import('@barocss/cad-model/chat/tools')).acceptProposal({ doc, bodies, rowFiles: chatRowFiles.current }, p.id, partEval, { leaveOut });
-    setProposalBusy(false);
-    if ('error' in r) { setToast({ title: `${p.id} could not be applied`, hint: r.error, detail: 'Nothing changed; the proposal stays open.' }); return; }
-    if (!commit(r.state.doc, false)) return;
-    setGhost(null); setPreviewBodies(null);
-  };
-  const rejectIt = (p: Proposal) => { const next = rejectProposal(doc, p.id); if ('error' in next || !commit(next, false)) return; if (ghost?.id === p.id) { setGhost(null); setPreviewBodies(null); } };
-  const volumeOf = (list: readonly BodyResult[]) => list.reduce((s, b) => s + (b.volume ?? 0), 0);
   /** An assumed (or ambiguous) requirement's value set by the user, and confirmed: stated from now on, with who and when. */
   const setRequirement = (id: string, value: number) => {
     if (!Number.isFinite(value)) return;
@@ -2428,15 +1538,6 @@ export function App() {
   // The references marked matched again (until confirmed), and the user's say on them and on the problems.
   const refMarks = useMemo(() => markedReferences(doc), [doc]);
   const referenceDimension = (where: string) => doc.drawing?.dimensions.find(d => where === `dimension ${d.id}`);
-  const referenceCaption = (where: string) => {
-    const dimension = referenceDimension(where);
-    if (!dimension) return where.startsWith('feature ') ? 'Feature reference' : where.startsWith('mate ') ? 'Mate reference' : 'Model reference';
-    const label = referenceLabels.find(x => x.dimensionId === dimension.id);
-    const kind = dimension.kind === 'pcd' ? 'Pitch circle' : dimension.kind === 'angle' ? 'Angle' : dimension.kind === 'diameter' ? 'Diameter' : dimension.kind === 'radius' ? 'Radius' : 'Linear';
-    const view = dimension.view === 'front' ? 'Front' : dimension.view === 'top' ? 'Top' : dimension.view === 'right' ? 'Right' : dimension.view.startsWith('section:') ? `Section ${dimension.view.slice(8)}` : dimension.view.startsWith('detail:') ? `Detail ${dimension.view.slice(7)}` : 'Isometric';
-    return `${label?.text ?? kind + ' dimension'} · ${view} view`;
-  };
-  const affectedDimensions = (name: string) => new Set(referencesOf(doc, true).refs.filter(r => r.name === name || r.was === name).map(r => referenceDimension(r.where)?.id).filter(Boolean)).size;
   const previewReference = (where: string, edge?: string, inModel = false) => {
     const dimension = referenceDimension(where);
     if (dimension && !inModel) {
@@ -2461,9 +1562,8 @@ export function App() {
   const verifyOpened = async (opened: StudioDoc, scope: OpenScope, dispatch: object) => {
     const current = () => isOpenCurrent(scope) && saveDocumentToken.current === dispatch && docNow.current === opened;
     // (O19: one that does not build because a stored name moved, REFERENCE_MOVED, is checked too — its moved names matched again, or held.)
-    const r = await engine.part(opened, revision.current++, 'refs'); if (!current() || !r || (!r.ok && r.error.code !== 'REFERENCE_MOVED')) return;
-    const v = await verifyReferences(opened, r.ok ? r.bodies : [], d => engine.part(d, revision.current++, 'refs'));
-    if (!current()) return;
+    const v = await verifyDocumentFile(opened, d => engine.part(d, revision.current++, 'refs'), current);
+    if (!v || !current()) return;
     setRefProblems(v.problems);
     if (!v.changes.length && !v.problems.length) return;
     const cur = docNow.current;
@@ -2481,12 +1581,9 @@ export function App() {
     try { downloadBytes(sketchDxf(n, doc.parameters).bytes, `${fileName}-sketch-${index + 1}.dxf`, 'image/vnd.dxf'); }
     catch (e) { setToast({ title: 'Could not write the DXF', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
   };
-  /** Asked how mesh bodies go out when the part has any (R3.5, D48): its answer kept in this browser. */
-  const [stepAsk, setStepAsk] = useState(false);
-  const [stlAsk, setStlAsk] = useState(false), [stlQuality, setStlQuality] = useState<'automatic' | '8' | '16' | '32'>('automatic'), [stlBusy, setStlBusy] = useState(false);
-  const stlGeneration = useRef(0), stlPending = useRef(false), stlCancelButton = useRef<HTMLButtonElement>(null);
-  const cancelStlExport = () => { stlGeneration.current++; stlPending.current = false; setStlBusy(false); setStlAsk(false); };
-  const askStlExport = () => { stlGeneration.current++; stlPending.current = false; setStlBusy(false); setStlQuality('automatic'); setStlAsk(true); };
+  const modelExports = useModelExports({ model: { doc, evaluated, bodies, fresh, busy, massReady, instanceBodies },
+    engine, fileName, current: { doc: docNow, evaluated: evaluatedRef }, onNotice: setToast });
+  const { stepAsk, stlAsk, askStlExport, exportStepFile, exportQuote, exportThreeMf, clearStepAsk } = modelExports;
   // (DEV, for the flow: the columns as a fresh viewer has them — the chat collapsed at its default width, no dock sheet — so
   // one step's open or drag does not carry into the next; and no toast — G12f: one left from an earlier step met the view
   // cube in the layout step. The recovery card is only hidden, its copy kept; a question's toast closed is cancelled.)
@@ -2494,89 +1591,9 @@ export function App() {
     if (!import.meta.env.DEV) return;
     (window as unknown as { __studioLayoutReset: () => void }).__studioLayoutReset = () => {
       layout.setChatOpen(false); layout.setChatWidth(CHAT_DEFAULT); layout.setDockSheet(false);
-      setToast(null); setRecovery(null); setCascade(null); setMeshAsk(null); setRepairAsk(null); setStepAsk(false);
+      setToast(null); setRecovery(null); setCascade(null); setMeshAsk(null); setRepairAsk(null); clearStepAsk();
     };
   }, [layout.setChatOpen, layout.setChatWidth, layout.setDockSheet]);
-  const exportStepFile = async (meshes?: 'auto' | 'tessellated' | 'planar') => {
-    // (An infill body is left out of STEP, O60: it asks nothing.)
-    if (!meshes && bodies.some(b => b.family === 'faceted' && b.role !== 'infill')) { setStepAsk(true); return; }
-    setStepAsk(false);
-    if (meshes) { try { localStorage.setItem('studio.stepMeshes', meshes); } catch { /* private mode */ } }
-    // (The evaluated model, with the instances placed beside it now.)
-    const r = await engine.step({ ...evaluated, instances: doc.instances }, fileName, meshes);
-    if ('text' in r) { downloadBytes(new TextEncoder().encode(r.text), `${fileName}.step`, 'model/step'); const w = draftWarning(doc); if (w) setToast({ title: 'STEP written as a draft', hint: [w, ...(r.omitted ?? [])].join(' '), detail: '' }); else if (r.omitted) setToast({ title: 'STEP written', hint: r.omitted.join(' '), detail: '' }); }
-    else setToast({ title: 'Could not write STEP', hint: 'Fix the model’s errors first, then export again.', detail: r.error });
-  };
-  const exportStl = async () => {
-    if (stlPending.current) return;
-    if (!fresh) { setStlAsk(false); setToast({ title: 'Not written yet', hint: busy ? 'The part is still evaluating: export once it is up to date.' : 'The part did not evaluate: fix it first.', detail: '' }); return; }
-    const captured = { doc, evaluated, bodies: [...bodies], quality: stlQuality, name: fileName }, explicit = captured.quality !== 'automatic';
-    const refuse = (hint: string, detail = '') => { setStlAsk(false); setToast({ title: 'Could not write STL', hint, detail }); };
-    if (!captured.bodies.length) { refuse('There are no root bodies to export.'); return; }
-    if (explicit && captured.doc.instances?.some(i => !i.hidden)) { refuse('This STL quality cannot export a document with visible placed instances. Export the placed part from its own document.'); return; }
-    if (explicit) for (const body of captured.bodies) {
-      if (body.lumpTouch?.length) { refuse(`${bodyName(captured.doc, body)} needs a separate STL for each touching piece. That output uses the on-screen mesh; use Automatic.`); return; }
-      if (body.family === 'faceted') { refuse(`${bodyName(captured.doc, body)} is a mesh body. The selected STL quality needs a BRep body; use Automatic.`); return; }
-    }
-    const generation = ++stlGeneration.current;
-    stlPending.current = true; setStlBusy(true); stlCancelButton.current?.focus();
-    const current = () => {
-      if (stlGeneration.current !== generation) return false;
-      if (docNow.current !== captured.doc || evaluatedRef.current !== captured.evaluated) { refuse('The design changed while the STL files were being prepared. Export the current design again.'); return false; }
-      return true;
-    };
-    try {
-      const fallback: string[] = [], prepared: { name: string; bytes: Uint8Array }[] = [];
-      let split = 0;
-      for (const body of captured.bodies) {
-        // Automatic keeps the existing display-mesh split for touching pieces.
-        const lumps = !explicit && body.lumpTouch?.length ? lumpStls(body.mesh, body.key) : null;
-        if (lumps) { split++; for (const f of lumps) prepared.push({ name: `${captured.name}-${body.key}-lump${f.lump + 1}.stl`, bytes: f.bytes }); continue; }
-        const kernel = captured.quality === 'automatic'
-          ? await engine.stl(captured.evaluated, body.key)
-          : await engine.stl(captured.evaluated, body.key, { segmentsPerQuarter: Number(captured.quality) });
-        if (!current()) return;
-        if (kernel && 'error' in kernel) { refuse(`STL export stopped for ${bodyName(captured.doc, body)}.`, kernel.error); return; }
-        if (!kernel && explicit) { refuse(`The kernel could not write ${bodyName(captured.doc, body)} at the selected STL quality. No files were downloaded.`); return; }
-        if (!kernel) fallback.push(bodyName(captured.doc, body));
-        prepared.push({ name: `${captured.name}-${body.key}.stl`, bytes: kernel ?? meshToStl(body.mesh, body.key) });
-      }
-      // Prepare the sidecar before any download: a failed body or stale request writes no files.
-      const names = prepared.map(f => f.name), sidecar = sourceBytes(sourceRecord(captured.doc, names));
-      if (!current()) return;
-      for (const file of prepared) downloadBytes(file.bytes, file.name, 'model/stl');
-      downloadBytes(sidecar, `${captured.name}.source.json`, 'application/json');
-      setStlAsk(false);
-      setToast({ title: `STL written: ${prepared.length} file${prepared.length === 1 ? '' : 's'}`, hint: `${draftWarning(captured.doc) ? `${draftWarning(captured.doc)} ` : ''}Triangles in millimetres, one file per body; no colours, names or exact curves.${fallback.length ? ` ${fallback.join(', ')} ${fallback.length === 1 ? 'was' : 'were'} written from the on-screen mesh (the kernel’s tessellation refused ${fallback.length === 1 ? 'it' : 'them'}).` : ''}${split ? ' A body whose pieces only touch along an edge or a point is written as one STL a piece; 3MF keeps them in one file as separate objects.' : ''}`, detail: '' });
-    } catch (error) {
-      if (current()) refuse('STL export could not finish.', error instanceof Error ? error.message : String(error));
-    } finally {
-      if (stlGeneration.current === generation) { stlPending.current = false; setStlBusy(false); }
-    }
-  };
-
-  /** The quote package (IM6, O82): the part as STEP, its moulding report and the request, one zip; what is open said. */
-  const exportQuote = async () => {
-    if (!fresh) { setToast({ title: 'Not written yet', hint: busy ? 'The part is still evaluating: export once it is up to date.' : 'The part did not evaluate: fix it first.', detail: '' }); return; }
-    if (!massReady) { setToast({ title: 'Not written yet', hint: 'The part\'s masses are still being worked out: export in a moment.', detail: '' }); return; }
-    const q = await quotePackage(doc, bodies, async d => evaluateDoc(d, 0), { name: fileName });
-    if ('error' in q) { setToast({ title: 'No quote package', hint: q.error, detail: '' }); return; }
-    downloadBytes(q.zip, `${fileName}-quote.zip`, 'application/zip');
-    setToast({ title: q.manifest.complete ? 'Quote package written' : `Quote package written: ${q.manifest.open.length} open`, hint: q.manifest.complete ? 'STEP, the moulding report and the request — no price: the moulder quotes it.' : q.manifest.open.join(' · '), detail: '' });
-  };
-
-  /** 3MF (AM5, D76): every shown body and instance, its material and colours, turned the way it prints when chosen. */
-  const exportThreeMf = async () => {
-    if (!fresh) { setToast({ title: 'Not written yet', hint: busy ? 'The part is still evaluating: export once it is up to date.' : 'The part did not evaluate: fix it first.', detail: '' }); return; }
-    const parts = [{ doc, bodies }, ...(doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => ({ doc: i.doc, bodies: instanceBodies.get(i.id)!.bodies, name: i.name }))];
-    const model = threeMfModelOf(doc, parts, fileName);
-    const r = typeof model === 'string' ? { error: model } : await write3mf(model);
-    if ('error' in r) { setToast({ title: 'Could not write 3MF', hint: r.error, detail: '' }); return; }
-    downloadBytes(r.bytes, `${fileName}.3mf`, 'model/3mf');
-    const s = r.stats, open = s.openEdges + s.repeatedEdges;
-    setToast({ title: `3MF written: ${s.objects} bod${s.objects === 1 ? 'y' : 'ies'}, ${s.triangles.toLocaleString()} triangles`, hint: `${draftWarning(doc) ? `${draftWarning(doc)} ` : ''}${doc.print ? 'Turned the way it prints and set on the bed. ' : 'As modelled (choose a print direction to have it turned for printing). '}The on-screen mesh, in millimetres, with materials and colours.${open ? ` ${open} edges are not closed: the slicer may repair it.` : ''}`, detail: '' });
-  };
-
   // Keyboard: Space palette, Enter apply, Esc cancel, letters run commands, F frames. The listener is
   // added once and calls the newest handler (set each render), so a key pressed right after a click sees
   // that click's selection, not the one before it (effects run only after the frame is painted).
@@ -2657,48 +1674,9 @@ export function App() {
     ...selection.edges.flatMap(e => { const n = bodies[e.body]?.mesh.edges[e.edge]?.names[0]; return n ? [{ kind: 'edge' as const, name: n }] : []; }),
     ...selection.bodies.flatMap(b => bodies[b] ? [{ kind: 'body' as const, name: bodies[b].key }] : []),
   ].slice(0, 12).filter(() => fresh), [selection, bodies, fresh]);
-  // (O18: the viewport keeps the bodies it has while only their masses come — the same meshes, the same array — so a mass
-  // patch is no change of what is drawn: WebGPU rebuilt the part on a new array and left the copies sharing its shapes out.)
-  const drawnRef = useRef(bodies);
-  if (!sameMeshes(drawnRef.current, bodies)) drawnRef.current = bodies;
-  const drawnBodies = drawnRef.current;
-  const shownBodies = bodyDrag ? drawnBodies : routePreviewBodies ?? previewBodies ?? (section && sectionBodies && !sketch ? sectionBodies : drawnBodies);
-  // The Render workspace's animated offsets on the bodies shown: each by its body's key — an exact section's piece by the
-  // body it was cut from (G19.5: by index they fell on other bodies once the section left some out or split them).
-  const animatedOffsets = useMemo(() => {
-    if (!animatedAt) return undefined;
-    const from = shownBodies === sectionBodies && sectionExactShown ? sectionExact!.from : null, out = new Map<number, Vec3>();
-    shownBodies.forEach((b, i) => { const o = animatedAt.get(from?.get(b.key) ?? b.key); if (o) out.set(i, o); });
-    return out;
-  }, [animatedAt, shownBodies, sectionBodies, sectionExactShown, sectionExact]);
-  // Bodies' own colours and hidden ones (StudioDoc.bodies), by index of what is shown.
-  // (A command's preview: the bodies it adds — first made by one of its new features, not built on a body
-  // the part has — tinted, so what is new reads at a glance.)
-  const previewNodes = useMemo(() => { if (!active?.cmd.build || !previewBodies) return null; try { return active.cmd.build(active.ctx, active.values).nodes; } catch { return null; } }, [active, previewBodies]);
-  const bodyColors = useMemo(() => {
-    // (A proposal's ghost: the bodies it adds or changes — not tinted while the engine draws its two-colour overlay, G12.)
-    const overlaid = !!ghost && proposalOverlay?.method === 'boolean';
-    const had = ghost ? new Set(bodies.map(b => `${b.key}:${meshSig(b.mesh)}`)) : null;
-    const fresh = (b: BodyResult) => { if (had) return !had.has(`${b.key}:${meshSig(b.mesh)}`); const at = previewNodes && bodyNodeOf(previewNodes, b.key); return !!previewNodes && !!at && rootOf(previewNodes, at.node) >= evaluated.nodes.length; };
-    return new Map(shownBodies.flatMap((b, i) => { const c = shownBodies === routePreviewBodies ? PREVIEW_TINT : lookOf(doc, b).color ?? (shownBodies === previewBodies && fresh(b) && !overlaid ? PREVIEW_TINT : undefined); return c ? [[i, rgbOf(c)] as [number, [number, number, number]]] : []; }));
-  }, [shownBodies, doc, previewBodies, routePreviewBodies, previewNodes, evaluated.nodes.length, ghost, bodies, proposalOverlay]);
-  const hiddenBodies = useMemo(() => new Set(shownBodies.flatMap((b, i) => lookOf(doc, b).hidden ? [i] : [])), [shownBodies, doc]);
-  // Faces coloured on their own, by body index and face index (their names kept with the body's look).
-  // (G12: a shown proposal's faces tinted — where the Boolean refused (WebGL2 draws the overlay too, G16) — those it adds or changes
-  // green on the after view, those it removes or changes red on the before view.)
-  // (CG6: a compared version the same way — the working document is the after view.)
-  const proposalTint = useMemo(() => {
-    const o = ghost ? proposalOverlay : compareOverlay, after = ghost ? ghost.after : true; if (!o || o.method === 'boolean') return null;
-    const on = new Set(o.changedFaces.filter(f => after ? f.kind !== 'removed' : f.kind !== 'added').map(f => f.name));
-    return { on, color: rgbOf(after ? PROPOSAL_ADDED : PROPOSAL_REMOVED) };
-  }, [proposalOverlay, compareOverlay, ghost]);
-  const faceColors = useMemo(() => new Map(shownBodies.flatMap((b, i) => {
-    const own = lookOf(doc, b).faces; if (!own && !proposalTint) return [];
-    const m = new Map(b.mesh.faces.flatMap(f => { const c = proposalTint?.on.has(f.name) ? proposalTint.color : own?.[f.name] ? rgbOf(own[f.name]) : null; return c ? [[f.index, c] as [number, [number, number, number]]] : []; }));
-    return m.size ? [[i, m] as [number, Map<number, [number, number, number]>]] : [];
-  })), [shownBodies, doc, proposalTint]);
-  // (While placing, the pointer looks through the shape being placed: the preview's new bodies.)
-  const placeSkip = useMemo(() => { const have = new Set(bodies.map(b => b.key)); return new Set((previewBodies ?? []).filter(b => !have.has(b.key)).map(b => b.key)); }, [bodies, previewBodies]);
+  const appearance = useModelAppearance({ model: { doc, evaluated, bodies }, preview: { active, previewBodies, routePreviewBodies, ghost, proposalOverlay, compareOverlay },
+    display: { bodyDrag: !!bodyDrag, section: !!section, sketch: !!sketch, sectionBodies, sectionExactShown, sectionExact, animatedAt } });
+  const { drawnBodies, shownBodies, animatedOffsets, bodyColors, hiddenBodies, faceColors, proposalTint, placeSkip } = appearance;
   // Mate faces show while a mate is being added, or while one is selected in the shown mates list.
   const mateFaces = !!assembly.draft || (!!assembly.selected && instanceSel.length === 1);
   const sectioned = !!(section && sectionBodies && !sketch && !previewBodies);
@@ -2774,96 +1752,16 @@ export function App() {
   const shownSelection = sectioned ? { faces: shownBodies.flatMap((b, bi) => b.mesh.faces.filter(f => cutAfter(f.name, sectionFrom)).map(f => ({ body: bi, face: f.index }))), edges: [], bodies: [] }
     : routePreviewBodies || routePanelOpen || previewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
   const measured = measure?.length === 2 && bodies[measure[0].body] && bodies[measure[1].body] ? measureBetween(bodies[measure[0].body].mesh, measure[0], bodies[measure[1].body].mesh, measure[1]) : null;
-  const density = MATERIALS.find(m => m.id === material) ?? MATERIALS[0];
   // (The locked references and the keep-outs, A6.3: drawn ghosted after the part's bodies, never picked.)
   const refShown = useMemo(() => { const set = readReferences(doc.references); return [...set.references.flatMap(r => placeReference(refLocal.get(r.id) ?? [], r.at)), ...keepoutBodies]; }, [doc.references, refLocal, keepoutBodies]);
   const viewBodies = useMemo(() => (refShown.length ? [...shownBodies, ...refShown] : shownBodies), [shownBodies, refShown]);
   const viewBodiesRef = useRef(viewBodies); viewBodiesRef.current = viewBodies;
   const sketchGhost = useMemo(() => new Set([...(sketch ? shownBodies.map((_, i) => i) : []), ...refShown.map((_, i) => shownBodies.length + i)]), [sketch, shownBodies, refShown]);
-  // Move and Rotate gizmos on the selected body: while dragged it follows at once (a renderer transform
-  // of the evaluated body); let go, the kernel preview of the values runs.
-  const dragFrom = useRef<Values | null>(null);
-  const cmdBody = active && (active.cmd.id === 'move' || active.cmd.id === 'rotate' || active.cmd.id === 'scale') && selectedBodies(active.ctx.selection).length === 1 ? selectedBodies(active.ctx.selection)[0] : undefined;
-  const gizmo: TransformGizmo | null = active && cmdBody !== undefined && bodies[cmdBody] ? (() => {
-    const { min, max } = bodies[cmdBody].mesh.bounds, values = active.values;
-    const begin = () => dragFrom.current ?? (dragFrom.current = values);
-    const show = (next: Values, matrix: Float64Array, done: boolean) => {
-      setBodyDrag({ matrix, settling: done });
-      setActive(a => a && { ...a, values: patchValues(a.cmd, a.ctx, a.values, next), preview: 'busy' });
-      if (done) dragFrom.current = null;
-    };
-    if (active.cmd.id === 'move') {
-      const v: Vec3 = [Number(values.x), Number(values.y), Number(values.z)];
-      return { origin: [(min[0] + max[0]) / 2 + v[0], (min[1] + max[1]) / 2 + v[1], max[2] + v[2]], move: [0, 1, 2],
-        onMove: (delta, done) => {
-          const from = begin(), raw: Vec3 = [Number(from.x) + delta[0], Number(from.y) + delta[1], Number(from.z) + delta[2]];
-          // Lined up with the other bodies' sides and middles when it comes close (2 % of its size, at least 1 mm).
-          const size = Math.max(...[0, 1, 2].map(k => max[k] - min[k])), others = bodies.filter((_, i) => i !== cmdBody).map(b => b.mesh.bounds);
-          const next = alignMove({ min, max }, others, raw, delta.map(v => v !== 0), Math.max(1, size * 0.02)).move;
-          show({ x: next[0], y: next[1], z: next[2] }, previewMatrix({ kind: 'move', delta: next }), done);
-        } };
-    }
-    if (active.cmd.id === 'scale') {
-      // Scale: the cubes grow or shrink the body about the pivot (its centre by default).
-      const pivot: Vec3 = [Number(values.px), Number(values.py), Number(values.pz)];
-      return { origin: pivot, scale: true,
-        onScale: (factor, done) => {
-          const from = begin(), k = Math.round(Number(from.factor) * factor * 100) / 100, m = new Float64Array(16);
-          m[0] = m[5] = m[10] = k; m[15] = 1; m[12] = pivot[0] * (1 - k); m[13] = pivot[1] * (1 - k); m[14] = pivot[2] * (1 - k);
-          show({ factor: k }, m, done);
-        } };
-    }
-    // Rotate: about the pivot, in 15° steps (Shift: 1°).
-    const pivot: Vec3 = [Number(values.px), Number(values.py), Number(values.pz)];
-    return { origin: pivot, turn: [0, 1, 2],
-      onTurn: (axis, degrees, done) => {
-        const from = begin(), name = 'xyz'[axis], angle = from.axis === name ? Number(from.angle) + degrees : degrees;
-        show({ axis: name, angle }, previewMatrix({ kind: 'turn', axis, degrees: angle, centre: pivot }), done);
-      } };
-  })() : null;
-  // Let go: the dragged look stays until the preview of the final values is in, then the preview shows.
-  useEffect(() => { if (bodyDrag?.settling && active && previewFor.current === JSON.stringify(active.values)) setBodyDrag(null); }, [previewBodies, bodyDrag, active]);
-  useEffect(() => { setBodyDrag(null); dragFrom.current = null; handleDrag.current = null; }, [active?.cmd.id]);
-  // The active command's dimension handles: dragging one sets that value (the preview follows).
-  // With nothing running, the selected body's feature (or the one open in the feature editor) offers its
-  // dimensions as handles: dragging one starts editing that feature.
-  const idleEdit = useMemo(() => {
-    if (active || sketch || rendering || drawing || measure || assembly.draft || instanceSel.length) return null;
-    // The feature open in the editor, else the one the picked face or edge comes from, else the body's last.
-    const one = selectedBodies(selection), index = editNode ?? featureOfPick(selection, bodies, evaluated.nodes) ?? (one.length === 1 && bodies[one[0]] ? refOf(bodies[one[0]]).node : null);
-    return index === null || (marker !== null && index >= marker) ? null : editCommand(index, evaluated.nodes, doc);
-  }, [active, sketch, rendering, drawing, measure, assembly.draft, instanceSel.length, selection, editNode, bodies, evaluated.nodes, doc.fastenerSizes, marker]);
-  const handleCmd = active?.cmd ?? idleEdit, handleValues = active ? active.values : idleEdit?.defaults?.(ctx) ?? {}, handleCtx = active?.ctx ?? ctx;
-  // (None while a new shape is still being placed: the click that places it must not grab one.)
-  const handles: FeatureHandle[] = handleCmd?.handles && !sketch && !active?.placing ? handleCmd.handles(handleCtx, handleValues).flatMap(h => {
-    const fields = handleCmd.fields?.(handleCtx, handleValues) ?? [], field = fields.find(f => f.key === h.key), value = Number(handleValues[h.key]);
-    if (!field || !Number.isFinite(value)) return [];
-    // (Lengths follow the grid step: half of it for half-step arrows; angles and counts keep their own.)
-    const step = h.arc || h.unit !== undefined ? h.step ?? 1 : Math.max(0.001, (h.step ?? 1) * (snapStep || 0.01)), snap = (start: number, mm: number) => Math.min(h.max ?? Infinity, Math.max(h.min ?? -Infinity, Math.round((start + mm * (h.scale ?? 1)) / step) * step));
-    const pair = h.pair, value2 = pair ? Number(handleValues[pair.key]) : NaN;
-    if (pair && !Number.isFinite(value2)) return [];
-    return [{ id: pair ? `${h.key}+${pair.key}` : h.key, at: h.at, dir: h.dir, label: pair ? field.label.replace(/ \w$/, '') : field.label, value, ...(h.arc ? { arc: h.arc } : {}),
-      ...(pair ? { plane: { dir2: pair.dir, value2, toValue2: snap } } : {}),
-      toValue: snap,
-      format: (v: number) => h.arc ? `${fmt(v)}°` : h.unit !== undefined ? `${fmt(v)}${h.unit ? ' ' + h.unit : ''}` : `${fmt(v)} mm`,
-      onDrag: (v: number, done: boolean, v2?: number) => {
-        if (pair) {
-          // (Both coordinates at once; a refused spot shows as the preview's error, no wall.)
-          handleDrag.current = null;
-          const patch = { [h.key]: v, [pair.key]: v2 ?? value2 };
-          setActive(a => a ? (a.values[h.key] === patch[h.key] && a.values[pair.key] === patch[pair.key] ? a : { ...a, values: patchValues(a.cmd, a.ctx, a.values, patch), preview: 'busy' }) : { cmd: handleCmd, values: patchValues(handleCmd, handleCtx, handleValues, patch), preview: 'busy', ctx: { ...handleCtx } });
-          return;
-        }
-        let hd = handleDrag.current;
-        if (!hd || hd.key !== h.key || !hd.dragging) hd = handleDrag.current = { key: h.key, lastOk: value, wall: 0, dragging: true };
-        // Past the side where a value failed: held at the last good one.
-        if (hd.wall && Math.sign(v - hd.lastOk) === hd.wall) v = hd.lastOk;
-        if (done) hd.dragging = false;
-        // An idle handle opens its feature's edit as the drag starts.
-        setActive(a => a ? (a.values[h.key] !== v ? { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [h.key]: v }), preview: 'busy' } : a)
-          : { cmd: handleCmd, values: patchValues(handleCmd, handleCtx, handleValues, { [h.key]: v }), preview: 'busy', ctx: { ...handleCtx } });
-      } }];
-  }) : [];
+  const commandGizmos = useCommandGizmos({ model: { doc, evaluated, bodies, selection, marker, editNode }, command: { active, ctx, setActive, handleDrag, previewFor },
+    context: { sketch, rendering, drawing, measure, assemblyDraft: assembly.draft, instanceCount: instanceSel.length, snapStep }, drag: { bodyDrag, setBodyDrag } });
+  const { gizmo, handles, cmdBody } = commandGizmos;
+  useEffect(() => commandGizmos.settleDrag(), [previewBodies, bodyDrag, active]);
+  useEffect(() => commandGizmos.resetDrag(), [active?.cmd.id]);
   const sectionBoxRef = useRef(sectionBox); sectionBoxRef.current = sectionBox;
   // (Where the camera is: a cut-out's default corner faces it, G20.)
   const cameraEye = (): Vec3 | null => { const c = viewport.current?.getCamera(); if (!c) return null; const cp = Math.cos(c.pitch); return [c.target[0] + c.distance * cp * Math.cos(c.yaw), c.target[1] + c.distance * cp * Math.sin(c.yaw), c.target[2] + c.distance * Math.sin(c.pitch)]; };
@@ -2939,85 +1837,8 @@ export function App() {
     return b ? holeRegions(doc.nodes, group, b.mesh.bounds) : [];
   }, [active, editNode, doc.nodes, bodies, selection.bodies, rendering, drawing, sketch]);
 
-  const routeSessionShown = routeSession.current;
-  const routeTie = routeSessionShown?.frozenStart.routeBundles?.find(b => b.id === routeSessionShown.bundleId)?.tie;
-  const routeGizmo: RouteTransformGizmo | null = routePanelOpen && routeSessionShown && routeTie && routePhase !== 'error' && !routeContext.current.blocked && routeCurrent(routeSessionShown) ? {
-    // Stable for the whole edit; a gesture has a different token and never changes this key.
-    sessionKey: `route-bundle:${routeSessionShown.token}:${routeSessionShown.bundleId}`,
-    origin: routeTie.anchorMM.map((v, k) => v + routeSessionShown.delta[k]) as Vec3, move: [0, 1, 2],
-    onStart: pointerId => {
-      const session = routeSession.current;
-      if (!session || session !== routeSessionShown || !routeCurrent(session)) return;
-      clearRouteTimer(); session.sequence++; session.gesture++; session.pointerId = pointerId;
-      session.gestureBase = [...session.delta]; session.ready = undefined; session.purpose = 'draft';
-      setRouteMove(session.delta.map(String) as [string, string, string]);
-      setRoutePhase('draft'); setRouteError(undefined); setRoutePreviewBodies(null);
-    },
-    onMove: (delta, done, pointerId) => {
-      const session = routeSession.current;
-      if (!session || session !== routeSessionShown || pointerId === undefined || session.pointerId !== pointerId || !routeCurrent(session)) return;
-      clearRouteTimer(); session.sequence++; session.ready = undefined; session.purpose = 'draft';
-      try {
-        // The viewport supplies total displacement from this gesture's captured origin.
-        const total = session.gestureBase.map((v, k) => v + delta[k]) as Vec3;
-        const candidate = moveRouteBundle(session.frozenStart, session.bundleId, total, session.frozenIdentity);
-        session.delta = total; setRouteMove(total.map(String) as [string, string, string]);
-        setRouteVisualDoc(candidate); setRoutePreviewBodies(null); setRoutePhase('draft'); setRouteError(undefined);
-        if (done) { void routeEvaluate(session, candidate, true, false); return; }
-        const sequence = session.sequence, gesture = session.gesture;
-        routePreviewTimer.current = setTimeout(() => {
-          routePreviewTimer.current = null;
-          if (routeCurrent(session) && session.sequence === sequence && session.gesture === gesture && session.pointerId === pointerId) void routeEvaluate(session, candidate, false);
-        }, 100);
-      } catch (error) { routeFail(error); }
-    },
-    onCancel: (pointerId, _reason) => {
-      const session = routeSession.current;
-      if (session && session === routeSessionShown && session.pointerId === pointerId) discardRouteRef.current();
-    },
-  } : null;
-
-  // Display-only draft guides reuse the existing non-pickable world-mm underlay channel.
-  const routeGuideUnderlays = useMemo((): typeof underlaysShown => {
-    const session = routeSession.current;
-    if (!routePanelOpen || !session || !D || routePhase === 'error' || !routeCurrent(session)) return [];
-    try {
-      const candidate = routeVisualDoc ?? session.frozenStart;
-      assertRouteBundleDocument(candidate);
-      const bundle = candidate.routeBundles?.find(b => b.id === session.bundleId);
-      if (!bundle || !candidate.direct) return [];
-      const points = bundle.members.map(member => {
-        const pole = D.polesOf(candidate.direct!, member.curveObjectId).find(p => p.key === member.handleKey);
-        if (!pole || pole.at.some(v => !Number.isFinite(v))) throw new Error('The current member point is unavailable.');
-        return { member, at: pole.at };
-      });
-      const tie = bundle.tie.anchorMM;
-      const span = Math.max(...points.map(p => Math.hypot(...p.at.map((v, k) => v - tie[k]))));
-      const height = Math.max(0.5, span * 0.05), radius = height * 0.25;
-      const guides: typeof underlaysShown = [];
-      const key = (kind: 'point' | 'line' | 'label', owner: 'member' | 'tie', id: string) => {
-        let value = JSON.stringify(['route-bundle-draft', session.token, bundle.id, kind, owner, id]);
-        while (underlaysShown.some(u => u.id === value)) value = '_' + value;
-        return value;
-      };
-      const text = (at: Vec3, value: string) => ({ at, dir: [1, 0, 0] as Vec3, up: [0, 1, 0] as Vec3, text: value, height });
-      for (const { member, at } of points) {
-        const cross = [0, 1, 2].map(axis => [
-          at.map((v, k) => v - (k === axis ? radius : 0)) as Vec3,
-          at.map((v, k) => v + (k === axis ? radius : 0)) as Vec3,
-        ]);
-        const letter = member.id === bundle.members[0].id ? 'A' : 'B';
-        guides.push({ id: key('line', 'member', member.id), lines: [[tie, at]], texts: [] },
-          { id: key('point', 'member', member.id), lines: cross, texts: [] },
-          { id: key('label', 'member', member.id), lines: [], texts: [text([at[0] + (letter === 'A' ? -height : height * 0.4), at[1] + height * 0.4, at[2]], letter)] });
-      }
-      const diamond: Vec3[] = [[tie[0], tie[1] + radius, tie[2]], [tie[0] + radius, tie[1], tie[2]],
-        [tie[0], tie[1] - radius, tie[2]], [tie[0] - radius, tie[1], tie[2]], [tie[0], tie[1] + radius, tie[2]]];
-      guides.push({ id: key('point', 'tie', bundle.tie.id), lines: [diamond], texts: [] },
-        { id: key('label', 'tie', bundle.tie.id), lines: [], texts: [text([tie[0] + height * 0.4, tie[1] + height * 0.8, tie[2]], 'Tie')] });
-      return guides;
-    } catch { return []; } // No guessed coordinates or source repair when a binding is unavailable.
-  }, [routePanelOpen, routeVisualDoc, routeViewDoc, routePhase, routeMove, doc, D, underlaysShown, busy, fresh, marker, active, sketch, rendering, drawing, measure, assembly.draft, cageEd.session, skel.session, ghost]);
+  const routeGizmo = routeEditor.makeGizmo();
+  const routeGuideUnderlays = useMemo(() => routeEditor.makeGuides(D, underlaysShown), [routePanelOpen, routeVisualDoc, routeViewDoc, routePhase, routeMove, doc, D, underlaysShown, busy, fresh, marker, active, sketch, rendering, drawing, measure, assembly.draft, cageEd.session, skel.session, ghost]);
   const viewportUnderlays = useMemo(() => routeGuideUnderlays.length ? [...underlaysShown, ...routeGuideUnderlays] : underlaysShown, [underlaysShown, routeGuideUnderlays]);
 
   // The picked pole's gizmo: drag it along an axis; let go, the curve or surface is edited (one undo step).
@@ -3038,8 +1859,6 @@ export function App() {
   const historyShown = !sketch && !active && !rendering;
   const { hidden: historyHidden, natural: historyNaturalNow } = useFitChips(historyBar, historyRows, [doc.nodes, markerAt, !!sketch, !!active, rendering, historyLabels, bottomRow.stacked, bottomRow.cramped]);
   useEffect(() => setHistoryNatural(historyNaturalNow), [historyNaturalNow]);
-  const sel1 = selection.faces[0] ? { kind: 'face' as const, body: bodies[selection.faces[0].body], face: bodies[selection.faces[0].body]?.mesh.faces[selection.faces[0].face] }
-    : selection.edges[0] ? { kind: 'edge' as const, body: bodies[selection.edges[0].body], edge: bodies[selection.edges[0].body]?.mesh.edges[selection.edges[0].edge] } : null;
   const selBodies = selectedBodies(selection).map(i => bodies[i]).filter(Boolean);
 
   // Match the actual viewport props. Unsupported contexts keep the requested session mode,
@@ -3157,72 +1976,16 @@ export function App() {
   // (A panel opened while the dock is a strip opens its sheet: the panel is in it.)
   useEffect(() => { if (!dockDocked && (bomOpen || libraryOpen || paramsOpen || routePanelOpen)) layout.setDockSheet(true); }, [dockDocked, bomOpen, libraryOpen, paramsOpen, routePanelOpen, layout.setDockSheet]);
   // Reference decisions stay in the existing Browser panel. Preview never commits a candidate.
-  const referenceRowStyle: CSSProperties = { display: 'flex', flexDirection: 'column', gap: 6, paddingBlock: 8, minWidth: 0, maxWidth: '100%', overflowWrap: 'anywhere' };
-  const referenceActionsStyle: CSSProperties = { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 4, minWidth: 0, maxWidth: '100%' };
-  const referenceButtonStyle: CSSProperties = { minWidth: 0, maxWidth: '100%', whiteSpace: 'normal', overflowWrap: 'anywhere', textAlign: 'left' };
-  const referenceDecisions = !sketch && !active && !rendering && (refMarks.length > 0 || refProblems.length > 0) ? <section aria-label="References" style={{ minWidth: 0, maxWidth: '100%', overflowWrap: 'anywhere' }}>
-    <div className="ol-head">References</div>
-    <div className="muted">{refMarks.length} matched again · {refProblems.length} need a choice</div>
-    {refMarks.map(m => <div key={'m' + m.index} style={referenceRowStyle}>
-      <p style={{ margin: 0, whiteSpace: 'normal', overflowWrap: 'anywhere' }}>{referenceCaption(m.where)}<br /><span className="muted">{affectedDimensions(m.now)} affected dimension(s) · Matched again</span></p>
-      <div style={referenceActionsStyle}>
-      {referenceDimension(m.where) && <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(m.where)}>Show dimension</button>}
-      {m.edge && <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(m.where, m.now, true)}>Preview in model</button>}
-      <button className="ghost small" style={referenceButtonStyle} onClick={() => void settleRef(m.index)}>Confirm reference</button>
-      <button className="ghost small" style={referenceButtonStyle} onClick={() => void showRefChoices(m.index)}>Show alternatives</button>
-      </div>
-      {refChoices?.index === m.index && refChoices.names.filter(n => n !== m.now).map((n, i) => <div key={n} style={referenceActionsStyle}>
-        <span>Candidate {i + 1} </span>
-        <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(m.where, n)}>Preview candidate {i + 1}</button>
-        <button className="ghost small" style={referenceButtonStyle} onClick={() => void settleRef(m.index, n)}>Use candidate {i + 1}</button>
-      </div>)}
-      <details style={{ minWidth: 0, maxWidth: '100%' }}><summary>Technical details</summary><div className="muted" style={{ overflowWrap: 'anywhere' }}>{m.where}: {m.was} → {m.now}{refChoices?.index === m.index && refChoices.names.filter(n => n !== m.now).map((n, i) => <div key={n}>Candidate {i + 1}: {n}</div>)}</div></details>
-    </div>)}
-    {refProblems.map(p => <div key={'p' + p.index} style={referenceRowStyle}>
-      <p style={{ margin: 0, whiteSpace: 'normal', overflowWrap: 'anywhere' }}>{referenceCaption(p.where)}<br /><span className="muted">{affectedDimensions(p.name)} affected dimension(s) · {p.candidates.length ? 'Choose a reference' : 'Reference missing'}{p.node !== null ? ' · Feature held' : ''}</span></p>
-      <div style={referenceActionsStyle}>
-      {referenceDimension(p.where) && <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(p.where)}>Show dimension</button>}
-      </div>
-      {p.candidates.map((n, i) => <div key={n} style={referenceActionsStyle}>
-        <span>Candidate {i + 1} </span>
-        <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(p.where, n)}>Preview candidate {i + 1}</button>
-        <button className="ghost small" style={referenceButtonStyle} onClick={() => previewReference(p.where, n, true)}>Preview in model</button>
-        <button className="ghost small" style={referenceButtonStyle} onClick={() => void settleRef(p.index, n)}>Use candidate {i + 1}</button>
-      </div>)}
-      <details style={{ minWidth: 0, maxWidth: '100%' }}><summary>Technical details</summary><div className="muted" style={{ overflowWrap: 'anywhere' }}>{p.where}: {p.name}{p.candidates.map((n, i) => <div key={n}>Candidate {i + 1}: {n}</div>)}</div></details>
-    </div>)}
-  </section> : null;
+  const referenceDecisions = !sketch && !active && !rendering && (refMarks.length > 0 || refProblems.length > 0)
+    ? <ReferenceDecisions doc={doc} referenceLabels={referenceLabels} refMarks={refMarks} refProblems={refProblems} refChoices={refChoices}
+      previewReference={previewReference} settleRef={settleRef} showRefChoices={showRefChoices} /> : null;
   const browserPanel = (
       <Profiler id="outliner" onRender={onBlockRender}><aside className={'card outliner' + (browserOpen ? '' : ' closed')} aria-label="Browser">
         <div className="card-title">BROWSER <span className="muted" aria-busy={!fresh}>Base part · {fresh ? `${bodies.length} bod${bodies.length === 1 ? 'y' : 'ies'}` : busy ? 'evaluating…' : 'not up to date'}</span>
           <ToolIconButton size="tiny" aria-label={browserOpen ? 'Collapse the browser' : 'Expand the browser'} onClick={() => setBrowserOpen(o => { try { localStorage.setItem('cad-studio.browser', o ? 'closed' : 'open'); } catch { /* private mode */ } return !o; })}><Icon name={browserOpen ? 'left_panel_close' : 'left_panel_open'} small /></ToolIconButton></div>
         {browserOpen && <>
-        {bodies.length > 0 && <div className="ol-head">Bodies</div>}
-        {!fresh && bodies.map(b => <div key={b.key} className="ol-row stale" aria-busy="true" title={busy ? 'Evaluating the part: this is the body before the change' : 'The part did not evaluate: this is the last good body'}>
-          <span className="ol-eye" /><span className="ol-swatch" /><span className="ol">{bodyName(namesDoc, b)}</span></div>)}
-        {fresh && bodies.map((b, i) => {
-          const sel = selectedBodies(selection).includes(i), look = lookOf(doc, b);
-          const pick = (e: React.MouseEvent) => { setDirectSel([]); setInstanceSel([]); setSelection(prev => {
-            const list = selectedBodies(prev); return e.shiftKey ? { faces: [], edges: [], bodies: list.includes(i) ? list.filter(x => x !== i) : [...list, i] } : { faces: [], edges: [], bodies: [i] };
-          }); };
-          const steps = bodySteps(evaluated.nodes, refOf(b).node), open = expanded.includes(b.key);
-          return <Fragment key={b.key}><div className={'ol-row' + (sel ? ' sel' : '') + (look.hidden ? ' hidden-obj' : '')} onMouseEnter={() => setRowHover(i)} onMouseLeave={() => setRowHover(h => h === i ? null : h)}>
-            <button className="ol-caret" aria-label={open ? 'Hide its features' : 'Show its features'} disabled={steps.length < 2} onClick={() => setExpanded(x => open ? x.filter(k => k !== b.key) : [...x, b.key])}><Icon name={open ? 'expand_more' : 'chevron_right'} small /></button>
-            <button className="ol-eye" aria-label={look.hidden ? 'Show body' : 'Hide body'} data-tip={look.hidden ? 'Show' : 'Hide'}
-              onClick={() => { if (!commit(withLook(doc, b, { hidden: !look.hidden }))) return; if (!look.hidden) setSelection(emptySel); }}><Icon name={look.hidden ? 'visibility_off' : 'visibility'} small /></button>
-            <span className="ol-swatch" style={look.color ? { background: look.color } : undefined} />
-            {renaming === b.key
-              ? <input className="ol-name-edit" autoFocus defaultValue={bodyName(doc, b)} aria-label="Body name"
-                onKeyDown={e => { if (e.key === 'Enter') { commit(withLook(doc, b, { name: e.currentTarget.value.trim() })); setRenaming(null); } else if (e.key === 'Escape') setRenaming(null); e.stopPropagation(); }}
-                onBlur={e => { if (e.currentTarget.value.trim() !== bodyName(doc, b)) commit(withLook(doc, b, { name: e.currentTarget.value.trim() })); setRenaming(null); }} />
-              : <button className={'ol' + (sel ? ' sel' : '')} onClick={pick} onDoubleClick={() => setRenaming(b.key)} title="Double-click to rename">
-                {bodyName(doc, b)}{(() => { const last = lastFeature(doc, b); return last ? <span className="muted"> · {last}</span> : null; })()}</button>}
-            {meshBadges(i, b, steps)}
-          </div>
-          {open && steps.map(k => <button key={k} className={'ol ol-step' + (editNode === k ? ' sel' : '')} onClick={() => { setEditNode(k); setSelection({ faces: [], edges: [], bodies: [i] }); }}>
-            <Icon name={iconFor(evaluated.nodes[k])} small />{featureLabel(evaluated.nodes[k], k, evaluated.nodes)}</button>)}
-          </Fragment>;
-        })}
+        <BodyBrowserRows model={{ doc, evaluated, namesDoc, bodies, fresh, busy }} selection={selection}
+          rows={{ expanded, setExpanded, renaming, setRenaming, editNode, setEditNode, setRowHover }} changes={{ commit, setSelection, setDirectSel, setInstanceSel }} meshBadges={meshBadges} />
         {freeSketches.length > 0 && <div className="ol-head">Sketches</div>}
         {freeSketches.map(k => <div key={'s' + k} className={'ol-row' + (selection.sketches?.includes(k) ? ' sel' : '')}>
           <span className="ol-eye"><Icon name="cad-sketch" small /></span>
@@ -3242,31 +2005,9 @@ export function App() {
         <ReferencesPanel set={readReferences(doc.references)} local={refLocal} verdicts={keepoutVerdicts} onAddFile={f => void addReferenceFile(f)} onPlace={placeRef}
           onDatum={(reference, face, kind) => void refTool('add_datum', { reference, face, kind })} onEnvelope={(reference, offset, clearance) => void refTool('add_keepout', { around: reference, offset, shape: 'box', clearance })} onRemove={removeRef} />
         {(() => { const b = readBrief(doc.brief); return b ? <BriefPanel brief={b} onConfirm={confirmBrief} /> : null; })()}
-        {!!doc.requirements?.length && <><div className="ol-head req-head">Requirements <span className="muted">{spec ? `${spec.summary.pass} ✓ · ${spec.summary.fail} ✗ · ${spec.summary.unknown} ?` : ''}{specRunning ? ' · checking…' : spec && spec.of !== evaluated.nodes ? ' · stale' : ''}</span>
-          <ToolIconButton size="tiny" state={failingOnly ? 'on' : 'idle'} aria-label="Failing only" data-tip={failingOnly ? 'Show all' : 'Failing only'} onClick={() => setFailingOnly(f => !f)}><Icon name="filter_list" small /></ToolIconButton></div>
-        {doc.requirements.map(q => {
-          const o = spec?.outcomes[q.id], st = o?.status ?? 'unknown';
-          if (failingOnly && st === 'pass') return null;
-          const editable = q.basis === 'assumed' || q.basis === 'ambiguous';
-          return <div key={q.id} className={'req ' + st} role="listitem" aria-label={`Requirement ${q.id}`}>
-            <button className="req-row" title={o?.why ?? (o?.hint ? `${o.hint}` : q.source)} onClick={() => { if (o?.entities?.length) setSelection(resolveNames(bodies, { faces: o.entities, edges: o.entities }).selection); }}>
-              <span className="req-mark">{st === 'pass' ? '✓' : st === 'fail' ? '✗' : '?'}</span><b>{q.id}</b> {q.source}
-              {st === 'fail' && <span className="muted"> · {String(o?.measured)} (want {expectedOf(q.check)})</span>}
-              {st === 'unknown' && o?.why && <span className="muted"> · {o.why}</span>}
-              <span className="muted"> · {q.hard ? 'hard' : 'soft'} · {q.basis ?? 'stated'}{q.confirmed ? ` (confirmed by ${q.confirmed.by})` : ''}</span></button>
-            {editable && <span className="req-edit"><span className="muted">{q.basis}</span>
-              <input aria-label={`${q.id} value`} type="number" step="any" defaultValue={q.check.value ?? q.check.max ?? q.check.min}
-                onKeyDown={e => { if (e.key === 'Enter') setRequirement(q.id, Number(e.currentTarget.value)); e.stopPropagation(); }} />
-              <button className="ghost small" aria-label={`Confirm ${q.id}`} onClick={e => { const v = (e.currentTarget.previousSibling as HTMLInputElement).value; setRequirement(q.id, Number(v)); }}>Confirm</button></span>}
-          </div>;
-        })}</>}
-        {!!doc.history?.length && <><div className="ol-head req-head">Design history <span className="muted">{doc.history.length}</span>
-          <ToolIconButton size="tiny" state={historyOpen ? 'on' : 'idle'} aria-label="Show design history" data-tip={historyOpen ? 'Hide' : 'Show'} onClick={() => setHistoryOpen(f => !f)}><Icon name={historyOpen ? 'expand_less' : 'expand_more'} small /></ToolIconButton></div>
-        <div className="empty history-note">Saved with the part, chat messages included. <button className="link" onClick={saveShared}>Save a copy without it</button> to share.</div>
-        {historyOpen && doc.history.slice(-40).reverse().map(h => <div key={h.id} className={'hist ' + h.kind} title={h.prompt ?? h.plan ?? h.summary}>
-          <span className="mono muted">{h.kind}</span> {h.kind === 'prompt' ? `“${(h.prompt ?? '').slice(0, 80)}${(h.prompt?.length ?? 0) > 80 ? '…' : ''}”` : h.summary}
-          {h.kind === 'prompt' && h.summary && <span className="muted"> → {h.summary}</span>}
-          <span className="muted"> · {h.by.agent}{h.by.model ? ` (${h.by.model})` : ''} · {whenOf(h.at)}</span></div>)}</>}
+        <RequirementsBrowser doc={doc} evaluated={evaluated} bodies={bodies} spec={spec} specRunning={specRunning} failingOnly={failingOnly}
+          setFailingOnly={setFailingOnly} setSelection={setSelection} setRequirement={setRequirement} />
+        <DesignHistory doc={doc} historyOpen={historyOpen} setHistoryOpen={setHistoryOpen} saveShared={saveShared} />
         {referenceDecisions}
         {!bodies.length && !doc.instances?.length && !busy && <div className="empty">No bodies yet.</div>}
         </>}
@@ -3311,24 +2052,7 @@ export function App() {
         onFov={deg => { const c = viewport.current?.getCamera(); if (c) { viewport.current?.setCamera({ ...c, fovY: deg * Math.PI / 180 }); setFov(deg); } }}
         onSaveCamera={() => { const c = viewport.current?.getCamera(); if (c) commitRender({ ...render, camera: c }); }}
         onUseCamera={() => { if (render.camera) { viewport.current?.setCamera(render.camera); setFov(Math.round(render.camera.fovY * 180 / Math.PI)); } }} /></Suspense>}
-      {!rendering && !sketch && measure && <aside className="card props" aria-label="Measurement">
-        <div className="card-title">MEASURE <ToolIconButton size="tiny" aria-label="Done measuring" onClick={() => setMeasure(null)}><Icon name="close" small /></ToolIconButton></div>
-        {measure.map((m, k) => { const b = bodies[m.body]; if (!b) return null; const it = measureItem(b.mesh, m); return <div key={k} className="measure-item">
-          <div className="kv">{k ? 'To' : 'From'} <b>{it.label}</b></div>
-          {it.length !== undefined && <div className="kv">Length <b>{fmt(Math.round(it.length * 100) / 100)} mm</b></div>}
-          {it.area !== undefined && <div className="kv">Area <b>{fmt(Math.round(it.area * 100) / 100)} mm²</b></div>}
-          {it.radius !== undefined && <div className="kv">Radius <b>{fmt(Math.round(it.radius * 1000) / 1000)} mm</b></div>}
-        </div>; })}
-        {measured && <>
-          <div className="card-title" style={{ marginTop: 10 }}>BETWEEN</div>
-          <div className="kv">Distance <b>{fmt(Math.round(measured.distance * 1000) / 1000)} mm</b></div>
-          {measured.normalDistance !== undefined && <div className="kv">Normal distance <b>{fmt(Math.round(measured.normalDistance * 1000) / 1000)} mm</b></div>}
-          {measured.angle !== undefined && <div className="kv">Angle <b>{fmt(Math.round(measured.angle * 100) / 100)}°</b></div>}
-          {measured.axes && <div className="kv" aria-label="Axes">Axes <b>{measured.axes.coaxial ? 'coaxial' : `${fmt(Math.round(measured.axes.angle * 1000) / 1000)}° apart, ${fmt(Math.round(measured.axes.offset * 1000) / 1000)} mm off`}</b></div>}
-          <div className="kv">ΔX ΔY ΔZ <b>{measured.b.map((v, k) => fmt(Math.round((v - measured.a[k]) * 100) / 100)).join(', ')}</b></div>
-        </>}
-        <div className="empty">{measure.length < 2 ? `Click a face or an edge to measure ${measure.length ? 'to' : 'from'}.` : 'Click again to start over.'} <Kbd>Esc</Kbd> done</div>
-      </aside>}
+      {!rendering && !sketch && measure && <MeasurementInspector bodies={bodies} measure={measure} measured={measured} setMeasure={setMeasure} />}
       {!rendering && !sketch && !measure && instanceSel.length === 1 && (() => {
         const inst = doc.instances?.find(i => i.id === instanceSel[0]);
         if (!inst) return null;
@@ -3361,214 +2085,26 @@ export function App() {
           onAccept={() => commitParts(acceptRevision(doc, inst.part!.id))} onDismiss={() => commitParts(dismissRevision(doc, inst.part!.id))}
           onRemove={() => { if (!commitAssembly(list.filter(i => i.id !== inst.id), assembly.without(inst.id))) return; setInstanceSel([]); }} />;
       })()}
-      {!rendering && !sketch && !measure && jointTree && !assembly.draft && !instanceSel.length && <JointsPanelLive poseStore={poseStore} tree={jointTree} masses={jointMasses} instances={doc.instances ?? []}
-        onValue={(k, v) => { stopMotion(); setJointPlaying(null); setJointValues(x => ({ ...x, [k]: v })); }} onHome={() => { stopMotion(); setJointPlaying(null); setJointValues({}); }} playing={jointPlaying} onPlay={k => { stopMotion(); setJointPlaying(k); }} links={linkInertias}
-        motionState={{ time: motionTime, inputs: jointInputStore, context: loopMotionContext, motion, waypoints: jointWaypoints, playing: motionPlaying, loop: motionLoop, speed: motionSpeed,
-          contact: contactShown && motionContact ? `Contact ${jointTree.links.find(x => x.id === motionContact.links[0])?.name ?? motionContact.links[0]} – ${jointTree.links.find(x => x.id === motionContact.links[1])?.name ?? motionContact.links[1]} at t ${motionContact.toi.toFixed(2)} s` : null,
-          chosenDuration: chosenMotion.duration, chosenProblem: chosenMotion.problem,
-          controls: { onPlay: playMotion, onPause: () => setMotionPlaying(false), onTime: scrubMotion, onLoop: setMotionLoop, onSpeed: setMotionSpeed,
-            onExportVideo: () => { const m = freezeMotion(); if (!m) return; setMotionPlaying(false); void recordVideo(m.duration, t => showMotionAt(m, t), `${fileName}-${motionChoice ?? 'motion'}.webm`); }, exporting: videoBusy,
-            saved: (doc.robot?.motions ?? []).map(m => m.name), choice: motionChoice, onChoose: setMotionChoice,
-            // (The draft kept in the document: replacing one of the same name; an undo step, the file dirty.)
-            onSave: name => {
-              let path; try {
-                const draft = draftPath(jointTree, jointWaypoints, readJointInputs());
-                if (jointTree.loops.length) timedMotion(draft, loopMotionContext);
-                path = motionOf(jointTree, draft);
-              } catch (e) { setToast({ title: 'Could not save the motion', hint: e instanceof Error ? e.message : String(e), detail: '' }); return; }
-              if (!canChangeDocument()) return;
-              const robot = { ...(doc.robot ?? { version: 1 as const }) };
-              robot.motions = [...(robot.motions ?? []).filter(m => m.name !== name), { name, path }];
-              pushUndo(); if (!setDoc({ ...doc, robot })) return; setDirty(true); setMotionChoice(name);
-            } } }}
-        onExportUrdf={() => {
-          // (RM4: the bodies as placed, so each part's placement is the identity here; the same robot as from part coordinates.)
-          const r = exportUrdf(jointTree, p => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; }, fileName);
-          if (!r.ok) { setToast({ title: 'URDF refused', hint: r.refusals.map(x => x.message).join(' '), detail: r.refusals.map(x => x.code).join(', ') }); return; }
-          void writeZip([{ name: 'robot.urdf', data: new TextEncoder().encode(r.urdf), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true })), { name: 'robot.source.json', data: sourceBytes(sourceRecord(doc, ['robot.urdf', ...r.files.map(f => f.path)], { robot: true })), deflate: true }]).then(z => downloadBytes(z, `${fileName}-urdf.zip`, 'application/zip'));
-          if (r.notes.length) setToast({ title: 'URDF written', hint: r.notes.join(' '), detail: '' });
-        }}
-        waypoints={jointWaypoints.length} onAddWaypoint={() => {
-          const v = readJointInputs();
-          try {
-            if (jointTree.loops.length) timedMotion(draftPath(jointTree, jointWaypoints, v), loopMotionContext);
-            const fk = jointTree.loops.length ? null : poseKinematics(jointTree, v);
-            setJointWaypoints(w => [...w, { ...(fk?.values ?? v) }]);
-          } catch (error) { reportMotionError(error); }
-        }} onClearWaypoints={() => { setJointWaypoints([]); setPathCheck(null); }}
-        onWorkspace={(n, h, free) => {
-          // (RM9b: the deepest link's joint point over the joints' ranges; a slide without limits refused, said so.)
-          const depth = (l: string): number => { const j = jointTree.joints.find(x => x.child === l); return j ? 1 + depth(j.parent) : 0; }, end = jointTree.links.reduce((b, l) => depth(l.id) > depth(b.id) ? l : b, jointTree.links[0]).id;
-          try {
-            // (The tool point: the end link's farthest hull point from its joint at the solved pose — its tip.)
-            const links = sweepLinks(jointTree, p => p === BASE ? bodies : instanceBodies.get(p)?.bodies, pts => convexHull(pts).positions), own = jointTree.joints.find(j => j.child === end)?.origin ?? [0, 0, 0];
-            const hull = links.find(l => l.link === end)?.hull; let tool: number[] | undefined, far = -1;
-            if (hull) for (let i = 0; i < hull.length; i += 3) { const d = Math.hypot(hull[i] - own[0], hull[i + 1] - own[1], hull[i + 2] - own[2]); if (d > far) { far = d; tool = [hull[i], hull[i + 1], hull[i + 2]]; } }
-            setWorkspace(workspaceMap(jointTree, { link: end, samples: n, h, ...(tool ? { tool } : {}), ...(free ? { links } : {}) }));
-          } catch (e) { setToast({ title: 'Workspace not mapped', hint: e instanceof Error ? e.message.replace(/^\[[A-Z_]+\] /, '') : String(e), detail: '' }); }
-        }}
-        workspace={workspace ? `Workspace of ${workspace.samples} poses${workspace.excluded ? ` (${workspace.excluded} in self-contact left out)` : ''}: ${workspace.voxels.length} voxels of ${workspace.h} mm, reach ${workspace.reach.toFixed(1)} mm, best manipulability ${Math.max(0, ...workspace.voxels.map(v => v.w)).toExponential(3)}` : null}
-        onWorkspaceDownload={() => workspace && downloadBytes(new TextEncoder().encode(JSON.stringify(workspace)), `${fileName}-workspace.json`, 'application/json')}
-        onWorkspaceHide={() => setWorkspace(null)}
-        path={pathCheck} ready={robotReady}
-        onCheckPath={() => {
-          try { refuseMotionSweep(jointTree); }
-          catch (error) { setToast({ title: 'Path check refused', hint: error instanceof Error ? error.message : String(error), detail: '' }); return; }
-          // (RM6, RM9a: the timed path from the solved pose through the waypoints to the sliders', the links as placed; each
-          // segment a trapezoid within the joints' velocity limits — 1 rad/s or 100 mm/s where none is set — and twice that
-          // per second's acceleration; the whole path certified, or its time of impact.)
-          const links = sweepLinks(jointTree, p => p === BASE ? bodies : instanceBodies.get(p)?.bodies, pts => convexHull(pts).positions);
-          const { limits, assumed } = pathLimits(jointTree);
-          const r = sweepTimed(jointTree, links, { waypoints: [{}, ...jointWaypoints, poseStore.get()], profile: 'trapezoid', limits });
-          const name = (l: string) => jointTree.links.find(x => x.id === l)?.name ?? l, total = r.segments.reduce((t, g) => t + g.duration, 0), n = r.segments.length;
-          const note = assumed.length ? `; no velocity limit on ${assumed.join(', ')}: 1 rad/s (100 mm/s) taken` : '';
-          setPathCheck(r.toi !== undefined ? { contact: true, text: `Contact ${name(r.links![0])} – ${name(r.links![1])} at ${(total > 0 ? r.toi / total * 100 : 0).toFixed(1)} % of the move, t ${r.toi.toFixed(3)} s${n > 1 ? ` (segment ${r.segment! + 1} of ${n})` : ''} (${r.samples} steps${note})` }
-            : { contact: false, text: `Clear: the whole move certified, ${total.toFixed(3)} s${n > 1 ? ` over ${n} segments` : ''} (${r.samples} steps${note})${r.minClearance ? `; least clearance ${r.minClearance.mm.toFixed(2)} mm at t ${r.minClearance.t.toFixed(3)} s, ${name(r.minClearance.links[0])} – ${name(r.minClearance.links[1])}` : ''}` });
-        }}
-        onExportMjcf={() => {
-          // (RM5: as the URDF, the same parts; robot.xml and its meshes.)
-          const r = exportMjcf(jointTree, p => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; }, fileName);
-          if (!r.ok) { setToast({ title: 'MJCF refused', hint: r.refusals.map(x => x.message).join(' '), detail: r.refusals.map(x => x.code).join(', ') }); return; }
-          void writeZip([{ name: 'robot.xml', data: new TextEncoder().encode(r.xml), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true })), { name: 'robot.source.json', data: sourceBytes(sourceRecord(doc, ['robot.xml', ...r.files.map(f => f.path)], { robot: true })), deflate: true }]).then(z => downloadBytes(z, `${fileName}-mjcf.zip`, 'application/zip'));
-        }}
-        onExportSdf={() => {
-          // (RM9c: as the URDF and MJCF, the same parts; each planar loop closed at its pin, RM8.)
-          const r = exportSdf(jointTree, robotPartOf, fileName, robotClosures());
-          if (!r.ok) { setToast({ title: 'SDF refused', hint: r.refusals.map(x => x.message).join(' '), detail: r.refusals.map(x => x.code).join(', ') }); return; }
-          void writeZip([{ name: 'robot.sdf', data: new TextEncoder().encode(r.sdf), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true })), { name: 'robot.source.json', data: sourceBytes(sourceRecord(doc, ['robot.sdf', ...r.files.map(f => f.path)], { robot: true })), deflate: true }]).then(z => downloadBytes(z, `${fileName}-sdf.zip`, 'application/zip'));
-          if (r.notes.length) setToast({ title: 'SDF written', hint: r.notes.join(' '), detail: '' });
-        }}
-        onExportUsd={() => {
-          const r = exportUsd(jointTree, robotPartOf, fileName, robotClosures());
-          if (!r.ok) { setToast({ title: 'USD refused', hint: r.refusals.map(x => x.message).join(' '), detail: r.refusals.map(x => x.code).join(', ') }); return; }
-          downloadBytes(new TextEncoder().encode(r.usda), `${fileName}.usda`, 'model/vnd.usda');
-          downloadBytes(sourceBytes(sourceRecord(doc, [`${fileName}.usda`], { robot: true })), `${fileName}.source.json`, 'application/json');
-          if (r.notes.length) setToast({ title: 'USD written', hint: r.notes.join(' '), detail: '' });
-        }}
-        onBase={b => { if (!canChangeDocument()) return; const robot = { ...(doc.robot ?? { version: 1 as const }) }; if (b === BASE) delete robot.base; else robot.base = b; pushUndo(); if (!setDoc({ ...doc, robot })) return; setDirty(true); }} />}
+      {!rendering && !sketch && !measure && jointTree && !assembly.draft && !instanceSel.length && <RobotInspector controller={robotExports} motion={joints} loopMotionContext={loopMotionContext} chosenMotion={chosenMotion}
+        video={{ busy: videoBusy, record: recordVideo }} changes={{ canChangeDocument, pushUndo, setDoc, setDirty }} />}
       {!rendering && !drawing && !sketch && !measure && !instanceSel.length && <GravityExperimentPanel doc={doc} joints={jointTree?.joints ?? []} />}
       {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || instanceSel.length === 1) && <MatePanel assembly={assembly} instances={doc.instances} instance={instanceSel.length === 1 ? instanceSel[0] : undefined}
         onRefused={why => setToast({ title: 'The mate was refused', hint: why, detail: '' })} />}
-      {!rendering && !sketch && !measure && !instanceSel.length && directSel.length > 0 && doc.direct && <Suspense fallback={null}><DirectPanel direct={doc.direct} selected={directSel}
-        onChange={commitDirect} onError={m => setToast({ title: 'The operation was refused', hint: m, detail: '' })}
-        onHide={ids => { commitDirect({ ...doc.direct!, objects: doc.direct!.objects.map(o => ids.includes(o.id) ? { ...o, hidden: true } : o) }, []); }}
-        onThicken={(id, thickness, side) => {
-          const o = doc.direct!.objects.find(x => x.id === id)!, g = D!.geometryOf(doc.direct!, o);
-          if (g.kind !== 'surface') return;
-          if (o.trims?.length) { setToast({ title: 'Untrim it first', hint: 'Thicken uses the whole surface; a trimmed one is not thickened along its trim yet.', detail: '' }); return; }
-          if (!(thickness > 0)) { setToast({ title: 'Give it a thickness', hint: 'A wall is thicker than 0 mm.', detail: '' }); return; }
-          const surface = { degreeU: g.degreeU, degreeV: g.degreeV, knotsU: [...g.knotsU], knotsV: [...g.knotsV], controlPoints: g.controlPoints.map(r => r.map(p => [p[0], p[1], p[2]] as [number, number, number])), weights: g.weights.map(r => [...r]) };
-          setDirectSel([]); commit(withNode(evaluated, { kind: 'thicken', name: o.name, surface, thickness, ...(side !== 'normal' ? { side } : {}) }));
-        }}
-        onSew={(ids, tolerance) => {
-          const objs = ids.map(id => doc.direct!.objects.find(x => x.id === id)!), gs = objs.map(o => D!.geometryOf(doc.direct!, o));
-          const surfaces = gs.flatMap(g => g.kind === 'surface' ? [{ degreeU: g.degreeU, degreeV: g.degreeV, knotsU: [...g.knotsU], knotsV: [...g.knotsV], controlPoints: g.controlPoints.map(r => r.map(p => [p[0], p[1], p[2]] as [number, number, number])), weights: g.weights.map(r => [...r]) }] : []);
-          if (surfaces.length !== ids.length) return;
-          if (objs.some(o => o.trims?.length)) { setToast({ title: 'Untrim them first', hint: 'Sewing joins surfaces along their own edges; trimmed ones do not sew yet.', detail: '' }); return; }
-          // (The surfaces hidden as they become the body's faces, in the same undoable step.)
-          const direct = { ...doc.direct!, objects: doc.direct!.objects.map(o => ids.includes(o.id) ? { ...o, hidden: true } : o) };
-          setDirectSel([]); commit({ ...withNode(evaluated, { kind: 'sew', names: objs.map(o => o.name), surfaces, ...(tolerance > 0 ? { tolerance: Math.min(1, tolerance) } : {}) }), direct });
-        }} /></Suspense>}
-      {clashes && !rendering && !sketch && <aside className="card props" aria-label="Interference">
-        <div className="card-title">INTERFERENCE <ToolIconButton size="tiny" aria-label="Close interference" onClick={() => setClashes(null)}><Icon name="close" small /></ToolIconButton></div>
-        {clashes === 'busy' ? <div className="empty">Checking…</div> : !clashes.length ? <div className="empty">No bodies overlap.</div>
-          : clashes.map(c => { const ia = bodies.findIndex(b => b.key === c.a), ib = bodies.findIndex(b => b.key === c.b); return (
-            <button key={c.a + c.b} className="ol clash" onClick={() => { if (ia >= 0 && ib >= 0) setSelection({ faces: [], edges: [], bodies: [ia, ib] }); }}>
-              <Icon name="warning" small />{ia >= 0 ? bodyName(doc, bodies[ia]) : c.a} ∩ {ib >= 0 ? bodyName(doc, bodies[ib]) : c.b}<span className="muted"> · {fmt(Math.round(c.volume * 10) / 10)} mm³</span></button>); })}
-      </aside>}
+      {!rendering && !sketch && !measure && !instanceSel.length && directSel.length > 0 && doc.direct && <DirectInspector doc={doc} evaluated={evaluated} directSel={directSel} D={D}
+        changes={{ commit, commitDirect, setDirectSel }} onNotice={setToast} />}
+      {clashes && !rendering && !sketch && <InterferenceInspector doc={doc} bodies={bodies} clashes={clashes} setClashes={setClashes} setSelection={setSelection} />}
       {/* (A running command's HUD takes this place at the right.) */}
       {cageEd.session && doc.nodes[cageEd.session.node] && !rendering && !drawing && <CagePanel editor={cageEd} name={featureLabel(doc.nodes[cageEd.session.node], cageEd.session.node, doc.nodes)} />}
       {skel.session && !rendering && !drawing && <SkeletonPanel editor={skel} name={skel.session.node === null ? 'new skeleton' : featureLabel(doc.nodes[skel.session.node], skel.session.node, doc.nodes)} />}
-      {!cageEd.session && !skel.session && !rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <aside className="card props" aria-label="Selection">
-        {selection.vertices?.length ? (<>
-          <div className="card-title">SELECTION · {selection.vertices.length === 1 ? 'POINT' : `${selection.vertices.length} POINTS`}</div>
-          {selection.vertices.map((v, k) => <div key={k} className="kv">{selection.vertices!.length > 1 ? `Point ${k + 1}` : 'X Y Z'} <b>{v.at.map(x => fmt(Math.round(x * 1000) / 1000)).join(', ')}</b></div>)}
-          {selection.vertices.length === 2 && (() => { const [a, b] = selection.vertices!.map(v => v.at), d = [0, 1, 2].map(k => b[k] - a[k]); return <><div className="kv">Distance <b>{fmt(Math.round(Math.hypot(d[0], d[1], d[2]) * 1000) / 1000)} mm</b></div><div className="kv">ΔX ΔY ΔZ <b>{d.map(x => fmt(Math.round(x * 1000) / 1000)).join(', ')}</b></div></>; })()}
-        </>) : sel1?.kind === 'face' && sel1.face ? (<>
-          <div className="card-title">SELECTION · FACE</div>
-          <div className="kv">Type <b>{sel1.face.kind === 'plane' ? 'Planar' : 'Curved'}</b></div>
-          {sel1.face.kind === 'plane' && <div className="kv">Normal <b>{sel1.face.normal.map(v => fmt(Math.round(v * 1000) / 1000)).join(', ')}</b></div>}
-          <div className="kv">Area <b>{fmt(Math.round(sel1.face.area * 100) / 100)} mm²</b></div>
-          {sel1.face.radius !== undefined && <div className="kv">Radius <b>{fmt(Math.round(sel1.face.radius * 1000) / 1000)} mm</b></div>}
-          {(() => { const b = bodies[selection.faces[0]?.body], name = sel1.face.name, faces = b ? lookOf(doc, b).faces ?? {} : {}, cur = faces[name];
-            const set = (c?: string) => { if (!b) return; const next = { ...faces }; if (c) next[name] = c; else delete next[name]; commit(withLook(doc, b, { faces: Object.keys(next).length ? next : undefined })); };
-            return b ? <div className="kv">Face colour <span className="swatches" role="group" aria-label="Face colour">
-              <button className={'swatch none' + (cur ? '' : ' on')} aria-label="No face colour" data-tip="The body's colour" onClick={() => set()} />
-              {BODY_COLOURS.map(c => <button key={c} className={'swatch' + (cur === c ? ' on' : '')} style={{ background: c }} aria-label={'Face colour ' + c} onClick={() => set(c)} />)}
-            </span></div> : null; })()}
-        </>) : sel1?.kind === 'edge' && sel1.edge ? (<>
-          <div className="card-title">SELECTION · EDGE</div>
-          {(() => { const it = measureItem(sel1.body.mesh, { body: selection.edges[0].body, edge: selection.edges[0].edge }); return <>
-            <div className="kv">Type <b>{it.label}</b></div>
-            {it.length !== undefined && <div className="kv">Length <b>{fmt(Math.round(it.length * 100) / 100)} mm</b></div>}
-            {it.radius !== undefined && <div className="kv">Radius <b>{fmt(Math.round(it.radius * 1000) / 1000)} mm</b></div>}
-          </>; })()}
-          {sel1.edge.axis && <div className="kv">Direction <b>{sel1.edge.axis.toUpperCase()}</b></div>}
-          <div className="kv"><span /><button className="ghost small" aria-label="Edge as a curve" data-tip="As a curve" data-tip-desc="A copy of this edge as a curve in space (a line, an arc or the polyline), for surfaces" onClick={() => edgesToCurves()}>As a curve</button></div>
-        </>) : null}
-        {selBodies.length > 0 && !fresh && <><div className="card-title" style={{ marginTop: sel1 ? 10 : 0 }}>BODY</div>
-          <div className="empty" aria-busy="true">{busy ? 'Evaluating… its values show once the part is up to date.' : 'The part did not evaluate: fix it, or undo, to see this body\'s values.'}</div></>}
-        {selBodies.length > 0 && fresh && <>
-          <div className="card-title" style={{ marginTop: sel1 ? 10 : 0 }}>BODY{selBodies.length > 1 ? ` · ${selBodies.length} selected` : ''}</div>
-          {selBodies.slice(0, 1).map(b => { const { min, max } = b.mesh.bounds, look = lookOf(doc, b); return <div key={b.key}>
-            <label className="kv">Name <input className="kv-input" aria-label="Name" key={b.key + bodyName(doc, b)} defaultValue={bodyName(doc, b)}
-              onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur(); e.stopPropagation(); }}
-              onBlur={e => { const v = e.currentTarget.value.trim(); if (v !== bodyName(doc, b)) commit(withLook(doc, b, { name: v })); }} /></label>
-            <div className="kv">Colour <span className="swatches" role="group" aria-label="Colour">
-              <button className={'swatch none' + (look.color ? '' : ' on')} aria-label="No colour" data-tip="Default grey" onClick={() => commit(withLook(doc, b, { color: undefined }))} />
-              {BODY_COLOURS.map(c => <button key={c} className={'swatch' + (look.color === c ? ' on' : '')} style={{ background: c }} aria-label={'Colour ' + c} onClick={() => commit(withLook(doc, b, { color: c }))} />)}
-              <label className="swatch pick" data-tip="Any colour" style={look.color && !(BODY_COLOURS as readonly string[]).includes(look.color) ? { background: look.color } : undefined}>
-                <input type="color" aria-label="Any colour" value={look.color ?? '#bcc0c7'} onChange={e => commit(withLook(doc, b, { color: e.target.value }))} /></label>
-            </span></div>
-            <label className="kv">Visible <input type="checkbox" checked={!look.hidden} onChange={e => { if (!commit(withLook(doc, b, { hidden: !e.target.checked }))) return; if (!e.target.checked) setSelection(emptySel); }} /></label>
-            <label className="kv"><span>Bounds <b>{fmt(max[0] - min[0])} × {fmt(max[1] - min[1])} × {fmt(max[2] - min[2])}</b></span><span className="kv-check"><input type="checkbox" aria-label="Show the bounding box" checked={showBox} onChange={e => setShowBox(e.target.checked)} /> box</span></label>
-            {/* (O18: a mass still being worked out reads "…", never 0 or the last revision's.) */}
-            {b.volume !== null ? <div className="kv">Volume <b>{fmt(Math.round(b.volume))} mm³</b></div> : b.massRef !== undefined ? <div className="kv">Volume <b aria-label="Mass pending">…</b></div> : null}
-            {/* (O179: a volume the kernel found from the mesh, said so with its bound — its mass is as good.) */}
-            {b.volume !== null && b.volumeBasis && <div className="kv warn" aria-label="Volume basis" title="The kernel could not integrate this body: its volume, mass and centre of mass are from the display mesh">From the mesh <b>± {b.volumeBasis.bound === null ? '?' : fmt(Math.round(b.volumeBasis.bound * 10) / 10)} mm³</b></div>}
-            {(() => { const own = MATERIALS.find(m => m.id === materialIdOf(doc, b)) ?? density; return <>
-              {b.volume !== null ? <div className="kv">Mass <b>{fmt(Math.round(b.volume * own.density / 100) / 10)} g</b></div> : b.massRef !== undefined ? <div className="kv">Mass <b>…</b></div> : null}
-              {/* The body's own material (the default for new bodies stays the studio's). */}
-              <label className="kv"><span>Material{!look.material && <span className="muted"> · {briefMaterial(doc) ? 'from the brief' : 'default'}</span>}</span><select aria-label="Material" value={own.id} onChange={e => commit(withLook(doc, b, { material: e.target.value === (briefMaterial(doc) ?? material) ? undefined : e.target.value }))}>{MATERIALS.map(m => <option key={m.id} value={m.id}>{m.label}</option>)}</select></label>
-              {own.id !== material && <div className="kv"><span /><button className="ghost small" onClick={() => setMaterial(own.id)} data-tip="Default material" data-tip-desc="Bodies without a material of their own use it">Use as default</button></div>}
-            </>; })()}
-            {(() => { const top = evaluated.nodes[refOf(b).node], made = top && 'made' in top ? top.made : undefined, sizes = fastenerSizesOf(doc), t = made?.command === 'fastener' ? fastenerThread(made.values, sizes) : null;
-              return t ? <><div className="kv">Part <b>{fastenerName(made!.values, sizes)}</b></div><div className="kv">Thread <b>M{t.d}×{t.pitch} {t.hand} · {t.internal ? 'internal' : 'external'}</b></div><div className="kv muted">Cosmetic thread: no helical geometry; nominal sizes from your fastener rows — check the standard before manufacture.</div></> : null; })()}
-            {b.centroid ? <div className="kv">Centre of mass <b>{b.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div> : b.massRef !== undefined ? <div className="kv">Centre of mass <b>…</b></div> : null}
-            {(() => { const own = MATERIALS.find(m => m.id === materialIdOf(doc, b)) ?? density, mp = bodyMass(b, own.density); if (!mp) return null;
-              const I = inertiaAt === 'origin' ? inertiaAbout(mp.inertia, mp.mass, mp.centroid, [0, 0, 0]) : mp.inertia;
-              return <>
-                <label className="kv"><span>Inertia</span><select aria-label="Inertia about" value={inertiaAt} onChange={e => setInertiaAt(e.target.value as 'centre' | 'origin')}><option value="centre">about the centre of mass</option><option value="origin">about the origin</option></select></label>
-                <div className="kv inertia" aria-label="Moments of inertia">Ixx Iyy Izz <b>{[0, 1, 2].map(k => sig3(I[k][k])).join(' · ')} g·mm²</b></div>
-                <div className="kv inertia muted">Ixy Iyz Ixz <b>{[[0, 1], [1, 2], [0, 2]].map(([i, j]) => sig3(I[i][j], Math.max(I[0][0], I[1][1], I[2][2]))).join(' · ')}</b></div>
-              </>; })()}
-            {/* (The kernel's area over the exact surfaces, as mass properties; the display mesh's only where it cannot, said.) */}
-            <div className="kv" title={b.areaBasis === 'display mesh' ? 'From the display mesh: the kernel could not integrate this body' : 'Over the exact surfaces'}>Surface area <b>{fmt(Math.round(b.area ?? b.mesh.faces.reduce((t, f) => t + f.area, 0)))} mm²{b.areaBasis === 'display mesh' ? ' (mesh)' : ''}</b></div>
-            <div className="kv">Faces <b>{b.mesh.faces.length}</b></div>
-            {b.notes?.map((n, k) => <div key={k} className={'hint' + (n.warning ? ' warn' : ' muted')} aria-label="Generator note">{n.warning && <Icon name="warning" small />} {n.text}</div>)}
-            {b.sheet && <div className="kv"><span>K <b>{b.sheet.bendTable ? `bend table ${b.sheet.bendTable}` : b.sheet.kFactor}</b></span><label className="ghost small" data-tip="Bend table" data-tip-desc="Load your shop's bend table (JSON: rows of thickness, radius and angle to K, allowance or deduction, each citing a source or marked an estimate) for this sheet's bends">Bend table…<input type="file" accept=".json,application/json" aria-label="Bend table file" style={{ display: 'none' }} onChange={e => { const file = e.currentTarget.files?.[0]; e.currentTarget.value = ''; void loadBendTable(b, file); }} /></label></div>}
-            {b.flat && <div className="kv"><span>Flat pattern <b>{fmt(Math.round(b.flat.box.max[0] * 100) / 100)} × {fmt(Math.round(b.flat.box.max[1] * 100) / 100)}</b></span><button className="ghost small" aria-label="Show the flat pattern" data-tip="Flat pattern" data-tip-desc="The sheet unfolded: its outline, bend lines and notes; export it as DXF" onClick={() => setFlatView(b.key)}>Flat</button></div>}
-            {b.cutPiece && <div className="kv"><span>Cut list <b>{fmt(Math.round(b.cutPiece.axisLength * 100) / 100)} mm</b></span><button className="ghost small" aria-label="Show the cut list" data-tip="Cut list" data-tip-desc="The frame's members to cut: identical ones on a row, their lengths, end cuts and mass; export it as CSV" onClick={() => setCutListView(true)}>Cut list</button></div>}
-            <PointTest mesh={b.mesh} />
-            {b.pieces && <div className="kv"><span>Pieces <b>{b.pieces}</b></span><button className="ghost small" aria-label="Separate the pieces" data-tip="Separate" data-tip-desc="Make each piece a body of its own (to move, colour or cut on its own)" onClick={() => separate(b)}>Separate</button></div>}
-          </div>; })}
-          {selBodies.length > 1 && selBodies.some(b => b.massRef !== undefined) && <div className="kv">Together <b aria-label="Mass pending">…</b></div>}
-          {selBodies.length > 1 && !selBodies.some(b => b.massRef !== undefined) && (() => { const parts = selBodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === materialIdOf(doc, b)) ?? density).density); return m ? [m] : []; }), c = combined(parts), box = boundsOf(selBodies);
-            return c && box ? <><div className="kv">Together <b>{fmt(Math.round(c.mass * 10) / 10)} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
-              <div className="kv">Bounds <b>{[0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ')}</b></div></> : null; })()}
-        </>}
-        {!sel1 && !selBodies.length && bodies.length > 0 && fresh && !sketch && !massReady && <div className="part-summary"><div className="card-title">PART · {bodies.length} {bodies.length === 1 ? 'body' : 'bodies'}</div><div className="kv">Mass <b aria-label="Mass pending">…</b></div></div>}
-        {!sel1 && !selBodies.length && bodies.length > 0 && fresh && !sketch && massReady && (() => { const parts = bodies.flatMap(b => { const m = bodyMass(b, (MATERIALS.find(x => x.id === materialIdOf(doc, b)) ?? density).density); return m ? [m] : []; }), c = combined(parts), box = boundsOf(bodies);
-          return c && box ? <div className="part-summary"><div className="card-title">PART · {bodies.length} {bodies.length === 1 ? 'body' : 'bodies'}</div>
-            <div className="kv">Mass <b>{fmt(Math.round(c.mass * 10) / 10)} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
-            <label className="kv"><span>Bounds <b>{[0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ')}</b></span><span className="kv-check"><input type="checkbox" aria-label="Show the bounding box" checked={showBox} onChange={e => setShowBox(e.target.checked)} /> box</span></label></div> : null; })()}
+      {!cageEd.session && !skel.session && !rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <SelectionInspector model={{ doc, evaluated, bodies, fresh, busy, massReady }} selection={selection} materialSettings={{ material, setMaterial }}
+        display={{ showBox, setShowBox, inertiaAt, setInertiaAt }} changes={{ commit, setSelection, edgesToCurves, loadBendTable, setFlatView, setCutListView, separate }}>
         {editNode !== null && <NodeEditor nodes={doc.nodes} parameters={doc.parameters} bearingAssembly={{ root: doc, owner: 'base' }} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode} onEditSketch={(() => { const n = doc.nodes[editNode]; const s = n?.kind === 'sketch' ? editNode : n && 'sketch' in n ? n.sketch : null; return s !== null && doc.nodes[s]?.kind === 'sketch' ? () => editSketch(s) : undefined; })()} onApply={nodes => {
           if (!canChangeDocument()) return;
           const scope = bearingEditScope.current;
           const next = { ...doc, nodes: dropStaleMade(doc.nodes, nodes) };
           engine.evaluate(next, revision.current++).then(r => { if (!r || bearingEditScope.current !== scope) return; if (r.ok) commit(next); else setToast({ ...r.error, hint: 'The design was not changed. Adjust the values and try again.' }); });
         }} onDelete={() => deleteNode(editNode)} onClose={() => setEditNode(null)} />}
-      </aside>}
+      </SelectionInspector>}
       </div></Profiler>
   );
   // (R1d: the HUD subscribes to the command; the values it types are noted, so the App does not render for them.)
@@ -3599,22 +2135,8 @@ export function App() {
           <ToolIconButton key="tool1" aria-label="Undo" data-tip={undo.length ? `Undo ${describeChange(undo[undo.length - 1].doc, doc)}` : 'Nothing to undo'} data-tip-key="⌘Z" disabled={!undo.length} onClick={doUndo}><Icon name="undo" /></ToolIconButton>,
           <ToolIconButton key="tool2" aria-label="Redo" data-tip={redo.length ? `Redo ${describeChange(doc, redo[redo.length - 1].doc)}` : 'Nothing to redo'} data-tip-key="⇧⌘Z" disabled={!redo.length} onClick={doRedo}><Icon name="redo" /></ToolIconButton>,
           <ToolIconButton key="tool3" aria-label="New part" data-tip="New part" onClick={() => { replaceDoc(emptyDoc()); setFileName('Untitled'); }}><Icon name="add_box" /></ToolIconButton>,
-          <span key="tool4" className="tpl-anchor"><ToolIconButton state={templatesOpen ? 'on' : 'idle'} aria-label="New from a template" data-tip="Templates" data-tip-desc="Start a part from a template, or keep this one as a template" onClick={() => setTemplatesOpen(v => !v)}><Icon name="library_add" /></ToolIconButton>
-          {templatesOpen && <div className="card templates" role="menu" aria-label="Templates">
-            <div className="card-title">NEW FROM A TEMPLATE</div>
-            {[...BUILT_IN.map(t => ({ name: t.name, doc: t.doc(), own: false })), ...savedTemplates().map(t => ({ ...t, own: true }))].map(t => <div key={(t.own ? 'own:' : '') + t.name} className="tpl-row">
-              <Button variant="ghost" size="sm" className="justify-start" role="menuitem" aria-label={`New from ${t.name}`} onClick={() => { replaceDoc({ ...t.doc, outputs: prefixDoc(t.doc, t.doc.nodes.length).outputs }); setFileName('Untitled'); setTemplatesOpen(false); setTimeout(() => viewport.current?.fit(), 300); }}>{t.name}</Button>
-              {t.own && <ToolIconButton size="tiny" aria-label={`Remove template ${t.name}`} onClick={() => { removeTemplate(t.name); setTemplatesOpen(false); }}><Icon name="close" small /></ToolIconButton>}
-            </div>)}
-            {/* (RS1: the robot samples, each with a demo motion in its Joints card; opened as Open opens a file.) */}
-            {ROBOT_SAMPLES.length > 0 && <div className="card-title mt-1" aria-label="Samples">SAMPLES · ROBOTS</div>}
-            {ROBOT_SAMPLES.map(r => <div key={'sample:' + r.id} className="tpl-row">
-              <Button variant="ghost" size="sm" className="justify-start" role="menuitem" aria-label={`Open sample ${r.title}`} title={r.about}
-                onClick={() => { setTemplatesOpen(false); void robotSampleFile(r).then(open, e => setToast({ title: 'Could not open the sample', hint: e instanceof Error ? e.message : String(e), detail: '' })); }}>{r.title}</Button>
-            </div>)}
-            <div className="tpl-row add"><Input className="kv-input" aria-label="Template name" placeholder="Keep this part as…" value={templateName} onChange={e => setTemplateName(e.target.value)} onKeyDown={e => e.stopPropagation()} />
-              <Button variant="ghost" size="sm" aria-label="Save as a template" disabled={!templateName.trim()} onClick={() => { if (saveTemplate(templateName.trim(), doc)) setToast({ title: 'Template saved', hint: `“${templateName.trim()}” is in Templates, in this browser.`, detail: '' }); else setToast({ title: 'Could not save the template', hint: fontTemplateProblem(doc) ?? 'This browser would not keep it (private mode or no room).', detail: '' }); setTemplateName(''); setTemplatesOpen(false); }}>Save</Button></div>
-          </div>}</span>,
+          <TemplatePicker key="tool4" doc={doc} state={{ templatesOpen, setTemplatesOpen, templateName, setTemplateName }} open={open} onNotice={setToast}
+            onTemplate={next => { replaceDoc(next); setFileName('Untitled'); }} fitLater={() => setTimeout(() => viewport.current?.fit(), 300)} />,
           <ToolIconButton key="tool5" state={libraryOpen ? 'on' : 'idle'} aria-label="Library" data-tip="Library" data-tip-desc="Catalogue parts from libraries (built-in, team, yours): insert them, snap them by their interfaces" onClick={() => setLibraryOpen(v => !v)} hidden={rendering || drawing}><Icon name="menu_book" /></ToolIconButton>,
           <ToolIconButton key="tool6" state={paramsOpen ? 'on' : 'idle'} aria-label="Parameters" data-tip="Parameters" data-tip-desc="Named sizes the part depends on, and saved sets of them (configurations)" onClick={() => setParamsOpen(v => !v)} hidden={rendering || drawing}><Icon name="function" /></ToolIconButton>,
           <ToolIconButton key="tool7" aria-label="Open" data-tip="Open" data-tip-desc="A .bcad model or a STEP file; an IGES file’s or a .barocad source’s curves and surfaces" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></ToolIconButton>,
@@ -3667,25 +2189,8 @@ export function App() {
 
       <TooltipLayer />
       <Profiler id="toolbar" onRender={onBlockRender}><nav className="card toolbar" aria-label="Tools" hidden={rendering || drawing}>
-        {sketch ? (<>
-          {TOOLS.map(t => (
-            <ToolIconButton key={t.tool} state={sketch.tool === t.tool ? 'on' : 'idle'} data-tip={t.label} data-tip-key={t.key} data-tip-desc={t.hint} aria-label={t.label}
-              onClick={() => setSketch(s => s && switchTool(s, t.tool))}><Icon name={t.icon} /></ToolIconButton>))}
-          <div className="sep" />
-          <ToolIconButton state={sketch.construct ? 'on' : 'idle'} data-tip="Construction" data-tip-key="X" data-tip-desc="Draw references: dashed shapes to snap to, not part of the profile" aria-label="Construction"
-            onClick={() => setSketch(s => s && { ...s, construct: !s.construct })}><Icon name="cad-sk-construction" /></ToolIconButton>
-          {(sketch.done ?? []).some(d => d.construction) && <ToolIconButton state={sketch.hideConstruction ? 'on' : 'idle'} data-tip={sketch.hideConstruction ? 'Show construction' : 'Hide construction'} data-tip-desc="The dashed reference shapes: hidden ones are not drawn or snapped to, and stay with the sketch" aria-label={sketch.hideConstruction ? 'Show construction' : 'Hide construction'}
-            onClick={() => setSketch(s => s && { ...s, hideConstruction: !s.hideConstruction })}><Icon name={sketch.hideConstruction ? 'visibility_off' : 'visibility'} /></ToolIconButton>}
-          <ToolIconButton data-tip="Clear profile" data-tip-desc="Remove every shape drawn in this sketch" aria-label="Clear profile" onClick={() => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [] })}><Icon name="ink_eraser" /></ToolIconButton>
-        </>) : TOOL_GROUPS.map((g, gi) => (
-          <div key={g} className="tool-group">
-            {gi > 0 && <div className="sep" />}
-            <CommandButtons list={GROUP_COMMANDS[gi]} {...groupStates[gi]} activeId={active?.cmd.id ?? null} onStart={startTool} onDragStart={toolDragStart} onDragEnd={toolDragEnd} />
-            {/* (O147: the BOM with the inspect tools, not on the top bar — O90's shapes strip keeps its room.) */}
-            {g === 'inspect' && <ToolIconButton state={bomOpen ? 'on' : 'idle'} aria-label="BOM" data-tip="Bill of materials" data-tip-desc="The parts and bought elements, bought or made, and the purchase list" onClick={() => setBomOpen(v => !v)}><Icon name="cad-bom" /></ToolIconButton>}
-            {g === 'inspect' && <ToolIconButton state={rebuildOpen ? 'on' : 'idle'} aria-label="Rebuild" data-tip="Rebuild" data-tip-desc="What the last rebuild cost: each feature built or reused, its time and kernel calls" onClick={() => { setBomOpen(false); setRebuildOpen(v => !v); }}><Icon name="cad-rebuild" /></ToolIconButton>}
-            {g === 'inspect' && <ToolIconButton state={variantsOpen ? 'on' : 'idle'} aria-label="Variants" data-tip="Variants" data-tip-desc="The assembly's variants: its inputs and named sets of their values, one shown regenerated from the master" onClick={() => setVariantsOpen(v => !v)}><Icon name="tune" /></ToolIconButton>}
-          </div>))}
+        <ModelTools sketch={sketch} setSketch={setSketch} command={{ groupStates, activeId: active?.cmd.id ?? null, startTool, toolDragStart, toolDragEnd }}
+          panels={{ bomOpen, setBomOpen, rebuildOpen, setRebuildOpen, variantsOpen, setVariantsOpen }} />
       </nav></Profiler>
 
       {browserPlacement === 'left' && browserPanel}
@@ -3701,23 +2206,8 @@ export function App() {
           onTime={t => { setPlaying(false); setTime(t); }} onPlay={play} onChange={a => commitRender({ ...render, animation: a })}
           exporting={videoBusy} onExportVideo={() => { setPlaying(false); turnFrom.current = viewport.current?.getCamera() ?? null; void recordVideo(render.animation.duration, setTime, `${fileName}-render.webm`); }} />;
       })()}
-      <Profiler id="history" onRender={onBlockRender}>{historyShown && <div className={'history' + (historyRows ? ' expanded' : '') + (historyLabels ? ' show-labels' : '')} role="group" aria-label="History" ref={historyBar}>
-        <button className="history-labels" aria-label="Show history step names" aria-pressed={historyLabels} title={historyLabels ? 'Hide step names' : 'Show step names'} onKeyDown={e => { if (e.key === ' ' || e.key === 'Enter') e.stopPropagation(); }} onClick={() => setHistoryLabels(shown => !shown)}><Icon name="short_text" small /></button>
-        {doc.nodes.map((n, i) => innerSteps.has(i) ? null : n.kind === 'sketch' ? (freeSketches.includes(i) ? (
-          // A finished sketch no feature uses yet: click picks it as a profile (Shift adds) and opens its editor.
-          <button key={i} aria-label={featureLabel(n, i, doc.nodes)} className={'hs sketch' + (i >= markerAt ? ' rolled' : '') + (selection.sketches?.includes(i) ? ' picked' : '') + (editNode === i ? ' edit' : '')} title={`${featureLabel(n, i, doc.nodes)} · click to pick it as a profile (Shift: add) · double-click to roll back here`}
-            onClick={e => { pickProfile(i, e.shiftKey); setEditNode(i); }} onDoubleClick={() => setMarker(i + 1 >= totalNodes ? null : i + 1)}
-            onContextMenu={e => { e.preventDefault(); setHistoryMenu({ at: { x: e.clientX, y: e.clientY }, index: i }); }}>
-            <Icon name="cad-sketch" small />{historyLabels && <span className="hs-label">{featureLabel(n, i, doc.nodes)}</span>}</button>) : null) : (
-          <button key={i} data-node-index={i} aria-label={featureLabel(n, i, doc.nodes)} className={'hs' + (i >= markerAt ? ' rolled' : '') + (editNode === i ? ' edit' : '') + (n.suppressed ? ' suppressed' : '') + (n.rematched || n.held ? ' rematched' : '')} title={`${featureLabel(n, i, doc.nodes)}${n.held ? ` (held: ${n.held})` : n.suppressed ? ' (suppressed)' : ''}${n.rematched ? ` · matched again: ${Object.entries(n.rematched).map(([now, was]) => `${was} → ${now}`).join(', ')}` : ''} · click to edit · double-click to roll back here`}
-            onClick={openHistoryFeature} onDoubleClick={() => setMarker(i + 1 >= totalNodes ? null : i + 1)}
-            onContextMenu={e => { e.preventDefault(); setHistoryMenu({ at: { x: e.clientX, y: e.clientY }, index: i }); }}>
-            <Icon name={iconFor(n)} small />{historyLabels && <span className="hs-label">{featureLabel(n, i, doc.nodes)}</span>}</button>))}
-        {(historyHidden > 0 || historyRows) && <button className="hs-more" aria-label={historyRows ? 'Fewer history steps' : `${historyHidden} more history steps`} aria-expanded={historyRows}
-          title={historyRows ? 'Show fewer steps' : 'Show every step'} onClick={() => setHistoryRows(o => !o)}>{historyRows ? 'Less' : '+' + historyHidden}</button>}
-        <button className="marker" aria-label="Roll forward to the end" title="Rollback marker · click to roll forward" onClick={() => setMarker(null)} />
-        {marker !== null && <span className="muted">rolled back · {totalNodes - markerAt} hidden</span>}
-      </div>}</Profiler>
+      <Profiler id="history" onRender={onBlockRender}>{historyShown && <FeatureHistoryBar doc={doc} selection={selection} editNode={editNode} marker={marker} source={{ innerSteps, freeSketches }}
+        layout={{ historyBar, historyRows, setHistoryRows, historyLabels, setHistoryLabels, historyHidden }} actions={{ pickProfile, setEditNode, setMarker, setHistoryMenu, openHistoryFeature }} />}</Profiler>
 
       {stage !== null ? <div className="card work-bar" role="status" aria-label="Working"><span className="mono">Working… {stage}</span>
         <button className="ghost small" aria-label="Cancel the computation" title="Stop it: nothing changes" onClick={stopStage}>Cancel</button></div>
@@ -3727,145 +2217,23 @@ export function App() {
         <span className="mono muted">{busy ? (slow ? 'Working…' : 'Computing…') : `${ortho ? 'Orthographic' : 'Perspective'} · ${shownBodies.length} solid${shownBodies.length === 1 ? '' : 's'} · ${Math.round(lastMs)} ms`}<CursorReadout sink={cursorSink} /></span>
       </div>
 
-      <Profiler id="corner-right" onRender={onBlockRender}><div className="corner-right" ref={cornerRight}>
-        {/* (What stands above the row, stacked so nothing overlaps: the maps' legends, the previews and display
-            toggles, then the section bar nearest the row. None of it covers the history bar or the timeline.) */}
-        <div className="corner-stack">
-    {mapLegend && <MapLegend map={mapLegend} hover={mapHover} />}
-    {(mapKind === 'parting' || mapKind === 'halves') && <MouldLegend kind={mapKind} result={mouldResult} pull={!!doc.mould?.pull} spread={mouldSpread} onSpread={setMouldSpread} />}
-        {/* (The previews' toggles stacked above the row, at its right: never over the history bar or the timeline.) */}
-        {displayOpen && <div className="previews" role="group" aria-label="Previews">
-        {/* (G21's display mode and isolate, in the column too: the Views row stays as narrow as the history bar assumes.) */}
-        <div className="card views display" role="group" aria-label="Display">
-          <label className="cad-display-control"><span className="sr">CAD display mode</span>
-            <select aria-label="CAD display mode" aria-describedby={displayModeNotice ? 'cad-display-mode-status' : undefined} value={effectiveDisplayMode} disabled={!!displayScopeReason}
-              data-display-mode-requested={displayMode} data-display-mode-effective={effectiveDisplayMode} data-display-mode-supported={!displayModeReason}
-              onChange={event => { setDisplayModeFailure(null); setDisplayMode(event.target.value as DisplayMode); }}>
-              {CAD_DISPLAY_MODES.map(mode => <option key={mode.value} value={mode.value}>{mode.label}</option>)}
-            </select>
-          </label>
-          <Button size="sm" variant={isolatedInstances ? 'default' : 'ghost'} aria-label={isolatedInstances ? 'Restore view' : 'Isolate selection'} aria-pressed={!!isolatedInstances} className={isolatedInstances ? 'on' : ''}
-            disabled={!isolatedInstances && !!isolationReason} title={isolatedInstances ? 'Restore the ordinary view' : isolationReason ?? 'Keep the selected instances opaque and fade the other solids'}
-            onClick={() => setIsolatedInstances(current => current ? undefined : isolationSelection)}>{isolatedInstances ? 'Restore view' : 'Isolate selection'}</Button>
-          {/* (Why a mode cannot apply, said where the mode is chosen: never over the panels.) */}
-          {displayModeNotice && <span id="cad-display-mode-status" className="cad-display-status" role="status">{displayModeNotice} Shaded with edges is active.</span>}
-        </div>
-        </div>}
-    {section && <SectionBar section={section} setSection={setSection} hatch={sectionHatchOn} setHatch={setSectionHatchOn} box={sectionBox} facePick={sectionFacePick} setFacePick={setSectionFacePick} onSketch={sketchSection} eye={cameraEye} />}
-        </div>
-        <div className="card views" role="group" aria-label="Views">
-          <Button size="sm" variant={displayOpen || !!isolatedInstances || displayMode !== 'shaded-with-edges' ? 'default' : 'ghost'} aria-label="Display and previews" aria-expanded={displayOpen} className={displayOpen || !!isolatedInstances || displayMode !== 'shaded-with-edges' ? 'on' : ''}
-            title="The display mode and isolate (the previews are in the dock)" onClick={() => setDisplayOpen(o => !o)}>Display</Button>
-          {(['iso', 'top', 'front', 'right'] as const).map(v => <Button size="sm" variant="ghost" key={v} onClick={() => viewport.current?.setView(v)}>{v === 'iso' ? 'Iso' : v[0].toUpperCase() + v.slice(1)}</Button>)}
-          <Button size="sm" variant="ghost" onClick={() => viewport.current?.fit()} title="Frame all (F)"><Icon name="fit_screen" small /></Button>
-          <Button size="sm" variant={section ? 'default' : 'ghost'} className={section ? 'on' : ''} aria-label="Section view" data-tip="Section view" data-tip-desc="Cut the part open along a plane to see inside (the model is not changed)"
-            onClick={() => { if (section) { setSection(null); return; } const zs = [...bodies, ...instancesPlaced.flatMap(i => i.bodies)].flatMap(b => [b.mesh.bounds.min[1], b.mesh.bounds.max[1]]); setSelection(emptySel); setSectionFacePick(null); setSection(axisSection({ axis: 'y', at: zs.length ? Math.round((Math.min(...zs) + Math.max(...zs))) / 2 : 0, keep: 'positive' })); }}>
-            <Icon name="cad-split" small /></Button>
-
-          <Button size="sm" variant={ortho ? 'default' : 'ghost'} onClick={() => setOrtho(viewport.current?.toggleOrtho() ?? false)} className={ortho ? 'on' : ''}>Ortho</Button>
-          <Button size="sm" variant={ao ? 'default' : 'ghost'} onClick={() => setAo(v => !v)} className={ao ? 'on' : ''} title="Ambient occlusion">AO</Button>
-          {!rendering && <Button size="sm" variant={analysis ? 'default' : 'ghost'} aria-label="Surface analysis" className={analysis ? 'on' : ''} data-tip={analysis === 'zebra' ? 'Zebra stripes' : analysis === 'curvature' ? 'Curvature map' : 'Surface analysis'}
-            data-tip-desc="Click: zebra stripes (a bend or break in a stripe is a joint that is not smooth), then the curvature map (flat blue, tight red), then — for a printing process — the overhang map (red past its limit), then off"
-            onClick={() => setAnalysis(a => a === null ? 'zebra' : a === 'zebra' ? 'curvature' : a === 'curvature' && printing ? 'overhang' : null)}>{analysis === 'zebra' ? 'Zebra' : analysis === 'curvature' ? 'Curv' : analysis === 'overhang' ? 'Overhang' : 'Analyse'}</Button>}
-          {!rendering && viewBackend === 'webgl2' && <Button size="sm" variant="ghost" aria-label="Analysis map" disabled data-tip="Analysis map" data-tip-desc="The analysis maps (wall thickness, draft, what a 3-axis mill reaches) and the mould's parting line and halves are drawn with WebGPU; this browser draws with WebGL2">Maps</Button>}
-          {!rendering && viewBackend !== 'webgl2' && <Button size="sm" variant={mapKind ? 'default' : 'ghost'} aria-label="Analysis map" className={mapKind ? 'on' : ''} data-tip="Analysis map" data-tip-desc="Click: the wall thickness (thin red, nominal green, thick orange, past the thick-section limit purple); for a part with a pull, its draft (under the least draft red, + green, − blue, the isoclines white); the share a 3-axis mill does not reach (red); for a part with a pull, its parting line, then its two halves (spread apart from the legend); then off — each legend shows the value under the pointer"
-            onClick={() => { setMapHover(null); setMouldSpread(0); const pull = !!doc.mould?.pull; setMapKind(k => k === null ? 'thickness' : k === 'thickness' ? (pull ? 'draft' : 'access') : k === 'draft' ? 'access' : k === 'access' ? (pull ? 'parting' : null) : k === 'parting' ? 'halves' : null); }}>{mapKind === 'thickness' ? 'Thickness' : mapKind === 'draft' ? 'Draft' : mapKind === 'access' ? 'Access' : mapKind === 'parting' ? 'Parting' : mapKind === 'halves' ? 'Halves' : 'Maps'}</Button>}
-          <Button size="sm" variant="ghost" onClick={() => setTheme(v => v === 'dark' ? 'light' : 'dark')} title="Toggle light / dark" aria-label="Toggle light or dark theme"><Icon name={theme === 'dark' ? 'light_mode' : 'dark_mode'} small /></Button>
-        </div>
-        {(doc.instances?.length ?? 0) > 0 && <ExplodeButton store={explodeStore} />}
-        <Button size="sm" variant="secondary" className="chip snap" aria-label="Selection filter" data-tip="Selection filter" data-tip-desc="What a click picks: anything, or only faces, edges or whole bodies (click for the next)"
-          onClick={() => setPickFilter(f => { const all = ['all', 'face', 'edge', 'body'] as const, n = all[(all.indexOf(f) + 1) % all.length]; try { localStorage.setItem('studio.pick', n); } catch { /* private mode */ } return n; })}>
-          <Icon name="ads_click" small />{({ all: 'Pick all', face: 'Faces', edge: 'Edges', body: 'Bodies' } as const)[pickFilter]}</Button>
-        <Button size="sm" variant="secondary" className="chip snap" aria-label="Snap" data-tip="Grid snap" data-tip-desc="Sketch points, placing and moves land on this step: click for the next (1, 0.5, 0.1, 5, 10 mm, off)"
-          onClick={() => setSnapStep(s => { const steps = [1, 0.5, 0.1, 5, 10, 0], n = steps[(steps.indexOf(s) + 1) % steps.length]; try { localStorage.setItem('studio.snap', String(n)); } catch { /* private mode */ } return n; })}>
-          <Icon name="adjust" small />{snapStep ? `Snap ${fmt(snapStep)} mm` : 'Snap off'}</Button>
-        <span className="chip mono">mm</span>
-      </div></Profiler>
+      <ViewDisplayControls model={{ doc, bodies, instancesPlaced }} viewport={viewport} cornerRight={cornerRight}
+        display={{ displayOpen, setDisplayOpen, displayMode, setDisplayMode, effectiveDisplayMode, displayScopeReason, displayModeReason, displayModeNotice,
+          clearDisplayModeFailure: () => setDisplayModeFailure(null), isolatedInstances, setIsolatedInstances, isolationReason, isolationSelection }}
+        view={{ ortho, setOrtho, ao, setAo, theme, setTheme, rendering, printing: !!printing, viewBackend }}
+        section={{ section, setSection, sectionHatchOn, setSectionHatchOn, sectionBox, sectionFacePick, setSectionFacePick, sketchSection, cameraEye }}
+        analysis={{ analysis, setAnalysis, mapKind, setMapKind, mapLegend, mapHover, setMapHover, mouldResult, mouldSpread, setMouldSpread }}
+        picking={{ pickFilter, setPickFilter, snapStep, setSnapStep, setSelection }} explodeStore={explodeStore} />
 
       {palette && <Palette ctx={ctx} onRun={start} onClose={() => setPalette(false)} extra={PALETTE_EXTRA} />}
       {help && <ShortcutHelp onClose={() => setHelp(false)} />}
-      {historyMenu && doc.nodes[historyMenu.index] && (() => {
-        const i = historyMenu.index, n = doc.nodes[i], sk = n.kind === 'sketch' ? i : 'sketch' in n && typeof n.sketch === 'number' && doc.nodes[n.sketch]?.kind === 'sketch' ? n.sketch : null;
-        return <ContextMenu at={historyMenu.at} title={featureLabel(n, i, doc.nodes).toUpperCase()} ctx={ctx} commands={false} onClose={() => setHistoryMenu(null)} onRun={() => {}}
-          actions={[
-            { label: 'Edit', icon: 'edit', run: () => { setEditNode(i); setInstanceSel([]); setDirectSel([]); } },
-            ...(sk !== null ? [{ label: 'Edit sketch', icon: 'cad-sketch', run: () => editSketch(sk) }, { label: 'Export sketch DXF', icon: 'download', run: () => exportSketchDxf(sk) }] : []),
-            ...(n.kind === 'skeleton' ? [{ label: 'Edit in 3D sketch', icon: 'polyline', run: () => { cancel(); skel.begin(i); setSelection(emptySel); setEditNode(null); } }] : []),
-            // (A split's halves are separate bodies the model refers to: it stays.)
-            ...(n.kind !== 'sketch' && n.kind !== 'split' && n.kind !== 'separate' ? [{ label: n.suppressed ? 'Unsuppress' : 'Suppress', icon: n.suppressed ? 'visibility' : 'visibility_off', run: () => toggleSuppress(i) }] : []),
-            { label: 'Move earlier', icon: 'arrow_back', run: () => reorder(i, -1) },
-            { label: 'Move later', icon: 'arrow_forward', run: () => reorder(i, 1) },
-            { label: 'Roll back to here', icon: 'undo', run: () => setMarker(i + 1 >= totalNodes ? null : i + 1) },
-            ...(marker !== null ? [{ label: 'Roll to the end', icon: 'redo', run: () => setMarker(null) }] : []),
-            { label: 'Delete', icon: 'delete', shortcut: 'Del', run: () => deleteNode(i) },
-          ]} />;
-      })()}
-      {menu && <ContextMenu at={menu.at} title={menu.title} ctx={{ ...ctx, selection: menu.selection }} onClose={() => setMenu(null)}
-        onRun={c => { setMenu(null); start(c); }}
-        actions={[
-          { label: 'Frame all', icon: 'fit_screen', shortcut: 'F', run: () => viewport.current?.fit() },
-          { label: 'Isometric view', icon: 'view_in_ar', run: () => viewport.current?.setView('iso') },
-          { label: 'Top view', icon: 'crop_square', run: () => viewport.current?.setView('top') },
-          ...(() => {
-            // On a body: hide it, show it alone, delete it; with something hidden: show everything again.
-            const picked = selectedBodies(menu.selection).filter(i => bodies[i]), anyHidden = bodies.some(b => lookOf(doc, b).hidden);
-            const hideAll = (keep: (i: number) => boolean) => commit(bodies.reduce((d, b, i) => withLook(d, b, { hidden: !keep(i) }), doc));
-            const at = menu.selection.faces[0] ? { body: menu.selection.faces[0].body, face: menu.selection.faces[0].face } : menu.selection.edges[0] ? { body: menu.selection.edges[0].body, edge: menu.selection.edges[0].edge } : null;
-            return [
-              ...(at ? [{ label: 'Measure from here', icon: 'cad-measure', shortcut: '⇧M', run: () => { setMeasure([at]); setSelection(emptySel); setEditNode(null); } }] : []),
-              ...(picked.length ? [{ label: picked.length > 1 ? 'Hide bodies' : 'Hide body', icon: 'visibility_off', run: () => { hideAll(i => !picked.includes(i) && !lookOf(doc, bodies[i]).hidden); setSelection(emptySel); } },
-                { label: 'Show only this', icon: 'filter_center_focus', run: () => hideAll(i => picked.includes(i)) },
-                { label: 'Delete', icon: 'delete', shortcut: 'Del', run: () => deleteSelection() }] : []),
-              ...(anyHidden ? [{ label: 'Show all bodies', icon: 'visibility', run: () => hideAll(() => true) }] : []),
-            ];
-          })(),
-          { label: 'Clear selection', icon: 'deselect', shortcut: 'Esc', run: () => setSelection(emptySel) },
-        ]} />}
+      <FeatureHistoryMenu doc={doc} ctx={ctx} marker={marker} historyMenu={historyMenu} close={() => setHistoryMenu(null)}
+        editors={{ setEditNode, setInstanceSel, setDirectSel, editSketch, exportSketchDxf, cancel, beginSkeleton: skel.begin, setSelection }} history={{ toggleSuppress, reorder, setMarker, deleteNode }} />
+      <ViewContextMenu model={{ doc, bodies, ctx }} menu={menu} setMenu={setMenu} viewport={viewport} changes={{ commit, start, deleteSelection, setSelection, setMeasure, setEditNode }} />
 
       {cutListView && (() => { const list = partCutList(doc, bodies, material); return list ? <CutListDialog list={list} nesting={nestCutList(doc, list)} name={fileName.replace(/[^\w.-]+/g, '_')} onClose={() => setCutListView(false)} /> : null; })()}
       {flatView && (() => { const fb = bodies.find(x => x.key === flatView); return fb?.flat ? <FlatPatternDialog flat={fb.flat} name={`${fileName}-${bodyName(doc, fb)}`.replace(/[^\w.-]+/g, '_')} onClose={() => setFlatView(null)} /> : null; })()}
-      {meshAsk && meshInUnit && <div className="toast card recovery" role="dialog" aria-label="Mesh units">
-        <Icon name="straighten" className="accent" />
-        <div><div className="toast-title">Open {meshAsk.name}.{meshAsk.format.toLowerCase()}: in what unit?</div>
-          <div className="toast-hint">{meshAsk.format} files carry no unit. In {meshAsk.unit} it is {meshInUnit.size.map(fmt).join(' × ')} mm.</div>
-          <div className="row-actions">
-            <select aria-label="Mesh unit" value={meshAsk.unit} onChange={e => setMeshAsk(m => m && { ...m, unit: e.target.value as MeshUnit })}>
-              {MESH_UNITS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
-            </select>
-            <button className="primary" onClick={() => void openMesh()}>Open</button>
-            <button className="ghost" onClick={() => setMeshAsk(null)}>Cancel</button>
-          </div></div>
-      </div>}
-      {stlAsk && <div className="toast card recovery" role="dialog" aria-label="STL export" onKeyDown={e => { e.stopPropagation(); if (e.key === 'Escape') { e.preventDefault(); cancelStlExport(); } }}>
-        <Icon name="download" className="accent" />
-        <div><div className="toast-title">STL export</div>
-          <label className="kv"><span>Quality</span><select autoFocus aria-label="STL export quality" value={stlQuality} disabled={stlBusy} onChange={e => {
-            const value = e.target.value;
-            if (value === 'automatic' || value === '8' || value === '16' || value === '32') { stlGeneration.current++; setStlQuality(value); }
-          }}>
-            <option value="automatic">Automatic</option><option value="8">Draft 8</option><option value="16">Standard 16</option><option value="32">Fine 32</option>
-          </select></label>
-          <div className="toast-hint">Automatic keeps the current mesh fallback. Draft, Standard and Fine export BRep bodies only. This does not change the on-screen mesh.</div>
-          <div className="row-actions"><button className="primary" disabled={stlBusy} onClick={() => void exportStl()}>{stlBusy ? 'Preparing…' : 'Export'}</button><button ref={stlCancelButton} className="ghost" onClick={cancelStlExport}>Cancel</button></div>
-        </div>
-      </div>}
-      {stepAsk && (() => {
-        const last = (() => { try { return localStorage.getItem('studio.stepMeshes'); } catch { return null; } })() ?? 'auto';
-        return <div className="toast card recovery" role="dialog" aria-label="STEP mesh bodies">
-          <Icon name="deployed_code_update" className="accent" />
-          <div><div className="toast-title">Mesh bodies in the STEP file as…</div>
-            <div className="toast-hint">Tessellated (AP242) is compact, but older CAD, CAM and slicer readers may not take it. Planar faces are read by any reader, but large. Auto: planar up to {MESH_PLANAR_TRIANGLES.toLocaleString('en-US')} triangles a body, tessellated above.</div>
-            <div className="row-actions">
-              {(['auto', 'tessellated', 'planar'] as const).map(m => <button key={m} className={m === last ? 'primary' : 'ghost'} onClick={() => void exportStepFile(m)}>{m === 'auto' ? 'Auto' : m === 'tessellated' ? 'Tessellated (AP242, compact)' : 'Planar faces (compatible)'}</button>)}
-              <button className="ghost" onClick={() => setStepAsk(false)}>Cancel</button>
-            </div></div>
-        </div>;
-      })()}
-      {repairAsk && <MeshRepairPanel title={repairAsk.mode === 'import' ? `Open ${repairAsk.name}${repairAsk.format ? `.${repairAsk.format.toLowerCase()}` : ''}: it needs repair` : `Repair of ${repairAsk.name}`}
-        diagnosis={repairAsk.diagnosis} steps={repairAsk.steps} onSteps={steps => setRepairAsk(a => a && { ...a, steps, result: null })} report={repairAsk.result?.report ?? null} busy={stage !== null}
-        onCheck={() => void checkRepair()} onApply={() => void applyRepair()}
-        {...(repairAsk.diagnosis.closed ? { onAsIs: repairAsk.mode === 'import' ? () => void openMeshNode(repairAsk) : removeRepair } : {})}
-        asIsLabel={repairAsk.mode === 'import' ? 'Open as it is' : 'Remove the repair'} onCancel={() => setRepairAsk(null)} />}
+      <MeshFileDialogs controller={meshImport}><ModelExportDialogs controller={modelExports} /></MeshFileDialogs>
       {/* (Notices stack in one column: an Open failure still shows while a recovery copy waits for its answer.) */}
       <div className="toast-stack">
       {recovery && <div className="toast card recovery" role="dialog" aria-label="Recover unsaved work">
@@ -3915,29 +2283,7 @@ export function App() {
           Chat button stays the first [aria-label="Chat"]. The centre — top bar, viewport and its bars — is the stage.) */}
       <ChatColumn open={chat} width={layout.chatShown} onOpen={setChat} onWidth={layout.setChatWidth} openProposals={openProposals}
         decided={decidedProposals} decidedShown={decidedShown} onShowDecided={() => setDecidedShown(true)}
-        proposals={!!doc.proposals?.length && <div className="chat-proposals" role="list" aria-label="Proposals"><div className="ol-head req-head">Proposals <span className="muted">{doc.proposals.filter(p => p.status === 'open').length} open</span>
-          <ToolIconButton size="tiny" state={decidedShown ? 'on' : 'idle'} aria-label="Show decided proposals" data-tip={decidedShown ? 'Open only' : 'Show accepted and rejected'} onClick={() => setDecidedShown(f => !f)}><Icon name="history" small /></ToolIconButton></div>
-        {doc.proposals.filter(p => decidedShown || p.status === 'open').map(p => {
-          const shown = ghost?.id === p.id, stale = p.status === 'open' && p.base !== hashNow, dv = shown ? volumeOf(ghost.bodies) - volumeOf(bodies) : 0, base = volumeOf(bodies);
-          return <div key={p.id} className={'proposal ' + p.status + ' risk-' + p.risk.level} role="listitem" aria-label={`Proposal ${p.id}`}>
-            <div className="proposal-title"><b>{p.id}</b> {p.title} <span className={'risk-badge ' + p.risk.level} title={`${p.risk.features_touched} features touched · ${p.risk.references_broken} references broken${p.risk.hard_requirements_changed.length ? ` · hard requirements ${p.risk.hard_requirements_changed.join(', ')}` : ''}${p.risk.approval.length ? ` · always needs approval: ${p.risk.approval.join(', ')}` : ''}`}>{p.risk.level} risk</span></div>
-            <div className="muted">{stale ? <b className="stale">stale · </b> : p.rebased ? 'rebased · ' : ''}{p.summary}{p.risk.references_broken ? ` · ${p.risk.references_broken} reference${p.risk.references_broken > 1 ? 's' : ''} broken` : ''}{p.risk.hard_requirements_changed.length ? ` · hard ${p.risk.hard_requirements_changed.join(', ')}` : ''}{p.risk.approval.length ? ` · needs you (${p.risk.approval.join(', ')})` : ''} · {p.by.agent}{p.by.model ? ` (${p.by.model})` : ''}</div>
-            {p.plan && <div className="proposal-plan">{p.plan}</div>}
-            {shown && fresh && !massReady && <div className="mono proposal-dv">{ghost.after ? 'after' : 'before'} · volume <span aria-label="Volume change">…</span></div>}
-            {shown && fresh && massReady && <div className="mono proposal-dv">{ghost.after ? 'after' : 'before'} · volume <span aria-label="Volume change">{dv >= 0 ? '+' : '−'}{fmt(Math.abs(dv))} mm³{base ? ` (${dv >= 0 ? '+' : '−'}${fmt(Math.abs(dv) / base * 100)}%)` : ''}</span></div>}
-            {shown && ghost.parts.length > 1 && <div className="proposal-parts" role="group" aria-label={`${p.id} features`}>{ghost.parts.map(q => <label key={q.id} className={'proposal-part ' + q.kind}>
-              <input type="checkbox" aria-label={`Keep ${q.id}`} disabled={q.kind === 'deleted' || proposalBusy} checked={!ghost.leaveOut.includes(q.id)} onChange={e => void tickPart(q.id, e.currentTarget.checked)} />
-              <span className="mono">{q.id}</span> {q.kind === 'added' ? '+' : q.kind === 'changed' ? '~' : '−'} {q.label}</label>)}</div>}
-            {p.status === 'open' ? <div className="proposal-actions">
-              <button className={'ghost small' + (shown ? ' on' : '')} disabled={proposalBusy || stale} onClick={() => void showProposal(p)}>{shown ? 'Hide' : 'Preview'}</button>
-              {shown && <button className="ghost small" aria-label="Before or after" onClick={flipGhost}>{ghost.after ? 'After' : 'Before'}</button>}
-              <span className="grow" />
-              <button className="ghost small" disabled={proposalBusy} onClick={() => rejectIt(p)}>Reject</button>
-              {stale ? <button className="primary small" disabled={proposalBusy} title="The part changed since this was proposed: make it again on the part as it is, and look before accepting" onClick={() => void rebaseIt(p)}>Rebase &amp; preview</button>
-                : <button className="primary small" disabled={proposalBusy} onClick={() => void acceptIt(p)}>{shown && ghost.leaveOut.length ? `Accept ${ghost.parts.length - ghost.leaveOut.length} of ${ghost.parts.length}` : 'Accept'}</button>}
-            </div> : <div className="muted">{p.status} by {p.decided?.by}{p.decided?.note ? ` · ${p.decided.note}` : ''}</div>}
-          </div>;
-        })}</div>}
+        proposals={<ProposalBrowser controller={proposals} doc={doc} bodies={bodies} fresh={fresh} massReady={massReady} decidedShown={decidedShown} setDecidedShown={setDecidedShown} />}
         content={rendering || drawing ? null : <Suspense fallback={null}><ChatPanel versions={project.chat} onRowFiles={files => { if (files === chatRowFiles.current || (files && !isPersonRowFiles(files))) return; revokePersonRowFiles(chatRowFiles.current); chatRowFiles.current = files; }} base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)} check={partEval}
         blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
         onPreview={setPreviewBodies} onCommit={(next, sel, merged) => {
@@ -3957,56 +2303,6 @@ export function App() {
         }}
         onSelect={sel => setSelection(resolveNames(bodies, sel).selection)} onClose={() => setChat(false)} context={chatContext} outbox={chatOutbox} onOutboxSent={id => setChatOutbox(o => (o?.id === id ? null : o))}
         proposals={doc.proposals} proposalStale={p => p.status === 'open' && p.base !== hashNow} proposalBusy={proposalBusy} onAcceptProposal={p => void acceptIt(p)} onRejectProposal={rejectIt} /></Suspense>} />
-    </div>
-  );
-}
-
-/** Densities in g/cm³ for the mass shown with a body. */
-
-/** A feature's icon in the history: the CAD icon of the command that makes it (a shape's own). */
-function iconFor(n: ModelNode) {
-  if ('made' in n && n.made) return 'cad-' + n.made.command;
-  return ({ 'cylindrical-wrap': 'wrap_text', text: 'text_fields', 'text-relief': 'text_fields', extrude: 'cad-extrude', revolve: 'cad-revolve', shell: 'cad-shell', import: 'file_open', sweep: 'cad-sweep', loft: 'cad-loft', hole: 'cad-hole', chamfer: 'cad-chamfer', fillet: 'cad-fillet', 'full-round': 'cad-full-round', 'face-thread': 'cad-thread', 'face-fillet': 'cad-face-fillet', union: 'cad-union', difference: 'cad-subtract', intersect: 'cad-intersect',
-    translate: 'cad-move', rotate: 'cad-rotate', mirror: 'cad-mirror', scale: 'cad-scale', 'linear-pattern': 'cad-pattern-linear', 'linear-feature-pattern': 'cad-pattern-linear', 'circular-pattern': 'cad-pattern-circular', split: 'cad-split', sketch: 'cad-sketch', 'sheet-base': 'cad-sheet-plate', 'sheet-contour': 'cad-sheet-profile', 'sheet-flange': 'cad-sheet-flange', 'sheet-corner-relief': 'cad-sheet-corner', 'frame-member': 'cad-frame-member', frame: 'cad-frame' } as Record<string, string>)[n.kind] ?? 'category';
-}
-
-/** A point tried against a body: inside, outside or on it. */
-function PointTest({ mesh }: { mesh: BodyResult['mesh'] }) {
-  const [p, setP] = useState<[number, number, number]>([0, 0, 0]), [res, setRes] = useState<string | null>(null);
-  useEffect(() => setRes(null), [mesh, p]);
-  return <div className="point-test">
-    <div className="kv"><span>Point test</span><span className="pt-xyz">{(['X', 'Y', 'Z'] as const).map((a, k) => <input key={a} type="number" step="any" aria-label={`Point ${a}`} value={p[k]} onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v)) setP(q => q.map((x, j) => j === k ? v : x) as typeof q); }} onKeyDown={e => e.stopPropagation()} />)}
-      <button className="ghost small" aria-label="Test the point" onClick={() => setRes(pointInBody(mesh, p))}>Test</button></span></div>
-    {res && <div className="kv"><span /><b aria-label="Point is">{res === 'inside' ? 'inside the body' : res === 'outside' ? 'outside the body' : 'on its surface'}</b></div>}
-  </div>;
-}
-
-function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDelete, parameters, onRefuse, bearingAssembly, pending = false }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[]): void; onClose(): void; onEditSketch?(): void; onDelete?(): void; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; pending?: boolean }) {
-  // The draft is the whole node list: a sketch dimension changes the sketch the feature is made from.
-  const [draft, setDraft] = useState<ModelNode[]>(nodes);
-  // What is typed in a number box until it reads as a number (so a box can be cleared and retyped).
-  const [typed, setTyped] = useState<Record<string, string>>({});
-  useEffect(() => { setDraft(nodes); setTyped({}); }, [nodes, index]);
-  const fields = editFields(draft, index, parameters, bearingAssembly).filter(f => f.kind !== 'number' || !Number.isNaN(f.get(draft)));
-  const names = Object.keys(parameters);
-  const changed = draft !== nodes;
-  return (
-    <div className="node-editor" onKeyDown={e => { if (e.key === 'Enter' && changed && !pending) onApply(draft); else if (e.key === 'Escape') onClose(); else if (e.key === 'Delete' && !pending && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement)) onDelete?.(); }}>
-      <div className="card-title" style={{ marginTop: 10 }}>EDIT FEATURE <ToolIconButton size="tiny" aria-label="Close editor" onClick={onClose}><Icon name="close" small /></ToolIconButton></div>
-      {onEditSketch && <button className="ghost" aria-label="Edit sketch" title="Reopen the sketch this feature is made from, with its constraints" onClick={onEditSketch}><Icon name="draw" small /> Edit sketch</button>}
-      {fields.length ? fields.map(f => (
-        <label key={f.key} className="field"><span>{f.label}</span>
-          {f.kind === 'number' ? <span className="num"><input type="number" step="any" aria-label={f.label} value={typed[f.key] ?? f.get(draft)} disabled={pending || !!(f as BindableField).param?.(draft)} onChange={e => { const t = e.target.value, v = Number(t); setTyped(m => ({ ...m, [f.key]: t })); if (t.trim() !== '' && Number.isFinite(v)) setDraft(d => f.set(d, v)); }} />{f.unit && <em>{f.unit}</em>}
-            {names.length > 0 && 'bind' in f && <select className="param-bind" disabled={pending} aria-label={`${f.label} parameter`} data-tip="Parameter" data-tip-desc="Bind this value to a named parameter (Parameters panel)" value={(f as BindableField).param(draft) ?? ''}
-              onChange={e => { const b = f as BindableField, name = e.target.value; if (!name) { setDraft(d => b.set(d, b.get(d))); return; } const next = b.bind(draft, name); if (next) { setDraft(next); setTyped(m => Object.fromEntries(Object.entries(m).filter(([k]) => k !== f.key))); } else onRefuse(`${f.label} is not stored as it is shown, so it cannot take a parameter.`); }}>
-              <option value="">ƒ</option>{names.map(n => <option key={n} value={n}>{n}</option>)}</select>}</span>
-            : f.kind === 'choice' ? <select disabled={pending} aria-label={f.label} value={f.get(draft)} onChange={e => setDraft(d => f.set(d, e.target.value))}>{f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
-            : <input type="checkbox" className="check" disabled={pending} aria-label={f.label} checked={f.get(draft)} onChange={e => setDraft(d => f.set(d, e.target.checked))} />}
-        </label>
-      )) : <div className="empty">This feature has no editable dimensions.</div>}
-      {onDelete && <button className="ghost danger" disabled={pending} aria-label="Delete feature" title="Delete this feature (and the sketch only it uses) · Undo restores it" onClick={onDelete}><Icon name="delete" small /> Delete feature</button>}
-      {pending && <div className="empty" role="status">Checking the current bearing and housing…</div>}
-      {fields.length > 0 && <div className="row-actions"><button className="primary" disabled={!changed || pending} onClick={() => onApply(draft)}>Apply</button><button className="ghost" disabled={!changed || pending} onClick={() => { setDraft(nodes); setTyped({}); }}>Reset</button></div>}
     </div>
   );
 }

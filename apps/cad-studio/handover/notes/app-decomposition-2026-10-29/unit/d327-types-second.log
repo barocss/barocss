@@ -1,0 +1,2 @@
+src/App.tsx(326,205): error TS2448: Block-scoped variable 'setToast' used before its declaration.
+src/App.tsx(326,205): error TS2454: Variable 'setToast' is used before being assigned.

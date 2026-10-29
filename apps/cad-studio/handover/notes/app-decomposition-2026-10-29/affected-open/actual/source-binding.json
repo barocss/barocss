@@ -1,0 +1,16 @@
+{
+  "worktree": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+  "qualificationProfile": "runtime-source/profile.json",
+  "qualificationProfileSha256": "88733d19c7746224b9e554b2b0c59b61b36727b5ef79f442fcfb1e50d08faf43",
+  "productionCount": 45,
+  "beforeVerified": true,
+  "driver": {
+    "path": "apps/cad-studio/test/project-open-ownership-browser.mjs",
+    "sha256": "010ab5211ff822ed58a777fbe77bcdf4a068b21ffeb9f22dde34f2035cc55027",
+    "capsule": "project-open-ownership-browser.mjs.gz",
+    "gzipSha256": "f11ca4349f0b2b479498911f0741530810da078d02cf94c1f93bedec232516ff"
+  },
+  "scope": "Affected D326 five native cases on frozen D327 production graph; old fixture baseline label is not current runtime authority.",
+  "afterVerified": true,
+  "afterProductionCount": 45
+}

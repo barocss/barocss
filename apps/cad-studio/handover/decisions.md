@@ -16322,3 +16322,24 @@ removed/absence checked, browser/server/PID/gate cleanup retained. Evidence: not
 remoteCI/performance acceptance. No schema/dependency/WASM/public telemetry. Normal feature push
 is authorized; no PR/release. New direct owner priority selects D327 urgent App.tsx decomposition,
 keeping D321/D322/D326 semantics, remaining A05/A06 and07→08→09 scopes explicit.
+
+
+## D327 — Decompose App into cohesive controllers and panels (2026-10-29)
+
+Direct owner priority: make App readable before optional roadmap work. Reduce App from4,012 to2,308
+lines and385,325 to214,011 bytes through42 production modules. Keep central document dispatch,
+work/Open/Save owners, evaluation handoff, Undo/Redo/Stop and adoption in App. Extract file IO,
+exports/robot/mesh, route/sketch/preview/check controllers, viewport helpers and leaf panels.
+Preserve module-private cache lifetime, effect ordering, lazy setter lookup, optional values and
+post-await owner checks; serialized fallback acquires no imported-file Promise boundary.
+
+Final source-only High review has no remaining required findings. Build/types and scoped lint pass;
+fullStudio429/0fail/0skip includes route6. Existing console45/bundler warnings retained. Actual
+Chrome156/WebGPU/DPR1 selected11 plus starter pass across source-identical preserved runs; separate
+affected Open5/5 passes. Initial7PASS/5FAIL, targeted5PASS/1FAIL and isolatedSketch1PASS/1FAIL retain
+raw driver failures. FinalSketch2PASS/0FAIL and isolatedStop2PASS/0FAIL close selected flow checks.
+No single whole-browser PASS claim. Existing D321 missing Render-history equality is excluded.
+No other-format/stage A05, A06, native route geometry, STL pending-generation cancel, full other-
+package suites, remote CI or performance acceptance. No schema/dependency/WASM/API changes.
+Evidence: notes/app-decomposition-2026-10-29/qualification.json. Normal feature push authorized;
+no PR/release. Resume existing A05/A06 priority, then07→08→09; incoming reports are roadmap intake.

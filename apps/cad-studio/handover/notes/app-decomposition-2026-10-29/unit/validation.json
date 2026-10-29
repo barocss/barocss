@@ -1,0 +1,67 @@
+{
+  "runtime": "Node22.19.0",
+  "initialCheckpoint": {
+    "types": 0,
+    "lint": 0,
+    "scope": "First IO/helpers/leaf/model-export candidate; intermediate only"
+  },
+  "secondCheckpoint": {
+    "types": 2,
+    "firstErrors": [
+      "TS2448 setToast used before declaration",
+      "TS2454 setToast used before assignment"
+    ],
+    "lint": 2,
+    "lintMeaning": "Root command used wrong app/useRouteBundleEditor path; actual path is state/useRouteBundleEditor. Not a product lint failure."
+  },
+  "thirdCheckpoint": {
+    "types": 2,
+    "errors": [
+      "PersonRowFiles undefined vs null input mismatch",
+      "missing proposalTint App destructure",
+      "missing editNode gizmo input"
+    ],
+    "lint": 1,
+    "lintErrors": [
+      "unused openMeshNode destructure",
+      "unused route doc destructure"
+    ]
+  },
+  "repairs": "Preserve undefined contract; restore passed fields/DEV observable; remove unused private inputs; lazily look up late App setter. App helper await caller checks restored after High review. No source checksum test added.",
+  "routeFocused": {
+    "pass": 6,
+    "fail": 0,
+    "skip": 0,
+    "scope": "Real SSR hook + real admitted route model, deferred worker transport only; no geometry/native/UI state proof"
+  },
+  "finalBuild": {
+    "exit": 0,
+    "includesTypeCheck": true,
+    "command": "node --run build",
+    "warnings": "Third-party use client bundler directives and existing static/dynamic module overlap retained; raw output preserved"
+  },
+  "finalLint": {
+    "exit": 0,
+    "errors": 0,
+    "warnings": 45,
+    "warningScope": "Unchanged browser runner console statements; no added console statement"
+  },
+  "driverSyntax": 0,
+  "wholeStudio": {
+    "exit": 0,
+    "pass": 429,
+    "fail": 0,
+    "skip": 0,
+    "includesNewRoute6": true
+  },
+  "counts": "Focused6 overlap whole429; no additional unique pass sum. Intermediate checks are not final-source certification.",
+  "actual": "PENDING separate receipts",
+  "notRun": [
+    "fullKernel",
+    "fullModel",
+    "fullGPU",
+    "fullbrowser",
+    "remoteCI",
+    "performance benchmark"
+  ]
+}

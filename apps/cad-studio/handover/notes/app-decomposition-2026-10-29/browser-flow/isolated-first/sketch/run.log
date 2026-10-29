@@ -1,0 +1,14 @@
+flow display: {"requestedDpr":1,"renderer":"webgpu","devicePixelRatio":1,"cssWidth":1140,"cssHeight":900,"backingWidth":1140,"backingHeight":900}
+locator.innerText: Error: strict mode violation: locator('.sk-panel .card-title') resolved to 5 elements:
+    1) <div class="card-title">SKETCH · Select · Z 0</div> aka getByText('SKETCH · Select · Z')
+    2) <div class="card-title">ADD CONSTRAINT</div> aka getByText('ADD CONSTRAINT')
+    3) <div class="card-title">CONSTRAINTS · 3</div> aka getByText('CONSTRAINTS ·')
+    4) <div class="card-title">OFFSET</div> aka getByText('OFFSET')
+    5) <div class="card-title">CURVES</div> aka getByText('CURVES', { exact: true })
+
+Call log:
+[2m  - waiting for locator('.sk-panel .card-title')[22m
+
+ok 1 starter plate loads
+FAIL 25 a finished sketch reopens from the feature editor with its constraints and is written back in place — locator.innerText: Error: strict mode violation: locator('.sk-panel .card-title') resolved to 5 elements:
+screenshots: /tmp/d327-sketch-final
