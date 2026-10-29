@@ -1,0 +1,187 @@
+{
+  "workId": "D334",
+  "date": "2026-10-29",
+  "status": "BOUNDED_QUALIFIED_ACROSS_RETAINED_PREFIX_AND_TAIL",
+  "scope": "One open-polyline CUT feature pattern with fixed cutter orientation; roadmap08 remains open.",
+  "source": {
+    "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+    "branch": "local/cad-dev",
+    "base": "d149657cce7d0b7946589e6daa7fb9ff885cb896",
+    "feature": "10a2b99b6a675197e49baf0a9cfa3dd2f3fdd142",
+    "studioContextFix": "eabb827b9ecdd27f56b3d0fa9771669716d9d786",
+    "driverFollowup": "05389788049a29b8e7ec50b5285505736407856e"
+  },
+  "contract": {
+    "path": "Open degree1 unit-weight raw polyline, or degree2 exact-midpoint unit-weight C0 straight spans. No general curve sampling. Native maximum64 control points.",
+    "count": "Safe integer1..64, includes original CUT; count binding refuses PARAMETER_UNBINDABLE.",
+    "spacing": "Finite positive <=10000 mm; Model parameter binding supported. No extrapolation or extension epsilon.",
+    "placement": "Original CUT remains. Original tools translate by point(k*spacing)-pathStart with no rotation.",
+    "references": "Kernel raw only; object references refuse typed CAPABILITY. Model raw or stable {objectId}; live references are base-document only and resolve current geometry each evaluation.",
+    "ownership": "Consumed-source changes stage existing candidate Worker before commit. Failure/Cancel/Stop/Open ownership is reused. Placed/flatten/copy/revision admission occurs before direct-source loss.",
+    "dependencies": "No dependency, schema or WASM change."
+  },
+  "checks": {
+    "kernelFullBeforeEndpointFix": {
+      "status": "PASS",
+      "pass": 2218,
+      "fail": 0,
+      "existingSkip": 6,
+      "total": 2224,
+      "log": "root/kernel-all.txt",
+      "sourceBoundary": "Pre-endpoint helper captured in root/endpoint-before/kernel.ts. This is not a final-same-bytes whole suite."
+    },
+    "kernelFinalEndpointFocused": {
+      "status": "PASS",
+      "pass": 7,
+      "fail": 0,
+      "log": "root/kernel-endpoint-focused.txt",
+      "buildLog": "root/kernel-build-endpoint.txt"
+    },
+    "kernelActor": {
+      "status": "PASS",
+      "focusedPass": 17,
+      "buildTypesLint": "PASS",
+      "caps": "kernel/caps.json",
+      "boundary": "Earlier lane snapshot; overlaps later tests."
+    },
+    "modelAffected": {
+      "status": "PASS",
+      "pass": 36,
+      "positiveEditPass": 5,
+      "studioChatPass": 23,
+      "caps": "model/caps.json",
+      "boundary": "Separate overlapping runs; no full Model suite."
+    },
+    "modelReviewFixes": {
+      "status": "PASS",
+      "pass": 14,
+      "log": "root/model-review-focused.txt",
+      "typesLog": "root/model-types-final.txt",
+      "repairLog": "root/model-types-repair.txt"
+    },
+    "studioBeforeContextFix": {
+      "status": "PASS",
+      "pass": 55,
+      "typesBuildLint": "PASS",
+      "caps": "studio/caps.json",
+      "boundary": "Before Studio cache/context repair."
+    },
+    "studioContextFix": {
+      "status": "PASS",
+      "focusedPass": 7,
+      "typesBuildLint": "PASS",
+      "receipt": "studio-context-fix/receipt.json"
+    },
+    "sourceReview": {
+      "status": "ALL_FOUR_SOURCE_RESOLVED",
+      "report": "review/report.md",
+      "reviewerRuntime": "NOT_RUN"
+    },
+    "api": {
+      "status": "SCOPED_PASS",
+      "rules": 6,
+      "log": "root/api-check.txt",
+      "rawChanged": 390,
+      "added": 17,
+      "removed": 0,
+      "actualChangedApiRows": 12,
+      "propertyOrderOnly": "VerifierView",
+      "review": "root/api-reviewed-delta.json",
+      "boundary": "Other raw changes are TypeScript internal well-known-symbol allocation IDs and union order. Whole API acceptance is not established."
+    },
+    "agentTools": {
+      "status": "PASS",
+      "exitCode": 0,
+      "log": "root/agent-tools-first.txt"
+    },
+    "refusals": {
+      "status": "PASS",
+      "exitCode": 0,
+      "log": "root/refusals-first.txt"
+    },
+    "rootLint": {
+      "status": "PASS",
+      "errors": 0,
+      "warnings": 1,
+      "warning": "console warning",
+      "log": "root/final-lint.txt",
+      "driverLog": "root/driver-lint-final.txt"
+    },
+    "docs": {
+      "status": "PASS",
+      "exit": 0,
+      "metrics": {
+        "pages": 68,
+        "beingWritten": 0,
+        "shots": 55,
+        "shotKB": 4811,
+        "labels": 860
+      },
+      "boundary": "Post documentation assembly; only this receipt and artifact manifest changed afterward."
+    }
+  },
+  "native": {
+    "backend": "WebGPU",
+    "profiles": 1,
+    "wholeFlowStatus": "NO_CLEAN_WHOLE_FLOW_PASS",
+    "runs": [
+      {
+        "receipt": "root/native-first/receipt.json",
+        "status": "FAIL",
+        "classification": "PRODUCT_DEFECT",
+        "firstFailure": "Empty Path choices after public Make curves from stale evaluated memo. Exact degree2 L path has five poles. Fixed in eabb827b9.",
+        "retainedPrefix": "Seed23920 and public path creation."
+      },
+      {
+        "receipt": "root/native-retake/receipt.json",
+        "status": "FAIL",
+        "classification": "DRIVER_DECODER_DEFECT",
+        "retainedPrefix": "First10 states pass: seed23920, public path, preview, count6 distance refusal, Cancel/retry, Apply23600, Undo/Redo, Save/fresh Open, count4=23680, Save/fresh Open.",
+        "firstFailure": "Actual Move produced two curves in transformed source; driver incorrectly required exactly one. Public compileCadModel decoder now selects object.geometry.",
+        "decoderProbe": "root/driver-decoder-probe.json"
+      },
+      {
+        "receipt": "root/native-live-tail/receipt.json",
+        "status": "PASS",
+        "mode": "RESUME_LIVE_PATH_TAIL",
+        "prefix": "Reopens retained native-retake/edited.bcad; creation prefix is not rerun.",
+        "checks": "Move[3,4,0] invariant volume/centroid and Undo/Redo; missing-path Delete refused with accepted state preserved and no Undo entry; valid Move[-2,1,0] retry with Undo/Redo; Stretch[2,1,1] changes hole locations to [8,8],[16,8],[24,8],[32,8], preserves23680 volume and changes independent centroid; Undo/Redo and Save/fresh Open."
+      }
+    ],
+    "oracle": "Independent stock-minus-prisms volume and centroid at1e-7, separate from source hashes.",
+    "visualReview": "Root viewed retake05 applied five-hole and tail16 fresh-open four-hole PNGs.",
+    "cleanup": "All three receipts record zero page errors, console errors and source changes. All contexts/browser/server CLOSED. One browser; serial contexts."
+  },
+  "sourceIntegrity": {
+    "firstAndRetake": "Each before/after capsule matches all30 listed inputs.",
+    "liveTail": "Pre-launch commit/capsule command failed from wrong app cwd with repository-relative paths; no commit occurred. Planned driver header then differed from prior capsule (29/30 match). source-live-tail-startup.json captures actual30 during startup; source-after-live-tail.json matches30/30. No source edits during flows. Driver committed afterward in053897880.",
+    "finalGit": "root/source-final-git.json records30/30 listed inputs matching Git.",
+    "boundary": "Listed-input capsules do not attest the full served graph. Hashes establish evidence integrity, not geometry correctness."
+  },
+  "preservedFirstFailures": [
+    "kernel/build-first.log: TS2352 before structural type repair",
+    "studio/build-first-command-path.log and studio-context-fix/build-first.log: tool-path MODULE_NOT_FOUND",
+    "studio-context-fix/focused-test-first.log: fixture label expectation",
+    "studio-context-fix/type-check-first.log: boolean widening in test",
+    "root/model-types-repair.txt: TS4104 readonly-array repair",
+    "root/native-first/receipt.json: real product stale memo",
+    "root/native-retake/receipt.json: decoder assumption"
+  ],
+  "notRunOrNotProven": [
+    "Real native Boolean failure",
+    "Stale/Stop full browser matrix",
+    "Full final Kernel same-bytes suite",
+    "Full Model/Studio/GPU/Viewer suites",
+    "Performance",
+    "Remote CI",
+    "Release",
+    "Commercial acceptance",
+    "Whole CG2 or whole08"
+  ],
+  "next": "Continue remaining08 curve/general fill and direct/surface consumer gaps, then09. Electron15 remains queued with no implementation. Inventory instability remains within existing16/R7 intake.",
+  "artifacts": {
+    "manifest": "artifact-manifest.json",
+    "compressedProvenance": "source-provenance.json",
+    "omitted": "Huge duplicate root/api-old-*.json and api-new-*.json review fragments; Studio context-fix source-directory copies."
+  }
+}

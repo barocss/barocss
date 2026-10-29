@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: an admitted accumulated endpoint uses the authored point without extrapolation
+ok 1 - an admitted accumulated endpoint uses the authored point without extrapolation
+  ---
+  duration_ms: 1.046708
+  type: 'test'
+  ...
+# Subtest: path cut: public API stores one feature and preserves inputs, history and fixed orientation
+ok 2 - path cut: public API stores one feature and preserves inputs, history and fixed orientation
+  ---
+  duration_ms: 49.957334
+  type: 'test'
+  ...
+# Subtest: path cut: native quadratic line spans and translated/nonuniform parameterizations retain placement and names
+ok 3 - path cut: native quadratic line spans and translated/nonuniform parameterizations retain placement and names
+  ---
+  duration_ms: 44.32
+  type: 'test'
+  ...
+# Subtest: path cut: source, spacing, count and path edits recompute without stale cache or renamed cuts
+ok 4 - path cut: source, spacing, count and path edits recompute without stale cache or renamed cuts
+  ---
+  duration_ms: 56.606167
+  type: 'test'
+  ...
+# Subtest: path cut: count one is an identity that still validates the path; copy and native curve caps remain bounded
+ok 5 - path cut: count one is an identity that still validates the path; copy and native curve caps remain bounded
+  ---
+  duration_ms: 170.014209
+  type: 'test'
+  ...
+# Subtest: path cut: exact unsupported curves are refused without projection, endpoint extension or partial mutation
+ok 6 - path cut: exact unsupported curves are refused without projection, endpoint extension or partial mutation
+  ---
+  duration_ms: 11.208583
+  type: 'test'
+  ...
+# Subtest: path cut: raw admission, facade refusals and active difference ownership stay explicit
+ok 7 - path cut: raw admission, facade refusals and active difference ownership stay explicit
+  ---
+  duration_ms: 16.416875
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 828.593459

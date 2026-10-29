@@ -1,0 +1,39 @@
+{
+  "snapshotUTC": "2026-10-29T14:37:08.947186+00:00",
+  "head": "d149657cce7d0b7946589e6daa7fb9ff885cb896",
+  "files": {
+    "packages/barocss-cad/src/features/curve-cut-pattern.ts": "2abc40f9cd7fbb5d744571f6b731c87b736aac252ee60b2fafcae9c70bf58bf4",
+    "packages/barocss-cad/src/part/part-model.ts": "ae1a1fce62e1bbc33575a2131f4f02b0dc1abf47e1947a5e7f0f18b9fbfb5ab7",
+    "packages/barocss-cad-model/src/engine/curveFeaturePattern.ts": "9721677e953caf6df5bf5e69b9ec43be8891a81785f6bc968b5b5aac2ef67d60",
+    "packages/barocss-cad-model/src/engine/wireDoc.ts": "dc9b7520cca11fe84ab9e875580bc2fdddb4cbbd07b548118e341a56a5581755",
+    "packages/barocss-cad-model/src/engine/migrate.ts": "5e5865f56c8f08acc69da5a8231e15f9c3df0edba9bdd78953e0e4d897e3ef98",
+    "packages/barocss-cad-model/src/engine/part.ts": "172fd573abd0cc17b7dbbab4ec333128c092bd6c4ffd47e0ca0a3f6da7f6c00c",
+    "packages/barocss-cad-model/src/app/editFields.ts": "7c699430b30e7eaaea326265595d1c335eb2f4c0c767661df7f2d0da9461f4ec",
+    "packages/barocss-cad-model/src/chat/part/features.ts": "5f87d30018fa613dc646a4ae6fbbf47fc12911c9b7bf0f08a1474ad218027dab",
+    "apps/cad-studio/src/App.tsx": "c77c17f039db3212bcc4e4a3c9343dc23daff19291fc30035777c2bf08542093",
+    "apps/cad-studio/src/ui/NodeEditor.tsx": "a3334c61bba344e294787593c328af3cecc80d4ddeb4408f749347db5028d5ba",
+    "apps/cad-studio/src/app/directCurveCandidate.ts": "a7e4df38d1a0c3eb753f13b8e1b3bc7557ab7b38faaa8d90c08993cacfc90825",
+    "packages/barocss-cad-model/src/engine/flatten.ts": "2520264b117351699a0c99bd351c27b2385f6e5f12f3c3df780d2facf302195f",
+    "packages/barocss-cad-model/src/assembly/edit.ts": "003a6b3b714dc5dbf53695c82197d13906c613d8573823479e4fa9047e343745",
+    "packages/barocss-cad-model/src/assembly/definitions.ts": "028c0b1636b666bd36897621cb00eb216ff786ea2157943e8b82b74cce54b87a",
+    "packages/barocss-cad/test/curve-cut-pattern.test.mjs": "5b4b2c517426e5a511e5d20721e4f502a69d86815d539c6ec72044733ff528f0",
+    "packages/barocss-cad-model/test/api-curve-feature-pattern.test.ts": "f31870711cbb37c08aa4730a15e05c9dacaea405ee44a21eb9320679c654eef0",
+    "apps/cad-studio/test/direct-curve-candidate.test.ts": "e400ed050d09a3e4be5ba1dbb3ab5eebd2e8eb2ee79380645a01141bf2bec6f6"
+  },
+  "verdict": "NO_REMAINING_ACTIONABLE_FINDINGS_IN_ASSIGNED_SOURCE_SCOPE",
+  "findingStatus": {
+    "endpoint_extrapolation": "SOURCE_RESOLVED",
+    "chat_live_path_rebinding": "SOURCE_RESOLVED",
+    "pre_strip_placed_context": "SOURCE_RESOLVED",
+    "inline_raw_path_selector": "SOURCE_RESOLVED"
+  },
+  "proof": {
+    "sourceReview": "COMPLETE",
+    "lightArithmeticProbe": "REPRODUCED_INITIAL_NUMERIC_ISSUE",
+    "build": "NOT_RUN_BY_REVIEWER",
+    "tests": "NOT_RUN_BY_REVIEWER",
+    "browser": "NOT_RUN_BY_REVIEWER",
+    "sourceMutation": "NONE",
+    "commitPush": "NONE"
+  }
+}

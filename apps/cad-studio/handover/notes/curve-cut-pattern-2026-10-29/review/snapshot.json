@@ -1,0 +1,31 @@
+{
+  "snapshotUTC": "2026-10-29T14:35:01.515945+00:00",
+  "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+  "head": "d149657cce7d0b7946589e6daa7fb9ff885cb896",
+  "branch": "local/cad-dev",
+  "files": {
+    "packages/barocss-cad/src/features/curve-cut-pattern.ts": "2abc40f9cd7fbb5d744571f6b731c87b736aac252ee60b2fafcae9c70bf58bf4",
+    "packages/barocss-cad/src/part/part-model.ts": "ae1a1fce62e1bbc33575a2131f4f02b0dc1abf47e1947a5e7f0f18b9fbfb5ab7",
+    "packages/barocss-cad-model/src/engine/curveFeaturePattern.ts": "9721677e953caf6df5bf5e69b9ec43be8891a81785f6bc968b5b5aac2ef67d60",
+    "packages/barocss-cad-model/src/engine/wireDoc.ts": "dc9b7520cca11fe84ab9e875580bc2fdddb4cbbd07b548118e341a56a5581755",
+    "packages/barocss-cad-model/src/engine/migrate.ts": "5e5865f56c8f08acc69da5a8231e15f9c3df0edba9bdd78953e0e4d897e3ef98",
+    "packages/barocss-cad-model/src/engine/part.ts": "172fd573abd0cc17b7dbbab4ec333128c092bd6c4ffd47e0ca0a3f6da7f6c00c",
+    "packages/barocss-cad-model/src/app/editFields.ts": "20ed6f229669e399a73aa4c68e06edfea6c9229eb844a41508b131d3817d328c",
+    "packages/barocss-cad-model/src/chat/part/features.ts": "5f87d30018fa613dc646a4ae6fbbf47fc12911c9b7bf0f08a1474ad218027dab",
+    "apps/cad-studio/src/App.tsx": "c77c17f039db3212bcc4e4a3c9343dc23daff19291fc30035777c2bf08542093",
+    "apps/cad-studio/src/ui/NodeEditor.tsx": "a3334c61bba344e294787593c328af3cecc80d4ddeb4408f749347db5028d5ba",
+    "apps/cad-studio/src/app/directCurveCandidate.ts": "a7e4df38d1a0c3eb753f13b8e1b3bc7557ab7b38faaa8d90c08993cacfc90825",
+    "packages/barocss-cad-model/src/engine/flatten.ts": "8578ed25cf652130ed0162fc062c9a47ed514fd0efb8f70c920479ec4dde37e3",
+    "packages/barocss-cad-model/src/assembly/edit.ts": "ac41d6d333d5d87818453e377e78d746ed9a5cd98a2fe0b9367713bac39dcd97",
+    "packages/barocss-cad-model/src/assembly/definitions.ts": "82b3dd95cce9416af05bb03816c0bc776bfa3b0bcf919b5350ba10081ef08f16"
+  },
+  "proof": {
+    "sourceReview": "COMPLETE_INITIAL_SNAPSHOT",
+    "lightArithmeticProbe": "PASS_REPRODUCED_ENDPOINT_EXTRAPOLATION",
+    "tests": "NOT_RUN_BY_REVIEWER",
+    "browser": "NOT_RUN_BY_REVIEWER",
+    "build": "NOT_RUN_BY_REVIEWER",
+    "sourceMutation": "NONE",
+    "commitPush": "NONE"
+  }
+}

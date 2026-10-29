@@ -1,0 +1,155 @@
+{
+  "head": "05389788049a29b8e7ec50b5285505736407856e",
+  "files": [
+    {
+      "path": "apps/cad-studio/src/App.tsx",
+      "sha256": "7807028f0064a44f9c224716e5819b151de9e07064966a9c16172979703e9420",
+      "matchesGit": true
+    },
+    {
+      "path": "apps/cad-studio/src/app/directCurveCandidate.ts",
+      "sha256": "4c7d190d392245376e7105c6f2d9bc4d5d3e7b543c44dda059a7b462e838ad2a",
+      "matchesGit": true
+    },
+    {
+      "path": "apps/cad-studio/src/ui/NodeEditor.tsx",
+      "sha256": "a3334c61bba344e294787593c328af3cecc80d4ddeb4408f749347db5028d5ba",
+      "matchesGit": true
+    },
+    {
+      "path": "apps/cad-studio/test/chat.test.ts",
+      "sha256": "8e7dd671b9b8db45b5e94eff53328a1b4fc91c6f7b5a7749a4942fde371df7e0",
+      "matchesGit": true
+    },
+    {
+      "path": "apps/cad-studio/test/curve-cut-pattern-browser.mjs",
+      "sha256": "ee96511ed6f75d5627f063414ec256aa8954f657ec082f9ea193f2cbe1b03016",
+      "matchesGit": true
+    },
+    {
+      "path": "apps/cad-studio/test/direct-curve-candidate.test.ts",
+      "sha256": "368c6fdd3b2c856ca014e0d20bcaccd51a9e86c5ca24313aa0a131de22add20d",
+      "matchesGit": true
+    },
+    {
+      "path": "apps/library-docs/scripts/api-inventory.expected.json",
+      "sha256": "495beb5b6d3b69f5a10b096136e9a2e0838b221d0765bf928d018a3049ffed89",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad-model/README.md",
+      "sha256": "a48e9a6876d47a2b75a339115c6cd67a0c530c60d6e83939041d2bd76e63c9ca",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/api/index.ts",
+      "sha256": "e149403f2d647efeba7dd3376cf8a0c356faed94d858215ac4a853f398bdef31",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/api/studio.ts",
+      "sha256": "815f8c8143705e67b93de880bdf88629ce037a0eeaec84f874b38f9882b95f65",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/app/commands.ts",
+      "sha256": "957fbf527c9c86af122069a37e05604062b249b5003a4b69542c5f18c6093a28",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/app/editFields.ts",
+      "sha256": "80dc0be3c8cc7145120db441a0140cfa75fe027aa8cf673f0f583cab9c508a26",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/assembly/definitions.ts",
+      "sha256": "028c0b1636b666bd36897621cb00eb216ff786ea2157943e8b82b74cce54b87a",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/assembly/edit.ts",
+      "sha256": "003a6b3b714dc5dbf53695c82197d13906c613d8573823479e4fa9047e343745",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/chat/features.ts",
+      "sha256": "f293e1685b1edb86b0b184f53377efda2e8c59706f9bd2387a37282d01d66983",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/chat/part/features.ts",
+      "sha256": "5f87d30018fa613dc646a4ae6fbbf47fc12911c9b7bf0f08a1474ad218027dab",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/curveFeaturePattern.ts",
+      "sha256": "9721677e953caf6df5bf5e69b9ec43be8891a81785f6bc968b5b5aac2ef67d60",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/doc.ts",
+      "sha256": "af161de21dd1433e19269724d40df07442296dfbab672fb574a90fd90100d3fd",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/flatten.ts",
+      "sha256": "2520264b117351699a0c99bd351c27b2385f6e5f12f3c3df780d2facf302195f",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/migrate.ts",
+      "sha256": "5e5865f56c8f08acc69da5a8231e15f9c3df0edba9bdd78953e0e4d897e3ef98",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/part.ts",
+      "sha256": "172fd573abd0cc17b7dbbab4ec333128c092bd6c4ffd47e0ca0a3f6da7f6c00c",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/wireDoc.ts",
+      "sha256": "dc9b7520cca11fe84ab9e875580bc2fdddb4cbbd07b548118e341a56a5581755",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad-model/test/api-curve-feature-pattern.test.ts",
+      "sha256": "f31870711cbb37c08aa4730a15e05c9dacaea405ee44a21eb9320679c654eef0",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad/src/api/index.ts",
+      "sha256": "eab3effb0de09ae2fd35d7ed9172c516d501acf613f777a8c0e64e64aaab29f7",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad/src/api/kernel.ts",
+      "sha256": "f970ddd00b18c6dbba3e030a98c7b16e1d815059df34c3acae6e8a8d73f1fe10",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad/src/api/part.ts",
+      "sha256": "9e8d77c07305f90c1e30a7bc45ddbe528aa288b77cc8252c77c5f438a886c6c3",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad/src/api/spec.ts",
+      "sha256": "232b14660a32c8bdf07434dccf666b887c969923768ff062828fea4686393a08",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad/src/features/curve-cut-pattern.ts",
+      "sha256": "2abc40f9cd7fbb5d744571f6b731c87b736aac252ee60b2fafcae9c70bf58bf4",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad/src/part/part-model.ts",
+      "sha256": "ae1a1fce62e1bbc33575a2131f4f02b0dc1abf47e1947a5e7f0f18b9fbfb5ab7",
+      "matchesGit": true
+    },
+    {
+      "path": "packages/barocss-cad/test/curve-cut-pattern.test.mjs",
+      "sha256": "5b4b2c517426e5a511e5d20721e4f502a69d86815d539c6ec72044733ff528f0",
+      "matchesGit": true
+    }
+  ]
+}

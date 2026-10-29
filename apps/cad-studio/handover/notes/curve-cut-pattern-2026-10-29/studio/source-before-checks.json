@@ -1,0 +1,12 @@
+{
+  "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+  "branch": "local/cad-dev",
+  "head": "d149657cce7d0b7946589e6daa7fb9ff885cb896",
+  "files": {
+    "apps/cad-studio/src/App.tsx": "c77c17f039db3212bcc4e4a3c9343dc23daff19291fc30035777c2bf08542093",
+    "apps/cad-studio/src/ui/NodeEditor.tsx": "a3334c61bba344e294787593c328af3cecc80d4ddeb4408f749347db5028d5ba",
+    "apps/cad-studio/src/app/directCurveCandidate.ts": "a7e4df38d1a0c3eb753f13b8e1b3bc7557ab7b38faaa8d90c08993cacfc90825",
+    "apps/cad-studio/test/direct-curve-candidate.test.ts": "e400ed050d09a3e4be5ba1dbb3ab5eebd2e8eb2ee79380645a01141bf2bec6f6"
+  },
+  "checks": "NOT_RUN - waiting for shared validation slot"
+}

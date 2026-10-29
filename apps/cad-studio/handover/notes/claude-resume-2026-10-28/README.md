@@ -3,6 +3,14 @@
 The owner asked: "지금까지 하던거 멈추고 인수인계 할 수 있도록 해줘". This note lets the next session continue the
 kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-10-27 to 2026-10-28.
 
+## Latest D334 checkpoint — 2026-10-29
+
+- Delivered07 remains bounded-complete. D333 rectangular cut grids and D334 fixed-orientation open-polyline cut patterns now cover two08 profiles. Continue remaining08 before09; Electron execution stays queued under15.
+- D334 source: `10a2b99b6`; actual Studio command/evaluation context repair: `eabb827b9`; current-geometry decoder and saved-prefix live-edit driver: `053897880`. See [qualification](../curve-cut-pattern-2026-10-29/qualification.json) for source, checks, native prefixes/tail and retained failures.
+- Whole Kernel2218 PASS/6 existing SKIP precedes the endpoint arithmetic repair; final rebuilt path7, affected Model14/types and Studio cache-focused7/types/build pass. Earlier Model36/Studio55/chat23 remain separate overlapping receipts.
+- Actual WebGPU creation/edit/file prefix and resumed live-path edit tail qualify the bounded profile. Preserve both earlier browser FAIL receipts; do not call this one clean whole-flow run. No broader geometry, full Model/Studio matrix, performance, remote CI or release acceptance.
+- This exact worktree and `local/cad-dev` remain authoritative. Normal per-feature push is authorized; no PR/release. Older next-step entries below are historical. Next decision: D335.
+
 ## Latest D324 checkpoint — 2026-10-29
 
 - Viewer-private revision rejects pending GPU pick after accepted active instance/membership change; original unmap/camera/clip/base/serial behavior remains. Existing @internal sceneMoved has3 reviewed optional-argument inventory declaration changes, not an unchanged API claim.

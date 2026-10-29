@@ -1,0 +1,40 @@
+{
+  "purpose": "Review only, no inventory or expected source mutation",
+  "normalization": "TypeScript internal well-known-symbol allocation IDs and AST union order only. No intersection/overload/member/array order normalization.",
+  "added": [
+    "[\"@barocss/cad\",\"./api\",\"CurveFeaturePatternOptions\",\"type\"]",
+    "[\"@barocss/cad\",\"./api\",\"CurveFeaturePatternPath\",\"type\"]",
+    "[\"@barocss/cad\",\"./api\",\"RawNurbsPath\",\"type\"]",
+    "[\"@barocss/cad\",\"./api\",\"curveFeaturePatternSpec\",\"value\"]",
+    "[\"@barocss/cad-model\",\"./api\",\"CurveFeaturePatternOptions\",\"type\"]",
+    "[\"@barocss/cad-model\",\"./api\",\"CurveFeaturePatternPath\",\"type\"]",
+    "[\"@barocss/cad-model\",\"./api\",\"RawNurbsPath\",\"type\"]",
+    "[\"@barocss/cad-model\",\"./api/index\",\"CurveFeaturePatternOptions\",\"type\"]",
+    "[\"@barocss/cad-model\",\"./api/index\",\"CurveFeaturePatternPath\",\"type\"]",
+    "[\"@barocss/cad-model\",\"./api/index\",\"RawNurbsPath\",\"type\"]",
+    "[\"@barocss/cad-model\",\"./engine/curveFeaturePattern\",\"CurveFeaturePatternPath\",\"type\"]",
+    "[\"@barocss/cad-model\",\"./engine/curveFeaturePattern\",\"affectedCurveFeaturePatterns\",\"value\"]",
+    "[\"@barocss/cad-model\",\"./engine/curveFeaturePattern\",\"curveFeaturePatternProblem\",\"value\"]",
+    "[\"@barocss/cad-model\",\"./engine/curveFeaturePattern\",\"curvePatternDocumentProblem\",\"value\"]",
+    "[\"@barocss/cad-model\",\"./engine/curveFeaturePattern\",\"curvePatternPathLength\",\"value\"]",
+    "[\"@barocss/cad-model\",\"./engine/curveFeaturePattern\",\"eligibleCurvePatternPaths\",\"value\"]",
+    "[\"@barocss/cad-model\",\"./engine/curveFeaturePattern\",\"resolveCurveFeaturePatternPath\",\"value\"]"
+  ],
+  "removed": [],
+  "semanticChanged": [
+    "[\"@barocss/cad\",\".\",\"CadPartFeature\",\"type\"]",
+    "[\"@barocss/cad\",\".\",\"CadPartSnapshot\",\"type\"]",
+    "[\"@barocss/cad\",\"./api\",\"FeatureSpec\",\"type\"]",
+    "[\"@barocss/cad\",\"./api\",\"KernelPart\",\"type+value\"]",
+    "[\"@barocss/cad\",\"./api\",\"Part\",\"type+value\"]",
+    "[\"@barocss/cad-model\",\"./api\",\"StudioPart\",\"type+value\"]",
+    "[\"@barocss/cad-model\",\"./api/index\",\"StudioPart\",\"type+value\"]",
+    "[\"@barocss/cad-model\",\"./api/part\",\"StudioPart\",\"type+value\"]",
+    "[\"@barocss/cad-model\",\"./app/commands\",\"Ctx\",\"type\"]",
+    "[\"@barocss/cad-model\",\"./app/editFields\",\"EditScope\",\"type\"]",
+    "[\"@barocss/cad-model\",\"./engine/doc\",\"ModelNode\",\"type\"]",
+    "[\"@barocss/cad-model\",\"./engine/doc\",\"isSolidNode\",\"value\"]",
+    "[\"@barocss/cad-model\",\"./team/team\",\"VerifierView\",\"type\"]"
+  ],
+  "reviewConclusion": "17 added exposure rows; no removal. Twelve changed API rows carry the new feature, method or context; VerifierView only reorders existing property declarations. Other raw differences are TypeScript internal symbol IDs or union order. Core result change is only snapshot.features feature union."
+}

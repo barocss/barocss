@@ -16519,3 +16519,49 @@ Root views six-hole applied and four-hole fresh-open captures. Featurec99cb121c;
 No fullModel/Studio/GPU/Viewer/assembly, wholeCG2, perf, naturalfailure, remoteCI/release or commercial
 acceptance. Post-assembly docs check exits0 (68pages/55shots/4811KB/860labels). Evidence:
 notes/rectangular-cut-pattern-2026-10-29/qualification.json. IncomingAPIboundary intake is separate.
+
+
+## D334 — Repeat the original cut along an open polyline (2026-10-29)
+
+Qualify one fixed-orientation CUT pattern under08. Retain the original CUT and translate its tools by
+point(k*spacing)-pathStart without rotation. Admit open degree1 unit-weight raw paths or exact-midpoint
+degree2 unit-weight C0 straight spans, at most64 native controls. Count1..64 includes the original;
+positive spacing<=10000 binds in Model, while count binding refuses PARAMETER_UNBINDABLE. No extension
+epsilon or extrapolation. Kernel raw-only references refuse typed CAPABILITY; Model also resolves
+stable base-only {objectId} from current direct geometry each evaluation. Consumed-source changes use
+the existing candidate Worker before commit. Placed/flatten/copy/revision helpers preflight before
+source loss. Failure/Cancel/Stop/Open ownership is reused. No dependency/schema/WASM change.
+
+Kernel whole2218PASS/0FAIL/6existingSKIP (2224total) precedes the final endpoint snap; retained helper
+bytes identify that scope. Final rebuild and focused7PASS cover the repair. Earlier actor17PASS and
+build/types/lint remain scoped. Model affected36, positive5 and Studiochat23 pass as overlapping runs;
+root review fixes14 and final Modeltypes pass after retained TS4104 repair. Studio initial55/types/
+build/lint precede cache repair; final cache-focused7/types/build/lint pass. Four independent review
+findings are SOURCE_RESOLVED, with reviewer runtime NOT_RUN. Retain first TS2352, tool-path
+MODULE_NOT_FOUND, fixture-label and boolean-widening failures. Root/driver lint0errors1consolewarning;
+agent-tools/refusals exit0. API six-rule SCOPED_PASS remains bounded: raw390changed, reviewed17added,
+0removed,12actual API changes plus VerifierView property order. Other raw differences are TypeScript
+internal well-known-symbol IDs and union order; keep inventory instability under existing16/R7.
+
+Actual native-first FAIL exposes stale Studio evaluated memo: public exact five-pole L path exists,
+but Path choices are empty. Studio fix uses semantic live-geometry key and current-command direct
+context. Retake first10states pass seed23920/public path/preview/count6 refusal/Cancel/retry/Apply23600/
+UndoRedo/SavefreshOpen/count4=23680/SavefreshOpen. Retake remains FAIL after actual Move because the
+driver assumes one curve in the transformed source; two are valid. Decoder probePASS selects current
+object.geometry through public compileCadModel. RESUME_LIVE_PATH_TAIL PASS reopens count4, checks
+Move[3,4,0] invariant mass/centroid and UndoRedo, consumed-path Delete refusal with no Undo entry,
+valid Move[-2,1,0] retry/UndoRedo, Stretch[2,1,1] same23680volume but independent changed centroid and
+holes[8,8],[16,8],[24,8],[32,8], UndoRedo and SavefreshOpen. Independent stock-minus-prisms volume and
+centroid tolerance1e-7. Root views applied five-hole and fresh-open four-hole captures. Three receipts
+record0page/console errors/sourcechanges and CLOSED contexts/browser/server; one browser/serialcontexts.
+One bounded profile across retained prefixes+tail, not a clean whole-flow PASS or whole08 completion.
+
+First/retake before-after capsules match30/30 listed inputs. Tail pre-launch commit/capsule command
+failed from mixed cwd/path; no commit occurred. Planned driver header differs from prior capsule
+(29/30); startup captures actual30 during the run and final30/30match. No edits during flows. Final
+listed30match Git; capsules do not attest the full served graph. Hashes prove integrity, not geometry.
+Source10a2b99b6; contextfixeabb827b9; driverfollowup053897880. Full SHAs and retained evidence are in
+notes/curve-cut-pattern-2026-10-29/qualification.json. Documentation assembly has its own coordinator
+check. No real native Boolean failure, stale/Stop whole matrix, full final suites, performance,
+remoteCI/release/commercial or wholeCG2 acceptance. Continue remaining08 before09. Electron15 stays
+queued with no implementation; no new queue.

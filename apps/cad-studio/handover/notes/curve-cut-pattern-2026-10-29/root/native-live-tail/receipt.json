@@ -1,0 +1,1154 @@
+{
+  "status": "PASS",
+  "profiles": 1,
+  "backend": "webgpu",
+  "states": [
+    {
+      "label": "resume-count4-prefix",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              8
+            ],
+            "max": [
+              4,
+              10
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 4,
+                "d": 2,
+                "h": 10,
+                "x": 0,
+                "y": 8,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "translate",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "offset": [
+              8,
+              0,
+              0
+            ],
+            "id": "n4"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 4,
+              "side": "solid"
+            },
+            "id": "n5"
+          },
+          {
+            "kind": "curve-feature-pattern",
+            "parent": {
+              "node": 5,
+              "side": "solid"
+            },
+            "path": {
+              "objectId": "obj_1"
+            },
+            "spacing": 8,
+            "count": 4,
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7,
+        "direct": {
+          "sources": {
+            "src_1": "@model sketch {\n  version: 0;\n  length-unit: mm;\n  @curve #c1 { type: nurbs; degree: 2; knots: [0,0,0,1,1,2,2,2]; control-points: [[0,0,0],[8,0,0],[16,0,0],[16,8,0],[16,16,0]]; weights: [1,1,1,1,1]; }\n}"
+          },
+          "objects": [
+            {
+              "id": "obj_1",
+              "name": "Sketch curve 1 · c1",
+              "source": "src_1",
+              "geometry": "c1"
+            }
+          ]
+        }
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 23679.999999999993,
+            "centroid": [
+              30.135135135135165,
+              20.12162162162163,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "selection": {
+        "selection": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "bodies": 1,
+        "active": null,
+        "sketch": false,
+        "measure": false
+      },
+      "inspector": "PART · 1 bodyMass 63.9 gCentre of mass 30.14, 20.12, 5Bounds 60 × 40 × 10 box",
+      "feedback": []
+    },
+    {
+      "label": "11-consumed-path-move",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              8
+            ],
+            "max": [
+              4,
+              10
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 4,
+                "d": 2,
+                "h": 10,
+                "x": 0,
+                "y": 8,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "translate",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "offset": [
+              8,
+              0,
+              0
+            ],
+            "id": "n4"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 4,
+              "side": "solid"
+            },
+            "id": "n5"
+          },
+          {
+            "kind": "curve-feature-pattern",
+            "parent": {
+              "node": 5,
+              "side": "solid"
+            },
+            "path": {
+              "objectId": "obj_1"
+            },
+            "spacing": 8,
+            "count": 4,
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7,
+        "direct": {
+          "sources": {
+            "src_1": "@model sketch {\n  version: 0;\n  length-unit: mm;\n  @curve #c1 { type: nurbs; degree: 2; knots: [0,0,0,1,1,2,2,2]; control-points: [[0,0,0],[8,0,0],[16,0,0],[16,8,0],[16,16,0]]; weights: [1,1,1,1,1]; }\n}",
+            "src_2": "@model moved_1 { version:0; length-unit:mm; @curve #c1 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[0,0,0],[8,0,0],[16,0,0],[16,8,0],[16,16,0]]; weights:[1,1,1,1,1]; } @curve #moved_1 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[3,4,0],[11,4,0],[19,4,0],[19,12,0],[19,20,0]]; weights:[1,1,1,1,1]; } }\n"
+          },
+          "objects": [
+            {
+              "id": "obj_1",
+              "name": "Sketch curve 1 · c1",
+              "source": "src_2",
+              "geometry": "moved_1"
+            }
+          ]
+        }
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 23679.999999999993,
+            "centroid": [
+              30.135135135135165,
+              20.12162162162163,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "selection": {
+        "selection": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "bodies": 1,
+        "active": null,
+        "sketch": false,
+        "measure": false
+      },
+      "feedback": []
+    },
+    {
+      "label": "12-path-move-redo",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              8
+            ],
+            "max": [
+              4,
+              10
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 4,
+                "d": 2,
+                "h": 10,
+                "x": 0,
+                "y": 8,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "translate",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "offset": [
+              8,
+              0,
+              0
+            ],
+            "id": "n4"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 4,
+              "side": "solid"
+            },
+            "id": "n5"
+          },
+          {
+            "kind": "curve-feature-pattern",
+            "parent": {
+              "node": 5,
+              "side": "solid"
+            },
+            "path": {
+              "objectId": "obj_1"
+            },
+            "spacing": 8,
+            "count": 4,
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7,
+        "direct": {
+          "sources": {
+            "src_1": "@model sketch {\n  version: 0;\n  length-unit: mm;\n  @curve #c1 { type: nurbs; degree: 2; knots: [0,0,0,1,1,2,2,2]; control-points: [[0,0,0],[8,0,0],[16,0,0],[16,8,0],[16,16,0]]; weights: [1,1,1,1,1]; }\n}",
+            "src_2": "@model moved_1 { version:0; length-unit:mm; @curve #c1 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[0,0,0],[8,0,0],[16,0,0],[16,8,0],[16,16,0]]; weights:[1,1,1,1,1]; } @curve #moved_1 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[3,4,0],[11,4,0],[19,4,0],[19,12,0],[19,20,0]]; weights:[1,1,1,1,1]; } }\n"
+          },
+          "objects": [
+            {
+              "id": "obj_1",
+              "name": "Sketch curve 1 · c1",
+              "source": "src_2",
+              "geometry": "moved_1"
+            }
+          ]
+        }
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 23679.999999999993,
+            "centroid": [
+              30.135135135135165,
+              20.12162162162163,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "selection": {
+        "selection": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "bodies": 1,
+        "active": null,
+        "sketch": false,
+        "measure": false
+      },
+      "feedback": []
+    },
+    {
+      "label": "13-consumed-path-delete-refused",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              8
+            ],
+            "max": [
+              4,
+              10
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 4,
+                "d": 2,
+                "h": 10,
+                "x": 0,
+                "y": 8,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "translate",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "offset": [
+              8,
+              0,
+              0
+            ],
+            "id": "n4"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 4,
+              "side": "solid"
+            },
+            "id": "n5"
+          },
+          {
+            "kind": "curve-feature-pattern",
+            "parent": {
+              "node": 5,
+              "side": "solid"
+            },
+            "path": {
+              "objectId": "obj_1"
+            },
+            "spacing": 8,
+            "count": 4,
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7,
+        "direct": {
+          "sources": {
+            "src_1": "@model sketch {\n  version: 0;\n  length-unit: mm;\n  @curve #c1 { type: nurbs; degree: 2; knots: [0,0,0,1,1,2,2,2]; control-points: [[0,0,0],[8,0,0],[16,0,0],[16,8,0],[16,16,0]]; weights: [1,1,1,1,1]; }\n}",
+            "src_2": "@model moved_1 { version:0; length-unit:mm; @curve #c1 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[0,0,0],[8,0,0],[16,0,0],[16,8,0],[16,16,0]]; weights:[1,1,1,1,1]; } @curve #moved_1 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[3,4,0],[11,4,0],[19,4,0],[19,12,0],[19,20,0]]; weights:[1,1,1,1,1]; } }\n"
+          },
+          "objects": [
+            {
+              "id": "obj_1",
+              "name": "Sketch curve 1 · c1",
+              "source": "src_2",
+              "geometry": "moved_1"
+            }
+          ]
+        }
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 23679.999999999993,
+            "centroid": [
+              30.135135135135165,
+              20.12162162162163,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "selection": {
+        "selection": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "bodies": 1,
+        "active": null,
+        "sketch": false,
+        "measure": false
+      },
+      "feedback": [
+        "infoDirect geometry not changed[VALUE] Path cut pattern: the path object is missing or ambiguous.close"
+      ]
+    },
+    {
+      "label": "14-valid-path-retry",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              8
+            ],
+            "max": [
+              4,
+              10
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 4,
+                "d": 2,
+                "h": 10,
+                "x": 0,
+                "y": 8,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "translate",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "offset": [
+              8,
+              0,
+              0
+            ],
+            "id": "n4"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 4,
+              "side": "solid"
+            },
+            "id": "n5"
+          },
+          {
+            "kind": "curve-feature-pattern",
+            "parent": {
+              "node": 5,
+              "side": "solid"
+            },
+            "path": {
+              "objectId": "obj_1"
+            },
+            "spacing": 8,
+            "count": 4,
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7,
+        "direct": {
+          "sources": {
+            "src_1": "@model sketch {\n  version: 0;\n  length-unit: mm;\n  @curve #c1 { type: nurbs; degree: 2; knots: [0,0,0,1,1,2,2,2]; control-points: [[0,0,0],[8,0,0],[16,0,0],[16,8,0],[16,16,0]]; weights: [1,1,1,1,1]; }\n}",
+            "src_2": "@model moved_1 { version:0; length-unit:mm; @curve #c1 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[0,0,0],[8,0,0],[16,0,0],[16,8,0],[16,16,0]]; weights:[1,1,1,1,1]; } @curve #moved_1 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[3,4,0],[11,4,0],[19,4,0],[19,12,0],[19,20,0]]; weights:[1,1,1,1,1]; } }\n",
+            "src_3": "@model moved_2 { version:0; length-unit:mm; @curve #moved_1 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[3,4,0],[11,4,0],[19,4,0],[19,12,0],[19,20,0]]; weights:[1,1,1,1,1]; } @curve #moved_2 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[1,5,0],[9,5,0],[17,5,0],[17,13,0],[17,21,0]]; weights:[1,1,1,1,1]; } }\n"
+          },
+          "objects": [
+            {
+              "id": "obj_1",
+              "name": "Sketch curve 1 · c1",
+              "source": "src_3",
+              "geometry": "moved_2"
+            }
+          ]
+        }
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 23679.999999999993,
+            "centroid": [
+              30.135135135135165,
+              20.12162162162163,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "selection": {
+        "selection": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "bodies": 1,
+        "active": null,
+        "sketch": false,
+        "measure": false
+      },
+      "feedback": [
+        "infoDirect geometry not changed[VALUE] Path cut pattern: the path object is missing or ambiguous.close"
+      ]
+    },
+    {
+      "label": "15-same-volume-new-centroid",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              8
+            ],
+            "max": [
+              4,
+              10
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 4,
+                "d": 2,
+                "h": 10,
+                "x": 0,
+                "y": 8,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "translate",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "offset": [
+              8,
+              0,
+              0
+            ],
+            "id": "n4"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 4,
+              "side": "solid"
+            },
+            "id": "n5"
+          },
+          {
+            "kind": "curve-feature-pattern",
+            "parent": {
+              "node": 5,
+              "side": "solid"
+            },
+            "path": {
+              "objectId": "obj_1"
+            },
+            "spacing": 8,
+            "count": 4,
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7,
+        "direct": {
+          "sources": {
+            "src_1": "@model sketch {\n  version: 0;\n  length-unit: mm;\n  @curve #c1 { type: nurbs; degree: 2; knots: [0,0,0,1,1,2,2,2]; control-points: [[0,0,0],[8,0,0],[16,0,0],[16,8,0],[16,16,0]]; weights: [1,1,1,1,1]; }\n}",
+            "src_2": "@model moved_1 { version:0; length-unit:mm; @curve #c1 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[0,0,0],[8,0,0],[16,0,0],[16,8,0],[16,16,0]]; weights:[1,1,1,1,1]; } @curve #moved_1 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[3,4,0],[11,4,0],[19,4,0],[19,12,0],[19,20,0]]; weights:[1,1,1,1,1]; } }\n",
+            "src_3": "@model moved_2 { version:0; length-unit:mm; @curve #moved_1 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[3,4,0],[11,4,0],[19,4,0],[19,12,0],[19,20,0]]; weights:[1,1,1,1,1]; } @curve #moved_2 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[1,5,0],[9,5,0],[17,5,0],[17,13,0],[17,21,0]]; weights:[1,1,1,1,1]; } }\n",
+            "src_4": "@model moved_3 { version:0; length-unit:mm; @curve #moved_2 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[1,5,0],[9,5,0],[17,5,0],[17,13,0],[17,21,0]]; weights:[1,1,1,1,1]; } @curve #moved_3 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[-7,5,0],[9,5,0],[25,5,0],[25,13,0],[25,21,0]]; weights:[1,1,1,1,1]; } }\n"
+          },
+          "objects": [
+            {
+              "id": "obj_1",
+              "name": "Sketch curve 1 · c1",
+              "source": "src_4",
+              "geometry": "moved_3"
+            }
+          ]
+        }
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 23680,
+            "centroid": [
+              30.108108108108127,
+              20.148648648648653,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "selection": {
+        "selection": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "bodies": 1,
+        "active": null,
+        "sketch": false,
+        "measure": false
+      },
+      "feedback": [
+        "infoDirect geometry not changed[VALUE] Path cut pattern: the path object is missing or ambiguous.close"
+      ]
+    },
+    {
+      "label": "16-live-path-fresh-open",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              8
+            ],
+            "max": [
+              4,
+              10
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 4,
+                "d": 2,
+                "h": 10,
+                "x": 0,
+                "y": 8,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "translate",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "offset": [
+              8,
+              0,
+              0
+            ],
+            "id": "n4"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 4,
+              "side": "solid"
+            },
+            "id": "n5"
+          },
+          {
+            "kind": "curve-feature-pattern",
+            "parent": {
+              "node": 5,
+              "side": "solid"
+            },
+            "path": {
+              "objectId": "obj_1"
+            },
+            "spacing": 8,
+            "count": 4,
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7,
+        "direct": {
+          "sources": {
+            "src_1": "@model sketch {\n  version: 0;\n  length-unit: mm;\n  @curve #c1 { type: nurbs; degree: 2; knots: [0,0,0,1,1,2,2,2]; control-points: [[0,0,0],[8,0,0],[16,0,0],[16,8,0],[16,16,0]]; weights: [1,1,1,1,1]; }\n}",
+            "src_2": "@model moved_1 { version:0; length-unit:mm; @curve #c1 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[0,0,0],[8,0,0],[16,0,0],[16,8,0],[16,16,0]]; weights:[1,1,1,1,1]; } @curve #moved_1 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[3,4,0],[11,4,0],[19,4,0],[19,12,0],[19,20,0]]; weights:[1,1,1,1,1]; } }\n",
+            "src_3": "@model moved_2 { version:0; length-unit:mm; @curve #moved_1 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[3,4,0],[11,4,0],[19,4,0],[19,12,0],[19,20,0]]; weights:[1,1,1,1,1]; } @curve #moved_2 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[1,5,0],[9,5,0],[17,5,0],[17,13,0],[17,21,0]]; weights:[1,1,1,1,1]; } }\n",
+            "src_4": "@model moved_3 { version:0; length-unit:mm; @curve #moved_2 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[1,5,0],[9,5,0],[17,5,0],[17,13,0],[17,21,0]]; weights:[1,1,1,1,1]; } @curve #moved_3 { type:nurbs; degree:2; knots:[0,0,0,1,1,2,2,2]; control-points:[[-7,5,0],[9,5,0],[25,5,0],[25,13,0],[25,21,0]]; weights:[1,1,1,1,1]; } }\n"
+          },
+          "objects": [
+            {
+              "id": "obj_1",
+              "name": "Sketch curve 1 · c1",
+              "source": "src_4",
+              "geometry": "moved_3"
+            }
+          ]
+        }
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 23680,
+            "centroid": [
+              30.108108108108127,
+              20.148648648648653,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "selection": {
+        "selection": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "bodies": 1,
+        "active": null,
+        "sketch": false,
+        "measure": false
+      },
+      "inspector": "PART · 1 bodyMass 63.9 gCentre of mass 30.11, 20.15, 5Bounds 60 × 40 × 10 box",
+      "feedback": []
+    }
+  ],
+  "errors": [],
+  "consoleErrors": [],
+  "changes": [],
+  "files": [
+    {
+      "file": "/tmp/d334-root/native-live-tail/live-path-edited.bcad",
+      "sha256": "9552fff5f190d3319e1fbb405c71407b6429630c6735f57eb17180672dc03d87"
+    }
+  ],
+  "cleanup": [
+    "CONTEXT_CLOSED",
+    "CONTEXT_CLOSED",
+    "BROWSER_CLOSED",
+    "SERVER_CLOSED"
+  ],
+  "mode": "RESUME_LIVE_PATH_TAIL",
+  "resume": {
+    "file": "/tmp/d334-root/native-retake/edited.bcad",
+    "sha256": "b2bb417592d18d54c28389d19a5502f67ccf1ab6e87dc6971ac6e50c70680fc8",
+    "prefix": "NOT_RERUN: original creation/edit/file receipt retained separately"
+  },
+  "phase": "same-volume path edit centroid"
+}

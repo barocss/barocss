@@ -1,0 +1,110 @@
+{
+  "checkpoint": "D334 Kernel source freeze",
+  "baseSHA": "d149657cce7d0b7946589e6daa7fb9ff885cb896",
+  "node": "22.19.0",
+  "files": {
+    "packages/barocss-cad/src/api/index.ts": "eab3effb0de09ae2fd35d7ed9172c516d501acf613f777a8c0e64e64aaab29f7",
+    "packages/barocss-cad/src/api/kernel.ts": "f970ddd00b18c6dbba3e030a98c7b16e1d815059df34c3acae6e8a8d73f1fe10",
+    "packages/barocss-cad/src/api/part.ts": "9e8d77c07305f90c1e30a7bc45ddbe528aa288b77cc8252c77c5f438a886c6c3",
+    "packages/barocss-cad/src/api/spec.ts": "232b14660a32c8bdf07434dccf666b887c969923768ff062828fea4686393a08",
+    "packages/barocss-cad/src/part/part-model.ts": "ae1a1fce62e1bbc33575a2131f4f02b0dc1abf47e1947a5e7f0f18b9fbfb5ab7",
+    "packages/barocss-cad/src/features/curve-cut-pattern.ts": "3cc37f62baaacb3f14916389d776b99f964af93d01cc11c355c8479e1e6a3591",
+    "packages/barocss-cad/test/curve-cut-pattern.test.mjs": "f61d0805fbf0452e751b5a5b02ade776f0fc6ba5cb60e7baf4220f81f34b7ce3"
+  },
+  "validation": {
+    "build": "PASS",
+    "type-check": "PASS",
+    "lint": "PASS",
+    "focused": {
+      "pass": 17,
+      "fail": 0,
+      "skip": 0,
+      "curve": 6,
+      "linear": 4,
+      "rectangular": 7
+    },
+    "browser": "NOT_RUN",
+    "commit": "NOT_RUN"
+  },
+  "retainedFirstFailure": {
+    "log": "build-first.log",
+    "code": "TS2352",
+    "repair": "RawNurbsPath structural type alias"
+  },
+  "profile": {
+    "kind": "curve-feature-pattern",
+    "path": "open degree1 unit-weight polyline or exact degree2 unit-weight straight C0 Bezier spans",
+    "rawPoleCap": 64,
+    "copyCap": 64,
+    "countMinimum": 1,
+    "countIncludesOriginal": true,
+    "spacing": "positive <=10000; parameter bind supported",
+    "countParameterBind": "refused",
+    "coordinates": "finite binary64 within +/-10000",
+    "lastDistance": "<= binary64 polyline segment-length sum; no extension epsilon",
+    "orientation": "fixed original cutter orientation",
+    "anchor": "point(k*spacing)-pathStart",
+    "quadraticMidpoint": "exact authored binary64 dyadic equality",
+    "objectReference": "Kernel CAPABILITY refusal; Model adapter resolves it",
+    "naming": "original face names + @k",
+    "oracle": {
+      "stock": [
+        60,
+        40,
+        10
+      ],
+      "tool": [
+        4,
+        2,
+        10
+      ],
+      "toolMin": [
+        8,
+        8,
+        0
+      ],
+      "path": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          16,
+          0,
+          0
+        ],
+        [
+          16,
+          16,
+          0
+        ]
+      ],
+      "spacing": 8,
+      "count": 5,
+      "volume": 23600
+    }
+  },
+  "logs": {
+    "build-repair.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "build-first.log": {
+      "sha256": "32e205ed9947acb2d68eee58b042bcc9b3abf48048eb72bec90cba7d2d8baf96",
+      "bytes": 1333
+    },
+    "focused-repair.log": {
+      "sha256": "623457d63dc287ae107d9b6b1067406cc88a9e6d8b171efae522f8630fc20eff",
+      "bytes": 4720
+    },
+    "lint-repair.log": {
+      "sha256": "3c562e8828bade2cfd6b382013ce051a6863efcffffd63750511a4275451dc64",
+      "bytes": 94
+    },
+    "type-repair.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  }
+}
