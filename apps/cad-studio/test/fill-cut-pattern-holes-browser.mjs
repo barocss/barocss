@@ -97,7 +97,10 @@ async function selectTarget() {
 async function worldClick(point) { const pixel = await page.evaluate(point => window.__studioScreenOf?.(point), [...point, 0]); assert.ok(pixel?.length === 2); await page.mouse.click(pixel[0], pixel[1]); }
 async function rectangle(a, b) {
   await page.getByRole('button', { name: 'Rectangle', exact: true }).click(); await worldClick(a); await worldClick(b);
-  for (const [label, value] of [['Corner X', a[0]], ['Corner Y', a[1]], ['Width', b[0] - a[0]], ['Height', b[1] - a[1]]]) await sketch().getByLabel(label, { exact: true }).fill(String(value));
+  // These wrapped labels include their mm suffix and have no aria-label override. Use their rendered public input IDs.
+  for (const [id, value] of [['x', a[0]], ['y', a[1]], ['width', b[0] - a[0]], ['height', b[1] - a[1]]]) {
+    const input = sketch().locator(`input#sk-${id}`); assert.equal(await input.count(), 1); await input.fill(String(value)); assert.equal(await input.inputValue(), String(value));
+  }
 }
 async function triangle(points) {
   await page.getByRole('button', { name: 'Line', exact: true }).click(); for (const point of [...points, points[0]]) await worldClick(point);
