@@ -3,7 +3,7 @@
 // sources and objects; an operation that makes new objects hides the ones it was made from (so they
 // can be shown again), one that refines an object's own source (poles, knots, degree, interval) moves the
 // object to the refined source.
-import { approximateCurvePlain, buildAlignedRationalRuledSurface, buildBezierCoonsSurface, buildMultiSectionLoftSurface, buildTranslationalSweepSurface, type CadAffineMatrix3x4, compileCadModel, type Curve, curveDomain, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide, elevateSourceCurveDegree, elevateSourceSurfaceAxisDegree, evaluateCurve, evaluateCurveCurvature, evaluateSurface, evaluateSurfaceCurvature, exportIGES, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, IGESImportError, importIGES, insertSourceCurveKnot, insertSourceSurfaceKnot, interpolateSurfacePlain, intersectPatches, joinCurves, type Model, removeCurveKnotPlain, reverseCurveWide, reverseSurfaceAxis, reverseTrimmedSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter, type Surface, surfaceDomain, surfaceEvaluator, SurfaceIntersectionError, transformNativeGeometryAffine, TrimmedSurfaceAxisReversalError } from '@barocss/cad';
+import { approximateCurvePlain, buildAlignedRationalRuledSurface, buildBezierCoonsSurface, buildMultiSectionLoftSurface, buildTranslationalSweepSurface, type CadAffineMatrix3x4, compileCadModel, type Curve, curveDomain, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide, elevateSourceCurveDegree, elevateSourceSurfaceAxisDegree, evaluateCurve, evaluateCurveCurvature, evaluateSurface, evaluateSurfaceCurvature, exportIGES, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, IGESImportError, importIGES, insertSourceCurveKnot, insertSourceSurfaceKnot, interpolateSurfacePlain, intersectPatches, joinCurves, type Model, removeCurveKnotPlain, reverseCurveWide, reverseSurfaceAxis, reverseTrimmedSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter, splitTrimmedSurfaceAtParameter, type Surface, surfaceDomain, surfaceEvaluator, SurfaceIntersectionError, transformNativeGeometryAffine, TrimmedSurfaceAxisReversalError, TrimmedSurfaceParameterSplitError } from '@barocss/cad';
 import { curvesSource, surfacesSource } from './curveSource';
 import { keptAt, projectLoop, trimmedMesh, type TrimLoop } from './trim';
 import { nextFreeId } from '../util/ids';
@@ -96,7 +96,7 @@ function wholeSurfaceOf(d: DirectGeometry, id: string, operation: string): Surfa
 }
 
 /** Copy accepted trim metadata before the new direct object is published. */
-function copyReversedTrimLoops(loops: readonly TrimLoop[]): TrimLoop[] {
+function copyTrimLoops(loops: readonly TrimLoop[]): TrimLoop[] {
   const owned: TrimLoop[] = [];
   for (const loop of loops) {
     const uv: [number, number][] = [];
@@ -157,7 +157,29 @@ export const directOps = {
     return refine(d, id, r.source);
   },
   splitSurface(d: DirectGeometry, id: string, axis: 'u' | 'v', p: number) {
-    const s = wholeSurfaceOf(d, id, 'Split surface'), used = usedIds(d), r = splitSurfaceAtParameter(s, { axis, parameter: p, lowerSurfaceId: fresh(used, 'lower'), upperSurfaceId: fresh(used, 'upper') });
+    const picked = selectedSurface(d, id), trims = picked.object.trims;
+    if (trims !== undefined && !Array.isArray(trims)) requireWholeSurface(picked.object, 'Split surface', 'DIRECT_VALUE');
+    if (trims && trims.length > 0) {
+      let matches = 0;
+      for (const candidate of d.objects) if (candidate.id === id) matches++;
+      if (matches !== 1) throw refusal('DIRECT_PICK', 'The selected surface object ID is ambiguous.');
+      const used = usedIds(d), options = { axis, parameter: p, lowerSurfaceId: fresh(used, 'lower'), upperSurfaceId: fresh(used, 'upper') };
+      let r;
+      try { r = splitTrimmedSurfaceAtParameter(picked.surface, trims, options); }
+      catch (e) {
+        if (e instanceof TrimmedSurfaceParameterSplitError) throw refusal('DIRECT_VALUE', e.message);
+        throw e;
+      }
+      // Own every component sidecar before one publication; an empty side creates no object.
+      const made = [];
+      for (const component of r.components) made.push({
+        geometry: component.surfaceId,
+        name: `${picked.object.name} · ${axis} ${component.side} · region ${component.componentIndex + 1}`,
+        trims: copyTrimLoops(component.trimLoops),
+      });
+      return add(d, [id], r.source, made);
+    }
+    const s = picked.surface, used = usedIds(d), r = splitSurfaceAtParameter(s, { axis, parameter: p, lowerSurfaceId: fresh(used, 'lower'), upperSurfaceId: fresh(used, 'upper') });
     return add(d, [id], r.source, [{ geometry: r.lower.id, name: `${nameOf(d, id)} · ${axis} lower` }, { geometry: r.upper.id, name: `${nameOf(d, id)} · ${axis} upper` }]);
   },
   surfaceRegion(d: DirectGeometry, id: string, u: [number, number], v: [number, number]) {
@@ -184,7 +206,7 @@ export const directOps = {
         throw e;
       }
       // Copy the sidecar before publishing the result; the hidden source retains its original trims.
-      const owned = copyReversedTrimLoops(r.trimLoops);
+      const owned = copyTrimLoops(r.trimLoops);
       return add(d, [id], r.source, [{ geometry: r.surface.id, name: `${nameOf(d, id)} · ${axis} reversed`, trims: owned }]);
     }
     const r = reverseSurfaceAxis(picked.surface, options);

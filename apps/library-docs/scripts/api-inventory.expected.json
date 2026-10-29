@@ -4318,7 +4318,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"SELECTION\" | \"REPRESENTABILITY\" | \"MASS\" | \"OWNED\" | \"POSE\"",
+            "type": "\"INPUT\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SELECTION\" | \"MASS\" | \"OWNED\" | \"POSE\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -5210,7 +5210,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"BUDGET\" | \"SELECTION\" | \"REPRESENTABILITY\" | \"MASS\" | \"OWNED\"",
+            "type": "\"INPUT\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SELECTION\" | \"MASS\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -8959,7 +8959,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "{ support: boolean; finiteContainment: \"control-hull-contained\" | \"not-proven\" | \"not-applicable\"; controlPoleUV: Point[]; }"
+                "type": "{ support: boolean; finiteContainment: \"not-applicable\" | \"control-hull-contained\" | \"not-proven\"; controlPoleUV: Point[]; }"
               },
               {
                 "name": "curveDegree",
@@ -10278,7 +10278,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"PARAMETER\" | \"REPRESENTABILITY\" | \"DEPENDENCY\" | \"IDENTITY\" | \"JSON\" | \"OWNED\" | \"REVISION\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"PARAMETER\" | \"DEPENDENCY\" | \"IDENTITY\" | \"JSON\" | \"OWNED\" | \"REVISION\"",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -21234,7 +21234,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"CONTINUITY\" | \"ARITHMETIC\" | \"NATIVE\" | \"TOPOLOGY\" | \"GEOMETRY\" | \"CURVED_ARRANGEMENT\" | \"BUDGET\" | \"SELF_INTERSECTION\" | \"PRISMATIC_SOLID\" | \"PLANAR_ARRANGEMENT\" | \"SURFACE_INTERSECTION\" | \"SOLID_MASS\" | \"TANGENT_FACES\" | \"RADIUS_EXCEEDS_FACE\" | \"RADIUS_EXCEEDS_CURVATURE\" | \"NOT_ANALYTIC_PAIR\" | \"CONTACT_LEAVES_FACE\" | \"APPROX_TOLERANCE_NOT_MET\" | \"SELECTION\" | \"CAPABILITY\" | \"PARAMETER\" | \"REPRESENTABILITY\" | \"FORMAT\" | \"REFERENCE\" | \"LIMIT\" | \"SYNTAX\" | \"FUNCTION_ARGUMENT\" | \"VALUE\" | \"UNIT\" | \"CYCLE\" | \"DEGREE\" | \"DIMENSION\" | \"DIVISION_ZERO\" | \"DUPLICATE\" | \"FIELD\" | \"FUNCTION_CAPTURE\" | \"FUNCTION_RECURSION\" | \"FUNCTION_REFERENCE\" | \"FUNCTION_TYPE\" | \"KIND\" | \"KNOTS\" | \"TYPE\" | \"VERSION\" | \"WEIGHTS\" | \"SUPPORT\" | \"SOURCE\" | \"BINDING\" | \"UNRESOLVED\" | \"MESH_BREP\" | \"INVALID_INPUT\" | \"UNSUPPORTED_PROFILE_SHIFT\" | \"UNSUPPORTED_GEAR_KIND\" | \"PROFILE_BUDGET_EXCEEDED\" | \"ROOT_TRANSITION_UNVALIDATED\" | \"BORE_INTERSECTION\" | \"MATE_INCOMPATIBLE\" | \"UNDERCUT\" | \"INVOLUTE_INTERFERENCE\" | \"TROCHOID_INTERFERENCE\" | \"TRIMMING_INTERFERENCE\" | \"RIM_INTERSECTION\" | \"IDEAL_MODEL\" | \"FIT_TABLE\" | \"FIT_TABLE_MISS\" | \"FIT_FACE\" | \"FIT_PAIR\" | \"GLAND_DIMENSIONS\" | \"SQUEEZE_RANGE\" | \"FILL_RANGE\" | \"STRETCH_RANGE\" | \"SHAFT_STEPS\" | \"KEYSEAT_DIMENSIONS\" | \"GROOVE_DIMENSIONS\" | \"HOLE_DIMENSIONS\" | \"KEY_FIT\" | \"RING_FIT\" | \"PIN_FIT\" | \"SEAT_ABUTMENT\" | \"SEAT_FIT\" | \"UNSUPPORTED_TOOTH_FORM\" | \"TOOTH_FORM\" | \"BELT_GEOMETRY\" | \"SECTION_DIMENSIONS\" | \"CONNECTOR_PLACEMENT\" | \"CONNECTOR_FIT\" | \"CAM_UNDERCUT\" | \"COILS_OVERLAP\" | \"UNSUPPORTED_SPRING_KIND\" | \"LEG_OVERLAP\" | \"DERIVATIVE\" | \"REGULARITY\" | \"NOT_FINITE\" | \"BAD_ENTITY\" | \"BAD_NAME\" | \"DUPLICATE_NAME\" | \"UNKNOWN_LAYER\" | \"UNKNOWN_LINETYPE\" | \"UNKNOWN_STYLE\" | \"UNKNOWN_BLOCK\" | \"BLOCK_CYCLE\" | \"BAD_TEXT\" | \"TEXT_TOO_LONG\" | \"R12_UNSUPPORTED\" | \"R12_NEEDS_TOLERANCE\" | \"ARC\" | \"SOLID\" | \"SECTION\" | \"NOT_A_SHEET\" | \"NON_NORMAL_CUT\" | \"BEND_NOT_CYLINDRICAL\" | \"FLAT_OVERLAPS\" | \"CUT_ACROSS_BEND\" | \"BEND_TABLE_MISS\" | \"SEW\" | \"ARC_MEMBER\" | \"BEAD_ANGLE\" | \"BEAD_KIND\" | \"BEAD_SEAM_NOT_PLANAR\" | \"BEAD_SHARED_UNSUPPORTED\" | \"BEAD_SIZE\" | \"BEND_ANGLE\" | \"BEND_DOES_NOT_FIT\" | \"BEND_RADIUS\" | \"BEND_TABLE\" | \"BUTT_NOT_ON_A_FACE\" | \"BUTT_ON_CURVED_MEMBER\" | \"BUTT_ON_OPEN_SIDE\" | \"CAP_END\" | \"CONE_TOP_CHAMFER_SCOPE\" | \"CONE_TOP_CHAMFER_SIZE\" | \"CORNER_ANGLE\" | \"CORNER_NOT_A_JOINT\" | \"CORNER_NOT_CLEAR\" | \"CORNER_NOT_SQUARE\" | \"DENSITY\" | \"EDGE_NOT_SHEET\" | \"FACE_FILLET_FACE\" | \"FACE_FILLET_FACES\" | \"FACE_FILLET_NOT_CLEAR\" | \"FACE_FILLET_PARALLEL\" | \"FACE_FILLET_RADIUS\" | \"FACE_THREAD_FACE\" | \"FACE_THREAD_NOT_CLEAR\" | \"FACE_THREAD_RELIEF\" | \"FACE_THREAD_SIZE\" | \"FLANGES_COLLIDE\" | \"FULL_ROUND_FACE\" | \"FULL_ROUND_NOT_CLEAR\" | \"GAP_SIZE\" | \"GUSSET_FIT\" | \"MEMBERS_CLASH\" | \"MEMBER_DUPLICATE\" | \"MESH_WALL_THIN\" | \"MITRE_SECTIONS_DIFFER\" | \"NOTCH_CUTTER\" | \"NOT_A_MEMBER\" | \"OBSTRUCTED_ABOVE\" | \"OFFSET_FOLDS\" | \"OPENING_AT_A_VERTEX\" | \"REFERENCE_MOVED\" | \"RELIEF_REQUIRED\" | \"SECTION_TABLE\" | \"SECTION_TABLE_MISS\" | \"SEGMENT_ZERO_LENGTH\" | \"SHEET_CROSSES_ITSELF\" | \"SHEET_IN_PIECES\" | \"SHELL_FACE_KIND\" | \"SHELL_MESH_NOT_CLOSED\" | \"SHELL_NOT_CLOSED\" | \"SHELL_OPENING_NOT_PLANAR\" | \"SHELL_PLANE_NOT_BOUNDING\" | \"SHELL_REGIONS_SHARP\" | \"SHELL_VARIABLE_RADIUS\" | \"SHELL_WALL_UNION\" | \"SKELETON_OVERLAP\" | \"TRIM_EMPTY\" | \"TRIM_LEAVES_PIECES\" | \"TRIM_MISSES\" | \"TRIM_PARALLEL\" | \"VERTEX_BLEND_UNSUPPORTED\" | \"WALL_NEAR_RADIUS\" | \"WALL_TOO_THIN\" | \"AFFINE\" | \"ASSOCIATION\" | \"AXIS\" | \"BAND\" | \"BASIS\" | \"BODY\" | \"BOOLEAN\" | \"BOUNDARY\" | \"BRANCH\" | \"BREP_EULER\" | \"CAP\" | \"CHART\" | \"CLOSURE\" | \"CODEC\" | \"COLLAPSE\" | \"COMPILATION\" | \"CONDITION\" | \"CONDITIONING\" | \"CONFLICT\" | \"CONNECTED\" | \"CONSTRUCTION\" | \"CONTACT\" | \"CONVEXITY\" | \"COVERAGE\" | \"CROSSING\" | \"CUT\" | \"CUT_LIST\" | \"DEGENERATE\" | \"DEGENERATE_GEOMETRY\" | \"DEPENDENCY\" | \"DIRECTORY\" | \"DISTANCE\" | \"DOMAIN\" | \"EMBEDDING\" | \"EXPRESSION\" | \"EXTRUSION\" | \"FACE\" | \"FILE\" | \"FRAME\" | \"GLOBAL\" | \"GRAPH\" | \"HIERARCHY\" | \"IDENTITY\" | \"INCIDENCE\" | \"INSERTION\" | \"INTERVAL\" | \"INVALID_DOCUMENT\" | \"ISO\" | \"JSON\" | \"LOCAL\" | \"LOCALITY\" | \"LOFT\" | \"MASS\" | \"MATERIAL\" | \"MATRIX\" | \"MESH\" | \"METRIC\" | \"NATIVE_CAPACITY\" | \"NESTING\" | \"NONCONVERGENCE\" | \"NORMAL\" | \"NUMBER\" | \"NUMERICAL\" | \"OBSERVATION\" | \"ORIENTATION\" | \"OWNED\" | \"OWNERSHIP\" | \"PAIR\" | \"PARENT\" | \"PARTITION\" | \"PLACEMENT\" | \"POSE\" | \"PROFILE\" | \"QUERY\" | \"RANGE\" | \"RECIPE\" | \"RECORD\" | \"REGION\" | \"REQUEST\" | \"REVISION\" | \"RULED\" | \"SHELL\" | \"SLAB\" | \"SOLVER\" | \"SPAN\" | \"STAGNATION\" | \"STALE\" | \"STATIONS\" | \"STRUCTURE\" | \"TANGENCY\" | \"TARGET\" | \"TOO_FEW\" | \"TRANSLATION\" | \"TRIANGULATION\" | \"TRIM\" | \"UNCERTAINTY\" | \"UNSUPPORTED\" | \"UV\" | \"VOLUME\" | \"WIDTH\" | \"WORK\" | \"XY_AFFINE_SKETCH_PRISM\"",
+            "type": "\"INPUT\" | \"CONTINUITY\" | \"ARITHMETIC\" | \"NATIVE\" | \"TOPOLOGY\" | \"GEOMETRY\" | \"CURVED_ARRANGEMENT\" | \"BUDGET\" | \"SELF_INTERSECTION\" | \"PRISMATIC_SOLID\" | \"REPRESENTABILITY\" | \"PLANAR_ARRANGEMENT\" | \"SURFACE_INTERSECTION\" | \"SOLID_MASS\" | \"TANGENT_FACES\" | \"RADIUS_EXCEEDS_FACE\" | \"RADIUS_EXCEEDS_CURVATURE\" | \"NOT_ANALYTIC_PAIR\" | \"CONTACT_LEAVES_FACE\" | \"APPROX_TOLERANCE_NOT_MET\" | \"SELECTION\" | \"CAPABILITY\" | \"PARAMETER\" | \"FORMAT\" | \"REFERENCE\" | \"LIMIT\" | \"SYNTAX\" | \"FUNCTION_ARGUMENT\" | \"VALUE\" | \"UNIT\" | \"CYCLE\" | \"DEGREE\" | \"DIMENSION\" | \"DIVISION_ZERO\" | \"DUPLICATE\" | \"FIELD\" | \"FUNCTION_CAPTURE\" | \"FUNCTION_RECURSION\" | \"FUNCTION_REFERENCE\" | \"FUNCTION_TYPE\" | \"KIND\" | \"KNOTS\" | \"TYPE\" | \"VERSION\" | \"WEIGHTS\" | \"SUPPORT\" | \"SOURCE\" | \"BINDING\" | \"UNRESOLVED\" | \"MESH_BREP\" | \"INVALID_INPUT\" | \"UNSUPPORTED_PROFILE_SHIFT\" | \"UNSUPPORTED_GEAR_KIND\" | \"PROFILE_BUDGET_EXCEEDED\" | \"ROOT_TRANSITION_UNVALIDATED\" | \"BORE_INTERSECTION\" | \"MATE_INCOMPATIBLE\" | \"UNDERCUT\" | \"INVOLUTE_INTERFERENCE\" | \"TROCHOID_INTERFERENCE\" | \"TRIMMING_INTERFERENCE\" | \"RIM_INTERSECTION\" | \"IDEAL_MODEL\" | \"FIT_TABLE\" | \"FIT_TABLE_MISS\" | \"FIT_FACE\" | \"FIT_PAIR\" | \"GLAND_DIMENSIONS\" | \"SQUEEZE_RANGE\" | \"FILL_RANGE\" | \"STRETCH_RANGE\" | \"SHAFT_STEPS\" | \"KEYSEAT_DIMENSIONS\" | \"GROOVE_DIMENSIONS\" | \"HOLE_DIMENSIONS\" | \"KEY_FIT\" | \"RING_FIT\" | \"PIN_FIT\" | \"SEAT_ABUTMENT\" | \"SEAT_FIT\" | \"UNSUPPORTED_TOOTH_FORM\" | \"TOOTH_FORM\" | \"BELT_GEOMETRY\" | \"SECTION_DIMENSIONS\" | \"CONNECTOR_PLACEMENT\" | \"CONNECTOR_FIT\" | \"CAM_UNDERCUT\" | \"COILS_OVERLAP\" | \"UNSUPPORTED_SPRING_KIND\" | \"LEG_OVERLAP\" | \"DERIVATIVE\" | \"REGULARITY\" | \"NOT_FINITE\" | \"BAD_ENTITY\" | \"BAD_NAME\" | \"DUPLICATE_NAME\" | \"UNKNOWN_LAYER\" | \"UNKNOWN_LINETYPE\" | \"UNKNOWN_STYLE\" | \"UNKNOWN_BLOCK\" | \"BLOCK_CYCLE\" | \"BAD_TEXT\" | \"TEXT_TOO_LONG\" | \"R12_UNSUPPORTED\" | \"R12_NEEDS_TOLERANCE\" | \"ARC\" | \"SOLID\" | \"SECTION\" | \"NOT_A_SHEET\" | \"NON_NORMAL_CUT\" | \"BEND_NOT_CYLINDRICAL\" | \"FLAT_OVERLAPS\" | \"CUT_ACROSS_BEND\" | \"BEND_TABLE_MISS\" | \"SEW\" | \"ARC_MEMBER\" | \"BEAD_ANGLE\" | \"BEAD_KIND\" | \"BEAD_SEAM_NOT_PLANAR\" | \"BEAD_SHARED_UNSUPPORTED\" | \"BEAD_SIZE\" | \"BEND_ANGLE\" | \"BEND_DOES_NOT_FIT\" | \"BEND_RADIUS\" | \"BEND_TABLE\" | \"BUTT_NOT_ON_A_FACE\" | \"BUTT_ON_CURVED_MEMBER\" | \"BUTT_ON_OPEN_SIDE\" | \"CAP_END\" | \"CONE_TOP_CHAMFER_SCOPE\" | \"CONE_TOP_CHAMFER_SIZE\" | \"CORNER_ANGLE\" | \"CORNER_NOT_A_JOINT\" | \"CORNER_NOT_CLEAR\" | \"CORNER_NOT_SQUARE\" | \"DENSITY\" | \"EDGE_NOT_SHEET\" | \"FACE_FILLET_FACE\" | \"FACE_FILLET_FACES\" | \"FACE_FILLET_NOT_CLEAR\" | \"FACE_FILLET_PARALLEL\" | \"FACE_FILLET_RADIUS\" | \"FACE_THREAD_FACE\" | \"FACE_THREAD_NOT_CLEAR\" | \"FACE_THREAD_RELIEF\" | \"FACE_THREAD_SIZE\" | \"FLANGES_COLLIDE\" | \"FULL_ROUND_FACE\" | \"FULL_ROUND_NOT_CLEAR\" | \"GAP_SIZE\" | \"GUSSET_FIT\" | \"MEMBERS_CLASH\" | \"MEMBER_DUPLICATE\" | \"MESH_WALL_THIN\" | \"MITRE_SECTIONS_DIFFER\" | \"NOTCH_CUTTER\" | \"NOT_A_MEMBER\" | \"OBSTRUCTED_ABOVE\" | \"OFFSET_FOLDS\" | \"OPENING_AT_A_VERTEX\" | \"REFERENCE_MOVED\" | \"RELIEF_REQUIRED\" | \"SECTION_TABLE\" | \"SECTION_TABLE_MISS\" | \"SEGMENT_ZERO_LENGTH\" | \"SHEET_CROSSES_ITSELF\" | \"SHEET_IN_PIECES\" | \"SHELL_FACE_KIND\" | \"SHELL_MESH_NOT_CLOSED\" | \"SHELL_NOT_CLOSED\" | \"SHELL_OPENING_NOT_PLANAR\" | \"SHELL_PLANE_NOT_BOUNDING\" | \"SHELL_REGIONS_SHARP\" | \"SHELL_VARIABLE_RADIUS\" | \"SHELL_WALL_UNION\" | \"SKELETON_OVERLAP\" | \"TRIM_EMPTY\" | \"TRIM_LEAVES_PIECES\" | \"TRIM_MISSES\" | \"TRIM_PARALLEL\" | \"VERTEX_BLEND_UNSUPPORTED\" | \"WALL_NEAR_RADIUS\" | \"WALL_TOO_THIN\" | \"AFFINE\" | \"ASSOCIATION\" | \"AXIS\" | \"BAND\" | \"BASIS\" | \"BODY\" | \"BOOLEAN\" | \"BOUNDARY\" | \"BRANCH\" | \"BREP_EULER\" | \"CAP\" | \"CHART\" | \"CLOSURE\" | \"CODEC\" | \"COLLAPSE\" | \"COMPILATION\" | \"CONDITION\" | \"CONDITIONING\" | \"CONFLICT\" | \"CONNECTED\" | \"CONSTRUCTION\" | \"CONTACT\" | \"CONVEXITY\" | \"COVERAGE\" | \"CROSSING\" | \"CUT\" | \"CUT_LIST\" | \"DEGENERATE\" | \"DEGENERATE_GEOMETRY\" | \"DEPENDENCY\" | \"DIRECTORY\" | \"DISTANCE\" | \"DOMAIN\" | \"EMBEDDING\" | \"EXPRESSION\" | \"EXTRUSION\" | \"FACE\" | \"FILE\" | \"FRAME\" | \"GLOBAL\" | \"GRAPH\" | \"HIERARCHY\" | \"IDENTITY\" | \"INCIDENCE\" | \"INSERTION\" | \"INTERVAL\" | \"INVALID_DOCUMENT\" | \"ISO\" | \"JSON\" | \"LOCAL\" | \"LOCALITY\" | \"LOFT\" | \"MASS\" | \"MATERIAL\" | \"MATRIX\" | \"MESH\" | \"METRIC\" | \"NATIVE_CAPACITY\" | \"NESTING\" | \"NONCONVERGENCE\" | \"NORMAL\" | \"NUMBER\" | \"NUMERICAL\" | \"OBSERVATION\" | \"ORIENTATION\" | \"OWNED\" | \"OWNERSHIP\" | \"PAIR\" | \"PARENT\" | \"PARTITION\" | \"PLACEMENT\" | \"POSE\" | \"PROFILE\" | \"QUERY\" | \"RANGE\" | \"RECIPE\" | \"RECORD\" | \"REGION\" | \"REQUEST\" | \"REVISION\" | \"RULED\" | \"SHELL\" | \"SLAB\" | \"SOLVER\" | \"SPAN\" | \"STAGNATION\" | \"STALE\" | \"STATIONS\" | \"STRUCTURE\" | \"TANGENCY\" | \"TARGET\" | \"TOO_FEW\" | \"TRANSLATION\" | \"TRIANGULATION\" | \"TRIM\" | \"UNCERTAINTY\" | \"UNSUPPORTED\" | \"UV\" | \"VOLUME\" | \"WIDTH\" | \"WORK\" | \"XY_AFFINE_SKETCH_PRISM\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -48532,7 +48532,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"SELECTION\" | \"REPRESENTABILITY\" | \"BINDING\" | \"DEGENERATE\" | \"IDENTITY\" | \"INCIDENCE\" | \"LOCALITY\" | \"METRIC\" | \"OWNED\"",
+            "type": "\"INPUT\" | \"NATIVE\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SELECTION\" | \"BINDING\" | \"DEGENERATE\" | \"IDENTITY\" | \"INCIDENCE\" | \"LOCALITY\" | \"METRIC\" | \"OWNED\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -60610,7 +60610,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "{ support: boolean; finiteContainment: \"control-hull-contained\" | \"not-proven\" | \"not-applicable\"; controlPoleUV: Point[]; }"
+                "type": "{ support: boolean; finiteContainment: \"not-applicable\" | \"control-hull-contained\" | \"not-proven\"; controlPoleUV: Point[]; }"
               },
               {
                 "name": "curveDegree",
@@ -158891,6 +158891,812 @@
     {
       "package": "@barocss/cad",
       "subpath": ".",
+      "exportName": "TrimmedSurfaceParameterSplitDiagnosticCode",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/nurbs/surfaces/trimmed-surface-split-common.ts",
+            "name": "TrimmedSurfaceParameterSplitDiagnosticCode",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "\"INPUT\" | \"NATIVE\" | \"TOPOLOGY\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"BINDING\" | \"DOMAIN\"",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "\"INPUT\" | \"SUPPORT\" | \"DOMAIN\" | \"TOPOLOGY\" | \"REPRESENTABILITY\" | \"BUDGET\" | \"BINDING\" | \"NATIVE\""
+              }
+            ],
+            "members": [
+              {
+                "name": "__@iterator@81",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => StringIterator<string>"
+              },
+              {
+                "name": "anchor",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => string"
+              },
+              {
+                "name": "at",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => string | undefined"
+              },
+              {
+                "name": "big",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "blink",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "bold",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "charAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(pos: number) => string"
+              },
+              {
+                "name": "charCodeAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => number"
+              },
+              {
+                "name": "codePointAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(pos: number) => number | undefined"
+              },
+              {
+                "name": "concat",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(...strings: string[]) => string"
+              },
+              {
+                "name": "endsWith",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, endPosition?: number | undefined) => boolean"
+              },
+              {
+                "name": "fixed",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "fontcolor",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(color: string) => string"
+              },
+              {
+                "name": "fontsize",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (size: number): string; (size: string): string; }"
+              },
+              {
+                "name": "includes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => boolean"
+              },
+              {
+                "name": "indexOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => number"
+              },
+              {
+                "name": "italics",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "lastIndexOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => number"
+              },
+              {
+                "name": "length",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "link",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(url: string) => string"
+              },
+              {
+                "name": "localeCompare",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (that: string): number; (that: string, locales?: string | string[] | undefined, options?: CollatorOptions | undefined): number; (that: string, locales?: LocalesArgument, options?: CollatorOptions | undefined): number; }"
+              },
+              {
+                "name": "match",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (regexp: string | RegExp): RegExpMatchArray | null; (matcher: { [Symbol.match](string: string): RegExpMatchArray | null; }): RegExpMatchArray | null; }"
+              },
+              {
+                "name": "matchAll",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(regexp: RegExp) => RegExpStringIterator<RegExpExecArray>"
+              },
+              {
+                "name": "normalize",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (form: \"NFC\" | \"NFD\" | \"NFKC\" | \"NFKD\"): string; (form?: string | undefined): string; }"
+              },
+              {
+                "name": "padEnd",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(maxLength: number, fillString?: string | undefined) => string"
+              },
+              {
+                "name": "padStart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(maxLength: number, fillString?: string | undefined) => string"
+              },
+              {
+                "name": "repeat",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(count: number) => string"
+              },
+              {
+                "name": "replace",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; (searchValue: { [Symbol.replace](string: string, replaceValue: string): string; }, replaceValue: string): string; (searchValue: { [Symbol.replace](string: string, replacer: (substring: string, ...args: any[]) => string): string; }, replacer: (substring: string, ...args: any[]) => string): string; }"
+              },
+              {
+                "name": "replaceAll",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; }"
+              },
+              {
+                "name": "search",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (regexp: string | RegExp): number; (searcher: { [Symbol.search](string: string): number; }): number; }"
+              },
+              {
+                "name": "slice",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start?: number | undefined, end?: number | undefined) => string"
+              },
+              {
+                "name": "small",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "split",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (separator: string | RegExp, limit?: number | undefined): string[]; (splitter: { [Symbol.split](string: string, limit?: number | undefined): string[]; }, limit?: number | undefined): string[]; }"
+              },
+              {
+                "name": "startsWith",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => boolean"
+              },
+              {
+                "name": "strike",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "sub",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "substr",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(from: number, length?: number | undefined) => string"
+              },
+              {
+                "name": "substring",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start: number, end?: number | undefined) => string"
+              },
+              {
+                "name": "sup",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toLocaleLowerCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+              },
+              {
+                "name": "toLocaleUpperCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+              },
+              {
+                "name": "toLowerCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toString",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toUpperCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trim",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimEnd",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimLeft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimRight",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimStart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "valueOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              }
+            ],
+            "indexSignatures": [
+              {
+                "key": "number",
+                "type": "string",
+                "readonly": true,
+                "callable": false
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": ".",
+      "exportName": "TrimmedSurfaceParameterSplitError",
+      "space": "type+value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/nurbs/surfaces/trimmed-surface-split-common.ts",
+            "name": "TrimmedSurfaceParameterSplitError",
+            "kind": "class"
+          },
+          "shape": {
+            "type": "TrimmedSurfaceParameterSplitError",
+            "declarationSignatures": [
+              {
+                "kind": "ClassDeclaration",
+                "heritage": [
+                  " extends KernelError"
+                ]
+              }
+            ],
+            "members": [
+              {
+                "name": "cause",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "unknown",
+                "notProven": "any/unknown property; JSON and callability are not certified"
+              },
+              {
+                "name": "code",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "TrimmedSurfaceParameterSplitDiagnosticCode"
+              },
+              {
+                "name": "details",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "Record<string, unknown> | undefined"
+              },
+              {
+                "name": "message",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "stack",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "where",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "string | undefined"
+              }
+            ],
+            "indexSignatures": [],
+            "bases": [
+              "KernelError"
+            ],
+            "constructSignatures": [
+              "new (code: TrimmedSurfaceParameterSplitDiagnosticCode, detail: string, cause?: unknown) => TrimmedSurfaceParameterSplitError"
+            ],
+            "staticMembers": [],
+            "abstract": false,
+            "role": "resource-or-facade-NOT_PROVEN"
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": ".",
+      "exportName": "TrimmedSurfaceParameterSplitResult",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/nurbs/surfaces/trimmed-surface-parameter-split.ts",
+            "name": "TrimmedSurfaceParameterSplitResult",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "TrimmedSurfaceParameterSplitResult",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration",
+                "heritage": [
+                  " extends SurfaceParameterSplitResult"
+                ]
+              }
+            ],
+            "members": [
+              {
+                "name": "components",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "TrimmedSurfaceSplitComponent[]"
+              },
+              {
+                "name": "lower",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Surface"
+              },
+              {
+                "name": "model",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Model"
+              },
+              {
+                "name": "original",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Surface"
+              },
+              {
+                "name": "provenance",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "SurfaceParameterSplitProvenance"
+              },
+              {
+                "name": "refined",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Surface"
+              },
+              {
+                "name": "report",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "SurfaceParameterSplitReport"
+              },
+              {
+                "name": "source",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "sourceVersion",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "0"
+              },
+              {
+                "name": "trimSplit",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "TrimmedSurfaceSplitReport"
+              },
+              {
+                "name": "upper",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Surface"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": ".",
+      "exportName": "TrimmedSurfaceSplitComponent",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/nurbs/surfaces/trimmed-surface-parameter-split.ts",
+            "name": "TrimmedSurfaceSplitComponent",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "TrimmedSurfaceSplitComponent",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "componentIndex",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "side",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"lower\" | \"upper\""
+              },
+              {
+                "name": "surfaceId",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "trimLoops",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "OwnedSurfaceAxisTrimLoop[]"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": ".",
+      "exportName": "TrimmedSurfaceSplitReport",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/nurbs/surfaces/trimmed-surface-parameter-split.ts",
+            "name": "TrimmedSurfaceSplitReport",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "TrimmedSurfaceSplitReport",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "axis",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"u\" | \"v\""
+              },
+              {
+                "name": "componentCounts",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ lower: number; upper: number; }"
+              },
+              {
+                "name": "family",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"affine-plane-single-stored-trim-loop-parameter-split\""
+              },
+              {
+                "name": "inputKeep",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"inside\" | \"outside\""
+              },
+              {
+                "name": "inputPointCount",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "limits",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ maximumInputPoints: 160; maximumSegments: 165; maximumPairTests: 13530; maximumVertices: 326; maximumEdges: 651; maximumBoundaryOccurrences: 1302; maximumComponents: 434; maximumRationalOperations: 200000; maximumRationalBits: 8192; }"
+              },
+              {
+                "name": "maximumNativePointDifference",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "maximumUVRoundingBound",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "maximumWorldBoundaryBound",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "originalMaterialAreaUV",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "SectionFraction"
+              },
+              {
+                "name": "quality",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ uvComparison: 1e-7; linearComparison: 1e-7; chartPolicy: \"exact-or-one-rounding-certified-v1\"; materialComposition: \"one-object-per-interior-component-inside-outer-and-outside-holes\"; emptyChild: \"no-component\"; childRegularity: \"strict-positive-projected-bilinear-Jacobian-and-convex-boundary\"; worldBoundary: \"whole-child-coefficient-bound-plus-affine-UV-rounding\"; genericSurfaceEmbeddingCertified: false; globalBinary64EvaluatorErrorCertified: false; solid: false; parentReportUnchanged: true; }"
+              },
+              {
+                "name": "selectedMaterialAreaUV",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "SectionFraction"
+              },
+              {
+                "name": "usedChildren",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ lower: SplitChildBindingProof | null; upper: SplitChildBindingProof | null; }"
+              },
+              {
+                "name": "work",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ arrangement: ExactArrangementCounts; topology: SplitTopologyWork; materialArithmetic: { operations: number; gcdSteps: number; floatSearchSteps: number; floatConversions: number; maximumObservedBits: number; }; bindingArithmetic: { operations: number; gcdSteps: number; floatSearchSteps: number; floatConversions: number; maximumObservedBits: number; }; }"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": ".",
       "exportName": "UV",
       "space": "type",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -210286,6 +211092,42 @@
             ],
             "callSignatures": [
               "(input: TranslatedStripPlaneSplitRequest) => TranslatedStripPlaneSplitResult"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": ".",
+      "exportName": "splitTrimmedSurfaceAtParameter",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/nurbs/surfaces/trimmed-surface-parameter-split.ts",
+            "name": "splitTrimmedSurfaceAtParameter",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(surfaceInput: Surface, trimInput: readonly SurfaceAxisTrimLoop[], options: SurfaceParameterSplitOptions) => TrimmedSurfaceParameterSplitResult",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(surfaceInput: Surface, trimInput: readonly SurfaceAxisTrimLoop[], options: SurfaceParameterSplitOptions) => TrimmedSurfaceParameterSplitResult"
             ]
           }
         }

@@ -15,6 +15,7 @@
 // the intersection of two input segments, so bit sizes stay bounded and every predicate is exact.
 import { binary64Dyadic } from '../core/dyadic.js';
 import { isFrom, kernelRefusal, type KernelError } from '../core/barocss-error.js';
+import { SectionRationalContext, type SectionRational } from '../section-rational-internal.js';
 
 export type XY = [number, number];
 export interface PolygonWithHoles { readonly outer: readonly XY[]; readonly holes: readonly (readonly XY[])[] }
@@ -88,14 +89,17 @@ function arrange(polygons: readonly PolygonWithHoles[]) {
 }
 
 /** The core arrangement. Segments of polygon −1 split faces without changing any winding (cuts). */
-function arrangeSegments(segs: Seg[], polygonCount: number) {
+function arrangeSegments(segs: Seg[], polygonCount: number, exactDecisions = false) {
   // 1. Split points per segment.
   const cuts = segs.map(() => [] as H[]);
   const box = (s: Seg) => { const [ax, ay] = toXY(s.a), [bx, by] = toXY(s.b); return [Math.min(ax, bx), Math.min(ay, by), Math.max(ax, bx), Math.max(ay, by)]; };
-  const boxes = segs.map(box);
+  // The bounded exact route tests every pair. Do not convert its coordinates to Number.
+  const boxes = exactDecisions ? [] : segs.map(box);
   for (let i = 0; i < segs.length; i++) for (let j = i + 1; j < segs.length; j++) {
-    const [a0, a1, a2, a3] = boxes[i], [b0, b1, b2, b3] = boxes[j];
-    if (a2 < b0 - 1e-9 * (1 + Math.abs(b0)) || b2 < a0 - 1e-9 * (1 + Math.abs(a0)) || a3 < b1 - 1e-9 * (1 + Math.abs(b1)) || b3 < a1 - 1e-9 * (1 + Math.abs(a1))) continue;
+    if (!exactDecisions) {
+      const [a0, a1, a2, a3] = boxes[i], [b0, b1, b2, b3] = boxes[j];
+      if (a2 < b0 - 1e-9 * (1 + Math.abs(b0)) || b2 < a0 - 1e-9 * (1 + Math.abs(a0)) || a3 < b1 - 1e-9 * (1 + Math.abs(b1)) || b3 < a1 - 1e-9 * (1 + Math.abs(a1))) continue;
+    }
     const s = segs[i], t = segs[j];
     const o1 = orient(s.a, s.b, t.a), o2 = orient(s.a, s.b, t.b), o3 = orient(t.a, t.b, s.a), o4 = orient(t.a, t.b, s.b);
     if (o1 * o2 < 0 && o3 * o4 < 0) { const x = cross(s.a, s.b, t.a, t.b); cuts[i].push(x); cuts[j].push(x); continue; }
@@ -160,9 +164,9 @@ function insideCycle(points: readonly H[], half: readonly HalfEdge[], cycle: rea
  * Faces of the arrangement with the winding of every input polygon, and the half-edges grouped by face.
  * Face −1 is the unbounded face.
  */
-function facesWithWindings(arr: ReturnType<typeof arrange>) {
+function facesWithWindings(arr: ReturnType<typeof arrange>, exact?: { sign(cycle: number[]): number; lessArea(a: number[], b: number[]): boolean }) {
   const { points, half, cycles, edges } = arr, area = (cycle: number[]) => Math.abs(cycle.reduce((a, h) => { const p = toXY(points[half[h].from]), q = toXY(points[half[h].to]); return a + p[0] * q[1] - q[0] * p[1]; }, 0));
-  const signs = cycles.map(c => cycleSign(points, half, c));
+  const signs = cycles.map(c => exact ? exact.sign(c) : cycleSign(points, half, c));
   const outers = cycles.map((c, i) => signs[i] > 0 ? i : -1).filter(i => i >= 0);
   // Each cycle belongs to a face: positive cycles are face boundaries; a negative cycle is a hole of the
   // smallest positive cycle containing it, or of the unbounded face.
@@ -174,7 +178,10 @@ function facesWithWindings(arr: ReturnType<typeof arrange>) {
     if (signs[i] > 0) return i;
     const p = points[half[c[0]].from], mine = componentOf(c);
     let best = -1, bestArea = Infinity;
-    for (const o of outers) if (componentOf(cycles[o]) !== mine && insideCycle(points, half, cycles[o], p)) { const a = area(cycles[o]); if (a < bestArea) { bestArea = a; best = o; } }
+    for (const o of outers) if (componentOf(cycles[o]) !== mine && insideCycle(points, half, cycles[o], p)) {
+      if (exact) { if (best < 0 || exact.lessArea(cycles[o], cycles[best])) best = o; }
+      else { const a = area(cycles[o]); if (a < bestArea) { bestArea = a; best = o; } }
+    }
     return best;
   });
   const faceOfHalf = half.map(h => faceOfCycle[h.face]);
@@ -267,4 +274,118 @@ export function arrangementRegions(rings: readonly { readonly polygon: number; r
     out.push({ outer: cycles[f].map(h => points[half[h].from]), holes: (holes.get(f) ?? []).map(c => c.map(h => points[half[h].from])), winding: w });
   }
   return out;
+}
+
+export interface ExactArrangementCounts {
+  readonly segments: number;
+  readonly pairTests: number;
+  readonly vertices: number;
+  readonly edges: number;
+  readonly halfEdges: number;
+  readonly cycles: number;
+  readonly boundaryOccurrences: number;
+  /** One request-local context for coordinate admission, cycle area and nesting comparisons. */
+  readonly rational: ReturnType<SectionRationalContext['counts']>;
+}
+
+/**
+ * Internal bounded entry for material splitting. It shares the segment and half-edge engine above,
+ * but never uses floating coordinates or floating area for a topology decision. The caller admits
+ * its geometric profile and checks its tighter derived vertex, edge and output bounds.
+ */
+export function arrangementRegionsExact(
+  rings: readonly { readonly polygon: number; readonly ring: readonly ExactPoint2[] }[],
+  cuts: readonly (readonly [ExactPoint2, ExactPoint2])[], polygonCount: number,
+): { regions: ExactRegion[]; counts: ExactArrangementCounts } {
+  // Count submitted edges, including zero-length ones, before any pair or graph work.
+  let submittedSegments = cuts.length;
+  if (submittedSegments > 165 || rings.length > 165 || !Number.isSafeInteger(polygonCount) || polygonCount < 0 || polygonCount > 165)
+    throw planarArrangementError('bounded exact arrangement input budget exceeded');
+  for (const { polygon, ring } of rings) {
+    if (!Number.isSafeInteger(polygon) || polygon < 0 || polygon >= polygonCount)
+      throw planarArrangementError('exact arrangement polygon index is out of range');
+    submittedSegments += ring.length;
+    if (submittedSegments > 165) throw planarArrangementError('bounded exact arrangement segment budget exceeded');
+  }
+  const q = new SectionRationalContext((kind, detail) => { throw planarArrangementError(`exact arrangement ${kind}: ${detail}`); });
+  const owned = new Map<ExactPoint2, H>();
+  const own = (p: ExactPoint2): H => {
+    const previous = owned.get(p); if (previous) return previous;
+    if (typeof p.x !== 'bigint' || typeof p.y !== 'bigint' || typeof p.w !== 'bigint' || p.w <= 0n)
+      throw planarArrangementError('exact arrangement needs homogeneous integer points with positive weight');
+    // Admit the raw integer sizes before normalization or the shared exact predicates.
+    q.rat(p.x, p.w); q.rat(p.y, p.w);
+    const result = normal(p); owned.set(p, result); return result;
+  };
+  const segs: Seg[] = [];
+  for (const { polygon, ring } of rings) {
+    for (let i = 0; i < ring.length; i++) {
+      const a = own(ring[i]), b = own(ring[(i + 1) % ring.length]);
+      if (!same(a, b)) segs.push({ a, b, polygon });
+    }
+  }
+  for (const [p, r] of cuts) { const a = own(p), b = own(r); if (!same(a, b)) segs.push({ a, b, polygon: -1 }); }
+  const arr = arrangeSegments(segs, polygonCount, true), { points, half, cycles } = arr;
+  const coordinates = new Map<H, [SectionRational, SectionRational]>();
+  const xy = (p: H): [SectionRational, SectionRational] => {
+    let result = coordinates.get(p);
+    if (!result) { result = [q.rat(p.x, p.w), q.rat(p.y, p.w)]; coordinates.set(p, result); }
+    return result;
+  };
+  const edgeContributions = new Map<number, SectionRational>();
+  const contribution = (h: number): SectionRational => {
+    const edgeIndex = half[h].edge, edge = arr.edges[edgeIndex];
+    let result = edgeContributions.get(edgeIndex);
+    if (!result) {
+      const [px, py] = xy(points[edge.u]), [rx, ry] = xy(points[edge.v]);
+      result = q.sub(q.mul(px, ry), q.mul(rx, py)); edgeContributions.set(edgeIndex, result);
+    }
+    return half[h].from === edge.u ? result : q.neg(result);
+  };
+  // Cache each cycle's signed twice-area. The same fixed context covers every cycle and comparison.
+  const signedAreas = new Map<number[], SectionRational>();
+  const signedArea = (cycle: number[]): SectionRational => {
+    let result = signedAreas.get(cycle);
+    if (!result) {
+      result = q.integer(0);
+      for (const h of cycle) result = q.add(result, contribution(h));
+      signedAreas.set(cycle, result);
+    }
+    return result;
+  };
+  const zero = q.integer(0);
+  const { faceOfHalf, winding } = facesWithWindings(arr, {
+    sign: c => q.compare(signedArea(c), zero),
+    lessArea: (a, b) => q.compare(q.abs(signedArea(a)), q.abs(signedArea(b))) < 0,
+  });
+  const holes = new Map<number, number[][]>();
+  for (let i = 0; i < cycles.length; i++) {
+    const c = cycles[i], f = faceOfHalf[c[0]];
+    // A disconnected cut spur has no area and is not a material hole.
+    if (f === i || f < 0 || q.compare(signedArea(c), zero) === 0) continue;
+    let list = holes.get(f);
+    if (!list) { list = []; holes.set(f, list); }
+    list.push(c);
+  }
+  const regions: ExactRegion[] = [];
+  let boundaryOccurrences = 0;
+  for (const [f, w] of winding) {
+    if (f < 0) continue;
+    const holeCycles = holes.get(f) ?? [];
+    const outer: ExactPoint2[] = [], regionHoles: ExactPoint2[][] = [];
+    for (const h of cycles[f]) outer.push(points[half[h].from]);
+    boundaryOccurrences += outer.length;
+    for (const c of holeCycles) {
+      const hole: ExactPoint2[] = [];
+      for (const h of c) hole.push(points[half[h].from]);
+      boundaryOccurrences += hole.length;
+      regionHoles.push(hole);
+    }
+    regions.push({ outer, holes: regionHoles, winding: w });
+  }
+  return { regions, counts: {
+    segments: segs.length, pairTests: segs.length * (segs.length - 1) / 2,
+    vertices: points.length, edges: arr.edges.length, halfEdges: half.length, cycles: cycles.length,
+    boundaryOccurrences, rational: q.counts(),
+  } };
 }

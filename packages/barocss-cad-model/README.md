@@ -123,9 +123,19 @@ The new object owns its trim arrays. The hidden original retains its source, nam
 ID and trims. Unsupported trimmed inputs refuse with `DIRECT_VALUE` before publication.
 This operation preserves the stored polyline, not an ideal trimming curve or a solid.
 
-`splitSurface`, `surfaceRegion` and `extendSurface` still refuse surfaces with trims.
-`surfaceIntersection` refuses either trimmed operand. These operations do not yet map
-or clip trim boundaries.
+`directOps.splitSurface` clips one such original trim loop at an interior U or V
+parameter. Each interior-connected material component becomes one object, ordered
+by lower/upper side and the Kernel's canonical component index. Each object owns
+one inside outer loop and any outside hole loops. An empty side creates no object.
+Components on the same side share the native support and source. All sidecars are
+copied before one publication; the hidden original retains its old metadata.
+The Kernel checks the actual child coefficients and stored boundary under one
+1e-7 mm world bound. This is a material mask operation, not a solid operation.
+Later Reverse can refuse output that exceeds its own 160-point or support profile.
+
+`surfaceRegion` and `extendSurface` still refuse surfaces with trims.
+`surfaceIntersection` refuses either trimmed operand. These operations do not yet
+map or clip trim boundaries.
 
 `directIGES` refuses the whole export when any visible surface has trims. Hidden trimmed
 objects do not block export of the other visible curves and surfaces. Explicit `Untrim`

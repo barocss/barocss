@@ -96,6 +96,8 @@ export type { SurfaceKnotInsertionOptions, SurfaceKnotUnchangedPole, SurfaceKnot
 export { extractSurfaceIsoCurve } from './nurbs/surfaces/surface-isocurve.js';
 export type { SurfaceIsoCurveOptions, SurfaceIsoCurveBasis, SurfaceIsoCurveContribution, SurfaceIsoCurvePole, SurfaceIsoCurveProvenance, SurfaceIsoCurveReport, SurfaceIsoCurveResult } from './nurbs/surfaces/surface-isocurve.js';
 export { splitSurfaceAtParameter } from './nurbs/surfaces/surface-parameter-split.js';
+export { splitTrimmedSurfaceAtParameter, TrimmedSurfaceParameterSplitError } from './nurbs/surfaces/trimmed-surface-parameter-split.js';
+export type { TrimmedSurfaceParameterSplitDiagnosticCode, TrimmedSurfaceSplitComponent, TrimmedSurfaceSplitReport, TrimmedSurfaceParameterSplitResult } from './nurbs/surfaces/trimmed-surface-parameter-split.js';
 export type { SurfaceParameterSplitOptions, SurfaceSplitPoleMapping, SurfaceSplitKnotMapping, SurfaceSplitChildProvenance, SurfaceSplitRefinementProvenance, SurfaceSplitSharedCoefficients, SurfaceParameterSplitProvenance, SurfaceParameterSplitReport, SurfaceParameterSplitResult } from './nurbs/surfaces/surface-parameter-split.js';
 export { splitCurveAtParameter } from './nurbs/curves/curve-parameter-split.js';
 export type { CurveParameterSplitOptions, CurveSplitPoleMapping, CurveSplitKnotMapping, CurveSplitChildProvenance, CurveSplitRefinementProvenance, CurveSplitSharedCoefficient, CurveParameterSplitProvenance, CurveParameterSplitReport, CurveParameterSplitResult } from './nurbs/curves/curve-parameter-split.js';

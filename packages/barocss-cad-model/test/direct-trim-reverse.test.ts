@@ -76,7 +76,10 @@ for (const axis of ['u', 'v'] as const) for (const keep of ['inside', 'outside']
     const twice = directOps.reverseSurface(out, made.id, axis);
     assertWorld(twice, expected, 131);
     assert.equal(twice.objects.at(-1)!.trims![0].keep, keep);
-    assert.throws(() => directOps.splitSurface(out, made.id, 'u', 2), e => isRefusal(e, 'DIRECT_VALUE'));
+    const split = directOps.splitSurface(out, made.id, 'u', 2);
+    assert.ok(split.objects.length > out.objects.length);
+    assert.deepEqual(split.objects[out.objects.length - 1], { ...made, hidden: true });
+    assert.ok(split.objects.slice(out.objects.length).every(o => o.trims && o.trims.length > 0));
     assert.throws(() => directIGES(out), e => isRefusal(e, 'IGES_EXPORT'));
     made.trims![0].uv[0][0] = 0;
     assert.deepEqual(d, before, 'editing the published sidecar cannot mutate the original');
