@@ -57,6 +57,11 @@ function nativeBoundPad() {
   const part = { solid: { kind: 'upright', solid }, brep: K.brepFromPrismatic(solid, { id: 'post' }) };
   return buildCylindricalWrapNativeBoundAssembly(part, [{ outer: [[0.125, 0.25], [0.375, 0.25], [0.375, 0.75], [0.125, 0.75]], holes: [] }], { id: 'native_pad', height: 10 }).assembly.brep;
 }
+function nativeBoundAsymmetricPad() {
+  const solid = K.prismaticFromProfile({ outer: [{ kind: 'arc', start: [10, 0], center: [0, 0], direction: 'ccw' }], height: 30, from: -7, tag: 'post' });
+  const part = { solid: { kind: 'upright', solid }, brep: K.brepFromPrismatic(solid, { id: 'post' }) };
+  return buildCylindricalWrapNativeBoundAssembly(part, [{ outer: [[0.1, 0.2], [0.4, 0.2], [0.4, 0.7], [0.1, 0.7]], holes: [] }], { id: 'wrap', height: 10 }).assembly.brep;
+}
 // Time the complete fresh request; the harness fingerprint covers only mass-property Number output.
 // Compare full binary64 receipts separately, excluding only final counts. Generic shape mode is not applicable.
 function formalPadMass() {
@@ -68,14 +73,17 @@ function formalPadMass() {
 }
 // The D311 baseline contains D310 walls; the completed case also proves caps/closure/mass.
 // Both versions fingerprint the same actual assembled B-rep, not proof counters.
-function closedReferencePad() {
-  const solid = K.prismaticFromProfile({ outer: [{ kind: 'arc', start: [10, 0], center: [0, 0], direction: 'ccw' }], height: 30, from: -5, tag: 'post' });
+function closedReferencePad(z = -5, u = [0.125, 0.375], v = [0.25, 0.75]) {
+  const solid = K.prismaticFromProfile({ outer: [{ kind: 'arc', start: [10, 0], center: [0, 0], direction: 'ccw' }], height: 30, from: z, tag: 'post' });
   const part = { solid: { kind: 'upright', solid }, brep: K.brepFromPrismatic(solid, { id: 'post' }) };
-  return buildCylindricalWrapClosedReference(part, [{ outer: [[0.125, 0.25], [0.375, 0.25], [0.375, 0.75], [0.125, 0.75]], holes: [] }], {
+  return buildCylindricalWrapClosedReference(part, [{ outer: [[u[0], v[0]], [u[1], v[0]], [u[1], v[1]], [u[0], v[1]]], holes: [] }], {
     id: 'wrap', height: 10, density: 7.85, budgets: { volume: 1e-8, mass: 1e-10, centroid: [1e-10, 1e-10, 1e-10], inertia: [1e-7, 1e-7, 1e-7, 1e-7, 1e-7, 1e-7] },
   }).walls.reference.native.assembly.brep;
 }
+function closedReferenceAsymmetricPad() { return closedReferencePad(-7, [0.1, 0.4], [0.2, 0.7]); }
 const CASES = {
+  'closed-reference-asymmetric-pad': closedReferenceAsymmetricPad,
+  'native-bound-asymmetric-pad': nativeBoundAsymmetricPad,
   'closed-reference-pad': closedReferencePad,
   'formal-pad-mass': formalPadMass,
   'native-bound-pad': nativeBoundPad,

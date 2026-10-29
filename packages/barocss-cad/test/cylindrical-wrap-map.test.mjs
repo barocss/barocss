@@ -75,7 +75,7 @@ test('cylindrical wrap map: synthetic quarter node0/.5/1 has independent 0/pi4/p
 });
 
 test('cylindrical wrap map: multiple radii/tolerances preserve analytic bounds; samples are regression observations only', () => {
-  for (const [radius, tolerance] of [[0.5, 0.01], [8, 0.05], [32, 0.1]]) {
+  for (const [radius, tolerance] of [[0.5, 0.01], [8, 0.05], [32, 0.1], [100, 0.01]]) {
     const map = buildCylindricalWrapMap(quarter(radius), options(radius, tolerance)); invariant(map);
     for (const interval of map.intervals) {
       const a = map.nodes[interval.first], b = map.nodes[interval.last];

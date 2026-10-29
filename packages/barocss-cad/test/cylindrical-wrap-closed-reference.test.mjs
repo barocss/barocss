@@ -98,7 +98,7 @@ function ledger(result) {
 }
 
 test('fresh cap/whole-reference/mass proofs pass independent exact oracles, including signed cross inertia', () => {
-  for (const fixture of [{ z: -5, density: 7.85 }, { z: 0, density: 1, u: [1 / 16, 5 / 16] }, { z: -5, density: 1, v: [0.25, 0.5], sign: 1 }, { z: -5, density: 1, v: [0.5, 0.75], sign: -1 }]) {
+  for (const fixture of [{ z: -5, density: 7.85 }, { z: 0, density: 1, u: [1 / 16, 5 / 16] }, { z: -5, density: 1, v: [0.25, 0.5], sign: 1 }, { z: -5, density: 1, v: [0.5, 0.75], sign: -1 }, { z: -7, density: 7.85, u: [0.1, 0.4], v: [0.2, 0.7] }, { z: -7, density: 7.85, u: [0.1, 0.4], v: [0.3, 0.8] }]) {
     const part = source(fixture.z), components = pad(fixture.u, fixture.v), selected = options(); selected.density = fixture.density;
     const before = structuredClone({ part, components, selected }), result = buildCylindricalWrapClosedReference(part, components, selected);
     ledger(result); capsOracle(result); massOracle(result); frozen(result); assert.deepEqual({ part, components, selected }, before);

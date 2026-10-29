@@ -63,14 +63,14 @@ test('source, cached B-rep, options and returned data do not alias caller data',
 });
 
 test('the original Z slab may be above or below zero without replacing its wall domains', () => {
-  for (const [radius, z0, height] of [[1, -5, 10], [10, 7, 30]]) {
+  for (const [radius, z0, height] of [[1, -5, 10], [10, 7, 30], [100, -100, 150]]) {
     const part = native(radius, z0, height), result = buildCylindricalWrapSource(part, options);
     assert.equal(result.radius, radius); assert.deepEqual(result.z, [z0, z0 + height]);
     assert.deepEqual(result.brep, part.brep); assert.deepEqual(result.quarter.knotsV, [0, 0, 1, 1]);
+    assert.ok(result.map.bounds.nominal.upper <= options.mapTolerance);
+    assert.ok(result.map.counts.rational.operations <= 200000 && result.map.counts.work <= 1048576);
     for (const row of result.quarter.controlPoints) { assert.equal(row[0][2], z0); assert.equal(row[1][2], z0 + height); }
   }
-  // The native R100 inverse at this same requested tolerance still exceeds its unchanged exact-work limit.
-  refused(native(100, -100, 150), 'BUDGET');
 });
 
 test('every original topology/name/sense/pcurve/tolerance or coefficient mismatch is refused', () => {
@@ -125,7 +125,7 @@ test('plain own data and bounded extraction options are required without invokin
 });
 
 
-test('native-UV admission owns an original carrier certificate without satisfying a full inverse request', () => {
+test('native-UV admission stays distinct from a separately certified full inverse request', () => {
   const part = native(100, -100, 150), before = structuredClone(part);
   const result = buildCylindricalWrapUVSource(part, { id: 'native_uv' });
   assert.deepEqual(result.brep, before.brep); assert.deepEqual(result.z, [-100, 50]);
@@ -135,7 +135,11 @@ test('native-UV admission owns an original carrier certificate without satisfyin
   assert.equal(Object.hasOwn(result.carrier, 'nodes'), false);
   assert.equal(result.proof.nativeSourceConsistency, true); assert.equal(result.proof.wrappedSolid, false);
   assert.notEqual(result.brep, part.brep);
-  refused(part, 'BUDGET');
+  const full = buildCylindricalWrapSource(part, { ...options, id: 'native_uv' });
+  assert.deepEqual(full.brep, result.brep); assert.deepEqual(full.quarter, result.quarter);
+  assert.ok(full.map.nodes.length > 2 && full.map.bounds.nominal.upper <= options.mapTolerance);
+  assert.equal(full.map.meaning.chart, 'nominal-radius-times-original-carrier-angle');
+  assert.equal(result.carrier.meaning.inverse, false);
   assert.throws(() => buildCylindricalWrapUVSource(part, { id: 'native_uv', mapTolerance: 0.01 }), isCylindricalWrapSourceError);
   assert.deepEqual(part, before);
 });
