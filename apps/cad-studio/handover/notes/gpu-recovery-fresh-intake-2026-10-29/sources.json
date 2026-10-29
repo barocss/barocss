@@ -1,0 +1,17 @@
+{
+  "rootScope": "Read supplied report and verification; register bounded author execution evidence only. No independent execution, image/raw-byte or sourcegraph re-audit, product mutation, issue change or cross-chat reply.",
+  "files": [
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/gpu-003-fresh-101421.md",
+      "copy": "gpu-003-fresh-101421.md",
+      "bytes": 4907,
+      "sha256": "bd2a3cd54d1ebf35f625de01b85bcf3f27623d2de1ea7b382cf8fb193e2bffc0"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/gpu-003-fresh-20261029T101421/verification.json",
+      "copy": "verification.json",
+      "bytes": 2774,
+      "sha256": "f024ffd4df1182af2d2ca0f6b8040c523971488379c5b96f33798aa9982df418"
+    }
+  ]
+}

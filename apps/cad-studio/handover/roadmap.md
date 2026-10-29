@@ -1968,3 +1968,34 @@ or performance remain outside this review. Do not repeat the successful selected
 it. Expand only with evidence for the requested actual path/file/runtime. Transfer closure is not
 fix acceptance; no issue reopening. Root read and retained the documents without independent execution
 or reply. Existing A05/A06 priority remains unchanged.
+
+
+### GPU003 fresh owned logical-device recovery evidence — 2026-10-29
+
+Attach the [supplied exact-source report and verification](notes/gpu-recovery-fresh-intake-2026-10-29/gpu-003-fresh-101421.md)
+to existing06/G15-accept and05 SDK/recovery. Status: **BOUNDED PASS, BASIC UNLIT NON-INSTANCED CORE
+ONLY** at exact54380af0. This does not close G15 or general recovery. Preserve the original e1f2 wrapper
+and outputs; the author used a separate immutable snapshot and one fresh probe, not a retroactive PASS.
+
+Author observations: valid baseline frame/capture/pick; one existing loseDeviceForTesting hook destroys
+only the owned logical GPUDevice; oldDevice.lost reason=destroyed; distinct replacement device; normal
+onRecover once; a new frame followed by fresh mapped capture. Original Mesh/Geometry identity remains,
+Geometry is not disposed, and the original single mesh remains. Both picks have instance=null, face71,
+triangle0; point delta[0,0,0]. Original point<=0.05 and channel<=3 policies remain. RGBA[208,48,32,255]
+and all65536 raw RGBA bytes match before/after, as reported and independently checked by the sender's
+parent. Root has not independently rerun or repeated the image/raw-byte comparison.
+
+This run reads apple/metal-3 from the actual owned oldDevice.adapterInfo, unlike the separate
+availability-adapter observations in D324/D325. Fallback adapter identity remains UNKNOWN. The author
+reports2237 immutable snapshot files and452 actual inputs (451 product source+one owned fixture),
+zero runtime imports/dist escape, one guard/probe, no first failure or retry, syntax/probe/release0.
+Owned Viewer.dispose leaves ready=false/device=null; page/context/browser/server are CLOSED. These
+are this bounded run's author receipts, not a whole-runtime or performance acceptance.
+
+Custom CSS/material shaders, maps, instanced buffers, SDK/App recovery UI, natural driver failures,
+OOM/VRAM and performance remain NOT_RUN. Existing logical-device hook injection does not prove natural
+physical-device failure. Next resource acceptance, when reached at existing GMAT-5/G15 priority, is one
+profile using the existing public materialShader/CSS recipe and live uniform values including zero,
+preserving the original mesh/geometry through device replacement. Do not repeat the basic success or
+historical suites merely to acknowledge this evidence. No new issue, immediate implementation or
+priority switch; existing A05/A06 order remains. Root read/copies the supplied documents only.
