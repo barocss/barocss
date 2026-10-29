@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: latest skeleton reader preserves single-point, empty-segment and constrained drafts in schema 3
+ok 1 - latest skeleton reader preserves single-point, empty-segment and constrained drafts in schema 3
+  ---
+  duration_ms: 7.838833
+  type: 'test'
+  ...
+# Subtest: a skeleton on an actual schema 4 route bundle survives the reader and codec without changing either contract
+ok 2 - a skeleton on an actual schema 4 route bundle survives the reader and codec without changing either contract
+  ---
+  duration_ms: 5.747375
+  type: 'test'
+  ...
+# Subtest: reader preserves parameter coordinates and bound constraints without solving or rewriting authored points
+ok 3 - reader preserves parameter coordinates and bound constraints without solving or rewriting authored points
+  ---
+  duration_ms: 0.311334
+  type: 'test'
+  ...
+# Subtest: reader refuses malformed skeleton structure, nested vectors, indices and bindings before evaluation
+ok 4 - reader refuses malformed skeleton structure, nested vectors, indices and bindings before evaluation
+  ---
+  duration_ms: 0.476417
+  type: 'test'
+  ...
+# Subtest: reader checks every constraint shape without solving redundant or conflicting authored constraints
+ok 5 - reader checks every constraint shape without solving redundant or conflicting authored constraints
+  ---
+  duration_ms: 0.252375
+  type: 'test'
+  ...
+# Subtest: reader preserves forward follower indices and cached geometry, and rejects mixed skeleton references
+ok 6 - reader preserves forward follower indices and cached geometry, and rejects mixed skeleton references
+  ---
+  duration_ms: 0.6
+  type: 'test'
+  ...
+# Subtest: skeleton Save/Open keeps IDs and shared frame followers, then a public edit updates their independent A times L volumes
+ok 7 - skeleton Save/Open keeps IDs and shared frame followers, then a public edit updates their independent A times L volumes
+  ---
+  duration_ms: 37.728167
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 235.920667

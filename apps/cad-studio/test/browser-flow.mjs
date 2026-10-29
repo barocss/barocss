@@ -8259,6 +8259,111 @@ try {
     await snap('g16-turned');
   });
 
+  await check('D318: authored skeleton files open in fresh contexts, retain IDs and update shared frame followers', async () => {
+    const panel = 'aside[aria-label="3D sketch"]';
+    const begin = async () => {
+      await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
+      await page.click('.views button:text-is("Top")'); await page.waitForTimeout(300);
+      await press(' '); await page.locator('.palette input').fill('3d sketch'); await press('Enter'); await page.waitForSelector(panel);
+    };
+    const draw = async points => { for (const point of points) { const q = await page.evaluate(p => window.__studioScreenOf(p), point); await page.mouse.move(...q, { steps: 2 }); await page.mouse.click(...q); await page.waitForTimeout(120); } };
+    const save = async (target, name) => {
+      const [download] = await Promise.all([target.waitForEvent('download', { timeout: 15000 }), target.click('[aria-label="Save"]')]);
+      const file = join(out, name); await download.saveAs(file);
+      return file;
+    };
+    const freshOpen = async file => {
+      // A separate browser context has no saved local state, recovery record or original page's module instances.
+      const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: flowDpr });
+      const target = await context.newPage(); target.on('dialog', d => d.accept());
+      target.on('pageerror', e => errors.push(`D318 fresh context: ${e.stack ?? e}`));
+      target.on('console', m => { if (m.type() === 'error') errors.push(`D318 fresh context: ${m.text()}`); });
+      await target.goto(url); await target.waitForFunction(() => !!window.__studioDoc && window.__studioFresh === true, null, { timeout: 30000 });
+      await target.setInputFiles('input[aria-label="Model file"]', file);
+      const expected = JSON.parse(readFileSync(file, 'utf8'));
+      await target.waitForFunction(expected => window.__studioDoc?.nodes[0]?.kind === 'skeleton' && window.__studioDoc.nodes[0].id === expected.nodes[0].id && window.__studioDoc.nodes.length === expected.nodes.length && window.__studioFresh === true, expected, { timeout: 30000 });
+      assert.deepEqual(await target.evaluate(() => window.__studioDoc), expected);
+      return { context, target, expected };
+    };
+    const edit = async target => {
+      await target.locator('.history .hs[data-node-index="0"]').click({ button: 'right' });
+      await target.locator('.ctx-item', { hasText: 'Edit in 3D sketch' }).click(); await target.waitForSelector(panel);
+    };
+    await begin(); await draw([[0, 0, 0]]);
+    await page.click(`${panel} [aria-label="Apply 3D sketch"]`);
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'skeleton');
+    const single = await doc(); assert.equal(single.nodes[0].points.length, 1); assert.deepEqual(single.nodes[0].segments, []);
+    const singleFile = await save(page, 'd318-single-point-saved.bcad');
+    const one = await freshOpen(singleFile);
+    try {
+      assert.deepEqual(await one.target.evaluate(() => window.__studioDoc), single);
+      await edit(one.target); assert.match(await one.target.locator(panel).innerText(), /1 points · 0 segments/);
+      await one.target.click(`${panel} [aria-label="Apply 3D sketch"]`);
+      await one.target.waitForSelector(panel, { state: 'detached' });
+      assert.equal((await one.target.evaluate(() => window.__studioDoc)).nodes[0].id, single.nodes[0].id);
+      await one.target.screenshot({ path: join(out, 'd318-single-point-fresh-open.png') });
+    } finally { await one.context.close(); }
+
+    await begin(); await draw([[0, 0, 0], [40, 0, 0], [40, 20, 0]]); await press('s');
+    const svg = await page.locator('.vp-overlay').boundingBox();
+    const pointAt = i => page.evaluate(i => { const p = document.querySelector(`.vp-overlay [aria-label="3D sketch"] circle[data-point="${i}"]`); return [+p.getAttribute('cx'), +p.getAttribute('cy')]; }, i);
+    const pick = async i => { const a = await pointAt(i), b = await pointAt(i + 1); await page.mouse.click(svg.x + (a[0] + b[0]) / 2, svg.y + (a[1] + b[1]) / 2); await page.waitForTimeout(100); };
+    const add = name => page.click(`${panel} [aria-label="Add ${name}"]`);
+    const origin = await pointAt(0); await page.mouse.click(svg.x + origin[0], svg.y + origin[1]); await add('Fix');
+    await pick(0); await add('Along X'); await pick(0); await add('Length');
+    await page.fill(`${panel} [aria-label="Constraint 3 value"]`, '40'); await press('Enter');
+    await pick(1); await add('Along Y'); await pick(1); await add('Length');
+    await page.fill(`${panel} [aria-label="Constraint 5 value"]`, '20'); await press('Enter');
+    await page.waitForFunction(() => document.querySelector('.vp-overlay [aria-label="3D sketch"]')?.dataset.status === 'well');
+    await snap('d318-polyline-ui'); await page.click(`${panel} [aria-label="Apply 3D sketch"]`);
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'skeleton');
+    const authored = await doc(), skeleton = authored.nodes[0];
+    assert.deepEqual(skeleton.segments, [[0, 1], [1, 2]]); assert.equal(skeleton.constraints.length, 5); assert.ok(skeleton.id);
+    const authoredFile = await save(page, 'd318-polyline-ui-saved.bcad');
+    assert.deepEqual(JSON.parse(readFileSync(authoredFile, 'utf8')), JSON.parse(JSON.stringify(authored)));
+    // Two ordinary authored frame followers reuse the real UI-saved skeleton. This is a file input, not hook staging.
+    const followers = JSON.parse(readFileSync(authoredFile, 'utf8'));
+    for (const width of [10, 20]) followers.nodes.push({ id: `n${followers.nextId++}`, kind: 'frame', follows: { skeleton: 0 },
+      points: followers.nodes[0].points.map(point => [...point]), segments: followers.nodes[0].segments.map(segment => [...segment]),
+      section: { kind: 'rect-tube', width, height: width, wall: 1, outerRadius: 0 }, corners: { default: 'none' } });
+    followers.outputs = { b1_part0: { node: 1, side: 'part0' }, b1_part1: { node: 1, side: 'part1' },
+      b2_part0: { node: 2, side: 'part0' }, b2_part1: { node: 2, side: 'part1' } };
+    const fixture = join(out, 'd318-shared-followers-input.bcad'); writeFileSync(fixture, JSON.stringify(followers));
+    const opened = await freshOpen(fixture), target = opened.target;
+    const read = () => target.evaluate(() => window.__studioDoc);
+    const ready = async length => {
+      await target.waitForFunction(length => {
+        const state = window.__studioBodies?.(); if (!state?.fresh || state.massReady !== true || state.bodies.length !== 4) return false;
+        return state.bodies.every(body => Number.isFinite(body.volume)) && Math.abs(state.bodies.reduce((sum, body) => sum + body.volume, 0) - (36 + 76) * (length + 20)) < 1e-6;
+      }, length, { timeout: 30000 });
+      const state = await target.evaluate(() => window.__studioBodies());
+      for (const [i, area] of [36, 76].entries()) {
+        const group = state.bodies.filter(body => body.key === `b${i + 1}` || body.key.startsWith(`b${i + 1}_`));
+        assert.ok(group.length > 0); assert.ok(Math.abs(group.reduce((sum, body) => sum + body.volume, 0) - area * (length + 20)) < 1e-6);
+      }
+      assert.equal(await target.locator('.vp-error').count(), 0);
+      writeFileSync(join(out, `d318-followers-length-${length}.json`), JSON.stringify(state, null, 2));
+    };
+    try {
+      await ready(40); assert.deepEqual(await read(), followers);
+      await edit(target); await target.fill(`${panel} [aria-label="Constraint 3 value"]`, '50'); await target.keyboard.press('Enter');
+      await target.click(`${panel} [aria-label="Apply 3D sketch"]`); await ready(50);
+      const accepted = await read(); assert.equal(accepted.nodes[0].id, skeleton.id);
+      assert.deepEqual(accepted.nodes.slice(1), followers.nodes.slice(1)); assert.equal(accepted.nextId, followers.nextId);
+      assert.equal(accepted.nodes[0].constraints[2].value, 50); assert.equal(accepted.nodes[0].constraints.length, 5);
+      await target.click('.views button:text-is("Iso")'); await target.keyboard.press('f'); await target.waitForTimeout(400);
+      await target.screenshot({ path: join(out, 'd318-followers-edited.png') });
+      await target.keyboard.press('Meta+z'); await ready(40); assert.deepEqual(await read(), followers);
+      await target.keyboard.press('Meta+Shift+z'); await ready(50); assert.deepEqual(await read(), accepted);
+      const saved = await save(target, 'd318-followers-edited-saved.bcad');
+      assert.deepEqual(JSON.parse(readFileSync(saved, 'utf8')), JSON.parse(JSON.stringify(accepted)));
+      await target.click('[aria-label="New part"]'); await target.waitForFunction(() => window.__studioDoc.nodes.length === 0);
+      await target.setInputFiles('input[aria-label="Model file"]', saved); await ready(50); assert.deepEqual(await read(), accepted);
+      await target.click('.views button:text-is("Iso")'); await target.keyboard.press('f'); await target.waitForTimeout(400);
+      await target.screenshot({ path: join(out, 'd318-followers-reopened.png') });
+    } finally { await opened.context.close(); }
+  });
+
   // ---- G17: the 3D skeleton sketch in the viewport ---------------------------------------------------------------------
   await check('G17: a 3D sketch — a 40 × 20 loop drawn on XY, constrained to well-defined (a conflict shown, undone), points dragged and solved live, applied as a skeleton; a body corner snapped in 3D — on either renderer', async () => {
     const renderer = await page.evaluate(() => document.querySelector('.viewport')?.dataset.renderer);

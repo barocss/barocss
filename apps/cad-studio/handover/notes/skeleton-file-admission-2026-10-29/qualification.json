@@ -1,0 +1,72 @@
+{
+  "workId": "D318",
+  "status": "SCOPED_PASS",
+  "baseline": "73c6085171f7d9b6931c395917742211f0266cbb",
+  "runtime": "Node22.19.0",
+  "model": {
+    "uniqueAffectedPassed": 41,
+    "retainedExisting": 34,
+    "finalNewReaderPassed": 7,
+    "wholeSuite": "NOT_RUN"
+  },
+  "studio": {
+    "uniqueAffectedPassed": 7,
+    "retainedExisting": 6,
+    "finalApplyPassed": 1,
+    "wholeUnitSuite": "NOT_RUN"
+  },
+  "types": {
+    "model": "PASS",
+    "studio": "PASS"
+  },
+  "changedLint": "PASS",
+  "sourceReview": "Sol High SOURCE_REVIEW_ONLY; root final cache/loop review; no independent runtime claim",
+  "sourceIdentity": "source.sha2564/4 checked after source freeze",
+  "actualBrowser": {
+    "status": "PASS on second attempt after fixture output-map correction",
+    "renderer": "Chrome WebGPU",
+    "DPR": 1,
+    "freshContexts": 2,
+    "singlePointZeroSegments": "actual UI Apply/Save/fresh context Open/re-edit Apply; zero bodies is expected",
+    "polyline": "actual UI3points2segments5constraints/Apply/Save; two authored cached follower frames added to real file; fresh context Open/length40to50/ID+metadata+follower fields/UndoRedo/Save/New/Open",
+    "expectedVolumeSum": [
+      6720,
+      7840
+    ],
+    "volumeUnit": "mm^3",
+    "oracle": "Independent per-member A times L; sum of4 bodies, not union/interference acceptance",
+    "rootViewedImages": 4,
+    "receipt": "consumers/validation.json",
+    "semanticSavedDocumentEquality": true,
+    "rawSavedByteIdentity": "NOT_CLAIMED"
+  },
+  "docs": {
+    "status": "PASS",
+    "pages": 68,
+    "shots": 55,
+    "shotKB": 4811,
+    "labels": 858,
+    "log": "docs-check-first.txt",
+    "generatedAgentTools": "PASS",
+    "generatedRefusals": "PASS",
+    "apiInventory": "Unchanged; existing six-rule SCOPED_PASS only"
+  },
+  "firstFailures": {
+    "reader": "Unknown skeleton kind; original4tests1pass3fail",
+    "editor": "undefined !== n7; behavior-preserving initializer extraction baseline",
+    "newFixtures": "schema4 missing route bundle; missing required frame cache arrays; fixtures corrected and cache omission now explicitly refused",
+    "newTypeFixtures": "nextId optionality, suppressed optional true, coordinate tuple inference; exact raw logs retained",
+    "actualBrowser": "empty fixture outputs map differed from4 actual refs; full assertions retained after proper refs added"
+  },
+  "notRun": [
+    "whole Kernel/Model/Studio suites",
+    "other browsers/DPR",
+    "schema4 actual UI",
+    "parameter editing in actual UI",
+    "all structural input combinations",
+    "physical frame/interference/manufacturing acceptance"
+  ],
+  "nextPriority": "D319: #2238 Presenter-owned Geometry lifetime, roadmap05/V1/R2",
+  "publication": "Normal per-feature push authorized; no PR/release",
+  "provenanceHashesNotUnitPins": true
+}

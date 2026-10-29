@@ -1,0 +1,39 @@
+flow display: {"requestedDpr":1,"renderer":"webgpu","devicePixelRatio":1,"cssWidth":1140,"cssHeight":900,"backingWidth":1140,"backingHeight":900}
+Expected values to be strictly deep-equal:
++ actual - expected
+... Skipped lines
+
+  {
+    format: 'barocss-cad-model',
+    nextId: 3,
+    nodes: [
+      {
+...
+    ],
++   outputs: {
++     b1_part0: {
++       node: 1,
++       side: 'part0'
++     },
++     b1_part1: {
++       node: 1,
++       side: 'part1'
++     },
++     b2_part0: {
++       node: 2,
++       side: 'part0'
++     },
++     b2_part1: {
++       node: 2,
++       side: 'part1'
++     }
++   },
+-   outputs: {},
+    parameters: {},
+    schema: 3,
+    units: 'mm'
+  }
+
+ok 1 starter plate loads
+FAIL 290 D318: authored skeleton files open in fresh contexts, retain IDs and update shared frame followers — Expected values to be strictly deep-equal:
+screenshots: /tmp/d318-studio-first

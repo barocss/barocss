@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: 3D sketch Apply preserves the existing feature identity and metadata while replacing geometry
+ok 1 - 3D sketch Apply preserves the existing feature identity and metadata while replacing geometry
+  ---
+  duration_ms: 0.696375
+  type: 'test'
+  ...
+# Subtest: G17 a ray on the work plane through a point, and on an axis line through one
+ok 2 - G17 a ray on the work plane through a point, and on an axis line through one
+  ---
+  duration_ms: 0.65925
+  type: 'test'
+  ...
+# Subtest: G17 snaps: the sketch's own point first, a body corner else, none past the reach
+ok 3 - G17 snaps: the sketch's own point first, a body corner else, none past the reach
+  ---
+  duration_ms: 0.147416
+  type: 'test'
+  ...
+# Subtest: G17 a drag solved live: a free end reaches the pointer, the rest as little moved as the constraints let it
+ok 4 - G17 a drag solved live: a free end reaches the pointer, the rest as little moved as the constraints let it
+  ---
+  duration_ms: 2.491166
+  type: 'test'
+  ...
+# Subtest: G17 a free segment dragged by its end: the end at the pointer, its length kept by the other end moving
+ok 5 - G17 a free segment dragged by its end: the end at the pointer, its length kept by the other end moving
+  ---
+  duration_ms: 0.168583
+  type: 'test'
+  ...
+# Subtest: G17 the diagnosis on the draft: well with the six rigid motions taken, a conflict named
+ok 6 - G17 the diagnosis on the draft: well with the six rigid motions taken, a conflict named
+  ---
+  duration_ms: 1.446542
+  type: 'test'
+  ...
+# Subtest: G17 offers by selection, and removing renumbers the constraints left
+ok 7 - G17 offers by selection, and removing renumbers the constraints left
+  ---
+  duration_ms: 0.346208
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 72.071541

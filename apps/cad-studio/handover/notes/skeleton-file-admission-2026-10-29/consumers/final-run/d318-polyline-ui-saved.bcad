@@ -1,0 +1,72 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": {},
+  "nodes": [
+    {
+      "kind": "skeleton",
+      "points": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          40,
+          0,
+          0
+        ],
+        [
+          40,
+          20,
+          0
+        ]
+      ],
+      "segments": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "constraints": [
+        {
+          "kind": "fixed",
+          "point": 0,
+          "at": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "kind": "along",
+          "segment": 0,
+          "axis": "x"
+        },
+        {
+          "kind": "length",
+          "segment": 0,
+          "value": 40
+        },
+        {
+          "kind": "along",
+          "segment": 1,
+          "axis": "y"
+        },
+        {
+          "kind": "length",
+          "segment": 1,
+          "value": 20
+        }
+      ],
+      "id": "n0"
+    }
+  ],
+  "outputs": {},
+  "nextId": 1
+}

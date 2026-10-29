@@ -1,0 +1,274 @@
+TAP version 13
+# Subtest: an old file (inline arrays) and the same part as blobs in the container: the same bodies, volumes and names
+ok 1 - an old file (inline arrays) and the same part as blobs in the container: the same bodies, volumes and names
+  ---
+  duration_ms: 40.061542
+  type: 'test'
+  ...
+# Subtest: the container: blobs deduplicated (two nodes, one mesh), checked against their hash, a missing one refused, a newer version refused
+ok 2 - the container: blobs deduplicated (two nodes, one mesh), checked against their hash, a missing one refused, a newer version refused
+  ---
+  duration_ms: 3.63325
+  type: 'test'
+  ...
+# Subtest: blobs cross to the worker once, and to the chat server as base64 (checked)
+ok 3 - blobs cross to the worker once, and to the chat server as base64 (checked)
+  ---
+  duration_ms: 2.372
+  type: 'test'
+  ...
+# Subtest: fixture pair: block-inline.bcad (inline arrays, as before M1) and block-container.bcad (blobs) open as the same part
+ok 4 - fixture pair: block-inline.bcad (inline arrays, as before M1) and block-container.bcad (blobs) open as the same part
+  ---
+  duration_ms: 10.669167
+  type: 'test'
+  ...
+# Subtest: current drawing contract: public file writer and readers preserve supported standalone and composite frame information in schema3
+ok 5 - current drawing contract: public file writer and readers preserve supported standalone and composite frame information in schema3
+  ---
+  duration_ms: 2.871792
+  type: 'test'
+  ...
+# Subtest: current drawing contract: malformed new frame data refuses before normalization can discard it
+ok 6 - current drawing contract: malformed new frame data refuses before normalization can discard it
+  ---
+  duration_ms: 1.621709
+  type: 'test'
+  ...
+# Subtest: current drawing contract: actual route selects schema4 and authored detach selects schema3 without changing frame data or snapshots
+ok 7 - current drawing contract: actual route selects schema4 and authored detach selects schema3 without changing frame data or snapshots
+  ---
+  duration_ms: 22.744333
+  type: 'test'
+  ...
+# Subtest: current drawing contract: file bytes and existing snapshot identities survive codec and version operations
+ok 8 - current drawing contract: file bytes and existing snapshot identities survive codec and version operations
+  ---
+  duration_ms: 7.7625
+  type: 'test'
+  ...
+# Subtest: FRf two frames on one skeleton: 4 members each, A · L (L 600, 400); the skeleton edited to 800 × 400 — both follow; its points kept as a copy in each frame
+ok 9 - FRf two frames on one skeleton: 4 members each, A · L (L 600, 400); the skeleton edited to 800 × 400 — both follow; its points kept as a copy in each frame
+  ---
+  duration_ms: 431.498708
+  type: 'test'
+  ...
+# Subtest: FRf what would break the frames is refused, typed, naming them: deleting the skeleton; a segment taken away; a point its segments use taken away — moving points and adding some is fine
+ok 10 - FRf what would break the frames is refused, typed, naming them: deleting the skeleton; a segment taken away; a point its segments use taken away — moving points and adding some is fine
+  ---
+  duration_ms: 464.502333
+  type: 'test'
+  ...
+# Subtest: FRf a frame following a sketch: a 300 × 200 rectangle on the plane z = 100 — 4 members A · L at z = 100; the sketch edited to 500 × 200, the frame follows; a circle is refused (curved)
+ok 11 - FRf a frame following a sketch: a 300 × 200 rectangle on the plane z = 100 — 4 members A · L at z = 100; the sketch edited to 500 × 200, the frame follows; a circle is refused (curved)
+  ---
+  duration_ms: 118.808125
+  type: 'test'
+  ...
+# Subtest: FRf refused before the kernel, typed: a frame following a feature that is no skeleton (add_features); a document written so (evaluation)
+ok 12 - FRf refused before the kernel, typed: a frame following a feature that is no skeleton (add_features); a document written so (evaluation)
+  ---
+  duration_ms: 1.534375
+  type: 'test'
+  ...
+# Subtest: reading a model file: the current one as it is, an older one filled in and said so, a newer one refused
+ok 13 - reading a model file: the current one as it is, an older one filled in and said so, a newer one refused
+  ---
+  duration_ms: 2.5575
+  type: 'test'
+  ...
+# Subtest: R4: a skeleton bound to W, W changed and not re-solved — every export path gives the solved geometry; STEP names the authored revision
+ok 14 - R4: a skeleton bound to W, W changed and not re-solved — every export path gives the solved geometry; STEP names the authored revision
+  ---
+  duration_ms: 902.870792
+  type: 'test'
+  ...
+# Subtest: route bundle admission: legacy export target stays 3 and plain JSON preserves copied sweeps
+ok 15 - route bundle admission: legacy export target stays 3 and plain JSON preserves copied sweeps
+  ---
+  duration_ms: 4.45225
+  type: 'test'
+  ...
+# Subtest: route bundle admission: missing-schema legacy and schema-2 body-key migration keep existing notes
+ok 16 - route bundle admission: missing-schema legacy and schema-2 body-key migration keep existing notes
+  ---
+  duration_ms: 0.537583
+  type: 'test'
+  ...
+# Subtest: route bundle admission: explicit schema-4 JSON roundtrip retains recipe, markers, source and copied paths
+ok 17 - route bundle admission: explicit schema-4 JSON roundtrip retains recipe, markers, source and copied paths
+  ---
+  duration_ms: 2.815958
+  type: 'test'
+  ...
+# Subtest: route bundle admission: BCADPACK remains version 1 while its document carries schema 3 or 4
+ok 18 - route bundle admission: BCADPACK remains version 1 while its document carries schema 3 or 4
+  ---
+  duration_ms: 9.878916
+  type: 'test'
+  ...
+# Subtest: route bundle admission: any own recipe field at schema 3 refuses before encoding, including undefined
+ok 19 - route bundle admission: any own recipe field at schema 3 refuses before encoding, including undefined
+  ---
+  duration_ms: 1.228666
+  type: 'test'
+  ...
+# Subtest: route bundle admission: schema 4 needs a nonempty valid supported root recipe
+ok 20 - route bundle admission: schema 4 needs a nonempty valid supported root recipe
+  ---
+  duration_ms: 5.202042
+  type: 'test'
+  ...
+# Subtest: route bundle admission: an orphan sweep marker cannot launder a legacy copied path into a bundle
+ok 21 - route bundle admission: an orphan sweep marker cannot launder a legacy copied path into a bundle
+  ---
+  duration_ms: 0.213208
+  type: 'test'
+  ...
+# Subtest: route bundle admission: raw missing stable IDs refuse before withIds can assign replacements
+ok 22 - route bundle admission: raw missing stable IDs refuse before withIds can assign replacements
+  ---
+  duration_ms: 0.44525
+  type: 'test'
+  ...
+# Subtest: route bundle admission: instance and pending child bundles refuse even when hidden or nested
+ok 23 - route bundle admission: instance and pending child bundles refuse even when hidden or nested
+  ---
+  duration_ms: 1.341583
+  type: 'test'
+  ...
+# Subtest: route bundle admission: nested schema 4 or marker alone refuses without requiring a valid child bundle
+ok 24 - route bundle admission: nested schema 4 or marker alone refuses without requiring a valid child bundle
+  ---
+  duration_ms: 0.476
+  type: 'test'
+  ...
+# Subtest: route bundle admission: full-length prefix retains bundle while genuine rollback refuses
+ok 25 - route bundle admission: full-length prefix retains bundle while genuine rollback refuses
+  ---
+  duration_ms: 0.602708
+  type: 'test'
+  ...
+# Subtest: route bundle admission: explicit Detach yields a legacy snapshot candidate without changing the accepted input
+ok 26 - route bundle admission: explicit Detach yields a legacy snapshot candidate without changing the accepted input
+  ---
+  duration_ms: 1.520417
+  type: 'test'
+  ...
+# Subtest: route bundle admission: a future document schema stays a newer-reader refusal
+ok 27 - route bundle admission: a future document schema stays a newer-reader refusal
+  ---
+  duration_ms: 0.070208
+  type: 'test'
+  ...
+# Subtest: route bundle admission: carryOver retains a valid current recipe and marked sweeps together
+ok 28 - route bundle admission: carryOver retains a valid current recipe and marked sweeps together
+  ---
+  duration_ms: 0.59275
+  type: 'test'
+  ...
+# Subtest: route bundle admission: legacy carryOver never invents a recipe or sweep marker
+ok 29 - route bundle admission: legacy carryOver never invents a recipe or sweep marker
+  ---
+  duration_ms: 0.113167
+  type: 'test'
+  ...
+# Subtest: route bundle admission: chat merge rejects a valid linked base or current document before evaluation or deferAll
+ok 30 - route bundle admission: chat merge rejects a valid linked base or current document before evaluation or deferAll
+  ---
+  duration_ms: 1.419
+  type: 'test'
+  ...
+# Subtest: route bundle admission: patch-only recipe, version and child carriers refuse before deferred proposal creation
+ok 31 - route bundle admission: patch-only recipe, version and child carriers refuse before deferred proposal creation
+  ---
+  duration_ms: 3.624125
+  type: 'test'
+  ...
+# Subtest: route bundle admission: added and changed orphan sweep markers cannot bypass chat merge via deferAll
+ok 32 - route bundle admission: added and changed orphan sweep markers cannot bypass chat merge via deferAll
+  ---
+  duration_ms: 0.712292
+  type: 'test'
+  ...
+# Subtest: route bundle admission: plain legacy no-op chat merge still evaluates and keeps recipe fields absent
+ok 33 - route bundle admission: plain legacy no-op chat merge still evaluates and keeps recipe fields absent
+  ---
+  duration_ms: 0.36425
+  type: 'test'
+  ...
+# Subtest: route bundle admission: plain legacy deferAll preserves its existing unevaluated proposal path
+ok 34 - route bundle admission: plain legacy deferAll preserves its existing unevaluated proposal path
+  ---
+  duration_ms: 1.363
+  type: 'test'
+  ...
+# Subtest: latest skeleton reader preserves single-point, empty-segment and constrained drafts in schema 3 and 4
+not ok 35 - latest skeleton reader preserves single-point, empty-segment and constrained drafts in schema 3 and 4
+  ---
+  duration_ms: 6.319666
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-cxWDPI/skeleton-reader.test.mjs:106467:1'
+  failureType: 'testCodeFailure'
+  error: '{"error":"[BAD_REFERENCE] Route bundle: route bundles must be an array."}'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-cxWDPI/skeleton-reader.test.mjs:106471:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: reader preserves parameter coordinates and bound constraints without solving or rewriting authored points
+ok 36 - reader preserves parameter coordinates and bound constraints without solving or rewriting authored points
+  ---
+  duration_ms: 0.252666
+  type: 'test'
+  ...
+# Subtest: reader refuses malformed skeleton structure, nested vectors, indices and bindings before evaluation
+ok 37 - reader refuses malformed skeleton structure, nested vectors, indices and bindings before evaluation
+  ---
+  duration_ms: 0.570917
+  type: 'test'
+  ...
+# Subtest: reader checks every constraint shape without solving redundant or conflicting authored constraints
+ok 38 - reader checks every constraint shape without solving redundant or conflicting authored constraints
+  ---
+  duration_ms: 0.218125
+  type: 'test'
+  ...
+# Subtest: reader preserves forward follower indices and cached geometry, and rejects mixed skeleton references
+ok 39 - reader preserves forward follower indices and cached geometry, and rejects mixed skeleton references
+  ---
+  duration_ms: 0.826167
+  type: 'test'
+  ...
+# Subtest: skeleton Save/Open keeps IDs and shared frame followers, then a public edit updates their independent A times L volumes
+not ok 40 - skeleton Save/Open keeps IDs and shared frame followers, then a public edit updates their independent A times L volumes
+  ---
+  duration_ms: 20.900791
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-cxWDPI/skeleton-reader.test.mjs:106564:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'reduce')"
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-cxWDPI/skeleton-reader.test.mjs:106573:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..40
+# tests 40
+# suites 0
+# pass 38
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1249.606792

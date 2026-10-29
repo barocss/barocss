@@ -16052,3 +16052,42 @@ Generated NOT_READ docs add its engine producer; final generated/API/docs checks
 there. The owner authorizes a normal per-feature push. No PR/release or schema/dependency/cap/
 tolerance change. #2240 remains archived for transfer; this bounded repair supplies its selected
 unit-loss acceptance. Next priority: #2235 skeleton Save/fresh Open/re-edit identity under09/12.
+
+
+## D318 — Admit saved skeletons without changing authored data (2026-10-29)
+
+The reader's kind set omitted the skeleton that Studio already saved. Admit it in the existing
+schema3/4 reader with private module-level structural helpers. Retain UI-valid single points,
+zero segments, empty constraints and parameter coordinates. Check nested constraint vectors,
+references and own finite parameter bindings; reuse only the pure sketch3dRefusal validator,
+never the solver. Keep conflicting/redundant authored constraints and geometric degeneracy
+separate from structural admission. This does not promise successful solving or physical frames.
+
+Check nested instance/pending documents iteratively with their own parameters. Preserve forward
+skeleton followers, enforce an unambiguous follows discriminator, and validate required saved
+cache arrays in all existing straight/through/center segment forms. Keep stale cache values;
+do not synthesize or refresh them on read. Public FrameNode requires those arrays and its public
+authors store them with withFollowed; cache omission is an explicit refusal, not a new accepted
+format. No new schema, migration, public Model export, coordinate limit or dependency is added.
+
+Studio's actual Apply initializer preserves prior ID and metadata. An empty edited constraint
+list explicitly removes old constraints. New point copies and repeated validation helpers are
+at module scope. Read-only Sol High review found and resolved mixed follower discriminators
+and deep recursion; root reviewed final cache structure/loop changes. Source review is separate
+from runtime proof. All original unknown-kind/ID/fixture/type/browser failures remain verbatim.
+
+Affected unique coverage is Model41=existing34 plus final reader7, Studio7=existing6 plus final
+Apply1. Types and changed-file lint pass; successful unchanged checks are reused. Actual
+Chrome/WebGPU/DPR1 tests use two fresh contexts: single-point Apply/Save/Open/re-edit and an
+actual UI constrained polyline file with two explicitly authored followers, fresh Open, length
+40→50, stable identity/followers, Undo/Redo and Save/New/Open. Four per-member A*L volumes sum
+6720→7840mm³. Root viewed four actual PNGs. The single-point file correctly has zero solid bodies.
+The first browser fixture omitted its output map; specifying the actual four schema references
+repairs the fixture without weakening full document, ID or volume assertions.
+
+Evidence: notes/skeleton-file-admission-2026-10-29/qualification.json and lane reports. Final
+generated/API/docs checks pass; no expected inventory change. Semantic JSON equality is not
+raw saved-byte identity. Whole suites, other browsers/DPRs, actual schema4/parameter UI and
+physical/interference acceptance remain NOT_RUN. Push normally under the per-feature instruction.
+No PR/release. Incoming OPFS2241 is roadmap-only and archived after transfer, not fixed. Next
+priority is existing P1 #2238 Presenter Geometry lifetime under05/V1/R2. Next decision:D319.

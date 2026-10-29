@@ -1,0 +1,127 @@
+{
+  "workId": "D318-skeleton-file-admission-consumers",
+  "status": "scoped_pass",
+  "updatedAt": "2026-10-29T04:45:20.113475+00:00",
+  "sourceBaseline": "73c6085171f7d9b6931c395917742211f0266cbb plus scoped D318 source/test changes",
+  "browserFlowSha256": "d14ae123da215d6189addc73ea89ce518462a5ff467586ae7c1e9af8022b0d6f",
+  "execution": {
+    "node": "22.19.0",
+    "browser": "Chrome WebGPU",
+    "DPR": 1,
+    "display": "final-run/display.json",
+    "freshBrowserContexts": 2,
+    "isolatedStorageAndPageModuleState": true,
+    "flowOnly": "D318:",
+    "finalFlowExit": 0,
+    "finalSyntaxExit": 0,
+    "browserExited": true,
+    "serialHeavyGateReturned": true
+  },
+  "firstFailure": {
+    "log": "flow-first-failure.txt",
+    "exit": 1,
+    "cause": "New test fixture omitted the four existing-schema frame output refs, but normal evaluation populated b1_part0,b1_part1,b2_part0,b2_part1. Full-document equality correctly found that difference.",
+    "repair": "Explicitly authored the four correct output refs in the fixture; retained all original full-document, ID, volume and persistence assertions. No production or numeric change.",
+    "singlePointReached": "PASS: real UI single point Apply/Save and fresh-context Open/re-edit Apply completed before the fixture failure.",
+    "finalRun": "PASS; final syntax PASS; no additional consumer failure"
+  },
+  "checks": {
+    "realUICreation": {
+      "status": "PASS",
+      "singlePointZeroSegments": true,
+      "polyline": {
+        "points": 3,
+        "segments": 2,
+        "constraintKinds": [
+          "fixed",
+          "along",
+          "length",
+          "along",
+          "length"
+        ],
+        "lengths": [
+          40,
+          20
+        ],
+        "status": "fully defined"
+      }
+    },
+    "freshContextOpen": {
+      "status": "PASS",
+      "schema": 3,
+      "singlePointDocument": "real UI Save download",
+      "sharedFollowerDocument": "real UI Save download plus explicitly authored two ordinary frame followers with required points/segments caches and output refs",
+      "docOrSelectionStagingHook": false
+    },
+    "reedit": {
+      "status": "PASS",
+      "route": "History context menu Edit in 3D sketch; constraint Length40->50; Apply",
+      "skeletonId": "retained original UI-authored n0",
+      "allFollowerRawFields": "unchanged",
+      "nextId": "unchanged",
+      "constraintsRetained": 5
+    },
+    "independentVolume": {
+      "status": "PASS",
+      "frameWidths": [
+        10,
+        20
+      ],
+      "heightEqualsWidth": true,
+      "wall": 1,
+      "outerRadius": 0,
+      "corners": "none",
+      "areas": [
+        36,
+        76
+      ],
+      "memberBodies": 4,
+      "beforeLengths": [
+        40,
+        20
+      ],
+      "afterLengths": [
+        50,
+        20
+      ],
+      "beforeExpectedTotal": 6720,
+      "afterExpectedTotal": 7840,
+      "absoluteTolerance": 1e-06,
+      "perProducerAreaTimesLengthChecked": true,
+      "rawBefore": "final-run/d318-followers-length-40.json",
+      "rawAfter": "final-run/d318-followers-length-50.json",
+      "requiresFreshAndMassReady": true
+    },
+    "undoRedo": {
+      "status": "PASS",
+      "fullOriginalAndEditedDocumentEquality": true
+    },
+    "saveNewOpen": {
+      "status": "PASS",
+      "assetFreeCurrentSchemaJSON": true,
+      "completeSemanticEquality": true,
+      "rawDownloadedBytesPreserved": true,
+      "rawByteEqualityBetweenDifferentSaves": "NOT_ASSERTED"
+    },
+    "visualReview": {
+      "status": "PASS",
+      "reviewer": "consumer agent",
+      "images": 4,
+      "observed": "Actual fully-defined polyline UI and edited/reopened four frame member bodies. Single-point file legitimately has zero solid bodies; its admission/edit proof uses actual UI and exact document assertions, not a visible-solid claim."
+    }
+  },
+  "proofBoundary": {
+    "focusedSourceTests": "Model41 and Studio7 unique focused/type/lint receipts are supplied by the Model lane; not rerun here.",
+    "apiOrKernelMass": "Only raw browser volumes and independent A*L invariants are asserted here; no new general mass certificate.",
+    "schema": "Actual browser files are schema3; schema4 structural route-bundle coverage belongs to focused tests."
+  },
+  "notRun": [
+    "full Kernel/Model/Studio suites",
+    "other browsers and DPR values",
+    "additional exploratory UI cases",
+    "schema4 actual UI",
+    "parameter-bound skeleton actual UI",
+    "malformed skeleton actual UI matrix",
+    "remote acceptance or release"
+  ]
+}

@@ -1,0 +1,4 @@
+fe3261f9a34225a4f0db904326efde824f9d10454e776de0ba5deaad03814415  packages/barocss-cad-model/src/engine/migrate.ts
+73fdb8f735717bcc2660095117892eafcb43e616d708d7d75fd5f2ca0393a3a8  apps/cad-studio/src/skeleton/useSkeletonEditor.tsx
+7aed5fa8e8a31184066f0c24fb8898ed68d0615424c76b2fc73a107cf4fc47f3  packages/barocss-cad-model/test/skeleton-reader.test.ts
+776c7fb6aacb72a6ab85b1f44e06d5f168a8ca31571e6c413e305ee2a3eb6546  apps/cad-studio/test/skeleton-session-node.test.ts

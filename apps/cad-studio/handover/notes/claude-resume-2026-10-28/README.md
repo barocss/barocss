@@ -3,6 +3,14 @@
 The owner asked: "지금까지 하던거 멈추고 인수인계 할 수 있도록 해줘". This note lets the next session continue the
 kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-10-27 to 2026-10-28.
 
+## Latest D318 checkpoint — 2026-10-29
+
+- Existing schema3/4 now admits structurally valid saved skeletons without solving or changing coordinates/constraints. Apply preserves ID/metadata and removes an emptied constraint list. Required follower caches are checked without refreshing stale values; nested documents use an iterative worklist.
+- Unique affected Model41 and Studio7, both types/lint pass, reusing unchanged successes. Actual Chrome/WebGPU two fresh contexts cover a saved UI single point and constrained polyline with two authored follower frames, length40→50, identity, Undo/Redo and Save/New/Open. Independent4-member sum6720→7840mm³ passes.
+- [Qualification](../skeleton-file-admission-2026-10-29/qualification.json) separates all baseline/fixture/type/browser first failures, retained checks and NOT_RUN limits. Generated/API/docs pass; no full suite repeats.
+- OPFS2241 P2 is registered in12/O9 and closed for transfer only; no storage fix is claimed. D317's independent retained-receipt review is recorded without rerunning successful checks.
+- Next priority:#2238 Presenter-owned Geometry lifetime under05/V1/R2. Next decision:D319. Normal per-feature push authorized; PR/release need direct instructions.
+
 ## Latest D317 checkpoint — 2026-10-29
 
 - Matched unsupported STEP SI length declarations now refuse with NOT_READ before Studio worker/repair/document mutation. Existing supported scaling and undeclared-mm fallback remain; Kernel importer and schema are unchanged.
@@ -275,7 +283,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D318**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D319**).
 
 ## 0. State at the stop
 

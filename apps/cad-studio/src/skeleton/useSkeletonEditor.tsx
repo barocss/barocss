@@ -28,6 +28,16 @@ export interface SkeletonSession {
   draft: SkeletonDraft;
   name?: string;
 }
+/** Copy the authored draft before solving; this is also the new-node shape used by Apply. */
+function copySkeletonPoint(p: V3): [number, number, number] { return [p[0], p[1], p[2]]; }
+export function skeletonSessionNode(session: SkeletonSession, previous?: SkeletonNode): SkeletonNode {
+  const node: SkeletonNode = { ...previous, kind: 'skeleton', points: session.draft.points.map(copySkeletonPoint), segments: session.draft.segments };
+  // An empty draft list removes constraints; spreading metadata must not resurrect the old list.
+  delete node.constraints; delete node.name;
+  if (session.name) node.name = session.name;
+  if (session.draft.constraints.length) node.constraints = session.draft.constraints;
+  return node;
+}
 export type SkeletonMode = 'draw' | 'select';
 export interface SkeletonEditor {
   readonly session: SkeletonSession | null;
@@ -104,7 +114,7 @@ export function useSkeletonEditor(doc: StudioDoc, commit: (next: StudioDoc) => v
   const apply = useCallback(() => {
     const s = ref.current.session; if (!s) return;
     if (!s.draft.points.length) { end(); return; }
-    const base: SkeletonNode = { kind: 'skeleton', points: s.draft.points.map(p => [p[0], p[1], p[2]] as [number, number, number]), segments: s.draft.segments, ...(s.name ? { name: s.name } : {}), ...(s.draft.constraints.length ? { constraints: s.draft.constraints } : {}) };
+    const base = skeletonSessionNode(s, s.node === null ? undefined : doc.nodes[s.node] as SkeletonNode);
     let solved: ReturnType<typeof solvedSkeleton>;
     try { solved = solvedSkeleton(base, doc.parameters); }
     catch (e) { if (!isRefusal(e, ...SKELETON_CODES)) throw e; fail('The 3D sketch cannot be applied', e.message); return; }

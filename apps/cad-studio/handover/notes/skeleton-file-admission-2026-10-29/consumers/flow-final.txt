@@ -1,0 +1,4 @@
+flow display: {"requestedDpr":1,"renderer":"webgpu","devicePixelRatio":1,"cssWidth":1140,"cssHeight":900,"backingWidth":1140,"backingHeight":900}
+ok 1 starter plate loads
+ok 290 D318: authored skeleton files open in fresh contexts, retain IDs and update shared frame followers
+screenshots: /tmp/d318-studio-second

@@ -158,3 +158,13 @@ Save/New/Open. See [qualification](step-declared-unit-admission-2026-10-29/quali
 This supplies the selected #2240 admission gate; it does not qualify a general unit-context
 resolver, unknown conversion units or external reader conformance. The original audit report
 and six-issue state-only transfer receipt remain historical evidence; other five defects remain open in the roadmap.
+
+### D318 selected skeleton disposition
+
+D318 supplies saved skeleton admission plus Apply identity preservation, including required
+follower cache structure and raw nested document validation. Actual fresh contexts prove
+single-point reopening and constrained polyline re-edit/Undo/Save/Open with stable followers.
+See [qualification](skeleton-file-admission-2026-10-29/qualification.json). This closes the
+selected #2235 acceptance; structural admission is not successful solve/physical validation.
+The remaining four original defect gates stay incomplete; #2241 P2 OPFS overlap is separately
+registered in12/O9 and closed only for transfer, with no storage source repair. Next P1 is #2238.
