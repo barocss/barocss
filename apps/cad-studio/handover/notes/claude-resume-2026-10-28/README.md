@@ -3,10 +3,18 @@
 The owner asked: "지금까지 하던거 멈추고 인수인계 할 수 있도록 해줘". This note lets the next session continue the
 kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-10-27 to 2026-10-28.
 
+## Latest D316 checkpoint — 2026-10-29
+
+- Certified raw explicit frames now reuse the polynomial height loft and rigid mass placement once. Existing height/non-XY and single-span Bezier authoring remain unchanged.
+- Kernel related102/102, archived old-module21 full binary64 comparisons, independent V/C/I, Model focused4/4/types/lint and actual Chrome/WebGPU17/64-control generic edit/Undo/Save/New/Open pass.
+- Final root whole-Kernel and generated/docs receipts: [qualification](../framed-polynomial-guide-2026-10-29/qualification.json). Full Model/Studio suites were not repeated. Exact frame reconstruction remains required; no new frame/guide HUD or general different-axis support is claimed.
+- Next priority: registered #2240 silent STEP unit-declaration loss (roadmap13/16), then remaining07→08→09. Package/Stop source assessments are attached to existing acceptance scopes, not immediate execution requests.
+- Per-feature normal push is authorized. Next decision:D317. Local `.claude/` stays untracked; no PR/release is authorized.
+
 ## Current owner policy — 2026-10-29
 
 - Push each qualified roadmap feature to `origin/local/cad-dev` with a normal push. Exclude unfinished changes. PRs and releases need direct instructions.
-- Register messages from other chats in the roadmap first. Finish the selected D316 boundary, then select work by urgency; do not switch tasks on message arrival.
+- Register messages from other chats in the roadmap first. At each feature boundary, select work by urgency; do not switch tasks on message arrival.
 - Issues2235–2240 are closed after roadmap transfer, with original bodies preserved. Their defects and product acceptance remain incomplete in the roadmap. See [closure receipt](../engine-audit-reproductions-2026-10-29.closure.json).
 - Earlier no-feature-push statements below describe historical checkpoints.
 
@@ -260,7 +268,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D316**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D317**).
 
 ## 0. State at the stop
 

@@ -892,6 +892,59 @@ try {
     await iso(); await snap(`d315-${count}-reopened`);
   });
 
+  for (const [sections, count, degree] of [[2, 17, 2], [8, 64, 3]]) await check(`D316: raw framed polynomial guide with ${sections} sections and ${count} controls opens, edits and reopens`, async () => {
+    // Existing raw document route and generic profile editor; no frame/guide authoring HUD is assumed.
+    const knots = [...Array(degree + 1).fill(0), ...Array.from({ length: count - degree - 1 }, (_, i) => (i + 1) / (count - degree)), ...Array(degree + 1).fill(1)];
+    const controlPoints = Array.from({ length: count }, (_, i) => {
+      let t = 0;
+      for (let j = 1; j <= degree; j++) t += knots[i + j];
+      return [-2 + t / degree, 3, 4];
+    });
+    const input = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2,
+      nodes: [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [1, 1] },
+        { id: 'n1', kind: 'loft', from: Array(sections).fill(0),
+          sections: Array.from({ length: sections }, (_, i) => ({ sketch: 0, frame: { origin: [-2 + i / (sections - 1), 3, 4], xAxis: [0, 1, 0], yAxis: [0, 0, 1] } })),
+          guide: { kind: 'nurbs', degree, knots, controlPoints } }], outputs: { b1: { node: 1, side: 'solid' } } };
+    const fixture = join(out, `d316-${sections}-${count}-input.bcad`); writeFileSync(fixture, JSON.stringify(input));
+    const ready = async (width, depth) => {
+      await page.waitForFunction(({ width, depth, sections, count }) => {
+        const state = window.__studioBodies?.(), doc = window.__studioDoc, loft = doc?.nodes[1];
+        if (!state?.fresh || state.massReady !== true || state.bodies.length !== 1 || loft?.kind !== 'loft' || loft.sections.length !== sections || loft.guide?.controlPoints.length !== count) return false;
+        const body = state.bodies[0];
+        return body.key === 'b1' && Number.isFinite(body.volume) && Math.abs(body.volume - width * depth) < 1e-9
+          && doc.nodes[0].max[0] === width && doc.nodes[0].max[1] === depth;
+      }, { width, depth, sections, count }, { timeout: 30000 });
+      const state = await page.evaluate(() => window.__studioBodies());
+      assert.equal(state.bodies.length, 1); assert.equal(state.bodies[0].key, 'b1');
+      assert.ok(state.bodies[0].centroid?.every((v, i) => Math.abs(v - [-1.5, 3 + width / 2, 4 + depth / 2][i]) < 1e-9));
+      assert.equal(await page.locator('.vp-error').count(), 0); assert.match(await outliner(), /1 body/);
+      assert.deepEqual((await doc()).nodes[1], input.nodes[1], 'generic profile edits retain every frame and original guide coefficient');
+    };
+    await openModel(fixture, 2); await ready(1, 1); await iso(); await snap(`d316-${sections}-${count}-opened`);
+    await page.locator('.history .hs[data-node-index="1"]').click();
+    const editor = page.locator('.node-editor'); await editor.waitFor();
+    assert.equal(await editor.locator('input[aria-label="Section 1 · Width"]').inputValue(), '1');
+    assert.equal(await editor.locator('input[aria-label="Section 1 · Depth"]').inputValue(), '1');
+    await editor.locator('input[aria-label="Section 1 · Width"]').fill('2');
+    await editor.locator('input[aria-label="Section 1 · Depth"]').fill('3');
+    await editor.locator('button', { hasText: 'Apply' }).click(); await ready(2, 3);
+    await iso(); await snap(`d316-${sections}-${count}-edited`);
+    const accepted = await doc(); assert.deepEqual(accepted.nodes[0].min, [0, 0]);
+    await press('Escape'); await press('Meta+z'); await ready(1, 1);
+    await press('Meta+Shift+z'); await ready(2, 3); assert.deepEqual(await doc(), accepted);
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+    const file = join(out, `d316-${sections}-${count}-saved.bcad`); await saved.saveAs(file);
+    assert.deepEqual(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readFileSync(file))), JSON.parse(JSON.stringify(accepted)));
+    await page.click('[aria-label="New part"]');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 0 && window.__studioBodies?.().fresh && window.__studioBodies().bodies.length === 0, null, { timeout: 30000 });
+    await openModel(file, 2); await ready(2, 3); assert.deepEqual(await doc(), accepted);
+    await page.locator('.history .hs[data-node-index="1"]').click(); await editor.waitFor();
+    assert.equal(await editor.locator('input[aria-label="Section 1 · Width"]').inputValue(), '2');
+    assert.equal(await editor.locator('input[aria-label="Section 1 · Depth"]').inputValue(), '3');
+    await iso(); await snap(`d316-${sections}-${count}-reopened`);
+    await page.click('[aria-label="Close editor"]');
+  });
+
   await check('CG1 freeform: Face fillet on a quintic guided loft previews, applies and reopens', async () => {
     const input = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [
       { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [20, 20] },

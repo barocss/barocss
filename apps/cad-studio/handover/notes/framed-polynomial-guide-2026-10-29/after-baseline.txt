@@ -1,0 +1,6 @@
+2 polygon: valid; volume=2.3333333333333344; faces=6
+2 circle: valid; volume=7.3303828583761845; faces=6
+3 polygon: valid; volume=2.333333333333334; faces=10
+3 circle: valid; volume=7.330382858376187; faces=10
+8 polygon: valid; volume=2.333333333333334; faces=30
+8 circle: valid; volume=7.330382858376187; faces=30

@@ -279,8 +279,12 @@ does not certify manufacturing suitability.
 
 A polynomial `guide: { kind: 'nurbs', degree, knots, controlPoints }` uses the separate 2–8 ruled-height-section
 path. It supports degree 1–5 and up to 64 controls under the original monotone-height and section-vertex rules.
-A common non-XY sketch plane is already supported; raw explicit section frames remain outside this general-guide
-path. The source is copied without a new schema. See the [tested polynomial example and actual Studio preview](/how/loft-sweep#one-polynomial-guide-on-height-sections).
+A common non-XY sketch plane is supported. Raw explicit frames also admit two to eight ruled line/arc sections
+with identical certified rigid axes, positive ordered separation and exact world/local reconstruction of
+origins and guide controls. Circle and mixed arc profiles retain their original correspondence rules; inline
+ellipse objects, different axes and failed reconstruction witnesses are refused. The adapter builds and places
+the loft once, preserving the mass method and existing native SI `transformed` refusal. Studio can reopen the
+recipe and edit the source profile through existing Width/Depth fields. The source is copied without a new schema. See the [tested polynomial example and actual Studio preview](/how/loft-sweep#one-polynomial-guide-on-height-sections).
 
 ## Direct sweep and loft surfaces
 

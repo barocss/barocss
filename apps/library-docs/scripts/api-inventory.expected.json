@@ -292917,14 +292917,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: Pick<DrawingSettings, \"section\" | \"sections\">) => DrawingSection[]",
+            "type": "(s: Pick<DrawingSettings, \"sections\" | \"section\">) => DrawingSection[]",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: Pick<DrawingSettings, \"section\" | \"sections\">) => DrawingSection[]"
+              "(s: Pick<DrawingSettings, \"sections\" | \"section\">) => DrawingSection[]"
             ]
           }
         }

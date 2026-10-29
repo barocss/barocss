@@ -1,0 +1,9 @@
+{
+  "exposures": 6751,
+  "added": 0,
+  "removed": 0,
+  "changedExposures": 1,
+  "changedLeaves": 2,
+  "meaning": "Only union member display order in DrawingSettings Pick; no public type contract change.",
+  "expectedSha256": "0b8b75f598efc7f8a46d844ad666175edd6c81b0c5b7368f5f39377bd5702e4e"
+}

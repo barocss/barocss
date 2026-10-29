@@ -1,0 +1,17 @@
+{
+  "runtime": "b3de047be71ce9c782862c2ab4afd01bebd8a4e1",
+  "node": "v22.19.0",
+  "reusedD315FullBuild": true,
+  "hashes": {
+    "packages/barocss-cad/src/features/loft.ts": "650b9948fe1d0a9d0302a2fdb67fd315ddee961fef560e87dd0989c321b7fae6",
+    "packages/barocss-cad/dist/features/loft.js": "1e652cb8cb2f8b153bf0511ab41ac1d6622cd41bd182e6a7afbf5f685e762a00",
+    "packages/barocss-cad/src/features/oriented-loft.ts": "0fbf4201abf74462d57df0f9670e6d771142766c463257291611fff920aa24fa",
+    "packages/barocss-cad/dist/features/oriented-loft.js": "4bd4a6a39158c2c71c8ac4f5ecb99fb83e7eae309b4d75edc85bedbc96347f21",
+    "packages/barocss-cad/src/features/framed-mixed-loft.ts": "8e24fbfa2b476152c77e2271c3c8ff8189aff66b99d0fea07494078bd5292519",
+    "packages/barocss-cad/dist/features/framed-mixed-loft.js": "6e239598ffbac4534c2e3015e936bd292199927c4c0e7f2ef7c877460611c384",
+    "packages/barocss-cad/src/features/loft-guide.ts": "76ea2772f8b575b47eab49659b39483df402558445d8af16ade56da8fa8c7cea",
+    "packages/barocss-cad/dist/features/loft-guide.js": "b2e5ff7c3b32ab8f0f0fa667932c47dfe0b1bf25749b9ddfcf5c503dc7c1a1e8",
+    "packages/barocss-cad/src/features/loft-nurbs-guide.ts": "28467889c6adf2b3bdee0f84eea26a9f889942ab2f7b2039923dedd2f6792add",
+    "packages/barocss-cad/dist/features/loft-nurbs-guide.js": "e988ea582b23f091dc20285c7c71b59e6db97921bd34c81a05cf71b4dc983afc"
+  }
+}

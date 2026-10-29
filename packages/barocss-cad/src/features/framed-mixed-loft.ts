@@ -1,30 +1,18 @@
 // CG1.1d: admit a positive homothety of one simple line/arc loop, then reuse the legacy
 // exact ruled loft in a rigid common frame. There is no second loft or mass solver here.
 import { BrepError } from '../brep/brep-core.js';
-import { transformBrep, type BrepAffine } from '../brep/brep-transform.js';
-import { combineMassProperties } from '../brep/solid-mass.js';
-import { unsupportedNativeMass } from '../internal/native-si-mass-state.js';
-import { buildProfileLoop, ExtrudedProfileLimits, type ProfileSegmentInput } from './extruded-profile-solid.js';
+import { buildProfileLoop, type ProfileSegmentInput } from './extruded-profile-solid.js';
 import { admitLoftGuide, type LoftGuideFactory, type LoftLegacyBuilder } from './loft-guide.js';
+import { admitLoftCommonFrame, loftFrameOffset, loftFramePoint, loftFrameVector, placeLoftInFrame, type LoftFrameBasis } from './loft-common-frame.js';
 import type { LoftInput } from './loft.js';
 import type { Point } from '../types.js';
 
 type XY = [number, number];
-type Frame = { readonly origin: Point; readonly u: Point; readonly v: Point };
 const fail = (detail: string): never => { throw new BrepError('INPUT', `loft: framed mixed curves ${detail}`); };
-const dot = (a: Point, b: Point) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-const cross = (a: Point, b: Point): Point => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 
-export function framedMixedLoftSolid(input: LoftInput, frames: readonly Frame[], legacy: LoftLegacyBuilder) {
-  const [a, b] = frames, u = a.u, v = a.v, n = cross(u, v);
-  if (!u.every((x, c) => x === b.u[c]) || !v.every((x, c) => x === b.v[c])) return fail('need identical frame axes');
-  // A mass rotation must actually be rigid. Refuse uncertified floating frames rather than
-  // normalize/project the authored axes or apply rigid mass algebra to a shear/scale.
-  if (dot(u, u) !== 1 || dot(v, v) !== 1 || dot(u, v) !== 0 || dot(n, n) !== 1) return fail('need a certified rigid common frame');
-  const delta = b.origin.map((x, c) => x - a.origin[c]) as Point;
-  const shift: XY = [dot(delta, u), dot(delta, v)], height = dot(delta, n);
-  if (!(height > 1e-9 * Math.max(1, Math.hypot(...delta)))) throw new BrepError('GEOMETRY', 'loft: framed mixed curves need positive plane separation');
-  if (delta.some((x, c) => u[c] * shift[0] + v[c] * shift[1] + n[c] * height !== x)) return fail('need an exact rigid decomposition of the frame displacement');
+export function framedMixedLoftSolid(input: LoftInput, frames: readonly LoftFrameBasis[], legacy: LoftLegacyBuilder) {
+  const [a, b] = frames, common = admitLoftCommonFrame(frames, fail), n = common.n;
+  const { shift, height } = loftFrameOffset(common, b.origin, fail, 'loft: framed mixed curves need positive plane separation');
 
   const profiles = input.sections.map(s => {
     if (!Array.isArray(s.profile)) return fail('need line/arc profile arrays on both sections');
@@ -64,8 +52,8 @@ export function framedMixedLoftSolid(input: LoftInput, frames: readonly Frame[],
     if (!mapped(x.start, y.start) || (x.kind === 'arc' && (y.kind !== 'arc' || !mapped(x.center, y.center)))) return fail('have an uncertified in-plane frame translation');
     if (l.kind !== h.kind || (l.kind === 'arc' && (h.kind !== 'arc' || l.startAngle !== h.startAngle || l.sweep !== h.sweep))) return fail('lose arc correspondence under the frame translation');
   }
-  const worldPoint = (p: Point): Point => a.origin.map((x, c) => u[c] * p[0] + v[c] * p[1] + n[c] * p[2] + x) as Point;
-  const localVector = (p: Point): Point => [dot(p, u), dot(p, v), dot(p, n)];
+  const worldPoint = (p: Point): Point => loftFramePoint(common, p);
+  const localVector = (p: Point): Point => loftFrameVector(common, p);
   const guideFactory: LoftGuideFactory | undefined = input.guide === undefined ? undefined : (start, end) => {
     const startWorld = worldPoint(start), endWorld = worldPoint(end);
     // Bind to the actual first legacy curve, without snapping a trigonometric endpoint
@@ -93,14 +81,5 @@ export function framedMixedLoftSolid(input: LoftInput, frames: readonly Frame[],
   // No explicit frame remains: the shared legacy builder runs once, with the optional guide.
   // Positive scale through the span preserves the simple admitted loop at every t.
   const local = legacy({ id: input.id, name: input.name, sections: [{ profile: lo, z: 0 }, { profile: upper, z: height }], ...(input.sideTags ? { sideTags: input.sideTags } : {}) }, guideFactory);
-  const matrix: BrepAffine['matrix'] = [u[0], v[0], n[0], u[1], v[1], n[1], u[2], v[2], n[2]];
-  const brep = transformBrep(local.brep, { matrix, offset: a.origin });
-  const outside = (p: Point) => p.some(x => !Number.isFinite(x) || Math.abs(x) > ExtrudedProfileLimits.coordinateMM);
-  if (brep.vertices.some(x => outside(x.point)) || brep.edges.some(e => e.curve.controlPoints.some(outside)) || brep.faces.some(f => f.surface.kind !== 'surface' || f.surface.controlPoints.some(row => row.some(outside)))) return fail('leave the existing modeling coordinate range');
-  return { brep, mass: (density: number) => {
-    const props = local.mass(density), world = combineMassProperties([{ props, axes: [u, v, n], offset: a.origin }]);
-    // Use existing rigid mass algebra without upgrading the original quadrature method or
-    // inventing a native-SI carrier (the existing moved-mass path is also unavailable there).
-    return unsupportedNativeMass({ ...world, method: props.method }, 'transformed');
-  } };
+  return placeLoftInFrame(local, common, fail);
 }

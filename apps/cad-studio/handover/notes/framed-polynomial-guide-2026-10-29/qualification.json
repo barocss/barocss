@@ -1,0 +1,60 @@
+{
+  "workId": "D316",
+  "kernelBuild": "PASS; reused final frozen source/dist identity13/13",
+  "kernelRelated": {
+    "passed": 102,
+    "failed": 0,
+    "skipped": 0
+  },
+  "kernelFull": {
+    "passed": 2205,
+    "failed": 0,
+    "skipped": 6,
+    "total": 2211,
+    "duration": 269163.173083,
+    "timeUnit": "ms",
+    "log": "full-kernel.txt"
+  },
+  "legacyBitTrees": {
+    "fixtures": 21,
+    "same": true,
+    "callerInputPreserved": true
+  },
+  "model": {
+    "focusedPassed": 4,
+    "types": "PASS",
+    "changedTestLint": "PASS",
+    "fullSuite": "NOT_RUN"
+  },
+  "studio": {
+    "browser": "Chrome WebGPU",
+    "DPR": 1,
+    "selectedCasesPassed": 2,
+    "starterPassed": true,
+    "firstRun": true,
+    "rootViewedActualScreenshots": 6,
+    "route": "Open/profile Width+Depth/Apply/Undo/Redo/real JSON Save/New/Open/reopened fields",
+    "fullUnitSuite": "NOT_RUN",
+    "otherBrowsersOrDPR": "NOT_RUN",
+    "dedicatedFrameGuideHUD": "NOT_IMPLEMENTED_AND_NOT_CLAIMED"
+  },
+  "docs": {
+    "status": "PASS",
+    "pages": 68,
+    "shots": 55,
+    "shotKB": 4811,
+    "labels": 858,
+    "log": "docs-check-final.txt",
+    "generatedAgentTools": "PASS",
+    "generatedRefusals": "PASS",
+    "apiSixRules": "SCOPED_PASS; only six documented rules, not blanket API acceptance"
+  },
+  "firstFailures": {
+    "kernelTestOracle": "5/6; Parameter is outside the knot domain; repaired normalized actual-domain mapping; final102/102",
+    "docsInventory": "IV001 canonical inventory differs; two union display-order leaves only; no added or removed exposure"
+  },
+  "kernelLaneReceipt": "verification.json",
+  "consumerLaneReceipt": "consumers/validation.json",
+  "artifactHashesMeaning": "Artifact/source/build provenance only; no source checksum unit-test oracle",
+  "publication": "Normal per-feature push authorized; no PR or release"
+}

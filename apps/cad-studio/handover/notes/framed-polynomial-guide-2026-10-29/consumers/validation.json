@@ -1,0 +1,104 @@
+{
+  "workId": "D316-framed-polynomial-guide-consumers",
+  "status": "scoped_pass",
+  "updatedAt": "2026-10-29T04:19:21.256181+00:00",
+  "model": {
+    "focused": {
+      "pass": 4,
+      "fail": 0,
+      "skip": 0,
+      "log": "model-focused-first.txt",
+      "duration": 1405.540584,
+      "timeUnit": "ms"
+    },
+    "types": {
+      "status": "PASS",
+      "exit": 0,
+      "log": "model-types-first.txt"
+    },
+    "changedTestLint": {
+      "status": "PASS",
+      "exit": 0,
+      "log": "model-lint-first.txt"
+    },
+    "browserScriptSyntax": {
+      "status": "PASS",
+      "exit": 0,
+      "log": "browser-syntax-first.txt"
+    },
+    "firstFailures": [],
+    "coverage": [
+      "raw explicit frames with every section count 2 through 8; quadratic17/cubic64 controls",
+      "independent world-space prism volume and centroid; real finite native meshes",
+      "generic shared-profile width/depth edits with fixed min-corner guide anchor",
+      "current-schema plain JSON and container codecs",
+      "public API mass at density1, exact guide/frame persistence and alias isolation",
+      "typed incompatible-axis refusal preserves accepted mass/document"
+    ]
+  },
+  "browser": {
+    "status": "PASS",
+    "plannedCases": [
+      "2 explicit frames,17 quadratic controls",
+      "8 explicit frames,64 cubic controls"
+    ],
+    "route": "real file Open; generic profile Width/Depth Edit; Undo/Redo; Save/New/Open",
+    "dedicatedFrameGuideHUD": "NOT_IMPLEMENTED_AND_NOT_CLAIMED",
+    "firstRun": true,
+    "exit": 0,
+    "renderer": "Chrome WebGPU",
+    "DPR": 1,
+    "cssViewport": [
+      1140,
+      900
+    ],
+    "backingViewport": [
+      1140,
+      900
+    ],
+    "cases": [
+      "starter plate loads",
+      "2 sections / 17 quadratic controls",
+      "8 sections / 64 cubic controls"
+    ],
+    "visualReview": {
+      "reviewer": "consumer agent",
+      "images": 6,
+      "status": "PASS",
+      "observed": "Actual unit prism, edited 1 x 2 x 3 prism, one body, world COM and reopened generic Width 2 / Depth 3 fields for both counts."
+    },
+    "selectionStagingHook": false,
+    "rawAssertions": [
+      "one fresh body from producer b1",
+      "massReady true",
+      "finite volume 1 -> 6 mm^3 within1e-9",
+      "world centroid [-1.5,3.5,4.5] -> [-1.5,4,5.5] mm within1e-9",
+      "min corner remains [0,0]",
+      "every original frame and guide coefficient retained",
+      "Undo restores original body; Redo restores edited document",
+      "no vp-error",
+      "asset-free Save is strict-decoded full semantic current-schema JSON",
+      "fresh New/Open returns accepted document and generic editor field values"
+    ],
+    "firstFailures": [],
+    "log": "browser/flow-first.txt",
+    "display": "browser/display.json",
+    "massBoundary": "The browser checks raw volume and centroid and waits for deferred massReady. The public API separately proves mass0.001g at density1 for the unit prism. Tiny fixture UI displays 0g after rounding; this is not a raw mass0 result."
+  },
+  "notRun": [
+    "full Model unit suite",
+    "full Studio unit suite",
+    "other browsers or DPR values",
+    "additional exploratory UI cases"
+  ],
+  "execution": {
+    "node": "22.19.0",
+    "gate": "serial heavy",
+    "commands": [
+      "node scripts/test.mjs framed-polynomial-guide",
+      "node ../../node_modules/typescript/bin/tsc --noEmit -p .",
+      "node ../../node_modules/eslint/bin/eslint.js test/framed-polynomial-guide.test.ts",
+      "node --check ../../apps/cad-studio/test/browser-flow.mjs"
+    ]
+  }
+}

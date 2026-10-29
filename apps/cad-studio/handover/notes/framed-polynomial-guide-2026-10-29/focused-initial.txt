@@ -1,0 +1,61 @@
+TAP version 13
+# Subtest: raw polynomial frames: 2/3/8 sections, +X/+Y/negative normals, in-plane origins, and 17/64 controls
+not ok 1 - raw polynomial frames: 2/3/8 sections, +X/+Y/negative normals, in-plane origins, and 17/64 controls
+  ---
+  duration_ms: 485.531417
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/framed-polynomial-guide.test.mjs:64:1'
+  failureType: 'testCodeFailure'
+  error: 'Parameter is outside the knot domain'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    requireValue (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/math.js:4:15)
+    basisInto (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/math.js:118:5)
+    basis (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/math.js:107:19)
+    surfacePoint (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/math.js:187:20)
+    evaluateSurface (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/math.js:214:12)
+    surfaceOracle (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/framed-polynomial-guide.test.mjs:48:17)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/framed-polynomial-guide.test.mjs:67:82)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+  ...
+# Subtest: raw polynomial frames: a certified non-permutation rigid direction has independent prism V/C/I
+ok 2 - raw polynomial frames: a certified non-permutation rigid direction has independent prism V/C/I
+  ---
+  duration_ms: 6.32475
+  type: 'test'
+  ...
+# Subtest: raw polynomial frames: circle and mixed line/arc admission is retained for 2/3/8 sections
+ok 3 - raw polynomial frames: circle and mixed line/arc admission is retained for 2/3/8 sections
+  ---
+  duration_ms: 279.345458
+  type: 'test'
+  ...
+# Subtest: raw polynomial frames: world seam and cap correspondence includes a genuinely bowed guide
+ok 4 - raw polynomial frames: world seam and cap correspondence includes a genuinely bowed guide
+  ---
+  duration_ms: 16.300209
+  type: 'test'
+  ...
+# Subtest: raw polynomial frames: source arrays and returned mass are isolated from subsequent input mutation
+ok 5 - raw polynomial frames: source arrays and returned mass are isolated from subsequent input mutation
+  ---
+  duration_ms: 4.76725
+  type: 'test'
+  ...
+# Subtest: raw polynomial frames: typed refusals preserve every input, including failed late guide admission
+ok 6 - raw polynomial frames: typed refusals preserve every input, including failed late guide admission
+  ---
+  duration_ms: 1.999541
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 5
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1073.080167

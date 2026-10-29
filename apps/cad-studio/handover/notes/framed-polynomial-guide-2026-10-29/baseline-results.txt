@@ -1,0 +1,6 @@
+{"sectionCount":2,"profile":"polygon","outcome":{"threw":{"name":"BrepError","code":"INPUT","message":"B-rep: loft: curved sections currently need one full-circle arc or one inline ellipse on each end"}}}
+{"sectionCount":2,"profile":"circle","outcome":{"threw":{"name":"BrepError","code":"INPUT","message":"B-rep: loft: quadratic guide needs exactly kind quadratic-bezier and controlPoints"}}}
+{"sectionCount":3,"profile":"polygon","outcome":{"threw":{"name":"BrepError","code":"INPUT","message":"B-rep: loft: oriented sections three-section conics do not support a guide"}}}
+{"sectionCount":3,"profile":"circle","outcome":{"threw":{"name":"BrepError","code":"INPUT","message":"B-rep: loft: oriented sections three-section conics do not support a guide"}}}
+{"sectionCount":8,"profile":"polygon","outcome":{"threw":{"name":"BrepError","code":"INPUT","message":"B-rep: loft: oriented sections more than two conic sections do not support a guide"}}}
+{"sectionCount":8,"profile":"circle","outcome":{"threw":{"name":"BrepError","code":"INPUT","message":"B-rep: loft: oriented sections more than two conic sections do not support a guide"}}}

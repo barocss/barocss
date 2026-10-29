@@ -161,16 +161,24 @@ parameter does not change a taper. Mass uses max(2p + 2, ceil(5p / 2)) Gauss poi
 
 In Studio, **Loft** copies a polynomial direct curve selected in **Guide (copied)**. It sorts the picked parallel
 sketches by height. Later edits of the direct curve do not change the loft. A single quadratic or cubic Bézier span
-keeps the existing framed guide path below. Two guides, smooth guided sections, rational guides and general guides
-on explicit frames remain unsupported.
+keeps the existing framed Bezier guide path below. Two guides, smooth guided sections and rational guides
+remain unsupported.
 
 Large polynomial guides keep the same source and input limit. Guided sides with more than 16 controls are split
 at existing knots into patches with at most 16 controls along V. Adjacent patches share their boundary edges and
 vertices. The original guide still supplies the mass integrals. This also handles 64-control guides crossing inner
 sections without increasing the Curve or Surface limits. Existing valid small-guide results are unchanged.
 
-The height path already supports a common non-XY sketch plane. This differs from raw explicit section frames;
-general polynomial guides on that separate frame path remain unsupported.
+The height path already supports a common non-XY sketch plane. Raw explicit frames also admit one polynomial
+guide across two to eight ruled sections with line/arc profiles. All frame axes must be identical and form a
+certified rigid basis. Section origins and world guide controls must reconstruct exactly through the common
+local frame; inputs that fail this floating-point witness are refused. Sections retain their supplied order
+and must have positive separation. Inline ellipse objects and different/nonparallel axes are outside this
+polynomial-frame path. Circle and mixed line/arc profiles retain their original correspondence rules.
+
+The raw frame adapter builds the local height loft once and places it once. It retains the original mass method;
+native SI inertia keeps the existing typed `transformed` refusal. In Studio, open the current-schema recipe and
+use the existing profile Width/Depth fields, Undo/Redo and Save/Open. No separate frame/guide editor is added.
 
 The Model facade accepts the same polynomial guide. This tested example makes a square frustum with volume 7/3 mm³:
 
@@ -198,7 +206,7 @@ separately. This screenshot is an actual preview, not a generated design target.
 ### Sections on frames, twist and guides
 
 A section can be placed on an explicit frame instead of a height: an origin and two unit, perpendicular axes (checked to
-10⁻⁹). Then `orientedLoftSolid` admits three families, each with its own proof that the solid does not fold:
+10⁻⁹). Without a polynomial guide, `orientedLoftSolid` admits the following families, each with its own proof that the solid does not fold:
 
 | Sections | Admitted when | Sides |
 |---|---|---|
@@ -248,6 +256,7 @@ All paths are under `packages/barocss-cad/src/`.
 | `features/oriented-loft.ts`, `features/curved-loft.ts`, `features/framed-mixed-loft.ts` | Lofts on frames: polygons with their fold certificates, conics, mixed loops |
 | `features/loft-nurbs-guide.ts` | Polynomial guide admission, bounded section crossings, chord elevation and per-span mass integrals |
 | `features/loft-guide-patches.ts` | Split oversized guided sides at native knots with shared ruling segments and interior rings |
+| `features/framed-nurbs-loft.ts`, `features/loft-common-frame.ts` | Certified common-frame polynomial guide adapter and shared rigid placement/mass |
 | `features/loft-guide.ts` | `admitLoftGuide`: the quadratic and cubic seam guides and their offsets |
 | `nurbs/surfaces/compatible-ruled-surface.ts`, `nurbs/surfaces/rational-ruled-surface.ts` | Ruled surfaces between two compatible sections |
 | `features/section-knot-alignment.ts` | `buildAlignedRationalRuledSurface`: knot union, insertion, ruled |
@@ -267,6 +276,7 @@ All paths are under `packages/barocss-cad/src/`.
 | `packages/barocss-cad/test/sweep-solid.test.mjs` | `sweep-curve`: a bent rod within 1 % of Pappus, its start cap on the path's start, a tube with its bore, the closed-path and bad-curve refusals |
 | `packages/barocss-cad/test/interpolated-hole-sweep-regression.test.mjs` | An interpolated space curve as the path of a holed sweep, saved and read back; mismatched weights refused |
 | `packages/barocss-cad/test/oriented-loft.test.mjs` | Lofts on frames: prisms between unparallel caps, a twist, the half-turn refusal, non-affine polygons, circles and ellipses, mixed loops, every typed refusal |
+| `packages/barocss-cad/test/framed-polynomial-guide.test.mjs`, `packages/barocss-cad-model/test/framed-polynomial-guide.test.ts` | Raw framed polynomial guides: placement, mass, bounded profiles, retained data and typed refusals |
 | `packages/barocss-cad/test/loft-nurbs-guide.test.mjs` | Polynomial guide: Cavalieri volume, independent de Boor centroid integration, knot and section crossings, strict B-rep and watertight mesh, typed refusals |
 | `packages/barocss-cad/test/loft-multi-conic.test.mjs`, `loft-cubic-guide.test.mjs` | Four and eight conic sections; the cubic seam guide; their refusals |
 | `packages/barocss-cad-model/test/api-multi-conic-loft.test.ts`, `api-loft-guide.test.ts` | The same through the studio's API |
@@ -283,7 +293,8 @@ three-section loft demos import the TypeScript sources directly and do not run t
   path bends tighter than the profile is wide. Closed paths are refused.
 - `sweep` takes one loop with no holes; its path has 1 … 64 steps, bends of at most 180° to one of four sides.
 - `loft` at heights: 2 … 64 sections, each above the one before. Smooth sides need three or more sections. On frames:
-  the families in the table above only, no smooth sides, a guide only between two sections.
+  the families in the table above and the certified common-frame polynomial path only; no smooth sides.
+  Bezier guides use two sections; polynomial guides use two to eight.
 - Draft: corners between an arc and a segment it does not meet tangentially are refused.
 - The NURBS-section builders take curves of degree 1 … 3 with at most 16 control points, and make nothing compatible
   unless that is their job (knot alignment, degree matching). Their reports say their shape is checked at samples, not

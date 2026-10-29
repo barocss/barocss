@@ -15969,3 +15969,49 @@ lockfile/schema change, push, PR or release. Existing height-guide2–8 sections
 common sketch planes and remain supported. Next D316 is the distinct raw explicit-frame
 polynomial-guide dispatch gap, reusing common-frame/legacy/mass providers and existing Studio
 file/profile-edit consumers, before remaining07->08->09. No new authoring mode is assumed.
+
+
+## D316 — Reuse the height loft for certified raw polynomial frames (2026-10-29)
+
+The remaining dispatch gap was raw explicit section frames with `kind: 'nurbs'`, not the existing
+non-XY height authoring path. Six original 2/3/8-section polygon/circle inputs were refused before
+construction. Admit2–8 ruled line/arc sections with identical certified rigid axes and an exact
+world/local reconstruction witness for every frame origin and guide control. Preserve supplied
+order, positive separation, degree1–5/2–64 controls, original knots and every existing guide rule.
+No projection, normalization, wider tolerance, global cap, schema or dependency is added.
+
+Extract the existing mixed-frame placement/mass algebra. Copy profiles and world guide controls
+into one common frame, call the legacy height builder once with the admitted polynomial guide,
+and transform its B-rep once. Keep the original mass method and native SI `transformed` refusal.
+Circle/mixed arcs keep their correspondence rules. Inline ellipse objects, rational guide
+weights, smooth interpolation, different axes and failed reconstruction witnesses remain refused.
+Single-span quadratic/cubic authoring retains its existing Bezier encoding and height/non-XY
+commands retain their existing route.
+
+Node22 final build and lint/code-shape pass. Six related Kernel files pass102/102. Archived
+original modules match21 complete B-rep/name/two-density mass binary64 trees, including signed
+zero and caller preservation. Six former refusal fixtures now pass strict B-rep/finite mesh and
+independent expected volume. Independent analytic prism and affine-taper slice V/C/I and tensor
+rotation checks pass; other surface/mass comparisons are explicitly differential, not independent
+local integration or a whole-domain floating-point proof. The first5/6 test run failed with
+`Parameter is outside the knot domain`: the harness used one face's endpoint in another face's
+slightly different domain. Mapping normalized coordinates through each actual domain fixes the
+oracle; that repair changed no production coefficient or tolerance.
+
+Model focused4/4, types and changed-test lint pass. Actual Chrome/WebGPU/DPR1 first-run file
+flows pass for2sections/17controls and8sections/64controls: Open, existing generic Width/Depth
+edit, Apply, Undo/Redo, real JSON Save/New/Open and reopened fields. Raw volume1→6mm³ and
+centroid are checked separately from tiny-fixture UI0g rounding. Root reviewed six actual PNGs.
+No dedicated frame/guide HUD, other renderer/DPR or extra exploratory proof is claimed.
+
+The root final full-Kernel and generated/docs receipts are recorded in
+`notes/framed-polynomial-guide-2026-10-29/qualification.json`; Kernel lane and consumer lane
+receipts remain immutable and retain their own NOT_RUN boundaries. Full Model/Studio suites
+are intentionally not repeated for unchanged production contracts. The API inventory delta is
+only two display-order leaves in the same DrawingSettings union; no exposure is added/removed.
+Source checksum metadata binds artifacts only; no source hash is a unit-test acceptance oracle.
+
+Push the qualified feature with a normal `local/cad-dev` push under the owner's per-feature
+instruction. No PR or release is authorized. Incoming package/Stop assessments are registered
+in existing roadmap scopes and do not initiate work on arrival. Next priority is the registered
+silent STEP unit-declaration loss (#2240,13/16), then resume remaining07→08→09 extensions.

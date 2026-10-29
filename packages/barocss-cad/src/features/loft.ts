@@ -42,7 +42,7 @@ export interface LoftInput {
   readonly name: string;
   /** Through three or more sections: one smooth (C1) side per edge instead of a ruled side per span. */
   readonly smooth?: boolean;
-  /** One world-space seam guide for exactly two identical-axis parallel conic or admitted homothetic mixed-curve frames. */
+  /** One seam guide: polynomial NURBS on 2–8 height or identical-axis rigid frames; Bezier on its existing two-frame path. */
   readonly guide?: {
     readonly kind: 'quadratic-bezier';
     readonly controlPoints: readonly [readonly [number, number, number], readonly [number, number, number], readonly [number, number, number]];
