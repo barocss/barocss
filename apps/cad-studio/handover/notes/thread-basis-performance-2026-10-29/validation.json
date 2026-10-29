@@ -1,0 +1,71 @@
+{
+  "work_id": "D314-thread-performance",
+  "artifact_type": "verification",
+  "status": "verified",
+  "owner_role": "geometry-reviewer",
+  "source_request": "Measure thread performance and retain only demonstrated improvements without changing geometry/numerical contracts",
+  "last_updated": "2026-10-29T03:17:16.772095+00:00",
+  "baselineRuntime": "f29df9217cf913cc1493f122a808075e5218d411",
+  "selectedChange": "strict component lower bound before cached boundary sample Math.hypot",
+  "rejectedChange": "call-local64-entry basis table cache: no consistent measured benefit",
+  "node": "v22.19.0",
+  "checks": {
+    "fullBuild": "PASS",
+    "kernelLintAndCodeShape": "PASS",
+    "focused": {
+      "pass": 27,
+      "fail": 0,
+      "skip": 0
+    },
+    "whiteBoxPrivatePredicateTests": 5,
+    "wholeQuadratureOldModuleOracleFixtures": 11,
+    "actualFullBeforeAfterGeometryCases": 6,
+    "raw11Segments": [
+      8,
+      16
+    ],
+    "raw11MassAreaNativeSIBits": "PASS",
+    "actualBoundaryRefinementEvaluationBitTraces": "PASS",
+    "inputMutationIsolation": "PASS",
+    "fullKernelModelStudio": {
+      "kernel": {
+        "total": 2198,
+        "pass": 2192,
+        "fail": 0,
+        "skip": 6,
+        "duration": 247815.458666
+      },
+      "model": {
+        "pass": 1833,
+        "fail": 0,
+        "skip": 0,
+        "duration": 232937.926667
+      },
+      "studio": {
+        "pass": 365,
+        "fail": 0,
+        "skip": 0,
+        "duration": 28517.577459
+      },
+      "durationUnit": "ms"
+    },
+    "browser": "NOT_RUN",
+    "generated": "PASS: tools/refusals/unchanged API six-rule SCOPED_PASS",
+    "docs": {
+      "pages": 68,
+      "shots": 54,
+      "shotSize": 4668,
+      "sizeUnit": "KiB",
+      "labels": 858
+    },
+    "consumerTypes": "D313 retained; no public contract change, not re-run"
+  },
+  "premiseScope": "Component bound verified with Node22.19.0 V8 Math.hypot, admitted finite geometry and exceptional-value diagnostic cases; other JS engines not executed",
+  "originalFailures": [
+    "build launch log path and reserved zsh status variable before build execution",
+    "capture harness data URL could not resolve absolute path; fixed file URL; original error retained"
+  ],
+  "noCommitPushPR": true,
+  "retainedRuntime": "bb92da70b",
+  "parentRuntimeCommit": "bb92da70b"
+}

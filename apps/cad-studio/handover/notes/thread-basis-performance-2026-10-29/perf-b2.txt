@@ -1,0 +1,6 @@
+shaft-thread                     542 ms 63f2e23cc5a7c377
+tapped-hole                      554 ms 6e50cceb4849e3d5
+shaft-thread-long               2105 ms 1618ecf20aed2f8e
+tapped-hole-long                1342 ms 12564565abc9c0e0
+direct-thread-long-construction      21 ms 6833bb3ffc833a40
+direct-thread-long-construction-first-mass     272 ms 6833bb3ffc833a40

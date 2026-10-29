@@ -1,6 +1,25 @@
 # GitHub research intake and existing-roadmap reconciliation — 2026-10-29
 
-This reconciliation is adopted in the existing [roadmap](../roadmap.md). It creates no epic, duplicate execution queue or GitHub disposition. The local changes are planning documentation only. Keep the user's **07 → 08 → 09** order. D314 thread-quadrature performance is the current bounded follow-up inside 07/22; its in-progress work is not a new PASS in this note.
+This reconciliation is adopted in the existing [roadmap](../roadmap.md). It creates no epic or duplicate execution queue. The local changes are planning documentation only. Keep the user's **07 → 08 → 09** order. D314 thread-quadrature work was in progress during intake. It was later qualified at `bb92da70b`; its [separate performance receipt](thread-basis-performance-2026-10-29/README.md) supplies those checks. This issue reconciliation itself adds no product PASS.
+
+## Owner-authorized archive after roadmap transfer
+
+After reviewing this mapping, the owner explicitly authorized closing its issues. The68 previously
+OPEN issues were closed with state reason `completed`, meaning the research/planning intake and
+roadmap transfer are complete. A fresh GitHub GET of all73 selected issues confirms73 CLOSED,
+with every original body preserved. The five earlier CLOSED issues were unchanged. No issue
+body, label, assignee or comment was written by this closure operation. One update returned
+`ReadTimeout: `; a fresh GET confirmed its completed state, so it was not blindly retried.
+
+[Exact closure and fresh verification receipt](github-research-roadmap-2026-10-29.closure.json)
+records every issue, timestamp and preserved-body result. The OPEN/CLOSED descriptions below
+are the original intake snapshot, not the post-archive state. This closure is not feature,
+strict-proof, manufacturing or release acceptance. In particular,#527's three proof blockers
+and#2192's latest failed fit/prior-model retention remain in their existing roadmap scopes.
+
+Continue from the numbered roadmap and this mapping. Do not repeat this completed73-issue
+intake; consult an original issue only when its selected task needs evidence absent here or
+when new information changes that task.
 
 ## Evidence set and issue states
 
@@ -24,7 +43,7 @@ Historical issue-body ownership, READY text, pauses, model settings and shell co
 
 ## Deduplicated research-to-roadmap matrix
 
-Classes below describe evidence/action, not GitHub state. **RI** = research input; **GAP** = remaining contract or consumer work, requiring a current-source check; **LOCAL SUBSET** = reuse a bounded local result without closing the broad issue; **SEPARATE** = another domain or retained hold; **DESIGN** = target/reference only. Every issue in this matrix is OPEN unless the row says CLOSED. Proposed checks are **NOT_RUN in this reconciliation**.
+Classes below describe evidence/action, not GitHub state. **RI** = research input; **GAP** = remaining contract or consumer work, requiring a current-source check; **LOCAL SUBSET** = reuse a bounded local result without closing the broad issue; **SEPARATE** = another domain or retained hold; **DESIGN** = target/reference only. At the pre-archive intake, every issue in this matrix was OPEN unless the row says CLOSED. All73 are now closed for roadmap transfer as recorded above. Proposed checks are **NOT_RUN in this reconciliation**.
 
 | Primary issues and distinct input | Existing destination | Classification and smallest remaining action / acceptance |
 |---|---|---|
@@ -56,7 +75,7 @@ Classes below describe evidence/action, not GitHub state. **RI** = research inpu
 | [#2224 BerriaCraft](https://github.com/barocss/barocss/issues/2224), [#2178 hierarchical plans](https://github.com/barocss/barocss/issues/2178), [#2192 image-to-CAD](https://github.com/barocss/barocss/issues/2192) | Separate later AI group below; reuse12/13/16 and existing tools | RI+PARTIAL EXPERIMENT+GAP. #2224 adds immutable scan/processed/output-profile lineage and scale uncertainty; #2178 adds plan/part/operation provenance; #2192 has actual isolated experiments as well as failures. None establishes implemented stage contracts or full photo reconstruction. Keep optional mesh/depth branches optional. |
 | [#1652 USD-BRep ledger — CLOSED](https://github.com/barocss/barocss/issues/1652) | 16/QA and13 only for genuinely missing controls | Completed read-only research. The six-row/eight-control retained-evidence ledger recommends no new implementation issue; optional zero-use/orphan mutation is a narrow test-evidence gap only. Do not rerun native geometry or build a USD/BRep adapter to “finish” the research. |
 | [#514 restricted face — CLOSED](https://github.com/barocss/barocss/issues/514), [#518 orthogonal adjacency — CLOSED](https://github.com/barocss/barocss/issues/518), [#520 axis-box closure — CLOSED](https://github.com/barocss/barocss/issues/520) | Historical16 native qualification chain; relevant13 exchange lineage | Completed RESEARCH_ONLY at their own immutable pins. Exact rectangle, shared-edge and six-face evidence is retained; those comments explicitly did not deliver product APIs. Reconcile later implementations before any action. Do not reapply their historical Model16-object/host-gate constraints as modern Part requirements or rebuild current B-rep foundations. |
-| [#527 axis-box STEP research](https://github.com/barocss/barocss/issues/527) | 13 CG7 and16 independent acceptance; existing503/539 lineage | OPEN/BLOCKED strict research, not “STEP absent.” Preserve the observed four-file reader pass and three unresolved proof gates: AP214 source/global-rule closure, observable no-healing/shape-processing, nativeID→original entity→transferred shape association. Compare the requested proof to current source/tests; do not close it from current export success, waive gates or create another first-writer epic. |
+| [#527 axis-box STEP research](https://github.com/barocss/barocss/issues/527) | 13 CG7 and16 independent acceptance; existing503/539 lineage | Pre-transfer OPEN/BLOCKED strict research, now archived into the roadmap, not “STEP absent.” Preserve the observed four-file reader pass and three unresolved proof gates: AP214 source/global-rule closure, observable no-healing/shape-processing, nativeID→original entity→transferred shape association. Compare the requested proof to current source/tests; do not close it from current export success, waive gates or create another first-writer epic. |
 
 ## Comment corrections that change the classification
 
@@ -109,7 +128,7 @@ The current index applies these grouped clarifications. D313's long intermediate
 
 | Row | Scope clarification | Completion gate / deduplication |
 |---|---|---|
-| 07 | “Reuse D313's completed bounded wrap and current loft/fillet/Text/thread consumers. Finish measured D314 thread performance, then select one remaining explicit-frame guide, rational/multi-guide/smooth section, general fillet or wrap-profile gap. Research2227/2215/2167/2094 supplies acceptance inputs, not a rebuild list.” | Exact supported profile through kernel→Part/API/Model→actual Studio edit/file flow; independent geometry/mass bounds and original refusals. Keep literal/native-SI limits. Only then advance08→09. |
+| 07 | “Reuse D313's completed bounded wrap and current loft/fillet/Text/thread consumers. Reuse qualified D314 thread performance, then repair the reproduced long-guide limit mismatch and select one remaining explicit-frame guide, rational/multi-guide/smooth section, general fillet or wrap-profile gap. Research2227/2215/2167/2094 supplies acceptance inputs, not a rebuild list.” | Exact supported profile through kernel→Part/API/Model→actual Studio edit/file flow; independent geometry/mass bounds and original refusals. Keep literal/native-SI limits. Only then advance08→09. |
 | 08 | “Reuse03's cut-feature pattern and existing affine/Boolean/surface providers. Remaining curve/fill patterns and move/delete/replace/thicken/offset/knit/trim/extend need one admitted current-source gap each; attach2227/2215 and2032/2036 controls.” | Distinguish body copy from repeated feature; preserve source/history, dual-UV/trim ownership and failed-state atomicity. No generic surface/B-rep replacement project. |
 | 09 | “Reuse the existing solver and recorded sketch corrections. Finish spline/conic/block and diagnostic/edit consumer gaps; attach2210/2215 and2033/2038 controls.” | Returned geometry itself meets residual limits; DOF/conflict/nonconvergence stay distinct; actual constraint edit→feature handoff→Save/fresh Open preserves coordinates/refs. No new solver or DSL. |
 | 16 | “Use one deduplicated acceptance ledger for2205/2210/2215/2227/2228, with2217 file-loss controls. Recheck historical findings at current source; reuse1652 and514/518/520 research results.” | Each row names existing definition, retained execution, actual reproduced gap or inapplicable case. Prioritize false success, uncertainty/SSI/pcurve, references and units; no claim of full conventions from the inventory's six-rule result. |
@@ -121,6 +140,6 @@ The current index applies these grouped clarifications. D313's long intermediate
 
 ## Verification and scope
 
-This document maps all73 selected issues to existing rows or explicit later/separate groups, corrects the seven commented histories and supplies the applied roadmap clarifications. It runs no production build, tests, browser, benchmark or external comparator. The parent changed only local roadmap/intake documentation for this reconciliation; no GitHub issue/comment/state or production source changed. Current source completion and remote research disposition remain independent.
+This document maps all73 selected issues to existing rows or explicit later/separate groups, corrects the seven commented histories and supplies the applied roadmap clarifications. It runs no production build, tests, browser, benchmark or external comparator. The initial reconciliation changed only local roadmap/intake documentation. The later owner-authorized state-only archive closed68 issues; original bodies/comments and production source were unchanged by that operation. Current source completion and remote research disposition remain independent.
 
 For the next selected feature, first name the existing owner/task, exact current source/profile and the smallest missing acceptance evidence. Reuse a valid receipt where it covers that exact contract. An existing test definition is not a run; a research proposal is not source; a local bounded source/flow is not a general family or release. If current coverage already suffices, link it and add no implementation task.

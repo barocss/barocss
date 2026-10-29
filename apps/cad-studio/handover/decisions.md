@@ -15860,3 +15860,57 @@ and four browser failures remain verbatim with their corrections. No source chec
 dependency, WASM, lockfile/schema change, push, PR or release. Next D314 measures call-local
 quadrature basis reuse for thread performance. After this implementation is qualified, reconcile
 existing GitHub investigation issues into the roadmap, then continue remaining07 before08->09.
+
+
+## D314 — Prune boundary distances only after measured thread benefit (2026-10-29)
+
+**Decision.** Runtime `bb92da70b` keeps a strict component lower bound before a cached boundary sample's
+Math.hypot in brep-mass-quadrature.nearBoundary. Preserve the three subtraction order,
+threshold, strict nearest-sample tie, early hit and golden-section refinement. If any absolute
+component exceeds bestD, that sample cannot win or become an earlier near hit. Equality still
+runs the original hypot. No squared-distance approximation, new tolerance, cache, evaluator,
+quadrature order, summation order, support cap, public export or dependency is introduced.
+
+The first candidate reused identical basis tables within one quadrature call. A488-face long
+thread repeats two tables474 times each, but spanBases uses only0.04s of the11.41s combined
+profile. A1/B1/B2/A2 median7 fresh construction+firstmass271/274/272/272ms shows no consistent
+benefit. That candidate is absent from the retained production source; its original source,
+actual results and negative measurements remain in the evidence.
+
+The retained four-added/one-removed-line change targets nearBoundary's larger measured cost.
+Two paired/reversed median7 comparisons use the same original/retained Node22 builds:
+longshaft2060->2005 and2134->2044ms; longhole1295->1259 and1305->1270ms; fresh direct long
+construction+firstmass272->254 and273->261ms. These are local2.7–4.2% and4.4–6.6% improvements
+for the named workloads. Short shaft/hole and construction-only show no consistent improvement.
+The direct case includes fresh construction; subtracting construction medians would not prove
+pure mass latency. External host load is uncontrolled and logs retain rounded medians, not
+confidence intervals. No Studio or hardware-independent speedup is claimed.
+
+All six independently constructed before/after outputs have equal complete geometry/name/
+pole/knot/weight/vertex bits, mass/nativeSI/area bits, validity and counts. Eleven old-module
+fixtures also match full raw11 integrals at8/16 segments, meshed/squared/cubed/dropped state,
+public mass/area/nativeSI and actual boundary/refinement argument traces. Fresh clones avoid
+the existing immutable-Brep public mass cache. Pole/knot/weight mutation across fresh raw calls
+retains isolation. The frozen22-face partial trim, polynomial/rational/multi-span/signed-zero
+and left-thread controls are included, not replaced by timing fingerprints alone.
+
+Five tests call the actual built private predicate through a memory-only export and compare an
+independent pre-optimization scan and every evaluator argument bit. Threshold/adjacent-float/
+first-tie/refinement/evaluator failure, NaN/infinity/overflow/subnormal/signed-zero/negative
+threshold cases and120 cached grids pass. The current Node22/V8 hypot component-bound premise
+passes729 boundary combinations and10000 binary64 triples. Other engines are NOT_RUN; this is
+not an exhaustive proof of every implementation of Math.hypot. There is no source checksum pin.
+
+Full Node22 build and lint/code-shape pass; focused27/27 and full kernel2198total/2192pass/
+0fail/6existing skips pass (247815.458666ms). Model1833/1833(232937.926667ms),
+Studio365/365(28517.577459ms), generated tools/refusals/unchanged API six-rule check and
+docs68pages/54shots/858labels pass. Consumer type checks retain unchanged D313 contracts. Browser/performance UI is NOT_RUN; D313's actual bounded wrap flow remains its
+separate receipt. The first build-launch path/reserved-variable failure and snapshot-harness
+file-URL failure are preserved, not numerical failures. Evidence:
+notes/thread-basis-performance-2026-10-29/README.md. No lockfile/schema/runtime dependency,
+push, PR or release. Next D315 first reproduces a source-inspection candidate in the existing polynomial guide:
+admission allows64 controls while a generated Surface allows16. Original17/64-control prism
+and taper requests now reproduce successful construction/mass followed by strict-check/evaluator/
+tessellation failure: `Surface V control point count must be in 2..16`. The16-control controls pass.
+D315 preserves original source and caps while repairing this mismatch; explicit parallel-frame
+guide support and remaining07 follow before08->09.

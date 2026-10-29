@@ -1,0 +1,1431 @@
+{
+  "verifiedAt": "2026-10-29 03:29:20 UTC",
+  "repository": "barocss/barocss",
+  "authorization": "Owner explicitly authorized closing the investigated issues after their contents were transferred to the roadmap.",
+  "meaning": "Research/planning intake and roadmap transfer completed. This is not feature implementation, strict geometry-proof, manufacturing or release acceptance.",
+  "roadmapTransferCommit": "10a2934af",
+  "requestedUpdates": 68,
+  "confirmedUpdates": 68,
+  "alreadyClosed": 5,
+  "verifiedClosed": 73,
+  "commentWrites": 0,
+  "bodyWrites": 0,
+  "allOriginalBodiesPreserved": true,
+  "stateReason": "completed",
+  "updates": [
+    {
+      "number": 2228,
+      "url": "https://github.com/barocss/barocss/issues/2228",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:24:30Z",
+      "updatedAt": "2026-10-29T03:24:30Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2227,
+      "url": "https://github.com/barocss/barocss/issues/2227",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:24:52Z",
+      "updatedAt": "2026-10-29T03:24:52Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2224,
+      "url": "https://github.com/barocss/barocss/issues/2224",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:24:54Z",
+      "updatedAt": "2026-10-29T03:24:54Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2222,
+      "url": "https://github.com/barocss/barocss/issues/2222",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:24:56Z",
+      "updatedAt": "2026-10-29T03:24:56Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2220,
+      "url": "https://github.com/barocss/barocss/issues/2220",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:24:57Z",
+      "updatedAt": "2026-10-29T03:24:57Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2219,
+      "url": "https://github.com/barocss/barocss/issues/2219",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:24:59Z",
+      "updatedAt": "2026-10-29T03:24:59Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2218,
+      "url": "https://github.com/barocss/barocss/issues/2218",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:01Z",
+      "updatedAt": "2026-10-29T03:25:01Z",
+      "comments": 0,
+      "bodyPreserved": true,
+      "recovery": "update response timed out; fresh GET confirmed closed"
+    },
+    {
+      "number": 2217,
+      "url": "https://github.com/barocss/barocss/issues/2217",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:33Z",
+      "updatedAt": "2026-10-29T03:25:33Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2216,
+      "url": "https://github.com/barocss/barocss/issues/2216",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:35Z",
+      "updatedAt": "2026-10-29T03:25:35Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2215,
+      "url": "https://github.com/barocss/barocss/issues/2215",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:37Z",
+      "updatedAt": "2026-10-29T03:25:37Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2214,
+      "url": "https://github.com/barocss/barocss/issues/2214",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:39Z",
+      "updatedAt": "2026-10-29T03:25:40Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2213,
+      "url": "https://github.com/barocss/barocss/issues/2213",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:41Z",
+      "updatedAt": "2026-10-29T03:25:41Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2212,
+      "url": "https://github.com/barocss/barocss/issues/2212",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:43Z",
+      "updatedAt": "2026-10-29T03:25:43Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2211,
+      "url": "https://github.com/barocss/barocss/issues/2211",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:45Z",
+      "updatedAt": "2026-10-29T03:25:45Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2210,
+      "url": "https://github.com/barocss/barocss/issues/2210",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:47Z",
+      "updatedAt": "2026-10-29T03:25:47Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2209,
+      "url": "https://github.com/barocss/barocss/issues/2209",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:49Z",
+      "updatedAt": "2026-10-29T03:25:49Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2208,
+      "url": "https://github.com/barocss/barocss/issues/2208",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:50Z",
+      "updatedAt": "2026-10-29T03:25:50Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2207,
+      "url": "https://github.com/barocss/barocss/issues/2207",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:52Z",
+      "updatedAt": "2026-10-29T03:25:52Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2206,
+      "url": "https://github.com/barocss/barocss/issues/2206",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:54Z",
+      "updatedAt": "2026-10-29T03:25:54Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2205,
+      "url": "https://github.com/barocss/barocss/issues/2205",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:56Z",
+      "updatedAt": "2026-10-29T03:25:56Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2204,
+      "url": "https://github.com/barocss/barocss/issues/2204",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:58Z",
+      "updatedAt": "2026-10-29T03:25:59Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2203,
+      "url": "https://github.com/barocss/barocss/issues/2203",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:01Z",
+      "updatedAt": "2026-10-29T03:26:01Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2202,
+      "url": "https://github.com/barocss/barocss/issues/2202",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:03Z",
+      "updatedAt": "2026-10-29T03:26:03Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2201,
+      "url": "https://github.com/barocss/barocss/issues/2201",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:04Z",
+      "updatedAt": "2026-10-29T03:26:04Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2200,
+      "url": "https://github.com/barocss/barocss/issues/2200",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:06Z",
+      "updatedAt": "2026-10-29T03:26:06Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2199,
+      "url": "https://github.com/barocss/barocss/issues/2199",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:08Z",
+      "updatedAt": "2026-10-29T03:26:08Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2198,
+      "url": "https://github.com/barocss/barocss/issues/2198",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:10Z",
+      "updatedAt": "2026-10-29T03:26:10Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2197,
+      "url": "https://github.com/barocss/barocss/issues/2197",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:12Z",
+      "updatedAt": "2026-10-29T03:26:12Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2196,
+      "url": "https://github.com/barocss/barocss/issues/2196",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:14Z",
+      "updatedAt": "2026-10-29T03:26:14Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2195,
+      "url": "https://github.com/barocss/barocss/issues/2195",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:15Z",
+      "updatedAt": "2026-10-29T03:26:15Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2194,
+      "url": "https://github.com/barocss/barocss/issues/2194",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:17Z",
+      "updatedAt": "2026-10-29T03:26:17Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2193,
+      "url": "https://github.com/barocss/barocss/issues/2193",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:19Z",
+      "updatedAt": "2026-10-29T03:26:19Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2192,
+      "url": "https://github.com/barocss/barocss/issues/2192",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:21Z",
+      "updatedAt": "2026-10-29T03:26:21Z",
+      "comments": 11,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2191,
+      "url": "https://github.com/barocss/barocss/issues/2191",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:22Z",
+      "updatedAt": "2026-10-29T03:26:22Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2190,
+      "url": "https://github.com/barocss/barocss/issues/2190",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:24Z",
+      "updatedAt": "2026-10-29T03:26:24Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2189,
+      "url": "https://github.com/barocss/barocss/issues/2189",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:29Z",
+      "updatedAt": "2026-10-29T03:26:29Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2188,
+      "url": "https://github.com/barocss/barocss/issues/2188",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:31Z",
+      "updatedAt": "2026-10-29T03:26:31Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2187,
+      "url": "https://github.com/barocss/barocss/issues/2187",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:33Z",
+      "updatedAt": "2026-10-29T03:26:33Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2184,
+      "url": "https://github.com/barocss/barocss/issues/2184",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:34Z",
+      "updatedAt": "2026-10-29T03:26:34Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2183,
+      "url": "https://github.com/barocss/barocss/issues/2183",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:36Z",
+      "updatedAt": "2026-10-29T03:26:36Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2182,
+      "url": "https://github.com/barocss/barocss/issues/2182",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:38Z",
+      "updatedAt": "2026-10-29T03:26:38Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2181,
+      "url": "https://github.com/barocss/barocss/issues/2181",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:40Z",
+      "updatedAt": "2026-10-29T03:26:40Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2180,
+      "url": "https://github.com/barocss/barocss/issues/2180",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:42Z",
+      "updatedAt": "2026-10-29T03:26:42Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2179,
+      "url": "https://github.com/barocss/barocss/issues/2179",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:44Z",
+      "updatedAt": "2026-10-29T03:26:44Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2178,
+      "url": "https://github.com/barocss/barocss/issues/2178",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:46Z",
+      "updatedAt": "2026-10-29T03:26:46Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2177,
+      "url": "https://github.com/barocss/barocss/issues/2177",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:47Z",
+      "updatedAt": "2026-10-29T03:26:47Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2176,
+      "url": "https://github.com/barocss/barocss/issues/2176",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:49Z",
+      "updatedAt": "2026-10-29T03:26:49Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2175,
+      "url": "https://github.com/barocss/barocss/issues/2175",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:51Z",
+      "updatedAt": "2026-10-29T03:26:51Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2173,
+      "url": "https://github.com/barocss/barocss/issues/2173",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:52Z",
+      "updatedAt": "2026-10-29T03:26:52Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2172,
+      "url": "https://github.com/barocss/barocss/issues/2172",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:54Z",
+      "updatedAt": "2026-10-29T03:26:54Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2171,
+      "url": "https://github.com/barocss/barocss/issues/2171",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:56Z",
+      "updatedAt": "2026-10-29T03:26:56Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2167,
+      "url": "https://github.com/barocss/barocss/issues/2167",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:58Z",
+      "updatedAt": "2026-10-29T03:26:58Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2165,
+      "url": "https://github.com/barocss/barocss/issues/2165",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:00Z",
+      "updatedAt": "2026-10-29T03:27:00Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2122,
+      "url": "https://github.com/barocss/barocss/issues/2122",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:01Z",
+      "updatedAt": "2026-10-29T03:27:01Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2118,
+      "url": "https://github.com/barocss/barocss/issues/2118",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:03Z",
+      "updatedAt": "2026-10-29T03:27:03Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2110,
+      "url": "https://github.com/barocss/barocss/issues/2110",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:05Z",
+      "updatedAt": "2026-10-29T03:27:05Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2094,
+      "url": "https://github.com/barocss/barocss/issues/2094",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:07Z",
+      "updatedAt": "2026-10-29T03:27:07Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2084,
+      "url": "https://github.com/barocss/barocss/issues/2084",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:09Z",
+      "updatedAt": "2026-10-29T03:27:09Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2074,
+      "url": "https://github.com/barocss/barocss/issues/2074",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:11Z",
+      "updatedAt": "2026-10-29T03:27:11Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2038,
+      "url": "https://github.com/barocss/barocss/issues/2038",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:13Z",
+      "updatedAt": "2026-10-29T03:27:13Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2037,
+      "url": "https://github.com/barocss/barocss/issues/2037",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:14Z",
+      "updatedAt": "2026-10-29T03:27:14Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2036,
+      "url": "https://github.com/barocss/barocss/issues/2036",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:16Z",
+      "updatedAt": "2026-10-29T03:27:16Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2035,
+      "url": "https://github.com/barocss/barocss/issues/2035",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:18Z",
+      "updatedAt": "2026-10-29T03:27:18Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2034,
+      "url": "https://github.com/barocss/barocss/issues/2034",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:19Z",
+      "updatedAt": "2026-10-29T03:27:19Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2033,
+      "url": "https://github.com/barocss/barocss/issues/2033",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:21Z",
+      "updatedAt": "2026-10-29T03:27:21Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2032,
+      "url": "https://github.com/barocss/barocss/issues/2032",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:23Z",
+      "updatedAt": "2026-10-29T03:27:23Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2029,
+      "url": "https://github.com/barocss/barocss/issues/2029",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:25Z",
+      "updatedAt": "2026-10-29T03:27:25Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 527,
+      "url": "https://github.com/barocss/barocss/issues/527",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:26Z",
+      "updatedAt": "2026-10-29T03:27:26Z",
+      "comments": 3,
+      "bodyPreserved": true
+    }
+  ],
+  "verification": [
+    {
+      "number": 2228,
+      "url": "https://github.com/barocss/barocss/issues/2228",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:24:30Z",
+      "updatedAt": "2026-10-29T03:24:30Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2227,
+      "url": "https://github.com/barocss/barocss/issues/2227",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:24:52Z",
+      "updatedAt": "2026-10-29T03:24:52Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2224,
+      "url": "https://github.com/barocss/barocss/issues/2224",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:24:54Z",
+      "updatedAt": "2026-10-29T03:24:54Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2222,
+      "url": "https://github.com/barocss/barocss/issues/2222",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:24:56Z",
+      "updatedAt": "2026-10-29T03:24:56Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2220,
+      "url": "https://github.com/barocss/barocss/issues/2220",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:24:57Z",
+      "updatedAt": "2026-10-29T03:24:57Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2219,
+      "url": "https://github.com/barocss/barocss/issues/2219",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:24:59Z",
+      "updatedAt": "2026-10-29T03:24:59Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2218,
+      "url": "https://github.com/barocss/barocss/issues/2218",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:01Z",
+      "updatedAt": "2026-10-29T03:25:01Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2217,
+      "url": "https://github.com/barocss/barocss/issues/2217",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:33Z",
+      "updatedAt": "2026-10-29T03:25:33Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2216,
+      "url": "https://github.com/barocss/barocss/issues/2216",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:35Z",
+      "updatedAt": "2026-10-29T03:25:35Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2215,
+      "url": "https://github.com/barocss/barocss/issues/2215",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:37Z",
+      "updatedAt": "2026-10-29T03:25:37Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2214,
+      "url": "https://github.com/barocss/barocss/issues/2214",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:39Z",
+      "updatedAt": "2026-10-29T03:25:40Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2213,
+      "url": "https://github.com/barocss/barocss/issues/2213",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:41Z",
+      "updatedAt": "2026-10-29T03:25:41Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2212,
+      "url": "https://github.com/barocss/barocss/issues/2212",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:43Z",
+      "updatedAt": "2026-10-29T03:25:43Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2211,
+      "url": "https://github.com/barocss/barocss/issues/2211",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:45Z",
+      "updatedAt": "2026-10-29T03:25:45Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2210,
+      "url": "https://github.com/barocss/barocss/issues/2210",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:47Z",
+      "updatedAt": "2026-10-29T03:25:47Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2209,
+      "url": "https://github.com/barocss/barocss/issues/2209",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:49Z",
+      "updatedAt": "2026-10-29T03:25:49Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2208,
+      "url": "https://github.com/barocss/barocss/issues/2208",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:50Z",
+      "updatedAt": "2026-10-29T03:25:50Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2207,
+      "url": "https://github.com/barocss/barocss/issues/2207",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:52Z",
+      "updatedAt": "2026-10-29T03:25:52Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2206,
+      "url": "https://github.com/barocss/barocss/issues/2206",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:54Z",
+      "updatedAt": "2026-10-29T03:25:54Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2205,
+      "url": "https://github.com/barocss/barocss/issues/2205",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:56Z",
+      "updatedAt": "2026-10-29T03:25:56Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2204,
+      "url": "https://github.com/barocss/barocss/issues/2204",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:25:58Z",
+      "updatedAt": "2026-10-29T03:25:59Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2203,
+      "url": "https://github.com/barocss/barocss/issues/2203",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:01Z",
+      "updatedAt": "2026-10-29T03:26:01Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2202,
+      "url": "https://github.com/barocss/barocss/issues/2202",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:03Z",
+      "updatedAt": "2026-10-29T03:26:03Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2201,
+      "url": "https://github.com/barocss/barocss/issues/2201",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:04Z",
+      "updatedAt": "2026-10-29T03:26:04Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2200,
+      "url": "https://github.com/barocss/barocss/issues/2200",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:06Z",
+      "updatedAt": "2026-10-29T03:26:06Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2199,
+      "url": "https://github.com/barocss/barocss/issues/2199",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:08Z",
+      "updatedAt": "2026-10-29T03:26:08Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2198,
+      "url": "https://github.com/barocss/barocss/issues/2198",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:10Z",
+      "updatedAt": "2026-10-29T03:26:10Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2197,
+      "url": "https://github.com/barocss/barocss/issues/2197",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:12Z",
+      "updatedAt": "2026-10-29T03:26:12Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2196,
+      "url": "https://github.com/barocss/barocss/issues/2196",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:14Z",
+      "updatedAt": "2026-10-29T03:26:14Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2195,
+      "url": "https://github.com/barocss/barocss/issues/2195",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:15Z",
+      "updatedAt": "2026-10-29T03:26:15Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2194,
+      "url": "https://github.com/barocss/barocss/issues/2194",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:17Z",
+      "updatedAt": "2026-10-29T03:26:17Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2193,
+      "url": "https://github.com/barocss/barocss/issues/2193",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:19Z",
+      "updatedAt": "2026-10-29T03:26:19Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2192,
+      "url": "https://github.com/barocss/barocss/issues/2192",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:21Z",
+      "updatedAt": "2026-10-29T03:26:21Z",
+      "comments": 11,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2191,
+      "url": "https://github.com/barocss/barocss/issues/2191",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:22Z",
+      "updatedAt": "2026-10-29T03:26:22Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2190,
+      "url": "https://github.com/barocss/barocss/issues/2190",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:24Z",
+      "updatedAt": "2026-10-29T03:26:24Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2189,
+      "url": "https://github.com/barocss/barocss/issues/2189",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:29Z",
+      "updatedAt": "2026-10-29T03:26:29Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2188,
+      "url": "https://github.com/barocss/barocss/issues/2188",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:31Z",
+      "updatedAt": "2026-10-29T03:26:31Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2187,
+      "url": "https://github.com/barocss/barocss/issues/2187",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:33Z",
+      "updatedAt": "2026-10-29T03:26:33Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2184,
+      "url": "https://github.com/barocss/barocss/issues/2184",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:34Z",
+      "updatedAt": "2026-10-29T03:26:34Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2183,
+      "url": "https://github.com/barocss/barocss/issues/2183",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:36Z",
+      "updatedAt": "2026-10-29T03:26:36Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2182,
+      "url": "https://github.com/barocss/barocss/issues/2182",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:38Z",
+      "updatedAt": "2026-10-29T03:26:38Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2181,
+      "url": "https://github.com/barocss/barocss/issues/2181",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:40Z",
+      "updatedAt": "2026-10-29T03:26:40Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2180,
+      "url": "https://github.com/barocss/barocss/issues/2180",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:42Z",
+      "updatedAt": "2026-10-29T03:26:42Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2179,
+      "url": "https://github.com/barocss/barocss/issues/2179",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:44Z",
+      "updatedAt": "2026-10-29T03:26:44Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2178,
+      "url": "https://github.com/barocss/barocss/issues/2178",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:46Z",
+      "updatedAt": "2026-10-29T03:26:46Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2177,
+      "url": "https://github.com/barocss/barocss/issues/2177",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:47Z",
+      "updatedAt": "2026-10-29T03:26:47Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2176,
+      "url": "https://github.com/barocss/barocss/issues/2176",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:49Z",
+      "updatedAt": "2026-10-29T03:26:49Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2175,
+      "url": "https://github.com/barocss/barocss/issues/2175",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:51Z",
+      "updatedAt": "2026-10-29T03:26:51Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2173,
+      "url": "https://github.com/barocss/barocss/issues/2173",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:52Z",
+      "updatedAt": "2026-10-29T03:26:52Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2172,
+      "url": "https://github.com/barocss/barocss/issues/2172",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:54Z",
+      "updatedAt": "2026-10-29T03:26:54Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2171,
+      "url": "https://github.com/barocss/barocss/issues/2171",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:56Z",
+      "updatedAt": "2026-10-29T03:26:56Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2167,
+      "url": "https://github.com/barocss/barocss/issues/2167",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:26:58Z",
+      "updatedAt": "2026-10-29T03:26:58Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2165,
+      "url": "https://github.com/barocss/barocss/issues/2165",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:00Z",
+      "updatedAt": "2026-10-29T03:27:00Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2122,
+      "url": "https://github.com/barocss/barocss/issues/2122",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:01Z",
+      "updatedAt": "2026-10-29T03:27:01Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2118,
+      "url": "https://github.com/barocss/barocss/issues/2118",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:03Z",
+      "updatedAt": "2026-10-29T03:27:03Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2110,
+      "url": "https://github.com/barocss/barocss/issues/2110",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:05Z",
+      "updatedAt": "2026-10-29T03:27:05Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2094,
+      "url": "https://github.com/barocss/barocss/issues/2094",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:07Z",
+      "updatedAt": "2026-10-29T03:27:07Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2084,
+      "url": "https://github.com/barocss/barocss/issues/2084",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:09Z",
+      "updatedAt": "2026-10-29T03:27:09Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2074,
+      "url": "https://github.com/barocss/barocss/issues/2074",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:11Z",
+      "updatedAt": "2026-10-29T03:27:11Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2038,
+      "url": "https://github.com/barocss/barocss/issues/2038",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:13Z",
+      "updatedAt": "2026-10-29T03:27:13Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2037,
+      "url": "https://github.com/barocss/barocss/issues/2037",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:14Z",
+      "updatedAt": "2026-10-29T03:27:14Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2036,
+      "url": "https://github.com/barocss/barocss/issues/2036",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:16Z",
+      "updatedAt": "2026-10-29T03:27:16Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2035,
+      "url": "https://github.com/barocss/barocss/issues/2035",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:18Z",
+      "updatedAt": "2026-10-29T03:27:18Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2034,
+      "url": "https://github.com/barocss/barocss/issues/2034",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:19Z",
+      "updatedAt": "2026-10-29T03:27:19Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2033,
+      "url": "https://github.com/barocss/barocss/issues/2033",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:21Z",
+      "updatedAt": "2026-10-29T03:27:21Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2032,
+      "url": "https://github.com/barocss/barocss/issues/2032",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:23Z",
+      "updatedAt": "2026-10-29T03:27:23Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 2029,
+      "url": "https://github.com/barocss/barocss/issues/2029",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:25Z",
+      "updatedAt": "2026-10-29T03:27:25Z",
+      "comments": 0,
+      "bodyPreserved": true
+    },
+    {
+      "number": 1652,
+      "url": "https://github.com/barocss/barocss/issues/1652",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-12T23:51:33Z",
+      "updatedAt": "2026-10-12T23:51:33Z",
+      "comments": 1,
+      "bodyPreserved": true
+    },
+    {
+      "number": 745,
+      "url": "https://github.com/barocss/barocss/issues/745",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-08T10:45:34Z",
+      "updatedAt": "2026-10-08T10:52:52Z",
+      "comments": 3,
+      "bodyPreserved": true
+    },
+    {
+      "number": 527,
+      "url": "https://github.com/barocss/barocss/issues/527",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T03:27:26Z",
+      "updatedAt": "2026-10-29T03:27:26Z",
+      "comments": 3,
+      "bodyPreserved": true
+    },
+    {
+      "number": 520,
+      "url": "https://github.com/barocss/barocss/issues/520",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-06T03:30:17Z",
+      "updatedAt": "2026-10-06T03:30:17Z",
+      "comments": 2,
+      "bodyPreserved": true
+    },
+    {
+      "number": 518,
+      "url": "https://github.com/barocss/barocss/issues/518",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-06T02:47:51Z",
+      "updatedAt": "2026-10-06T02:47:51Z",
+      "comments": 2,
+      "bodyPreserved": true
+    },
+    {
+      "number": 514,
+      "url": "https://github.com/barocss/barocss/issues/514",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-06T01:52:57Z",
+      "updatedAt": "2026-10-06T01:52:57Z",
+      "comments": 2,
+      "bodyPreserved": true
+    }
+  ],
+  "remainingWork": "Existing numbered roadmap scopes and github-research-roadmap-2026-10-29.md; historical failed/blocked/unknown evidence is retained."
+}

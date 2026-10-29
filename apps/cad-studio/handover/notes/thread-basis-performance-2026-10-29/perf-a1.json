@@ -1,0 +1,26 @@
+{
+ "shaft-thread": {
+  "ms": 561,
+  "fp": "63f2e23cc5a7c377"
+ },
+ "tapped-hole": {
+  "ms": 577,
+  "fp": "6e50cceb4849e3d5"
+ },
+ "shaft-thread-long": {
+  "ms": 2124,
+  "fp": "1618ecf20aed2f8e"
+ },
+ "tapped-hole-long": {
+  "ms": 1328,
+  "fp": "12564565abc9c0e0"
+ },
+ "direct-thread-long-construction": {
+  "ms": 19,
+  "fp": "6833bb3ffc833a40"
+ },
+ "direct-thread-long-construction-first-mass": {
+  "ms": 271,
+  "fp": "6833bb3ffc833a40"
+ }
+}

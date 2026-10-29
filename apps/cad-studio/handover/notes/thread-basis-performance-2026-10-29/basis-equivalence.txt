@@ -1,0 +1,10 @@
+SAME shaft-thread raw11/mass/area/nativeSI
+SAME tapped-hole raw11/mass/area/nativeSI
+SAME shaft-thread-long raw11/mass/area/nativeSI
+SAME tapped-hole-long raw11/mass/area/nativeSI
+SAME direct-thread-long raw11/mass/area/nativeSI
+SAME left-thread raw11/mass/area/nativeSI
+SAME polynomial-bump raw11/mass/area/nativeSI
+SAME rational-bump raw11/mass/area/nativeSI
+SAME multi-span-shifted-domain raw11/mass/area/nativeSI
+SAME signed-zero-domain raw11/mass/area/nativeSI

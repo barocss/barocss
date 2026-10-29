@@ -1,0 +1,354 @@
+{
+  "status": "passed",
+  "scope": "Every actual geometry/name/control/knot/weight/vertex Number bit, complete MMGS/nativeSI mass bits, area bit, validity and counts; separate before/after Node22 processes",
+  "cases": {
+    "shaft-thread": {
+      "valid": true,
+      "counts": {
+        "bodies": 1,
+        "faces": 102,
+        "edges": 206,
+        "vertices": 108
+      },
+      "mass": {
+        "volume": "408845f2397c719f",
+        "mass": "401863c5ebf02386",
+        "centroid": [
+          "bd747a5f013c55e8",
+          "bd83d8dfdaa237a0",
+          "402c7408dabcb989"
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            "407cd501c4b522c8",
+            "3dc22f8c0a18d424",
+            "bdd9a5b11b97a053"
+          ],
+          [
+            "3dc22f8c0a18d424",
+            "407cd501c4b5238d",
+            "3fb750d029c0d32e"
+          ],
+          [
+            "bdd9a5b11b97a053",
+            "3fb750d029c0d32e",
+            "4039ae508f9699bc"
+          ]
+        ]
+      },
+      "nativeSI": {
+        "ok": true,
+        "inertia": [
+          [
+            "3e9ef54bbaddcb2c",
+            "3be386db05e5431e",
+            "bbfb89dba08afaca"
+          ],
+          [
+            "3be386db05e5431e",
+            "3e9ef54bbaddcc00",
+            "3dd908f6dcb06a74"
+          ],
+          [
+            "bbfb89dba08afaca",
+            "3dd908f6dcb06a74",
+            "3e5b931ddca21d96"
+          ]
+        ],
+        "density": "401f666666666666"
+      },
+      "area": "4086ce0c656b5956"
+    },
+    "tapped-hole": {
+      "valid": true,
+      "counts": {
+        "bodies": 1,
+        "faces": 92,
+        "edges": 202,
+        "vertices": 112
+      },
+      "mass": {
+        "volume": "40c11dc4b84ee9ab",
+        "mass": "405132cd09797af8",
+        "centroid": [
+          "402e000000000012",
+          "402e000000000009",
+          "4013ffffffffe7d4"
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            "40b6ec75debfeb56",
+            "8000000000000000",
+            "3d9013a92a305532"
+          ],
+          [
+            "8000000000000000",
+            "40b6ec75debfeb88",
+            "bfb5d314e5efbcd3"
+          ],
+          [
+            "3d9013a92a305532",
+            "bfb5d314e5efbcd3",
+            "40c4af2dd6e3d038"
+          ]
+        ]
+      },
+      "nativeSI": {
+        "ok": true,
+        "inertia": [
+          [
+            "3ed89d361eb9ad1b",
+            "8000000000000000",
+            "3bb1432839f50dae"
+          ],
+          [
+            "8000000000000000",
+            "3ed89d361eb9ad50",
+            "bdd76f154e2bd0ff"
+          ],
+          [
+            "3bb1432839f50dae",
+            "bdd76f154e2bd0ff",
+            "3ee635a7bca9ae10"
+          ]
+        ],
+        "density": "401f666666666666"
+      },
+      "area": "40a943558ca788db"
+    },
+    "shaft-thread-long": {
+      "valid": true,
+      "counts": {
+        "bodies": 1,
+        "faces": 486,
+        "edges": 974,
+        "vertices": 492
+      },
+      "mass": {
+        "volume": "40a154944a8521df",
+        "mass": "403169dff5ae525d",
+        "centroid": [
+          "3d977cd065a3c860",
+          "bda131ab8c1ef147",
+          "404572b247999cff"
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            "40c7a9cb7c0ac39f",
+            "3de302c3dcb77299",
+            "be2c6e5a23964fcf"
+          ],
+          [
+            "3de302c3dcb77299",
+            "40c7a9cb7c0ac2fe",
+            "3fdf43a2cbaf3c80"
+          ],
+          [
+            "be2c6e5a23964fcf",
+            "3fdf43a2cbaf3c80",
+            "40518121294fb544"
+          ]
+        ]
+      },
+      "nativeSI": {
+        "ok": true,
+        "inertia": [
+          [
+            "3ee96881f8e36b39",
+            "3c0469a6335a5e73",
+            "bc4e871231591bd0"
+          ],
+          [
+            "3c0469a6335a5e73",
+            "3ee96881f8e36a8c",
+            "3e00c8eb584a284c"
+          ],
+          [
+            "bc4e871231591bd0",
+            "3e00c8eb584a284c",
+            "3e72cb9381fd2071"
+          ]
+        ],
+        "density": "401f666666666666"
+      },
+      "area": "40a1d9faae37255a"
+    },
+    "tapped-hole-long": {
+      "valid": true,
+      "counts": {
+        "bodies": 1,
+        "faces": 332,
+        "edges": 682,
+        "vertices": 352
+      },
+      "mass": {
+        "volume": "40e11dc4b84ee8d7",
+        "mass": "407132cd09797a23",
+        "centroid": [
+          "402e000000000006",
+          "402dffffffffffbe",
+          "4033ffffffffba44"
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            "40ec41d72aa0376e",
+            "3db81d7dbf487fcb",
+            "8000000000000000"
+          ],
+          [
+            "3db81d7dbf487fcb",
+            "40ec41d72aa0375d",
+            "bfd5d314e53be0de"
+          ],
+          [
+            "8000000000000000",
+            "bfd5d314e53be0de",
+            "40e4af2dd6e3cfd8"
+          ]
+        ]
+      },
+      "nativeSI": {
+        "ok": true,
+        "inertia": [
+          [
+            "3f0e5746ef27fc14",
+            "3bd9e4bc56ef9485",
+            "8000000000000000"
+          ],
+          [
+            "3bd9e4bc56ef9485",
+            "3f0e5746ef27fc02",
+            "bdf76f154d6ab1ad"
+          ],
+          [
+            "8000000000000000",
+            "bdf76f154d6ab1ad",
+            "3f0635a7bca9ada8"
+          ]
+        ],
+        "density": "401f666666666666"
+      },
+      "area": "40bdfc8f32b7f31f"
+    },
+    "direct-thread-long-construction": {
+      "valid": true,
+      "counts": {
+        "bodies": 1,
+        "faces": 488,
+        "edges": 978,
+        "vertices": 492
+      },
+      "mass": {
+        "volume": "4095874591a85978",
+        "mass": "4025a1b9d1d842f6",
+        "centroid": [
+          "3da1d2d3f6edebb6",
+          "3d89a5174bdee36d",
+          "403e00000000157f"
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            "40a981f62823875f",
+            "bdd0636dc0cf8121",
+            "be26947201637835"
+          ],
+          [
+            "bdd0636dc0cf8121",
+            "40a981f628238904",
+            "3fdfcb4a665ed2ab"
+          ],
+          [
+            "be26947201637835",
+            "3fdfcb4a665ed2ab",
+            "40443832e085b7fb"
+          ]
+        ]
+      },
+      "nativeSI": {
+        "ok": true,
+        "inertia": [
+          [
+            "3ecb637e29ccbd9a",
+            "bbf198ceaa8bc1b1",
+            "bc483eb4b6eb531e"
+          ],
+          [
+            "bbf198ceaa8bc1b1",
+            "3ecb637e29ccbf5e",
+            "3e0111bf95df8d6d"
+          ],
+          [
+            "bc483eb4b6eb531e",
+            "3e0111bf95df8d6d",
+            "3e65b5e6acd684a4"
+          ]
+        ],
+        "density": "401f666666666666"
+      },
+      "area": "409aacebb5720e00"
+    },
+    "direct-thread-long-construction-first-mass": {
+      "valid": true,
+      "counts": {
+        "bodies": 1,
+        "faces": 488,
+        "edges": 978,
+        "vertices": 492
+      },
+      "mass": {
+        "volume": "4095874591a85978",
+        "mass": "4025a1b9d1d842f6",
+        "centroid": [
+          "3da1d2d3f6edebb6",
+          "3d89a5174bdee36d",
+          "403e00000000157f"
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            "40a981f62823875f",
+            "bdd0636dc0cf8121",
+            "be26947201637835"
+          ],
+          [
+            "bdd0636dc0cf8121",
+            "40a981f628238904",
+            "3fdfcb4a665ed2ab"
+          ],
+          [
+            "be26947201637835",
+            "3fdfcb4a665ed2ab",
+            "40443832e085b7fb"
+          ]
+        ]
+      },
+      "nativeSI": {
+        "ok": true,
+        "inertia": [
+          [
+            "3ecb637e29ccbd9a",
+            "bbf198ceaa8bc1b1",
+            "bc483eb4b6eb531e"
+          ],
+          [
+            "bbf198ceaa8bc1b1",
+            "3ecb637e29ccbf5e",
+            "3e0111bf95df8d6d"
+          ],
+          [
+            "bc483eb4b6eb531e",
+            "3e0111bf95df8d6d",
+            "3e65b5e6acd684a4"
+          ]
+        ],
+        "density": "401f666666666666"
+      },
+      "area": "409aacebb5720e00"
+    }
+  }
+}

@@ -222,10 +222,21 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   its source/state index:114 title-research issues enumerated;73 selected bodies and24comments
   mapped to existing scopes,68OPEN/5CLOSED. Existing local results, partial/failed experiments
   and research-only closures stay distinct. Roadmap07 is compacted; old contracts are retained
-  as historical records, with current07->08->09 order explicit. No GitHub write was made.
-- Next: D314 measured thread quadrature performance, then remaining07 before08,09. General/curved/rational/smooth wrapping, shaping/kerning/bidi/
+  as historical records, with current07->08->09 order explicit. The owner then authorized closing
+  the transferred issues:68 closed, fresh73/73 CLOSED, original bodies/comments preserved.
+  See `../github-research-roadmap-2026-10-29.closure.json`; remaining implementation/proof work
+  stays in the roadmap, and the completed issue intake need not be repeated.
+- D314 runtime`bb92da70b` retains strict component-distance pruning after rejecting ineffective
+  basis caching. Actual geometry/name/mass/nativeSI/area bits match. Paired median7 longshaft
+  improves2.7–4.2%, longhole2.7–2.8%, fresh construction+firstmass4.4–6.6%; no short-case or
+  Studio speedup claim. Kernel2192pass/0fail/6existing skips, Model1833/1833, Studio365/365 and
+  generated/docs pass. Consumer type contracts retain D313 coverage. Evidence:
+  `../thread-basis-performance-2026-10-29/README.md`.
+- Next D315: repair a reproduced existing guide mismatch:17/64controls construct and return mass
+  but strict/evaluate/tessellate fail Surface V2..16;16controls pass. Preserve global/source caps
+  and legacy valid outputs, then continue explicit-frame/remaining07 before08,09. General/curved/rational/smooth wrapping, shaping/kerning/bidi/
   normalization and D291's broader free-form/concave/multi-span ranges remain open. No feature
-  push, new PR or release. Next decision:D314.
+  push, new PR or release. Next decision:D315.
 
 The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
 
@@ -234,7 +245,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D314**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D315**).
 
 ## 0. State at the stop
 

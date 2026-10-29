@@ -1,0 +1,172 @@
+TAP version 13
+# Subtest: D151: the 724-face throated wheel exports in a few seconds (was about 20 s), its box the mesh's (here every extreme is on an edge)
+ok 1 - D151: the 724-face throated wheel exports in a few seconds (was about 20 s), its box the mesh's (here every extreme is on an edge)
+  ---
+  duration_ms: 2384.6995
+  type: 'test'
+  ...
+# Subtest: D151: a bicubic face's highest point inside the patch — the STEP box has it exactly, where a mesh's vertices fall short
+ok 2 - D151: a bicubic face's highest point inside the patch — the STEP box has it exactly, where a mesh's vertices fall short
+  ---
+  duration_ms: 178.913667
+  type: 'test'
+  ...
+# Subtest: face thread: the rod's section is the ISO basic profile's
+ok 3 - face thread: the rod's section is the ISO basic profile's
+  ---
+  duration_ms: 247.119125
+  type: 'test'
+  ...
+# Subtest: face thread: a shaft threaded from its flat free end, with a relief groove where the thread stops inside the face
+ok 4 - face thread: a shaft threaded from its flat free end, with a relief groove where the thread stops inside the face
+  ---
+  duration_ms: 2464.487
+  type: 'test'
+  ...
+# Subtest: face thread: a stepped shaft keeps a relief at its shoulder; no relief there is refused
+ok 5 - face thread: a stepped shaft keeps a relief at its shoulder; no relief there is refused
+  ---
+  duration_ms: 900.869834
+  type: 'test'
+  ...
+# Subtest: face thread: a tapped hole, through and blind, 0.04 mm clear of a bolt like a modelled nut
+ok 6 - face thread: a tapped hole, through and blind, 0.04 mm clear of a bolt like a modelled nut
+  ---
+  duration_ms: 2439.669708
+  type: 'test'
+  ...
+# Subtest: face thread: any axis — a shaft along X
+ok 7 - face thread: any axis — a shaft along X
+  ---
+  duration_ms: 517.963792
+  type: 'test'
+  ...
+# Subtest: face thread: a left hand is the right hand mirrored — the same volume, the helix turning the other way
+ok 8 - face thread: a left hand is the right hand mirrored — the same volume, the helix turning the other way
+  ---
+  duration_ms: 2376.343666
+  type: 'test'
+  ...
+# Subtest: face thread: follows an upstream edit, and survives save and open
+ok 9 - face thread: follows an upstream edit, and survives save and open
+  ---
+  duration_ms: 1747.192875
+  type: 'test'
+  ...
+# Subtest: face thread: refused with the reason
+ok 10 - face thread: refused with the reason
+  ---
+  duration_ms: 16.12375
+  type: 'test'
+  ...
+# Subtest: FRk8b the sphere oracle against closed forms: a sphere's cap (πh²(3R − h)/3) and a sphere cut by a cylinder off its axis (the two-variable Gauss–Legendre of FRk S0)
+ok 11 - FRk8b the sphere oracle against closed forms: a sphere's cap (πh²(3R − h)/3) and a sphere cut by a cylinder off its axis (the two-variable Gauss–Legendre of FRk S0)
+  ---
+  duration_ms: 1427.176958
+  type: 'test'
+  ...
+# Subtest: FRk8b the bevel pair's mass: within 1e-5 of the oracles (was 1.4 % above them), the same at 8, 16 and 32 segments a quarter (it moved 35.9 → 38.7 → 38.4), no strip dropped
+ok 12 - FRk8b the bevel pair's mass: within 1e-5 of the oracles (was 1.4 % above them), the same at 8, 16 and 32 segments a quarter (it moved 35.9 → 38.7 → 38.4), no strip dropped
+  ---
+  duration_ms: 913.567208
+  type: 'test'
+  ...
+# Subtest: B9 mesh bodies: volume, centroid, inertia and area equal tetrahedra over the input triangles (facet faces, and planar faces one per triangle), method planar-exact
+ok 13 - B9 mesh bodies: volume, centroid, inertia and area equal tetrahedra over the input triangles (facet faces, and planar faces one per triangle), method planar-exact
+  ---
+  duration_ms: 102.207375
+  type: 'test'
+  ...
+# Subtest: B9 planar faces with holes and concave outlines: a block with a square hole through it and an L-shaped prism, as their closed forms
+ok 14 - B9 planar faces with holes and concave outlines: a block with a square hole through it and an L-shaped prism, as their closed forms
+  ---
+  duration_ms: 12.983292
+  type: 'test'
+  ...
+# Subtest: B9 bodies with curved faces keep their path: a cylinder by quadrature, its value unchanged
+ok 15 - B9 bodies with curved faces keep their path: a cylinder by quadrature, its value unchanged
+  ---
+  duration_ms: 6.961084
+  type: 'test'
+  ...
+# Subtest: B9 performance: a 200k-triangle facet body and a 40k-triangle planar one, mass and area cold
+ok 16 - B9 performance: a 200k-triangle facet body and a 40k-triangle planar one, mass and area cold
+  ---
+  duration_ms: 1329.474166
+  type: 'test'
+  ...
+# Subtest: boundary scan preserves exact threshold, adjacent floats and signed-zero early hits
+ok 17 - boundary scan preserves exact threshold, adjacent floats and signed-zero early hits
+  ---
+  duration_ms: 1.7515
+  type: 'test'
+  ...
+# Subtest: boundary scan retains nearest-sample ties, no-hit refinement and evaluator failures
+ok 18 - boundary scan retains nearest-sample ties, no-hit refinement and evaluator failures
+  ---
+  duration_ms: 0.472458
+  type: 'test'
+  ...
+# Subtest: boundary scan preserves nonfinite, overflow, subnormal and negative-threshold outcomes
+ok 19 - boundary scan preserves nonfinite, overflow, subnormal and negative-threshold outcomes
+  ---
+  duration_ms: 7.728125
+  type: 'test'
+  ...
+# Subtest: finite component filtering agrees with the full scan over varied cached grids
+ok 20 - finite component filtering agrees with the full scan over varied cached grids
+  ---
+  duration_ms: 13.510875
+  type: 'test'
+  ...
+# Subtest: the current Math.hypot implementation never returns less than a finite component
+ok 21 - the current Math.hypot implementation never returns less than a finite component
+  ---
+  duration_ms: 6.584166
+  type: 'test'
+  ...
+# Subtest: the ISO 68-1 basic profile: crest P/8 at the major diameter, root P/4 at d − 5H/4, 60° flanks
+ok 22 - the ISO 68-1 basic profile: crest P/8 at the major diameter, root P/4 at d − 5H/4, 60° flanks
+  ---
+  duration_ms: 0.384334
+  type: 'test'
+  ...
+# Subtest: modelled threads: a rod, a hex head bolt and a hex nut, each one valid faceted solid of the right volume
+ok 23 - modelled threads: a rod, a hex head bolt and a hex nut, each one valid faceted solid of the right volume
+  ---
+  duration_ms: 1317.112208
+  type: 'test'
+  ...
+# Subtest: a modelled M8 bolt round-trips through STEP: the export reopens with the same volume, faces and names
+ok 24 - a modelled M8 bolt round-trips through STEP: the export reopens with the same volume, faces and names
+  ---
+  duration_ms: 2315.175334
+  type: 'test'
+  ...
+# Subtest: helical threads (internal form): a bolt and a nut of B-spline faces, watertight, nearer the exact volume than the facets
+ok 25 - helical threads (internal form): a bolt and a nut of B-spline faces, watertight, nearer the exact volume than the facets
+  ---
+  duration_ms: 305.305833
+  type: 'test'
+  ...
+# Subtest: thread form: documents without one stay faceted (their .facetK names resolve); helical is chosen by name, and threadSolid defaults to it
+ok 26 - thread form: documents without one stay faceted (their .facetK names resolve); helical is chosen by name, and threadSolid defaults to it
+  ---
+  duration_ms: 482.948292
+  type: 'test'
+  ...
+# Subtest: helical threads tessellate watertight by exact position, and their STL too (corners shared bit for bit)
+ok 27 - helical threads tessellate watertight by exact position, and their STL too (corners shared bit for bit)
+  ---
+  duration_ms: 972.666125
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12899.293958

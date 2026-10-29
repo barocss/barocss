@@ -1,0 +1,14 @@
+import { readFileSync, writeFileSync } from 'node:fs';
+import { threadSolid } from '../../../../../packages/barocss-cad/dist/index.js';
+const base = new URL('../../../../../packages/barocss-cad/dist/brep/brep-mass-quadrature.js', import.meta.url);
+let source = readFileSync(new URL('./original-brep-mass-quadrature.mjs', import.meta.url), 'utf8');
+source = source.replace(/from '([^']+)'/g, (_, path) => `from '${new URL(path, base).href}'`);
+source = `export const calls = [];\n${source}`;
+source = source.replace('function spanBases(knots, p, edges, x) {', 'function spanBases(knots, p, edges, x) { calls.push({ knots: [...knots], p, edges: [...edges], x: [...x] });');
+const { brepQuadratureIntegrals, calls } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+const b = threadSolid({ id: 'th', diameter: 6, pitch: 1, seat: 60, length: 60, form: 'helical' });
+const raw = brepQuadratureIntegrals(b, 8), keys = calls.map(c => JSON.stringify(c, (_, v) => Object.is(v, -0) ? '-0' : v));
+const counts = new Map(); for (const key of keys) counts.set(key, (counts.get(key) ?? 0) + 1);
+const result = { faces: b.faces.length, calls: calls.length, uniqueTables: counts.size, occurrences: [...counts.values()], raw };
+writeFileSync(new URL('./span-reuse-before.json', import.meta.url), JSON.stringify(result, null, 2) + '\n');
+console.log(JSON.stringify({ faces: result.faces, calls: result.calls, uniqueTables: result.uniqueTables, occurrences: result.occurrences }));
