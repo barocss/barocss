@@ -1,0 +1,90 @@
+{
+  "workId": "D323",
+  "status": "SCOPED_PASS",
+  "baseline": "27500e219febc591845cd5e4c53341a24ca9d39b",
+  "issue": {
+    "number": 2236,
+    "state": "CLOSED already for transfer",
+    "comments": 0,
+    "freshSource": "issue2236-source.json",
+    "mutatedThisFeature": false
+  },
+  "runtime": "Node22.19.0",
+  "scope": "Project version snapshots use existing encodeStudioSnapshot(doc,key)/readStudioSnapshot(bytes,key); ordinary part/autosave/Open codecs unchanged",
+  "baselineResult": {
+    "tests": 1,
+    "passed": 0,
+    "failed": 1,
+    "exit": 1,
+    "control": "Existing dedicated snapshot codec passes same admitted omitted-nextId input",
+    "error": ".barocss/versions/part.bcad.json: [VERSION_LOG] the snapshot d57d5d923d188d43 does not match its content (versions.0)",
+    "log": "unit/baseline.log"
+  },
+  "implementation": "One production file,5added/3removed; no new codec/API/schema/migration/dependency/lockfile. Preserve write-once/read-only storage and missing/corrupt snapshot refusals.",
+  "focused": {
+    "uniqueRelated": 12,
+    "retainedUnchangedStorage": 7,
+    "finalNewSnapshot": 5,
+    "passed": 12,
+    "failed": 0,
+    "skipped": 0,
+    "sequence": "First after12 PASS; fixture-only type repairs; final affected5 PASS and types/test lint0, unchanged production lint0 reused",
+    "report": "unit/report.md"
+  },
+  "coverage": [
+    "Permitted schema3 omitted nextId under original key and version ID; checkVersions/readVersion succeed",
+    "Schema3 and genuine route-bundle schema4 with binary mesh, optional omission/false/0/empty flags and arrays retain semantic canonical JSON",
+    "Two versions retain IDs/parents/revisions/keys; stored existing snapshot tag/bytes unchanged on later save",
+    "Missing snapshot and wrong content/key refuse; new wrong-key write cannot publish new version log",
+    "Ordinary part/autosave Open retains existing nextId normalization; source snapshot objects unchanged"
+  ],
+  "rawByteObservation": "Re-encoding the two selected binary fixtures happens to match bytes; diagnostic only, not a general byte-identity guarantee. Existing stored write-once/read-only bytes remain unchanged as functional storage contract.",
+  "canonicalKeyMeaning": "Domain consistency identifier used by actual version logs, not a literal source checksum acceptance oracle",
+  "firstTypeFailure": {
+    "exit": 2,
+    "scope": "Three new fixture type errors only; original raw preserved",
+    "fix": "Required curve name/defaultDrawing/mesh narrowing; product source unchanged",
+    "log": "unit/types-first-failure.log"
+  },
+  "actualStudio": {
+    "browser": "Chrome156/WebGPU/DPR1",
+    "selected": 1,
+    "passed": 1,
+    "starterSmoke": 1,
+    "exit": 0,
+    "flow": "Existing CG6 project: native OPFS handle through picker fixture; normal UI Save/First/Second/Compare/Restore/reload/reopen/log reread/autosave Restore",
+    "rareInputBoundary": "Normal UI positive regression; does not generate omitted-nextId fixture or prove rare binary snapshot via UI",
+    "rootVisual": "Compare and versions actual PNG2 directly viewed",
+    "sourceUnchangedAfterRun": true,
+    "cleanup": "Flow awaits unique OPFS folder removal; no separate absence probe; owned browser/server finally closed and gate released",
+    "receipt": "consumers/receipt.json"
+  },
+  "docs": {
+    "status": "PASS",
+    "pages": 68,
+    "shots": 55,
+    "shotKB": 4811,
+    "labels": 860,
+    "generatedAgentTools": "PASS via check-docs child",
+    "generatedRefusals": "PASS via check-docs child",
+    "apiInventory": "PASS unchanged six-rule scoped inventory",
+    "log": "root-docs-check.txt"
+  },
+  "notRun": [
+    "whole Studio/Model/Kernel/Viewer suites and full browser suite",
+    "actual UI generation of omitted-nextId or binary route snapshot fixture",
+    "native rare-input file-handle API matrix or exported native bytes",
+    "fresh independent browser context beyond selected same-context reload",
+    "real external folder/OS picker, other tabs, crash or primary-file loss proof",
+    "performance benchmark or general raw-byte codec equality"
+  ],
+  "incomingViewerSupplement": "Read new external asserted7-check static UI receipt/result/latest report; unchanged concept hash/result binding verified and attached to existing intake. Draft/product boundary and current priority unchanged.",
+  "sourceHashes": {
+    "apps/cad-studio/src/storage/project.ts": "a927fd79a0db9be5d5b60f5380f2ad2ac114e4b5c33c0c9f5240da8772a815ad",
+    "apps/cad-studio/test/storage-version-snapshot.test.ts": "8f9c195c8c82ad980753977f8a9e7f862e30d592cd1ab548e869c3fc52038d14",
+    "apps/cad-studio/test/browser-flow.mjs": "9a031f112e8b0388bdbd16ba5d215fe0bb3a5d58456da85ad2cd0f87cf039a4c"
+  },
+  "hashMeaning": "Artifact/source provenance only; version key equality is tested as actual functional log contract",
+  "nextPriority": "D324/A07/#2237 delayed GPU instance readback ownership under06/R2; preserve mock versus actual GPU boundary, then remaining2239 before modeling extensions",
+  "publication": "Normal per-feature push authorized; no PR/release"
+}

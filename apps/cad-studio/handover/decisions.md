@@ -16204,3 +16204,27 @@ Actual project/path-switch/Open/ABA timing matrix, generic A05 ownership, tabs/e
 permanent loss and full Model/Kernel/Viewer/browser/performance remain unqualified. Incoming Viewer
 source/design draft is read and attached to existing05/V scopes, not executed as current priority.
 Normal per-feature push authorized; no PR/release. Next:D323 A04/#2236 canonical snapshot codec.
+
+
+## D323 — Keep canonical identity in project version snapshots (2026-10-29)
+
+Actual memoryStore writeVersions/readVersions reproduces admitted nextId omission changing the
+snapshot content key and refusing the log. The existing encodeStudioSnapshot/readStudioSnapshot
+control passes. Connect only project version snapshot write/read to these existing codecs with the
+original key. Keep ordinary Save/part/autosave/Open normalization, existing stored write-once behavior,
+read-only data and missing/corrupt key refusals. No new codec/API/schema/migration/dependency/lockfile.
+
+Unique related12 pass: retained storage7 and final snapshot5. Schema3 and genuine route-bundle schema4
+binary mesh preserve omission/false/0/empty/optional/canonical document and version IDs/parents/revisions.
+First fixture types3 fail; repair actual curve name/defaultDrawing/union narrowing only, final types/lint
+pass with unchanged production. Two binary re-encode byte matches are observations, not general equality.
+Actual existing CG6 project UI selected1 plus starter1 passes through native OPFS picker fixture with
+Save/two versions/Compare/Restore/reload/reopen/autosave Restore. Root views compare/versions PNG2.
+Rare omitted-nextId input remains API evidence, not UI-authored. Folder removal is awaited, not separately
+absence-probed; owned browser/server/gate cleanup completes. Generated/API/docs pass.
+
+Evidence: notes/canonical-version-snapshot-2026-10-29/qualification.json. Whole suites, native rare-input
+matrix, external folders/tabs/crash/primary-file loss and performance remain NOT_RUN. Version-key checks
+are actual log contract, not source-checksum tests. #2236 fresh body retained; already CLOSED for transfer,
+no mutation. Viewer static asserted7 supplement stays draft and attached without priority switch. Normal
+feature push authorized; no PR/release. Next D324:A07/#2237 delayed GPU instance readback ownership.

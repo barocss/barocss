@@ -1,0 +1,94 @@
+{
+  "work_id": "viewer-design-asserted-20261029T063545",
+  "status": "PASS",
+  "sourceSHA256": "def73380d19dd49d1ca353e35ac212f5931cbd3a647efb05e10e943474a2a34d",
+  "command": "bash /Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/viewer-design-asserted-20261029T063545/run.sh",
+  "nodeCommand": "/Users/user/Library/pnpm/nodejs/22.19.0/bin/node runner.mjs",
+  "runnerExit": 0,
+  "gate": {
+    "attempts": 1,
+    "exit": 0,
+    "raw": "GATE: go after 0 s (load 14.27, slot 1 of 3)\n",
+    "retryOrBypass": false
+  },
+  "checks": [
+    {
+      "name": "desktop search filtering",
+      "verdict": "PASS"
+    },
+    {
+      "name": "fit handler binding",
+      "verdict": "PASS"
+    },
+    {
+      "name": "orbit handler binding",
+      "verdict": "PASS"
+    },
+    {
+      "name": "compact search filtering",
+      "verdict": "PASS"
+    },
+    {
+      "name": "structure drawer Escape focus return",
+      "verdict": "PASS"
+    },
+    {
+      "name": "reduced motion",
+      "verdict": "PASS"
+    },
+    {
+      "name": "page and console errors",
+      "verdict": "PASS"
+    }
+  ],
+  "counts": {
+    "PASS": 7,
+    "FAIL": 0,
+    "NOT_RUN": 0
+  },
+  "firstFailure": null,
+  "recorderSelfTest": {
+    "verdict": "PASS",
+    "falseAssertionThrows": true,
+    "failurePersisted": true,
+    "firstFailurePersisted": true,
+    "remainingNotRunPersisted": true,
+    "trueAssertionPassPersisted": true,
+    "boundary": "Pure Node recorder self-check only. No browser/native CAD."
+  },
+  "outcomePersistence": "Each check uses node:assert/strict. A false assertion throws; recorder writes FAIL and first failure before rethrow. Later checks stay NOT_RUN. Every successful check immediately fs.writeFileSync persists PASS. catch/finally persists final result and cleanup. Console output and exit 0 alone are not verdict evidence.",
+  "priorRun": "Previous 06:28 console-only evidence gap remains preserved. This independent asserted run proves only the seven named static prototype UI checks.",
+  "cleanup": {
+    "browserClosed": true,
+    "serverClosed": true,
+    "leaseReleaseLog": "lease_release_exit=0\n",
+    "port": 58237,
+    "portListenCheckExit": 1,
+    "portListenOutput": ""
+  },
+  "scope": "Static HTML/SVG prototype UI only. Fit changes illustrated orientation/label. Orbit changes mode state. No actual CAD/GPU/3D engine, source loading, real export or product integration.",
+  "noWrites": "Product files, final concept HTML, prior design brief/verification and prior evidence were unchanged. Only this new run folder was written.",
+  "notRepeated": "No actual CAD/GPU/app CPU/build/browser batch or full previous 19-check concept batch was repeated.",
+  "browserLaunches": 1,
+  "runtimeRetry": false,
+  "evidenceHashes": {
+    "shell-cleanup.log": "57910adeb317fe2e2aec59543ccde3b4ccb566238c69454d44d4f6ef23cba2a6",
+    "result.json": "2a71a331e1ce156c9d878b9c7c21b83050f977f879c06053ac78cbdc09eaaa65",
+    "port-cleanup.log": "cf205dbb8cea84897b488abcc281bf96698d5e94b1096b16657b4caba9082a22",
+    "selftest-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "runtime-stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "recorder-selftest.mjs": "3170496d497a76e4257d8da16e4ad5af79304f21cad47f205dfa658bfcf6d995",
+    "selftest.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "runner-pid.txt": "ccdff2adff650393f7a8b6004fa1fd0452561ae93cf399c5b7a429717a2637c1",
+    "runner.mjs": "a26e211777384e9d38cb000297bc76c9a6c45459ac644c2e81f27d6ccb46388e",
+    "run.sh": "9bb9053de8dcf553df29ef8d9e2a256bd0467d1714122bce2f73075771c536e2",
+    "runner-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "recorder.mjs": "c6090fa0e9988818989f26b453abf1854e2c7f60b7c82ee7cff6a9e3eb3c761c",
+    "selftest-receipt.json": "aa26d92c27a6fe9184a2e7fcbbf97f2970e710c6de300ed94b81635134ea6ce0",
+    "selftest-pass.json": "4e9ffdc5325faf1d034795c92f91bf52ea55c23d6acb24b8d47b68a9be51082a",
+    "gate-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "runtime-stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "selftest-failure.json": "fdd2ae30b77d46c6f4ca875fc5f142e1e2e5c917f88e1ba69eb3949358730a23",
+    "gate.log": "6db631f9f4a214aeb311245e103f7e797d0660fa2ab2ca9d55dbaa13b23ea476"
+  }
+}

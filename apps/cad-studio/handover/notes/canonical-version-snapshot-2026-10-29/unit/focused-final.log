@@ -1,0 +1,42 @@
+TAP version 13
+# Subtest: project versions preserve an admitted snapshot with omitted nextId under its original canonical key
+ok 1 - project versions preserve an admitted snapshot with omitted nextId under its original canonical key
+  ---
+  duration_ms: 2.969416
+  type: 'test'
+  ...
+# Subtest: project versions: schema3 raw optional fields, original identifiers and binary mesh survive
+ok 2 - project versions: schema3 raw optional fields, original identifiers and binary mesh survive
+  ---
+  duration_ms: 7.134625
+  type: 'test'
+  ...
+# schema3 fixture re-encoded bytes equal: true
+# Subtest: project versions: schema4 raw optional fields, original identifiers and binary mesh survive
+ok 3 - project versions: schema4 raw optional fields, original identifiers and binary mesh survive
+  ---
+  duration_ms: 9.076042
+  type: 'test'
+  ...
+# schema4 fixture re-encoded bytes equal: true
+# Subtest: project versions retain missing-snapshot refusal and refuse a different document stored under an original key
+ok 4 - project versions retain missing-snapshot refusal and refuse a different document stored under an original key
+  ---
+  duration_ms: 1.2525
+  type: 'test'
+  ...
+# Subtest: ordinary part and autosave Open still normalize omitted nextId while version snapshot remains raw
+ok 5 - ordinary part and autosave Open still normalize omitted nextId while version snapshot remains raw
+  ---
+  duration_ms: 0.343209
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 83.625125

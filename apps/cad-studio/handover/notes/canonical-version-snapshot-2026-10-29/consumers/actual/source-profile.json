@@ -1,0 +1,16 @@
+{
+  "baseline": "27500e219febc591845cd5e4c53341a24ca9d39b",
+  "worktree": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+  "sources": [
+    {
+      "path": "apps/cad-studio/src/storage/project.ts",
+      "sha256": "a927fd79a0db9be5d5b60f5380f2ad2ac114e4b5c33c0c9f5240da8772a815ad"
+    },
+    {
+      "path": "apps/cad-studio/test/browser-flow.mjs",
+      "sha256": "9a031f112e8b0388bdbd16ba5d215fe0bb3a5d58456da85ad2cd0f87cf039a4c"
+    }
+  ],
+  "selection": "^CG6 project:",
+  "scope": "Normal UI project-version positive regression; omitted-nextId not UI-generated; folder picker returns real native OPFS handle."
+}

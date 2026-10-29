@@ -15,3 +15,8 @@ External pinned a386 report: CPU133/0fail/0skip uses Presenter/DOM doubles; buil
 | Existing app2.5/4.4/4.2/4.3/5.2 | Preserve customer-file, display-limit, recovery-failure and section/compare gates. Link clipping/picking to existing2239; no duplicate defect. Keep restricted IGES scope. |
 
 The standalone concept is a visually reviewed draft, not product support. Its SVG and8mm are illustrative data; proposed naming/theme/layout are options. External PNG4 precedes the last nonvisual ID correction. Initial guarded19 checks pass before search fails. SVG/control ID collision is corrected statically; final browser recheck is NOT_RUN because high-load gate refuses with75. Structure Escape focus, reduced motion and full console-clean checks were not reached. Actual A/B detailed identity, loading/refusal/recovery states and API binding remain required before product implementation. No root screenshot viewing or browser recheck is claimed here.
+
+
+## Later asserted static UI evidence
+
+[Separate supplement](asserted-ui-supplement/README.md) records the same final HTML hash with external asserted7/7 named UI checks and individual values. This supersedes the selected final-search/focus/reduced-motion/console NOT_RUN gaps within that new run only. Earlier first failure/gate75/console-only records remain unchanged. It does not qualify native CAD, product integration, full old19 re-execution or remaining detailed states; the proposal remains draft and keeps its existing roadmap priority.

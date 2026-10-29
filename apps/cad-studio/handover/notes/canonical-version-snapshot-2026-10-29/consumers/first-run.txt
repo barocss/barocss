@@ -1,0 +1,4 @@
+flow display: {"requestedDpr":1,"renderer":"webgpu","devicePixelRatio":1,"cssWidth":1140,"cssHeight":900,"backingWidth":1140,"backingHeight":900}
+ok 1 starter plate loads
+ok 316 CG6 project: open a folder, save into it, two versions, compare, restore the first; autosave kept in the project and offered back after a reload
+screenshots: /tmp/d323-project-version

@@ -1,0 +1,115 @@
+{
+  "work_id": "viewer-design-asserted-20261029T063545",
+  "expectedHTMLSHA256": "def73380d19dd49d1ca353e35ac212f5931cbd3a647efb05e10e943474a2a34d",
+  "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/design/viewer-app-20261029/concept.html",
+  "proofBoundary": "Static HTML/SVG prototype UI only. Fit changes illustrated orientation/label. Orbit changes mode state. No actual CAD/GPU/3D engine, source loading, real export or product integration.",
+  "previousResultBoundary": "06:28 run completed but booleans were console-only and not preserved. That receipt is unchanged.",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "desktop search filtering",
+      "verdict": "PASS"
+    },
+    {
+      "name": "fit handler binding",
+      "verdict": "PASS"
+    },
+    {
+      "name": "orbit handler binding",
+      "verdict": "PASS"
+    },
+    {
+      "name": "compact search filtering",
+      "verdict": "PASS"
+    },
+    {
+      "name": "structure drawer Escape focus return",
+      "verdict": "PASS"
+    },
+    {
+      "name": "reduced motion",
+      "verdict": "PASS"
+    },
+    {
+      "name": "page and console errors",
+      "verdict": "PASS"
+    }
+  ],
+  "firstFailure": null,
+  "cleanup": {
+    "browserClosed": true,
+    "serverClosed": true
+  },
+  "actualHTMLSHA256": "def73380d19dd49d1ca353e35ac212f5931cbd3a647efb05e10e943474a2a34d",
+  "ownPort": 58237,
+  "ownURL": "http://127.0.0.1:58237/concept.html",
+  "desktopSearch": [
+    {
+      "name": "Mount surfacesupport_patch · asset_a",
+      "visible": false
+    },
+    {
+      "name": "Base surfacebase_patch · asset_a",
+      "visible": false
+    },
+    {
+      "name": "Guide pathguide_curve · asset_a",
+      "visible": true
+    },
+    {
+      "name": "Support surfaceNot loaded",
+      "visible": false
+    },
+    {
+      "name": "Guide path 2Not loaded",
+      "visible": true
+    },
+    {
+      "name": "End surfaceNot loaded",
+      "visible": false
+    }
+  ],
+  "fit": {
+    "name": "Isometric",
+    "top": false,
+    "status": "Isometric view"
+  },
+  "orbit": {
+    "pressed": "true",
+    "pan": "false",
+    "status": "Orbit mode"
+  },
+  "compactSearch": [
+    {
+      "name": "Mount surfacesupport_patch · asset_a",
+      "visible": false
+    },
+    {
+      "name": "Base surfacebase_patch · asset_a",
+      "visible": false
+    },
+    {
+      "name": "Guide pathguide_curve · asset_a",
+      "visible": true
+    },
+    {
+      "name": "Support surfaceNot loaded",
+      "visible": false
+    },
+    {
+      "name": "Guide path 2Not loaded",
+      "visible": true
+    },
+    {
+      "name": "End surfaceNot loaded",
+      "visible": false
+    }
+  ],
+  "focus": {
+    "drawer": "",
+    "focus": "Open structure"
+  },
+  "reducedMotionDuration": "0s",
+  "browserErrors": [],
+  "finalHTMLSHA256": "def73380d19dd49d1ca353e35ac212f5931cbd3a647efb05e10e943474a2a34d"
+}

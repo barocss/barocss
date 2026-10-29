@@ -1,0 +1,2 @@
+df2fefe53a8dc9d5be5fc5d2193583c2b87f3fc58e87fc4788d1b23d7a30ebd1  apps/cad-studio/src/storage/project.ts
+c9ab0d72cb3dbf9a6a7fee407450c7ebf3a6f7e558b8416ee5eddd4a0665f432  apps/cad-studio/test/storage-version-snapshot.test.ts
