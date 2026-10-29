@@ -1,4 +1,5 @@
-// D332 actual public selection controls. Four profiles run serially, not one test per screenshot.
+// D332 actual public selection controls. Profiles run serially, not one test per screenshot.
+// Optional SELECTION_BACKEND=webgpu|webgl2 selects only that backend and its two theme profiles.
 // PW_DIR=/absolute/playwright CHROME=/absolute/chrome node test/selection-visibility-browser.mjs /absolute/artifacts
 // No application state setters or synthetic output hooks. __studioScreenOf only projects points for actual mouse input.
 import assert from 'node:assert/strict';
@@ -9,10 +10,12 @@ import { createServer } from 'vite';
 
 assert.ok(process.env.PW_DIR && process.env.CHROME && process.argv[2], 'PW_DIR, CHROME and artifact directory are required');
 const app = resolve(import.meta.dirname, '..'), output = resolve(process.argv[2]);
+assert.ok(!process.env.SELECTION_BACKEND || ['webgpu', 'webgl2'].includes(process.env.SELECTION_BACKEND), 'SELECTION_BACKEND must be webgpu or webgl2');
+const backends = process.env.SELECTION_BACKEND ? [process.env.SELECTION_BACKEND] : ['webgpu', 'webgl2'];
 await mkdir(output, { recursive: true });
 const profiles = [], errors = [], consoleErrors = [], changes = [];
 const cleanup = { contexts: [], browsers: [], server: 'NOT_STARTED' };
-const report = { status: 'RUNNING', expectedProfiles: 4, profiles, errors, consoleErrors, changes, cleanup,
+const report = { status: 'RUNNING', expectedProfiles: backends.length * 2, requestedBackends: backends, profiles, errors, consoleErrors, changes, cleanup,
   visibilityAcceptance: 'MANUAL_SCREENSHOT_REVIEW_REQUIRED', pixelContrast: 'NOT_AUTOMATED',
   scope: { basePointEdgeFaceBody: 'REQUIRED', directGeometry: 'NOT_RUN', instances: 'NOT_RUN', sketchCageEditors: 'NOT_RUN' } };
 let phase = 'startup', server, browser, context, page, current;
@@ -79,8 +82,14 @@ async function picked(kind, point, inset = 0) {
   for (const other of ['vertices', 'edges', 'faces', 'bodies']) if (other !== kind) assert.equal(state.selection.selection[other]?.length ?? 0, 0, `only ${kind} must be selected`);
   return state;
 }
+async function ready() {
+  await page.waitForFunction(() => window.__studioDoc && window.__studioFresh === true && window.__studioBodies?.().massReady === true, null, { timeout: 30000 });
+}
 async function createBox() {
-  await page.getByRole('button', { name: 'New part', exact: true }).click(); await page.keyboard.press('b');
+  await ready();
+  await page.getByRole('button', { name: 'New part', exact: true }).click();
+  await page.waitForFunction(() => window.__studioDoc?.nodes.length === 0 && window.__studioFresh === true && window.__studioBodies?.().massReady === true, null, { timeout: 30000 });
+  await page.keyboard.press('b');
   await page.waitForSelector('.hud');
   for (const [label, value] of [['Width X', '64'], ['Depth Y', '32'], ['Height Z', '8']]) {
     await page.getByRole('dialog', { name: 'Box', exact: true }).getByLabel(label, { exact: true }).fill(value);
@@ -101,7 +110,7 @@ try {
   server = await createServer({ root: app, configFile: join(app, 'vite.config.ts'), server: { host: '127.0.0.1', port: 0, strictPort: false }, logLevel: 'error' });
   cleanup.server = 'OPEN'; server.watcher.on('change', file => changes.push(file)); await server.listen();
   const { chromium } = createRequire(join(process.env.PW_DIR, 'package.json'))('playwright');
-  for (const backend of ['webgpu', 'webgl2']) {
+  for (const backend of backends) {
     phase = `launch ${backend}`;
     browser = await chromium.launch({ executablePath: process.env.CHROME, headless: true, args: backend === 'webgl2'
       ? ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] : ['--enable-unsafe-webgpu'] });
@@ -150,7 +159,7 @@ try {
     }
     await closeBrowser(backend); await persist();
   }
-  assert.equal(changes.length, 0, 'source must remain frozen during the four profiles'); assert.equal(profiles.length, 4);
+  assert.equal(changes.length, 0, 'source must remain frozen during the selected profiles'); assert.equal(profiles.length, report.expectedProfiles);
   assert.notEqual(profiles[0].states[0].themeTokens['--selection'], profiles[1].states[0].themeTokens['--selection'], 'theme controls must choose different selection palettes');
   report.status = 'PASS';
 } catch (error) {
