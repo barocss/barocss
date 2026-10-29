@@ -202,7 +202,9 @@ function circle(brep: Brep, selected: BrepFace, axis: Axis, sign: 1 | -1, coordi
   let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
   for (const row of p) for (const q of row) { x0 = Math.min(x0, q[j]); x1 = Math.max(x1, q[j]); y0 = Math.min(y0, q[k]); y1 = Math.max(y1, q[k]); }
   const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, radius = (x1 - x0) / 2;
-  if (!(radius > 0) || radius !== (y1 - y0) / 2 || !finite(cx) || !finite(cy)) return unsupported('the native circular cap needs one finite circular bound.');
+  // Cap support extents may differ by rounding. The complete rational curves below,
+  // not equality of the two bounding half-widths, certify the emitted circle.
+  if (!(radius > 0) || !finite(radius) || !((y1 - y0) / 2 > 0) || !finite((y1 - y0) / 2) || !finite(cx) || !finite(cy)) return unsupported('the native circular cap needs one finite circular bound.');
   const reference = brepFromPrismatic(prismaticFromProfile({ outer: [{ kind: 'arc', start: [cx + radius, zero(sign * cy)], center: [cx, zero(sign * cy)], direction: 'ccw' }], from: 0, height: 1, tag: 'offset_reference' }));
   let maximumBound = 0n;
   // Native half-arc seams can shift by a quarter turn under a cardinal frame. Match ALL four
