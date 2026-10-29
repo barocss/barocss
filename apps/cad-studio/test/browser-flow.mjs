@@ -122,6 +122,28 @@ async function reliefReady(text, mode, expected) {
     return state.bodies[0].key === 'b2' && (expected === null ? state.bodies[0].volume > 0 : Math.abs(state.bodies[0].volume - expected) < 1e-7);
   }, { text, mode, expected }, { timeout: 30000 });
 }
+/** Independent annular-sector oracle from native quarter endpoint rays; no generated mesh supplies the expected volume. */
+function cylindricalWrapVolume(u0) {
+  if (u0 === null) return Math.PI * 100 * 30;
+  const rayAngle = u => {
+    const t = 2 * u, s = 1 - t, w = Math.SQRT1_2;
+    return Math.atan2(2 * w * s * t + t * t, s * s + 2 * w * s * t);
+  };
+  return Math.PI * 100 * 30 + 150 * (rayAngle(0.4) - rayAngle(u0)) * (30 * (0.7 - 0.2));
+}
+async function cylindricalWrapReady(u0) {
+  const expected = cylindricalWrapVolume(u0);
+  await page.waitForFunction(({ u0, expected }) => {
+    const state = window.__studioBodies?.(), doc = window.__studioDoc;
+    if (!state?.fresh || state.massReady !== true || state.bodies.length !== 1) return false;
+    const body = state.bodies[0];
+    if (!Number.isFinite(body.volume) || Math.abs(body.volume - expected) >= 1e-7) return false;
+    return u0 === null ? doc.nodes.length === 2 : doc.nodes[2]?.kind === 'cylindrical-wrap' && doc.nodes[2].rectangle.u[0] === u0;
+  }, { u0, expected }, { timeout: 30000 });
+  const state = await page.evaluate(() => window.__studioBodies());
+  assert.equal(state.bodies.length, 1); assert.ok(Math.abs(state.bodies[0].volume - expected) < 1e-7);
+  assert.equal(await page.locator('.vp-error').count(), 0); assert.match(await outliner(), /1 body/);
+}
 const history = () => page.locator('.history').innerText().catch(() => '');
 // (O18: and the bodies' masses, which the worker posts after its reply — every step that reads a volume waits here.)
 const idle = () => page.waitForFunction(() => !/Computing/.test(document.querySelector('.corner-left')?.textContent ?? '') && window.__studioBodies?.().massReady !== false, null, { timeout: 30000 });
@@ -945,6 +967,50 @@ try {
       assert.deepEqual((await doc()).nodes, JSON.parse(JSON.stringify(accepted.nodes)));
       await iso(); await snap(filename.startsWith('nanum-gothic') ? 'text-korean-gothic-reopened' : 'text-korean-myeongjo-reopened');
     }
+  });
+
+  await check('CG1 cylindrical wrap: native quarter preview, apply, undo, edit and portable Save/Open', async () => {
+    await page.click('[aria-label="New part"]'); await press(' '); await page.locator('.palette input').fill('Cylinder'); await press('Enter'); await hudReady();
+    await field('Radius').fill('10'); await field('Height').fill('30');
+    await field('Centre X').fill('0'); await field('Centre Y').fill('0'); await field('At Z').fill('0'); await field('At Z').blur(); await hudReady();
+    await page.locator('.hud button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && window.__studioFresh === true); await idle(); await press('Escape');
+    await cylindricalWrapReady(null);
+    const base = await doc(); assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.side0')));
+    await press(' '); await page.locator('.palette input').fill('Cylindrical wrap'); await press('Enter'); await hudReady();
+    assert.match(await page.locator('.hud').innerText(), /first native quarter/);
+    await field('U start (native)').fill('0.1'); await field('U end (native)').fill('0.4');
+    await field('V start (native)').fill('0.2'); await field('V end (native)').fill('0.7');
+    await field('Height (must equal radius)').fill('10'); await field('Height (must equal radius)').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 }); await iso(); await snap('cylindrical-wrap-preview');
+    await field('Height (must equal radius)').fill('9'); await field('Height (must equal radius)').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent !== 'preview');
+    assert.deepEqual((await doc()).nodes, base.nodes); assert.equal(await page.locator('.hud button', { hasText: 'Apply' }).isDisabled(), true);
+    await field('Height (must equal radius)').fill('10'); await field('Height (must equal radius)').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await page.locator('.hud button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'cylindrical-wrap' && window.__studioFresh === true); await idle();
+    await cylindricalWrapReady(0.1);
+    const applied = await doc(); assert.deepEqual(applied.nodes[2].faces, ['n1.side0#2']); assert.ok(applied.nodes[2].sigs['n1.side0#2']); await iso(); await snap('cylindrical-wrap-applied');
+    await press('Meta+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && window.__studioFresh === true); assert.deepEqual((await doc()).nodes, base.nodes); await cylindricalWrapReady(null);
+    await press('Meta+Shift+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 3 && window.__studioFresh === true); await cylindricalWrapReady(0.1);
+    await press('Escape'); await page.locator('.history button[data-node-index="2"]').click(); await page.waitForSelector('.hud[aria-label="Edit Cylindrical wrap"]');
+    await field('U start (native)').fill('0.15'); await field('U start (native)').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await page.locator('.hud button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => window.__studioDoc.nodes[2]?.rectangle?.u[0] === 0.15 && window.__studioFresh === true); await idle();
+    await cylindricalWrapReady(0.15);
+    const edited = await doc(); assert.deepEqual(edited.nodes[2].sigs, applied.nodes[2].sigs); assert.equal(edited.nodes[2].id, applied.nodes[2].id);
+    const [download] = await Promise.all([page.waitForEvent('download'), page.click('[aria-label="Save"]')]);
+    const saved = join(out, 'cylindrical-wrap-saved.bcad'); await download.saveAs(saved);
+    // This asset-free recipe follows the existing plain-JSON Save branch.
+    const savedDoc = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readFileSync(saved)));
+    assert.equal(savedDoc.format, 'barocss-cad-model'); assert.equal(savedDoc.schema, edited.schema);
+    assert.deepEqual(savedDoc, JSON.parse(JSON.stringify(edited)));
+    await page.click('[aria-label="New part"]'); await openModel(saved, 3); await idle(); await cylindricalWrapReady(0.15);
+    assert.deepEqual((await doc()).nodes, edited.nodes); await iso(); await snap('cylindrical-wrap-reopened');
+    await page.locator('.history button[data-node-index="2"]').click(); await page.waitForSelector('.hud[aria-label="Edit Cylindrical wrap"]');
+    assert.equal(Number(await field('U start (native)').inputValue()), 0.15); await press('Escape');
   });
 
   await check('CG1 text relief: supported emboss, refused outside stroke, history edit, undo and portable Save/Open', async () => {

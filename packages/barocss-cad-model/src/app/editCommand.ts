@@ -12,6 +12,7 @@ import { bodyKeyFor, featureId, nodeIndexOf } from '../engine/ids';
 import { refOf } from './bodyRef';
 import { boundsOf } from '../engine/bounds';
 import { textEditCommand } from './textCommand';
+import { cylindricalWrapEditCommand } from './cylindricalWrapCommand';
 import { textReliefEditCommand } from './textReliefCommand';
 
 type V3 = [number, number, number];
@@ -131,6 +132,7 @@ function shapeEdit(index: number, nodes: readonly ModelNode[], rows: Pick<Studio
 export function editCommand(index: number, nodes: readonly ModelNode[], rows: Pick<StudioDoc, 'fastenerSizes'> = {}): Command | null {
   const node = nodes[index]; if (!node) return null;
   if (node.kind === 'text') return textEditCommand(index, node);
+  if (node.kind === 'cylindrical-wrap') return cylindricalWrapEditCommand(index, node);
   if (node.kind === 'text-relief') return textReliefEditCommand(index, node);
   const shape = shapeEdit(index, nodes, rows); if (shape) return shape;
   const fields = editFields(nodes, index).filter(f => f.kind !== 'toggle' && !(f.kind === 'number' && Number.isNaN(f.get(nodes))));

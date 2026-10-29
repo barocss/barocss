@@ -68,6 +68,10 @@ function featuresOf(doc: CadPartDocument, spec: FeatureSpec, body: string | null
     }
     case 'chamfer':
       return [{ id: nextId(doc, 'chamfer'), kind: 'chamfer', target: target(), edges: [...spec.edges], distance: spec.values.distance }];
+    case 'cylindrical-wrap': {
+      const { u0, u1, v0, v1, height } = spec.values;
+      return [{ id: nextId(doc, 'cylindrical-wrap'), kind: 'cylindrical-wrap', target: target(), faces: [spec.face], rectangle: { u: [u0, u1], v: [v0, v1] }, height }];
+    }
     case 'shell':
       return [{ id: nextId(doc, 'shell'), kind: 'shell', target: target(), thickness: spec.values.t, ...(spec.faces.length ? { open: [...spec.faces] } : {}) }];
     case 'union': case 'difference': case 'intersect':
@@ -125,6 +129,7 @@ const BINDS: Record<string, Record<string, readonly [feature: number, path: read
   fillet: { radius: [0, ['radius']] },
   chamfer: { distance: [0, ['distance']] },
   shell: { t: [0, ['thickness']] },
+  'cylindrical-wrap': { height: [0, ['height']] },
   'linear-pattern': { spacing: [0, ['spacing']] },
   'linear-feature-pattern': { spacing: [0, ['spacing']] },
   split: { at: [0, ['at']] },

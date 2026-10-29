@@ -10,17 +10,31 @@ function unitLine(curve: Curve | null, first: Point, last: Point, ctx: Reference
   ctx.direct(3); if (!curve || curve.degree !== 1 || curve.controlPoints.length !== 2) fail('SUPPORT', 'a complete unit-domain boundary line is required');
   same(curve.knots, [0, 0, 1, 1], ctx); same(curve.weights, [1, 1], ctx); same(curve.controlPoints[0], first, ctx); same(curve.controlPoints[1], last, ctx);
 }
-function plane(face: BrepFace, radius: number, z: number, top: boolean, ctx: ReferenceProofContext): void {
-  const s = face.surface; ctx.direct(7);
-  if (s.kind !== 'surface' || s.degreeU !== 1 || s.degreeV !== 1 || s.controlPoints.length !== 2 || s.weights.length !== 2 || face.sense !== 'forward' || face.loops.length !== 1) fail('SUPPORT', 'the original outward affine cap is required');
+/** Pure affine-net theorem. Source identity and fresh boundary residuals are proved by the caller. */
+export function certifyAffineReferenceCap(face: BrepFace, z: number, top: boolean, ctx: ReferenceProofContext) {
+  const s = face.surface; ctx.direct(8);
+  if (!Number.isFinite(z) || s.kind !== 'surface' || s.degreeU !== 1 || s.degreeV !== 1 || s.controlPoints.length !== 2 || s.weights.length !== 2 || face.sense !== 'forward' || face.loops.length !== 1) fail('SUPPORT', 'the original outward affine cap is required');
   same(s.knotsU, [0, 0, 1, 1], ctx); same(s.knotsV, [0, 0, 1, 1], ctx);
   for (let i = 0; i < 2; i++) {
     ctx.direct(1); if (s.controlPoints[i].length !== 2) fail('SUPPORT', 'a full two-column cap is required'); same(s.weights[i], [1, 1], ctx);
-    for (let j = 0; j < 2; j++) {
-      ctx.direct(2); const x = (top ? i : j) === 0 ? -radius : radius, y = (top ? j : i) === 0 ? -radius : radius;
-      same(s.controlPoints[i][j], [x, y, z], ctx);
-    }
   }
+  // The producer's complete actual rectangle need not be centered exactly at zero or have equal spans.
+  const first = s.controlPoints[0][0], last = s.controlPoints[1][1];
+  const lower: [number, number] = [first[0], first[1]], upper: [number, number] = [last[0], last[1]];
+  ctx.structure(12); ctx.direct(6);
+  if (!Number.isFinite(lower[0]) || !Number.isFinite(lower[1]) || !Number.isFinite(upper[0]) || !Number.isFinite(upper[1]) || !(lower[0] < upper[0]) || !(lower[1] < upper[1])) fail('SUPPORT', 'the actual affine cap must have finite positive X and Y spans');
+  for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) {
+    ctx.direct(2); same(s.controlPoints[i][j], [(top ? i : j) === 0 ? lower[0] : upper[0], (top ? j : i) === 0 ? lower[1] : upper[1], z], ctx);
+  }
+  const q = ctx.q, two = q.integer(2), center: SectionRational[] = [], halfSpan: SectionRational[] = [];
+  for (let axis = 0; axis < 2; axis++) {
+    const low = ctx.from(lower[axis]), high = ctx.from(upper[axis]);
+    center.push(q.div(q.add(low, high), two)); halfSpan.push(q.div(q.sub(high, low), two)); ctx.check();
+  }
+  const centerL1 = q.add(q.abs(center[0]), q.abs(center[1])); ctx.check();
+  return { lower, upper, center: [ctx.text(center[0]), ctx.text(center[1])] as const,
+    halfSpan: [ctx.text(halfSpan[0]), ctx.text(halfSpan[1])] as const, centerToSourceCenterL1: ctx.text(centerL1),
+    normalizedCoordinates: 'exact-(2u-1,2v-1)' as const, worldCoordinates: 'center-plus-positive-diagonal-half-spans' as const };
 }
 function capUse(brep: Brep, wallUse: string, ctx: ReferenceProofContext): { use: BrepCoedge; face: BrepFace } {
   const wall = entity(brep.coedges, wallUse, ctx); if (!wall.twin) fail('SUPPORT', 'a cap must own the opposite original horizontal use');
@@ -78,13 +92,14 @@ function originalSeams(parent: CylindricalWrapWallReferenceResult, ctx: Referenc
 }
 export function certifyOriginalReferenceCaps(parent: CylindricalWrapWallReferenceResult, ctx: ReferenceProofContext) {
   const source = parent.reference.formal.source, b = source.brep, spans: WallCycleSpan[] = [], capIds: (string | undefined)[] = [undefined, undefined], uses: { bottom: string; top: string; edge: string }[] = [];
-  let modelError = ctx.q.rat(0n);
+  let boundaryError = ctx.q.rat(0n);
+  const frames: (ReturnType<typeof certifyAffineReferenceCap> | undefined)[] = [undefined, undefined];
   for (const wall of parent.sourceWalls.walls) {
     const low = capUse(b, wall.bottom.coedge, ctx), high = capUse(b, wall.top.coedge, ctx);
     for (const [index, item] of [[0, low], [1, high]] as const) {
       ctx.direct(1); if (capIds[index] !== undefined && capIds[index] !== item.face.id) fail('SUPPORT', 'each axial endpoint must have one complete original cap');
-      if (capIds[index] === undefined) plane(item.face, source.radius, source.z[index], index === 1, ctx);
-      capIds[index] = item.face.id; modelError = ctx.q.max(modelError, capModelError(parent, item.use, item.face, ctx)); ctx.check();
+      if (capIds[index] === undefined) frames[index] = certifyAffineReferenceCap(item.face, source.z[index], index === 1, ctx);
+      capIds[index] = item.face.id; boundaryError = ctx.q.max(boundaryError, capModelError(parent, item.use, item.face, ctx)); ctx.check();
     }
     const lower = capCurve(low.use, b, ctx), upper = capCurve(high.use, b, ctx);
     same(lower.weights, upper.weights, ctx); same(lower.knots, upper.knots, ctx);
@@ -97,10 +112,16 @@ export function certifyOriginalReferenceCaps(parent: CylindricalWrapWallReferenc
     uses.push({ bottom: low.use.id, top: high.use.id, edge: high.use.edge });
   }
   ctx.direct(1); if (capIds[0] === capIds[1]) fail('SUPPORT', 'top and bottom caps must be distinct');
-  const normalizedCycle = certifyCylindricalCapCycle(spans, ctx), radial = ctx.q.mul(ctx.read(normalizedCycle.radial), ctx.from(source.radius)); ctx.check();
+  const lower = frames[0]!, upper = frames[1]!;
+  same(lower.lower, upper.lower, ctx); same(lower.upper, upper.upper, ctx);
+  const normalizedCycle = certifyCylindricalCapCycle(spans, ctx);
+  // The positive diagonal affine map carries the normalized radial disk to a disk about E.
+  // At radial fraction s its correspondence error is (1-s)E+s*(capBoundary-sourceBoundary).
+  // Convexity of the L1 norm bounds the WHOLE disk by max(|E|1, boundaryResidual).
+  const modelError = ctx.q.max(ctx.read(upper.centerToSourceCenterL1), boundaryError); ctx.check();
   const seams = originalSeams(parent, ctx);
-  return { caps: capIds as [string, string], uses, seams, normalizedCycle, radial: ctx.text(radial), boundaryAndInteriorToSourceL1: ctx.text(modelError),
-    correspondence: 'matched-boundary-parameter-and-radial-disk-extension' as const,
+  return { caps: capIds as [string, string], uses, seams, normalizedCycle, affine: upper, boundaryToSourceL1: ctx.text(boundaryError), boundaryAndInteriorToSourceL1: ctx.text(modelError),
+    correspondence: 'matched-boundary-parameter-and-affine-center-disk-extension' as const,
     exactReferenceSourceClosed: true as const, literalStoredShellClosed: false as const };
 }
 function useOnFace(b: Brep, edge: string, face: string, ctx: ReferenceProofContext): BrepCoedge {

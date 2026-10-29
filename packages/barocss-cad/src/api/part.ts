@@ -8,8 +8,8 @@
 // body that body is meant. The choice is the facade's view of the document, never written into it: `.doc` is the same
 // with or without it. It follows the body through the verbs that replace it (a fillet's result is the filleted body).
 import {
-  booleanSpec, boxSpec, chamferSpec, circularPatternSpec, cylinderSpec, extrudeSpec, filletSpec, holeSpec, linearFeaturePatternSpec, linearPatternSpec, mirrorSpec, moveSpec, revolveSpec, rotateSpec, scaleSpec, shellSpec, splitSpec,
-  type BooleanCommand, type BoxOptions, type ChamferOptions, type CircularPatternOptions, type CylinderOptions, type ExtrudeOptions, type FeatureSpec, type FilletOptions,
+  booleanSpec, cylindricalWrapSpec, boxSpec, chamferSpec, circularPatternSpec, cylinderSpec, extrudeSpec, filletSpec, holeSpec, linearFeaturePatternSpec, linearPatternSpec, mirrorSpec, moveSpec, revolveSpec, rotateSpec, scaleSpec, shellSpec, splitSpec,
+  type BooleanCommand, type CylindricalWrapOptions, type BoxOptions, type ChamferOptions, type CircularPatternOptions, type CylinderOptions, type ExtrudeOptions, type FeatureSpec, type FilletOptions,
   type HoleOptions, type LinearPatternOptions, type MirrorOptions, type RevolveOptions, type ScaleOptions, type ShellOptions, type SplitOptions,
   type Bound, type Resolved, isParam,
 } from './spec.js';
@@ -163,6 +163,15 @@ export class Part<D> {
       const picked = edges(this.select()), spec = filletSpec(picked.names(), o, picked.list());
       if (o.endRadius !== undefined && (isParam(options.radius) || (o.endRadius === o.radius && isParam(options.endRadius)))) throw refuse('PARAMETER_UNBINDABLE', 'an explicit fillet endRadius can bind only while varying; its start radius must be numeric');
       return spec;
+    }));
+  }
+
+  /** Add a tolerance-qualified closed-reference pad over one strict original-UV rectangle. */
+  cylindricalWrap(faces: (body: BodyQuery) => FaceQuery, options: CylindricalWrapOptions): this {
+    return this.#act(this.#spec(options, o => {
+      const picked = faces(this.select());
+      if (picked.count !== 1) throw refuse('SELECTION_ONE', 'cylindrical wrap needs exactly one original positive-Y cylinder wall');
+      return cylindricalWrapSpec(picked.names()[0], o);
     }));
   }
 

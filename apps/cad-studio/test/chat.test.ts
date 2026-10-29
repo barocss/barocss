@@ -106,6 +106,14 @@ test('tool schemas: every buildable command is exposed and documented with the H
   const driveRows = { version: 1 as const, rows: [{ kind: 'chain' as const, id: 'c', pitch: 12.7, rollerDiameter: 8.51, estimate: true }, { kind: 'flat-belt' as const, id: 'f', width: 40, thickness: 3, estimate: true }, { kind: 'coupling' as const, id: 'k', bore: [12, 12] as [number, number], outside: 30, length: 40, estimate: true }] };
   const chained = await stateOf({ ...withNode(withNode(emptyDoc(), { kind: 'sprocket', row: 'c', teeth: 17, tip: 75, width: 7, center: [0, 0], generator: 'sprocket@0' }), { kind: 'sprocket', row: 'c', teeth: 17, tip: 75, width: 7, center: [150, 0], generator: 'sprocket@0' }), drives: driveRows });
   for (const id of CHAT_COMMANDS) {
+    if (id === 'cylindrical-wrap') {
+      const cylinder = await stateOf(cylCmd.build!(blank, { r: 10, h: 30, x: 0, y: 0, z: 0 }));
+      const face = cylinder.bodies[0].mesh.faces.findIndex(f => f.name === 'n1.side0');
+      const ctx: Ctx = { doc: cylinder.doc, bodies: cylinder.bodies, selection: sel({ faces: [{ body: 0, face }] }) }, cmd = commandById(id)!;
+      assert.ok(cmd.available(ctx).ok, id);
+      assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
+      continue;
+    }
     const profile = ['extrude', 'revolve', 'pipe', 'sheet-plate'].includes(id);
     if (id === 'key' || id === 'keyway' || id === 'retaining-ring' || id === 'pin' || id === 'bearing') {
       // (A bearing takes the user's rows loaded: R12c.4, D158.)

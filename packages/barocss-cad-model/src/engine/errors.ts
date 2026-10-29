@@ -9,6 +9,15 @@ export interface FriendlyError {
 }
 
 const rules: { test: RegExp; title: string; hint: string }[] = [
+  { test: /cylindrical wrap.*(?:height|radius)|height.*source radius/i,
+    title: 'Wrap height must equal the cylinder radius',
+    hint: 'Use the cylinder radius as the outward height.' },
+  { test: /cylindrical wrap reference cannot be consumed|cylindrical wrap.*live evaluated provider/i,
+    title: 'This wrap cannot use that operation yet',
+    hint: 'Edit the wrap in its history, or open its saved model file.' },
+  { test: /cylindrical wrap/i,
+    title: 'This cylindrical wrap is not supported',
+    hint: 'Select the original cylinder wall. Use one rectangle in its +Y half and first native quarter. Keep the rectangle clear of its edges and use the radius as its height.' },
   { test: /\[BEAD_SHARED_CONTEXT\]/,
     title: 'The shared bead context is incomplete or unsupported',
     hint: 'Use ownership version 1 and policy equal-length. Keep the complete joint component; do not remove a failed peer to build a full bead.' },

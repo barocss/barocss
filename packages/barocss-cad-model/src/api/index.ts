@@ -1,7 +1,7 @@
 // R7: the object facade over cad-model's data-and-functions core, imported as `@barocss/cad-model/api`: the one part
 // implementation (@barocss/cad/api's Part) over the StudioDoc, plus the studio layer. See
 // apps/cad-studio/handover/api-conventions.md §11–§12 and apps/cad-studio/handover/notes/api-facade-design.md.
-export { part, StudioPart, type DrawingSettingsInput, type StudioTextOptions, type StudioTextReliefOptions } from './part';
+export { part, StudioPart, type DrawingSettingsInput, type StudioTextOptions, type StudioCylindricalWrapOptions, type StudioTextReliefOptions } from './part';
 export { fontFromBytes, type FontSource, type FontSourceMetadata } from '../engine/font/source';
 export type { CastingOptions } from './outputs';
 export { studioBackend } from './studio';

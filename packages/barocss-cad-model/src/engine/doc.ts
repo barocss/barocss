@@ -173,6 +173,32 @@ export function textReliefNodeProblem(input: unknown, parameters: Readonly<Recor
   }
   return null;
 }
+/** One rectangle on the original +Y wall's first native quarter; outward height must equal the source radius. */
+export interface CylindricalWrapNode { kind: 'cylindrical-wrap'; parent: BodyRef; faces: [string]; rectangle: { u: [number, number]; v: [number, number] }; height: Dim }
+/** Structural admission; the kernel proves source identity, native margins and fixed radial height. */
+export function cylindricalWrapNodeProblem(input: unknown, parameters: Readonly<Record<string, number>>): string | null {
+  if (!textRecord(input) || input.kind !== 'cylindrical-wrap') return 'Cylindrical wrap: a rectangle modifier is required.';
+  const allowed = new Set(['kind', 'parent', 'faces', 'rectangle', 'height', ...NODE_EXTRA_FIELDS]);
+  for (const key of Object.keys(input)) if (!allowed.has(key)) return `Cylindrical wrap: unknown field ${key}.`;
+  const parent = input.parent;
+  if (!textRecord(parent) || Object.keys(parent).sort().join(',') !== 'node,side' || !Number.isSafeInteger(parent.node) || (parent.node as number) < 0 || parent.side !== 'solid') return 'Cylindrical wrap: one solid parent is required.';
+  if (!Array.isArray(input.faces) || input.faces.length !== 1 || typeof input.faces[0] !== 'string' || !input.faces[0].trim() || input.faces[0].includes('+') || input.faces[0].includes('\0')) return 'Cylindrical wrap: one exact individual face name is required.';
+  const r = input.rectangle;
+  if (!textRecord(r) || Object.keys(r).sort().join(',') !== 'u,v' || !Array.isArray(r.u) || !Array.isArray(r.v) || r.u.length !== 2 || r.v.length !== 2 || [...r.u, ...r.v].some(x => typeof x !== 'number' || !Number.isFinite(x))) return 'Cylindrical wrap: rectangle needs finite native u and v intervals.';
+  if (!(0 < r.u[0] && r.u[0] < r.u[1] && r.u[1] < 0.5 && 0 < r.v[0] && r.v[0] < r.v[1] && r.v[1] < 1)) return 'Cylindrical wrap: require 0 < u0 < u1 < 0.5 and 0 < v0 < v1 < 1.';
+  const h = textDimension(input.height, parameters);
+  if (h === null || h <= 0) return 'Cylindrical wrap: height must resolve to a positive native length equal to the source radius.';
+  if (input.id !== undefined && (typeof input.id !== 'string' || !/^[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(input.id))) return 'Cylindrical wrap: the authored feature id is invalid.';
+  if (input.suppressed !== undefined && input.suppressed !== true) return 'Cylindrical wrap: suppressed, when present, must be true.';
+  if (input.bought !== undefined && typeof input.bought !== 'boolean') return 'Cylindrical wrap: bought must be boolean.';
+  if (input.held !== undefined && typeof input.held !== 'string') return 'Cylindrical wrap: held must be a string.';
+  if (input.rematched !== undefined && (!textRecord(input.rematched) || Object.values(input.rematched).some(x => typeof x !== 'string'))) return 'Cylindrical wrap: rematched values must be persistent names.';
+  if (input.sigs !== undefined) {
+    if (!textRecord(input.sigs)) return 'Cylindrical wrap: sigs must be a signature record.';
+    for (const sig of Object.values(input.sigs)) if (!textRecord(sig) || Object.keys(sig).some(key => !['k', 'p', 'd', 's', 'r', 'n'].includes(key)) || sig.d !== undefined && !textVector(sig.d, false) || sig.k !== 'curved' || !textVector(sig.p, true) || typeof sig.s !== 'number' || !Number.isFinite(sig.s) || sig.s <= 0 || typeof sig.r !== 'number' || !Number.isFinite(sig.r) || sig.r <= 0 || sig.n !== undefined && sig.n !== 1) return 'Cylindrical wrap: an individual curved-face signature is required.';
+  }
+  return null;
+}
 /** Validate text recipes in saved part trees without loading fonts or evaluating geometry. */
 export function textDocumentProblem(input: unknown): string | null {
   const stack: unknown[] = [input], seen = new Set<object>();
@@ -184,10 +210,10 @@ export function textDocumentProblem(input: unknown): string | null {
     const parameters = textRecord(value.parameters) ? value.parameters as Record<string, number> : {};
     if (Array.isArray(value.nodes)) for (let i = 0; i < value.nodes.length; i++) {
       const node = value.nodes[i];
-      if (!textRecord(node) || node.kind !== 'text' && node.kind !== 'text-relief') continue;
-      const why = node.kind === 'text' ? textNodeProblem(node, parameters) : textReliefNodeProblem(node, parameters);
+      if (!textRecord(node) || node.kind !== 'text' && node.kind !== 'text-relief' && node.kind !== 'cylindrical-wrap') continue;
+      const why = node.kind === 'text' ? textNodeProblem(node, parameters) : node.kind === 'cylindrical-wrap' ? cylindricalWrapNodeProblem(node, parameters) : textReliefNodeProblem(node, parameters);
       if (why) return why;
-      if (node.kind === 'text-relief' && (node.parent as BodyRef).node >= i) return 'Text relief: the parent must precede its modifier.';
+      if ((node.kind === 'text-relief' || node.kind === 'cylindrical-wrap') && (node.parent as BodyRef).node >= i) return `${node.kind === 'cylindrical-wrap' ? 'Cylindrical wrap' : 'Text relief'}: the parent must precede its modifier.`;
     }
     if (Array.isArray(value.instances)) for (const instance of value.instances) if (textRecord(instance)) stack.push(instance.doc);
     if (textRecord(value.pendingParts)) for (const pending of Object.values(value.pendingParts)) if (textRecord(pending)) stack.push(pending.doc);
@@ -251,7 +277,7 @@ export type NodeExtras = { suppressed?: true; id?: string; rematched?: Record<st
  */
 export const NODE_EXTRA_FIELDS = ['suppressed', 'id', 'rematched', 'sigs', 'held', 'bought'] as const satisfies readonly (keyof NodeExtras)[];
 export const _nodeFieldsComplete: [Exclude<keyof NodeExtras, typeof NODE_EXTRA_FIELDS[number]>] extends [never] ? true : never = true;
-type ModelNodeBase = SketchNode | TextNode | TextReliefNode
+type ModelNodeBase = SketchNode | TextNode | TextReliefNode | CylindricalWrapNode
   /** `draft` (degrees) leans the walls into the material away from the sketch plane. */
   | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number; made?: Made }
   /** The sketch turned about its X or Y axis (through `origin`, default the sketch origin) towards +Z. */
@@ -932,6 +958,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
   if ('made' in node && node.made) return shapeLabel(node.made);
   switch (node.kind) {
     case 'text': return `Text · ${node.text}`;
+    case 'cylindrical-wrap': return 'Cylindrical wrap';
     case 'text-relief': return `${node.mode === 'emboss' ? 'Text emboss' : 'Text engrave'} · ${node.text}`;
     case 'sketch': return `Sketch · ${node.profile === 'loop' ? 'outline' : node.profile}`;
     case 'extrude': {

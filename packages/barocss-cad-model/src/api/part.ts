@@ -19,6 +19,7 @@ import { withLibraryPart, type LibraryPartInput } from './library';
 import { refOf } from '../app/bodyRef';
 import { buildDraft, buildFaceFillet, buildFaceThread, buildFullRound, type Values } from '../app/commands';
 import { resolveNames } from '../chat/names';
+import { cylindricalWrapCarrier } from '../engine/cylindricalWrap';
 import { captureSignatures } from '../engine/references';
 import { bindParameter } from '../engine/parameters';
 import { fontSourceError, type FontSource } from '../engine/font/source';
@@ -86,7 +87,34 @@ export interface StudioTextReliefOptions {
 }
 const TEXT_RELIEF_OPTIONS = new Set(['size', 'depth', 'at', 'mode', 'tolerance', 'tracking']);
 
+/** Original native UV rectangle on the +Y wall's first quarter; height must equal the cylinder radius. */
+export interface StudioCylindricalWrapOptions { readonly u0: number; readonly u1: number; readonly v0: number; readonly v1: number; readonly height: Dim }
+const CYLINDRICAL_WRAP_OPTIONS = new Set(['u0', 'u1', 'v0', 'v1', 'height']);
+
 export class StudioPart extends Part<StudioDoc> {
+  /** Select the cylinder wall; wrap its fixed original +Y half's first native quarter. */
+  cylindricalWrap(faces: (body: BodyQuery) => FaceQuery, options: StudioCylindricalWrapOptions): this {
+    if (!options || typeof options !== 'object' || Array.isArray(options) || Reflect.ownKeys(options).some(key => typeof key !== 'string' || !CYLINDRICAL_WRAP_OPTIONS.has(key)) || [...CYLINDRICAL_WRAP_OPTIONS].some(key => !Object.hasOwn(options, key))) throw refuse('VALUE', 'cylindrical wrap takes u0, u1, v0, v1 and height');
+    let given: StudioCylindricalWrapOptions;
+    try { given = structuredClone(options); } catch { throw refuse('VALUE', 'cylindrical wrap options must be copied plain values'); }
+    const doc = this.document, before = bodiesOf(doc), body = before.find(b => b.key === this.target());
+    if (!body) throw refuse('NO_BODY', 'cylindrical wrap needs one selected body');
+    if (typeof faces !== 'function') throw refuse('VALUE', 'cylindrical wrap takes a face selector');
+    const picked = faces(this.select());
+    if (!picked || typeof picked.names !== 'function') throw refuse('VALUE', 'cylindrical wrap takes a face query');
+    if (picked.count !== 1) throw refuse(picked.count ? 'VALUE' : 'SELECTION_EMPTY', 'cylindrical wrap needs exactly one face');
+    const names = picked.names(); let name = names[0];
+    if (names.length !== 1 || typeof name !== 'string' || name.includes('+')) throw refuse('VALUE', 'cylindrical wrap needs one exact individual face name');
+    if (body.mesh.faces.filter(face => face.name === name).length !== 1) throw refuse('SELECTION_UNKNOWN', `no exact individual face named ${name} on the selected body`);
+    name = cylindricalWrapCarrier(body.mesh.faces.find(face => face.name === name)!).name;
+    const node: ModelNode = { kind: 'cylindrical-wrap', parent: refOf(body), faces: [name], rectangle: { u: [given.u0, given.u1], v: [given.v0, given.v1] }, height: given.height };
+    const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
+    if (why) throw refuse('VALUE', `the cylindrical wrap: ${why}`);
+    const index = doc.nodes.length, next = captureSignatures(withNode(doc, node), [body]);
+    bodiesOf(next);
+    return this.next(next, bodyKey({ node: index, side: 'solid' }, next.nodes));
+  }
+
   /** One authored output from original font bytes; separated glyph components may remain several physical bodies. */
   text(font: FontSource, text: string, options: StudioTextOptions): this {
     if (!options || typeof options !== 'object' || Array.isArray(options) || !Object.hasOwn(options, 'size') || !Object.hasOwn(options, 'h')) throw refuse('VALUE', 'text takes required size and h options');

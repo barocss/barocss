@@ -26,6 +26,7 @@ import { faceReach, finishBrepEdges } from '../blend/edge-finish.js';
 import { polynomialFaceFillet } from '../blend/polynomial-face-fillet.js';
 import { draftedExtrusion } from '../features/drafted-extrusion.js';
 import { profileRelief, type ReliefSketch } from '../features/profile-relief.js';
+import { cylindricalWrapFeature, type CylindricalWrapReport } from '../features/cylindrical-wrap-feature.js';
 import { stepTessellatedChars } from '../io/step.js';
 import { brepFromTriangles, isMeshBrepError } from '../mesh/mesh-brep.js';
 import { facetBrepFromTriangles, weldVertices } from '../mesh/facet-brep.js';
@@ -130,6 +131,8 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'rectangular-relief'; readonly target: string; readonly min: CadPartPoint2; readonly max: CadPartPoint2; readonly depth: CadPartDim; readonly mode: 'emboss' | 'engrave' }
   /** Line-only XY components strictly inside exactly one +Z cap in `faces`. `clearance` adds to the existing linear policy (default 0); only engrave depth must remain below slab thickness. */
   | { readonly kind: 'profile-relief'; readonly target: string; readonly faces: readonly string[]; readonly sketches: readonly string[]; readonly depth: CadPartDim; readonly mode: 'emboss' | 'engrave'; readonly clearance?: number; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
+  /** One rectangle in original native UV, first +Y wall quarter; height must equal the source radius. Mass is over its certified closed radial reference. */
+  | { readonly kind: 'cylindrical-wrap'; readonly target: string; readonly faces: readonly string[]; readonly rectangle: { readonly u: readonly [number, number]; readonly v: readonly [number, number] }; readonly height: CadPartDim; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
   /**
    * A full round (a face fillet): each named face — planar, facing +Z, an axis-aligned rectangle — becomes a half
    * cylinder tangent to its two sides along `along` (default: each face's longer side), of radius half its width
@@ -641,6 +644,8 @@ export interface CadPartOutput {
   readonly representation: 'upright' | 'planar' | 'curved' | 'faceted';
   readonly brep: Brep;
   readonly bodyCount: number;
+  /** Closed-reference qualification; mass requires this evaluation's owned live provider. */
+  readonly cylindricalWrap?: CylindricalWrapReport;
   // (R7.3b: its results are functions over it — massPropertiesOf, surfaceAreaOf, checkOutput, exportStl, exportStep, flatPatternOf.)
   /** A generated gear's report: its dimensions, the measured flank deviation, its diagnostics (R6a). */
   readonly gear?: SpurGearReport;
@@ -734,6 +739,7 @@ interface Finish { readonly kind: 'chamfer' | 'fillet'; readonly edges: readonly
 /** `moved`: the part this one is a moved (turned, mirrored, uniformly scaled) copy of, for shell. */
 export interface Part {
   readonly solid: Solid; brep?: Brep; readonly mass?: (density: number) => MassProperties;
+  readonly cylindricalWrap?: CylindricalWrapReport;
   readonly history?: { readonly base: PrismaticSolid; readonly finishes: readonly Finish[] };
   readonly moved?: { readonly from: Part; readonly m: BrepAffine['matrix']; readonly o: Point };
   /** How a revolved or swept body was made (shell erodes its section and makes it again). */
@@ -1025,6 +1031,7 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
       const { id, part, result } = ref(r, what);
       if (result.kind !== 'solid') fail('REFERENCE', `${what}: ${id} is a sketch, not a solid`);
       const parts = (result as Extract<Result, { kind: 'solid' }>).parts, picked = part === null ? parts : [parts[part]];
+      if (picked.some(p => p.cylindricalWrap)) fail('CAPABILITY', 'a cylindrical wrap reference cannot be consumed by another feature yet; its reference mass and face tolerance apply only to the original result');
       if (!allowEmpty && picked.every(p => empty(p.solid))) fail('SELECTION', `${what}: ${r} is empty`);
       const used = consumed.get(id); if (part === null) consumed.set(id, 'all'); else if (used !== 'all') consumed.set(id, (used ?? new Set()).add(part));
       return picked.filter(p => !empty(p.solid));
@@ -1485,6 +1492,20 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         if (joinedBrep.bodies.length !== 1 || joinedBrep.bodies[0].kind !== 'solid' || !(Number.isFinite(volume) && volume > 0)) fail('GEOMETRY', 'rib union must be one nonempty solid');
         return one(joined);
       };
+    }
+    case 'cylindrical-wrap': {
+      const target = solids(f.target, 'target'), selected = f.faces, rectangle = f.rectangle as { u?: unknown; v?: unknown } | undefined;
+      if (target.length !== 1) fail('REFERENCE', 'cylindrical wrap target must be one nonempty solid');
+      if (!Array.isArray(selected) || selected.length !== 1 || typeof selected[0] !== 'string' || !selected[0] || selected[0].includes('+')) fail('INPUT', 'cylindrical wrap faces must contain one exact native wall name');
+      if (!rectangle || typeof rectangle !== 'object' || Array.isArray(rectangle) || Object.keys(rectangle).some(k => k !== 'u' && k !== 'v')) fail('INPUT', 'cylindrical wrap rectangle must contain original native u and v intervals');
+      const u = rectangle!.u, v = rectangle!.v;
+      if (!Array.isArray(u) || !Array.isArray(v) || u.length !== 2 || v.length !== 2 || ![...u, ...v].every(x => typeof x === 'number' && Number.isFinite(x))) fail('INPUT', 'cylindrical wrap intervals must each contain two finite Numbers');
+      const U = u as [number, number], V = v as [number, number];
+      if (!(0 < U[0] && U[0] < U[1] && U[1] < 0.5 && 0 < V[0] && V[0] < V[1] && V[1] < 1)) fail('PARAMETER', 'cylindrical wrap needs 0 < u0 < u1 < 0.5 and 0 < v0 < v1 < 1');
+      const height = dim(f.height as CadPartDim, 'height', true), source = target[0], brep = brepOf(source, at);
+      if (!brep.faces.some(face => face.name === selected[0])) fail('REFERENCE', 'cylindrical wrap selected wall name is missing from its target');
+      const owned = { solid: source.solid, brep }, bounds = { u: [...U] as [number, number], v: [...V] as [number, number] }, face = selected[0] as string;
+      return () => ({ kind: 'solid', parts: [cylindricalWrapFeature(owned, face, bounds, height, at, fail)] });
     }
     case 'profile-relief': {
       const target = solids(f.target, 'target'), names = f.sketches as unknown, selected = f.faces as unknown, depth = dim(f.depth as CadPartDim, 'depth', true), mode = f.mode;
@@ -4448,7 +4469,7 @@ const outputState = new WeakMap<CadPartOutput, OutputState>();
 function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   const brep = brepOf(part, id.replace('/', '_'));
   const output: CadPartOutput = Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.worm ? { worm: part.worm } : {}), ...(part.wormPlace ? { wormPlacement: part.wormPlace } : {}), ...(part.wormWheel ? { wormWheel: part.wormWheel } : {}), ...(part.wormWheelPlace ? { wormWheelPlacement: part.wormWheelPlace } : {}), ...(part.spring ? { spring: part.spring } : {}), ...(part.cam ? { cam: part.cam } : {}), ...(part.sprocket ? { sprocket: part.sprocket } : {}), ...(part.pulley ? { pulley: part.pulley } : {}), ...(part.belt ? { belt: part.belt } : {}), ...(part.coupling ? { coupling: part.coupling } : {}), ...(part.connector ? { connector: part.connector } : {}), ...(part.connectorBody ? { connectorBody: part.connectorBody } : {}), ...(part.shaft ? { shaft: part.shaft } : {}), ...(part.key ? { key: part.key } : {}), ...(part.keyway ? { keyway: part.keyway } : {}), ...(part.ring ? { ring: part.ring } : {}), ...(part.pin ? { pin: part.pin } : {}), ...(part.bearing ? { bearing: part.bearing } : {}), ...(part.gland ? { gland: part.gland } : {}), ...(part.oring ? { oring: part.oring } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}), ...(part.gusset ? { gusset: part.gusset } : {}), ...(part.endCap ? { endCap: part.endCap } : {}), ...(part.bead ? { bead: part.bead } : {})
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.cylindricalWrap ? { cylindricalWrap: part.cylindricalWrap } : {}), ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.worm ? { worm: part.worm } : {}), ...(part.wormPlace ? { wormPlacement: part.wormPlace } : {}), ...(part.wormWheel ? { wormWheel: part.wormWheel } : {}), ...(part.wormWheelPlace ? { wormWheelPlacement: part.wormWheelPlace } : {}), ...(part.spring ? { spring: part.spring } : {}), ...(part.cam ? { cam: part.cam } : {}), ...(part.sprocket ? { sprocket: part.sprocket } : {}), ...(part.pulley ? { pulley: part.pulley } : {}), ...(part.belt ? { belt: part.belt } : {}), ...(part.coupling ? { coupling: part.coupling } : {}), ...(part.connector ? { connector: part.connector } : {}), ...(part.connectorBody ? { connectorBody: part.connectorBody } : {}), ...(part.shaft ? { shaft: part.shaft } : {}), ...(part.key ? { key: part.key } : {}), ...(part.keyway ? { keyway: part.keyway } : {}), ...(part.ring ? { ring: part.ring } : {}), ...(part.pin ? { pin: part.pin } : {}), ...(part.bearing ? { bearing: part.bearing } : {}), ...(part.gland ? { gland: part.gland } : {}), ...(part.oring ? { oring: part.oring } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}), ...(part.gusset ? { gusset: part.gusset } : {}), ...(part.endCap ? { endCap: part.endCap } : {}), ...(part.bead ? { bead: part.bead } : {})
   });
   outputState.set(output, { part, flats: new Map() });
   return output;
@@ -4462,6 +4483,7 @@ const stateOf = (o: CadPartOutput): OutputState => { let st = outputState.get(o)
  */
 export function massPropertiesOf(output: CadPartOutput, density = 1): MassProperties {
   const { part } = stateOf(output), brep = output.brep;
+  if ((output.cylindricalWrap || brep.source?.family === 'cylindrical-wrap-assembly') && !part.mass) throw new CadPartError('CAPABILITY', output.id, 'cylindrical wrap mass requires a live evaluated provider; load and evaluate the saved document recipe');
   if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', output.id, 'an open mesh (a sheet) encloses no volume: it has no mass');
   return part.mass ? part.mass(density) : part.solid.kind === 'upright' ? prismaticMassProperties(part.solid.solid, density) : brepMassProperties(brep, density, { segmentsPerQuarter: 32 });
 }

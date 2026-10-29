@@ -691,3 +691,5 @@ export { BarocssError, type Problem, type RefusalWhere } from './core/barocss-er
 export type { CadPartNameSignature } from './part/part-expect.js';
 // R7.3a batch 2: one list of the kernel's codes (D278).
 export { CAD_ERROR_CODES, CAD_REFUSAL_CODES, refusalCodeOf, type CadErrorCode, type CadRefusalCode } from './core/error-codes.js';
+
+export type { CylindricalWrapReport } from './features/cylindrical-wrap-feature.js';

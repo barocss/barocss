@@ -117,6 +117,11 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'union': case 'intersect': return { ...at, kind: node.kind, target: ref(node.left), tool: ref(node.right) };
     case 'difference': return { ...at, kind: 'difference', target: ref(node.parent), tool: ref(node.tool) };
     case 'rib': return { ...at, kind: 'rib', target: ref(node.parent), min: structuredClone(node.min), max: structuredClone(node.max) };
+    case 'cylindrical-wrap': {
+      const name = node.faces[0], signature = node.sigs?.[name];
+      if (!signature || (signature.n ?? 1) !== 1) throw refusal('BAD_REFERENCE', 'Cylindrical wrap: the selected face needs its stored individual signature.');
+      return { ...at, kind: 'cylindrical-wrap', target: ref(node.parent), faces: [name], rectangle: structuredClone(node.rectangle), height: structuredClone(node.height), ...expectOf(node, node.faces) };
+    }
     case 'rectangular-relief': return { ...at, kind: 'rectangular-relief', target: ref(node.parent), min: structuredClone(node.min), max: structuredClone(node.max), depth: structuredClone(node.depth), mode: node.mode };
     case 'hole': return { ...at, kind: 'hole', target: ref(node.parent), center: node.center, radius: node.radius,
       ...(node.axis ? { axis: node.axis } : {}), ...(node.side ? { side: node.side } : {}), ...(node.depth === undefined ? {} : { depth: node.depth }), ...(node.countersink ? { countersink: node.countersink } : {}), ...(node.face ? { face: node.face } : {}) };

@@ -49,6 +49,7 @@ type Tables = (part: string) => FaceTable | undefined;
 export interface Ref {
   where: string; edge: boolean; name: string; sig?: Sig; rematched: boolean;
   /** Datum targets keep their exact edge name and require an explicitly selected endpoint. */
+  nativeFace?: true;
   datumTarget?: true; targetEndpoint?: 'min' | 'max';
   /** `node`: that feature's parent body; `part`: that part's face table (a mate); neither: the part's bodies. */
   node: number | null; parent?: { node: number; side: string }; part?: string;
@@ -66,7 +67,7 @@ type Pointed = { sig?: Sig; was?: string };
 
 /** The list of names a feature references (its key), or null. */
 function refKey(node: ModelNode): 'edges' | 'open' | 'faces' | null {
-  const key = node.kind === 'fillet' || node.kind === 'chamfer' || node.kind === 'sheet-flange' || node.kind === 'sheet-corner-relief' ? 'edges' : node.kind === 'shell' ? 'open' : node.kind === 'draft' || node.kind === 'full-round' || node.kind === 'face-fillet' || node.kind === 'text-relief' ? 'faces' : null;
+  const key = node.kind === 'fillet' || node.kind === 'chamfer' || node.kind === 'sheet-flange' || node.kind === 'sheet-corner-relief' ? 'edges' : node.kind === 'shell' ? 'open' : node.kind === 'draft' || node.kind === 'full-round' || node.kind === 'face-fillet' || node.kind === 'text-relief' || node.kind === 'cylindrical-wrap' ? 'faces' : null;
   return key && 'parent' in node ? key : null;
 }
 /**
@@ -93,7 +94,7 @@ export function referencesOf(source: StudioDoc, readOnly = false): { doc: Studio
     if (!key || !('parent' in node)) return;
     const n = node as unknown as Record<string, unknown> & Named, list = n[key] as string[];
     list.forEach((name, i) => refs.push({
-      where: `feature ${k}`, edge: key === 'edges', node: k, parent: node.parent, name, sig: n.sigs?.[name], rematched: !!n.rematched?.[name], was: n.rematched?.[name],
+      where: `feature ${k}`, ...(node.kind === 'cylindrical-wrap' ? { nativeFace: true as const } : {}), edge: key === 'edges', node: k, parent: node.parent, name, sig: n.sigs?.[name], rematched: !!n.rematched?.[name], was: n.rematched?.[name],
       rename(to, mark) {
         const from = list[i], sig = n.sigs?.[from]; list[i] = to;
         if (sig) { n.sigs = { ...n.sigs }; delete n.sigs[from]; n.sigs[to] = sig; }
@@ -147,7 +148,7 @@ function pointed(where: string, edge: boolean, at: Pointed, get: () => string, s
 /** Whether any stored reference has no signature (without copying the document). */
 function unsigned(doc: StudioDoc): boolean {
   for (const n of doc.nodes) {
-    const list = n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' || n.kind === 'full-round' || n.kind === 'face-fillet' || n.kind === 'text-relief' ? n.faces : null;
+    const list = n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' || n.kind === 'full-round' || n.kind === 'face-fillet' || n.kind === 'text-relief' || n.kind === 'cylindrical-wrap' ? n.faces : null;
     if (list?.some(name => !n.sigs?.[name])) return true;
   }
   for (const m of doc.mates ?? []) for (const side of [m.a, m.b]) if (side.face && !frameFace(side.face) && !side.sig) return true;
@@ -186,7 +187,7 @@ function candidatesOf(ref: Ref, finals: readonly BodyResult[], parents: Readonly
   const bodies = ref.node === null ? finals : [parents.get(ref.node)].filter((b): b is BodyResult => !!b);
   if (!bodies.length) return null;
   const out = new Map<string, Signature>();
-  for (const b of bodies) { const s = signaturesOf(b); for (const [n, sig] of ref.edge ? s.edges : s.faces) out.set(n, sig); }
+  for (const b of bodies) { const s = signaturesOf(b, ref.nativeFace); for (const [n, sig] of ref.edge ? s.edges : s.faces) out.set(n, sig); }
   return out;
 }
 
@@ -255,7 +256,9 @@ export async function verifyReferences(doc: StudioDoc, finals: readonly BodyResu
     }
     if (!ref.sig) return;
     const cands = candidatesOf(ref, finals, parents, tables); if (!cands) return;
-    const m = matchSignature(fromSig(ref.sig), cands, ref.edge);
+    let m = matchSignature(fromSig(ref.sig), cands, ref.edge);
+    // The bounded wrap requires its exact original wall; another match cannot replace it.
+    if (ref.node !== null && out.nodes[ref.node]?.kind === 'cylindrical-wrap' && m !== ref.name) m = [];
     if (typeof m === 'string') {
       if (m !== ref.name) {
         // Keep an existing name of the same live display edge, not merely an equal signature.

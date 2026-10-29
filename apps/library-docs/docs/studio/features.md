@@ -120,6 +120,26 @@ fastener sizes you have loaded; without them they are refused with `[FASTENER_SI
 | **Hollow for printing**, **Fill with a lattice**, **Split to fit the bed** | Prepare a part for 3D printing |
 | **Simplify mesh** | Fewer triangles on a mesh body, such as an STL or a scan |
 
+### Cylindrical wrap
+
+Select an original upright cylinder wall and choose **Cylindrical wrap**. This first profile adds
+one rectangular pad to the first native quarter of the original +Y half. The cylinder must be
+centered on the world Z axis. The selected display wall keeps its usual merged appearance;
+the feature stores the individual original half and its reference signature.
+
+Set **U start (native)** and **U end (native)** with `0 < start < end < 0.5`. Set
+**V start (native)** and **V end (native)** with `0 < start < end < 1`. These are the original
+surface parameters. **Height (must equal radius)** must equal the authored cylinder radius.
+Preview the pad, then Apply. Edit its bounds from History; Undo/Redo and Save/Open retain the
+same recipe and individual face reference.
+
+The reported mass uses the closed wrap reference. Surface joins retain the model tolerance.
+This profile has no holes, text or engraving. Later consuming features and uncertified native
+SI inertia exports are refused. A saved document rebuilds the evaluated mass provider when it
+opens; a copied output alone does not carry that provider.
+
+![Editing a reopened cylindrical wrap in Studio at 1024 by 768 pixels](/shots/studio/cylindrical-wrap.png)
+
 ## Patterns and Booleans
 
 - **Linear pattern** (<kbd>P</kbd>), **Circular pattern** and **Mirror** (<kbd>M</kbd>) copy a body in a row, round

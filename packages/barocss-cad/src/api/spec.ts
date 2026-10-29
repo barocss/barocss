@@ -32,6 +32,7 @@ type BaseSpec =
   | { readonly command: 'hole'; readonly face: string; readonly values: { readonly type: 'through' | 'blind'; readonly d: number; readonly x: number; readonly y: number; readonly depth?: number } }
   | { readonly command: 'fillet'; readonly edges: readonly string[]; readonly values: { readonly radius: number; readonly endRadius?: number } }
   | { readonly command: 'chamfer'; readonly edges: readonly string[]; readonly values: { readonly distance: number } }
+  | { readonly command: 'cylindrical-wrap'; readonly face: string; readonly values: { readonly u0: number; readonly u1: number; readonly v0: number; readonly v1: number; readonly height: number } }
   | { readonly command: 'shell'; readonly faces: readonly string[]; readonly values: { readonly t: number } }
   | { readonly command: BooleanCommand; readonly tool: string; readonly values: Record<string, never> }
   | { readonly command: 'linear-pattern'; readonly values: { readonly axis: AxisName; readonly spacing: number; readonly count: number } }
@@ -53,6 +54,8 @@ export type StudioCommand = 'gear' | 'gear-mesh' | 'spring' | 'fastener';
  * angles in degrees — so no name carries a unit (owner, 2026-10-24).
  */
 export interface BoxOptions { w: Dim; d: Dim; h: Dim; x?: Dim; y?: Dim; z?: Dim }
+/** One rectangle in the first original native quarter of the unchanged positive-Y cylinder wall. */
+export interface CylindricalWrapOptions { u0: number; u1: number; v0: number; v1: number; height: Dim }
 /** `cylinder`: radius r and height h, standing on z about (x, y). */
 export interface CylinderOptions { r: Dim; h: Dim; x?: Dim; y?: Dim; z?: Dim }
 /** `extrude`: the sketch pulled h along its plane's normal; `draft` leans its walls in (0: straight). */
@@ -146,6 +149,12 @@ export function filletSpec(edges: readonly string[], o: Resolved<FilletOptions>,
 
 export function chamferSpec(edges: readonly string[], o: Resolved<ChamferOptions>): FeatureSpec {
   return { command: 'chamfer', edges: edgesOf(edges, 'chamfer'), values: { distance: positive('distance', o.distance) } };
+}
+
+export function cylindricalWrapSpec(face: string, o: Resolved<CylindricalWrapOptions>): FeatureSpec {
+  if (![o.u0, o.u1, o.v0, o.v1].every(v => typeof v === 'number' && Number.isFinite(v))) throw refuse('VALUE', 'cylindrical wrap bounds must be finite original native UV values');
+  if (!(0 < o.u0 && o.u0 < o.u1 && o.u1 < 0.5 && 0 < o.v0 && o.v0 < o.v1 && o.v1 < 1)) throw refuse('VALUE', 'cylindrical wrap needs 0 < u0 < u1 < 0.5 and 0 < v0 < v1 < 1');
+  return { command: 'cylindrical-wrap', face, values: { u0: o.u0, u1: o.u1, v0: o.v0, v1: o.v1, height: positive('height', o.height) } };
 }
 
 export function shellSpec(open: readonly string[], o: Resolved<ShellOptions>): FeatureSpec {

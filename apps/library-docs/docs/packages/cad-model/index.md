@@ -198,6 +198,29 @@ For robot exports, read `handSet` when present; its omission does not mean the r
 Keep the record with the files it names and keep the editable `.bcad` document separately. The record is not a
 saved document and cannot reconstruct the model from its revision or digest.
 
+## Bounded cylindrical wrap
+
+The Model facade selects the usual merged cylinder wall. The operation uses its original +Y
+half, first native quarter, and stores that individual native face and its signature.
+
+```ts
+import { part } from '@barocss/cad-model/api';
+
+const wrapped = part('Wrapped cylinder')
+  .cylinder({ r: 10, h: 30 })
+  .cylindricalWrap(body => body.faces().curved(), {
+    u0: 0.1, u1: 0.4, v0: 0.2, v1: 0.7, height: 10,
+  });
+const doc = wrapped.doc;
+```
+
+This supports one rectangle on an original upright cylinder centered on the world Z axis.
+Original UV must satisfy `0 < u0 < u1 < 0.5` and `0 < v0 < v1 < 1`; height must equal the
+source radius. Mass comes from the evaluated closed reference. Literal stored-coefficient
+closure/mass and native-SI accuracy are not certified. Further consuming features refuse.
+Reopening the recipe rebuilds its provider; a copied output cannot supply mass authority.
+See the [Studio flow and remaining limits](/studio/features#cylindrical-wrap).
+
 ## Solid lofts with a copied guide
 
 `part(...).loft(sections, options)` builds a solid from closed sketches. It returns a new part with the new body

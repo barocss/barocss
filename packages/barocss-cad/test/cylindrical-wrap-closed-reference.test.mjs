@@ -5,7 +5,7 @@ import { buildCylindricalWrapClosedReference } from '../dist/features/cylindrica
 import { buildCylindricalWrapBoundReference, buildCylindricalWrapSharedReference } from '../dist/features/cylindrical-wrap-bound-reference.js';
 import { buildCylindricalWrapWallReference, continueCylindricalWrapReferenceWalls } from '../dist/features/cylindrical-wrap-source-walls.js';
 import { ReferenceProofContext, isCylindricalWrapClosedReferenceError } from '../dist/features/cylindrical-wrap-reference-context.js';
-import { certifyOriginalReferenceCaps, certifyWrappedReferenceClosure } from '../dist/features/cylindrical-wrap-reference-closure.js';
+import { certifyAffineReferenceCap, certifyOriginalReferenceCaps, certifyWrappedReferenceClosure } from '../dist/features/cylindrical-wrap-reference-closure.js';
 
 function source(z = -5) { const solid = prismaticFromProfile({ outer: [{ kind: 'arc', start: [10, 0], center: [0, 0], direction: 'ccw' }], height: 30, from: z, tag: 'post' }); return { solid: { kind: 'upright', solid }, brep: brepFromPrismatic(solid, { id: 'post' }) }; }
 function pad(u = [0.125, 0.375], v = [0.25, 0.75]) { return [{ outer: [[u[0], v[0]], [u[1], v[0]], [u[1], v[1]], [u[0], v[1]]], holes: [] }]; }
@@ -42,10 +42,12 @@ function actualAudit(audit, expected, budget) { const returned = interval(audit)
 
 function capsOracle(result) {
   const parent = result.walls, source = parent.reference.formal.source, caps = result.closure.caps, b = source.brep, errors = []; let slot = 0;
+  const net = b.faces.find(f => f.id === caps.caps[1]).surface.controlPoints, low = net[0][0].map(from), high = net[1][1].map(from);
+  const center = [div(add(low[0], high[0]), TWO), div(add(low[1], high[1]), TWO)], halfSpan = [div(sub(high[0], low[0]), TWO), div(sub(high[1], low[1]), TWO)];
   for (const pair of caps.uses) {
     const use = b.coedges.find(c => c.id === pair.top), curve = use.pcurve, edge = b.edges.find(e => e.id === use.edge);
     for (let i = 0; i < 5; i++) {
-      const x = mul(from(source.radius), sub(mul(TWO, from(curve.controlPoints[i][0])), ONE)), y = mul(from(source.radius), sub(mul(TWO, from(curve.controlPoints[i][1])), ONE));
+      const x = add(low[0], mul(sub(high[0], low[0]), from(curve.controlPoints[i][0]))), y = add(low[1], mul(sub(high[1], low[1]), from(curve.controlPoints[i][1])));
       errors.push(add(abs(sub(x, from(edge.curve.controlPoints[i][0]))), abs(sub(y, from(edge.curve.controlPoints[i][1])))));
     }
     for (let span = 0; span < 2; span++) {
@@ -58,8 +60,15 @@ function capsOracle(result) {
       assert.deepEqual(read(proof.radial), div(max(Q.map(abs)), mul(min(w), min(w))));
     }
   }
-  assert.deepEqual(read(caps.boundaryAndInteriorToSourceL1), max(errors));
-  assert.deepEqual(read(caps.radial), mul(read(caps.normalizedCycle.radial), from(source.radius)));
+  const centerError = add(abs(center[0]), abs(center[1]));
+  assert.deepEqual(read(caps.boundaryToSourceL1), max(errors));
+  assert.deepEqual(read(caps.boundaryAndInteriorToSourceL1), max([...errors, centerError]));
+  assert.deepEqual(caps.affine.center.map(read), center); assert.deepEqual(caps.affine.halfSpan.map(read), halfSpan);
+  assert.deepEqual(read(caps.affine.centerToSourceCenterL1), centerError);
+  assert.equal(caps.affine.normalizedCoordinates, 'exact-(2u-1,2v-1)');
+  assert.equal(caps.affine.worldCoordinates, 'center-plus-positive-diagonal-half-spans');
+  assert.equal(Object.hasOwn(caps, 'radial'), false, 'normalized radial error is never labeled as a world radial bound');
+  assert.equal(caps.correspondence, 'matched-boundary-parameter-and-affine-center-disk-extension');
   assert.equal(caps.normalizedCycle.winding, 1); assert.equal(caps.exactReferenceSourceClosed, true); assert.equal(caps.literalStoredShellClosed, false);
 }
 function massOracle(result) {
@@ -149,6 +158,8 @@ test('cap coefficients, orientations, ownership and original seam mutations fail
   const edits = [
     p => { p.reference.formal.source.brep.faces[2].surface.weights[0][0] = 0.9; },
     p => { p.reference.formal.source.brep.faces[3].sense = 'reversed'; },
+    p => { const net = p.reference.formal.source.brep.faces[2].surface.controlPoints; for (const row of net) for (const point of row) point[0] += 0.001; },
+    p => { p.reference.formal.source.brep.faces[3].surface.controlPoints[1][1][0] += 1e-12; },
     p => { p.reference.formal.source.brep.coedges.find(c => c.id.endsWith('post_u1_0/l0/c0')).pcurve.controlPoints[1][0] = 0.99; },
     p => { p.reference.formal.source.brep.coedges.find(c => c.id.endsWith('post_d0_0/l0/c0')).pcurve.weights[1] = 0.7; },
     p => { p.reference.formal.source.brep.coedges.find(c => c.id.endsWith('post_u1_0/l0/c0')).twin = null; },
@@ -174,4 +185,54 @@ test('the final entry rejects supplied proof flags and never executes caller get
   Object.defineProperty(selected, 'source', { enumerable: true, get() { reads++; return {}; } });
   assert.throws(() => buildCylindricalWrapClosedReference(part, pad(), selected)); assert.equal(reads, 0);
   for (const flag of ['source', 'closedReferenceCertified', 'counts', 'mass']) assert.throws(() => buildCylindricalWrapClosedReference(part, pad(), { ...options(), [flag]: true }));
+});
+
+
+function affineCap(low, high, top, z = 7) {
+  const controlPoints = [];
+  for (let i = 0; i < 2; i++) { const row = []; for (let j = 0; j < 2; j++) row.push([(top ? i : j) ? high[0] : low[0], (top ? j : i) ? high[1] : low[1], z]); controlPoints.push(row); }
+  return { id: 'cap', shell: 'shell', sense: 'forward', loops: ['outer'], surface: { kind: 'surface', id: 'plane', degreeU: 1, degreeV: 1, knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1], controlPoints, weights: [[1, 1], [1, 1]] } };
+}
+function freshContext() { return new ReferenceProofContext({ exactOperations: 0, work: 0, maximumBits: 0 }, 200000); }
+function evaluateRational(poles, weights, t) {
+  const s = sub(ONE, t), B = [mul(s, s), mul(TWO, mul(t, s)), mul(t, t)], denominator = B.reduce((out, b, i) => add(out, mul(b, weights[i])), ZERO);
+  return [0, 1].map(axis => div(B.reduce((out, b, i) => add(out, mul(mul(b, weights[i]), poles[i][axis])), ZERO), denominator));
+}
+
+test('actual affine caps: centered, off-center, anisotropic and Chrome one-ulp rectangles retain exact frames and whole-disk error', () => {
+  const fixtures = [{ low: [-10, -10], high: [10, 10], radius: 10 }, { low: [-2, -1], high: [4, 3], radius: 2 },
+    { low: [-10.000000000000002, -10.000000000000002], high: [10, 10], radius: 10 }, { low: [-10, -10.000000000000002], high: [10.000000000000004, 10], radius: 10 }];
+  const rays = [[[1, 0], [1, 1], [0, 1]], [[0, 1], [-1, 1], [-1, 0]], [[-1, 0], [-1, -1], [0, -1]], [[0, -1], [1, -1], [1, 0]]];
+  for (const f of fixtures) {
+    const low = f.low.map(from), high = f.high.map(from), center = [0, 1].map(axis => div(add(low[axis], high[axis]), TWO)), half = [0, 1].map(axis => div(sub(high[axis], low[axis]), TWO));
+    const expectedCenterError = add(abs(center[0]), abs(center[1])), frames = [];
+    for (const top of [false, true]) {
+      const face = affineCap(f.low, f.high, top), before = structuredClone(face), ctx = freshContext(), frame = certifyAffineReferenceCap(face, 7, top, ctx);
+      assert.deepEqual(frame.center.map(read), center); assert.deepEqual(frame.halfSpan.map(read), half); assert.deepEqual(read(frame.centerToSourceCenterL1), expectedCenterError);
+      assert.deepEqual(face, before); assert.ok(ctx.counts().exactOperations < 200000); frames.push(frame);
+    }
+    assert.deepEqual(frames[0], frames[1], 'transposed caps retain the same exact XY frame');
+    const allErrors = [];
+    for (const ray of rays) for (const p of ray) allErrors.push(add(abs(sub(add(center[0], mul(half[0], R(BigInt(p[0])))), mul(from(f.radius), R(BigInt(p[0]))))), abs(sub(add(center[1], mul(half[1], R(BigInt(p[1])))), mul(from(f.radius), R(BigInt(p[1])))))));
+    const bound = max([...allErrors, read(frames[1].centerToSourceCenterL1)]);
+    for (const ray of rays) {
+      const capPoles = ray.map(p => [0, 1].map(axis => add(center[axis], mul(half[axis], R(BigInt(p[axis]))))));
+      const sourcePoles = ray.map(p => p.map(x => mul(from(f.radius), R(BigInt(x))))), weights = [ONE, from(Math.SQRT1_2), ONE];
+      for (let i = 0; i <= 16; i++) {
+        const capBoundary = evaluateRational(capPoles, weights, R(BigInt(i), 16n)), sourceBoundary = evaluateRational(sourcePoles, weights, R(BigInt(i), 16n));
+        for (let j = 0; j <= 16; j++) {
+          const s = R(BigInt(j), 16n), capPoint = [0, 1].map(axis => add(mul(sub(ONE, s), center[axis]), mul(s, capBoundary[axis]))), sourcePoint = sourceBoundary.map(x => mul(s, x));
+          const distance = add(abs(sub(capPoint[0], sourcePoint[0])), abs(sub(capPoint[1], sourcePoint[1])));
+          assert.ok(cmp(distance, bound) <= 0, 'independent exact disk samples exceed the affine-center correspondence bound');
+        }
+      }
+    }
+  }
+});
+
+test('actual affine caps reject inverted spans, skew, wrong Z, wrong transpose, weights and orientation without rewriting inputs', () => {
+  const edits = [f => { f.surface.controlPoints[1][1][0] += 0.1; }, f => { f.surface.controlPoints[0][1][2] += 1; }, f => { f.surface.weights[0][0] = 0.9; },
+    f => { f.sense = 'reversed'; }, f => { f.surface.knotsV[2] = 0.9; }, f => { for (const row of f.surface.controlPoints) for (const p of row) p[0] = -p[0]; }];
+  for (const edit of edits) { const face = affineCap([-2, -1], [4, 3], true); edit(face); const before = structuredClone(face); assert.throws(() => certifyAffineReferenceCap(face, 7, true, freshContext()), isCylindricalWrapClosedReferenceError); assert.deepEqual(face, before); }
+  assert.throws(() => certifyAffineReferenceCap(affineCap([-2, -1], [4, 3], false), 7, true, freshContext()), isCylindricalWrapClosedReferenceError);
 });
