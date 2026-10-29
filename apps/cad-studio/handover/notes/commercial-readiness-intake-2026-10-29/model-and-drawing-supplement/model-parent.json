@@ -1,0 +1,20 @@
+{
+  "status": "SOURCE_REVIEW_HASH_BINDING_VERIFIED_COMMERCIAL_NOT_QUALIFIED",
+  "sourceCommit": "5907c3931cce980f9beb99bfc857ede6654ee2e5",
+  "sourceHashesAndGitBlobsVerified": 25,
+  "reusedEvidenceHashesVerified": 6,
+  "reportSha256": "c6a305af4b7394fb3bae0278589991b0dc3fe96bb0f4129c6e0dcf3f0072e7f3",
+  "verificationSha256": "a7f9c61165da6d5d097cb4777961f29561e61931cfb0a7334b1f4285cd63757b",
+  "newRuntime": "NOT_RUN",
+  "newDefectsConfirmed": 0,
+  "sourceCandidate": "MODEL-EVALMEMO-EVALUATOR-SCOPE remains conditional contract gap, not reproduced failure",
+  "blockingGates": [
+    "fresh-session supported parameter/native re-edit consumer",
+    "atomic reject/Undo/late ownership selected consumer",
+    "ambiguous refs/shared part revision accept and saved semantics",
+    "release SHA workflow evidence and public contract binding"
+  ],
+  "drawingOverall": "FAIL_ORCHESTRATION_WITH_VALID_PINNED_CPU_OBSERVATIONS",
+  "cadModelAcceptedCommercial": false,
+  "at": "2026-10-29T13:27:25.587168+00:00"
+}

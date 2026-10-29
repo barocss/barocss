@@ -1,0 +1,1641 @@
+{
+  "status": "PASS",
+  "expectedProfiles": 2,
+  "requestedBackends": [
+    "webgl2"
+  ],
+  "profiles": [
+    {
+      "id": "webgl2-dark",
+      "backend": "webgl2",
+      "theme": "dark",
+      "status": "PASS",
+      "states": [
+        {
+          "label": "baseline-clear",
+          "backend": "webgl2",
+          "theme": "dark",
+          "selection": {
+            "selection": {
+              "faces": [],
+              "edges": [],
+              "bodies": []
+            },
+            "bodies": 1,
+            "active": null,
+            "sketch": false,
+            "measure": false
+          },
+          "bodyState": {
+            "fresh": true,
+            "bodies": [
+              {
+                "key": "b1",
+                "volume": 16384,
+                "centroid": [
+                  32,
+                  16,
+                  4
+                ],
+                "massRef": null
+              }
+            ],
+            "massReady": true,
+            "colored": []
+          },
+          "doc": {
+            "format": "barocss-cad-model",
+            "schema": 3,
+            "units": "mm",
+            "parameters": {},
+            "nodes": [
+              {
+                "kind": "sketch",
+                "profile": "rectangle",
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  64,
+                  32
+                ],
+                "id": "n0"
+              },
+              {
+                "kind": "extrude",
+                "sketch": 0,
+                "height": 8,
+                "id": "n1",
+                "made": {
+                  "command": "box",
+                  "values": {
+                    "w": 64,
+                    "d": 32,
+                    "h": 8,
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              }
+            ],
+            "outputs": {
+              "b1": {
+                "node": 1,
+                "side": "solid"
+              }
+            },
+            "nextId": 2
+          },
+          "filter": "ads_clickPick all",
+          "inspector": "PART · 1 bodyMass 44.2 gCentre of mass 32, 16, 4Bounds 64 × 32 × 8 box",
+          "themeTokens": {
+            "--selection": "#22d3ee",
+            "--selection-hover": "#4d9ead",
+            "--selection-ring": "#102329",
+            "--selection-soft": "#173e46"
+          },
+          "markers": [],
+          "selectedOutlinerRows": []
+        },
+        {
+          "label": "hover-point",
+          "backend": "webgl2",
+          "theme": "dark",
+          "selection": {
+            "selection": {
+              "faces": [],
+              "edges": [],
+              "bodies": []
+            },
+            "bodies": 1,
+            "active": null,
+            "sketch": false,
+            "measure": false
+          },
+          "bodyState": {
+            "fresh": true,
+            "bodies": [
+              {
+                "key": "b1",
+                "volume": 16384,
+                "centroid": [
+                  32,
+                  16,
+                  4
+                ],
+                "massRef": null
+              }
+            ],
+            "massReady": true,
+            "colored": []
+          },
+          "doc": {
+            "format": "barocss-cad-model",
+            "schema": 3,
+            "units": "mm",
+            "parameters": {},
+            "nodes": [
+              {
+                "kind": "sketch",
+                "profile": "rectangle",
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  64,
+                  32
+                ],
+                "id": "n0"
+              },
+              {
+                "kind": "extrude",
+                "sketch": 0,
+                "height": 8,
+                "id": "n1",
+                "made": {
+                  "command": "box",
+                  "values": {
+                    "w": 64,
+                    "d": 32,
+                    "h": 8,
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              }
+            ],
+            "outputs": {
+              "b1": {
+                "node": 1,
+                "side": "solid"
+              }
+            },
+            "nextId": 2
+          },
+          "filter": "ads_clickPick all",
+          "inspector": "PART · 1 bodyMass 44.2 gCentre of mass 32, 16, 4Bounds 64 × 32 × 8 box",
+          "themeTokens": {
+            "--selection": "#22d3ee",
+            "--selection-hover": "#4d9ead",
+            "--selection-ring": "#102329",
+            "--selection-soft": "#173e46"
+          },
+          "markers": [
+            {
+              "class": "vertex-mark hover",
+              "radius": "4",
+              "fill": "rgb(23, 62, 70)",
+              "stroke": "rgb(77, 158, 173)",
+              "strokeWidth": "2px"
+            }
+          ],
+          "selectedOutlinerRows": []
+        },
+        {
+          "label": "selected-vertices",
+          "backend": "webgl2",
+          "theme": "dark",
+          "selection": {
+            "selection": {
+              "faces": [],
+              "edges": [],
+              "bodies": [],
+              "vertices": [
+                {
+                  "body": 0,
+                  "at": [
+                    0,
+                    0,
+                    8
+                  ]
+                }
+              ]
+            },
+            "bodies": 1,
+            "active": null,
+            "sketch": false,
+            "measure": false
+          },
+          "bodyState": {
+            "fresh": true,
+            "bodies": [
+              {
+                "key": "b1",
+                "volume": 16384,
+                "centroid": [
+                  32,
+                  16,
+                  4
+                ],
+                "massRef": null
+              }
+            ],
+            "massReady": true,
+            "colored": []
+          },
+          "doc": {
+            "format": "barocss-cad-model",
+            "schema": 3,
+            "units": "mm",
+            "parameters": {},
+            "nodes": [
+              {
+                "kind": "sketch",
+                "profile": "rectangle",
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  64,
+                  32
+                ],
+                "id": "n0"
+              },
+              {
+                "kind": "extrude",
+                "sketch": 0,
+                "height": 8,
+                "id": "n1",
+                "made": {
+                  "command": "box",
+                  "values": {
+                    "w": 64,
+                    "d": 32,
+                    "h": 8,
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              }
+            ],
+            "outputs": {
+              "b1": {
+                "node": 1,
+                "side": "solid"
+              }
+            },
+            "nextId": 2
+          },
+          "filter": "ads_clickPick all",
+          "inspector": "SELECTION · POINTX Y Z 0, 0, 8PART · 1 bodyMass 44.2 gCentre of mass 32, 16, 4Bounds 64 × 32 × 8 box",
+          "themeTokens": {
+            "--selection": "#22d3ee",
+            "--selection-hover": "#4d9ead",
+            "--selection-ring": "#102329",
+            "--selection-soft": "#173e46"
+          },
+          "markers": [
+            {
+              "class": "vertex-mark selected",
+              "radius": "6",
+              "fill": "rgb(34, 211, 238)",
+              "stroke": "rgb(16, 35, 41)",
+              "strokeWidth": "2px"
+            }
+          ],
+          "selectedOutlinerRows": []
+        },
+        {
+          "label": "selected-edges",
+          "backend": "webgl2",
+          "theme": "dark",
+          "selection": {
+            "selection": {
+              "faces": [],
+              "edges": [
+                {
+                  "body": 0,
+                  "edge": 2
+                }
+              ],
+              "bodies": []
+            },
+            "bodies": 1,
+            "active": null,
+            "sketch": false,
+            "measure": false
+          },
+          "bodyState": {
+            "fresh": true,
+            "bodies": [
+              {
+                "key": "b1",
+                "volume": 16384,
+                "centroid": [
+                  32,
+                  16,
+                  4
+                ],
+                "massRef": null
+              }
+            ],
+            "massReady": true,
+            "colored": []
+          },
+          "doc": {
+            "format": "barocss-cad-model",
+            "schema": 3,
+            "units": "mm",
+            "parameters": {},
+            "nodes": [
+              {
+                "kind": "sketch",
+                "profile": "rectangle",
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  64,
+                  32
+                ],
+                "id": "n0"
+              },
+              {
+                "kind": "extrude",
+                "sketch": 0,
+                "height": 8,
+                "id": "n1",
+                "made": {
+                  "command": "box",
+                  "values": {
+                    "w": 64,
+                    "d": 32,
+                    "h": 8,
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              }
+            ],
+            "outputs": {
+              "b1": {
+                "node": 1,
+                "side": "solid"
+              }
+            },
+            "nextId": 2
+          },
+          "filter": "ads_clickEdges",
+          "inspector": "SELECTION · EDGEType LineLength 64 mmDirection XAs a curveBODYName Colour Visible Bounds 64 × 32 × 8 boxVolume 16384 mm³Mass 44.2 gMaterial · defaultAluminium 6061Steel (mild)Stainless 304BrassTitanium Ti-6Al-4VABSPLANylon PA12PolycarbonatePolypropylenePETGAcetal (POM)Standard resin (SLA)Zinc alloy (Zamak 3 class)Aluminium die-casting alloy (A380 class)Magnesium die-casting alloy (AZ91D class)Aluminium casting alloy (A356 class)Grey cast ironCentre of mass 32, 16, 4Inertiaabout the centre of massabout the originIxx Iyy Izz 4011 · 15335 · 18874 g·mm²Ixy Iyz Ixz 0 · 0 · 0Surface area 5632 mm²Faces 6Point testTest",
+          "themeTokens": {
+            "--selection": "#22d3ee",
+            "--selection-hover": "#4d9ead",
+            "--selection-ring": "#102329",
+            "--selection-soft": "#173e46"
+          },
+          "markers": [],
+          "selectedOutlinerRows": [
+            {
+              "text": "chevron_rightvisibilityBox",
+              "color": "rgb(226, 228, 232)",
+              "background": "rgb(23, 62, 70)"
+            },
+            {
+              "text": "Box",
+              "color": "rgb(34, 211, 238)",
+              "background": "rgb(23, 62, 70)"
+            }
+          ]
+        },
+        {
+          "label": "selected-faces",
+          "backend": "webgl2",
+          "theme": "dark",
+          "selection": {
+            "selection": {
+              "faces": [
+                {
+                  "body": 0,
+                  "face": 5
+                }
+              ],
+              "edges": [],
+              "bodies": []
+            },
+            "bodies": 1,
+            "active": null,
+            "sketch": false,
+            "measure": false
+          },
+          "bodyState": {
+            "fresh": true,
+            "bodies": [
+              {
+                "key": "b1",
+                "volume": 16384,
+                "centroid": [
+                  32,
+                  16,
+                  4
+                ],
+                "massRef": null
+              }
+            ],
+            "massReady": true,
+            "colored": []
+          },
+          "doc": {
+            "format": "barocss-cad-model",
+            "schema": 3,
+            "units": "mm",
+            "parameters": {},
+            "nodes": [
+              {
+                "kind": "sketch",
+                "profile": "rectangle",
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  64,
+                  32
+                ],
+                "id": "n0"
+              },
+              {
+                "kind": "extrude",
+                "sketch": 0,
+                "height": 8,
+                "id": "n1",
+                "made": {
+                  "command": "box",
+                  "values": {
+                    "w": 64,
+                    "d": 32,
+                    "h": 8,
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              }
+            ],
+            "outputs": {
+              "b1": {
+                "node": 1,
+                "side": "solid"
+              }
+            },
+            "nextId": 2
+          },
+          "filter": "ads_clickFaces",
+          "inspector": "SELECTION · FACEType PlanarNormal 0, 0, 1Area 2048 mm²Face colour BODYName Colour Visible Bounds 64 × 32 × 8 boxVolume 16384 mm³Mass 44.2 gMaterial · defaultAluminium 6061Steel (mild)Stainless 304BrassTitanium Ti-6Al-4VABSPLANylon PA12PolycarbonatePolypropylenePETGAcetal (POM)Standard resin (SLA)Zinc alloy (Zamak 3 class)Aluminium die-casting alloy (A380 class)Magnesium die-casting alloy (AZ91D class)Aluminium casting alloy (A356 class)Grey cast ironCentre of mass 32, 16, 4Inertiaabout the centre of massabout the originIxx Iyy Izz 4011 · 15335 · 18874 g·mm²Ixy Iyz Ixz 0 · 0 · 0Surface area 5632 mm²Faces 6Point testTest",
+          "themeTokens": {
+            "--selection": "#22d3ee",
+            "--selection-hover": "#4d9ead",
+            "--selection-ring": "#102329",
+            "--selection-soft": "#173e46"
+          },
+          "markers": [],
+          "selectedOutlinerRows": [
+            {
+              "text": "chevron_rightvisibilityBox",
+              "color": "rgb(226, 228, 232)",
+              "background": "rgb(23, 62, 70)"
+            },
+            {
+              "text": "Box",
+              "color": "rgb(34, 211, 238)",
+              "background": "rgb(23, 62, 70)"
+            }
+          ]
+        },
+        {
+          "label": "selected-face-flipped-light",
+          "backend": "webgl2",
+          "theme": "light",
+          "selection": {
+            "selection": {
+              "faces": [
+                {
+                  "body": 0,
+                  "face": 5
+                }
+              ],
+              "edges": [],
+              "bodies": []
+            },
+            "bodies": 1,
+            "active": null,
+            "sketch": false,
+            "measure": false
+          },
+          "bodyState": {
+            "fresh": true,
+            "bodies": [
+              {
+                "key": "b1",
+                "volume": 16384,
+                "centroid": [
+                  32,
+                  16,
+                  4
+                ],
+                "massRef": null
+              }
+            ],
+            "massReady": true,
+            "colored": []
+          },
+          "doc": {
+            "format": "barocss-cad-model",
+            "schema": 3,
+            "units": "mm",
+            "parameters": {},
+            "nodes": [
+              {
+                "kind": "sketch",
+                "profile": "rectangle",
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  64,
+                  32
+                ],
+                "id": "n0"
+              },
+              {
+                "kind": "extrude",
+                "sketch": 0,
+                "height": 8,
+                "id": "n1",
+                "made": {
+                  "command": "box",
+                  "values": {
+                    "w": 64,
+                    "d": 32,
+                    "h": 8,
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              }
+            ],
+            "outputs": {
+              "b1": {
+                "node": 1,
+                "side": "solid"
+              }
+            },
+            "nextId": 2
+          },
+          "filter": "ads_clickFaces",
+          "inspector": "SELECTION · FACEType PlanarNormal 0, 0, 1Area 2048 mm²Face colour BODYName Colour Visible Bounds 64 × 32 × 8 boxVolume 16384 mm³Mass 44.2 gMaterial · defaultAluminium 6061Steel (mild)Stainless 304BrassTitanium Ti-6Al-4VABSPLANylon PA12PolycarbonatePolypropylenePETGAcetal (POM)Standard resin (SLA)Zinc alloy (Zamak 3 class)Aluminium die-casting alloy (A380 class)Magnesium die-casting alloy (AZ91D class)Aluminium casting alloy (A356 class)Grey cast ironCentre of mass 32, 16, 4Inertiaabout the centre of massabout the originIxx Iyy Izz 4011 · 15335 · 18874 g·mm²Ixy Iyz Ixz 0 · 0 · 0Surface area 5632 mm²Faces 6Point testTest",
+          "themeTokens": {
+            "--selection": "#007f9e",
+            "--selection-hover": "#388599",
+            "--selection-ring": "#ffffff",
+            "--selection-soft": "#d7f2f7"
+          },
+          "markers": [],
+          "selectedOutlinerRows": [
+            {
+              "text": "chevron_rightvisibilityBox",
+              "color": "rgb(27, 35, 44)",
+              "background": "rgb(215, 242, 247)"
+            },
+            {
+              "text": "Box",
+              "color": "rgb(0, 127, 158)",
+              "background": "rgb(215, 242, 247)"
+            }
+          ]
+        },
+        {
+          "label": "selected-face-flipped-back-dark",
+          "backend": "webgl2",
+          "theme": "dark",
+          "selection": {
+            "selection": {
+              "faces": [
+                {
+                  "body": 0,
+                  "face": 5
+                }
+              ],
+              "edges": [],
+              "bodies": []
+            },
+            "bodies": 1,
+            "active": null,
+            "sketch": false,
+            "measure": false
+          },
+          "bodyState": {
+            "fresh": true,
+            "bodies": [
+              {
+                "key": "b1",
+                "volume": 16384,
+                "centroid": [
+                  32,
+                  16,
+                  4
+                ],
+                "massRef": null
+              }
+            ],
+            "massReady": true,
+            "colored": []
+          },
+          "doc": {
+            "format": "barocss-cad-model",
+            "schema": 3,
+            "units": "mm",
+            "parameters": {},
+            "nodes": [
+              {
+                "kind": "sketch",
+                "profile": "rectangle",
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  64,
+                  32
+                ],
+                "id": "n0"
+              },
+              {
+                "kind": "extrude",
+                "sketch": 0,
+                "height": 8,
+                "id": "n1",
+                "made": {
+                  "command": "box",
+                  "values": {
+                    "w": 64,
+                    "d": 32,
+                    "h": 8,
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              }
+            ],
+            "outputs": {
+              "b1": {
+                "node": 1,
+                "side": "solid"
+              }
+            },
+            "nextId": 2
+          },
+          "filter": "ads_clickFaces",
+          "inspector": "SELECTION · FACEType PlanarNormal 0, 0, 1Area 2048 mm²Face colour BODYName Colour Visible Bounds 64 × 32 × 8 boxVolume 16384 mm³Mass 44.2 gMaterial · defaultAluminium 6061Steel (mild)Stainless 304BrassTitanium Ti-6Al-4VABSPLANylon PA12PolycarbonatePolypropylenePETGAcetal (POM)Standard resin (SLA)Zinc alloy (Zamak 3 class)Aluminium die-casting alloy (A380 class)Magnesium die-casting alloy (AZ91D class)Aluminium casting alloy (A356 class)Grey cast ironCentre of mass 32, 16, 4Inertiaabout the centre of massabout the originIxx Iyy Izz 4011 · 15335 · 18874 g·mm²Ixy Iyz Ixz 0 · 0 · 0Surface area 5632 mm²Faces 6Point testTest",
+          "themeTokens": {
+            "--selection": "#22d3ee",
+            "--selection-hover": "#4d9ead",
+            "--selection-ring": "#102329",
+            "--selection-soft": "#173e46"
+          },
+          "markers": [],
+          "selectedOutlinerRows": [
+            {
+              "text": "chevron_rightvisibilityBox",
+              "color": "rgb(226, 228, 232)",
+              "background": "rgb(23, 62, 70)"
+            },
+            {
+              "text": "Box",
+              "color": "rgb(34, 211, 238)",
+              "background": "rgb(23, 62, 70)"
+            }
+          ]
+        },
+        {
+          "label": "selected-bodies",
+          "backend": "webgl2",
+          "theme": "dark",
+          "selection": {
+            "selection": {
+              "faces": [],
+              "edges": [],
+              "bodies": [
+                0
+              ]
+            },
+            "bodies": 1,
+            "active": null,
+            "sketch": false,
+            "measure": false
+          },
+          "bodyState": {
+            "fresh": true,
+            "bodies": [
+              {
+                "key": "b1",
+                "volume": 16384,
+                "centroid": [
+                  32,
+                  16,
+                  4
+                ],
+                "massRef": null
+              }
+            ],
+            "massReady": true,
+            "colored": []
+          },
+          "doc": {
+            "format": "barocss-cad-model",
+            "schema": 3,
+            "units": "mm",
+            "parameters": {},
+            "nodes": [
+              {
+                "kind": "sketch",
+                "profile": "rectangle",
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  64,
+                  32
+                ],
+                "id": "n0"
+              },
+              {
+                "kind": "extrude",
+                "sketch": 0,
+                "height": 8,
+                "id": "n1",
+                "made": {
+                  "command": "box",
+                  "values": {
+                    "w": 64,
+                    "d": 32,
+                    "h": 8,
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              }
+            ],
+            "outputs": {
+              "b1": {
+                "node": 1,
+                "side": "solid"
+              }
+            },
+            "nextId": 2
+          },
+          "filter": "ads_clickBodies",
+          "inspector": "BODYName Colour Visible Bounds 64 × 32 × 8 boxVolume 16384 mm³Mass 44.2 gMaterial · defaultAluminium 6061Steel (mild)Stainless 304BrassTitanium Ti-6Al-4VABSPLANylon PA12PolycarbonatePolypropylenePETGAcetal (POM)Standard resin (SLA)Zinc alloy (Zamak 3 class)Aluminium die-casting alloy (A380 class)Magnesium die-casting alloy (AZ91D class)Aluminium casting alloy (A356 class)Grey cast ironCentre of mass 32, 16, 4Inertiaabout the centre of massabout the originIxx Iyy Izz 4011 · 15335 · 18874 g·mm²Ixy Iyz Ixz 0 · 0 · 0Surface area 5632 mm²Faces 6Point testTest",
+          "themeTokens": {
+            "--selection": "#22d3ee",
+            "--selection-hover": "#4d9ead",
+            "--selection-ring": "#102329",
+            "--selection-soft": "#173e46"
+          },
+          "markers": [],
+          "selectedOutlinerRows": [
+            {
+              "text": "chevron_rightvisibilityBox",
+              "color": "rgb(226, 228, 232)",
+              "background": "rgb(23, 62, 70)"
+            },
+            {
+              "text": "Box",
+              "color": "rgb(34, 211, 238)",
+              "background": "rgb(23, 62, 70)"
+            }
+          ]
+        },
+        {
+          "label": "cleared",
+          "backend": "webgl2",
+          "theme": "dark",
+          "selection": {
+            "selection": {
+              "faces": [],
+              "edges": [],
+              "bodies": []
+            },
+            "bodies": 1,
+            "active": null,
+            "sketch": false,
+            "measure": false
+          },
+          "bodyState": {
+            "fresh": true,
+            "bodies": [
+              {
+                "key": "b1",
+                "volume": 16384,
+                "centroid": [
+                  32,
+                  16,
+                  4
+                ],
+                "massRef": null
+              }
+            ],
+            "massReady": true,
+            "colored": []
+          },
+          "doc": {
+            "format": "barocss-cad-model",
+            "schema": 3,
+            "units": "mm",
+            "parameters": {},
+            "nodes": [
+              {
+                "kind": "sketch",
+                "profile": "rectangle",
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  64,
+                  32
+                ],
+                "id": "n0"
+              },
+              {
+                "kind": "extrude",
+                "sketch": 0,
+                "height": 8,
+                "id": "n1",
+                "made": {
+                  "command": "box",
+                  "values": {
+                    "w": 64,
+                    "d": 32,
+                    "h": 8,
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              }
+            ],
+            "outputs": {
+              "b1": {
+                "node": 1,
+                "side": "solid"
+              }
+            },
+            "nextId": 2
+          },
+          "filter": "ads_clickBodies",
+          "inspector": "PART · 1 bodyMass 44.2 gCentre of mass 32, 16, 4Bounds 64 × 32 × 8 box",
+          "themeTokens": {
+            "--selection": "#22d3ee",
+            "--selection-hover": "#4d9ead",
+            "--selection-ring": "#102329",
+            "--selection-soft": "#173e46"
+          },
+          "markers": [],
+          "selectedOutlinerRows": []
+        }
+      ],
+      "themeSwitch": "PUBLIC_SELECTED_FACE_PRESERVED_VISUAL_REVIEW_REQUIRED",
+      "meaning": "Public pick/clear behavior and captured visual evidence; manual contrast review remains required"
+    },
+    {
+      "id": "webgl2-light",
+      "backend": "webgl2",
+      "theme": "light",
+      "status": "PASS",
+      "states": [
+        {
+          "label": "baseline-clear",
+          "backend": "webgl2",
+          "theme": "light",
+          "selection": {
+            "selection": {
+              "faces": [],
+              "edges": [],
+              "bodies": []
+            },
+            "bodies": 1,
+            "active": null,
+            "sketch": false,
+            "measure": false
+          },
+          "bodyState": {
+            "fresh": true,
+            "bodies": [
+              {
+                "key": "b1",
+                "volume": 16384,
+                "centroid": [
+                  32,
+                  16,
+                  4
+                ],
+                "massRef": null
+              }
+            ],
+            "massReady": true,
+            "colored": []
+          },
+          "doc": {
+            "format": "barocss-cad-model",
+            "schema": 3,
+            "units": "mm",
+            "parameters": {},
+            "nodes": [
+              {
+                "kind": "sketch",
+                "profile": "rectangle",
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  64,
+                  32
+                ],
+                "id": "n0"
+              },
+              {
+                "kind": "extrude",
+                "sketch": 0,
+                "height": 8,
+                "id": "n1",
+                "made": {
+                  "command": "box",
+                  "values": {
+                    "w": 64,
+                    "d": 32,
+                    "h": 8,
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              }
+            ],
+            "outputs": {
+              "b1": {
+                "node": 1,
+                "side": "solid"
+              }
+            },
+            "nextId": 2
+          },
+          "filter": "ads_clickPick all",
+          "inspector": "PART · 1 bodyMass 44.2 gCentre of mass 32, 16, 4Bounds 64 × 32 × 8 box",
+          "themeTokens": {
+            "--selection": "#007f9e",
+            "--selection-hover": "#388599",
+            "--selection-ring": "#ffffff",
+            "--selection-soft": "#d7f2f7"
+          },
+          "markers": [],
+          "selectedOutlinerRows": []
+        },
+        {
+          "label": "hover-point",
+          "backend": "webgl2",
+          "theme": "light",
+          "selection": {
+            "selection": {
+              "faces": [],
+              "edges": [],
+              "bodies": []
+            },
+            "bodies": 1,
+            "active": null,
+            "sketch": false,
+            "measure": false
+          },
+          "bodyState": {
+            "fresh": true,
+            "bodies": [
+              {
+                "key": "b1",
+                "volume": 16384,
+                "centroid": [
+                  32,
+                  16,
+                  4
+                ],
+                "massRef": null
+              }
+            ],
+            "massReady": true,
+            "colored": []
+          },
+          "doc": {
+            "format": "barocss-cad-model",
+            "schema": 3,
+            "units": "mm",
+            "parameters": {},
+            "nodes": [
+              {
+                "kind": "sketch",
+                "profile": "rectangle",
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  64,
+                  32
+                ],
+                "id": "n0"
+              },
+              {
+                "kind": "extrude",
+                "sketch": 0,
+                "height": 8,
+                "id": "n1",
+                "made": {
+                  "command": "box",
+                  "values": {
+                    "w": 64,
+                    "d": 32,
+                    "h": 8,
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              }
+            ],
+            "outputs": {
+              "b1": {
+                "node": 1,
+                "side": "solid"
+              }
+            },
+            "nextId": 2
+          },
+          "filter": "ads_clickPick all",
+          "inspector": "PART · 1 bodyMass 44.2 gCentre of mass 32, 16, 4Bounds 64 × 32 × 8 box",
+          "themeTokens": {
+            "--selection": "#007f9e",
+            "--selection-hover": "#388599",
+            "--selection-ring": "#ffffff",
+            "--selection-soft": "#d7f2f7"
+          },
+          "markers": [
+            {
+              "class": "vertex-mark hover",
+              "radius": "4",
+              "fill": "rgb(215, 242, 247)",
+              "stroke": "rgb(56, 133, 153)",
+              "strokeWidth": "2px"
+            }
+          ],
+          "selectedOutlinerRows": []
+        },
+        {
+          "label": "selected-vertices",
+          "backend": "webgl2",
+          "theme": "light",
+          "selection": {
+            "selection": {
+              "faces": [],
+              "edges": [],
+              "bodies": [],
+              "vertices": [
+                {
+                  "body": 0,
+                  "at": [
+                    0,
+                    0,
+                    8
+                  ]
+                }
+              ]
+            },
+            "bodies": 1,
+            "active": null,
+            "sketch": false,
+            "measure": false
+          },
+          "bodyState": {
+            "fresh": true,
+            "bodies": [
+              {
+                "key": "b1",
+                "volume": 16384,
+                "centroid": [
+                  32,
+                  16,
+                  4
+                ],
+                "massRef": null
+              }
+            ],
+            "massReady": true,
+            "colored": []
+          },
+          "doc": {
+            "format": "barocss-cad-model",
+            "schema": 3,
+            "units": "mm",
+            "parameters": {},
+            "nodes": [
+              {
+                "kind": "sketch",
+                "profile": "rectangle",
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  64,
+                  32
+                ],
+                "id": "n0"
+              },
+              {
+                "kind": "extrude",
+                "sketch": 0,
+                "height": 8,
+                "id": "n1",
+                "made": {
+                  "command": "box",
+                  "values": {
+                    "w": 64,
+                    "d": 32,
+                    "h": 8,
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              }
+            ],
+            "outputs": {
+              "b1": {
+                "node": 1,
+                "side": "solid"
+              }
+            },
+            "nextId": 2
+          },
+          "filter": "ads_clickPick all",
+          "inspector": "SELECTION · POINTX Y Z 0, 0, 8PART · 1 bodyMass 44.2 gCentre of mass 32, 16, 4Bounds 64 × 32 × 8 box",
+          "themeTokens": {
+            "--selection": "#007f9e",
+            "--selection-hover": "#388599",
+            "--selection-ring": "#ffffff",
+            "--selection-soft": "#d7f2f7"
+          },
+          "markers": [
+            {
+              "class": "vertex-mark selected",
+              "radius": "6",
+              "fill": "rgb(0, 127, 158)",
+              "stroke": "rgb(255, 255, 255)",
+              "strokeWidth": "2px"
+            }
+          ],
+          "selectedOutlinerRows": []
+        },
+        {
+          "label": "selected-edges",
+          "backend": "webgl2",
+          "theme": "light",
+          "selection": {
+            "selection": {
+              "faces": [],
+              "edges": [
+                {
+                  "body": 0,
+                  "edge": 2
+                }
+              ],
+              "bodies": []
+            },
+            "bodies": 1,
+            "active": null,
+            "sketch": false,
+            "measure": false
+          },
+          "bodyState": {
+            "fresh": true,
+            "bodies": [
+              {
+                "key": "b1",
+                "volume": 16384,
+                "centroid": [
+                  32,
+                  16,
+                  4
+                ],
+                "massRef": null
+              }
+            ],
+            "massReady": true,
+            "colored": []
+          },
+          "doc": {
+            "format": "barocss-cad-model",
+            "schema": 3,
+            "units": "mm",
+            "parameters": {},
+            "nodes": [
+              {
+                "kind": "sketch",
+                "profile": "rectangle",
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  64,
+                  32
+                ],
+                "id": "n0"
+              },
+              {
+                "kind": "extrude",
+                "sketch": 0,
+                "height": 8,
+                "id": "n1",
+                "made": {
+                  "command": "box",
+                  "values": {
+                    "w": 64,
+                    "d": 32,
+                    "h": 8,
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              }
+            ],
+            "outputs": {
+              "b1": {
+                "node": 1,
+                "side": "solid"
+              }
+            },
+            "nextId": 2
+          },
+          "filter": "ads_clickEdges",
+          "inspector": "SELECTION · EDGEType LineLength 64 mmDirection XAs a curveBODYName Colour Visible Bounds 64 × 32 × 8 boxVolume 16384 mm³Mass 44.2 gMaterial · defaultAluminium 6061Steel (mild)Stainless 304BrassTitanium Ti-6Al-4VABSPLANylon PA12PolycarbonatePolypropylenePETGAcetal (POM)Standard resin (SLA)Zinc alloy (Zamak 3 class)Aluminium die-casting alloy (A380 class)Magnesium die-casting alloy (AZ91D class)Aluminium casting alloy (A356 class)Grey cast ironCentre of mass 32, 16, 4Inertiaabout the centre of massabout the originIxx Iyy Izz 4011 · 15335 · 18874 g·mm²Ixy Iyz Ixz 0 · 0 · 0Surface area 5632 mm²Faces 6Point testTest",
+          "themeTokens": {
+            "--selection": "#007f9e",
+            "--selection-hover": "#388599",
+            "--selection-ring": "#ffffff",
+            "--selection-soft": "#d7f2f7"
+          },
+          "markers": [],
+          "selectedOutlinerRows": [
+            {
+              "text": "chevron_rightvisibilityBox",
+              "color": "rgb(27, 35, 44)",
+              "background": "rgb(215, 242, 247)"
+            },
+            {
+              "text": "Box",
+              "color": "rgb(0, 127, 158)",
+              "background": "rgb(215, 242, 247)"
+            }
+          ]
+        },
+        {
+          "label": "selected-faces",
+          "backend": "webgl2",
+          "theme": "light",
+          "selection": {
+            "selection": {
+              "faces": [
+                {
+                  "body": 0,
+                  "face": 5
+                }
+              ],
+              "edges": [],
+              "bodies": []
+            },
+            "bodies": 1,
+            "active": null,
+            "sketch": false,
+            "measure": false
+          },
+          "bodyState": {
+            "fresh": true,
+            "bodies": [
+              {
+                "key": "b1",
+                "volume": 16384,
+                "centroid": [
+                  32,
+                  16,
+                  4
+                ],
+                "massRef": null
+              }
+            ],
+            "massReady": true,
+            "colored": []
+          },
+          "doc": {
+            "format": "barocss-cad-model",
+            "schema": 3,
+            "units": "mm",
+            "parameters": {},
+            "nodes": [
+              {
+                "kind": "sketch",
+                "profile": "rectangle",
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  64,
+                  32
+                ],
+                "id": "n0"
+              },
+              {
+                "kind": "extrude",
+                "sketch": 0,
+                "height": 8,
+                "id": "n1",
+                "made": {
+                  "command": "box",
+                  "values": {
+                    "w": 64,
+                    "d": 32,
+                    "h": 8,
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              }
+            ],
+            "outputs": {
+              "b1": {
+                "node": 1,
+                "side": "solid"
+              }
+            },
+            "nextId": 2
+          },
+          "filter": "ads_clickFaces",
+          "inspector": "SELECTION · FACEType PlanarNormal 0, 0, 1Area 2048 mm²Face colour BODYName Colour Visible Bounds 64 × 32 × 8 boxVolume 16384 mm³Mass 44.2 gMaterial · defaultAluminium 6061Steel (mild)Stainless 304BrassTitanium Ti-6Al-4VABSPLANylon PA12PolycarbonatePolypropylenePETGAcetal (POM)Standard resin (SLA)Zinc alloy (Zamak 3 class)Aluminium die-casting alloy (A380 class)Magnesium die-casting alloy (AZ91D class)Aluminium casting alloy (A356 class)Grey cast ironCentre of mass 32, 16, 4Inertiaabout the centre of massabout the originIxx Iyy Izz 4011 · 15335 · 18874 g·mm²Ixy Iyz Ixz 0 · 0 · 0Surface area 5632 mm²Faces 6Point testTest",
+          "themeTokens": {
+            "--selection": "#007f9e",
+            "--selection-hover": "#388599",
+            "--selection-ring": "#ffffff",
+            "--selection-soft": "#d7f2f7"
+          },
+          "markers": [],
+          "selectedOutlinerRows": [
+            {
+              "text": "chevron_rightvisibilityBox",
+              "color": "rgb(27, 35, 44)",
+              "background": "rgb(215, 242, 247)"
+            },
+            {
+              "text": "Box",
+              "color": "rgb(0, 127, 158)",
+              "background": "rgb(215, 242, 247)"
+            }
+          ]
+        },
+        {
+          "label": "selected-bodies",
+          "backend": "webgl2",
+          "theme": "light",
+          "selection": {
+            "selection": {
+              "faces": [],
+              "edges": [],
+              "bodies": [
+                0
+              ]
+            },
+            "bodies": 1,
+            "active": null,
+            "sketch": false,
+            "measure": false
+          },
+          "bodyState": {
+            "fresh": true,
+            "bodies": [
+              {
+                "key": "b1",
+                "volume": 16384,
+                "centroid": [
+                  32,
+                  16,
+                  4
+                ],
+                "massRef": null
+              }
+            ],
+            "massReady": true,
+            "colored": []
+          },
+          "doc": {
+            "format": "barocss-cad-model",
+            "schema": 3,
+            "units": "mm",
+            "parameters": {},
+            "nodes": [
+              {
+                "kind": "sketch",
+                "profile": "rectangle",
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  64,
+                  32
+                ],
+                "id": "n0"
+              },
+              {
+                "kind": "extrude",
+                "sketch": 0,
+                "height": 8,
+                "id": "n1",
+                "made": {
+                  "command": "box",
+                  "values": {
+                    "w": 64,
+                    "d": 32,
+                    "h": 8,
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              }
+            ],
+            "outputs": {
+              "b1": {
+                "node": 1,
+                "side": "solid"
+              }
+            },
+            "nextId": 2
+          },
+          "filter": "ads_clickBodies",
+          "inspector": "BODYName Colour Visible Bounds 64 × 32 × 8 boxVolume 16384 mm³Mass 44.2 gMaterial · defaultAluminium 6061Steel (mild)Stainless 304BrassTitanium Ti-6Al-4VABSPLANylon PA12PolycarbonatePolypropylenePETGAcetal (POM)Standard resin (SLA)Zinc alloy (Zamak 3 class)Aluminium die-casting alloy (A380 class)Magnesium die-casting alloy (AZ91D class)Aluminium casting alloy (A356 class)Grey cast ironCentre of mass 32, 16, 4Inertiaabout the centre of massabout the originIxx Iyy Izz 4011 · 15335 · 18874 g·mm²Ixy Iyz Ixz 0 · 0 · 0Surface area 5632 mm²Faces 6Point testTest",
+          "themeTokens": {
+            "--selection": "#007f9e",
+            "--selection-hover": "#388599",
+            "--selection-ring": "#ffffff",
+            "--selection-soft": "#d7f2f7"
+          },
+          "markers": [],
+          "selectedOutlinerRows": [
+            {
+              "text": "chevron_rightvisibilityBox",
+              "color": "rgb(27, 35, 44)",
+              "background": "rgb(215, 242, 247)"
+            },
+            {
+              "text": "Box",
+              "color": "rgb(0, 127, 158)",
+              "background": "rgb(215, 242, 247)"
+            }
+          ]
+        },
+        {
+          "label": "cleared",
+          "backend": "webgl2",
+          "theme": "light",
+          "selection": {
+            "selection": {
+              "faces": [],
+              "edges": [],
+              "bodies": []
+            },
+            "bodies": 1,
+            "active": null,
+            "sketch": false,
+            "measure": false
+          },
+          "bodyState": {
+            "fresh": true,
+            "bodies": [
+              {
+                "key": "b1",
+                "volume": 16384,
+                "centroid": [
+                  32,
+                  16,
+                  4
+                ],
+                "massRef": null
+              }
+            ],
+            "massReady": true,
+            "colored": []
+          },
+          "doc": {
+            "format": "barocss-cad-model",
+            "schema": 3,
+            "units": "mm",
+            "parameters": {},
+            "nodes": [
+              {
+                "kind": "sketch",
+                "profile": "rectangle",
+                "min": [
+                  0,
+                  0
+                ],
+                "max": [
+                  64,
+                  32
+                ],
+                "id": "n0"
+              },
+              {
+                "kind": "extrude",
+                "sketch": 0,
+                "height": 8,
+                "id": "n1",
+                "made": {
+                  "command": "box",
+                  "values": {
+                    "w": 64,
+                    "d": 32,
+                    "h": 8,
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                  }
+                }
+              }
+            ],
+            "outputs": {
+              "b1": {
+                "node": 1,
+                "side": "solid"
+              }
+            },
+            "nextId": 2
+          },
+          "filter": "ads_clickBodies",
+          "inspector": "PART · 1 bodyMass 44.2 gCentre of mass 32, 16, 4Bounds 64 × 32 × 8 box",
+          "themeTokens": {
+            "--selection": "#007f9e",
+            "--selection-hover": "#388599",
+            "--selection-ring": "#ffffff",
+            "--selection-soft": "#d7f2f7"
+          },
+          "markers": [],
+          "selectedOutlinerRows": []
+        }
+      ],
+      "meaning": "Public pick/clear behavior and captured visual evidence; manual contrast review remains required"
+    }
+  ],
+  "errors": [],
+  "consoleErrors": [],
+  "changes": [],
+  "cleanup": {
+    "contexts": [
+      {
+        "profile": "webgl2-dark",
+        "status": "CLOSED"
+      },
+      {
+        "profile": "webgl2-light",
+        "status": "CLOSED"
+      }
+    ],
+    "browsers": [
+      {
+        "backend": "webgl2",
+        "status": "CLOSED"
+      }
+    ],
+    "server": "CLOSED"
+  },
+  "visibilityAcceptance": "MANUAL_SCREENSHOT_REVIEW_REQUIRED",
+  "pixelContrast": "NOT_AUTOMATED",
+  "scope": {
+    "basePointEdgeFaceBody": "REQUIRED",
+    "directGeometry": "NOT_RUN",
+    "instances": "NOT_RUN",
+    "sketchCageEditors": "NOT_RUN"
+  },
+  "phase": "webgl2-light clear selection"
+}

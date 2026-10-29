@@ -1,0 +1,50 @@
+{
+  "status": "FAIL",
+  "profiles": [
+    {
+      "id": "webgpu-dark",
+      "status": "PASS"
+    },
+    {
+      "id": "webgpu-light",
+      "status": "PASS"
+    },
+    {
+      "id": "webgl2-dark",
+      "status": "FAIL"
+    }
+  ],
+  "cleanup": {
+    "contexts": [
+      {
+        "profile": "webgpu-dark",
+        "status": "CLOSED"
+      },
+      {
+        "profile": "webgpu-light",
+        "status": "CLOSED"
+      },
+      {
+        "profile": "webgl2-dark",
+        "status": "CLOSED"
+      }
+    ],
+    "browsers": [
+      {
+        "backend": "webgpu",
+        "status": "CLOSED"
+      },
+      {
+        "backend": "webgl2",
+        "status": "CLOSED"
+      }
+    ],
+    "server": "CLOSED"
+  },
+  "output": "/tmp/d332-selection/native-first",
+  "firstFailure": {
+    "phase": "webgl2-dark public box preview and Apply",
+    "message": "page.waitForSelector: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.hud') to be visible\u001b[22m\n",
+    "stack": "page.waitForSelector: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.hud') to be visible\u001b[22m\n\n    at createBox (/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/selection-visibility-browser.mjs:84:14)\n    at async file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/selection-visibility-browser.mjs:119:61"
+  }
+}

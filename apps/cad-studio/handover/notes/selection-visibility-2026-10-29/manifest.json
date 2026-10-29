@@ -1,0 +1,443 @@
+{
+  "algorithm": "SHA-256",
+  "excludes": [
+    "manifest.json"
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 3889,
+      "sha256": "8a14a470a96836318f7f4bf7924aeb4bf132c9b2365c96e71a6c78733b307c6e"
+    },
+    {
+      "path": "acquire.txt",
+      "bytes": 44,
+      "sha256": "8f398796b47b5243a3b2244f4bcb540c8dbf22f1e79412e0d1b30a2c512ed4f1"
+    },
+    {
+      "path": "baseline-source/apps__cad-studio__src__styles.css.gz",
+      "bytes": 12722,
+      "sha256": "ea4eaebc38c519df855e23d2f2f56773b372936f55d8beac795eb449c2467b19"
+    },
+    {
+      "path": "baseline-source/apps__cad-studio__src__viewport__Viewport.tsx.gz",
+      "bytes": 37065,
+      "sha256": "38484b00fe965ee2e19b8bb6692895e1008006ed645c32c6077b0bb696f017fb"
+    },
+    {
+      "path": "baseline-source/apps__cad-studio__src__viewport__displayPolicy.ts.gz",
+      "bytes": 1052,
+      "sha256": "d29ab45f99b684ae4bf18fdac7f69e382417cbc5f5f7e557be18414a82368ba8"
+    },
+    {
+      "path": "baseline-source/apps__cad-studio__src__viewport__gpuRenderer.ts.gz",
+      "bytes": 22926,
+      "sha256": "682c20c8d78d00eef789ff26ef997005ffdd27ca367bf39818f546286b76c2d9"
+    },
+    {
+      "path": "baseline-source/apps__cad-studio__src__viewport__renderer.ts.gz",
+      "bytes": 23703,
+      "sha256": "fefdbb993034bb4ffb48866dcef4410e817f6bb62934c3bcbd9101b70bf7612e"
+    },
+    {
+      "path": "build-acquire.txt",
+      "bytes": 44,
+      "sha256": "33263390ef5a3ce71b263433ee6816771c2d609507fca3022c8e48e7a6785201"
+    },
+    {
+      "path": "build-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "build.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "build.txt",
+      "bytes": 19003,
+      "sha256": "eed5eb44cddc6d36c80d0210ec012db66aa106eb67da466128795117e211e3d8"
+    },
+    {
+      "path": "docs-acquire.txt",
+      "bytes": 44,
+      "sha256": "601ecb2435c7e1cc6dc507a5d80a4b40a5ee89e202eaed7e53f53831f0d78f27"
+    },
+    {
+      "path": "docs-final.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "docs-final.txt",
+      "bytes": 68,
+      "sha256": "311d9938df550c33b29d042bfd9e0824929872dd7f60d4e002305addf2e68041"
+    },
+    {
+      "path": "docs-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "face-paint.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "face-paint.txt",
+      "bytes": 967,
+      "sha256": "22ae37dc3d6090114e032ef3c1ee7d4336d7bec8d3ab5e6063f3faaee9e2d5b4"
+    },
+    {
+      "path": "final-build-acquire.txt",
+      "bytes": 44,
+      "sha256": "23390b9843148b70542b666c1ef5e95a2838a4031efbf2ef95253b82b039cb97"
+    },
+    {
+      "path": "final-build-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "final-build.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "final-build.txt",
+      "bytes": 19137,
+      "sha256": "c20d17d2dac1d88251f3496ae6f94523b864f293a16afc50c5b1b37ba550c574"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__styles.css.gz",
+      "bytes": 12812,
+      "sha256": "b115808c47d835737524bfac2f6a6368791bad7c989ef051f1a7cec1061df1e8"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__viewport__Viewport.tsx.gz",
+      "bytes": 37172,
+      "sha256": "dd8c44835927deb00bce2c4ea0ca3b8c5493303c9b981d73466794cda92c4154"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__viewport__displayPolicy.ts.gz",
+      "bytes": 1196,
+      "sha256": "6339343d047e34c16efae7d3a469014997477f3e85ff7d98f603302e0a6a35f5"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__viewport__gpuRenderer.ts.gz",
+      "bytes": 23053,
+      "sha256": "da3f08d6da010bf410b6860e13145bd5caa59827fa6c09c522c59e36428155b7"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__viewport__renderer.ts.gz",
+      "bytes": 23890,
+      "sha256": "48502d5f34240ecb3b3e2fce1c5a641cc217fd6739de5601dac11fea2b9b8223"
+    },
+    {
+      "path": "final-source/apps__cad-studio__test__selection-visibility-browser.mjs.gz",
+      "bytes": 4684,
+      "sha256": "c1edeca47a3462820ee99f67d2ab8ecd9452ba52553a023fe12bb788519a6fbc"
+    },
+    {
+      "path": "final-source/profile-before-driver-ready.json",
+      "bytes": 2231,
+      "sha256": "be739f5472240ed3a3489cf730900bf96a972d196ff58219c58a684ed867cbc6"
+    },
+    {
+      "path": "final-source/profile.json",
+      "bytes": 2231,
+      "sha256": "03b3bb7f5e783d5dcdf80d7b81c192916adfa77907451910af32dbffec6fc166"
+    },
+    {
+      "path": "final-source/selection-visibility.before-driver-ready.mjs.gz",
+      "bytes": 4510,
+      "sha256": "e8b170d69ffe23b4f8c72b0d99eb33a9b3590365698a646ddd3d76adcad20a2c"
+    },
+    {
+      "path": "final-types.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "final-types.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "gl2-acquire.txt",
+      "bytes": 44,
+      "sha256": "421287271bc77a6802deea168fd1bbf892f608b21f137d58274479de103b085d"
+    },
+    {
+      "path": "gl2-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "gl2-source-after.txt",
+      "bytes": 54,
+      "sha256": "4e8742f4de866f0b9412dbf83dbed4b78cd37b68aa10e830e42f99504c7f16ea"
+    },
+    {
+      "path": "gl2-source-before.txt",
+      "bytes": 54,
+      "sha256": "4e8742f4de866f0b9412dbf83dbed4b78cd37b68aa10e830e42f99504c7f16ea"
+    },
+    {
+      "path": "native-acquire.txt",
+      "bytes": 44,
+      "sha256": "5c572838c593256c09a6bc93679f1e9a18e12ae42b1a37df282c5518faceb4be"
+    },
+    {
+      "path": "native-first/receipt.json",
+      "bytes": 49626,
+      "sha256": "e4a4c023f7b3286fd99256479637699f3a41ccb6ea7274d8f9b4d4fd60a461ce"
+    },
+    {
+      "path": "native-first/webgl2-dark/failure.png",
+      "bytes": 113039,
+      "sha256": "e74c22c668cf133b3e36ae207c9ef7a5085c4f01bd0c65281d503ec4ab232f2d"
+    },
+    {
+      "path": "native-first/webgpu-dark/baseline-clear.png",
+      "bytes": 84384,
+      "sha256": "907fb8c38195982b039439c44a1dcab4b1bfe671e2c28ac757d80868e62980bb"
+    },
+    {
+      "path": "native-first/webgpu-dark/cleared.png",
+      "bytes": 84083,
+      "sha256": "ad11115371095c1bbce9bfdb1b6a3f29a3e7058768ad786991a58e61b93c2ed5"
+    },
+    {
+      "path": "native-first/webgpu-dark/hover-point.png",
+      "bytes": 84537,
+      "sha256": "79415daef1bd2c6a384f65821a302028a794d645cc6077d3c81742d45144a20a"
+    },
+    {
+      "path": "native-first/webgpu-dark/selected-bodies.png",
+      "bytes": 106801,
+      "sha256": "61613e9a090e7175f78d8fb55ac5f9f71c62b04ba762e686775b4a9f30177f85"
+    },
+    {
+      "path": "native-first/webgpu-dark/selected-edges.png",
+      "bytes": 113253,
+      "sha256": "b48e262dea851005e26a3cda291b452f3fb78482a10b495c081369564f8f6ef3"
+    },
+    {
+      "path": "native-first/webgpu-dark/selected-face-flipped-back-dark.png",
+      "bytes": 114959,
+      "sha256": "75b76d9477f540f0cdb9a6d8c1c98ce126cdcb0d580eecb8331e03741296ab42"
+    },
+    {
+      "path": "native-first/webgpu-dark/selected-face-flipped-light.png",
+      "bytes": 124482,
+      "sha256": "5bf5d68920f2ff0786d2e152a5d78da7d22a23f22372abef3fbe60a3792359bc"
+    },
+    {
+      "path": "native-first/webgpu-dark/selected-faces.png",
+      "bytes": 116047,
+      "sha256": "3016b2e1736491bc958712bb80416d488b5c7280ff724b4ce460b54931700ccb"
+    },
+    {
+      "path": "native-first/webgpu-dark/selected-vertices.png",
+      "bytes": 86951,
+      "sha256": "18654c3ff85373e6c0d7278b648dcbd6e5fdf0c32bded08f76d0ce20931f19ad"
+    },
+    {
+      "path": "native-first/webgpu-light/baseline-clear.png",
+      "bytes": 91890,
+      "sha256": "c6b015d65dc35adbb8b7bb6a3ecf1da1c97770e15ee01e7e9831f9bfe90e0740"
+    },
+    {
+      "path": "native-first/webgpu-light/cleared.png",
+      "bytes": 91451,
+      "sha256": "02caec9e998390767a049799da81328d3e2555d42c31f747c4875fd570f741d7"
+    },
+    {
+      "path": "native-first/webgpu-light/hover-point.png",
+      "bytes": 91849,
+      "sha256": "8e3376ca93e434de7bc654d6b18cf5c4421813cf3d1b932c95a8efc5b27cb5d5"
+    },
+    {
+      "path": "native-first/webgpu-light/selected-bodies.png",
+      "bytes": 115408,
+      "sha256": "2d2e4fc0629c61311d3ee2d7b7003736f583520b79d9e7fe4d7ce382970b6c80"
+    },
+    {
+      "path": "native-first/webgpu-light/selected-edges.png",
+      "bytes": 121058,
+      "sha256": "e5b60c99109332d5c9298c5005d9a075afcdbe9e0e6cdffde7ab11ad66916dfb"
+    },
+    {
+      "path": "native-first/webgpu-light/selected-faces.png",
+      "bytes": 125993,
+      "sha256": "a1647802c6ff12f257d1c2a6c0fb0e75c09e410c12bb525225c704ff91c4f635"
+    },
+    {
+      "path": "native-first/webgpu-light/selected-vertices.png",
+      "bytes": 94233,
+      "sha256": "606ab888459b1ce45b173a9a8dd830c5739c8a9054779af2eaa05af207e7970c"
+    },
+    {
+      "path": "native-first.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "native-first.txt",
+      "bytes": 1464,
+      "sha256": "d02b0edbcdda7a7eb503d881c26fb33ed0bc84c4844e6cd0ff52dc0641b056e4"
+    },
+    {
+      "path": "native-gl2-retake/receipt.json",
+      "bytes": 47557,
+      "sha256": "3585c58c589eaa981cce15069615c1f88bcdc120c2bad07899f3d2a2705a0e7e"
+    },
+    {
+      "path": "native-gl2-retake/webgl2-dark/baseline-clear.png",
+      "bytes": 114885,
+      "sha256": "2b0f0ceeb8cb8d5ec75444bbd8b7752b20521a540f5f2f6244348b1eed36d7ae"
+    },
+    {
+      "path": "native-gl2-retake/webgl2-dark/cleared.png",
+      "bytes": 114454,
+      "sha256": "545b39ad64cb6598db691709da00f6ce69f18d0afc8640cd7973d72cebb4c8c4"
+    },
+    {
+      "path": "native-gl2-retake/webgl2-dark/hover-point.png",
+      "bytes": 114902,
+      "sha256": "cc102d560098246b1409b00949e305d9ba825e58f79c6c813c99e2d0f39049ec"
+    },
+    {
+      "path": "native-gl2-retake/webgl2-dark/selected-bodies.png",
+      "bytes": 139358,
+      "sha256": "ce3bc443757acec0d171350d4f6bd20e4514d94875eb77c9c6cf16aa6c6e640c"
+    },
+    {
+      "path": "native-gl2-retake/webgl2-dark/selected-edges.png",
+      "bytes": 144037,
+      "sha256": "f4383c2708f3d3c8033a5727f434c9bdc674fa37945e19ae5929711bfdfffd16"
+    },
+    {
+      "path": "native-gl2-retake/webgl2-dark/selected-face-flipped-back-dark.png",
+      "bytes": 147197,
+      "sha256": "8c93a7a5d03f9e53516ade6c934c7cad57d1614837868752468dc6156b0dd669"
+    },
+    {
+      "path": "native-gl2-retake/webgl2-dark/selected-face-flipped-light.png",
+      "bytes": 223868,
+      "sha256": "c3722e4d6a068857dbd78bc87e8915d7f7b5d3f96d2b09707a6a1bda14a516de"
+    },
+    {
+      "path": "native-gl2-retake/webgl2-dark/selected-faces.png",
+      "bytes": 147108,
+      "sha256": "a71d3d496e9f33be03759cc68c56999b6c25c1caf9204262dc70efc02a857338"
+    },
+    {
+      "path": "native-gl2-retake/webgl2-dark/selected-vertices.png",
+      "bytes": 117380,
+      "sha256": "bd7d9f98ce0839165b0668fea5c9dea5364e0d6516b06f37a2fc91db124d9da9"
+    },
+    {
+      "path": "native-gl2-retake/webgl2-light/baseline-clear.png",
+      "bytes": 189819,
+      "sha256": "14f87af81ce86b2dca63ea16ff190caf91ff86de1138aeef405ef1ec18a32cee"
+    },
+    {
+      "path": "native-gl2-retake/webgl2-light/cleared.png",
+      "bytes": 189553,
+      "sha256": "7cece7511a35f566f84226fbc1804a902b86c5d73867099c8b6c3b7c2c9d04ec"
+    },
+    {
+      "path": "native-gl2-retake/webgl2-light/hover-point.png",
+      "bytes": 189822,
+      "sha256": "010c0784df7a2e5382f696f2a6f7a152e937153a8700d6e63ea7e87654b7281e"
+    },
+    {
+      "path": "native-gl2-retake/webgl2-light/selected-bodies.png",
+      "bytes": 214748,
+      "sha256": "87a185203769c167a93e40d1134c2244ff0206ff2892671446d571d01fede474"
+    },
+    {
+      "path": "native-gl2-retake/webgl2-light/selected-edges.png",
+      "bytes": 220255,
+      "sha256": "22653c43b057f42485cb0d83ed8070855dac040b5bb6166e0085e0d3af5e0747"
+    },
+    {
+      "path": "native-gl2-retake/webgl2-light/selected-faces.png",
+      "bytes": 223660,
+      "sha256": "cc06ab795c2ea0755c0289e63dfcb0e9d8540341dca8a943f26f0d3eb851188b"
+    },
+    {
+      "path": "native-gl2-retake/webgl2-light/selected-vertices.png",
+      "bytes": 192671,
+      "sha256": "81e7853b3bfa29f1fb8244350297d38bd2e8a965c74f7277278383b4acac1096"
+    },
+    {
+      "path": "native-gl2-retake.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "native-gl2-retake.txt",
+      "bytes": 544,
+      "sha256": "f25961c22672addd78315e7d0ac1f6a0c6789d43f56db6328b2f5354b8bab2b4"
+    },
+    {
+      "path": "native-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "qualification.json",
+      "bytes": 4637,
+      "sha256": "cb5fdeb898b5eb696363d34cb803eddcb1e73fa00f80632059eab308cced5533"
+    },
+    {
+      "path": "release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "scoped-check.sh",
+      "bytes": 793,
+      "sha256": "f3f04c2760249c491c66dfa5e698c7129bea0be0d9e95fd717833368b88754d8"
+    },
+    {
+      "path": "source-after.txt",
+      "bytes": 54,
+      "sha256": "4e8742f4de866f0b9412dbf83dbed4b78cd37b68aa10e830e42f99504c7f16ea"
+    },
+    {
+      "path": "source-before.txt",
+      "bytes": 54,
+      "sha256": "4e8742f4de866f0b9412dbf83dbed4b78cd37b68aa10e830e42f99504c7f16ea"
+    },
+    {
+      "path": "source-watch/events.jsonl",
+      "bytes": 4992,
+      "sha256": "61ece056121c98cd985fde51afd764428ffcd0e176c08549dc419e80e2ee9d9e"
+    },
+    {
+      "path": "types.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "types.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "verify.py",
+      "bytes": 324,
+      "sha256": "0f1f117652c26cccaa27538ddbbb5995d1c2a0d3f2ead3a8df424987631c3f1b"
+    },
+    {
+      "path": "watch-source.py",
+      "bytes": 790,
+      "sha256": "311a106ea497c469a20c2528c0a37936655452aff84b4a826a33941c1a273ee2"
+    }
+  ]
+}

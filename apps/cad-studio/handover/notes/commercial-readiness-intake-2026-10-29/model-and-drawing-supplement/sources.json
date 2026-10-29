@@ -1,0 +1,35 @@
+{
+  "rootScope": "Supplied report/status review and roadmap registration only; no independent runtime, issue mutation, cross-chat reply or priority switch",
+  "files": [
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/drawing-assistant-20261029/repair-acceptance-131022.md",
+      "copy": "drawing-repair-observations.md",
+      "bytes": 11953,
+      "sha256": "83d4c0896f4d197694190817bdf96163dc70fc702c534abdd61e79f2036184c7"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/verification/drawing-repair-parent-verification-131022.json",
+      "copy": "drawing-parent.json",
+      "bytes": 2337,
+      "sha256": "04c12cdc8bcd237f0cb5482bd35a1a994606aa9c2b4f7a9b127f54c38d2ba2e8"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/cad-model-commercial-review-20261029/review.md",
+      "copy": "model-source-review.md",
+      "bytes": 13163,
+      "sha256": "c6a305af4b7394fb3bae0278589991b0dc3fe96bb0f4129c6e0dcf3f0072e7f3"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/verification/cad-model-commercial-review-20261029.json",
+      "copy": "model-verification.json",
+      "bytes": 9621,
+      "sha256": "a7f9c61165da6d5d097cb4777961f29561e61931cfb0a7334b1f4285cd63757b"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/verification/cad-model-commercial-review-parent-20261029.json",
+      "copy": "model-parent.json",
+      "bytes": 1008,
+      "sha256": "43fc9790f853f6b7e5673246009283cbfbc95412c4ea680b57717e8ba6251178"
+    }
+  ]
+}

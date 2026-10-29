@@ -2,9 +2,8 @@
 
 ## Current execution index — 2026-10-29
 
-The delivered07 profiles are complete at their recorded limits; do not restart them. The next
-direct owner request is **D332: clearer Studio point/edge/face/body selection**, followed by the
-next regular08 feature and then09. Optional general07 extensions remain separately scoped.
+The delivered07 profiles are complete at their recorded limits; do not restart them. D332 now qualifies the selected base Studio point/edge/face/body visibility profiles. Continue
+with the next regular08 feature and then09. Optional general07 extensions remain separately scoped.
 Confirmed urgent correctness defects still take precedence. D331 closes the selected DA-DUP-1
 drawing dependency defect; see the qualification entry below. D313's bounded cylindrical wrap
 is complete at `f29df9217`.
@@ -30,7 +29,7 @@ actual existing CG6 project selected1+separate starter, generated/API/docs pass.
 [Evidence](notes/canonical-version-snapshot-2026-10-29/qualification.json). D324 qualifies selected
 A07/#2237 readback ownership under06/R2: GPU emit/types, normal CPU357 incl new15, native selected1/6groups,
 lint/generated/API/docs pass. [Evidence](notes/gpu-pick-instance-ownership-2026-10-29/qualification.json).
-D325 qualifies A08/#2239 closed SDK display/CPU/GPU clipping under05/V1/V2 with native selected1/12SDK observations and exact-far GPU ownership. [Evidence](notes/viewer-clipping-contract-2026-10-29/qualification.json). D326 now qualifies selected project/serialized-document Open ownership under12/O9: Studio423, focused29 and actual5 pass. [Evidence](notes/project-open-ownership-2026-10-29/qualification.json). D327/D328 complete the selected App decomposition. D329 qualifies the selected nonserialized import/stage A05 ownership. D330 qualifies normal-root Worker retirement, explicit Retry and WireSender disposal under12/O9 A06; see [evidence](notes/worker-wire-lifetime-2026-10-29/qualification.json). Wider ownership matrices remain open. D331 qualifies the selected DA-DUP-1/#2243 drawing duplicate/location repair. Next direct owner request: D332 selection visibility, then regular08→09. Preserve other owners and HOLD boundaries.
+D325 qualifies A08/#2239 closed SDK display/CPU/GPU clipping under05/V1/V2 with native selected1/12SDK observations and exact-far GPU ownership. [Evidence](notes/viewer-clipping-contract-2026-10-29/qualification.json). D326 now qualifies selected project/serialized-document Open ownership under12/O9: Studio423, focused29 and actual5 pass. [Evidence](notes/project-open-ownership-2026-10-29/qualification.json). D327/D328 complete the selected App decomposition. D329 qualifies the selected nonserialized import/stage A05 ownership. D330 qualifies normal-root Worker retirement, explicit Retry and WireSender disposal under12/O9 A06; see [evidence](notes/worker-wire-lifetime-2026-10-29/qualification.json). Wider ownership matrices remain open. D331 qualifies the selected DA-DUP-1/#2243 drawing duplicate/location repair. D332 qualifies the selected selection-visibility profiles; next regular08→09. Preserve other owners and HOLD boundaries.
 The research reconciliation below attaches
 existing GitHub investigations to these numbered scopes; it creates no second implementation queue.
 
@@ -77,7 +76,7 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
 | 번호 | 작업·기존 ID | 남은 범위 | 담당·선행 조건 | 완료 조건 |
 |---|---|---|---|---|
 | 07 | Advanced modeling — CG1 | **DELIVERED for the recorded bounded profiles (D288–D316); do not restart these features.** Guided polynomial loft, supported face fillets, original-font editable Text/+Z relief, modeled threads, measured thread optimization and one rectangular cylindrical wrap are implemented and qualified at their recorded limits. See the status ledger below. | Optional/general extensions remain separately scoped: uncertified/multiple/rational guide frames, general multi-span/rational fillets, arbitrary-depth/outline/glyph/curved wrap and text shaping. Preserve existing refusal boundaries; these are not missing implementations of the delivered profiles. | A new extension needs its own bounded input, original tolerances, geometry/mass oracle and actual editable Studio/file proof. No whole-family or release acceptance is implied by the delivered profiles. |
-| 08 | Feature patterns, direct editing and surfaces — CG2 | Remaining curve/fill feature patterns and current move/delete/replace/thicken/offset/knit/trim/extend gaps. Reuse03 and existing body-copy/affine/Boolean/surface consumers; the research mapping attaches #2227/#2215 and #2032/#2036 controls. | Kernel/Model → actual Studio after delivered07 and the direct D332 request. Next selected candidate: bounded rectangular two-axis cut feature pattern, reusing the existing linear cut-tool producer; confirm its exact profile before implementation. | Distinguish body copies from repeated cut tools. Preserve source/history, dual-UV/trim ownership, exact names, ambiguous/missing references and atomic refusal; verify actual edit/file results. |
+| 08 | Feature patterns, direct editing and surfaces — CG2 | Remaining curve/fill feature patterns and current move/delete/replace/thicken/offset/knit/trim/extend gaps. Reuse03 and existing body-copy/affine/Boolean/surface consumers; the research mapping attaches #2227/#2215 and #2032/#2036 controls. | Kernel/Model → actual Studio after delivered07 and qualified D332. Next selected candidate: bounded rectangular two-axis cut feature pattern, reusing the existing linear cut-tool producer; confirm its exact profile before implementation. | Distinguish body copies from repeated cut tools. Preserve source/history, dual-UV/trim ownership, exact names, ambiguous/missing references and atomic refusal; verify actual edit/file results. |
 | 09 | Advanced sketch — CG3 | Remaining spline handles, conics, text/blocks and diagnostic/edit consumers. Reuse existing solver and corrected sketch adapter; attach #2210/#2215 and #2033/#2038 controls.  D318 supplies skeleton raw admission/ID preservation with Model41/Studio7 affected checks, both types/lint and actual fresh-context edit/Undo/file proof; see [qualification](notes/skeleton-file-admission-2026-10-29/qualification.json). | Kernel/Model → actual Studio after08. Existing2D→3D/extrude-cut and dimension-expression decisions remain. | Returned geometry meets the original residual limits. Distinguish DOF, conflict, redundancy and nonconvergence; preserve authored coordinates/dimensions/references through actual constraint edit, downstream feature and Save/fresh Open. |
 | 10 | 조립 확장 — CG4 | 유연한 하위 조립, 반복 occurrence 참조, 조립 피처, 승인된 motion/대형 조립 범위. | Model/Outer + Kernel/GPU. 같은 revision의 배치/관절 기반이 선행. | 계층·part-local/world/display 변환과 반복 인스턴스를 보존한다. pose 표시를 동역학 완료로 쓰지 않는다. |
 | 11 | 도면 확장 — CG5 DR-6/7/8 | 남은 GD&T/복합 프레임, ISO/ASME 스타일·인치 표시, 도면 세트. | Drawings. 01과 필요한 geometry/reference 기반이 선행. | 실제 sheet/SVG·파일·정상 제품을 닫는다. 한 프레임·기호 시험을 전체 규격 적합성이나 제조 수락으로 올리지 않는다. |
@@ -2193,6 +2192,36 @@ yellow comes from the shared Studio accent, not a geometry requirement; no separ
 found. Select a dedicated cyan palette, stronger face tint and body outline, distinct point hover/
 selection markers, and consistent base/direct/instance routes across WebGPU/WebGL2 and dark/light.
 Keep general tool/section/mould accent semantics. Reuse current rendering mechanisms; no new GPU engine.
-Source inspection is complete; implementation and actual visibility checks are NOT_RUN at this entry.
+D332 source and selected actual profiles are now qualified; see the bounded completion below.
 After this direct request, advance08 with the bounded rectangular two-axis cut feature grid candidate,
 then09; retain general07 extensions and the source-backed curve-pattern family separately.
+
+
+### D332 base selection visibility — qualified (2026-10-29)
+
+[Evidence and original startup failure](notes/selection-visibility-2026-10-29/README.md): distinct cyan
+selection palette for dark/light, stronger face tint,3.4px selected edges,3px body outline and6px point
+with contrasting ring versus4px hover. General tool/section/mould accent remains. Types/build/lint and
+existing facePaint3 pass. Four actual backend/theme profiles qualify across two serial invocations: first
+WebGPU2PASS, GL2-dark setupFAIL/lightNOTRUN; driver waits for accepted engine readiness, then GL2-only
+retake2PASS. Preserve failure and public pending-work refusal. No simultaneous browser execution.
+Root reviews representative actual captures including selected-face theme recolour; numeric contrast,
+full accessibility/display/assembly/direct/editor matrices and full suites are not accepted. WebGPU's
+global outline width also makes existing red contact outlines3px; priority remains. Normal push follows.
+Next regular08 candidate: editable rectangular two-axis cut feature grid using the existing cut-tool
+producer; preserve current linear pattern and do not repeat delivered07 work.
+
+Electron/WebGPU-only was asked as a feasibility question. Attach it to existing15 desktop support:
+select a bundled Chromium/Electron platform matrix, require startup adapter/device availability and
+document-preserving device-loss recovery. No wrapper, backend deletion or release is adopted here.
+
+### Existing Model/drawing review supplement — intake only, 2026-10-29
+
+[Retained supplied reports/status boundaries](notes/commercial-readiness-intake-2026-10-29/model-and-drawing-supplement/README.md)
+attach to existing12/16 acceptance and DA-DUP-1/#2243. External pinned CPU six-group PASS observations
+retain overall ORCHESTRATION FAIL and clean acceptance NOT_QUALIFIED. Separate source-only Model review
+adds no runtime or confirmed defect; register parameter fresh-session re-edit, atomic consumer ownership,
+reference/shared-revision saved meaning and release-binding evidence gaps under their existing IDs.
+MODEL-EVALMEMO-EVALUATOR-SCOPE remains conditional CONTRACT_GAP, not a reproduced defect; establish
+caller semantics before any check. No duplicate issue, implementation dispatch, cross-chat reply, remote
+state change, priority switch or repetition of passed checks. Owner/HOLD boundaries remain.

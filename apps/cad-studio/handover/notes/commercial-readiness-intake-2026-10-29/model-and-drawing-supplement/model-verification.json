@@ -1,0 +1,236 @@
+{
+  "verdict": "SOURCE_ONLY_REVIEW_COMPLETE_COMMERCIAL_ACCEPTANCE_NOT_QUALIFIED",
+  "pinnedCommit": "5907c3931cce980f9beb99bfc857ede6654ee2e5",
+  "endHead": "d5c5d7a20c4057cbae9f0a9f21a92745a5ef1d79",
+  "endDirtyPreserved": [
+    "?? .claude/"
+  ],
+  "modelCommittedDeltaToEnd": [],
+  "sourceEvidence": [
+    {
+      "path": "packages/barocss-cad-model/package.json",
+      "sha256": "19454edcf0826f64cf580b9a4abadb9d8361a59df65988d9da1d3adf98c03fe3",
+      "bytes": 1125,
+      "gitBlob": "b8ce65cf92a61b1dd0d671027fe1575a783e60c1"
+    },
+    {
+      "path": "packages/barocss-cad-model/scripts/test.mjs",
+      "sha256": "b4af32a6834df229f6b4d328e4acde0bd460219b66b29aef1ad96480f7f6e39f",
+      "bytes": 1648,
+      "gitBlob": "97f08a8548144e068a87fe20a02e58909546a82d"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/api/index.ts",
+      "sha256": "2566d36c5501db855b27c88ded7986f47ba1d8f5d2990b7d9586287b0ae7cb52",
+      "bytes": 1535,
+      "gitBlob": "50652d2da51c3d7154417d3ebf970bf10988c94c"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/api/part.ts",
+      "sha256": "578e2be2de379de52d7ac822051ec4948951a32005ff3305a45f5402e76bfe87",
+      "bytes": 39824,
+      "gitBlob": "4ca5729c3a8c4cc155c082a2bc562925ca4cee60"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/api/studio.ts",
+      "sha256": "67a2ae332128a7597ccbe1c09f3ed37c3ab6eb89931fde81e394b8f085ae6809",
+      "bytes": 8151,
+      "gitBlob": "d3cf34231a1c425cb0f29eba575821f2a5e31250"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/api/core.ts",
+      "sha256": "29ebf7506f53df0c0a9c21248bf145aa7e985d3d1b5970195495aad1aff4358a",
+      "bytes": 3497,
+      "gitBlob": "216f3a607eda9b2e1c956bd8ccce07b289553f1b"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/api/assembly.ts",
+      "sha256": "240c5d63622c3b4b0f1fa53c411bf102775d1d444dd408e565ea63618e64fb10",
+      "bytes": 12157,
+      "gitBlob": "91e260dce1aaf981ccf90e743e32414bba9438d5"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/doc.ts",
+      "sha256": "d9083e6b67bdc4460af0b426759daac982f1b43a286955edfa87fc826ab3e0b9",
+      "bytes": 106099,
+      "gitBlob": "2f6d91924e363643c282866ca5a55b961ab09160"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/ids.ts",
+      "sha256": "aa4ff5ab00be729f3f68e8877ec4883a05afe7053a1261557f343c128db24499",
+      "bytes": 6529,
+      "gitBlob": "c42ac27f0a4123b610c81ea343f4db0ae9e7dd5b"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/parameters.ts",
+      "sha256": "c115398e6291e52fce052b729ef253d8346a366cbb5fc744ec062bad790053b7",
+      "bytes": 7618,
+      "gitBlob": "7b25a00bd4f253d251748ab932c09bc36399b0d3"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/container.ts",
+      "sha256": "50a1ed89cc9f354882932a1a8a701cfc9b5f44669cad6f92ee235cd0810d38fc",
+      "bytes": 9539,
+      "gitBlob": "25a7c3f3f3d082caec229ed4541ddb934fdb5262"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/references.ts",
+      "sha256": "6b1025adf425bec626417f1e8f52f713cc9bfdd6bad9b8bc94c09da7f729b9b3",
+      "bytes": 21486,
+      "gitBlob": "3b2f63b891e4ce40c64ba7b86ce709ed580f4625"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/evalMemo.ts",
+      "sha256": "f233493294e422ffed1c3919907745f6a712d9e81e14ff1405396f4d07d0e24b",
+      "bytes": 5291,
+      "gitBlob": "9d184ba38388b8b378c0cb68b10d3f759df6cba4"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/wireDoc.ts",
+      "sha256": "d0ef7478b286e637e125465f25b60193ae5ba1449b148e09e1edecbc106fd0a3",
+      "bytes": 7701,
+      "gitBlob": "c43e00bd2921dfa271a9af8824518f593481da6e"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/meshWire.ts",
+      "sha256": "f69d6a8b5b100b3de4b5c1066b0877be95cd5ae9e379a8ff990a2b8ea59aec46",
+      "bytes": 3640,
+      "gitBlob": "3d0c74cc8b541b9ff4767a81a49edc38c39ac6f8"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/chat/transactions.ts",
+      "sha256": "4bc0f26ec2deb64b852ce2e80fbe406c68ac83ad7f673eb0cba02220cfe6639d",
+      "bytes": 3602,
+      "gitBlob": "27537c837190b399564ed8031bc59a85e1ff09a7"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/chat/part/history.ts",
+      "sha256": "d040338d0ae6edc1dbdaf811afaac6d63edc2d2dd922158d08bd858761d202cb",
+      "bytes": 15327,
+      "gitBlob": "7432bb109467150049559fe5d9afb1ba8f4f50e2"
+    },
+    {
+      "path": "apps/cad-studio/src/storage/useProject.ts",
+      "sha256": "4cfc5b96100c382ea06056c85c8c80843f6efc64622b60e43c8711458dfbaa63",
+      "bytes": 16619,
+      "gitBlob": "eff5bb8206a5de5664de881850ea22be9a94a182"
+    },
+    {
+      "path": "apps/cad-studio/src/engine/client.ts",
+      "sha256": "9bb19fdca69b58951f80bf9809a0b86d048f19d427e2a525eeef1c484ce27b12",
+      "bytes": 20516,
+      "gitBlob": "cd99f2e07986184f6f9ce46be4547da6cb17606b"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "20363a4dfa3536e6591b3353b6934cf0ba3452aa724be8967d20d628528208f8",
+      "bytes": 5592,
+      "gitBlob": "3800d98b7b7f02ffb25d2179dd87bcd158812323"
+    },
+    {
+      "path": ".github/scripts/affected-ci-plan.mjs",
+      "sha256": "b21bacf1970fb97f6ad7cdfc142657cd89104a0860db02c1399b057fba6e9e6b",
+      "bytes": 18646,
+      "gitBlob": "05959b1a4832af610bb8a53ca6b6d73952704f17"
+    },
+    {
+      "path": ".github/scripts/affected-ci-run.mjs",
+      "sha256": "925708731be655d1bf9b6d74b1a6a179725bf6ab9de087c2f3f21d24d7ed0aae",
+      "bytes": 12651,
+      "gitBlob": "63b405a2c836d05431f6fa825c5a716ddd4a8d2b"
+    },
+    {
+      "path": "apps/cad-studio/handover/roadmap.md",
+      "sha256": "0eae76e070c42ffbc9deae42e35f76b52696db99e999ea9875621dd11c1a698b",
+      "bytes": 303201,
+      "gitBlob": "e00a95ba70d0a12bc808d83157ec8d72f2c2e99d"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/chat/toolKit.ts",
+      "sha256": "298efaaf6c56a718b11b04fb648d33bcf4caad2cdd6af765ffa5eb03a34b7643",
+      "bytes": 12494,
+      "gitBlob": "8534f7b06a33c92e08543ed8b570693276315f54"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/chat/tools.ts",
+      "sha256": "0098a269ca14a49ea6bd17004f95f8e2bc4039ba1aee7c4c6a0250d3ba58fbcc",
+      "bytes": 20223,
+      "gitBlob": "2930fd5f49038525858d5b7798815b5ef9af23e1"
+    }
+  ],
+  "reusedEvidence": [
+    {
+      "path": "research/required-capabilities-by-package.md",
+      "sha256": "61ec10ca85052a676096de007c0e818cefe45eaecfeceacc4e24bb1d025ac515",
+      "kind": "prior bounded review reused; not re-executed"
+    },
+    {
+      "path": "research/d321-stop-receipt-review.md",
+      "sha256": "5158fa9891c14c7c1ff0c59e7ad8ab6eabfac417f08f584204dfc8f4b8a0875e",
+      "kind": "prior bounded review reused; not re-executed"
+    },
+    {
+      "path": "research/d322-late-save-receipt-review.md",
+      "sha256": "a35029df86428991a3f56a68470e5e5ffeba24368773063b6aa57212bd865e14",
+      "kind": "prior bounded review reused; not re-executed"
+    },
+    {
+      "path": "research/d323-canonical-snapshot-receipt-review.md",
+      "sha256": "ea7467db0ff7429d3e8d7e536c7e4fb3d9a0a11b88ede8a866802882dd501348",
+      "kind": "prior bounded review reused; not re-executed"
+    },
+    {
+      "path": "research/d326-project-open-receipt-review.md",
+      "sha256": "e78ce37c747d2a6c6fdb72fa213757405ba36d02d9c106907f67ae524925b8b8",
+      "kind": "prior bounded review reused; not re-executed"
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/worker-wire-lifetime-2026-10-29/qualification.json",
+      "sha256": "3c6bbfe1b0792b2330f136fca9aa9c6a2b857470bd2be0dcd6d2593c06f0c905",
+      "kind": "author qualification declaration reviewed; no independent rerun"
+    }
+  ],
+  "execution": {
+    "build": "NOT_RUN",
+    "test": "NOT_RUN",
+    "browser": "NOT_RUN",
+    "guard": "NOT_RUN",
+    "independentNumericAPI": "NOT_RUN"
+  },
+  "newDefectsConfirmed": 0,
+  "sourceCandidates": [
+    {
+      "id": "MODEL-EVALMEMO-EVALUATOR-SCOPE",
+      "status": "SOURCE_CANDIDATE_CONTRACT_GAP_NOT_EXECUTED",
+      "files": [
+        "src/engine/evalMemo.ts:15-24,69-81",
+        "src/chat/part/history.ts:26,82",
+        "src/engine/references.ts:220"
+      ],
+      "condition": "distinct evaluator/context must be allowed by contract; pure equivalent evaluators may intentionally share success",
+      "alternativeExplanations": [
+        "standard callers may always use semantically identical pure evaluators",
+        "new Worker realm naturally owns a separate module cache",
+        "same-realm distinct-context admissibility not established"
+      ]
+    }
+  ],
+  "blockingGates": [
+    "fresh-session supported parameter/native re-edit consumer",
+    "atomic reject/Undo/late ownership selected consumer",
+    "ambiguous refs/shared part revision accept and saved semantics",
+    "release SHA workflow evidence and public contract binding"
+  ],
+  "drawingBoundary": "Parent High: FAIL_ORCHESTRATION_WITH_VALID_PINNED_CPU_OBSERVATIONS; 6 CPU groups PASS; clean acceptance NOT_QUALIFIED; not re-reviewed",
+  "nextCheckpoint": "SUPPORTED_PARAMETER_NATIVE_FRESH_SESSION_CONSUMER_GATE_PREPARE",
+  "productEdits": 0,
+  "existingEvidenceEdits": 0,
+  "report": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/cad-model-commercial-review-20261029/review.md",
+  "commands": [
+    "git -C P show PIN:path",
+    "git -C P grep -n -E PATTERN PIN -- scoped paths",
+    "git -C P status --short",
+    "git -C P diff --name-only PIN HEAD -- packages/barocss-cad-model"
+  ],
+  "reportSHA256": "c6a305af4b7394fb3bae0278589991b0dc3fe96bb0f4129c6e0dcf3f0072e7f3"
+}

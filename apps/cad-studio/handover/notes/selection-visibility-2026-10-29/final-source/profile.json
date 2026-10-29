@@ -1,0 +1,43 @@
+{
+  "sourceCommit": "d5c5d7a20c4057cbae9f0a9f21a92745a5ef1d79",
+  "baseline": "564897679cf9e32798faf4c23aba2e89fcde12f9",
+  "scope": "Five changed production files and selected driver only; not complete dependency graph",
+  "files": [
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/src/styles.css",
+      "relative": "apps/cad-studio/src/styles.css",
+      "bytes": 57025,
+      "sha256": "8534098dbca1e9332b32688c5fb7ccf303b214fb8f847eefe54764c30dc6c6d4"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/src/viewport/displayPolicy.ts",
+      "relative": "apps/cad-studio/src/viewport/displayPolicy.ts",
+      "bytes": 2936,
+      "sha256": "ac78557eca6144f4e6cd3ce5fe42f1b8af5fd43dbc410434cd530afbbe915fee"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/src/viewport/gpuRenderer.ts",
+      "relative": "apps/cad-studio/src/viewport/gpuRenderer.ts",
+      "bytes": 80455,
+      "sha256": "510ce4360cfd5e986ac6c1ca524c8b83928b6f39da424f5c51260afa08e8c788"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/src/viewport/renderer.ts",
+      "relative": "apps/cad-studio/src/viewport/renderer.ts",
+      "bytes": 86776,
+      "sha256": "ec5ecea93b23131c53efded9643d6db816322df984551a0943c55c892514997f"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/src/viewport/Viewport.tsx",
+      "relative": "apps/cad-studio/src/viewport/Viewport.tsx",
+      "bytes": 126231,
+      "sha256": "a0a3ef62d916dc88a04666884577c0641cf5972335bbaeb0edfc8a1cae4e6408"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/selection-visibility-browser.mjs",
+      "relative": "apps/cad-studio/test/selection-visibility-browser.mjs",
+      "bytes": 14320,
+      "sha256": "63a1b078745cc7ba473b88e3d46474f750bcdf69a692594b823bc43cc8a54e8c"
+    }
+  ]
+}

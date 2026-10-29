@@ -16457,3 +16457,30 @@ placement issue observed, but snapshots may retain transient toasts. No whole-sc
 full assembly matrix, full suites, remoteCI or performance acceptance. Runtimeccbdf285e; driver/guard
 followup5907c3931. Evidence: notes/drawing-location-ownership-2026-10-29/qualification.json.
 Normal feature push authorized; no PR/release. Next direct D332 selection visibility, then08→09.
+
+
+## D332 — Give base viewport selection its own visible palette (2026-10-29)
+
+The owner requests clearer point/edge/face/body selection. Existing yellow reuses the UI accent; no
+separate rationale was found in the inspected decisions. Introduce darkcyan#22d3ee/lightcyan#007f9e
+selection tokens shared by both renderers and SVG/outliner; preserve general tool/section/mould accent.
+Face tintshare0.64, selectededge3.4px, bodyoutline3px, selectedpoint6px with contrastingring versus
+hover4px. Avoid drawing a hover marker over an already selected vertex. Theme changes invalidate face
+paint cache and recolour selected direct objects while preserving unlit/width/doubleSided/roughness.
+WebGL2 uses its existing visible-edge pass for selected bodyedges; GPU globaloutlinewidth also affects
+red contact outlines3px, preserving colour and priority. No geometry/Model/GPU-package/schema/dependency
+changes. Apply React rendering guidance without new state or per-element nested functions.
+
+Node22types/build/scopedlint and existing facePaint3 pass; existing bundler warnings retained. Actual
+Chrome serialWebGPUdark/light2PASS precede GL2-dark startupFAIL (lightNOTRUN): Box command was refused
+while initial computation was pending. Preserve rawtimeout/publictoast and zero page/console errors.
+Driver-only readiness wait then GL2-only retake2PASS; reuse both WebGPU successes. Four distinct finite
+profiles across two invocations, not one whole-run PASS; one browser/context at a time. Actual public
+mouse/filter/Escape/theme operations preserve document, selection and geometry; hooks only observe.
+Root reviews eight representative captures including live selected-face theme recolour. Sourcewatch12
+matching observations binds five changed modules and driver only, not full servedgraph. No numeric
+contrast/accessibility certification, direct/instance/editor actual matrix, contact-specific run, full
+suites, naturalfailure/OOM/performance, Electron runtime or remoteCI/release acceptance.
+Source d5c5d7a20; readinessfollowup5f845139c. Evidence: notes/selection-visibility-2026-10-29/qualification.json.
+Normal push authorized. Electron/WebGPU-only question is feasible support-policy discussion under15,
+not an adopted wrapper/backend-removal action. Next regular08 bounded two-axis cut feature pattern.

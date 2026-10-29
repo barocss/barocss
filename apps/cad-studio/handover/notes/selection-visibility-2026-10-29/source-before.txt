@@ -1,0 +1,1 @@
+Frozen selection sources and browser driver unchanged
