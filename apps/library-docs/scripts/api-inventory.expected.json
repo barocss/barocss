@@ -454134,7 +454134,7 @@
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
-                "type": "() => void"
+                "type": "(instanceMesh?: Mesh | undefined) => void"
               },
               {
                 "name": "setBackground",
@@ -501536,7 +501536,7 @@
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
-                "type": "() => void"
+                "type": "(instanceMesh?: Mesh | undefined) => void"
               },
               {
                 "name": "setBackground",
@@ -516939,7 +516939,7 @@
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
-                "type": "() => void"
+                "type": "(instanceMesh?: Mesh | undefined) => void"
               },
               {
                 "name": "setBackground",

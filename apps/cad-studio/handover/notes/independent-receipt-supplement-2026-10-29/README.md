@@ -34,3 +34,19 @@ store/tab/remove/external-folder/Studio UI/same-size-time collision claims remai
 All four retained files are byte copies of the linked local reports. These reports supersede
 earlier exact-original-UI NOT_RUN only within their pinned wire/editor result; they do not
 rewrite earlier raw checkpoints or broaden the author feature claims.
+
+
+## D322 external receipt review
+
+Read and retain d322-review.md and d322-verification.json at exact27500e219. External verdict is APPROVE_BOUNDED_AUTHOR_RECEIPTS. Its124 unique artifact files/230 overlapping references, source7/runtime6/driver2 bindings and19 native byte observations are provenance checks, not tests. Root checks only the two cited manifest hashes against that exact commit; no runtime/focused/browser batch is repeated. D324 GPU pick ownership remains selected.
+
+Selected author3 schedules agree with document/render/name and project session/path/success-receipt guards. Same-document proves native autosave/next-Save behavior; New proves exact local recovery and binding; Close proves session isolation. Author398 includes focused9. Baseline/setup/SSR-lifetime failures and audit preparation NOT_RUN stay. Open/switch/full App ABA/natural failure/tab/external-folder/crash/full imported dependency graph and all A05/commercial acceptance remain unqualified. The optional independent future one-case checkpoint is a report suggestion, not a new mandatory execution or priority switch. No issue/product change or additional test is created here.
+
+
+## D321 external receipt review and evidence correction
+
+Read and retain d321-review.md/d321-verification.json at exacta386c8705. External verdict is APPROVE_BOUNDED_AUTHOR_RECEIPTS with independent execution NOT_RUN.109 unique artifacts/203 overlapping references and source6/runtime5 capsules are provenance counts, not tests;389 includes focused17. Root inspects the retained three Render-state JSON objects and confirms each lacks the history key.
+
+Exclude both-undefined Render history comparison from actual Undo-history preservation PASS. This narrows the original consumer assertion; it is not a newly reproduced product regression. Exact Doc/recovery, Drawing/Model history strings, source pre-history admission and actual public Undo/Redo remain separate valid evidence. Full history depth and viewport identity were already unexposed. Original receipts/failures/capsules and manifests stay unchanged.
+
+Existing O9/12/16/#2242 follow-up evidence condition: capture a real Render history value, assert presence and type before comparing; alternatively provide explicit equivalent public UI Undo/Redo preservation. Do not mark this gap fixed or run a duplicate whole suite here. Other missing initial/variant/candidate/completed-click and dependency-input evidence retain their limits. D324 remains selected, then existing urgent correctness work; no new issue or mandatory audit rerun is added.

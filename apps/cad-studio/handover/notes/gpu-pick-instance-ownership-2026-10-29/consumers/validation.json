@@ -1,0 +1,77 @@
+{
+  "status": "NATIVE_SELECTED_PASS",
+  "selectedTests": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+  },
+  "verificationGroups": {
+    "total": 6,
+    "pass": 6,
+    "names": [
+      "unchanged",
+      "matrix-replacement",
+      "reorder",
+      "shrink",
+      "instances-null",
+      "mesh-removal"
+    ]
+  },
+  "exit": 0,
+  "execution": {
+    "duration": 3453.644875,
+    "testDuration": 3396.108792,
+    "timeUnit": "ms"
+  },
+  "browser": "156.0.8078.48",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "devicePixelRatio": 1,
+  "syntax": {
+    "exit": 0,
+    "receipt": "syntax-first.json",
+    "reused": true
+  },
+  "lint": {
+    "exit": 0,
+    "raw": "lint-first.txt"
+  },
+  "sourceProfile": "native-first/source-profile.json",
+  "criticalSourceDistHashesUnchangedAfterRun": true,
+  "nativeResults": {
+    "positive": "Each group actual red pixels + public GPU pick instance1/triangle0/face71",
+    "unchanged": "Delayed hit retained original metadata",
+    "mutations": "Matrix replacement/reorder/shrink/instances-null/mesh-removal all returned null without throw",
+    "fresh": "Next public pick returned current instance0/1/null or replacement mesh with face71 and finite point/depth",
+    "cleanup": "Selected native buffer unmap1 after delayed pick, unmap2 after fresh reuse; six owned Viewers disposed"
+  },
+  "pageErrors": [],
+  "cleanup": {
+    "runnerProcess": 49501,
+    "runnerExited": true,
+    "contextBrowserServer": "OWN_CONTEXT_BROWSER_SERVER_CLOSED",
+    "gate": "holder:none after exit",
+    "otherProcesses": "Existing unrelated Chrome renderer left unchanged"
+  },
+  "visualReview": [
+    "native-first/native-positive.png",
+    "native-first/native-fresh-after-removal.png"
+  ],
+  "boundaries": [
+    "Native mapAsync completion Promise return held only after native fulfillment; native receiver/args/values preserved",
+    "No readback bytes/depth/id/queue/draw/result substitutions",
+    "One selected browser test with six groups, not six unique tests",
+    "CPU delayed mock proof is separately retained by unit owner; no actual browser baseline failure attempted",
+    "No VRAM/driverbytes/performance/OOM result",
+    "Adapter absence would be explicit SKIP, but actual adapter was present"
+  ],
+  "notRun": [
+    "Native browser before-fix baseline",
+    "Other browser/adapter/DPR",
+    "Device loss/recovery/ABA/whole matrix beyond six groups",
+    "Full browser/CPU/Model/Kernel/Studio suites by consumer"
+  ]
+}

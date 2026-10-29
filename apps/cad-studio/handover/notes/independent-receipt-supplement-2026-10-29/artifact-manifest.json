@@ -1,7 +1,7 @@
 {
   "README.md": {
-    "bytes": 2825,
-    "sha256": "9c7ccaebed3045229f70b9ec79579233a6a3476e0d60dc8ed041c65a44fcdf40"
+    "bytes": 5397,
+    "sha256": "58874ae15ed534dd854d5733b6aa31be11edfff076e424b7dfcc4f7b6bf390a2"
   },
   "d319-review.md": {
     "bytes": 9795,
@@ -10,6 +10,30 @@
   "d320-review.md": {
     "bytes": 9039,
     "sha256": "df82f6baacdddd46012dd1df1018fde43ac81b04256bd4ab49cfc09444f76659"
+  },
+  "d321-intake-bindings.json": {
+    "bytes": 1338,
+    "sha256": "137ce0497aeac2542ffc97b4618e1b259987b021f4e52a44ce11ca71205749a6"
+  },
+  "d321-review.md": {
+    "bytes": 10620,
+    "sha256": "5158fa9891c14c7c1ff0c59e7ad8ab6eabfac417f08f584204dfc8f4b8a0875e"
+  },
+  "d321-verification.json": {
+    "bytes": 19723,
+    "sha256": "9521e793fae9f0850b8c0bf24ac45b7e3383fc98083ce9aeb21113c71e5c5796"
+  },
+  "d322-intake-bindings.json": {
+    "bytes": 993,
+    "sha256": "b975873982c9a7e7e912bbac5ab7e2180c06d96f3713994610a2b47430294174"
+  },
+  "d322-review.md": {
+    "bytes": 10022,
+    "sha256": "a35029df86428991a3f56a68470e5e5ffeba24368773063b6aa57212bd865e14"
+  },
+  "d322-verification.json": {
+    "bytes": 23626,
+    "sha256": "c0625d7f392ff05387d28dd40900fc98f5cdcc1c68ffc38d1886492fba9b7f31"
   },
   "original-skeleton-ui-review.md": {
     "bytes": 3314,

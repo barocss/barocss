@@ -1,0 +1,520 @@
+{
+  "review": "APPROVE_BOUNDED_AUTHOR_RECEIPTS",
+  "workId": "D322",
+  "exactCommit": "27500e219febc591845cd5e4c53341a24ca9d39b",
+  "productRepository": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+  "mode": "SOURCE_AND_RECEIPT_ONLY",
+  "independentExecution": "NOT_RUN",
+  "heavyGate": "NOT_REQUESTED",
+  "productWrites": false,
+  "existingAuthorWIPPreserved": true,
+  "manifestVerification": [
+    {
+      "manifest": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/qualification-artifacts.json",
+      "schema": "root object: relative artifact path -> bytes,sha256",
+      "manifestSHA256": "0d128d793fb8e458bb802bbd4254945dab3ffa02f87aec18c7780999570f8d05",
+      "checkedReferences": 124,
+      "mismatches": []
+    },
+    {
+      "manifest": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/artifact-manifest.json",
+      "schema": "algorithm=sha256, files[]; paths relative to consumers/",
+      "manifestSHA256": "b03fea591e6e59d0e681f59617e51b3ed62251daad29fc2034bdb1fcc234fecd",
+      "checkedReferences": 106,
+      "mismatches": []
+    }
+  ],
+  "manifestReferenceChecks": 230,
+  "uniqueVerifiedArtifactFiles": 124,
+  "countsMeaning": "124 parent and 106 consumer entries overlap; 230 hash-reference comparisons, 124 unique artifact files. These are not test counts.",
+  "sourceBindings": [
+    {
+      "path": "apps/cad-studio/src/App.tsx",
+      "expected": "3408486cb5ba46cb87091c9916be0c99ceee09ce7662779d6742adfe982ded35",
+      "actual": "3408486cb5ba46cb87091c9916be0c99ceee09ce7662779d6742adfe982ded35",
+      "match": true,
+      "binding": "qualification.sourceHashes"
+    },
+    {
+      "path": "apps/cad-studio/src/storage/useProject.ts",
+      "expected": "b137e624895a31f76527efd7183913aec72161d07121cd2ecf3f0000d89ed94a",
+      "actual": "b137e624895a31f76527efd7183913aec72161d07121cd2ecf3f0000d89ed94a",
+      "match": true,
+      "binding": "qualification.sourceHashes"
+    },
+    {
+      "path": "apps/cad-studio/src/state/saveOwnership.ts",
+      "expected": "da2146866d24cefa4ca2caedfaf0784ffc785968d6b8016dda0f5236774003bd",
+      "actual": "da2146866d24cefa4ca2caedfaf0784ffc785968d6b8016dda0f5236774003bd",
+      "match": true,
+      "binding": "qualification.sourceHashes"
+    },
+    {
+      "path": "apps/cad-studio/test/late-save-ownership.test.ts",
+      "expected": "85348ff269daf7bb28638c3a41b74c7cba904fba7dcc40b61c5d475a5b26fc47",
+      "actual": "85348ff269daf7bb28638c3a41b74c7cba904fba7dcc40b61c5d475a5b26fc47",
+      "match": true,
+      "binding": "qualification.sourceHashes"
+    },
+    {
+      "path": "apps/cad-studio/test/late-save-ownership-browser.test.mjs",
+      "expected": "e3a00e5ac1616cfa0d24279bfec08f99a25d8bf77391014af6b1d56e57984a98",
+      "actual": "e3a00e5ac1616cfa0d24279bfec08f99a25d8bf77391014af6b1d56e57984a98",
+      "match": true,
+      "binding": "qualification.sourceHashes"
+    },
+    {
+      "path": "apps/cad-studio/test/late-save-native-scheduler.mjs",
+      "expected": "3c2d6fb751cdb30577214a71ec95f12471044d7040a23e0c77eb187897802f21",
+      "actual": "3c2d6fb751cdb30577214a71ec95f12471044d7040a23e0c77eb187897802f21",
+      "match": true,
+      "binding": "qualification.sourceHashes"
+    },
+    {
+      "path": "apps/library-docs/docs/studio/projects.md",
+      "expected": "997b630e4637588e817334be1c07c172395235810a5854c5ee193f24ba5e9dc4",
+      "actual": "997b630e4637588e817334be1c07c172395235810a5854c5ee193f24ba5e9dc4",
+      "match": true,
+      "binding": "qualification.sourceHashes"
+    },
+    {
+      "path": "apps/cad-studio/src/App.tsx",
+      "expected": "3408486cb5ba46cb87091c9916be0c99ceee09ce7662779d6742adfe982ded35",
+      "actual": "3408486cb5ba46cb87091c9916be0c99ceee09ce7662779d6742adfe982ded35",
+      "match": true,
+      "binding": "final-run/source-profile.runtime"
+    },
+    {
+      "path": "apps/cad-studio/src/storage/useProject.ts",
+      "expected": "b137e624895a31f76527efd7183913aec72161d07121cd2ecf3f0000d89ed94a",
+      "actual": "b137e624895a31f76527efd7183913aec72161d07121cd2ecf3f0000d89ed94a",
+      "match": true,
+      "binding": "final-run/source-profile.runtime"
+    },
+    {
+      "path": "apps/cad-studio/src/storage/project.ts",
+      "expected": "df2fefe53a8dc9d5be5fc5d2193583c2b87f3fc58e87fc4788d1b23d7a30ebd1",
+      "actual": "df2fefe53a8dc9d5be5fc5d2193583c2b87f3fc58e87fc4788d1b23d7a30ebd1",
+      "match": true,
+      "binding": "final-run/source-profile.runtime"
+    },
+    {
+      "path": "apps/cad-studio/src/storage/handleStore.ts",
+      "expected": "73e879642071ec3db0597189946edb952804c523fc4159c0d7b584263b46c2a5",
+      "actual": "73e879642071ec3db0597189946edb952804c523fc4159c0d7b584263b46c2a5",
+      "match": true,
+      "binding": "final-run/source-profile.runtime"
+    },
+    {
+      "path": "apps/cad-studio/src/app/recovery.ts",
+      "expected": "56ee708fe832d00f73117e4e9829575b9899ec0a3c011db7a8d2f12ff40de989",
+      "actual": "56ee708fe832d00f73117e4e9829575b9899ec0a3c011db7a8d2f12ff40de989",
+      "match": true,
+      "binding": "final-run/source-profile.runtime"
+    },
+    {
+      "path": "apps/cad-studio/src/state/saveOwnership.ts",
+      "expected": "da2146866d24cefa4ca2caedfaf0784ffc785968d6b8016dda0f5236774003bd",
+      "actual": "da2146866d24cefa4ca2caedfaf0784ffc785968d6b8016dda0f5236774003bd",
+      "match": true,
+      "binding": "final-run/source-profile.runtime"
+    }
+  ],
+  "sourceBindingUniquePaths": 10,
+  "finalDriverCapsules": [
+    {
+      "sourcePath": "apps/cad-studio/test/late-save-ownership-browser.test.mjs",
+      "capsule": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/late-save-ownership-browser.test.mjs.gz",
+      "gzipHashMatch": true,
+      "decompressedSourceHashMatch": true,
+      "exactCommitSourceMatch": true
+    },
+    {
+      "sourcePath": "apps/cad-studio/test/late-save-native-scheduler.mjs",
+      "capsule": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/late-save-native-scheduler.mjs.gz",
+      "gzipHashMatch": true,
+      "decompressedSourceHashMatch": true,
+      "exactCommitSourceMatch": true
+    }
+  ],
+  "baselineProvenance": [
+    {
+      "name": "first-run",
+      "baseline": "a386c8705beda2c72d215da61a55fd6119351ca2",
+      "runtimeMatches": [
+        {
+          "path": "apps/cad-studio/src/App.tsx",
+          "match": true
+        },
+        {
+          "path": "apps/cad-studio/src/storage/useProject.ts",
+          "match": true
+        },
+        {
+          "path": "apps/cad-studio/src/storage/project.ts",
+          "match": true
+        },
+        {
+          "path": "apps/cad-studio/src/storage/handleStore.ts",
+          "match": true
+        },
+        {
+          "path": "apps/cad-studio/src/app/recovery.ts",
+          "match": true
+        }
+      ],
+      "capsules": [
+        {
+          "path": "apps/cad-studio/test/late-save-ownership-browser.test.mjs",
+          "compressedMatch": true,
+          "sourceMatch": true
+        },
+        {
+          "path": "apps/cad-studio/test/late-save-native-scheduler.mjs",
+          "compressedMatch": true,
+          "sourceMatch": true
+        }
+      ]
+    },
+    {
+      "name": "second-run",
+      "baseline": "a386c8705beda2c72d215da61a55fd6119351ca2",
+      "runtimeMatches": [
+        {
+          "path": "apps/cad-studio/src/App.tsx",
+          "match": true
+        },
+        {
+          "path": "apps/cad-studio/src/storage/useProject.ts",
+          "match": true
+        },
+        {
+          "path": "apps/cad-studio/src/storage/project.ts",
+          "match": true
+        },
+        {
+          "path": "apps/cad-studio/src/storage/handleStore.ts",
+          "match": true
+        },
+        {
+          "path": "apps/cad-studio/src/app/recovery.ts",
+          "match": true
+        }
+      ],
+      "capsules": [
+        {
+          "path": "apps/cad-studio/test/late-save-ownership-browser.test.mjs",
+          "compressedMatch": true,
+          "sourceMatch": true
+        },
+        {
+          "path": "apps/cad-studio/test/late-save-native-scheduler.mjs",
+          "compressedMatch": true,
+          "sourceMatch": true
+        }
+      ]
+    }
+  ],
+  "nativeFileObservations": [
+    {
+      "path": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/same-document/initial-saved-nativeSaved.bcad",
+      "sha256": "7dddcf338c7594c8122c6d41c2fe6457cf937104f8b6b8a0217f5f1d26eb1604",
+      "bytes": 657,
+      "sizeMatches": true,
+      "parsedDocMatchesReceipt": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/same-document/before-save-nativeSaved.bcad",
+      "sha256": "7dddcf338c7594c8122c6d41c2fe6457cf937104f8b6b8a0217f5f1d26eb1604",
+      "bytes": 657,
+      "sizeMatches": true,
+      "parsedDocMatchesReceipt": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/same-document/held-save-nativeSaved.bcad",
+      "sha256": "6effde2bbe3e1dd8effb86e92635c1f98b405809c955e372df08c5dfa554bf5c",
+      "bytes": 1694,
+      "sizeMatches": true,
+      "parsedDocMatchesReceipt": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/same-document/newer-edit-autosaved-nativeSaved.bcad",
+      "sha256": "6effde2bbe3e1dd8effb86e92635c1f98b405809c955e372df08c5dfa554bf5c",
+      "bytes": 1694,
+      "sizeMatches": true,
+      "parsedDocMatchesReceipt": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/same-document/newer-edit-autosaved-nativeAutosave.bcad",
+      "sha256": "d01e692d999153d9be697a6b664449286524b89b2427a3394b99bd2d4047315d",
+      "bytes": 1695,
+      "sizeMatches": true,
+      "parsedDocMatchesReceipt": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/same-document/after-release-nativeSaved.bcad",
+      "sha256": "6effde2bbe3e1dd8effb86e92635c1f98b405809c955e372df08c5dfa554bf5c",
+      "bytes": 1694,
+      "sizeMatches": true,
+      "parsedDocMatchesReceipt": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/same-document/after-release-nativeAutosave.bcad",
+      "sha256": "d01e692d999153d9be697a6b664449286524b89b2427a3394b99bd2d4047315d",
+      "bytes": 1695,
+      "sizeMatches": true,
+      "parsedDocMatchesReceipt": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/same-document/normal-save-B-nativeSaved.bcad",
+      "sha256": "d01e692d999153d9be697a6b664449286524b89b2427a3394b99bd2d4047315d",
+      "bytes": 1695,
+      "sizeMatches": true,
+      "parsedDocMatchesReceipt": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/same-document/normal-save-B-nativeAutosave.bcad",
+      "sha256": "d01e692d999153d9be697a6b664449286524b89b2427a3394b99bd2d4047315d",
+      "bytes": 1695,
+      "sizeMatches": true,
+      "parsedDocMatchesReceipt": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/new-document/initial-saved-nativeSaved.bcad",
+      "sha256": "7dddcf338c7594c8122c6d41c2fe6457cf937104f8b6b8a0217f5f1d26eb1604",
+      "bytes": 657,
+      "sizeMatches": true,
+      "parsedDocMatchesReceipt": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/new-document/before-save-nativeSaved.bcad",
+      "sha256": "7dddcf338c7594c8122c6d41c2fe6457cf937104f8b6b8a0217f5f1d26eb1604",
+      "bytes": 657,
+      "sizeMatches": true,
+      "parsedDocMatchesReceipt": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/new-document/held-save-nativeSaved.bcad",
+      "sha256": "6effde2bbe3e1dd8effb86e92635c1f98b405809c955e372df08c5dfa554bf5c",
+      "bytes": 1694,
+      "sizeMatches": true,
+      "parsedDocMatchesReceipt": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/new-document/new-document-recovered-nativeSaved.bcad",
+      "sha256": "6effde2bbe3e1dd8effb86e92635c1f98b405809c955e372df08c5dfa554bf5c",
+      "bytes": 1694,
+      "sizeMatches": true,
+      "parsedDocMatchesReceipt": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/new-document/after-release-nativeSaved.bcad",
+      "sha256": "6effde2bbe3e1dd8effb86e92635c1f98b405809c955e372df08c5dfa554bf5c",
+      "bytes": 1694,
+      "sizeMatches": true,
+      "parsedDocMatchesReceipt": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/closed-project/initial-saved-nativeSaved.bcad",
+      "sha256": "7dddcf338c7594c8122c6d41c2fe6457cf937104f8b6b8a0217f5f1d26eb1604",
+      "bytes": 657,
+      "sizeMatches": true,
+      "parsedDocMatchesReceipt": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/closed-project/before-save-nativeSaved.bcad",
+      "sha256": "7dddcf338c7594c8122c6d41c2fe6457cf937104f8b6b8a0217f5f1d26eb1604",
+      "bytes": 657,
+      "sizeMatches": true,
+      "parsedDocMatchesReceipt": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/closed-project/held-save-nativeSaved.bcad",
+      "sha256": "6effde2bbe3e1dd8effb86e92635c1f98b405809c955e372df08c5dfa554bf5c",
+      "bytes": 1694,
+      "sizeMatches": true,
+      "parsedDocMatchesReceipt": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/closed-project/project-closed-nativeSaved.bcad",
+      "sha256": "6effde2bbe3e1dd8effb86e92635c1f98b405809c955e372df08c5dfa554bf5c",
+      "bytes": 1694,
+      "sizeMatches": true,
+      "parsedDocMatchesReceipt": true
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/final-run/closed-project/after-release-nativeSaved.bcad",
+      "sha256": "6effde2bbe3e1dd8effb86e92635c1f98b405809c955e372df08c5dfa554bf5c",
+      "bytes": 1694,
+      "sizeMatches": true,
+      "parsedDocMatchesReceipt": true
+    }
+  ],
+  "nativeFilesChecked": 19,
+  "sameDocumentRawByteFacts": {
+    "savedAAfterReleaseSHA256": "6effde2bbe3e1dd8effb86e92635c1f98b405809c955e372df08c5dfa554bf5c",
+    "newerAutosaveBeforeSHA256": "d01e692d999153d9be697a6b664449286524b89b2427a3394b99bd2d4047315d",
+    "newerAutosaveAfterSHA256": "d01e692d999153d9be697a6b664449286524b89b2427a3394b99bd2d4047315d",
+    "normalSaveBMainSHA256": "d01e692d999153d9be697a6b664449286524b89b2427a3394b99bd2d4047315d",
+    "normalSaveBAutosaveSHA256": "d01e692d999153d9be697a6b664449286524b89b2427a3394b99bd2d4047315d"
+  },
+  "authorCases": [
+    {
+      "case": "same-document",
+      "status": "SAFE_CONTRACT_PASS",
+      "receiptSHA256": "c5d5438664bffcb1d8dcb2f77adedeeed65600b285dbfc4cd640b7ddd0aeea78",
+      "receiptBaselineField": "a386c8705beda2c72d215da61a55fd6119351ca2",
+      "runtimeBinding": "final-run/source-profile.json, six source hashes match exact reviewed commit; baseline field identifies ancestor, not repaired runtime commit",
+      "observed": {
+        "liveDocEqualsNewer": true,
+        "savedDocEqualsA": true,
+        "dirtyAfter": true,
+        "newerAutosavePresent": true,
+        "recoveryBefore": null,
+        "recoveryAfter": null,
+        "projectPartUIBefore": "D322-owned.bcad",
+        "projectPartUIAfter": "D322-owned.bcad",
+        "projectTagRef": "NOT_EXPOSED; native file tags are retained",
+        "baselineBugObserved": false
+      },
+      "nativeCompletion": {
+        "nativeCloseReturn": 22,
+        "returnedTagRead": 23,
+        "projectRefreshComplete": 28
+      },
+      "normalSaveB": {
+        "completed": true,
+        "dirty": false,
+        "nativeTag": "1695-1793255309953",
+        "savedDocEqualsB": true
+      },
+      "errors": [],
+      "cleanup": {
+        "projectClose": "cleanup-only, after measured case",
+        "namespace": "REMOVED_AND_ABSENT",
+        "context": "CLOSED",
+        "browser": "CLOSED",
+        "server": "CLOSED"
+      },
+      "savedABytesUnchanged": true
+    },
+    {
+      "case": "new-document",
+      "status": "SAFE_CONTRACT_PASS",
+      "receiptSHA256": "70c3ca114c66d89e331515c2b9d800e4418307dba3a1ac43c0e253c24932e61a",
+      "receiptBaselineField": "a386c8705beda2c72d215da61a55fd6119351ca2",
+      "runtimeBinding": "final-run/source-profile.json, six source hashes match exact reviewed commit; baseline field identifies ancestor, not repaired runtime commit",
+      "observed": {
+        "liveDocEqualsNewer": true,
+        "savedDocEqualsA": true,
+        "dirtyAfter": true,
+        "newerAutosavePresent": false,
+        "recoveryBefore": "{\"fileName\":\"D322-new-document\",\"savedAt\":1793255319431,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[12,13],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":14,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":12,\"d\":13,\"h\":14,\"x\":0,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"}},\"nextId\":2}}",
+        "recoveryAfter": "{\"fileName\":\"D322-new-document\",\"savedAt\":1793255319431,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[12,13],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":14,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":12,\"d\":13,\"h\":14,\"x\":0,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"}},\"nextId\":2}}",
+        "projectPartUIBefore": null,
+        "projectPartUIAfter": null,
+        "projectTagRef": "NOT_EXPOSED; native file tags are retained",
+        "baselineBugObserved": false
+      },
+      "nativeCompletion": {
+        "nativeCloseReturn": 17,
+        "returnedTagRead": 18,
+        "projectRefreshComplete": null
+      },
+      "normalSaveB": null,
+      "errors": [],
+      "cleanup": {
+        "projectClose": "cleanup-only, after measured case",
+        "namespace": "REMOVED_AND_ABSENT",
+        "context": "CLOSED",
+        "browser": "CLOSED",
+        "server": "CLOSED"
+      },
+      "savedABytesUnchanged": true
+    },
+    {
+      "case": "closed-project",
+      "status": "SAFE_CONTRACT_PASS",
+      "receiptSHA256": "79886b8575fbadb57c6cb81f6a42cb557174e77a3d2e184beb0a064869bef8b7",
+      "receiptBaselineField": "a386c8705beda2c72d215da61a55fd6119351ca2",
+      "runtimeBinding": "final-run/source-profile.json, six source hashes match exact reviewed commit; baseline field identifies ancestor, not repaired runtime commit",
+      "observed": {
+        "liveDocEqualsNewer": true,
+        "savedDocEqualsA": true,
+        "dirtyAfter": true,
+        "newerAutosavePresent": false,
+        "recoveryBefore": null,
+        "recoveryAfter": null,
+        "projectPartUIBefore": null,
+        "projectPartUIAfter": null,
+        "projectTagRef": "NOT_EXPOSED; native file tags are retained",
+        "baselineBugObserved": false
+      },
+      "nativeCompletion": {
+        "nativeCloseReturn": 17,
+        "returnedTagRead": 18,
+        "projectRefreshComplete": null
+      },
+      "normalSaveB": null,
+      "errors": [],
+      "cleanup": {
+        "projectClose": "cleanup-only, after measured case",
+        "namespace": "REMOVED_AND_ABSENT",
+        "context": "CLOSED",
+        "browser": "CLOSED",
+        "server": "CLOSED"
+      },
+      "savedABytesUnchanged": true
+    }
+  ],
+  "authorRawExits": {
+    "consumers/baseline-first-exit.txt": "1",
+    "consumers/baseline-second-exit.txt": "1",
+    "consumers/final-run-exit.txt": "0",
+    "consumers/stop-regression-exit.txt": "0",
+    "root-studio-exit.txt": "0",
+    "root-docs-exit.txt": "0"
+  },
+  "authorCounts": {
+    "finalBrowser": {
+      "pass": 3,
+      "fail": 0,
+      "skip": 0
+    },
+    "focusedUniqueTests": 9,
+    "rootStudioTests": 398,
+    "overlap": "398 includes focused9; Stop regression reuses existing D321 and is not unique new coverage."
+  },
+  "preservedEarlierStates": {
+    "auditA02": "e1f2 source-reachable candidate; studio-005 preparation ended AGENT_PREPARATION_FAILED_AUTOMATED_CONTENT_FLAG, no executable probe/browser/guard, no independent runtime finding.",
+    "authorFirstBrowser": "a386 baseline setup/schedule failure: async predicate not awaited; null(doc), old Save release and safe final assertions not reached.",
+    "authorSecondBrowser": "a386 baseline safe-contract FAIL, dirty false and completed native autosave B absent; saved A/live B retained. Local recovery null both measured times.",
+    "authorFirstFocused": "9 assertions passed but React server.browser MessageChannel kept process alive; own PID SIGTERM/file-level failure retained. Final server.edge-only harness correction exits cleanly."
+  },
+  "notQualified": [
+    "Independent browser/CPU/build execution",
+    "Natural failure timing or hardware/IO fault coverage",
+    "Actual pending Save followed by Open file or project/path switch",
+    "Full App UI ABA/old-render/no-op timing matrix",
+    "Private useProject tag ref direct inspection",
+    "Generic Open/version/loadLog/refresh ownership including A05",
+    "Other tabs/processes/external folders/crash/permanent user-file loss",
+    "Full imported source/dependency graph or esbuild input-audit binding beyond the six recorded runtime files",
+    "Product/commercial CAD or all A02 acceptance"
+  ],
+  "reviewNotes": [
+    "No new actionable regression found within the selected late-Save scope.",
+    "Runtime receipts are author-created; hashes verify artifact/source identity and internal consistency, not independent execution.",
+    "Scheduler calls real native operations and holds one owned close Promise return only; native commit precedes hold, inspection IO marked separately.",
+    "Physical native autosave retention is distinct from readAutosave hiding saved-equal bytes.",
+    "Same-document native autosave and New-document localStorage recovery are separate proof paths.",
+    "No current working-tree project.ts source was used; exact-commit project.ts was read while author WIP remains untouched."
+  ],
+  "nextIndependentCheckpoint": {
+    "onlyOneCase": "^actual hook: late Save retains newer recovery, advances its tag, and keeps saved-equal checkpoint hidden$",
+    "prerequisite": "A later separately authorized finite cycle on a complete immutable 27500e2 source/dependency snapshot; do not run from author moving worktree. Bundle the existing test source without changing it. No native-method override needed.",
+    "commandAfterBundle": "/Users/user/Library/pnpm/nodejs/22.19.0/bin/node --test --test-name-pattern='^actual hook: late Save retains newer recovery, advances its tag, and keeps saved-equal checkpoint hidden$' <immutable-audit-bundle>/late-save-ownership.test.mjs",
+    "meaning": "One existing actual-hook/DirHandle-stand-in case can independently check saved A, newer checkpoint B, next-Save tag progression and saved-equal hiding. It does not prove real native browser scheduling.",
+    "thisCycle": "NOT_RUN; no extra execution proposed for this cycle."
+  }
+}

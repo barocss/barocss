@@ -1,0 +1,85 @@
+{
+  "algorithm": "sha256",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 3095,
+      "sha256": "94dc46fdcddb3bbfdecc129dcd6cd85c78e76ee6c7f757fd513c520f5fbe4bc2"
+    },
+    {
+      "path": "gate-first.txt",
+      "bytes": 96,
+      "sha256": "af2d4de8916f9debcf578fc67eaceca0e8925226f95298546dd873e604333455"
+    },
+    {
+      "path": "lint-first-exit.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "lint-first.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native-first/native-fresh-after-removal.png",
+      "bytes": 1222,
+      "sha256": "675c0ce485d4373862b2368056bb516a8b2ac7cc45bdda4e7dfe15be97286e44"
+    },
+    {
+      "path": "native-first/native-positive.png",
+      "bytes": 1222,
+      "sha256": "675c0ce485d4373862b2368056bb516a8b2ac7cc45bdda4e7dfe15be97286e44"
+    },
+    {
+      "path": "native-first/pick-instance-readback-browser.test.mjs.gz",
+      "bytes": 4209,
+      "sha256": "c42aa17a6ebb7930d9f1c21628488b3e1b981ef083cdd36868c8746f329e3dc2"
+    },
+    {
+      "path": "native-first/receipt.json",
+      "bytes": 112717,
+      "sha256": "61e1e14bd0e22f9db01295b5224fffb56c706b04934c66165d5027298985c8e0"
+    },
+    {
+      "path": "native-first/source-profile.json",
+      "bytes": 1674,
+      "sha256": "29fba9a0f625afe98f41f6d079f21c3b4cdba1520887d1d832df0e1a08f36a86"
+    },
+    {
+      "path": "native-first-exit.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "native-first.txt",
+      "bytes": 348,
+      "sha256": "a80b65a19d167b52b1ba53021f09ecf5eb05e139ff0ee74038e5f2b432771dd8"
+    },
+    {
+      "path": "plan.md",
+      "bytes": 3163,
+      "sha256": "2cab0540a55d41f9b4dc379339f18df475cdc7fe23d4db257e6511a04c4c0eab"
+    },
+    {
+      "path": "syntax-first-exit.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "syntax-first.json",
+      "bytes": 452,
+      "sha256": "d37f0825b1a6430ae5d2e7396c578014fed567f59274a1d8bb6eaa09fb3011e7"
+    },
+    {
+      "path": "syntax-first.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "validation.json",
+      "bytes": 2498,
+      "sha256": "159c7cfad34d8d50f45967c137901c37e71dd28128833fae24b8d6f7ed617131"
+    }
+  ]
+}

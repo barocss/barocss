@@ -1,0 +1,29 @@
+{
+  "worktree": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+  "critical": [
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/src/viewer/viewer.ts",
+      "sha256": "1c1df2143fe714569fe40b7aa27e6772faca9f44c9c50a9cca56194467b052a8"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/src/viewer/scene.ts",
+      "sha256": "f7e17275a2efb6c8b9d5bf73c89e61902f94a9f01541476ce07c79baf59954d5"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/dist/viewer/viewer.js",
+      "sha256": "d7cfd0a0e8d486267ea44959797b85f384d6138c14c50071e91ed67717e67c9c"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/dist/viewer/scene.js",
+      "sha256": "f8b810380643b45156e716513f25f73f412dbcc3137208e7c5285854e3327213"
+    }
+  ],
+  "driverSha256": "5939c7d77118ecceaacfa99c76bdd9fd7b1a63eeec65c447bc880d41490d8213",
+  "driverCapsule": "pick-instance-readback-browser.test.mjs.gz",
+  "gzipSha256": "c42aa17a6ebb7930d9f1c21628488b3e1b981ef083cdd36868c8746f329e3dc2",
+  "producerEmitReceipt": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/handover/notes/gpu-pick-instance-ownership-2026-10-29/unit/final-exits.txt",
+  "producerEmit": 0,
+  "producerCpu": 0,
+  "producerLint": 0,
+  "rebuild": "NOT_RUN; exact producer fresh dist served"
+}

@@ -1,0 +1,35 @@
+{
+  "sources": {
+    "d321-review.md": {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/d321-stop-receipt-review.md",
+      "bytes": 10620,
+      "sha256": "5158fa9891c14c7c1ff0c59e7ad8ab6eabfac417f08f584204dfc8f4b8a0875e"
+    },
+    "d321-verification.json": {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/verification/d321-stop-receipt-review.json",
+      "bytes": 19723,
+      "sha256": "9521e793fae9f0850b8c0bf24ac45b7e3383fc98083ce9aeb21113c71e5c5796"
+    }
+  },
+  "rootRawInspection": {
+    "path": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/consumers/third-run/d321-states.json",
+    "sha256": "f512e54f85113548ff98c437515a831615949246d35a71c57eb815a095ccf8e2",
+    "renderStates": [
+      {
+        "label": "Render-workspace-pending",
+        "historyKeyPresent": false
+      },
+      {
+        "label": "Grid-refused-1",
+        "historyKeyPresent": false
+      },
+      {
+        "label": "Grid-refused-2",
+        "historyKeyPresent": false
+      }
+    ]
+  },
+  "proofCorrection": "Both-undefined Render history comparison excluded from actual preservation PASS; no product regression established",
+  "runtimeRerun": "NOT_RUN",
+  "currentPriority": "D324 then existing priorities"
+}

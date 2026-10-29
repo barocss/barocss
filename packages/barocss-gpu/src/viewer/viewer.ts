@@ -295,6 +295,8 @@ export class Viewer {
   private outputBuffer!: Buffer;
   private pickTargets: { width: number; height: number; id: Texture; depth: Texture; z: Texture; instance: Texture; read: Buffer; views: { id: View; z: View; instance: View; depth: View } } | null = null;
   private meshes: Mesh[] = [];
+  /** Membership and accepted instance changes invalidate pending GPU pick readbacks. */
+  private pickSceneRevision = 0;
   /** The dirty meshes' slots of a frame (writeUniforms), kept from frame to frame. */
   private dirtySlots = new Int32Array(64);
   private freeSlots: number[] = [];
@@ -702,13 +704,17 @@ export class Viewer {
     m.slot = this.freeSlots.pop() ?? this.nextSlot++;
     this.growObjects(this.nextSlot);
     this.meshes.push(m);
+    this.pickSceneRevision++;
     this.scene = null;
     this.requestRender();
     return m;
   }
 
-  /** @internal A mesh moved (its transform or instances): the scene trees are made again at the next pick (G9). */
-  sceneMoved(): void { this.scene = null; }
+  /** @internal Rebuild scene trees after movement; instanceMesh signals an accepted instance replacement. */
+  sceneMoved(instanceMesh?: Mesh): void {
+    this.scene = null;
+    if (instanceMesh && instanceMesh.slot >= 0) this.pickSceneRevision++;
+  }
   /**
    * @internal Picks through the scene trees and large point meshes' hierarchies (G9, default); false: every mesh walked
    * in order, as before — the same answers (the test compares them), for tests.
@@ -761,6 +767,7 @@ export class Viewer {
     const i = this.meshes.indexOf(mesh);
     if (i < 0) return;
     this.meshes.splice(i, 1);
+    this.pickSceneRevision++;
     this.scene = null;
     this.freeSlots.push(mesh.slot);
     mesh.slot = -1;
@@ -777,6 +784,7 @@ export class Viewer {
 
   /** Remove every mesh and release every geometry. */
   clear(): void {
+    if (this.meshes.length) this.pickSceneRevision++;
     for (const m of this.meshes) { m.slot = -1; m.cost = null; }
     this.costRecords.clear();
     this.meshes = []; this.freeSlots = []; this.nextSlot = 0; this.scene = null;
@@ -1879,7 +1887,7 @@ export class Viewer {
     if (px < 0 || py < 0 || px >= this.canvas.width || py >= this.canvas.height) return null;
     const vp = this.prepareCamera();
     // The GPU depth belongs to this camera and pixel mapping, even while its readback waits.
-    const camera = this.camera, clip = this.clip;
+    const camera = this.camera, clip = this.clip, pickSceneRevision = this.pickSceneRevision;
     const cameraValues = [...camera.position, ...camera.target, ...camera.up,
       camera.projection, camera.fovY, camera.near, camera.far];
     const width = this.canvas.width, height = this.canvas.height;
@@ -1917,7 +1925,7 @@ export class Viewer {
     // Unmap first, including stale results, so the next queued pick can use the buffer.
     const currentCameraValues = [...this.camera.position, ...this.camera.target, ...this.camera.up,
       this.camera.projection, this.camera.fovY, this.camera.near, this.camera.far];
-    if (this.clip !== clip || this.camera !== camera || this.canvas.width !== width || this.canvas.height !== height
+    if (this.pickSceneRevision !== pickSceneRevision || this.clip !== clip || this.camera !== camera || this.canvas.width !== width || this.canvas.height !== height
       || this.canvas.clientWidth !== clientWidth || this.canvas.clientHeight !== clientHeight || this.aspect !== aspect
       || cameraValues.some((value, i) => !Object.is(value, currentCameraValues[i]))) return null;
     for (const [mesh, transform] of transforms) if (transform.some((value, i) => !Object.is(value, mesh.transform[i]))) return null;

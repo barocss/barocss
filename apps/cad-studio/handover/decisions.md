@@ -16228,3 +16228,35 @@ matrix, external folders/tabs/crash/primary-file loss and performance remain NOT
 are actual log contract, not source-checksum tests. #2236 fresh body retained; already CLOSED for transfer,
 no mutation. Viewer static asserted7 supplement stays draft and attached without priority switch. Normal
 feature push authorized; no PR/release. Next D324:A07/#2237 delayed GPU instance readback ownership.
+
+
+## D324 — Reject readback after accepted instance or membership changes (2026-10-29)
+
+The current-source CPU reconstruction baseline has unchanged controlPASS and shrink TypeErrorFAIL,
+with one map/unmap each. Capture a Viewer-private pick scene revision; advance on add/remove/nonempty
+clear and active successful instance replacement. Return null after original unmap if changed, before
+reading current instance matrices. Keep camera/clip/canvas/base/serial queue/error behavior. Invalid,
+already-null and detached changes retain valid ownership; accepted equal replacement and ABA invalidate.
+No new arithmetic, dependency/WASM/schema or global resource framework.
+
+The existing @internal sceneMoved gains optionalMesh signaling. R7 observes that declaration at root,
+source and viewer exports despite @internal. Root reviews exactly3 type leaves and no added exposures/
+members, adopts only that expected delta, and records original FAIL/IV001 plus candidate/adoption hashes.
+This is a narrow exception to the original unchanged-signature implementation goal, not an unchanged
+observed API claim. No new public entrypoint is added. Final CLI check passes via generated/docs.
+
+GPU emit/types0 and normal CPU357PASS/0FAIL/0SKIP(top343+nested14) include new15 exactly once in47
+registered files; lint passes. Actual Chrome/Apple metal-3/DPR1 public pick selected1/6groups passes:
+real pixels/positive hit, unchanged, matrix replace/reorder/shrink/null/mesh remove stale null, current
+fresh hit metadata and finite point/depth, unmap1→2 reuse. Root views PNG2. Source/dist binding and owned
+viewer/browser/server/PID/gate cleanup retained. Evidence: notes/gpu-pick-instance-ownership-2026-10-29/
+qualification.json. No before-fix native/device-loss/full matrix/coordinate certification/driver memory/
+performance or full other-package/remoteCI acceptance. D322 independent review is attached without
+repeating successful checks. Normal feature push authorized; no PR/release. Next D325:A08/#2239 clipping.
+
+
+D324 boundary supplement: incoming D321 exacta386 review finds no product regression but confirms
+three Render raw states omit history. Exclude both-undefined equality from actual history PASS and
+attach presence/type-before-comparison or equivalent public Undo/Redo proof to existingO9/12/16/#2242.
+Keep original receipts and separate Doc/recovery/Drawing/Model/source guards. No whole-suite rerun or
+priority switch. Source/receipt review is not independent runtime or current-HEAD acceptance.

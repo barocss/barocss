@@ -3,6 +3,13 @@
 The owner asked: "지금까지 하던거 멈추고 인수인계 할 수 있도록 해줘". This note lets the next session continue the
 kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-10-27 to 2026-10-28.
 
+## Latest D324 checkpoint — 2026-10-29
+
+- Viewer-private revision rejects pending GPU pick after accepted active instance/membership change; original unmap/camera/clip/base/serial behavior remains. Existing @internal sceneMoved has3 reviewed optional-argument inventory declaration changes, not an unchanged API claim.
+- GPU emit/types, normal CPU357/357/0skip(new15 registered once in47files), lint and actual AppleWebGPU public pick selected1/6groups pass. Generated/API/docs pass. [Qualification](../gpu-pick-instance-ownership-2026-10-29/qualification.json) separates CPU baseline, native-only completion holds and wider NOT_RUN limits.
+- D322 independent source/author-receipt review is retained in existing supplement without runtime repeats or priority switch.
+- Next D325:A08/#2239 actual display/public CPU clipping under05/V1/V2, then remaining priorities before07→08→09. Normal per-feature push authorized; no PR/release.
+
 ## Latest D323 checkpoint — 2026-10-29
 
 - Only project version snapshot write/read use existing key-validating codecs. Admitted schema3 omission and route-bundle schema4/binary fields retain original canonical/version identity; ordinary part/autosave/Open normalization stays.
@@ -318,7 +325,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D324**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D325**).
 
 ## 0. State at the stop
 

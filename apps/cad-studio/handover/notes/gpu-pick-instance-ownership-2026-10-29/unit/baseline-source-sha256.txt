@@ -1,0 +1,4 @@
+0b1adf995958122808cd49c6cd440ba623343469dd789d6e87d22057d8f89cb9  src/viewer/viewer.ts
+3d215f883911a52f3dbc278eb6978622f2f8cdf0ecbad51e06a4b3d3b19939ff  src/viewer/scene.ts
+5c61b5efb5c09caaa76a6abb48c5f5a45eb6aa167d087f51ddcebba9fa3f3faa  tests/pick-instance-readback.test.mjs
+6e2b705eee2dc541c7e9b257b5431602921bc2239956bcc9bc0c163e27aa4b84  ../../packages/barocss-cad/dist/index.js

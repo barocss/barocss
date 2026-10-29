@@ -1,0 +1,17 @@
+{
+  "commit": "a5d1acfa7e6834951819eaaeeaf6da314cae9b8f",
+  "files": [
+    {
+      "path": "packages/barocss-gpu/src/viewer/viewer.ts",
+      "gitBlob": "d13535dde0555786fdaa50b68a2c039a809ba28d",
+      "sha256": "0b1adf995958122808cd49c6cd440ba623343469dd789d6e87d22057d8f89cb9",
+      "archive": "viewer.ts.before.gz"
+    },
+    {
+      "path": "packages/barocss-gpu/src/viewer/scene.ts",
+      "gitBlob": "96e9ade67940394516f9b52e42500aaa7c67cc23",
+      "sha256": "3d215f883911a52f3dbc278eb6978622f2f8cdf0ecbad51e06a4b3d3b19939ff",
+      "archive": "scene.ts.before.gz"
+    }
+  ]
+}
