@@ -1,0 +1,6 @@
+Two writes used repository-relative paths while the command cwd was already packages/barocss-cad. Neither file was created. They were then written from the worktree root. Original tool output:
+
+zsh:1: no such file or directory: packages/barocss-cad/src/features/cylindrical-wrap-reference-mass.ts
+zsh:97: no such file or directory: packages/barocss-cad/src/features/cylindrical-wrap-closed-reference.ts
+
+A subsequent build was called from the worktree root rather than the kernel package and failed before compilation. Its complete original output is wrong-build-directory.txt. The next build used the required package cwd and passed. No repository source was lost or reverted.

@@ -1,0 +1,244 @@
+TAP version 13
+# Subtest: one bound reference contains both complete actual child results under one final ledger
+ok 1 - one bound reference contains both complete actual child results under one final ledger
+  ---
+  duration_ms: 136.076584
+  type: 'test'
+  ...
+# Subtest: clockwise and rotated starts derive actual rectangle min/max without assuming native ID rotation
+ok 2 - clockwise and rotated starts derive actual rectangle min/max without assuming native ID rotation
+  ---
+  duration_ms: 108.843792
+  type: 'test'
+  ...
+# Subtest: exact total reservation succeeds and total minus one refuses without changing caller data
+ok 3 - exact total reservation succeeds and total minus one refuses without changing caller data
+  ---
+  duration_ms: 118.343625
+  type: 'test'
+  ...
+# Subtest: owned frozen results do not freeze or alias the original Part, ring or options
+ok 4 - owned frozen results do not freeze or alias the original Part, ring or options
+  ---
+  duration_ms: 33.649708
+  type: 'test'
+  ...
+# Subtest: fresh source checking refuses changed coefficients and metadata after an earlier successful request
+ok 5 - fresh source checking refuses changed coefficients and metadata after an earlier successful request
+  ---
+  duration_ms: 35.241334
+  type: 'test'
+  ...
+# Subtest: getters, inherited options and caller authority flags cannot supply wrapper inputs
+ok 6 - getters, inherited options and caller authority flags cannot supply wrapper inputs
+  ---
+  duration_ms: 9.860291
+  type: 'test'
+  ...
+# Subtest: original native and formal refusals propagate with their namespace and wording
+ok 7 - original native and formal refusals propagate with their namespace and wording
+  ---
+  duration_ms: 46.466917
+  type: 'test'
+  ...
+# Subtest: the separately measured Z0 reference pad accepts both complete source checks without a prefix deduction
+ok 8 - the separately measured Z0 reference pad accepts both complete source checks without a prefix deduction
+  ---
+  duration_ms: 27.990083
+  type: 'test'
+  ...
+# Subtest: fresh cap/whole-reference/mass proofs pass independent exact oracles, including signed cross inertia
+ok 9 - fresh cap/whole-reference/mass proofs pass independent exact oracles, including signed cross inertia
+  ---
+  duration_ms: 253.352458
+  type: 'test'
+  ...
+# Subtest: one actual source execution preserves all prior native geometry and formal numerical values
+ok 10 - one actual source execution preserves all prior native geometry and formal numerical values
+  ---
+  duration_ms: 93.715125
+  type: 'test'
+  ...
+# Subtest: clockwise and shifted start inputs retain the same closed region and mass
+ok 11 - clockwise and shifted start inputs retain the same closed region and mass
+  ---
+  duration_ms: 91.401625
+  type: 'test'
+  ...
+# Subtest: the final total cap passes and one fewer operation refuses after the actual prefix
+ok 12 - the final total cap passes and one fewer operation refuses after the actual prefix
+  ---
+  duration_ms: 80.457084
+  type: 'test'
+  ...
+# Subtest: an arithmetic-only budget can pass formal mass yet fail the complete geometric mass audit
+ok 13 - an arithmetic-only budget can pass formal mass yet fail the complete geometric mass audit
+  ---
+  duration_ms: 49.523375
+  type: 'test'
+  ...
+# Subtest: cap coefficients, orientations, ownership and original seam mutations fail their actual predicates
+ok 14 - cap coefficients, orientations, ownership and original seam mutations fail their actual predicates
+  ---
+  duration_ms: 45.0235
+  type: 'test'
+  ...
+# Subtest: the wrapped reference requires reciprocal uses, original rectangle parameters and outward sides
+ok 15 - the wrapped reference requires reciprocal uses, original rectangle parameters and outward sides
+  ---
+  duration_ms: 31.005541
+  type: 'test'
+  ...
+# Subtest: the final entry rejects supplied proof flags and never executes caller getters
+ok 16 - the final entry rejects supplied proof flags and never executes caller getters
+  ---
+  duration_ms: 3.312917
+  type: 'test'
+  ...
+# Subtest: actual native rays and all ten source/pad/raw moments enclose an independent complex-polar oracle
+ok 17 - actual native rays and all ten source/pad/raw moments enclose an independent complex-polar oracle
+  ---
+  duration_ms: 43.334625
+  type: 'test'
+  ...
+# Subtest: public MMGS values are audited against exact represented density divided by1000
+ok 18 - public MMGS values are audited against exact represented density divided by1000
+  ---
+  duration_ms: 56.078958
+  type: 'test'
+  ...
+# Subtest: negative source Z and asymmetric V preserve signed mixed moments and central inertia
+ok 19 - negative source Z and asymmetric V preserve signed mixed moments and central inertia
+  ---
+  duration_ms: 19.119333
+  type: 'test'
+  ...
+# Subtest: centered axial pad retains exact zero Z/XZ/YZ and nonzero angular moments
+ok 20 - centered axial pad retains exact zero Z/XZ/YZ and nonzero angular moments
+  ---
+  duration_ms: 8.493625
+  type: 'test'
+  ...
+# Subtest: aggregate limits only tighten, and impossible scalar precision is not widened
+ok 21 - aggregate limits only tighten, and impossible scalar precision is not widened
+  ---
+  duration_ms: 32.165
+  type: 'test'
+  ...
+# Subtest: overflow, underflow, nonfinite input, invalid ranges, and radius overrides refuse
+ok 22 - overflow, underflow, nonfinite input, invalid ranges, and radius overrides refuse
+  ---
+  duration_ms: 41.05075
+  type: 'test'
+  ...
+# Subtest: all scalar budgets must be explicit positive finite values
+ok 23 - all scalar budgets must be explicit positive finite values
+  ---
+  duration_ms: 14.793708
+  type: 'test'
+  ...
+# Subtest: getters never supply authority and input/output snapshots do not alias
+ok 24 - getters never supply authority and input/output snapshots do not alias
+  ---
+  duration_ms: 8.951541
+  type: 'test'
+  ...
+# Subtest: actual rays around the diagonal exercise the bounded three-step angle reduction
+ok 25 - actual rays around the diagonal exercise the bounded three-step angle reduction
+  ---
+  duration_ms: 8.80525
+  type: 'test'
+  ...
+# Subtest: changed actual source coefficients or native metadata cannot borrow formal-circle authority
+ok 26 - changed actual source coefficients or native metadata cannot borrow formal-circle authority
+  ---
+  duration_ms: 10.077958
+  type: 'test'
+  ...
+# Subtest: tiny valid source refuses the overflowing existing native SI density intermediate
+ok 27 - tiny valid source refuses the overflowing existing native SI density intermediate
+  ---
+  duration_ms: 2.850459
+  type: 'test'
+  ...
+# Subtest: all returned raw midpoint Number bits equal generic nearest on positive, negative and zero moments
+ok 28 - all returned raw midpoint Number bits equal generic nearest on positive, negative and zero moments
+  ---
+  duration_ms: 26.316458
+  type: 'test'
+  ...
+# Subtest: fresh one-pad native binding covers actual63 slots all36 coedges and all36 stronger vertex relations
+ok 29 - fresh one-pad native binding covers actual63 slots all36 coedges and all36 stronger vertex relations
+  ---
+  duration_ms: 83.739709
+  type: 'test'
+  ...
+# Subtest: legacy geometry exact-operation receipts and returned mutability survive private-run factoring
+ok 30 - legacy geometry exact-operation receipts and returned mutability survive private-run factoring
+  ---
+  duration_ms: 62.534833
+  type: 'test'
+  ...
+# Subtest: only the fresh fixed profile is accepted and caller data never becomes a receipt authority
+ok 31 - only the fresh fixed profile is accepted and caller data never becomes a receipt authority
+  ---
+  duration_ms: 16.39775
+  type: 'test'
+  ...
+# Subtest: one complete request honors fresh aggregate reservations and a final-bound refusal is atomic
+ok 32 - one complete request honors fresh aggregate reservations and a final-bound refusal is atomic
+  ---
+  duration_ms: 92.7905
+  type: 'test'
+  ...
+# Subtest: all four actual spans match independent generic Bernstein products at multiple native radii
+ok 33 - all four actual spans match independent generic Bernstein products at multiple native radii
+  ---
+  duration_ms: 47.497625
+  type: 'test'
+  ...
+# Subtest: the cycle is derived from actual directed endpoints, independent of span list order
+ok 34 - the cycle is derived from actual directed endpoints, independent of span list order
+  ---
+  duration_ms: 5.209458
+  type: 'test'
+  ...
+# Subtest: nonclosed, branched, reversed, angularly singular and unsupported operands refuse
+ok 35 - nonclosed, branched, reversed, angularly singular and unsupported operands refuse
+  ---
+  duration_ms: 8.362125
+  type: 'test'
+  ...
+# Subtest: a changed admitted lower weight produces its own exact proof instead of borrowing the upper quarter
+ok 36 - a changed admitted lower weight produces its own exact proof instead of borrowing the upper quarter
+  ---
+  duration_ms: 5.52425
+  type: 'test'
+  ...
+# Subtest: the actual fresh native/formal prefix stays identical and its complete cost is retained
+ok 37 - the actual fresh native/formal prefix stays identical and its complete cost is retained
+  ---
+  duration_ms: 115.725875
+  type: 'test'
+  ...
+# Subtest: the complete operation total succeeds, one less refuses, and the former prefix cap cannot fund new work
+ok 38 - the complete operation total succeeds, one less refuses, and the former prefix cap cannot fund new work
+  ---
+  duration_ms: 124.5495
+  type: 'test'
+  ...
+# Subtest: the distinct Z0 original reference request fits with all four spans and unchanged physical exclusions
+ok 39 - the distinct Z0 original reference request fits with all four spans and unchanged physical exclusions
+  ---
+  duration_ms: 31.269792
+  type: 'test'
+  ...
+1..39
+# tests 39
+# suites 0
+# pass 39
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1226.487125

@@ -1,0 +1,69 @@
+shared {
+  exactOperations: 181746,
+  nativeOperations: 160132,
+  formalOperations: 21551,
+  outerDirectOperations: 63,
+  nativeWork: 325839,
+  formalWork: 39199,
+  outerWork: 9183,
+  work: 374221,
+  maximumBits: 1187
+} formal {
+  sourceOperations: 0,
+  rationalOperations: 18465,
+  directOperations: 3086,
+  totalOperations: 21551,
+  gcdSteps: 13489,
+  maximumBits: 1024,
+  work: 39199
+}
+walls {
+  exactOperations: 186945,
+  referenceOperations: 181746,
+  rationalOperations: 3399,
+  directOperations: 1800,
+  work: 389373,
+  localWork: 15152,
+  maximumBits: 1187,
+  localGcdSteps: 2752
+}
+caps {
+  exactOperations: 191517,
+  priorOperations: 186945,
+  rationalOperations: 2601,
+  directOperations: 1971,
+  work: 399388,
+  localWork: 10015,
+  maximumBits: 1187,
+  localGcdSteps: 1903
+}
+closure {
+  exactOperations: 194235,
+  priorOperations: 186945,
+  rationalOperations: 4393,
+  directOperations: 2897,
+  work: 406241,
+  localWork: 16868,
+  maximumBits: 1187,
+  localGcdSteps: 3345
+}
+mass {
+  exactOperations: 196425,
+  priorOperations: 186945,
+  rationalOperations: 4629,
+  directOperations: 4851,
+  work: 412718,
+  localWork: 23345,
+  maximumBits: 1187,
+  localGcdSteps: 3345
+}
+frozen {
+  exactOperations: 196425,
+  priorOperations: 186945,
+  rationalOperations: 4629,
+  directOperations: 4851,
+  work: 424783,
+  localWork: 35410,
+  maximumBits: 1187,
+  localGcdSteps: 3345
+}

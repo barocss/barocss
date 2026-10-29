@@ -1,0 +1,2 @@
+closed-reference-pad              28 ms 3dc47a62fa4c37a6
+SAME closed-reference-pad              31 →      28 ms (-9.7%)

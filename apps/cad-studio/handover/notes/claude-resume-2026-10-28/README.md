@@ -186,9 +186,23 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   reference mass transfer/Part/product flags remain false; no native radial or D1 claim.
   See `../cylindrical-wrap-source-walls-2026-10-29/README.md`. Next D311 cap/reference and source
   closure, then wrapped retained-face/mass; standard remaining allowance1511, no fit promise.
+- D311 runtime`749b1b666` connects actual cap boundary/interior maps, full nine-face closed
+  radial reference and complete geometry+arithmetic mass audit. Exact cap affine/pcurve/seam
+  checks and matched radial disks preserve original coefficients; literal stored closure stays
+  false. All returned Number budgets stay unchanged, including signed nonzero cross inertia.
+  Fresh source extraction runs once with full native cost; old D309/D310 outputs/counts match.
+  Standard196425ops/work424858, centered195846, lower/upper axial199120/199168 fit200k. The old
+  larger asymmetric case still refuses formal BUDGET. First candidate budget refusal and
+  wrong-cwd setup diagnostics are retained. Final build/lint/kernel2173pass/0fail/6existing
+  skips pass; test-only signed-height expansion afterward passes the final focused39/39.
+  Generated checks/unchanged API SCOPED_PASS/docs pass. Perf-bench31->28ms single local pair
+  with same actual B-rep; no stable speedup/Studio claim. Model/Studio/types/browser NOT RUN.
+  Literal stored-B-rep mass/native SI/Part/provider/product remain unqualified. See
+  `../cylindrical-wrap-closed-reference-2026-10-29/README.md`. Next D312 is bounded Part/provider/
+  API/Model/Studio integration with explicit physical/trim/render admission and product checks.
 - Next: roadmap07's remaining wrap provider and broader face-fillet/thread ranges, then08,09. General/curved,
   rational/smooth wrapping, shaping, kerning, bidi and normalization remain unimplemented. D291's broader
-  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D311.
+  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D312.
 
 The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
 
@@ -197,7 +211,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D311**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D312**).
 
 ## 0. State at the stop
 

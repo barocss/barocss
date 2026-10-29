@@ -1,0 +1,26 @@
+{
+  "scope": "fresh single-source closed-reference geometry and mass; literal stored shell and product excluded",
+  "results": [
+    {
+      "label": "Z0-reference-standard",
+      "status": "refused",
+      "code": "BUDGET",
+      "source": "cylindrical-wrap-closed-reference",
+      "message": "Cylindrical wrap closed reference: the complete construction and closure/mass proof budget was exceeded"
+    },
+    {
+      "label": "centered-negative-Z-density",
+      "status": "refused",
+      "code": "BUDGET",
+      "source": "cylindrical-wrap-closed-reference",
+      "message": "Cylindrical wrap closed reference: the complete construction and closure/mass proof budget was exceeded"
+    },
+    {
+      "label": "asymmetric-negative-Z-budget-frontier",
+      "status": "refused",
+      "code": "BUDGET",
+      "source": "cylindrical-wrap-formal-mass",
+      "message": "Formal pad mass: the aggregate source, rational, direct, or work limit was exceeded"
+    }
+  ]
+}

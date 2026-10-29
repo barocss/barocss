@@ -1,0 +1,71 @@
+{
+  "runtime": "749b1b666",
+  "node": "22.19.0",
+  "heavyExecution": "serial lane gate",
+  "build": {
+    "status": "PASS",
+    "command": "node scripts/tool.mjs build",
+    "cwd": "packages/barocss-cad"
+  },
+  "lint": {
+    "status": "PASS",
+    "command": "node scripts/tool.mjs lint",
+    "cwd": "packages/barocss-cad"
+  },
+  "wholeKernel": {
+    "status": "PASS",
+    "command": "node --test --test-concurrency=4 test/*.test.mjs",
+    "total": 2179,
+    "pass": 2173,
+    "fail": 0,
+    "skip": 6,
+    "durationMs": 260893.378583,
+    "scope": "Final production source; before test-only addition of lower/upper signed-height fixtures."
+  },
+  "focused": {
+    "status": "PASS",
+    "files": [
+      "cylindrical-wrap-bound-reference",
+      "cylindrical-wrap-closed-reference",
+      "cylindrical-wrap-formal-mass",
+      "cylindrical-wrap-native-position",
+      "cylindrical-wrap-source-walls"
+    ],
+    "pass": 39,
+    "fail": 0,
+    "durationMs": 1226.487125,
+    "scope": "Final production and expanded test source."
+  },
+  "generated": {
+    "agentTools": "PASS",
+    "refusals": "PASS",
+    "apiInventory": "SCOPED_PASS",
+    "docs": "PASS"
+  },
+  "performance": {
+    "case": "closed-reference-pad",
+    "runs": 7,
+    "beforeMedianMs": 31,
+    "afterMedianMs": 28,
+    "actualBrepFingerprint": "3dc47a62fa4c37a6",
+    "comparison": "SAME",
+    "scope": "Before proves walls; after additionally proves caps, closure and mass. One local rounded pair."
+  },
+  "notRun": [
+    "cad-model whole tests and types",
+    "Studio whole tests and types",
+    "browser flow",
+    "native SI accuracy",
+    "literal stored B-rep closure and mass",
+    "Part/API/Model/Studio integration"
+  ],
+  "failuresRetained": [
+    "first-budget-refusals.json",
+    "setup-diagnostics.txt",
+    "wrong-build-directory.txt"
+  ],
+  "newDependency": false,
+  "push": false,
+  "pullRequest": false,
+  "release": false
+}

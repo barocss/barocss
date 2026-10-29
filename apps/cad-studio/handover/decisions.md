@@ -15694,3 +15694,57 @@ Cap trim embedding/source-shell/retained-face closure/reference mass transfer/Pa
 remain false, and radial error is not included in mass. Next D311 must cover actual cap and
 source reference closure, then complete wrapped reference/mass. Std allowance left1511;
 no next-proof fit guarantee. Broader07 fillet/thread/glyph ranges precede08->09 as before.
+
+
+## D311 — Cap correspondence, complete closed reference and mass transfer (2026-10-29)
+
+**Decision.** Runtime `749b1b666` constructs one fresh immutable native source, retains its
+complete native cost, then continues formal mass on that same source. No source extraction
+runs in the continuation and sourceOperations=0; no executed cost is subtracted. The old
+D309/D310 entries still execute both source checks and retain their complete results/counts.
+The final private constructor accepts original inputs only, never caller receipt/authority flags.
+
+Actual cap affine nets, pcurve hulls/weights/domains, exact top/bottom transposition, outward
+uses and both complete extrusion seams bind the original caps to the4-span source radial
+graph. Exact homogeneous(2u-1,2v-1) coefficients prove simple radial cap cycles. Matched
+boundary parameters and radial disk extension give a whole-cap homeomorphism to the source
+reference within the actual affine residual1.7763568394002505e-15 for all four R10 fixtures.
+Literal rounded cap/wall coincidence is not asserted; no coefficient or tolerance changes.
+
+The closed reference is the original radial prism united with the factor2 pad over the same
+strict UV rectangle. Exact original hole/outer pcurves, outward side senses, full reciprocal
+36-coedge incidence, scaled outer coefficients and fresh D301/D304 side bindings establish
+the9-face decomposition without an internal material interface. Every actual face maps to
+its reference: source/outer model error0, caps actual residual, sides2*base residual. Adding
+one fresh native D0 L1 bound gives max3.43925e-11 standard/3.19361e-11 centered under1e-7.
+Domain is the admitted exact face trim domain, not arbitrary untrimmed UV or renderer clipping.
+
+For raw monomial degree d in XY and c in centered Z, complete radial geometry error is bounded
+by2^(d+5)*H*delta*(R+delta)^(d+1)*(H/2)^c, with the same angle/Z partition as formal mass.
+Outward128 arithmetic expands all ten raw intervals, then propagates density/1000, centroid
+and central inertia. Exact actual-Number distances meet the original11 scalar budgets.
+The unchanged returned formal properties now have a complete closed-reference geometry and
+arithmetic audit. Literal stored-B-rep closure/mass, native SI, Part/provider/product flags
+remain false. No public index/API/schema change or general glyph wrap qualification.
+
+First candidate exceeded200000. Counted immutable entity indices remove repeated scans;
+exact output ratios retain positive common denominators instead of unnecessary serialization
+GCDs. All primitive/bit/structural/GCD work remains accounted under the same caps. Actual std
+196425ops=186945 prior+4629q+4851direct,work424858,bits1187; centered195846/work423416/bits1178.
+Lower/upper axial pads use199120/199168ops and430791/430879work, with opposite nonzero Ixz/Iyz
++/-33.58622741273295. Old Z-7/U[.1,.4]/V[.2,.7]/density7.85 retains original formal BUDGET.
+No tolerance, precision or assertion relaxation; accounting retains prior Number-work limits.
+
+Build/lint/code-shape PASS; whole2179total/2173pass/0fail/6existing skips. Only signed-height
+test data expanded afterward; final focused39/39 includes independent fraction/Bernstein,
+radial-shell moment and Number-error oracles, malformed cap/side/topology and total-limit tests.
+Generated checks/unchanged API SCOPED_PASS/docs pass. Perf-bench RUNS7 old wall-only31ms to
+complete28ms, actual B-rep fingerprint3dc47a62fa4c37a6 SAME; one rounded local pair, no stable
+speedup/Studio claim. First budget refusals and wrong-cwd write/build diagnostics are
+preserved verbatim; later correct build/tests pass. No source-checksum pin or dependency.
+
+Evidence: notes/cylindrical-wrap-closed-reference-2026-10-29/README.md. Model/Studio/types/browser
+NOT RUN; latest whole consumers/types D299901b4ce45. No push/PR/release. Next D312 connects the
+bounded reference to Part/provider/API/Model/Studio with explicit physical/trim/render admission
+and consumer/browser checks. General text/rational/smooth wrap and broader07 remain open before
+08->09. Existing Part.mass/makeOutput/massPropertiesOf route is still source evidence only.
