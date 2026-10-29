@@ -1,0 +1,7 @@
+{
+  "base": "8adbbbfa5515b76769f6adc9412f65c017b7ec38",
+  "files": {
+    "packages/barocss-cad-model/src/app/nativeOffsetFace.ts": "dcd035d18bf4c549b345f0e7054422b021a200e1c835fcb567f528b758bbaafc",
+    "packages/barocss-cad-model/test/native-offset-face.test.ts": "28dbafc9f41136c40f47271f9b34278f90cb487b0626c3d066cd2b76496e0f2b"
+  }
+}

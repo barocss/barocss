@@ -1,0 +1,11 @@
+{
+  "equal": true,
+  "files": 1249,
+  "head": "8adbbbfa5515b76769f6adc9412f65c017b7ec38",
+  "bundleInputs": 504,
+  "bundleInputCategories": {
+    "CAD source": 435,
+    "Model source": 68,
+    "harness/other": 1
+  }
+}

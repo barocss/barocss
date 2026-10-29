@@ -1,0 +1,36 @@
+[
+  {
+    "axis": 0,
+    "sign": -1,
+    "coordinate": 0.1234567,
+    "opposite": 20.123486699999997,
+    "distance": 2.125,
+    "next": -2.0015433,
+    "lo": -2.0015433,
+    "hi": 20.123486699999997,
+    "reassociatedHi": 20.123486699999994,
+    "status": "REFUSED",
+    "error": {
+      "message": "[FACE_DISTANCE] The prospective native target does not bind to the stored cap levels.",
+      "code": "FACE_DISTANCE"
+    },
+    "originalUnchanged": true
+  },
+  {
+    "axis": 1,
+    "sign": -1,
+    "coordinate": -0.2345678,
+    "opposite": 9.765502199999998,
+    "distance": 2.125,
+    "next": -2.3595677999999998,
+    "lo": -2.3595677999999998,
+    "hi": 9.765502199999998,
+    "reassociatedHi": 9.765502199999997,
+    "status": "REFUSED",
+    "error": {
+      "message": "[FACE_DISTANCE] The prospective native target does not bind to the stored cap levels.",
+      "code": "FACE_DISTANCE"
+    },
+    "originalUnchanged": true
+  }
+]

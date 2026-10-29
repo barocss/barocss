@@ -1,0 +1,12 @@
+{
+  "path": "/Users/user/github/barocss/barocss/.git/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/index.lock",
+  "bytes": 0,
+  "inode": 1294192847,
+  "modified": 1793303532.915642,
+  "ageSeconds": 107.91249489784241,
+  "lsofExit": 1,
+  "lsofStdout": "",
+  "lsofStderr": "",
+  "processAction": "No process killed. Exact empty unused worktree index lock only.",
+  "action": "REMOVED_EMPTY_UNUSED_LOCK"
+}

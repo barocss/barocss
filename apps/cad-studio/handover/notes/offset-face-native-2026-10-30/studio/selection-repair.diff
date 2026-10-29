@@ -1,0 +1,56 @@
+diff --git a/apps/cad-studio/src/App.tsx b/apps/cad-studio/src/App.tsx
+index 4da69c737..b75ab99b1 100644
+--- a/apps/cad-studio/src/App.tsx
++++ b/apps/cad-studio/src/App.tsx
+@@ -1031,9 +1031,9 @@ export function App() {
+     // (R1d: the command as it is now, its values and preview state — the App may not have rendered since they changed.)
+     const active = activeStore.get();
+     if (!active?.cmd.build || !canChangeDocument()) return;
+-    if ((active.cmd.id === 'thicken' || active.cmd.id === 'sew') && active.ctx.doc !== commandDoc) {
++    if ((active.cmd.id === 'thicken' || active.cmd.id === 'sew' || active.cmd.id === 'offset-face') && active.ctx.doc !== commandDoc) {
+       applyWhenReady.current = null;
+-      setToast({ title: 'Source changed', hint: `Start ${active.cmd.label} again to copy the current surfaces.`, detail: '' });
++      setToast({ title: 'Source changed', hint: active.cmd.id === 'offset-face' ? 'Start Offset face again on the current body and face.' : `Start ${active.cmd.label} again to copy the current surfaces.`, detail: '' });
+       return;
+     }
+     if (active.upload) { applyWhenReady.current = null; return; }
+@@ -1046,6 +1046,7 @@ export function App() {
+     const next = active.cmd.build(active.ctx, active.values);
+     // (Not when it places an instance: those bodies are the instance's, shown once it is evaluated.)
+     if (!commit(next)) return;
++    if (active.cmd.id === 'offset-face') setSelection(emptySel);
+     if (active.cmd.id === 'thicken' || active.cmd.id === 'sew') setDirectSel([]);
+     if (previewBodies && Object.keys(next.outputs).length && (next.instances?.length ?? 0) === (active.ctx.doc.instances?.length ?? 0)) { setBodies(previewBodies); claimBodies.current = true; }
+     setActive(null); setPreviewBodies(null); setSketch(null);
+diff --git a/apps/cad-studio/test/offset-face-native-browser.mjs b/apps/cad-studio/test/offset-face-native-browser.mjs
+index 373469ccb..1294f27f8 100644
+--- a/apps/cad-studio/test/offset-face-native-browser.mjs
++++ b/apps/cad-studio/test/offset-face-native-browser.mjs
+@@ -20,6 +20,7 @@ const report={status:'RUNNING',qualification:'NATIVE_NUMERIC_AND_ACTUAL_UI_FLOW'
+  'Signed other caps, repeated command closure and generic drafted/curved continuation are separate focused-test scopes.',
+  'Integer cylinder is an existing support control with rounded analytic pi, not exact rational circle mass or a generic curved certificate.',
+  'The added profile is an owned native snapshot under existing node semantics; original parameter binding is retained, no live face association is claimed.',
++ 'Successful Offset Apply clears geometry picks; Undo/Redo proves exact recipes and records selection without claiming restoration of the original face pick.',
+  'Native geometry success does not replace root screenshot review.']};
+ let phase='public seed preparation',server,browser,context,page,inspectorBundle;
+ const persist=()=>writeFile(join(output,'receipt.json'),JSON.stringify({...report,phase},null,2));
+@@ -116,8 +117,18 @@ async function isoSnapshot(label){await page.getByRole('group',{name:'Views',exa
+ async function acceptedPreview(original,label){
+  await page.waitForFunction(()=>document.querySelector('.hud .status')?.textContent==='preview',null,{timeout:60000});assert.deepEqual(await doc(),original,'Preview leaves accepted recipe unchanged');assert.equal(await hud().getByRole('button',{name:'Apply',exact:true}).isDisabled(),false);await snapshot(label);
+ }
++async function acceptedOffsetSelection(label){
++ const record={label,witnessKey:report.witness.key,policy:'Successful Offset Apply clears old geometry indices; it does not remap a face onto reordered bodies'};report.acceptedSelections??=[];report.acceptedSelections.push(record);
++ try{await page.waitForFunction(()=>{const s=window.__studioSelection?.selection;return s&&['faces','edges','bodies','vertices'].every(key=>(s[key]?.length??0)===0);},null,{timeout:10000});}
++ finally{
++  const observed=await page.evaluate(()=>({selection:window.__studioSelection?.selection,bodyOrder:window.__studioBodies?.().bodies.map(b=>b.key)??[]}));
++  record.actual=observed;record.picks=Object.fromEntries(['faces','edges','bodies','vertices'].map(key=>[key,observed.selection?.[key]??[]]));
++  const indices=[...record.picks.bodies,...['faces','edges','vertices'].flatMap(key=>record.picks[key].map(pick=>pick.body))];record.selectedBodyKeys=indices.map(index=>observed.bodyOrder[index]??null);record.witnessAliased=record.selectedBodyKeys.includes(report.witness.key);record.pass=!!observed.selection&&Object.values(record.picks).every(picks=>picks.length===0)&&!record.witnessAliased;await persist();
++ }
++ assert.ok(record.pass,'Accepted Offset clears faces/edges/bodies/vertices and cannot alias the witness after body reordering');
++}
+ async function applyOffset(original,label){
+- phase=`actual Apply ${label}`;await hud().getByRole('button',{name:'Apply',exact:true}).click();await changed(original);await hud().waitFor({state:'hidden'});const after=await doc();assert.deepEqual(after.nodes.slice(0,original.nodes.length),original.nodes,'Existing source and bindings are an unchanged recipe prefix');assert.deepEqual(after.parameters,original.parameters);assert.equal(after.nodes.length,original.nodes.length+3);assert.equal(after.nodes[original.nodes.length].kind,'sketch');assert.equal(after.nodes[original.nodes.length+1].kind,'extrude');await snapshot(label);return after;
++ phase=`actual Apply ${label}`;await hud().getByRole('button',{name:'Apply',exact:true}).click();await changed(original);await hud().waitFor({state:'hidden'});await acceptedOffsetSelection(label);const after=await doc();assert.deepEqual(after.nodes.slice(0,original.nodes.length),original.nodes,'Existing source and bindings are an unchanged recipe prefix');assert.deepEqual(after.parameters,original.parameters);assert.equal(after.nodes.length,original.nodes.length+3);assert.equal(after.nodes[original.nodes.length].kind,'sketch');assert.equal(after.nodes[original.nodes.length+1].kind,'extrude');await snapshot(label);return after;
+ }
+ async function editDistance(index,value,parameter=null){
+  phase=`existing extrusion editor ${value}`;await page.locator(`.history .hs[data-node-index="${index}"]`).click();await editor().waitFor();const before=await doc();

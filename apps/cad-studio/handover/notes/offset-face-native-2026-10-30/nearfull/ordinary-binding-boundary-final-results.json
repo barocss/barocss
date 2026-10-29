@@ -1,0 +1,1934 @@
+[
+  {
+    "kind": "box",
+    "face": 0,
+    "axis": 1,
+    "sign": -1,
+    "coordinate": -0.2345678,
+    "opposite": 9.765502199999998,
+    "distance": -10.00007,
+    "next": 9.765502199999998,
+    "positiveStoredGap": 0,
+    "retained": 0,
+    "status": "REFUSED",
+    "error": {
+      "message": "[FACE_DISTANCE] The offset must leave positive prism thickness before the opposite cap.",
+      "code": "FACE_DISTANCE"
+    }
+  },
+  {
+    "kind": "box",
+    "face": 0,
+    "axis": 1,
+    "sign": -1,
+    "coordinate": -0.2345678,
+    "opposite": 9.765502199999998,
+    "distance": -9.99907,
+    "next": 9.764502199999999,
+    "positiveStoredGap": 0.0009999999999994458,
+    "retained": 0.001,
+    "status": "SUCCESS",
+    "evaluation": [
+      {
+        "volume": 0.10000195000264459,
+        "centroid": [
+          10.123471699999998,
+          9.7650022,
+          2.8457239
+        ]
+      }
+    ],
+    "native": [
+      {
+        "mass": {
+          "volume": 0.10000195000264459,
+          "mass": 0.00010000195000264459,
+          "centroid": [
+            10.123471699999998,
+            9.7650022,
+            2.8457239
+          ],
+          "method": "planar-exact",
+          "inertia": [
+            [
+              0.00020834490438608854,
+              0,
+              -1.3322676295501879e-18
+            ],
+            [
+              0,
+              0.0035417532296765806,
+              -4.440892098500626e-19
+            ],
+            [
+              -1.3322676295501879e-18,
+              -4.440892098500626e-19,
+              0.0033334083419574796
+            ]
+          ]
+        },
+        "check": {
+          "valid": true,
+          "issues": [],
+          "counts": {
+            "bodies": 1,
+            "shells": 1,
+            "faces": 6,
+            "loops": 6,
+            "coedges": 24,
+            "edges": 12,
+            "vertices": 8
+          },
+          "topology": [
+            {
+              "body": "n5_body0",
+              "vertices": 8,
+              "edges": 12,
+              "faces": 6,
+              "loops": 6,
+              "shells": 1,
+              "genus": 0
+            }
+          ],
+          "maximumVertexGap": 0,
+          "maximumPcurveGap": 0,
+          "maximumEdgeSurfaceGap": 0
+        },
+        "vertices": [
+          {
+            "id": "v0",
+            "point": [
+              20.123486699999997,
+              9.764502199999999,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v1",
+            "point": [
+              20.123486699999997,
+              9.765502199999998,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v2",
+            "point": [
+              20.123486699999997,
+              9.765502199999998,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v3",
+            "point": [
+              20.123486699999997,
+              9.764502199999999,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v4",
+            "point": [
+              0.1234567,
+              9.765502199999998,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v5",
+            "point": [
+              0.1234567,
+              9.765502199999998,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v6",
+            "point": [
+              0.1234567,
+              9.764502199999999,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v7",
+            "point": [
+              0.1234567,
+              9.764502199999999,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": "box",
+    "face": 1,
+    "axis": 0,
+    "sign": 1,
+    "coordinate": 20.123486699999997,
+    "opposite": 0.1234567,
+    "distance": -20.00003,
+    "next": 0.12345669999999842,
+    "positiveStoredGap": -1.582067810090848e-15,
+    "retained": 0,
+    "status": "REFUSED",
+    "error": {
+      "message": "[FACE_DISTANCE] The offset must leave positive prism thickness before the opposite cap.",
+      "code": "FACE_DISTANCE"
+    }
+  },
+  {
+    "kind": "box",
+    "face": 1,
+    "axis": 0,
+    "sign": 1,
+    "coordinate": 20.123486699999997,
+    "opposite": 0.1234567,
+    "distance": -19.999029999999998,
+    "next": 0.12445669999999964,
+    "positiveStoredGap": 0.00099999999999964,
+    "retained": 0.001,
+    "status": "SUCCESS",
+    "evaluation": [
+      {
+        "volume": 0.05000125000628201,
+        "centroid": [
+          0.12395669999999982,
+          4.765467199999999,
+          2.8457239
+        ]
+      }
+    ],
+    "native": [
+      {
+        "mass": {
+          "volume": 0.05000125000628201,
+          "mass": 0.000050001250006282005,
+          "centroid": [
+            0.12395669999999982,
+            4.765467199999999,
+            2.8457239
+          ],
+          "method": "planar-exact",
+          "inertia": [
+            [
+              0.0005208559378591901,
+              -3.469446951953614e-21,
+              -3.469446951953614e-21
+            ],
+            [
+              -3.469446951953614e-21,
+              0.00010417302514069311,
+              -2.220446049250313e-19
+            ],
+            [
+              -3.469446951953614e-21,
+              -2.220446049250313e-19,
+              0.00041668292105203876
+            ]
+          ]
+        },
+        "check": {
+          "valid": true,
+          "issues": [],
+          "counts": {
+            "bodies": 1,
+            "shells": 1,
+            "faces": 6,
+            "loops": 6,
+            "coedges": 24,
+            "edges": 12,
+            "vertices": 8
+          },
+          "topology": [
+            {
+              "body": "n5_body0",
+              "vertices": 8,
+              "edges": 12,
+              "faces": 6,
+              "loops": 6,
+              "shells": 1,
+              "genus": 0
+            }
+          ],
+          "maximumVertexGap": 0,
+          "maximumPcurveGap": 0,
+          "maximumEdgeSurfaceGap": 0
+        },
+        "vertices": [
+          {
+            "id": "v0",
+            "point": [
+              0.1234567,
+              -0.2345678,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v1",
+            "point": [
+              0.12445669999999964,
+              -0.2345678,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v2",
+            "point": [
+              0.12445669999999964,
+              -0.2345678,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v3",
+            "point": [
+              0.1234567,
+              -0.2345678,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v4",
+            "point": [
+              0.12445669999999964,
+              9.765502199999998,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v5",
+            "point": [
+              0.1234567,
+              9.765502199999998,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v6",
+            "point": [
+              0.1234567,
+              9.765502199999998,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v7",
+            "point": [
+              0.12445669999999964,
+              9.765502199999998,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": "box",
+    "face": 2,
+    "axis": 1,
+    "sign": 1,
+    "coordinate": 9.765502199999998,
+    "opposite": -0.2345678,
+    "distance": -10.00007,
+    "next": -0.23456780000000066,
+    "positiveStoredGap": -6.661338147750939e-16,
+    "retained": 0,
+    "status": "REFUSED",
+    "error": {
+      "message": "[FACE_DISTANCE] The offset must leave positive prism thickness before the opposite cap.",
+      "code": "FACE_DISTANCE"
+    }
+  },
+  {
+    "kind": "box",
+    "face": 2,
+    "axis": 1,
+    "sign": 1,
+    "coordinate": 9.765502199999998,
+    "opposite": -0.2345678,
+    "distance": -9.99907,
+    "next": -0.2335678000000012,
+    "positiveStoredGap": 0.0009999999999987796,
+    "retained": 0.001,
+    "status": "SUCCESS",
+    "evaluation": [
+      {
+        "volume": 0.10000195000257797,
+        "centroid": [
+          10.123471699999998,
+          -0.2340678000000006,
+          2.8457239000000008
+        ]
+      }
+    ],
+    "native": [
+      {
+        "mass": {
+          "volume": 0.10000195000257797,
+          "mass": 0.00010000195000257797,
+          "centroid": [
+            10.123471699999998,
+            -0.2340678000000006,
+            2.8457239000000008
+          ],
+          "method": "planar-exact",
+          "inertia": [
+            [
+              0.00020834490438595117,
+              2.7755575615628914e-20,
+              0
+            ],
+            [
+              2.7755575615628914e-20,
+              0.0035417532296742205,
+              -1.3877787807814457e-20
+            ],
+            [
+              0,
+              -1.3877787807814457e-20,
+              0.003333408341955261
+            ]
+          ]
+        },
+        "check": {
+          "valid": true,
+          "issues": [],
+          "counts": {
+            "bodies": 1,
+            "shells": 1,
+            "faces": 6,
+            "loops": 6,
+            "coedges": 24,
+            "edges": 12,
+            "vertices": 8
+          },
+          "topology": [
+            {
+              "body": "n5_body0",
+              "vertices": 8,
+              "edges": 12,
+              "faces": 6,
+              "loops": 6,
+              "shells": 1,
+              "genus": 0
+            }
+          ],
+          "maximumVertexGap": 0,
+          "maximumPcurveGap": 0,
+          "maximumEdgeSurfaceGap": 0
+        },
+        "vertices": [
+          {
+            "id": "v0",
+            "point": [
+              0.1234567,
+              -0.2345678,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v1",
+            "point": [
+              20.123486699999997,
+              -0.2345678,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v2",
+            "point": [
+              20.123486699999997,
+              -0.2345678,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v3",
+            "point": [
+              0.1234567,
+              -0.2345678,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v4",
+            "point": [
+              20.123486699999997,
+              -0.2335678000000012,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v5",
+            "point": [
+              20.123486699999997,
+              -0.2335678000000012,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v6",
+            "point": [
+              0.1234567,
+              -0.2335678000000012,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v7",
+            "point": [
+              0.1234567,
+              -0.2335678000000012,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": "box",
+    "face": 3,
+    "axis": 0,
+    "sign": -1,
+    "coordinate": 0.1234567,
+    "opposite": 20.123486699999997,
+    "distance": -20.00003,
+    "next": 20.123486699999997,
+    "positiveStoredGap": 0,
+    "retained": 0,
+    "status": "REFUSED",
+    "error": {
+      "message": "[FACE_DISTANCE] The offset must leave positive prism thickness before the opposite cap.",
+      "code": "FACE_DISTANCE"
+    }
+  },
+  {
+    "kind": "box",
+    "face": 3,
+    "axis": 0,
+    "sign": -1,
+    "coordinate": 0.1234567,
+    "opposite": 20.123486699999997,
+    "distance": -19.999029999999998,
+    "next": 20.122486699999996,
+    "positiveStoredGap": 0.0010000000000012221,
+    "retained": 0.001,
+    "status": "SUCCESS",
+    "evaluation": [
+      {
+        "volume": 0.0500012500063611,
+        "centroid": [
+          20.1229867,
+          4.7654672,
+          2.8457239000000003
+        ]
+      }
+    ],
+    "native": [
+      {
+        "mass": {
+          "volume": 0.0500012500063611,
+          "mass": 0.000050001250006361104,
+          "centroid": [
+            20.1229867,
+            4.7654672,
+            2.8457239000000003
+          ],
+          "method": "planar-exact",
+          "inertia": [
+            [
+              0.0005208559378600139,
+              8.881784197001253e-19,
+              4.440892098500626e-19
+            ],
+            [
+              8.881784197001253e-19,
+              0.0001041730251408588,
+              1.1102230246251566e-19
+            ],
+            [
+              4.440892098500626e-19,
+              1.1102230246251566e-19,
+              0.00041668292105269877
+            ]
+          ]
+        },
+        "check": {
+          "valid": true,
+          "issues": [],
+          "counts": {
+            "bodies": 1,
+            "shells": 1,
+            "faces": 6,
+            "loops": 6,
+            "coedges": 24,
+            "edges": 12,
+            "vertices": 8
+          },
+          "topology": [
+            {
+              "body": "n5_body0",
+              "vertices": 8,
+              "edges": 12,
+              "faces": 6,
+              "loops": 6,
+              "shells": 1,
+              "genus": 0
+            }
+          ],
+          "maximumVertexGap": 0,
+          "maximumPcurveGap": 0,
+          "maximumEdgeSurfaceGap": 0
+        },
+        "vertices": [
+          {
+            "id": "v0",
+            "point": [
+              20.122486699999996,
+              -0.2345678,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v1",
+            "point": [
+              20.123486699999997,
+              -0.2345678,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v2",
+            "point": [
+              20.123486699999997,
+              -0.2345678,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v3",
+            "point": [
+              20.122486699999996,
+              -0.2345678,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v4",
+            "point": [
+              20.123486699999997,
+              9.765502199999998,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v5",
+            "point": [
+              20.123486699999997,
+              9.765502199999998,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v6",
+            "point": [
+              20.122486699999996,
+              9.765502199999998,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "v7",
+            "point": [
+              20.122486699999996,
+              9.765502199999998,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": "box",
+    "face": 4,
+    "axis": 2,
+    "sign": -1,
+    "coordinate": 0.3456789,
+    "opposite": 5.3457689,
+    "distance": -5.00009,
+    "next": 5.3457689,
+    "positiveStoredGap": 0,
+    "retained": 0,
+    "status": "REFUSED",
+    "error": {
+      "message": "[FACE_DISTANCE] The offset must leave positive prism thickness before the opposite cap.",
+      "code": "FACE_DISTANCE"
+    }
+  },
+  {
+    "kind": "box",
+    "face": 4,
+    "axis": 2,
+    "sign": -1,
+    "coordinate": 0.3456789,
+    "opposite": 5.3457689,
+    "distance": -4.99909,
+    "next": 5.3447689,
+    "positiveStoredGap": 0.001000000000000334,
+    "retained": 0.001,
+    "status": "SUCCESS",
+    "evaluation": [
+      {
+        "volume": 0.20000170000216685,
+        "centroid": [
+          10.123471699999993,
+          4.765467199999998,
+          5.3452688999993025
+        ]
+      }
+    ],
+    "native": [
+      {
+        "mass": {
+          "volume": 0.20000170000216674,
+          "mass": 0.00020000170000216674,
+          "centroid": [
+            10.123471699999998,
+            4.7654672,
+            5.345268900000001
+          ],
+          "method": "planar-exact",
+          "inertia": [
+            [
+              0.0016667041836315307,
+              0,
+              0
+            ],
+            [
+              0,
+              0.006666743350257364,
+              8.881784197001253e-19
+            ],
+            [
+              0,
+              8.881784197001253e-19,
+              0.00833344750055528
+            ]
+          ]
+        },
+        "check": {
+          "valid": true,
+          "issues": [],
+          "counts": {
+            "bodies": 1,
+            "shells": 1,
+            "faces": 6,
+            "loops": 6,
+            "coedges": 24,
+            "edges": 12,
+            "vertices": 8
+          },
+          "topology": [
+            {
+              "body": "n5_b0",
+              "vertices": 8,
+              "edges": 12,
+              "faces": 6,
+              "loops": 6,
+              "shells": 1,
+              "genus": 0
+            }
+          ],
+          "maximumVertexGap": 0,
+          "maximumPcurveGap": 0,
+          "maximumEdgeSurfaceGap": 0
+        },
+        "vertices": [
+          {
+            "id": "n5_v0",
+            "point": [
+              0.1234567,
+              -0.2345678,
+              5.3447689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n5_v1",
+            "point": [
+              20.123486699999997,
+              -0.2345678,
+              5.3447689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n5_v2",
+            "point": [
+              20.123486699999997,
+              -0.2345678,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n5_v3",
+            "point": [
+              0.1234567,
+              -0.2345678,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n5_v4",
+            "point": [
+              20.123486699999997,
+              9.765502199999998,
+              5.3447689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n5_v5",
+            "point": [
+              20.123486699999997,
+              9.765502199999998,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n5_v6",
+            "point": [
+              0.1234567,
+              9.765502199999998,
+              5.3447689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n5_v7",
+            "point": [
+              0.1234567,
+              9.765502199999998,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": "box",
+    "face": 5,
+    "axis": 2,
+    "sign": 1,
+    "coordinate": 5.3457689,
+    "opposite": 0.3456789,
+    "distance": -5.00009,
+    "next": 0.34567890000000023,
+    "positiveStoredGap": 2.220446049250313e-16,
+    "retained": 0,
+    "status": "REFUSED",
+    "error": {
+      "message": "[FACE_DISTANCE] The offset leaves a target that fails native strict validity.",
+      "code": "FACE_DISTANCE",
+      "details": {
+        "issues": [
+          "geometry: face prismatic_b0/prismatic_b0_s0/prismatic_w0_0_0_0: its loops cross or touch themselves or each other (ring 0 segment 0 and ring 0 segment 5)",
+          "geometry: face prismatic_b0/prismatic_b0_s0/prismatic_w0_0_0_0 is a sliver (width 2.22e-16 mm)",
+          "geometry: face prismatic_b0/prismatic_b0_s0/prismatic_w0_0_0_1: its loops cross or touch themselves or each other (ring 0 segment 0 and ring 0 segment 5)",
+          "geometry: face prismatic_b0/prismatic_b0_s0/prismatic_w0_0_0_1 is a sliver (width 2.22e-16 mm)",
+          "geometry: face prismatic_b0/prismatic_b0_s0/prismatic_w0_0_0_2: its loops cross or touch themselves or each other (ring 0 segment 0 and ring 0 segment 5)",
+          "geometry: face prismatic_b0/prismatic_b0_s0/prismatic_w0_0_0_2 is a sliver (width 2.22e-16 mm)",
+          "geometry: face prismatic_b0/prismatic_b0_s0/prismatic_w0_0_0_3: its loops cross or touch themselves or each other (ring 0 segment 1 and ring 0 segment 3)",
+          "geometry: face prismatic_b0/prismatic_b0_s0/prismatic_w0_0_0_3 is a sliver (width 2.22e-16 mm)"
+        ]
+      }
+    }
+  },
+  {
+    "kind": "box",
+    "face": 5,
+    "axis": 2,
+    "sign": 1,
+    "coordinate": 5.3457689,
+    "opposite": 0.3456789,
+    "distance": -4.99909,
+    "next": 0.34667890000000057,
+    "positiveStoredGap": 0.001000000000000556,
+    "retained": 0.001,
+    "status": "SUCCESS",
+    "evaluation": [
+      {
+        "volume": 0.20000170000221126,
+        "centroid": [
+          10.123471699999994,
+          4.765467199999998,
+          0.3461789000000025
+        ]
+      }
+    ],
+    "native": [
+      {
+        "mass": {
+          "volume": 0.20000170000221112,
+          "mass": 0.00020000170000221114,
+          "centroid": [
+            10.1234717,
+            4.765467199999999,
+            0.3461789000000003
+          ],
+          "method": "planar-exact",
+          "inertia": [
+            [
+              0.001666704183631902,
+              -1.7763568394002505e-18,
+              1.1102230246251566e-19
+            ],
+            [
+              -1.7763568394002505e-18,
+              0.0066667433502588394,
+              0
+            ],
+            [
+              1.1102230246251566e-19,
+              0,
+              0.008333447500557124
+            ]
+          ]
+        },
+        "check": {
+          "valid": true,
+          "issues": [],
+          "counts": {
+            "bodies": 1,
+            "shells": 1,
+            "faces": 6,
+            "loops": 6,
+            "coedges": 24,
+            "edges": 12,
+            "vertices": 8
+          },
+          "topology": [
+            {
+              "body": "n5_b0",
+              "vertices": 8,
+              "edges": 12,
+              "faces": 6,
+              "loops": 6,
+              "shells": 1,
+              "genus": 0
+            }
+          ],
+          "maximumVertexGap": 0,
+          "maximumPcurveGap": 0,
+          "maximumEdgeSurfaceGap": 0
+        },
+        "vertices": [
+          {
+            "id": "n5_v0",
+            "point": [
+              0.1234567,
+              -0.2345678,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n5_v1",
+            "point": [
+              20.123486699999997,
+              -0.2345678,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n5_v2",
+            "point": [
+              20.123486699999997,
+              -0.2345678,
+              0.34667890000000057
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n5_v3",
+            "point": [
+              0.1234567,
+              -0.2345678,
+              0.34667890000000057
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n5_v4",
+            "point": [
+              20.123486699999997,
+              9.765502199999998,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n5_v5",
+            "point": [
+              20.123486699999997,
+              9.765502199999998,
+              0.34667890000000057
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n5_v6",
+            "point": [
+              0.1234567,
+              9.765502199999998,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n5_v7",
+            "point": [
+              0.1234567,
+              9.765502199999998,
+              0.34667890000000057
+            ],
+            "tolerance": 1e-7
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": "circle-z",
+    "face": 1,
+    "axis": 2,
+    "sign": -1,
+    "coordinate": 0.3456789,
+    "opposite": 5.3457689,
+    "distance": -5.00009,
+    "next": 5.3457689,
+    "positiveStoredGap": 0,
+    "retained": 0,
+    "status": "REFUSED",
+    "error": {
+      "message": "[FACE_DISTANCE] The offset must leave positive prism thickness before the opposite cap.",
+      "code": "FACE_DISTANCE"
+    }
+  },
+  {
+    "kind": "circle-z",
+    "face": 1,
+    "axis": 2,
+    "sign": -1,
+    "coordinate": 0.3456789,
+    "opposite": 5.3457689,
+    "distance": -4.99909,
+    "next": 5.3447689,
+    "positiveStoredGap": 0.001000000000000334,
+    "retained": 0.001,
+    "status": "SUCCESS",
+    "evaluation": [
+      {
+        "volume": 0.028274333882317575,
+        "centroid": [
+          0.12345670000000007,
+          -0.23456779999999994,
+          5.3452688999993025
+        ]
+      }
+    ],
+    "native": [
+      {
+        "mass": {
+          "volume": 0.028274333882318387,
+          "mass": 0.000028274333882318387,
+          "centroid": [
+            0.12345669999995602,
+            -0.2345677999999384,
+            5.345268900000001
+          ],
+          "method": "quadrature",
+          "inertia": [
+            [
+              0.00006361725359141262,
+              1.9524312722118963e-18,
+              3.469446951953614e-21
+            ],
+            [
+              1.9524312722118963e-18,
+              0.00006361725359140936,
+              -6.938893903907229e-21
+            ],
+            [
+              3.469446951953614e-21,
+              -6.938893903907229e-21,
+              0.00012723450247043328
+            ]
+          ]
+        },
+        "check": {
+          "valid": true,
+          "issues": [],
+          "counts": {
+            "bodies": 1,
+            "shells": 1,
+            "faces": 4,
+            "loops": 4,
+            "coedges": 12,
+            "edges": 6,
+            "vertices": 4
+          },
+          "topology": [
+            {
+              "body": "n5_b0",
+              "vertices": 4,
+              "edges": 6,
+              "faces": 4,
+              "loops": 4,
+              "shells": 1,
+              "genus": 0
+            }
+          ],
+          "maximumVertexGap": 0,
+          "maximumPcurveGap": 8.881784197001252e-16,
+          "maximumEdgeSurfaceGap": 8.881784197001252e-16
+        },
+        "vertices": [
+          {
+            "id": "n5_v0",
+            "point": [
+              3.1234567,
+              -0.2345678,
+              5.3447689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n5_v1",
+            "point": [
+              -2.8765433,
+              -0.23456779999999963,
+              5.3447689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n5_v2",
+            "point": [
+              -2.8765433,
+              -0.23456779999999963,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n5_v3",
+            "point": [
+              3.1234567,
+              -0.2345678,
+              5.3457689
+            ],
+            "tolerance": 1e-7
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": "circle-z",
+    "face": 2,
+    "axis": 2,
+    "sign": 1,
+    "coordinate": 5.3457689,
+    "opposite": 0.3456789,
+    "distance": -5.00009,
+    "next": 0.34567890000000023,
+    "positiveStoredGap": 2.220446049250313e-16,
+    "retained": 0,
+    "status": "REFUSED",
+    "error": {
+      "message": "[FACE_DISTANCE] The remaining target mass centroid cannot bind its native cap interval.",
+      "code": "FACE_DISTANCE"
+    }
+  },
+  {
+    "kind": "circle-z",
+    "face": 2,
+    "axis": 2,
+    "sign": 1,
+    "coordinate": 5.3457689,
+    "opposite": 0.3456789,
+    "distance": -4.99909,
+    "next": 0.34667890000000057,
+    "positiveStoredGap": 0.001000000000000556,
+    "retained": 0.001,
+    "status": "SUCCESS",
+    "evaluation": [
+      {
+        "volume": 0.028274333882323855,
+        "centroid": [
+          0.12345670000000006,
+          -0.23456779999999994,
+          0.34617890000000245
+        ]
+      }
+    ],
+    "native": [
+      {
+        "mass": {
+          "volume": 0.02827433388232405,
+          "mass": 0.00002827433388232405,
+          "centroid": [
+            0.1234566999999973,
+            -0.23456779999999955,
+            0.3461789000000003
+          ],
+          "method": "quadrature",
+          "inertia": [
+            [
+              0.00006361725359142046,
+              2.684484579074109e-19,
+              2.168404344971009e-22
+            ],
+            [
+              2.684484579074109e-19,
+              0.00006361725359142134,
+              0
+            ],
+            [
+              2.168404344971009e-22,
+              0,
+              0.00012723450247045283
+            ]
+          ]
+        },
+        "check": {
+          "valid": true,
+          "issues": [],
+          "counts": {
+            "bodies": 1,
+            "shells": 1,
+            "faces": 4,
+            "loops": 4,
+            "coedges": 12,
+            "edges": 6,
+            "vertices": 4
+          },
+          "topology": [
+            {
+              "body": "n5_b0",
+              "vertices": 4,
+              "edges": 6,
+              "faces": 4,
+              "loops": 4,
+              "shells": 1,
+              "genus": 0
+            }
+          ],
+          "maximumVertexGap": 0,
+          "maximumPcurveGap": 4.440892098500626e-16,
+          "maximumEdgeSurfaceGap": 5.551115123125783e-17
+        },
+        "vertices": [
+          {
+            "id": "n5_v0",
+            "point": [
+              3.1234567,
+              -0.2345678,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n5_v1",
+            "point": [
+              -2.8765433,
+              -0.23456779999999963,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n5_v2",
+            "point": [
+              -2.8765433,
+              -0.23456779999999963,
+              0.34667890000000057
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n5_v3",
+            "point": [
+              3.1234567,
+              -0.2345678,
+              0.34667890000000057
+            ],
+            "tolerance": 1e-7
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": "circle-x",
+    "face": 1,
+    "axis": 1,
+    "sign": 1,
+    "coordinate": -0.2345678,
+    "opposite": -5.2346578,
+    "distance": -5.00009,
+    "next": -5.2346578,
+    "positiveStoredGap": 0,
+    "retained": 0,
+    "status": "REFUSED",
+    "error": {
+      "message": "[FACE_DISTANCE] The offset must leave positive prism thickness before the opposite cap.",
+      "code": "FACE_DISTANCE"
+    }
+  },
+  {
+    "kind": "circle-x",
+    "face": 1,
+    "axis": 1,
+    "sign": 1,
+    "coordinate": -0.2345678,
+    "opposite": -5.2346578,
+    "distance": -4.99909,
+    "next": -5.2336578,
+    "positiveStoredGap": 0.001000000000000334,
+    "retained": 0.001,
+    "status": "SUCCESS",
+    "evaluation": [
+      {
+        "volume": 0.028274333882321114,
+        "centroid": [
+          0.12345669999999957,
+          -5.2341578,
+          0.34567889999999996
+        ]
+      }
+    ],
+    "native": [
+      {
+        "mass": {
+          "volume": 0.028274333882321114,
+          "mass": 0.000028274333882321114,
+          "centroid": [
+            0.12345669999999957,
+            -5.2341578,
+            0.34567889999999996
+          ],
+          "method": "quadrature",
+          "inertia": [
+            [
+              0.00006361725359140781,
+              -3.469446951953614e-21,
+              6.01580417425307e-18
+            ],
+            [
+              -3.469446951953614e-21,
+              0.00012723450247042746,
+              0
+            ],
+            [
+              6.01580417425307e-18,
+              0,
+              0.00006361725359140833
+            ]
+          ]
+        },
+        "check": {
+          "valid": true,
+          "issues": [],
+          "counts": {
+            "bodies": 1,
+            "shells": 1,
+            "faces": 4,
+            "loops": 4,
+            "coedges": 16,
+            "edges": 8,
+            "vertices": 6
+          },
+          "topology": [
+            {
+              "body": "n6_body0",
+              "vertices": 6,
+              "edges": 8,
+              "faces": 4,
+              "loops": 4,
+              "shells": 1,
+              "genus": 0
+            }
+          ],
+          "maximumVertexGap": 0,
+          "maximumPcurveGap": 0,
+          "maximumEdgeSurfaceGap": 1.1443916996305594e-15
+        },
+        "vertices": [
+          {
+            "id": "n6_v0",
+            "point": [
+              -2.876543300000001,
+              -5.2336578,
+              0.3456789000000002
+            ],
+            "tolerance": 0.000001
+          },
+          {
+            "id": "n6_v1",
+            "point": [
+              -2.876543300000001,
+              -5.2346578,
+              0.3456789000000002
+            ],
+            "tolerance": 0.000001
+          },
+          {
+            "id": "n6_v2",
+            "point": [
+              3.1234566999999998,
+              -5.2346578,
+              0.3456788999999998
+            ],
+            "tolerance": 0.000001
+          },
+          {
+            "id": "n6_v3",
+            "point": [
+              3.1234566999999998,
+              -5.2336578,
+              0.34567889999999946
+            ],
+            "tolerance": 0.000001
+          },
+          {
+            "id": "n6_v4",
+            "point": [
+              0.12345670000000016,
+              -5.2336578,
+              3.3456789000000002
+            ],
+            "tolerance": 0.000001
+          },
+          {
+            "id": "n6_v5",
+            "point": [
+              0.12345669999999927,
+              -5.2336578,
+              -2.6543210999999998
+            ],
+            "tolerance": 0.000001
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": "circle-x",
+    "face": 2,
+    "axis": 1,
+    "sign": -1,
+    "coordinate": -5.2346578,
+    "opposite": -0.2345678,
+    "distance": -5.00009,
+    "next": -0.23456779999999977,
+    "positiveStoredGap": -2.220446049250313e-16,
+    "retained": 0,
+    "status": "REFUSED",
+    "error": {
+      "message": "[FACE_DISTANCE] The offset must leave positive prism thickness before the opposite cap.",
+      "code": "FACE_DISTANCE"
+    }
+  },
+  {
+    "kind": "circle-x",
+    "face": 2,
+    "axis": 1,
+    "sign": -1,
+    "coordinate": -5.2346578,
+    "opposite": -0.2345678,
+    "distance": -4.99909,
+    "next": -0.2355678000000001,
+    "positiveStoredGap": 0.001000000000000112,
+    "retained": 0.001,
+    "status": "SUCCESS",
+    "evaluation": [
+      {
+        "volume": 0.02827433388231297,
+        "centroid": [
+          0.12345670000000013,
+          -0.23506780000000005,
+          0.34567889999993134
+        ]
+      }
+    ],
+    "native": [
+      {
+        "mass": {
+          "volume": 0.02827433388231297,
+          "mass": 0.000028274333882312972,
+          "centroid": [
+            0.12345670000000013,
+            -0.23506780000000005,
+            0.34567889999993134
+          ],
+          "method": "quadrature",
+          "inertia": [
+            [
+              0.0000636172535913963,
+              0,
+              -2.7907363919776882e-19
+            ],
+            [
+              0,
+              0.0001272345024704035,
+              4.336808689942018e-22
+            ],
+            [
+              -2.7907363919776882e-19,
+              4.336808689942018e-22,
+              0.00006361725359139617
+            ]
+          ]
+        },
+        "check": {
+          "valid": true,
+          "issues": [],
+          "counts": {
+            "bodies": 1,
+            "shells": 1,
+            "faces": 4,
+            "loops": 4,
+            "coedges": 16,
+            "edges": 8,
+            "vertices": 6
+          },
+          "topology": [
+            {
+              "body": "n6_body0",
+              "vertices": 6,
+              "edges": 8,
+              "faces": 4,
+              "loops": 4,
+              "shells": 1,
+              "genus": 0
+            }
+          ],
+          "maximumVertexGap": 1.4043333874306805e-15,
+          "maximumPcurveGap": 0,
+          "maximumEdgeSurfaceGap": 1.3334236103572998e-15
+        },
+        "vertices": [
+          {
+            "id": "n6_v0",
+            "point": [
+              3.1234566999999998,
+              -0.2345678,
+              0.3456788999999991
+            ],
+            "tolerance": 0.000001
+          },
+          {
+            "id": "n6_v1",
+            "point": [
+              -2.876543300000001,
+              -0.2345678,
+              0.34567890000000084
+            ],
+            "tolerance": 0.000001
+          },
+          {
+            "id": "n6_v2",
+            "point": [
+              -2.876543300000001,
+              -0.2355678000000001,
+              0.3456789000000002
+            ],
+            "tolerance": 0.000001
+          },
+          {
+            "id": "n6_v3",
+            "point": [
+              0.12345670000000016,
+              -0.2355678000000001,
+              3.3456789000000002
+            ],
+            "tolerance": 0.000001
+          },
+          {
+            "id": "n6_v4",
+            "point": [
+              3.1234566999999998,
+              -0.23556779999999977,
+              0.3456788999999991
+            ],
+            "tolerance": 0.000001
+          },
+          {
+            "id": "n6_v5",
+            "point": [
+              0.12345669999999927,
+              -0.2355678000000001,
+              -2.6543210999999998
+            ],
+            "tolerance": 0.000001
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": "circle-y",
+    "face": 1,
+    "axis": 0,
+    "sign": -1,
+    "coordinate": 0.1234567,
+    "opposite": 5.1235467,
+    "distance": -5.00009,
+    "next": 5.1235467,
+    "positiveStoredGap": 0,
+    "retained": 0,
+    "status": "REFUSED",
+    "error": {
+      "message": "[FACE_DISTANCE] The offset must leave positive prism thickness before the opposite cap.",
+      "code": "FACE_DISTANCE"
+    }
+  },
+  {
+    "kind": "circle-y",
+    "face": 1,
+    "axis": 0,
+    "sign": -1,
+    "coordinate": 0.1234567,
+    "opposite": 5.1235467,
+    "distance": -4.99909,
+    "next": 5.1225467,
+    "positiveStoredGap": 0.001000000000000334,
+    "retained": 0.001,
+    "status": "SUCCESS",
+    "evaluation": [
+      {
+        "volume": 0.028274333882317565,
+        "centroid": [
+          5.1230467,
+          -0.23456780000001132,
+          0.34567890000001356
+        ]
+      }
+    ],
+    "native": [
+      {
+        "mass": {
+          "volume": 0.028274333882317565,
+          "mass": 0.000028274333882317567,
+          "centroid": [
+            5.1230467,
+            -0.23456780000001132,
+            0.34567890000001356
+          ],
+          "method": "quadrature",
+          "inertia": [
+            [
+              0.0001272345024704366,
+              6.938893903907229e-21,
+              0
+            ],
+            [
+              6.938893903907229e-21,
+              0.00006361725359141875,
+              9.215718466126788e-18
+            ],
+            [
+              0,
+              9.215718466126788e-18,
+              0.00006361725359140699
+            ]
+          ]
+        },
+        "check": {
+          "valid": true,
+          "issues": [],
+          "counts": {
+            "bodies": 1,
+            "shells": 1,
+            "faces": 4,
+            "loops": 4,
+            "coedges": 16,
+            "edges": 8,
+            "vertices": 6
+          },
+          "topology": [
+            {
+              "body": "n6_body0",
+              "vertices": 6,
+              "edges": 8,
+              "faces": 4,
+              "loops": 4,
+              "shells": 1,
+              "genus": 0
+            }
+          ],
+          "maximumVertexGap": 0,
+          "maximumPcurveGap": 0,
+          "maximumEdgeSurfaceGap": 1.9860273225978185e-15
+        },
+        "vertices": [
+          {
+            "id": "n6_v0",
+            "point": [
+              5.1225467,
+              -0.2345677999999987,
+              3.3456789000000016
+            ],
+            "tolerance": 0.000001
+          },
+          {
+            "id": "n6_v1",
+            "point": [
+              5.1235467,
+              -0.2345677999999987,
+              3.3456789000000016
+            ],
+            "tolerance": 0.000001
+          },
+          {
+            "id": "n6_v2",
+            "point": [
+              5.1235467,
+              -0.23456780000000135,
+              -2.6543210999999993
+            ],
+            "tolerance": 0.000001
+          },
+          {
+            "id": "n6_v3",
+            "point": [
+              5.1225467,
+              -0.23456780000000135,
+              -2.6543210999999993
+            ],
+            "tolerance": 0.000001
+          },
+          {
+            "id": "n6_v4",
+            "point": [
+              5.1225467,
+              2.7654322000000002,
+              0.3456788999999998
+            ],
+            "tolerance": 0.000001
+          },
+          {
+            "id": "n6_v5",
+            "point": [
+              5.1225467,
+              -3.234567799999999,
+              0.3456789000000016
+            ],
+            "tolerance": 0.000001
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "kind": "circle-y",
+    "face": 2,
+    "axis": 0,
+    "sign": 1,
+    "coordinate": 5.1235467,
+    "opposite": 0.1234567,
+    "distance": -5.00009,
+    "next": 0.1234567000000002,
+    "positiveStoredGap": 1.942890293094024e-16,
+    "retained": 0,
+    "status": "REFUSED",
+    "error": {
+      "message": "[FACE_DISTANCE] The remaining target mass centroid cannot bind its native cap interval.",
+      "code": "FACE_DISTANCE"
+    }
+  },
+  {
+    "kind": "circle-y",
+    "face": 2,
+    "axis": 0,
+    "sign": 1,
+    "coordinate": 5.1235467,
+    "opposite": 0.1234567,
+    "distance": -4.99909,
+    "next": 0.12445670000000053,
+    "positiveStoredGap": 0.0010000000000005282,
+    "retained": 0.001,
+    "status": "SUCCESS",
+    "evaluation": [
+      {
+        "volume": 0.028274333882323067,
+        "centroid": [
+          0.12395670000000027,
+          -0.23456779999999927,
+          0.34567890000000306
+        ]
+      }
+    ],
+    "native": [
+      {
+        "mass": {
+          "volume": 0.028274333882323067,
+          "mass": 0.00002827433388232307,
+          "centroid": [
+            0.12395670000000027,
+            -0.23456779999999927,
+            0.34567890000000306
+          ],
+          "method": "quadrature",
+          "inertia": [
+            [
+              0.00012723450247044892,
+              0,
+              -2.168404344971009e-22
+            ],
+            [
+              0,
+              0.00006361725359141891,
+              -1.7824283715661694e-19
+            ],
+            [
+              -2.168404344971009e-22,
+              -1.7824283715661694e-19,
+              0.00006361725359141899
+            ]
+          ]
+        },
+        "check": {
+          "valid": true,
+          "issues": [],
+          "counts": {
+            "bodies": 1,
+            "shells": 1,
+            "faces": 4,
+            "loops": 4,
+            "coedges": 16,
+            "edges": 8,
+            "vertices": 6
+          },
+          "topology": [
+            {
+              "body": "n6_body0",
+              "vertices": 6,
+              "edges": 8,
+              "faces": 4,
+              "loops": 4,
+              "shells": 1,
+              "genus": 0
+            }
+          ],
+          "maximumVertexGap": 1.6326319374041212e-15,
+          "maximumPcurveGap": 0,
+          "maximumEdgeSurfaceGap": 3.1676639673831405e-15
+        },
+        "vertices": [
+          {
+            "id": "n6_v0",
+            "point": [
+              0.1234567,
+              -0.23456780000000135,
+              -2.6543210999999993
+            ],
+            "tolerance": 0.000001
+          },
+          {
+            "id": "n6_v1",
+            "point": [
+              0.1234567,
+              -0.2345677999999987,
+              3.3456789000000016
+            ],
+            "tolerance": 0.000001
+          },
+          {
+            "id": "n6_v2",
+            "point": [
+              0.12445670000000053,
+              -0.23456779999999935,
+              3.3456789000000016
+            ],
+            "tolerance": 0.000001
+          },
+          {
+            "id": "n6_v3",
+            "point": [
+              0.12445670000000053,
+              2.7654322000000002,
+              0.3456788999999998
+            ],
+            "tolerance": 0.000001
+          },
+          {
+            "id": "n6_v4",
+            "point": [
+              0.12445670000000043,
+              -0.2345678000000013,
+              -2.6543210999999993
+            ],
+            "tolerance": 0.000001
+          },
+          {
+            "id": "n6_v5",
+            "point": [
+              0.12445670000000053,
+              -3.234567799999999,
+              0.3456789000000016
+            ],
+            "tolerance": 0.000001
+          }
+        ]
+      }
+    ]
+  }
+]

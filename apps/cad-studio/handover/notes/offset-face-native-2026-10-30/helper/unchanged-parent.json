@@ -1,0 +1,30 @@
+{
+  "packages/barocss-cad-model/src/app/faceProfile.ts": {
+    "unchanged": true,
+    "sha256": "9922c5c4073b6c8e7e2602e21b1ba9c0b4ff15b69e87b02bcc916265aab121e5"
+  },
+  "packages/barocss-cad-model/src/sketch/plane.ts": {
+    "unchanged": true,
+    "sha256": "a90b3d4a3398bbeae4c151a6beb64b532d6138a7349cef1b11061277aac7b4c9"
+  },
+  "packages/barocss-cad/src/features/prismatic-solid.ts": {
+    "unchanged": true,
+    "sha256": "712e2f69536b677cc04e30439fb52923bef45359dc511fcb92957f38dc3ed2d4"
+  },
+  "packages/barocss-cad/src/brep/brep-tessellate.ts": {
+    "unchanged": true,
+    "sha256": "d2c1c21923438f3188aabeda2a3e4fcb88a7e66cc4a950a70eb045acebc534e7"
+  },
+  "packages/barocss-cad/src/features/extruded-profile-solid.ts": {
+    "unchanged": true,
+    "sha256": "f5fa623919f19ff3d4db901bb4f9968e276164d7953f3416de80668f94c00b66"
+  },
+  "packages/barocss-cad/src/brep/brep-core.ts": {
+    "unchanged": true,
+    "sha256": "b116ea2453607ba852ca4cceaa38fdf2431e7d34270e4e86335230192213fa49"
+  },
+  "packages/barocss-cad/src/numeric-policy.ts": {
+    "unchanged": true,
+    "sha256": "860ee982f9ac01559a38db48dd7be7e8b550e3c17fa753fa66f4c9e0677335ae"
+  }
+}

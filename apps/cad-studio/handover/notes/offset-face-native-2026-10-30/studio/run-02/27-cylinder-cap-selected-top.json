@@ -1,0 +1,150 @@
+{
+  "label": "27-cylinder-cap-selected-top",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "circle",
+        "center": [
+          0,
+          0
+        ],
+        "radius": 3,
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 5,
+        "id": "n1",
+        "made": {
+          "command": "cylinder",
+          "values": {
+            "r": 3,
+            "h": 5,
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      },
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          80,
+          -3
+        ],
+        "max": [
+          92,
+          4
+        ],
+        "id": "n2"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 2,
+        "height": 5,
+        "from": 1,
+        "id": "n3",
+        "made": {
+          "command": "box",
+          "values": {
+            "w": 12,
+            "d": 7,
+            "h": 5,
+            "x": 80,
+            "y": -3,
+            "z": 1
+          }
+        }
+      }
+    ],
+    "outputs": {
+      "b1": {
+        "node": 1,
+        "side": "solid"
+      },
+      "b3": {
+        "node": 3,
+        "side": "solid"
+      }
+    },
+    "nextId": 4
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b1",
+        "volume": 141.37166941154072,
+        "centroid": [
+          6.871568756248338e-17,
+          -1.5448935231567078e-17,
+          2.5
+        ],
+        "massRef": null
+      },
+      {
+        "key": "b3",
+        "volume": 420.0000000000001,
+        "centroid": [
+          85.99999999999996,
+          0.4999999999999998,
+          3.5
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "shown": {
+    "gpu": true,
+    "exact": false,
+    "clip": null,
+    "hatch": {
+      "spacing": 1,
+      "lines": null
+    },
+    "bodies": 2,
+    "mode": null,
+    "planes": null,
+    "volume": null,
+    "shownVolume": 560.4650323149459,
+    "shownKeys": [
+      "b1",
+      "b3"
+    ],
+    "sources": [
+      "b1",
+      "b3"
+    ],
+    "offsets": null
+  },
+  "selection": {
+    "selection": {
+      "faces": [
+        {
+          "body": 0,
+          "face": 2
+        }
+      ],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 2,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "directSelection": [],
+  "hud": null,
+  "hudStatus": null,
+  "editor": null,
+  "feedback": []
+}

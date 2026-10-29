@@ -1,0 +1,12 @@
+api-generation-first	0
+api-adoption-first	0
+api-check-first	0
+agent-tools-check-first	0
+refusals-check-first	1
+studio-chat-first	0
+studio-types-first	0
+studio-vite-first	0
+studio-browser-lint-first	1
+refusals-generation	0
+refusals-check-repair	0
+studio-browser-lint-repair	0

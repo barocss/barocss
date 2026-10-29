@@ -1,0 +1,89 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": {},
+  "nodes": [
+    {
+      "kind": "sketch",
+      "profile": "circle",
+      "center": [
+        0,
+        0
+      ],
+      "radius": 3,
+      "id": "n0"
+    },
+    {
+      "kind": "extrude",
+      "sketch": 0,
+      "height": 5,
+      "id": "n1"
+    },
+    {
+      "kind": "sketch",
+      "profile": "loop",
+      "segments": [
+        {
+          "kind": "arc",
+          "start": [
+            3,
+            0
+          ],
+          "center": [
+            0,
+            0
+          ],
+          "direction": "ccw"
+        }
+      ],
+      "plane": {
+        "origin": [
+          0,
+          0,
+          5
+        ],
+        "normal": [
+          0,
+          0,
+          1
+        ],
+        "xAxis": [
+          1,
+          0,
+          0
+        ]
+      },
+      "on": {
+        "node": 1,
+        "side": "solid"
+      },
+      "id": "n2"
+    },
+    {
+      "kind": "extrude",
+      "sketch": 2,
+      "height": 2,
+      "id": "n3"
+    },
+    {
+      "kind": "union",
+      "left": {
+        "node": 1,
+        "side": "solid"
+      },
+      "right": {
+        "node": 3,
+        "side": "solid"
+      },
+      "id": "n4"
+    }
+  ],
+  "outputs": {
+    "b4": {
+      "node": 4,
+      "side": "solid"
+    }
+  },
+  "nextId": 5
+}

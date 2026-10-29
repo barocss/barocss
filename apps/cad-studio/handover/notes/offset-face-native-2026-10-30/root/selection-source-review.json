@@ -1,0 +1,17 @@
+{
+  "status": "PASS_SCOPED_SOURCE_REVIEW",
+  "scope": "Post-bd9d5715b Offset-specific acceptance selection and captured body source guard plus final browser numeric assertions.",
+  "observations": [
+    "setSelection(emptySel) occurs only after commit(next) succeeds for offset-face and before preview bodies replace the accepted display. Cancel, refusal and other commands do not execute this branch.",
+    "Captured commandDoc guard reuses the current Thicken/Sew source-identity pattern for Offset with a body-specific message. Existing surface messages remain.",
+    "All actual Offset Apply calls now wait for fresh accepted bodies and assert empty geometry selection; selected indices are resolved through current body keys to expose witness aliasing. Undo/Redo checks recipe identity, not restoration of an old face pick.",
+    "Final independent Fraction verifier compares native Core, public Part and actual accepted Studio volume/centroid against the same original native endpoints plus represented distance. Public witness and actual Studio witness remain separate controls.",
+    "Only native surface support normal-plane residual is tested; raw support poles are not incorrectly required inside every trimmed face tangent boundary."
+  ],
+  "limits": [
+    "Captured-source mismatch after an actual concurrent source edit is source-only coverage; normal final flow will be exercised in run02.",
+    "No generic selection remapper, Shift-Enter repeat policy or whole-command ownership acceptance claim.",
+    "Native topology/support and numeric source data provide subpixel precision evidence; screenshots cannot prove30nm ledges absent.",
+    "No Model/Kernel/API/source geometry change in this UI followup."
+  ]
+}

@@ -1,0 +1,292 @@
+{
+  "workId": "D342",
+  "status": "BOUNDED_QUALIFIED",
+  "source": {
+    "baselinePublishedD341": "8adbbbfa5515b76769f6adc9412f65c017b7ec38",
+    "checkpoint": "7e3d0a229810e036d80fc9b07f52fd0e17616c3d",
+    "initialFeature": "bd9d5715bd2c1cfdb3d2f1ca7b6d58722718c6ff",
+    "initialFeatureFiles": 7,
+    "selectionFix": "7e3d0a229810e036d80fc9b07f52fd0e17616c3d",
+    "selectionFixFiles": 2,
+    "checkpointFiles": 2,
+    "distinctImplementationPaths": 8
+  },
+  "checks": {
+    "immutableProbe": {
+      "status": "FOUR_RETURNED_SUCCESS_THREE_WRONG_GEOMETRY_ONE_CONTROL",
+      "receipt": "probe/receipt.md",
+      "strictNativeValid": 4,
+      "originalRecipesUnchanged": true,
+      "firstProbeFailure": null,
+      "fractional": {
+        "actualVolume": 1400.0014999999999,
+        "oracleApproxVolume": 1400.0021,
+        "sideDeviation": 2.999999999886427e-05
+      },
+      "translated": {
+        "gap": 0.00032109999999985206,
+        "nativeSolids": 2,
+        "nativeShells": 2
+      },
+      "drafted": {
+        "actualVolume": 1284.701763476482,
+        "continuedPlaneOracle": 1274.892215713191,
+        "topDeviation": 0.175020644681466
+      },
+      "integerCylinder": {
+        "status": "EXISTING_SUPPORT_CONTROL_PASS",
+        "nativeSolids": 1,
+        "nativeShells": 1,
+        "volume": 197.9203371761566,
+        "boundary": "Quadrature/roundedpi guide, not exactpi/generalcurved certificate."
+      },
+      "boundary": "Programmatic existing command/native route, not actualStudioUI."
+    },
+    "rootReader": {
+      "status": "ORCHESTRATION_ERROR_PRESERVED",
+      "source": "root/result-reader-first-error.txt",
+      "cause": "KeyError nonexistentBrep.solids",
+      "boundary": "Separate from successful author probe."
+    },
+    "helper": {
+      "status": "FINAL15PASS_SOURCE_REVIEW_CLOSED",
+      "focusedPass": 15,
+      "types": "PASS",
+      "lint": "PASS",
+      "finalSourceFreeze": true,
+      "receipt": "nearfull/receipt.md",
+      "hashes": "nearfull/owned-sha256.json",
+      "helperSHA256": "dcd035d18bf4c549b345f0e7054422b021a200e1c835fcb567f528b758bbaafc",
+      "testSHA256": "28dbafc9f41136c40f47271f9b34278f90cb487b0626c3d066cd2b76496e0f2b",
+      "historical": "Original11freeze/interim14freeze/ordinaryregression remain evidence for their exactsource, not finalclosure."
+    },
+    "Model": {
+      "status": "FINAL_AFFECTED_PASS_SOURCE_FROZEN",
+      "receipt": "model/checks-final.json",
+      "finalAffected": {
+        "pass": 64,
+        "fail": 0,
+        "skip": 0,
+        "helper": 15,
+        "command": 23,
+        "existing": 26
+      },
+      "types": "PASS",
+      "ownedLint": "PASS",
+      "gate": "RELEASED",
+      "firstRun": {
+        "tests": 58,
+        "pass": 54,
+        "fail": 4,
+        "boundary": "TestoraclezeroFraction normalization and translatedspancollapse assumptions; testonlyfixes retained."
+      },
+      "guardRun": {
+        "tests": 63,
+        "pass": 61,
+        "fail": 2,
+        "boundary": "Real newguardordinaryX-/Y- endpointbinding regression; requiredsourcefix, not testonlyerror."
+      },
+      "stale": "BAD_REFERENCE",
+      "repeat": "Actualcurrentcapstrictone-solid success required, not generalclosure."
+    },
+    "browserPreparation": {
+      "status": "NODECHECK_PASS_ONLY",
+      "source": "studio/preparation.md",
+      "boundary": "Historicalsyntaxonly stage; superseded by finalrun02actualreceipt."
+    },
+    "browser": {
+      "status": "NATIVE_NUMERIC_AND_ACTUAL_UI_FLOW_PASS",
+      "receipt": "studio/run-02/receipt.json",
+      "chromeProcesses": 1,
+      "serialContextsClosed": 7,
+      "observationalStates": 29,
+      "nativeReads": 13,
+      "FractionBoxOracles": 7,
+      "actualStudioMassCaptures": 8,
+      "cylinderTripleMassGuideRecords": 1,
+      "actualMouseFacePicks": 7,
+      "draftRefusals": 1,
+      "nativeFilesDownloads": 2,
+      "acceptedSelectionChecks": 4,
+      "allSelectionChecksPass": true,
+      "witnessAlias": false,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "watchedSourceChanges": 0,
+      "boundary": "RetakeafterheldselectionflowFAIL,29observations not29tests. ActualCore/publicPart/acceptedStudiorawmass shareoriginalendpointoracle, roundedlabelnotprecision."
+    },
+    "API": {
+      "status": "SCOPED_PASS_JUSTIFIED_ADOPTION",
+      "addedModelAppExports": 3,
+      "removed": 0,
+      "semanticExistingChanges": 0,
+      "source": "root/api-studio-checks.json",
+      "boundary": "No generic sharedPartverb;3Modelapphelper exports. Studio-onlyfollowup noAPIchange."
+    },
+    "docs": {
+      "status": "PASS",
+      "exitCode": 0,
+      "source": "root/check-docs-first.log.gz",
+      "metrics": {
+        "pages": 68,
+        "beingWritten": 0,
+        "shots": 55,
+        "shotKB": 4811,
+        "labels": 861
+      },
+      "boundary": "Final post-assembly documentation check only."
+    },
+    "nearFullBoundary": {
+      "status": "CAPTURED_INVALID_SUCCESS_FINAL_FOCUSED_GUARD_REFUSAL_AND_POSITIVE_RETRY_PASS",
+      "source": "model/nearfull-result.json",
+      "coordinate": 5.3457689,
+      "opposite": 0.3456789,
+      "distance": -5.00009,
+      "actualNext": 0.34567890000000023,
+      "positiveRemainingGap": 2.220446049250313e-16,
+      "buildEvaluate": "SUCCESS",
+      "strictNativeValid": false,
+      "fourSideFacesInvalid": true,
+      "ModelNormalCentroid": 0.34375,
+      "centroidInsideRetainedInterval": false,
+      "boundary": "Exactintended/storedgap equal; not capaddition-rounding or exactcollapse. Separate circle strictvalid/masswrong evidence also supplied."
+    },
+    "nearFullSourceReview": {
+      "status": "FINAL15_CASE_NO_REQUIRED_SOURCE_FINDING",
+      "runtime": "NOT_RUN",
+      "source": "review/nearfull-review.md",
+      "boundary": "Final2hashmatch/sourceonly; finalModel64authorruntime separate. No globalmass/allaxesactualprovider certificate."
+    },
+    "ordinaryBindingCorrection": {
+      "status": "FOCUSED_ACTUAL_ORDINARY_SUCCESS",
+      "directPublicRequests": 2,
+      "cases": "TranslatednegativeX/negativeYoutward2.125 require lo+(hi-lo)!=hi.",
+      "cause": "Priorprospectivenativeconstructionreconstructedhi1ulpaway and refusedordinaryvalidrequests.",
+      "fix": "ExistingnativeunitPrismaticSolid ownedslabz0/z1+capSource.z rebound to exactactualWORLDlo/hi; strict/native/masschecks unchanged. No relax/min/tol/Corechange."
+    },
+    "boundaryMatrix": {
+      "status": "SCOPED_PASS",
+      "records": 24,
+      "FACE_DISTANCERefusals": 12,
+      "positiveStrictValidSuccesses": 12,
+      "boundary": "Negative12 include exactcollapse/crossing AND positive residues; not all12positive-residue. Approximately.001 controls are not productfloor."
+    },
+    "Studio": {
+      "status": "PASS_AFTER_SELECTION_FIX",
+      "chatPass": 23,
+      "types": "PASS",
+      "build": "PASS",
+      "driverLint": "PASS",
+      "postfix": "root/selection-postfix-checks.json",
+      "sourceReview": "root/selection-source-review.json",
+      "reuse": "ValidpriorModel64/API/chat/generatedreceipt reused forunchanged inputs; postfixStudio typesbuildlint rerun."
+    },
+    "generatedRefusals": {
+      "status": "PASS_AFTER_EXACT_GENERATED_REPAIR",
+      "first": "FAIL staleexistingFACE_DISTANCEexample",
+      "source": "root/refusals-generation-review.json",
+      "boundary": "No newenum/code. Preserve firstcheck1exit andregeneratedcheckPASS."
+    },
+    "driverLint": {
+      "status": "PASS_AFTER_TWO_UNUSED_DECLARATIONS_FIXED",
+      "errors": 0,
+      "warnings": 1,
+      "first": "2unuseddriverdeclarations",
+      "boundary": "Finaldriver newmass assertions/root source review separate from older Highbrowser-source hash."
+    },
+    "initialBrowser": {
+      "status": "NUMERIC_PASS_SELECTION_FLOW_FAIL",
+      "receipt": "studio/run-01/receipt.json",
+      "review": "root/flow-review-run01.json",
+      "source": "bd9d5715bd2c1cfdb3d2f1ca7b6d58722718c6ff",
+      "boundary": "Consumed oldbody0/face5 persisted afterbodyorder[targetb1,witnessb3]\u2192[witnessb3,resultb6], aliases witness. No cleanfirstproductPASS."
+    },
+    "flowVisualReview": {
+      "status": "PASS_SCOPED_VISUAL_AND_SELECTION_FLOW",
+      "source": "root/flow-review-run02.json",
+      "images": [
+        "04-outward-native-authority-iso.png",
+        "12-distance-reeditable.png",
+        "16-inward-applied.png",
+        "20-drafted-refusal.png",
+        "29-cylinder-applied.png"
+      ],
+      "boundary": "Imagescannotresolve30nmledge/.0003211mmgap; nativesupport/topology/independentnumericsauthority. SourceguardconcurrentmutationNOT_RUN/sourceonly; nogenericselectionremapper/ShiftEnteracceptance."
+    },
+    "artifactWhitespace": {
+      "firstStatus": "FAIL_RAW_EVIDENCE_ONLY",
+      "firstOutput": "root/staged-diff-check-first.log.gz",
+      "cause": "One original baseline Python source line ends with a space.",
+      "repair": "Preserve identical decoded bytes in deterministic gzip; do not trim or modify executed source.",
+      "rawScript": "probe/independent-oracle.py.gz",
+      "decodedSHA256": "e87994eee803c62c005e9dcd0abd7e4af4c708860e019a560648206a9b098309",
+      "finalStatus": "PASS",
+      "finalOutput": "root/staged-diff-check-final.log.gz",
+      "finalExit": "root/staged-diff-check-final.exit"
+    },
+    "gitStagingLock": {
+      "firstStatus": "FAIL_INDEX_LOCK",
+      "firstOutput": "root/git-index-lock-first.log.gz",
+      "repair": "root/git-index-lock-repair.json",
+      "boundary": "Unused zero-byte worktree lock; no active Git process or lsof holder. No process killed; source/staged files preserved."
+    }
+  },
+  "provenance": {
+    "sourceCapsule": 1249,
+    "beforeAfterMatch": 1249,
+    "actualBundle": 504,
+    "kernelSource": 435,
+    "ModelSource": 68,
+    "harness": 1,
+    "kernelDistInActualBundle": 0,
+    "boundary": "Baseline1249capsule versus504srcbundle (noDist execution) separatefromeachbrowser12subset/frozen728. No728beforegeneration/fullservedgraph.",
+    "initialBrowserSubset": 12,
+    "frozenBrowserInputs": 728,
+    "afterBrowserMatch": 728,
+    "cleanupMatch": 728
+  },
+  "proposedContract": {
+    "privateCurrentNativeReferences": "Resolve currentunique body/face before profile capture; own snapshot.",
+    "profile": "Bounded straight right-prism/cylinder caps; unsupporteddraft/ref/distance/collapse refuse.",
+    "distance": "Exactdyadic/jointold1e-7 and boundedcirclequotient proof covered by finalboundedsource review and focusedcontrols; no genericcertificate.",
+    "mutableProfile": "Final bounded source review closes trustedowned/frozen factory proof and qualified cache ownership; fabricated/mutatedprofile cannot bypass resolution/distance. Productacceptance separate.",
+    "unchanged": "Generic faceSketch/faceProfile/planeOfFace/Extrude/Core, schema/deps unchanged. ActualAPIinventory adds3Modelapphelperexports only, no existingsemanticchanges/sharedPartverb.",
+    "nearFullGuard": "ExistingnativeFULLremainingtargetbuilder at exactabsolute WORLDlo/hi/opposite-next, strictcheck, existingprismaticMassProperties finitepositivevolume/centroidphysicalinterval/exactmidpoint under old1e-7. Not removaltool or roundedthickness+distance.",
+    "cache": "Singlelastactualnext result pertrustedproof, sharedfrozenownedcopies; exactdistance/gap/jointchecks precede lookup. No unboundmap/wholeModeleval.",
+    "massBoundary": "Samefullworldtargetphysicalinterval/midpoint guard narrowprospectiveadmission only; actualX/Y outputs may use differentBRep massprovider. Futureexisting16 longitudinalmass sourceproposal NOTIMPLEMENTED, no globalcertificate.",
+    "styleEdit": "Newcapturingiterationcallbacks removed in helper and Offset.available explicitloops; no semantics/performanceclaim."
+  },
+  "notProven": [
+    "Actualconcurrentsource-mutationguardflow(sourceonly)",
+    "Genericselectionremapper/ShiftEnterpolicy",
+    "Genericdraft/curved/repeatedgeometryclosure",
+    "Everyactualmassprovider/allaxes/globalmass-inertiaaccuracy",
+    "Fullsuites/performance/remoteCI/release/whole08"
+  ],
+  "next": "Existing16/CG10urgentD343stablelongitudinalmassSOURCEONLYplan,notimplemented/newqueue. Re-pin afterpublishedD342.07delivered/08open/09after08/Electron15queued.",
+  "actualProof": {
+    "geometry": "Actualmousecap/paletteOffset,outward+2/inward-1/literalDistance3+existingoffsetDistancebinding,strictoneNativeSolidClosedShell/supportplanes/nooldledge/endpointFractionvolume-centroid-area checks. Coplanarprovenance partitionsallowed,notfixedtopologycounts.",
+    "mass": "NativeCore/publicPart/actualacceptedStudiorawV+C checkedagainstsameORIGINALnativeendpoints/representedrequest.8Studio captures andcylindertriplemass record; roundedinspectorlabelsnotoracle.",
+    "ownership": "Cancel/Apply/UndoRedo/nativeSavefreshOpen/reselect/boundDistanceeditor/sourceprefix/witness unchanged; snapshots notliveassociation.",
+    "unsupported": "Draft5\u00b0 previewsrefused/Applydisabled, docselectionretained; Cancel/Undo returns actualsourceeditmarker,validretry succeeds.",
+    "selection": "After successfulOffsetcommitonlyclearconsumedgeometrypicks;4actualacceptedchecks allpass/noalias. Refusal/Cancel retainselection. CapturedsourceguardactualconcurrentmutationNOT_RUN.",
+    "witness": "b3/native-public6names/volume420/centroid[86,.5,3.5]stable.",
+    "resources": "OneChrome/7serialcontexts allclosed/browser-serverclosed,0errorsconsolewatchchanges."
+  },
+  "nextPlan": {
+    "status": "SOURCE_ONLY_NOT_IMPLEMENTED",
+    "plan": "next-plan/plan.md",
+    "massSourceReview": "next-plan/mass-source-review.md",
+    "scope": "Existing16/CG10longitudinalh2/h3cancellation,notgeneralinertiafix; D342guardunchanged."
+  },
+  "qualifiedUIProfiles": [
+    "Translatedfractional top+2",
+    "Actualmouse selection/palette/HUDpreviewCancelApplyUndoRedo",
+    "Nativefile/reselect",
+    "LiteraladdedDistance3/existingparameterbinding",
+    "Inward-1",
+    "Draftpreviewrefusal/sourceUndo marker/validretry",
+    "Integercylinderpositive",
+    "Separaterootvisualreview"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "coordinate": 5.3457689,
+  "opposite": 0.3456789,
+  "distance": -5.00009,
+  "stored": 0.34567890000000023,
+  "intendedGapSubnormalUnits": "44942328371557897693232629769725618340449424473557664318357520289433168951375240783177119330601884005280028469967848339414697442203604155623211857659868531094441973356216371319075554900311523529863270738021251442209537670585615720368478277635206809290837627671146574559986811484619929076208839082406056034304",
+  "storedGapSubnormalUnits": "44942328371557897693232629769725618340449424473557664318357520289433168951375240783177119330601884005280028469967848339414697442203604155623211857659868531094441973356216371319075554900311523529863270738021251442209537670585615720368478277635206809290837627671146574559986811484619929076208839082406056034304",
+  "unit": "2^-1074 mm",
+  "error": {
+    "name": "BarocssError",
+    "message": "[FACE_DISTANCE] The offset leaves a target that fails native strict validity.",
+    "code": "FACE_DISTANCE",
+    "details": {
+      "issues": [
+        "geometry: face prismatic_b0/prismatic_b0_s0/prismatic_w0_0_0_0: its loops cross or touch themselves or each other (ring 0 segment 0 and ring 0 segment 5)",
+        "geometry: face prismatic_b0/prismatic_b0_s0/prismatic_w0_0_0_0 is a sliver (width 2.22e-16 mm)",
+        "geometry: face prismatic_b0/prismatic_b0_s0/prismatic_w0_0_0_1: its loops cross or touch themselves or each other (ring 0 segment 0 and ring 0 segment 5)",
+        "geometry: face prismatic_b0/prismatic_b0_s0/prismatic_w0_0_0_1 is a sliver (width 2.22e-16 mm)",
+        "geometry: face prismatic_b0/prismatic_b0_s0/prismatic_w0_0_0_2: its loops cross or touch themselves or each other (ring 0 segment 0 and ring 0 segment 5)",
+        "geometry: face prismatic_b0/prismatic_b0_s0/prismatic_w0_0_0_2 is a sliver (width 2.22e-16 mm)",
+        "geometry: face prismatic_b0/prismatic_b0_s0/prismatic_w0_0_0_3: its loops cross or touch themselves or each other (ring 0 segment 1 and ring 0 segment 3)",
+        "geometry: face prismatic_b0/prismatic_b0_s0/prismatic_w0_0_0_3 is a sliver (width 2.22e-16 mm)"
+      ]
+    }
+  },
+  "originalUnchanged": true
+}

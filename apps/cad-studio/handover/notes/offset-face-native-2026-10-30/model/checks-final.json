@@ -1,0 +1,29 @@
+{
+  "status": "MODEL_BINDING_FINAL_PASS_SOURCE_FROZEN",
+  "focused": {
+    "tests": 64,
+    "pass": 64,
+    "fail": 0,
+    "skip": 0,
+    "log": "/tmp/d342-model/binding-final-focused.log"
+  },
+  "types": {
+    "status": "PASS",
+    "log": "/tmp/d342-model/binding-final-types.log"
+  },
+  "ownedLint": {
+    "status": "PASS",
+    "log": "/tmp/d342-model/binding-final-lint.log"
+  },
+  "gate": "RELEASED_holder_none_slots_0",
+  "previousFailuresRetained": [
+    "focused-first.log 54PASS4FAIL test oracle/assumption failures",
+    "focused-guard-final.log 61PASS2FAIL new helper binding regression"
+  ],
+  "fixedContracts": {
+    "stale": "BAD_REFERENCE",
+    "repeatedCurrentCap": "required native one-solid success",
+    "nearFullPolygonAndCircle": "FACE_DISTANCE atomic refusal then0.001 positive retry succeeds strict/native/modelcentroid"
+  },
+  "noBrowserCommitPush": true
+}

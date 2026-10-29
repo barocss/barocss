@@ -1,0 +1,11 @@
+{
+  "status": "GENERATED_EXACT_CHANGE_REVIEWED",
+  "file": "apps/library-docs/docs/reference/_refusals.md",
+  "delta": "Only existing FACE_DISTANCE example changes from former command text to new native helper example; no code added/removed.",
+  "beforeSHA256": "c8372a03b4e0781b75b436ecbb6d04fc11255c69986750027d2548ac3e283935",
+  "afterSHA256": "5aed890f9b8e98e8cca2f748fd0b5f487e80cebf77e8ed9ff622b65cc6c583b0",
+  "firstCheck": "FAIL preserved /tmp/d342-root/refusals-check-first.log",
+  "generation": "PASS",
+  "recheck": "PASS /tmp/d342-root/refusals-check-repair.log",
+  "gate": "RELEASED_holder_none_slots_0"
+}

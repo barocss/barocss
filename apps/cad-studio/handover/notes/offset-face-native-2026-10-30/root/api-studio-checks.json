@@ -1,0 +1,101 @@
+{
+  "status": "API_STUDIO_FINAL_PASS_SOURCE_FROZEN",
+  "node": "v22.19.0",
+  "gate": "RELEASED_holder_none_slots_0",
+  "checks": {
+    "api-generation-first": {
+      "exitCode": 0,
+      "status": "PASS",
+      "log": "/tmp/d342-root/api-generation-first.log"
+    },
+    "api-adoption-first": {
+      "exitCode": 0,
+      "status": "PASS",
+      "log": "/tmp/d342-root/api-adoption-first.log"
+    },
+    "api-check-first": {
+      "exitCode": 0,
+      "status": "PASS",
+      "log": "/tmp/d342-root/api-check-first.log"
+    },
+    "agent-tools-check-first": {
+      "exitCode": 0,
+      "status": "PASS",
+      "log": "/tmp/d342-root/agent-tools-check-first.log"
+    },
+    "refusals-check-first": {
+      "exitCode": 1,
+      "status": "FAIL",
+      "log": "/tmp/d342-root/refusals-check-first.log"
+    },
+    "studio-chat-first": {
+      "exitCode": 0,
+      "status": "PASS",
+      "log": "/tmp/d342-root/studio-chat-first.log"
+    },
+    "studio-types-first": {
+      "exitCode": 0,
+      "status": "PASS",
+      "log": "/tmp/d342-root/studio-types-first.log"
+    },
+    "studio-vite-first": {
+      "exitCode": 0,
+      "status": "PASS",
+      "log": "/tmp/d342-root/studio-vite-first.log"
+    },
+    "studio-browser-lint-first": {
+      "exitCode": 1,
+      "status": "FAIL",
+      "log": "/tmp/d342-root/studio-browser-lint-first.log"
+    },
+    "refusals-generation": {
+      "exitCode": 0,
+      "status": "PASS",
+      "log": "/tmp/d342-root/refusals-generation.log"
+    },
+    "refusals-check-repair": {
+      "exitCode": 0,
+      "status": "PASS",
+      "log": "/tmp/d342-root/refusals-check-repair.log"
+    },
+    "studio-browser-lint-repair": {
+      "exitCode": 0,
+      "status": "PASS",
+      "log": "/tmp/d342-root/studio-browser-lint-repair.log"
+    }
+  },
+  "firstFailures": [
+    {
+      "check": "refusals-check-first",
+      "cause": "Generated existing FACE_DISTANCE example changed; regenerated exact file and rechecked PASS.",
+      "review": "/tmp/d342-root/refusals-generation-review.json"
+    },
+    {
+      "check": "studio-browser-lint-first",
+      "cause": "Two unused declarations in new driver; driver owner fixed source, narrow lint recheck PASS with one no-console warning."
+    }
+  ],
+  "apiReview": {
+    "status": "JUSTIFIED_ADOPTION",
+    "semanticAddedModelAppExports": 3,
+    "semanticRemovals": 0,
+    "semanticExistingChanges": 0,
+    "presentationOnlyExistingChanges": 0,
+    "beforeSHA256": "067f845827a1848811fbfe63f3e30c8558356d695f3cf1a377a0b2b6eaa941dd",
+    "afterSHA256": "6a62b808d7baccceec85d385c43cf0c832fc33aabc424332797c74665bb80ff4"
+  },
+  "studioChat": {
+    "tests": 23,
+    "pass": 23,
+    "fail": 0,
+    "skip": 0
+  },
+  "driverSHA256": "8887c714ae387c3c07c9c3a9022a3c659a5819d49671a9042cf22a5f746b991e",
+  "buildWarnings": "Module directives/ineffective dynamic imports retained in Vite log; exit0.",
+  "lintWarning": "One no-console warning;0errors.",
+  "ownedEditsThisStage": [
+    "apps/library-docs/scripts/api-inventory.expected.json",
+    "apps/library-docs/docs/reference/_refusals.md"
+  ],
+  "noBrowserOrCommit": true
+}

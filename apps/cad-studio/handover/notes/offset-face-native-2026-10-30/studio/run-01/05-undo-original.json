@@ -1,0 +1,160 @@
+{
+  "label": "05-undo-original",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {
+      "height": 5,
+      "offsetDistance": 3
+    },
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          0.1234567,
+          -0.2345678
+        ],
+        "max": [
+          20.123486699999997,
+          9.7654322
+        ],
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": {
+          "parameter": "height"
+        },
+        "from": 0.3456789,
+        "id": "n1",
+        "made": {
+          "command": "box",
+          "values": {
+            "w": 20.00003,
+            "d": 10,
+            "h": 5,
+            "x": 0.1234567,
+            "y": -0.2345678,
+            "z": 0.3456789
+          }
+        }
+      },
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          80,
+          -3
+        ],
+        "max": [
+          92,
+          4
+        ],
+        "id": "n2"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 2,
+        "height": 5,
+        "from": 1,
+        "id": "n3",
+        "made": {
+          "command": "box",
+          "values": {
+            "w": 12,
+            "d": 7,
+            "h": 5,
+            "x": 80,
+            "y": -3,
+            "z": 1
+          }
+        }
+      }
+    ],
+    "outputs": {
+      "b1": {
+        "node": 1,
+        "side": "solid"
+      },
+      "b3": {
+        "node": 3,
+        "side": "solid"
+      }
+    },
+    "nextId": 4
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b1",
+        "volume": 1000.0015000000002,
+        "centroid": [
+          10.123471699999994,
+          4.765432199999999,
+          2.8456789000000007
+        ],
+        "massRef": null
+      },
+      {
+        "key": "b3",
+        "volume": 420.0000000000001,
+        "centroid": [
+          85.99999999999996,
+          0.4999999999999998,
+          3.5
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "shown": {
+    "gpu": true,
+    "exact": false,
+    "clip": null,
+    "hatch": {
+      "spacing": 1,
+      "lines": null
+    },
+    "bodies": 2,
+    "mode": null,
+    "planes": null,
+    "volume": null,
+    "shownVolume": 1420.0015370547744,
+    "shownKeys": [
+      "b1",
+      "b3"
+    ],
+    "sources": [
+      "b1",
+      "b3"
+    ],
+    "offsets": null
+  },
+  "selection": {
+    "selection": {
+      "faces": [
+        {
+          "body": 1,
+          "face": 5
+        }
+      ],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 2,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "directSelection": [],
+  "hud": null,
+  "hudStatus": null,
+  "editor": null,
+  "feedback": []
+}

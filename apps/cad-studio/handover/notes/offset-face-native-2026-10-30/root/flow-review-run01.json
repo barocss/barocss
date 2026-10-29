@@ -1,0 +1,37 @@
+{
+  "status": "FAIL_ACTUAL_SELECTION_FLOW",
+  "sourceCommit": "bd9d5715bd2c1cfdb3d2f1ca7b6d58722718c6ff",
+  "numericRunStatus": "PASS",
+  "imagesViewed": [
+    "03-outward-preview.png",
+    "04-outward-native-authority-iso.png",
+    "12-distance-reeditable.png",
+    "16-inward-applied.png"
+  ],
+  "finding": "After successful Offset Apply, selection retains face bodyIndex0/faceIndex5 while body order changes from [target b1,witness b3] to [witness b3,result b6]. The witness becomes selected and its420 volume appears in the inspector. No authored action in native inspection caused this. Product qualification held.",
+  "evidence": {
+    "beforeState": "02-native-cap-selected-top",
+    "afterState": "04-outward-applied",
+    "selectionBeforeAndAfter": {
+      "faces": [
+        {
+          "body": 0,
+          "face": 5
+        }
+      ],
+      "edges": [],
+      "bodies": []
+    },
+    "bodyKeysBefore": [
+      "b1",
+      "b3"
+    ],
+    "bodyKeysAfter": [
+      "b3",
+      "b6"
+    ]
+  },
+  "numericBoundary": "Native Core, public Part and accepted Studio mass comparisons passed independently; this is an acceptance-selection failure, not a geometry/mass failure.",
+  "visualBoundary": "Contiguous outward body and reopened parameter edit are visible, but image resolution cannot prove removal of30nm ledges or0.0003211mm gaps; native support/topology evidence provides that proof.",
+  "action": "Clear consumed geometry picks only after successful Offset commit; preserve refusal/Cancel selection, then run02 with explicit selection assertions."
+}

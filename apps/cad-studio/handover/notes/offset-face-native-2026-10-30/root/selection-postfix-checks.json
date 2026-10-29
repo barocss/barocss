@@ -1,0 +1,39 @@
+{
+  "status": "SELECTION_POSTFIX_STUDIO_PASS_SOURCE_FROZEN",
+  "node": "v22.19.0",
+  "checks": {
+    "selection-postfix-types": {
+      "status": "PASS",
+      "exitCode": 0,
+      "log": "/tmp/d342-root/selection-postfix-types.log"
+    },
+    "selection-postfix-vite": {
+      "status": "PASS",
+      "exitCode": 0,
+      "log": "/tmp/d342-root/selection-postfix-vite.log"
+    },
+    "selection-postfix-lint": {
+      "status": "PASS",
+      "exitCode": 0,
+      "log": "/tmp/d342-root/selection-postfix-lint.log"
+    }
+  },
+  "gate": "RELEASED_holder_none_slots_0",
+  "frozenSourceHashes": [
+    {
+      "path": "apps/cad-studio/src/App.tsx",
+      "sha256": "fe299d25d6fe83b7063b6a9399162cdfa79bba22d6bb038b6edcc8bdbf215a69",
+      "matchesFrozenOwnerReceipt": true
+    },
+    {
+      "path": "apps/cad-studio/test/offset-face-native-browser.mjs",
+      "sha256": "2991a7f485f940fc7aa764c76ff43f64589687f8f25f573c54ee6fcf596d6d7d",
+      "matchesFrozenOwnerReceipt": true
+    }
+  ],
+  "sourceWritesByThisWorker": 0,
+  "modelAPIChatTests": "Valid prior receipts reused; unchanged by this Studio-only correction",
+  "firstFailure": null,
+  "browser": "NOT_RUN; root owns run02",
+  "D343": "TMP preparation checkpoint only, paused; no Core/repo edits/runtime"
+}
