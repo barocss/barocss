@@ -2,7 +2,7 @@
 // meshes of the @barocss/gpu viewer core. The Viewer keeps the CPU state, picking and measurement;
 // Geometry changes rebuild the drawing (scenes are bounded to a few thousand vertices).
 import { createViewer as createCore } from '@barocss/gpu/viewer';
-import type { Viewer as Core, Mesh, ShaderMaterial, Light, Environment } from '@barocss/gpu/viewer';
+import type { Viewer as Core, Mesh, ShaderMaterial, Light, Environment, GeometryInput, AddMeshOptions } from '@barocss/gpu/viewer';
 import { bindingShader } from '@barocss/gpu';
 import type { MeshCamera, MeshLighting, PrimitiveSceneEntryV1, PrimitiveSceneEntryV2, PrimitiveSceneMaterial,
   ParticleLayerV0, ClothLayerV0 } from '@barocss/gpu';
@@ -164,10 +164,17 @@ export class Presenter {
     }
   }
 
+  /** Every geometry created here belongs to this Presenter, never to an external shared mesh. */
+  private addOwned(input: GeometryInput, options: AddMeshOptions): void {
+    const geometry = this.core.createGeometry(input);
+    try { this.meshes.push(this.core.add(geometry, options)); }
+    catch (error) { geometry.dispose(); throw error; }
+  }
+
   /** Replace what is drawn. */
   show(drawing: Drawing): void {
     const core = this.core;
-    for (const m of this.meshes) m.remove();
+    for (const m of this.meshes) { m.remove(); m.geometry.dispose(); }
     this.meshes = [];
     const cam = drawing.camera;
     Object.assign(core.camera, { projection: 'perspective', position: [...cam.eye], target: [...cam.target], up: [...cam.up], fovY: cam.fovY });
@@ -185,7 +192,7 @@ export class Presenter {
         for (let i = 0; i < count; i++) {
           transforms.set([r, 0, 0, 0, 0, r, 0, 0, 0, 0, r, 0, item.positions[i * 3], item.positions[i * 3 + 1], item.positions[i * 3 + 2], 1], i * 16);
         }
-        this.meshes.push(core.add(DOT, { material: { color: item.color, unlit: true }, instances: { transforms }, pickable: false, castShadow: false }));
+        this.addOwned(DOT, { material: { color: item.color, unlit: true }, instances: { transforms }, pickable: false, castShadow: false });
         continue;
       }
       const transform = item.mm ? poseMatrix(item.pose, drawing.mmToScene, drawing.translate) : undefined;
@@ -193,14 +200,14 @@ export class Presenter {
         const count = item.positions.length / 3;
         if (count < 2) continue;
         const indices = item.indices ?? Array.from({ length: (count - 1) * 2 }, (_, i) => (i >> 1) + (i & 1));
-        this.meshes.push(core.add({ positions: item.positions, indices, topology: 'lines' },
-          { material: { color: item.color, unlit: true, lineWidth: 1 }, ...(transform ? { transform } : {}), name: item.name, pickable: false, castShadow: false }));
+        this.addOwned({ positions: item.positions, indices, topology: 'lines' },
+          { material: { color: item.color, unlit: true, lineWidth: 1 }, ...(transform ? { transform } : {}), name: item.name, pickable: false, castShadow: false });
         continue;
       }
-      this.meshes.push(core.add({ positions: item.positions, normals: item.normals, indices: item.indices, uvs: item.uvs }, {
+      this.addOwned({ positions: item.positions, normals: item.normals, indices: item.indices, uvs: item.uvs }, {
         material: { color: item.color, metallic: 0, roughness: 1, doubleSided: item.doubleSided ?? true, unlit: item.unlit, shader: item.shader ?? null },
         ...(transform ? { transform } : {}), name: item.name, castShadow: false, receiveShadow: false,
-      }));
+      });
     }
     core.requestRender();
   }

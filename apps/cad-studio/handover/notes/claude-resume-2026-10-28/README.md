@@ -3,6 +3,14 @@
 The owner asked: "지금까지 하던거 멈추고 인수인계 할 수 있도록 해줘". This note lets the next session continue the
 kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-10-27 to 2026-10-28.
 
+## Latest D319 checkpoint — 2026-10-29
+
+- Presenter now releases only its owned Geometry on drawing replacement/empty clear and add failure. Shared Core Geometry/material/texture contracts remain. No identity cache, numeric/camera change or new telemetry/API is added.
+- Viewer package build/types, related40 and final overlapping texture target1/lint pass. Actual SDK Chrome/WebGPU/DPR1 selected1/0skip passes122 readbacks/124 count samples: surface/curve1, plane+256dots2, created/clear/dispose0; CPU pick and edited-array/dot pixels remain. Root reviewed5 actual PNGs.
+- [Qualification](../presenter-geometry-lifetime-2026-10-29/qualification.json) distinguishes CPU recording-buffer checks, actual SDK and historical baseline. Whole app UI/suites, driverbytes/VRAM/OOM/recovery/speed are NOT_RUN. Generated/API/docs pass. First dot-fixture failure and naming-only source bridge remain documented.
+- Incoming2242 Stop ownership is registered and transfer-closed only; its defect remains. Original D31809a1 fixture independent Node reader/codec now passes with specific670byte identity; no general byte/UI/solver claim or new test-total aggregation.
+- Next priority:D320/#2241 expected-tag write serialization in the selected same-store/path scope, then2242 Stop ownership. Normal per-feature push authorized; PR/release need direct instructions.
+
 ## Latest D318 checkpoint — 2026-10-29
 
 - Existing schema3/4 now admits structurally valid saved skeletons without solving or changing coordinates/constraints. Apply preserves ID/metadata and removes an emptied constraint list. Required follower caches are checked without refreshing stale values; nested documents use an iterative worklist.
@@ -283,7 +291,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D319**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D320**).
 
 ## 0. State at the stop
 

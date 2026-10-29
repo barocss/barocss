@@ -1,0 +1,10 @@
+{
+  "browser": "CLOSED",
+  "server": "CLOSED",
+  "evidence": "The selected test awaited browser.close and server.close in finally, completed PASS and the runner exited0.",
+  "serialHeavyGate": "RELEASED",
+  "exitRecords": [
+    "exits-final.tsv",
+    "lint-final-exit.txt"
+  ]
+}

@@ -168,3 +168,13 @@ See [qualification](skeleton-file-admission-2026-10-29/qualification.json). This
 selected #2235 acceptance; structural admission is not successful solve/physical validation.
 The remaining four original defect gates stay incomplete; #2241 P2 OPFS overlap is separately
 registered in12/O9 and closed only for transfer, with no storage source repair. Next P1 is #2238.
+
+### D319 selected Viewer lifetime disposition
+
+D319 releases Presenter-owned Geometry while preserving Core sharing. Actual SDK WebGPU122
+readbacks/124 count samples stay bounded to active1/2 and clear/dispose0; see
+[qualification](presenter-geometry-lifetime-2026-10-29/qualification.json). This supplies the
+selected #2238 resource-lifetime gate. Driver bytes/VRAM/OOM, full app UI and recovery remain
+unqualified. Three original defect gates remain; new2241/2242 P2 are separately registered and
+transfer-closed only, with fixes pending in priority order. D318 original-file independent reader
+proof is separately retained without merging test totals. Next selected task is2241.

@@ -16091,3 +16091,35 @@ raw saved-byte identity. Whole suites, other browsers/DPRs, actual schema4/param
 physical/interference acceptance remain NOT_RUN. Push normally under the per-feature instruction.
 No PR/release. Incoming OPFS2241 is roadmap-only and archived after transfer, not fixed. Next
 priority is existing P1 #2238 Presenter Geometry lifetime under05/V1/R2. Next decision:D319.
+
+
+## D319 — Release Presenter-owned Geometry on drawing replacement (2026-10-29)
+
+Presenter repeatedly created Geometry with core.add(rawInput), removed only Meshes, and left
+old Geometry registered until Core disposal. Preserve Core's intentional shared-Geometry
+contract. Explicitly create each Presenter-owned Geometry, track its successful Mesh immediately,
+and on add failure dispose only that new Geometry before propagating the original error.
+Drawing replacement removes the old Mesh then disposes its owned Geometry. Keep partial-show/
+outer rollback policy, external material/texture ownership and camera/render arithmetic unchanged.
+No identity cache is added: reusing caller arrays after in-place edits must still update drawing.
+
+Actual Core scene methods without a device reproduce1→33→33→0 retained Geometry before and
+1→1→0→0 after. Mesh-construction failure orphan1 becomes0. Full Viewer build/types,40 affected
+checks and final overlapping texture target1 pass; changed files lint passes. Source callbacks
+and recording buffers are not driver measurements. First ownership regressions and corrected
+fault-injection timing are retained separately, not erased as product results.
+
+Actual SDK Chrome/WebGPU Apple metal-3/DPR1 selected1 passes with0skip.122 actual pixel readbacks
+and124 count snapshots show retained=non-nullgpu=active Mesh: surface/curve1, plane+256dots2,
+created/clear/dispose0. Camera cycles, setView, replacements, curves/dots, public CPU picks and
+same-array edit pixel changes pass. Root views five actual PNGs. SDK proof does not qualify the
+whole Viewer app UI, GPU-pick race safety, device recovery, driver bytes/VRAM/OOM or speedup.
+The first dot fixture used an unqualified path; the existing public ModelSet loader repairs it.
+Later local naming cleanup is exact source equivalence plus syntax/lint only; raw evidence stays.
+
+Evidence: notes/presenter-geometry-lifetime-2026-10-29/qualification.json and separate lanes.
+Generated/API/docs pass with no public inventory change. No whole suite or kernel benchmark is
+claimed for this resource-correctness repair. GPU Core sources remain unchanged. Normal push is
+authorized; no PR/release. Incoming Stop2242 is roadmap-only and archived after transfer; independent
+original skeleton reader proof is a D318 supplement, not another implementation. Next priority:
+D320/#2241 per-store/path conditional-write ownership, then2242 originating-work Stop. Next ID:D320.

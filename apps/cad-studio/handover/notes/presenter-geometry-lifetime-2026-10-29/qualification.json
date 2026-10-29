@@ -1,0 +1,83 @@
+{
+  "workId": "D319",
+  "status": "SCOPED_PASS",
+  "baseline": "b1a9ed8c9dbbbe463fae1600151041870914937d",
+  "runtime": "Node22.19.0",
+  "productionScope": "Presenter-owned Geometry only; GPU Core sources unchanged",
+  "buildTypes": "PASS; full Viewer package tsc build",
+  "focusedTests": {
+    "uniqueAffectedPassed": 40,
+    "relatedRunPassed": 40,
+    "changedTextureTestRerunPassed": 1,
+    "changedRerunOverlaps": true,
+    "finalLint": "PASS"
+  },
+  "actualCoreMethodBaseline": {
+    "beforeRetained": [
+      1,
+      33,
+      33,
+      0
+    ],
+    "afterRetained": [
+      1,
+      1,
+      0,
+      0
+    ],
+    "meshConstructionFailureBefore": 1,
+    "meshConstructionFailureAfter": 0,
+    "WebGPUDevice": "NOT_CREATED in this lane"
+  },
+  "actualSDKBrowser": {
+    "status": "PASS; selected1/fail0/skip0",
+    "browser": "Chrome156.0.8078.48 WebGPU Apple metal-3",
+    "DPR": 1,
+    "readbacks": 122,
+    "countSnapshots": 124,
+    "invariant": "retained == non-null GPU object count == active Mesh at each snapshot",
+    "surfaceCurveCounts": 1,
+    "planePlus256DotsCounts": 2,
+    "createdClearDispose": 0,
+    "surfaceAndCurvePublicCPUPick": "PASS",
+    "sourceArrayInPlaceEditPixels": "PASS",
+    "dotPixels": "PASS",
+    "rootReviewedPNGs": 5,
+    "inputCount": 580,
+    "outsideProductSource": 0,
+    "scope": "Actual SDK browser, not complete cad-viewer app UI",
+    "receipt": "consumers/validation.json",
+    "postRunLocalIdentifierRename": "Syntax/lint PASS; normalized exact source equivalence recorded; original successful browser run not repeated",
+    "renameReceipt": "consumers/local-name-equivalence.json"
+  },
+  "preserved": "Shared explicit Geometry remove/readd/caller dispose; external ImageTexture; shared zero UV buffers; caller arrays; existing camera/render arithmetic and partial-show policy",
+  "firstFailures": {
+    "newUnitBaseline": "7fail;6 ownership assertions plus initial fault harness timing error; corrected old fault independently confirms retained1 versus expected0",
+    "browser": "RangeError: Fluid layer requires a qualified native scene; dot fixture repaired with existing public ModelSet loader, assertions unchanged"
+  },
+  "docs": {
+    "status": "PASS",
+    "pages": 68,
+    "shots": 55,
+    "shotKB": 4811,
+    "labels": 858,
+    "log": "docs-check-first.txt",
+    "generatedAgentTools": "PASS",
+    "generatedRefusals": "PASS",
+    "api": "Unchanged; six-rule SCOPED_PASS only"
+  },
+  "notRun": [
+    "whole Viewer/GPU/Kernel/Model/Studio suites",
+    "complete cad-viewer app UI",
+    "other browsers/DPR/adapters",
+    "natural device-loss/recovery frame proof",
+    "driver-memory bytes/VRAM/OOM",
+    "performance benchmark or speedup claim",
+    "new before-browser rerun of unchanged historical source"
+  ],
+  "historicalBrowserBaseline": "Original actual1to33/clear36 receipt reused with relevant Presenter/index/Core source identity; full577-vs580 bundle identity not claimed",
+  "hashesMeaning": "Provenance/artifact binding only, never source hash test pins",
+  "publication": "Normal per-feature push authorized; no PR/release",
+  "incoming": "2242 registered+state-only transfer closure, not fixed; independent original skeleton reader receipt supplements D318 only",
+  "nextPriority": "D320: #2241 same handleStore/path expected-tag write ownership, then #2242 Stop ownership"
+}

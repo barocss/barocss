@@ -1,0 +1,1384 @@
+{
+  "browserVersion": "156.0.8078.48",
+  "errors": [],
+  "measurement": "test-only TS-private retained/resident Geometry counts; not driver bytes, VRAM or OOM",
+  "result": {
+    "adapter": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "",
+      "description": ""
+    },
+    "counts": [
+      {
+        "label": "created",
+        "retained": 0,
+        "resident": 0,
+        "active": 0
+      },
+      {
+        "label": "surface-initial",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-1",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-2",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-3",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-4",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-5",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-6",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-7",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-8",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-9",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-10",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-11",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-12",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-13",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-14",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-15",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-16",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-17",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-18",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-19",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-20",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-21",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-22",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-23",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-24",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-25",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-26",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-27",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-28",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-29",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-30",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-31",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-32",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-33",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-34",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-35",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-36",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-37",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-38",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-39",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-40",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-41",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-42",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-43",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-44",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-45",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-46",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-47",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-48",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-49",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-50",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-51",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-52",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-53",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-54",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-55",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-56",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-57",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-58",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-59",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-60",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-61",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-62",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-63",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "camera-64",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "setView-1",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "setView-2",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "setView-3",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "same-array-edited",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "replacement-1",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "replacement-2",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "replacement-3",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "replacement-4",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "replacement-5",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "replacement-6",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "replacement-7",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "replacement-8",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "replacement-9",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "replacement-10",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "replacement-11",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "replacement-12",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "replacement-13",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "replacement-14",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "replacement-15",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "replacement-16",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "native-curves",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "curve-orbit-1",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "curve-orbit-2",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "curve-orbit-3",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "curve-orbit-4",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "curve-orbit-5",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "curve-orbit-6",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "curve-orbit-7",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "curve-orbit-8",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "curve-orbit-9",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "curve-orbit-10",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "curve-orbit-11",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "curve-orbit-12",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "curve-orbit-13",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "curve-orbit-14",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "curve-orbit-15",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "curve-orbit-16",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "native-plane",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "dots-initial",
+        "retained": 2,
+        "resident": 2,
+        "active": 2
+      },
+      {
+        "label": "dots-frame-1",
+        "retained": 2,
+        "resident": 2,
+        "active": 2
+      },
+      {
+        "label": "dots-frame-2",
+        "retained": 2,
+        "resident": 2,
+        "active": 2
+      },
+      {
+        "label": "dots-frame-3",
+        "retained": 2,
+        "resident": 2,
+        "active": 2
+      },
+      {
+        "label": "dots-frame-4",
+        "retained": 2,
+        "resident": 2,
+        "active": 2
+      },
+      {
+        "label": "dots-frame-5",
+        "retained": 2,
+        "resident": 2,
+        "active": 2
+      },
+      {
+        "label": "dots-frame-6",
+        "retained": 2,
+        "resident": 2,
+        "active": 2
+      },
+      {
+        "label": "dots-frame-7",
+        "retained": 2,
+        "resident": 2,
+        "active": 2
+      },
+      {
+        "label": "dots-frame-8",
+        "retained": 2,
+        "resident": 2,
+        "active": 2
+      },
+      {
+        "label": "dots-frame-9",
+        "retained": 2,
+        "resident": 2,
+        "active": 2
+      },
+      {
+        "label": "dots-frame-10",
+        "retained": 2,
+        "resident": 2,
+        "active": 2
+      },
+      {
+        "label": "dots-frame-11",
+        "retained": 2,
+        "resident": 2,
+        "active": 2
+      },
+      {
+        "label": "dots-frame-12",
+        "retained": 2,
+        "resident": 2,
+        "active": 2
+      },
+      {
+        "label": "dots-frame-13",
+        "retained": 2,
+        "resident": 2,
+        "active": 2
+      },
+      {
+        "label": "dots-frame-14",
+        "retained": 2,
+        "resident": 2,
+        "active": 2
+      },
+      {
+        "label": "dots-frame-15",
+        "retained": 2,
+        "resident": 2,
+        "active": 2
+      },
+      {
+        "label": "dots-frame-16",
+        "retained": 2,
+        "resident": 2,
+        "active": 2
+      },
+      {
+        "label": "dots-removed",
+        "retained": 1,
+        "resident": 1,
+        "active": 1
+      },
+      {
+        "label": "clear",
+        "retained": 0,
+        "resident": 0,
+        "active": 0
+      },
+      {
+        "label": "dispose",
+        "retained": 0,
+        "resident": 0,
+        "active": 0
+      }
+    ],
+    "frames": [
+      {
+        "label": "surface-initial",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "camera-1",
+        "bytes": 307200,
+        "covered": 9601
+      },
+      {
+        "label": "camera-2",
+        "bytes": 307200,
+        "covered": 9601
+      },
+      {
+        "label": "camera-3",
+        "bytes": 307200,
+        "covered": 9602
+      },
+      {
+        "label": "camera-4",
+        "bytes": 307200,
+        "covered": 9525
+      },
+      {
+        "label": "camera-5",
+        "bytes": 307200,
+        "covered": 9593
+      },
+      {
+        "label": "camera-6",
+        "bytes": 307200,
+        "covered": 9474
+      },
+      {
+        "label": "camera-7",
+        "bytes": 307200,
+        "covered": 9482
+      },
+      {
+        "label": "camera-8",
+        "bytes": 307200,
+        "covered": 9458
+      },
+      {
+        "label": "camera-9",
+        "bytes": 307200,
+        "covered": 9466
+      },
+      {
+        "label": "camera-10",
+        "bytes": 307200,
+        "covered": 9449
+      },
+      {
+        "label": "camera-11",
+        "bytes": 307200,
+        "covered": 9456
+      },
+      {
+        "label": "camera-12",
+        "bytes": 307200,
+        "covered": 9442
+      },
+      {
+        "label": "camera-13",
+        "bytes": 307200,
+        "covered": 9449
+      },
+      {
+        "label": "camera-14",
+        "bytes": 307200,
+        "covered": 9438
+      },
+      {
+        "label": "camera-15",
+        "bytes": 307200,
+        "covered": 9444
+      },
+      {
+        "label": "camera-16",
+        "bytes": 307200,
+        "covered": 9436
+      },
+      {
+        "label": "camera-17",
+        "bytes": 307200,
+        "covered": 9440
+      },
+      {
+        "label": "camera-18",
+        "bytes": 307200,
+        "covered": 9431
+      },
+      {
+        "label": "camera-19",
+        "bytes": 307200,
+        "covered": 9439
+      },
+      {
+        "label": "camera-20",
+        "bytes": 307200,
+        "covered": 9424
+      },
+      {
+        "label": "camera-21",
+        "bytes": 307200,
+        "covered": 9442
+      },
+      {
+        "label": "camera-22",
+        "bytes": 307200,
+        "covered": 9388
+      },
+      {
+        "label": "camera-23",
+        "bytes": 307200,
+        "covered": 9409
+      },
+      {
+        "label": "camera-24",
+        "bytes": 307200,
+        "covered": 9356
+      },
+      {
+        "label": "camera-25",
+        "bytes": 307200,
+        "covered": 9377
+      },
+      {
+        "label": "camera-26",
+        "bytes": 307200,
+        "covered": 9347
+      },
+      {
+        "label": "camera-27",
+        "bytes": 307200,
+        "covered": 9363
+      },
+      {
+        "label": "camera-28",
+        "bytes": 307200,
+        "covered": 9355
+      },
+      {
+        "label": "camera-29",
+        "bytes": 307200,
+        "covered": 9368
+      },
+      {
+        "label": "camera-30",
+        "bytes": 307200,
+        "covered": 9360
+      },
+      {
+        "label": "camera-31",
+        "bytes": 307200,
+        "covered": 9373
+      },
+      {
+        "label": "camera-32",
+        "bytes": 307200,
+        "covered": 9364
+      },
+      {
+        "label": "camera-33",
+        "bytes": 307200,
+        "covered": 9375
+      },
+      {
+        "label": "camera-34",
+        "bytes": 307200,
+        "covered": 9350
+      },
+      {
+        "label": "camera-35",
+        "bytes": 307200,
+        "covered": 9360
+      },
+      {
+        "label": "camera-36",
+        "bytes": 307200,
+        "covered": 9323
+      },
+      {
+        "label": "camera-37",
+        "bytes": 307200,
+        "covered": 9334
+      },
+      {
+        "label": "camera-38",
+        "bytes": 307200,
+        "covered": 9296
+      },
+      {
+        "label": "camera-39",
+        "bytes": 307200,
+        "covered": 9305
+      },
+      {
+        "label": "camera-40",
+        "bytes": 307200,
+        "covered": 9271
+      },
+      {
+        "label": "camera-41",
+        "bytes": 307200,
+        "covered": 9278
+      },
+      {
+        "label": "camera-42",
+        "bytes": 307200,
+        "covered": 9268
+      },
+      {
+        "label": "camera-43",
+        "bytes": 307200,
+        "covered": 9275
+      },
+      {
+        "label": "camera-44",
+        "bytes": 307200,
+        "covered": 9265
+      },
+      {
+        "label": "camera-45",
+        "bytes": 307200,
+        "covered": 9272
+      },
+      {
+        "label": "camera-46",
+        "bytes": 307200,
+        "covered": 9239
+      },
+      {
+        "label": "camera-47",
+        "bytes": 307200,
+        "covered": 9246
+      },
+      {
+        "label": "camera-48",
+        "bytes": 307200,
+        "covered": 9211
+      },
+      {
+        "label": "camera-49",
+        "bytes": 307200,
+        "covered": 9219
+      },
+      {
+        "label": "camera-50",
+        "bytes": 307200,
+        "covered": 9184
+      },
+      {
+        "label": "camera-51",
+        "bytes": 307200,
+        "covered": 9191
+      },
+      {
+        "label": "camera-52",
+        "bytes": 307200,
+        "covered": 9158
+      },
+      {
+        "label": "camera-53",
+        "bytes": 307200,
+        "covered": 9165
+      },
+      {
+        "label": "camera-54",
+        "bytes": 307200,
+        "covered": 9157
+      },
+      {
+        "label": "camera-55",
+        "bytes": 307200,
+        "covered": 9163
+      },
+      {
+        "label": "camera-56",
+        "bytes": 307200,
+        "covered": 9135
+      },
+      {
+        "label": "camera-57",
+        "bytes": 307200,
+        "covered": 9141
+      },
+      {
+        "label": "camera-58",
+        "bytes": 307200,
+        "covered": 9106
+      },
+      {
+        "label": "camera-59",
+        "bytes": 307200,
+        "covered": 9109
+      },
+      {
+        "label": "camera-60",
+        "bytes": 307200,
+        "covered": 9076
+      },
+      {
+        "label": "camera-61",
+        "bytes": 307200,
+        "covered": 9080
+      },
+      {
+        "label": "camera-62",
+        "bytes": 307200,
+        "covered": 9045
+      },
+      {
+        "label": "camera-63",
+        "bytes": 307200,
+        "covered": 9050
+      },
+      {
+        "label": "camera-64",
+        "bytes": 307200,
+        "covered": 9030
+      },
+      {
+        "label": "setView-1",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "setView-2",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "setView-3",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "same-array-edited",
+        "bytes": 307200,
+        "covered": 7680
+      },
+      {
+        "label": "replacement-1",
+        "bytes": 307200,
+        "covered": 7680
+      },
+      {
+        "label": "replacement-2",
+        "bytes": 307200,
+        "covered": 7680
+      },
+      {
+        "label": "replacement-3",
+        "bytes": 307200,
+        "covered": 7680
+      },
+      {
+        "label": "replacement-4",
+        "bytes": 307200,
+        "covered": 7680
+      },
+      {
+        "label": "replacement-5",
+        "bytes": 307200,
+        "covered": 7680
+      },
+      {
+        "label": "replacement-6",
+        "bytes": 307200,
+        "covered": 7680
+      },
+      {
+        "label": "replacement-7",
+        "bytes": 307200,
+        "covered": 7680
+      },
+      {
+        "label": "replacement-8",
+        "bytes": 307200,
+        "covered": 7680
+      },
+      {
+        "label": "replacement-9",
+        "bytes": 307200,
+        "covered": 7680
+      },
+      {
+        "label": "replacement-10",
+        "bytes": 307200,
+        "covered": 7680
+      },
+      {
+        "label": "replacement-11",
+        "bytes": 307200,
+        "covered": 7680
+      },
+      {
+        "label": "replacement-12",
+        "bytes": 307200,
+        "covered": 7680
+      },
+      {
+        "label": "replacement-13",
+        "bytes": 307200,
+        "covered": 7680
+      },
+      {
+        "label": "replacement-14",
+        "bytes": 307200,
+        "covered": 7680
+      },
+      {
+        "label": "replacement-15",
+        "bytes": 307200,
+        "covered": 7680
+      },
+      {
+        "label": "replacement-16",
+        "bytes": 307200,
+        "covered": 7680
+      },
+      {
+        "label": "native-curves",
+        "bytes": 307200,
+        "covered": 230
+      },
+      {
+        "label": "curve-orbit-1",
+        "bytes": 307200,
+        "covered": 229
+      },
+      {
+        "label": "curve-orbit-2",
+        "bytes": 307200,
+        "covered": 230
+      },
+      {
+        "label": "curve-orbit-3",
+        "bytes": 307200,
+        "covered": 229
+      },
+      {
+        "label": "curve-orbit-4",
+        "bytes": 307200,
+        "covered": 222
+      },
+      {
+        "label": "curve-orbit-5",
+        "bytes": 307200,
+        "covered": 229
+      },
+      {
+        "label": "curve-orbit-6",
+        "bytes": 307200,
+        "covered": 231
+      },
+      {
+        "label": "curve-orbit-7",
+        "bytes": 307200,
+        "covered": 229
+      },
+      {
+        "label": "curve-orbit-8",
+        "bytes": 307200,
+        "covered": 233
+      },
+      {
+        "label": "curve-orbit-9",
+        "bytes": 307200,
+        "covered": 228
+      },
+      {
+        "label": "curve-orbit-10",
+        "bytes": 307200,
+        "covered": 228
+      },
+      {
+        "label": "curve-orbit-11",
+        "bytes": 307200,
+        "covered": 229
+      },
+      {
+        "label": "curve-orbit-12",
+        "bytes": 307200,
+        "covered": 231
+      },
+      {
+        "label": "curve-orbit-13",
+        "bytes": 307200,
+        "covered": 228
+      },
+      {
+        "label": "curve-orbit-14",
+        "bytes": 307200,
+        "covered": 231
+      },
+      {
+        "label": "curve-orbit-15",
+        "bytes": 307200,
+        "covered": 226
+      },
+      {
+        "label": "curve-orbit-16",
+        "bytes": 307200,
+        "covered": 228
+      },
+      {
+        "label": "native-plane",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "dots-initial",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "dots-frame-1",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "dots-frame-2",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "dots-frame-3",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "dots-frame-4",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "dots-frame-5",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "dots-frame-6",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "dots-frame-7",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "dots-frame-8",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "dots-frame-9",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "dots-frame-10",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "dots-frame-11",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "dots-frame-12",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "dots-frame-13",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "dots-frame-14",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "dots-frame-15",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "dots-frame-16",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "dots-removed",
+        "bytes": 307200,
+        "covered": 9600
+      },
+      {
+        "label": "clear",
+        "bytes": 307200,
+        "covered": 0
+      }
+    ],
+    "hit": {
+      "modelId": "lifetime",
+      "surfaceId": "lifetime_patch"
+    },
+    "curveHit": {
+      "modelId": "native_loader_demo",
+      "curveId": "reference_edge"
+    },
+    "authoredEditChangedPixels": true,
+    "curves": 1,
+    "dotsChangedPixels": true,
+    "emptyStatus": "empty",
+    "disposedStatus": "disposed"
+  }
+}

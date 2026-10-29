@@ -1,0 +1,37 @@
+{
+  "status": "PASS_ORIGINAL_FILE_CURRENT_READER_AND_CODEC_SEMANTICS",
+  "commit": "b1a9ed8c9dbbbe463fae1600151041870914937d",
+  "node": "v22.19.0",
+  "fixture": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/studio-001/skeleton/skeleton.bcad",
+  "fixtureBytes": 670,
+  "fixtureSha256": "09a1e09a23c191b4ea0e0a62688b2bf208cbb16ff3512f02c76635ec9e4c7a98",
+  "firstRead": {
+    "status": "PASS",
+    "wholeDocumentStrictDeepEqual": true,
+    "skeletonCount": 1,
+    "id": "n0",
+    "points": 4,
+    "segments": 4,
+    "frameCount": 0,
+    "constraintsPresent": false,
+    "followsPresent": false,
+    "nextId": 1,
+    "notes": [],
+    "semanticJsonSha256": "a6e4722c8df83091d5d7bacf6cc99167dbf56074994354e05a87ce1899800a15"
+  },
+  "codecRoundtrip": {
+    "status": "PASS",
+    "bytes": 670,
+    "sha256": "09a1e09a23c191b4ea0e0a62688b2bf208cbb16ff3512f02c76635ec9e4c7a98",
+    "wholeDocumentStrictDeepEqual": true,
+    "notes": [],
+    "semanticJsonSha256": "a6e4722c8df83091d5d7bacf6cc99167dbf56074994354e05a87ce1899800a15",
+    "originalRawBytesEqual": true
+  },
+  "rawDecoded": {
+    "originalTextSha256": "09a1e09a23c191b4ea0e0a62688b2bf208cbb16ff3512f02c76635ec9e4c7a98",
+    "roundtripTextSha256": "09a1e09a23c191b4ea0e0a62688b2bf208cbb16ff3512f02c76635ec9e4c7a98",
+    "originalSemanticJsonSha256": "a6e4722c8df83091d5d7bacf6cc99167dbf56074994354e05a87ce1899800a15"
+  },
+  "boundary": "Independent Node reader/codec only. No actual UI/re-edit, geometry evaluation, nonlinear solver, whole suite or general byte-identity claim."
+}

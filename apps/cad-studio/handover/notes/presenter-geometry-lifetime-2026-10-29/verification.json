@@ -1,0 +1,33 @@
+{
+  "checkout": "b1a9ed8c9dbbbe463fae1600151041870914937d",
+  "node": "v22.19.0",
+  "sourceFrozen": true,
+  "gate": "RELEASED",
+  "build": {
+    "status": "PASS",
+    "exitCode": 0
+  },
+  "lint": {
+    "status": "PASS",
+    "exitCode": 0
+  },
+  "relatedTests": "40 PASS / 0 FAIL / 0 SKIP",
+  "lastChangedTest": "1 PASS / 0 FAIL / 0 SKIP",
+  "unchangedCoreSources": {
+    "packages/barocss-gpu/src/viewer/viewer.ts": true,
+    "packages/barocss-gpu/src/viewer/scene.ts": true,
+    "packages/barocss-gpu/src/viewer/geometry.ts": true
+  },
+  "fullSuites": "NOT_RUN",
+  "browser": "CONSUMER_LANE_PENDING",
+  "hashes": {
+    "packages/barocss-viewer/src/presenter.ts": "96ce81cb3be6bc06060a7114a518a0b9925f139c7ce71ce9e7fab3ca0a8a3892",
+    "packages/barocss-viewer/tests/presenter-lifetime.test.mjs": "0c19b31f2e3dd0784b343bcc852068cbaddcd342a5a12153261d876eff11191d",
+    "packages/barocss-viewer/tests/fixtures/presenter-lifetime-harness.mjs": "85967d6ed4feea5f06705f496131993428d4609091465c3f795d73ad432bd3da",
+    "packages/barocss-viewer/dist/presenter.js": "0e5435d652b4add02f7097a94ab95acd0c39a1835ead70c75905b30f7aebd54f",
+    "packages/barocss-viewer/dist/presenter.d.ts": "8a054903ef0ce43c67818589166205b471bcca25c2c0cb37e8c5e7e48ae066a7",
+    "packages/barocss-gpu/src/viewer/viewer.ts": "0b1adf995958122808cd49c6cd440ba623343469dd789d6e87d22057d8f89cb9",
+    "packages/barocss-gpu/src/viewer/scene.ts": "3d215f883911a52f3dbc278eb6978622f2f8cdf0ecbad51e06a4b3d3b19939ff",
+    "packages/barocss-gpu/src/viewer/geometry.ts": "9c77377ef621977c0ccda0e8ed7ef02e8a7eb215d2d9a4f39a3901407a593cc5"
+  }
+}

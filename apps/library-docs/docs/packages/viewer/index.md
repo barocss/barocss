@@ -111,6 +111,11 @@ The host owns the Viewer and any pointer or keyboard control handles it attaches
 or replacing its Viewer, stop the host's callbacks, dispose each control handle, then call `viewer.dispose()`.
 Disposing the Viewer does not remove the listeners installed by those separate control handles.
 
+Scene replacement, `viewer.clear()` and Viewer disposal release the Geometry owned by the SDK drawing,
+including its vertex/index buffers. Camera changes keep ownership bounded to the current drawing.
+If you use the GPU Core directly with shared Geometry, each caller still owns that Geometry:
+removing one Mesh leaves it available to other Meshes and later reuse; dispose it when that sharing ends.
+
 Both control-handle disposal and `viewer.dispose()` can be called again without repeating their cleanup.
 After Viewer disposal, `getState().status` is `disposed`; `captureReviewState()` and `applyReviewState()` refuse
 that instance. Create and load a new Viewer before offering review Save/Open again.

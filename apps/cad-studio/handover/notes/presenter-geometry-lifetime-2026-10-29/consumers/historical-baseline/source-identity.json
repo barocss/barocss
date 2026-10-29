@@ -1,0 +1,26 @@
+{
+  "originalAuditRoot": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029",
+  "wholeBundleIdentity": "NOT_ASSERTED: original577 vs final580 inputs and intervening unrelated dependency changes. Relevant pre-fix Presenter/index/Core source identity checked separately.",
+  "sources": [
+    {
+      "path": "packages/barocss-viewer/src/presenter.ts",
+      "historicalSourceSHA256": "3acb1296f52675be808bf62f7853675aa592163390236923388f937edcd6f1ea",
+      "currentSourceSHA256": "96ce81cb3be6bc06060a7114a518a0b9925f139c7ce71ce9e7fab3ca0a8a3892",
+      "currentEqualsHistorical": false,
+      "archivedPreFixPresenterEqualsHistorical": true,
+      "archivedPreFixSHA256": "3acb1296f52675be808bf62f7853675aa592163390236923388f937edcd6f1ea"
+    },
+    {
+      "path": "packages/barocss-viewer/src/index.ts",
+      "historicalSourceSHA256": "ec81a4222a69b3859fbe16203c07cc1606fa99aa504c8fa521a3ea0c3f114a91",
+      "currentSourceSHA256": "ec81a4222a69b3859fbe16203c07cc1606fa99aa504c8fa521a3ea0c3f114a91",
+      "currentEqualsHistorical": true
+    },
+    {
+      "path": "packages/barocss-gpu/src/viewer/viewer.ts",
+      "historicalSourceSHA256": "0b1adf995958122808cd49c6cd440ba623343469dd789d6e87d22057d8f89cb9",
+      "currentSourceSHA256": "0b1adf995958122808cd49c6cd440ba623343469dd789d6e87d22057d8f89cb9",
+      "currentEqualsHistorical": true
+    }
+  ]
+}
