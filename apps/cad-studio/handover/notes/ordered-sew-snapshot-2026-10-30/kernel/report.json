@@ -1,0 +1,56 @@
+{
+  "status": "KERNEL_SOURCE_AND_FOCUSED_PASS",
+  "worktree": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+  "scope": "Shared Kernel facade; no Core geometry changes",
+  "fullBuild": {
+    "status": "PASS",
+    "log": "build-1.log",
+    "command": "node scripts/tool.mjs build"
+  },
+  "newTests": {
+    "status": "PASS",
+    "count": 7,
+    "log": "tests-final.log"
+  },
+  "relatedTests": {
+    "status": "PASS",
+    "count": 18,
+    "log": "tests-1.log",
+    "files": [
+      "api-part.test.mjs",
+      "api-parameters.test.mjs",
+      "api-thicken.test.mjs",
+      "sew-solid.test.mjs"
+    ]
+  },
+  "declarations": {
+    "status": "PASS",
+    "log": "types-1.log",
+    "files": [
+      "api-sew-types.mts",
+      "api-thicken-types.mts"
+    ]
+  },
+  "lint": "PENDING_MODEL_ROOT_SERIAL_RUN",
+  "firstFailures": {
+    "tests-1.log": "Test treated BrepBody.shells[0] string ID as a Shell record; source unchanged",
+    "tests-2.log": "Same test assertion; preceding edit command used incorrect relative path and made no edit",
+    "tests-3.log": "Test assumed optional FaceInfo.area supplied by Kernel selector; source unchanged",
+    "tests-4.log": "PASS before final native tolerance and mapped-code assertions"
+  },
+  "productionFailures": "NONE_OBSERVED",
+  "observations": "observations.json",
+  "browser": "NOT_RUN",
+  "fullKernelSuite": "NOT_RUN",
+  "commitPush": "NOT_RUN",
+  "sha256": {
+    "src/api/surface-snapshot.ts": "36dfef04303454f0a5c1e5bdca98dd031f77528e43564ae4c33d26afb957e2ba",
+    "src/api/spec.ts": "43dbb3a4dd43e8bedc9b2e23367ecd081ebcb94be7636d6801714b3f19425aa0",
+    "src/api/part.ts": "a5e5e7f832e923eabcdea4f6ab637456afa07066a052f8d5eda656cb7638e324",
+    "src/api/kernel.ts": "1c7e5ed7ea371feba58b7fccb2f8c05ee87cf9c950ce89b278d0364a1678f00b",
+    "src/api/index.ts": "e8c4d1af5d23c2f5917dd98c26079ddad0af174ec21c7d0c9e39756b0bf31a7a",
+    "README.md": "ab095e637ee74c1342fc7d04f1db30ad683d1de4d13c35346aa0cdfe4050c1af",
+    "test/api-sew.test.mjs": "6b1d39ce99b1ae6bbb8224913c08afb481d1f7ccbbe697686c9b974b28ae5fda",
+    "test/api-sew-types.mts": "c56b7098e5f72caf02487fda6d3a38f1319e00e2fa49f828131818a5ae5cfee9"
+  }
+}

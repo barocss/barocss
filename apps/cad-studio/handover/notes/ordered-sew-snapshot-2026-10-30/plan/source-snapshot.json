@@ -1,0 +1,24 @@
+{
+  "scope": "D339 source-only plan listed inputs; root docs may change; no runtime/build/browser/test/candidate execution",
+  "head": "9d2dd5ef71542611cbc3bb4f612c34a27d361056",
+  "files": {
+    "apps/cad-studio/handover/roadmap.md": "02ead77bf8cc455ddbd976d159f81d5b51c8e47ee0cee9547410d045ba9fdbf2",
+    "apps/cad-studio/handover/api-conventions.md": "57e97b94186df0e3e5f9e71e3b3cbedd8419aaefe84fcca0108ca73a5d956a96",
+    "packages/barocss-cad/src/brep/sew-solid.ts": "069a61f6f5ebaca98a70e2b83ff1804f482b128ae3e117d2656bf5a95e80faf9",
+    "packages/barocss-cad/src/part/part-mesh.ts": "7c2118455db216b69aa98f6a3e19e1f9a0526c2fd39f118b1dd9ddf6f4e9367c",
+    "packages/barocss-cad/src/part/part-model.ts": "59848c6894ee65717fd46f2e043af7b67b4ac12f2a2fb44fd32a1d6b4456baa3",
+    "packages/barocss-cad/test/sew-solid.test.mjs": "36354c3a94b9864c0a98ca137ac0d0758f92811d966d7df3945d6b9fcea2b51f",
+    "packages/barocss-cad/src/api/surface-snapshot.ts": "261671d628e24a3888113e98aa4bee57243e763d2694c98215a5cdc720d97c7d",
+    "packages/barocss-cad/src/nurbs/surfaces/surface-parameter-split.ts": "7ba4fc4edbd191797c36324f4f00761ec2dead236efc4e9ca854b520a9168767",
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-axis-reversal.ts": "5dec26b81bc0847e656326981213e874726c42f89cc988c6eff4941d6a5a7875",
+    "packages/barocss-cad-model/src/engine/doc.ts": "2c455b38f91762d01cc4a925d30aaa132b401f56b2cdd0799928214320745da6",
+    "packages/barocss-cad-model/src/engine/part.ts": "5438fca9b26a696cc71fb27e5c8c350b75c950413c52d4d8674138603bbc7dfa",
+    "packages/barocss-cad-model/src/engine/trim.ts": "d8d0e4f6b1468381cf5baa0960ceea1042678037c2b1a1f9b9ed154b4bdc9467",
+    "packages/barocss-cad-model/src/app/editFields.ts": "61f40544be9d7b6caf85b765f0ceec0246e46de3ea3d67c9e874263db6783eea",
+    "packages/barocss-cad-model/src/engine/thicken.ts": "dc2b206c3772a65802c314cf9474b2a598e1b8069d787cdab285c48128f33152",
+    "packages/barocss-cad-model/src/chat/part/features.ts": "ce05c5aa9acb045715fef7146a2924209d0d325962aa5fedeb26dac936f6bb62",
+    "apps/cad-studio/src/ui/DirectInspector.tsx": "8f93c956f85de18e29522dcc2cdadf10bfc517882a6387eea51b281ae7ce94d2",
+    "apps/cad-studio/src/ui/DirectPanel.tsx": "705eb1397edfa07e294ba6d91d4da275dbca66ea8f6e848f3d69a5e4b0707adc",
+    "apps/cad-studio/src/App.tsx": "6df915083ec4c70c02590c9652ffff0bd27feaf9f009380e61ba357be30d2632"
+  }
+}

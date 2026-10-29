@@ -1,0 +1,60 @@
+{
+  "review": "D339 independent HIGH source review",
+  "head": "fec23cf2acef80210c28092981f54e6191e90eeb",
+  "capturedUTC": "2026-10-29T17:19:40.352194+00:00",
+  "ModelProductionFrozen": true,
+  "scope": "listed inputs only; Kernel tests may still change; no runtime/build/browser/test by reviewer",
+  "files": {
+    "packages/barocss-cad/src/api/surface-snapshot.ts": "36dfef04303454f0a5c1e5bdca98dd031f77528e43564ae4c33d26afb957e2ba",
+    "packages/barocss-cad/src/api/spec.ts": "43dbb3a4dd43e8bedc9b2e23367ecd081ebcb94be7636d6801714b3f19425aa0",
+    "packages/barocss-cad/src/api/part.ts": "a5e5e7f832e923eabcdea4f6ab637456afa07066a052f8d5eda656cb7638e324",
+    "packages/barocss-cad/src/api/kernel.ts": "1c7e5ed7ea371feba58b7fccb2f8c05ee87cf9c950ce89b278d0364a1678f00b",
+    "packages/barocss-cad/src/api/index.ts": "e8c4d1af5d23c2f5917dd98c26079ddad0af174ec21c7d0c9e39756b0bf31a7a",
+    "packages/barocss-cad/src/api/select.ts": "e655a1630f2e06b7b73f557bafdc09b5619cba4553a231e8126db16990a4fd7b",
+    "packages/barocss-cad/src/api/core.ts": "921cdb5fe01cb319d2fbf5ea6090604016e32093e93fe932c53b582916208764",
+    "packages/barocss-cad-model/src/engine/sew.ts": "651a6292d8835f2a480de7974e87abd942b45e2c0ec681713f379a36c5035c22",
+    "packages/barocss-cad-model/src/app/sewCommand.ts": "25ef4c4580d241adb0cf87d111be640697ef59015c65601d4f9fd0dd9e6562b8",
+    "packages/barocss-cad-model/src/app/commands.ts": "262a33d624dee206fcc4224613cce152bff820098bfa4ceac8fdbd12fec1249b",
+    "packages/barocss-cad-model/src/app/editFields.ts": "596e362c3a5965fa669f3083512f5b114ce9b4de9bc086774c812f06c7eb5739",
+    "packages/barocss-cad-model/src/engine/parameters.ts": "8e5c164f3df59f63875c82f2db6e86052da25213054fed812ac5eb5bb1560100",
+    "packages/barocss-cad-model/src/api/studio.ts": "cdfc18c5de4b7deeb28b809f9bdb86af029970176b9f005f86769ad27c6ef53d",
+    "packages/barocss-cad-model/src/api/index.ts": "49689e113c348f5dd0eda53ea7e52a85cf5fea66fd0622eaa2aae4df8d52264b",
+    "packages/barocss-cad-model/src/chat/features.ts": "a916cd326fad39b27d753222dc42db82eae8a0d08c8fdd1b1fd46e32760ead07",
+    "packages/barocss-cad-model/src/chat/part/features.ts": "7014ed4fcc87f6790f4424a0ccc053d91ade695ef4e3b7d22bfe9d9292bee0d0",
+    "packages/barocss-cad-model/src/engine/part.ts": "5438fca9b26a696cc71fb27e5c8c350b75c950413c52d4d8674138603bbc7dfa",
+    "packages/barocss-cad-model/src/engine/doc.ts": "2c455b38f91762d01cc4a925d30aaa132b401f56b2cdd0799928214320745da6",
+    "packages/barocss-cad-model/src/engine/mesh.ts": "609db55ae64bb7c02aef9386c391d8622d6ec1d79858d96bbda7b2aeda6f2543",
+    "packages/barocss-cad-model/src/engine/directModule.ts": "ea6908da3945fd96076afefdfc786e837e835e5b49a1c65e88656dce565177c0",
+    "packages/barocss-cad-model/src/api/refusal.ts": "21fc7f7df5d9779ce68e3f5df7fe899488e1cd9137748f5c6cc3ca7b5267a90c",
+    "apps/cad-studio/src/App.tsx": "3c63784292ce77094a659b638e847bd5560305717d947cdff1d9c98d74296a1b",
+    "apps/cad-studio/src/ui/DirectInspector.tsx": "00b5e04f82b5e008992da73847763f1f9a14e8313ab795da8eb78f895549c9cd",
+    "apps/cad-studio/src/ui/DirectPanel.tsx": "705eb1397edfa07e294ba6d91d4da275dbca66ea8f6e848f3d69a5e4b0707adc",
+    "apps/cad-studio/src/state/useCommandPreview.ts": "0c481d82435203744e48f068eb0838828d7866c8de6bb53aa511e32230a154c9",
+    "apps/cad-studio/src/app/directCurveCandidate.ts": "d49b15379bfd9818b5ccaa12f2257f019534046aeb15a777506d2811d87c5b9c",
+    "packages/barocss-cad/src/brep/sew-solid.ts": "069a61f6f5ebaca98a70e2b83ff1804f482b128ae3e117d2656bf5a95e80faf9",
+    "packages/barocss-cad/src/part/part-mesh.ts": "7c2118455db216b69aa98f6a3e19e1f9a0526c2fd39f118b1dd9ddf6f4e9367c",
+    "packages/barocss-cad/src/part/part-model.ts": "59848c6894ee65717fd46f2e043af7b67b4ac12f2a2fb44fd32a1d6b4456baa3",
+    "packages/barocss-cad/src/core/math.ts": "90613a0504b96bd31a0869af1193299b088df99e4ada0f135eaf78c5bff992bf",
+    "packages/barocss-cad/src/brep/brep-core.ts": "b116ea2453607ba852ca4cceaa38fdf2431e7d34270e4e86335230192213fa49",
+    "packages/barocss-cad/src/nurbs/surfaces/surface-isocurve.ts": "d0c21f0869ecd5a77a1a4d5fa2d7dd90ac3df6bf60fcab09b1afd30ec6b2d8e7",
+    "packages/barocss-cad/test/api-sew.test.mjs": "6b1d39ce99b1ae6bbb8224913c08afb481d1f7ccbbe697686c9b974b28ae5fda",
+    "packages/barocss-cad/test/api-sew-types.mts": "c56b7098e5f72caf02487fda6d3a38f1319e00e2fa49f828131818a5ae5cfee9",
+    "packages/barocss-cad-model/test/api-sew.test.ts": "dd13fcb199dd637f5ffdc764a5adcc150c5ccae18fe0b890b7d69079de5d6c3b"
+  },
+  "unchangedGeometryAgainstHEAD": {
+    "packages/barocss-cad/src/brep/sew-solid.ts": true,
+    "packages/barocss-cad/src/part/part-mesh.ts": true,
+    "packages/barocss-cad/src/part/part-model.ts": true,
+    "packages/barocss-cad/src/core/math.ts": true,
+    "packages/barocss-cad/src/brep/brep-core.ts": true,
+    "packages/barocss-cad/src/nurbs/surfaces/surface-isocurve.ts": true
+  },
+  "finalCheck": {
+    "UTC": "2026-10-29T17:20:42.524483+00:00",
+    "changedSinceCapsule": [],
+    "workerOwnedHashMismatch": [
+      "packages/barocss-cad-model/test/api-sew.test.ts"
+    ],
+    "reviewerRuntime": "NOT_RUN"
+  }
+}

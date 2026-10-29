@@ -1,0 +1,14 @@
+D339 display repair - root source and product review
+
+Source: ecb2b86192ce7704faebd882d026743c0e15cf18.
+Scope: App.tsx, viewport/sewPreviewDirect.ts, sew-preview-direct.test.ts, browser driver and Model README. This is a root review of the display repair; the earlier High35 review covers the initial feature, not this later code.
+
+No required source finding remains in this scoped repair. App's original directShown tessellation memo is unchanged. The derived viewportDirect memo filters only captured active Sew context IDs when a nonempty previewBodies array is actually the shown body array and cage display does not override it. useModelAppearance gives route/body-drag display precedence; array identity prevents hiding sources when that other body set is drawn. Busy evaluations may retain the same successful candidate and remain filtered. useCommandPreview clears candidate bodies on refusal; Cancel clears active/candidate state. Other commands, raw snapshot contexts, absent candidates and unmatched IDs return the original display array. The helper uses an explicit loop and preserves survivor object/buffer identities. Only SceneViewport.direct receives the derived array; no saved document, source, trim, selection, Undo, geometry or tolerance is modified.
+
+The three new focused cases pass, covering consumed and surviving items, restore/raw/other-command cases, captured context and retained candidates. The retained Direct7 control also passes; it was already started before instructions to avoid repeating unaffected controls. Studio types, scoped ESLint and Vite build pass. No Kernel/Model suite was repeated for this display-only repair. No performance measurement or speed acceptance is claimed.
+
+Actual run02 passes the whole serial flow. Existing read-only renderer picking at [30,9,15] confirms obj_2 before preview, null while its Sew candidate is drawn, obj_2 after Cancel and on refused open-five preview, and null during valid retries. This one point alone is not an inventory proof; helper tests, source wiring and the reviewed full preview screenshot jointly establish the scoped display behavior. Root reviewed run02/02-preview.png: the severe run01 coplanar fighting is absent.
+
+Raw snapshot APIs have no Direct source IDs and preserve caller-authored visibility. The original API fixture deliberately contains coincident visible copies; no arbitrary geometry-based consumption was added. The retake retains that initial unchanged-file assertion and exercises actual Hide/Undo/Redo before Save/fresh Open. Root reviewed run02/23a-facade-explicit-hide.png as clean. This does not claim arbitrary overlapping authored geometry is automatically resolved.
+
+Geometry/mass/closed-topology/name/order/native-file proof remains in the separate runtime receipts. Run01 automated PASS and root VISUAL_REVIEW_FAIL remain preserved. Run02 visual scope is accepted; general rendering, whole08, performance and release are not accepted here.

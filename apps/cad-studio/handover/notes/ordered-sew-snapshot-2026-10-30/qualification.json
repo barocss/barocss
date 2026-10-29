@@ -1,0 +1,314 @@
+{
+  "workId": "D339",
+  "date": "2026-10-30",
+  "status": "BOUNDED_QUALIFIED",
+  "source": {
+    "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+    "branch": "local/cad-dev",
+    "baselinePublishedD338": "fec23cf2acef80210c28092981f54e6191e90eeb",
+    "checkpoint": "883b9027003d4f97572830217cc9e68548ea49af",
+    "checkpointFiles": 23,
+    "visualFix": "ecb2b86192ce7704faebd882d026743c0e15cf18",
+    "visualFixFiles": 5
+  },
+  "scope": "Shared Sew snapshot facade/Model command using existing Core natural-edge algorithm; no new geometry engine.",
+  "contract": {
+    "method": "Part.sew(surfaces,{tol?:number})",
+    "snapshots": "Owned ordered strict plain dense2..64 six-field RawNurbsSurface snapshots; no sort/deduplicate/reorientation.",
+    "tolerance": "Omitted/0 omits native tolerance and uses existing auto; explicit finite(0,1] copied exactly, no clamp. Numeric, not Dim.",
+    "binding": "Known Param PARAMETER_UNBINDABLE; unknown PARAMETER_UNKNOWN; no Sew BINDS; editor \u0192 disabled.",
+    "rawAPI": "Adds new body via #make; hides no source; chosen body/focus/TOOL semantics retained.",
+    "selectedDirect": "All original trim containers checked before any support source load/copy. Candidate hides captured selected IDs; successful Apply commits body and hides together.",
+    "UI": "Existing preview/Cancel/Apply/source-current guard; failure no accepted hide/history/selection change.",
+    "chat": "Checked features.add raw node supported; Sew excluded from CHAT_COMMANDS because run_command lacks direct/raw args.",
+    "unchanged": "Core natural edges, first authority/order, matching/orientation samples, tolerance, schema and live-reference policy."
+  },
+  "checks": {
+    "kernelBuild": {
+      "status": "PASS",
+      "source": "kernel/build-1.log.gz"
+    },
+    "kernelNew": {
+      "status": "PASS",
+      "pass": 7,
+      "source": "kernel/tests-final.log.gz"
+    },
+    "kernelRelated": {
+      "status": "PASS",
+      "pass": 18,
+      "source": "kernel/tests-1.log.gz"
+    },
+    "kernelDeclarations": {
+      "status": "PASS",
+      "source": "kernel/types-1.log.gz"
+    },
+    "kernelLint": {
+      "status": "PASS"
+    },
+    "ModelNew": {
+      "status": "PASS",
+      "pass": 6,
+      "fail": 0,
+      "firstRun": true,
+      "source": "model/api-sew-1.log.gz"
+    },
+    "ModelRelated": {
+      "status": "PASS",
+      "pass": 28
+    },
+    "ModelTypes": {
+      "status": "PASS",
+      "firstFailure": "TS7022 nodes/node in test; repaired test annotations only, no production change."
+    },
+    "StudioChecks": {
+      "status": "PASS",
+      "pass": 7,
+      "types": "PASS"
+    },
+    "lint": {
+      "status": "PASS",
+      "firstDriverErrors": 1,
+      "finalDriverErrors": 0,
+      "finalDriverWarnings": 1,
+      "firstLog": "root/lint-first.log.gz",
+      "retryLog": "root/lint-driver-retry.log.gz",
+      "boundary": "Unused oldTol in browser driver fixed before checkpoint. Existing console warning retained; no browser failure."
+    },
+    "HighReview": {
+      "status": "NO_REQUIRED_FINDINGS",
+      "listedInputs": 35,
+      "runtime": "NOT_RUN",
+      "source": "review/review.md",
+      "finalSnapshot": "review/final-snapshot.json",
+      "finalRecheck": "review/final-recheck.json",
+      "geometryFilesByteEqual": 6,
+      "boundary": "One Model test changed only type annotations after initial capsule. Production unchanged; final worker hashes match. Initial feature only; does not review the later visual helper/App fix."
+    },
+    "API": {
+      "status": "SCOPED_PASS",
+      "added": 10,
+      "removed": 0,
+      "changed": 7,
+      "oldMembersRemoved": 0,
+      "metadata": "UNCHANGED",
+      "log": "root/api-check.log.gz",
+      "delta": "root/api-delta.json",
+      "memberDelta": "root/api-member-delta.json",
+      "boundary": "Seven extensions, no old member removals; existing inventory rules only."
+    },
+    "browser": {
+      "status": "FULL_FLOW_PASS",
+      "receipt": "studio/run-02/receipt.json",
+      "invocations": 1,
+      "chromeProcesses": 1,
+      "backend": "Chrome WebGPU",
+      "serialContextsClosed": 5,
+      "observationalStates": 28,
+      "acceptedPublicNativeGeometryReads": 11,
+      "refusals": 2,
+      "saveDownloadFreshOpenRecipes": 2,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "watchedSourceChanges": 0,
+      "boundary": "Retake clean FULL_FLOW_PASS after held visual failure.28 observations are not28 tests. Run01 automatedPASS/visualFAIL preserved separately.",
+      "readonlyDirectAtProbes": 7
+    },
+    "docs": {
+      "status": "PASS",
+      "exitCode": 0,
+      "metrics": {
+        "pages": 68,
+        "beingWritten": 0,
+        "shots": 55,
+        "shotKB": 4811,
+        "labels": 861
+      },
+      "log": "root/docs-check.log",
+      "boundary": "After final retake notes, decision, roadmap and main resume assembly; only receipt/manifest metadata changed afterward."
+    },
+    "rootChat": {
+      "status": "PASS",
+      "pass": 23,
+      "log": "root/studio-chat.log.gz"
+    },
+    "studioBuild": {
+      "status": "PASS",
+      "log": "root/studio-build.log.gz"
+    },
+    "generatedToolsRefusals": {
+      "status": "PASS",
+      "boundary": "Coordinator reuses prior valid check receipts; App/helper/README fix changes no generator input."
+    },
+    "visualReview": {
+      "status": "PASS_AFTER_REPAIR",
+      "images": [
+        "studio/run-02/02-preview.png",
+        "studio/run-02/23a-facade-explicit-hide.png"
+      ],
+      "priorFail": "visual-fix/initial-review.json",
+      "boundary": "Coordinator viewed both actual retake images CLEAN. Raw facade initial visible supports intentionally overlap until explicit user Hide."
+    },
+    "priorBrowser": {
+      "receipt": "studio/run-01/receipt.json",
+      "status": "AUTOMATED_PASS_VISUAL_REVIEW_FAIL",
+      "observationalStates": 25,
+      "review": "visual-fix/initial-review.json",
+      "boundary": "Initial source883b9027003d4f97572830217cc9e68548ea49af,25automatedobservations passed; severe preview z-fighting failed coordinator visual review. Not rewritten as browser runtime failure."
+    },
+    "visualFix": {
+      "status": "PASS",
+      "newFocused": 3,
+      "relatedDirect": 7,
+      "total": 10,
+      "types": "PASS",
+      "lint": "PASS",
+      "build": "PASS",
+      "results": "visual-fix/results.json",
+      "testsLog": "visual-fix/tests-1.log.gz",
+      "assessment": "visual-fix/final-source-review.txt",
+      "boundary": "Render-only App/helper fix. Initial High35review covers feature, not new App/helper; root source assessment supplements it. No wholeKernel/Modelrerun; unchanged prior receipts retained."
+    }
+  },
+  "firstFailures": {
+    "kernelFirst": {
+      "pass": 21,
+      "fail": 3,
+      "cause": "Incorrect BrepBody shell-ID-as-object assertion."
+    },
+    "kernelRetry2": "Same failure after wrong relative edit path left tests unchanged.",
+    "kernelRetry3": "Optional Kernel FaceInfo.area not supplied; corrected to native surfaceAreaOf/planar tessellation.",
+    "boundary": "All logs retained for final evidence. Test-only corrections, no production repair."
+  },
+  "oracle": {
+    "status": "PLANNING_ARITHMETIC_SEPARATE_FROM_PRODUCT",
+    "source": "/tmp/d339-plan/oracle.json",
+    "bounds": {
+      "min": [
+        10,
+        -6,
+        3
+      ],
+      "max": [
+        50,
+        24,
+        15
+      ]
+    },
+    "volume": 14400,
+    "surfaceArea": 4080,
+    "centroid": [
+      30,
+      9,
+      9
+    ],
+    "topology": {
+      "V": 8,
+      "E": 12,
+      "F": 6,
+      "closedShells": 1
+    },
+    "orderedFaceAreas": [
+      1200,
+      1200,
+      480,
+      480,
+      360,
+      360
+    ],
+    "observedKernelPrefix": "sew1",
+    "observedModelEmptyPrefix": "n0",
+    "observedModelNativePublicNames": [
+      "n0.surface0",
+      "n0.surface1",
+      "n0.surface2",
+      "n0.surface3",
+      "n0.surface4",
+      "n0.surface5"
+    ],
+    "toleranceEdits": [
+      0.01,
+      0.02,
+      0
+    ],
+    "observedNativeAutoForThisProfile": 0.05,
+    "witness": {
+      "volume": 420,
+      "centroid": [
+        86,
+        0.5,
+        3.5
+      ],
+      "boundary": "Separate accepted body only."
+    }
+  },
+  "errors": {
+    "observedKernelGeometryNegative": {
+      "code": "GEOMETRY",
+      "details.kernelCode": "GEOMETRY",
+      "where": "evaluate",
+      "cases": [
+        "open",
+        "duplicate",
+        "disconnected"
+      ]
+    },
+    "scalarAdmission": "VALUE",
+    "knownParam": "PARAMETER_UNBINDABLE",
+    "unknownParam": "PARAMETER_UNKNOWN",
+    "boundary": "Model structured mappings must come from their own receipts."
+  },
+  "plannedActual": [
+    "Facade native file and independent selected-source UI",
+    "Preview/Cancel/retry/Apply with same-commit source hide",
+    "UndoRedo and numeric tol.01/.02/auto, no \u0192 binding",
+    "Save/fresh Open accepted ordered snapshot/labels/names",
+    "Copied source Move/delete lifetime",
+    "Open-five and trimmed-context refusal/no accepted mutation/valid retry"
+  ],
+  "evidenceCopyPolicy": "Preserve original raw bytes. Gzip raw stdout logs with whitespace rather than normalize/trim. Deterministic gzip plus decoded/stored SHA256/sizes; exclude only top-level manifest itself.",
+  "notProven": [
+    "Preview centroid",
+    "Actual new stale-source attempt",
+    "Generic curved sewing certificate/healing/trim solid",
+    "Exact tolerant-gap mass",
+    "Full suites/performance/remoteCI/release/whole08"
+  ],
+  "next": "D340 functional trim Split plan only, High/source/tmp; continue08 before09; Electron15 queued.",
+  "actualProof": {
+    "preview": "Shown total mesh14820 = Sew14400 + witness420, accepted doc/source visibility/selection unchanged. No preview centroid proof.",
+    "acceptance": "Cancel/retry/Apply hides6 captured sources and creates body in one Undo item; Undo restores exact visible originals, Redo body+hidden state. Source-current guard is source/ownership-control evidence; no new actual stale attempt.",
+    "tol": "Actual.01\u2192.02\u21920auto with native tolerance omitted; fresh Open reeditable0. No \u0192 widget despite an unrelated parameter present. Binding refusal itself is focused-test evidence.",
+    "files": "Two Save/download/fresh Open recipes semantically equal; selected-source and separate raw facade. Raw recipe.01 hides no Direct input and retains ordered generic labels. No byte identity claim.",
+    "lifetime": "SHOW then Move/Delete original source after accepted Sew leaves copied nodes/body/names unchanged.",
+    "refusals": "Open-five preview refuses/Apply disabled, expanded Kernel detail closure words; actual last-member Trim by curve160 refuses before command. Both preserve doc/visibility/selection/download/Undo and allow valid retry. Browser diagnostic words are separate from focused mapped GEOMETRY code evidence.",
+    "geometry": "Actual UI feature prefixn2 derived from doc; native/public ordered6 .surface0..5 names, ordered six-field coefficients unchanged,8V12E6F,closedEuler2,checkBrepvalid,volume14400/center[30,9,9]/area4080, ordered physical areas/normals/centroids.",
+    "witness": "b1/native-public6names/volume420/center[86,.5,3.5] stable.",
+    "cleanup": "All5contexts/browser/server CLOSED.",
+    "imageReview": "Coordinator viewedrun02/02-preview.png and23a-facade-explicit-hide.png CLEAN; run01 visualFAIL retained.",
+    "rawFacadeVisibility": "Raw snapshot has no Direct IDs and preserves caller-authored six visible coplanar supports. Initial raw unchanged assertion retained; actual user Hide6 then UndoRedo before Save/fresh Open changes only explicit visibility. No raw automatic hide or universal duplicate-visibility fix claimed.",
+    "displayRepair": "Pure helper/App postfilter onlySceneViewport.direct while captured selected Sew candidate is drawn; cached original meshes/memo retained. Doc/selection/Undo unchanged. Cancel/error/no candidate/routes/cage/raw snapshot restore original display; retained busy candidate handled.",
+    "readonlyDirectAt": "Seven read-only top[30,9,15]probes: obj2baseline,nullpreview,obj2Cancel,nullretry,obj2refused,nullvalidretry,nullrawexplicitHide."
+  },
+  "provenance": {
+    "initialSubset": 19,
+    "initialSubsetMatchesFrozen": 19,
+    "frozenInputCount": 724,
+    "frozenAfterBrowserCleanupMatch": 724,
+    "boundary": "Retakeinitial19 subset/frozen724/after-cleanup match; no724beforegeneration/fullgraph. Initial run01 has separate18/723 caps.",
+    "manifest": "artifact-manifest.json",
+    "decodedStoredHashes": "source-provenance.json"
+  },
+  "nextPlan": {
+    "status": "SOURCE_PLAN_ONLY",
+    "path": "next-plan/plan.md",
+    "copiedFiles": [
+      "plan.md",
+      "oracle.json",
+      "oracle.py",
+      "source-snapshot.json"
+    ],
+    "oracleExecution": "NOT_RUN",
+    "budgets": "PROPOSED_NOT_ACTUAL",
+    "baselineBoundary": "Initial883feature before visual repair; Kernel unchanged."
+  }
+}

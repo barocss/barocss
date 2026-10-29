@@ -1,0 +1,99 @@
+{
+  "added": [
+    [
+      "@barocss/cad",
+      "./api",
+      "SewOptions"
+    ],
+    [
+      "@barocss/cad",
+      "./api",
+      "sewSpec"
+    ],
+    [
+      "@barocss/cad-model",
+      "./api",
+      "SewOptions"
+    ],
+    [
+      "@barocss/cad-model",
+      "./api/index",
+      "SewOptions"
+    ],
+    [
+      "@barocss/cad-model",
+      "./app/sewCommand",
+      "sewCommand"
+    ],
+    [
+      "@barocss/cad-model",
+      "./engine/sew",
+      "SewSnapshot"
+    ],
+    [
+      "@barocss/cad-model",
+      "./engine/sew",
+      "sewNode"
+    ],
+    [
+      "@barocss/cad-model",
+      "./engine/sew",
+      "sewNodeProblem"
+    ],
+    [
+      "@barocss/cad-model",
+      "./engine/sew",
+      "sewSnapshot"
+    ],
+    [
+      "@barocss/cad-model",
+      "./engine/sew",
+      "sewTolerance"
+    ]
+  ],
+  "removed": [],
+  "changed": [
+    [
+      "@barocss/cad",
+      "./api",
+      "FeatureSpec"
+    ],
+    [
+      "@barocss/cad",
+      "./api",
+      "KernelPart"
+    ],
+    [
+      "@barocss/cad",
+      "./api",
+      "Part"
+    ],
+    [
+      "@barocss/cad-model",
+      "./api",
+      "StudioPart"
+    ],
+    [
+      "@barocss/cad-model",
+      "./api/index",
+      "StudioPart"
+    ],
+    [
+      "@barocss/cad-model",
+      "./api/part",
+      "StudioPart"
+    ],
+    [
+      "@barocss/cad-model",
+      "./app/commands",
+      "Ctx"
+    ]
+  ],
+  "unchangedMetadata": {
+    "schemaVersion": true,
+    "policyVersion": true,
+    "typescriptVersion": true,
+    "packageExports": true,
+    "coreResultChecks": true
+  }
+}

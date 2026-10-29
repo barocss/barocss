@@ -1,0 +1,442 @@
+{
+  "status": "KERNEL_FOCUSED_PASS_NOT_BROWSER_PROOF",
+  "feature": {
+    "id": "sew1",
+    "kind": "sew",
+    "surfaces": [
+      {
+        "degreeU": 1,
+        "degreeV": 1,
+        "knotsU": [
+          -2,
+          -2,
+          6,
+          6
+        ],
+        "knotsV": [
+          1,
+          1,
+          7,
+          7
+        ],
+        "controlPoints": [
+          [
+            [
+              10,
+              -6,
+              3
+            ],
+            [
+              50,
+              -6,
+              3
+            ]
+          ],
+          [
+            [
+              10,
+              24,
+              3
+            ],
+            [
+              50,
+              24,
+              3
+            ]
+          ]
+        ],
+        "weights": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      },
+      {
+        "degreeU": 1,
+        "degreeV": 1,
+        "knotsU": [
+          -2,
+          -2,
+          6,
+          6
+        ],
+        "knotsV": [
+          1,
+          1,
+          7,
+          7
+        ],
+        "controlPoints": [
+          [
+            [
+              10,
+              -6,
+              15
+            ],
+            [
+              50,
+              -6,
+              15
+            ]
+          ],
+          [
+            [
+              10,
+              24,
+              15
+            ],
+            [
+              50,
+              24,
+              15
+            ]
+          ]
+        ],
+        "weights": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      },
+      {
+        "degreeU": 1,
+        "degreeV": 1,
+        "knotsU": [
+          -2,
+          -2,
+          6,
+          6
+        ],
+        "knotsV": [
+          1,
+          1,
+          7,
+          7
+        ],
+        "controlPoints": [
+          [
+            [
+              10,
+              -6,
+              3
+            ],
+            [
+              10,
+              -6,
+              15
+            ]
+          ],
+          [
+            [
+              50,
+              -6,
+              3
+            ],
+            [
+              50,
+              -6,
+              15
+            ]
+          ]
+        ],
+        "weights": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      },
+      {
+        "degreeU": 1,
+        "degreeV": 1,
+        "knotsU": [
+          -2,
+          -2,
+          6,
+          6
+        ],
+        "knotsV": [
+          1,
+          1,
+          7,
+          7
+        ],
+        "controlPoints": [
+          [
+            [
+              10,
+              24,
+              3
+            ],
+            [
+              10,
+              24,
+              15
+            ]
+          ],
+          [
+            [
+              50,
+              24,
+              3
+            ],
+            [
+              50,
+              24,
+              15
+            ]
+          ]
+        ],
+        "weights": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      },
+      {
+        "degreeU": 1,
+        "degreeV": 1,
+        "knotsU": [
+          -2,
+          -2,
+          6,
+          6
+        ],
+        "knotsV": [
+          1,
+          1,
+          7,
+          7
+        ],
+        "controlPoints": [
+          [
+            [
+              10,
+              -6,
+              3
+            ],
+            [
+              10,
+              -6,
+              15
+            ]
+          ],
+          [
+            [
+              10,
+              24,
+              3
+            ],
+            [
+              10,
+              24,
+              15
+            ]
+          ]
+        ],
+        "weights": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      },
+      {
+        "degreeU": 1,
+        "degreeV": 1,
+        "knotsU": [
+          -2,
+          -2,
+          6,
+          6
+        ],
+        "knotsV": [
+          1,
+          1,
+          7,
+          7
+        ],
+        "controlPoints": [
+          [
+            [
+              50,
+              -6,
+              3
+            ],
+            [
+              50,
+              -6,
+              15
+            ]
+          ],
+          [
+            [
+              50,
+              24,
+              3
+            ],
+            [
+              50,
+              24,
+              15
+            ]
+          ]
+        ],
+        "weights": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      }
+    ],
+    "tolerance": 0.01
+  },
+  "mass": {
+    "volume": 14400,
+    "mass": 14.4,
+    "centroid": [
+      30,
+      9,
+      9
+    ],
+    "inertia": [
+      [
+        1252.8,
+        0,
+        0
+      ],
+      [
+        0,
+        2092.8,
+        0
+      ],
+      [
+        0,
+        0,
+        3000
+      ]
+    ]
+  },
+  "area": 4080,
+  "nativeNames": [
+    "sew1.surface0",
+    "sew1.surface1",
+    "sew1.surface2",
+    "sew1.surface3",
+    "sew1.surface4",
+    "sew1.surface5"
+  ],
+  "publicNames": [
+    "sew1.surface0",
+    "sew1.surface1",
+    "sew1.surface2",
+    "sew1.surface3",
+    "sew1.surface4",
+    "sew1.surface5"
+  ],
+  "topology": {
+    "bodies": [
+      {
+        "id": "sew1",
+        "kind": "solid",
+        "shells": [
+          "sew1/sew1_shell"
+        ]
+      }
+    ],
+    "shells": [
+      {
+        "id": "sew1/sew1_shell",
+        "body": "sew1",
+        "faces": [
+          "sew1/sew1_shell/sew1_f0",
+          "sew1/sew1_shell/sew1_f1",
+          "sew1/sew1_shell/sew1_f2",
+          "sew1/sew1_shell/sew1_f3",
+          "sew1/sew1_shell/sew1_f4",
+          "sew1/sew1_shell/sew1_f5"
+        ],
+        "closed": true
+      }
+    ],
+    "vertices": 8,
+    "edges": 12,
+    "faces": 6,
+    "valid": true
+  },
+  "failures": {
+    "open": {
+      "code": "GEOMETRY",
+      "where": "evaluate",
+      "details": {
+        "feature": "sew1",
+        "kernelCode": "GEOMETRY"
+      },
+      "message": "[GEOMETRY] sew1: the surfaces do not close: 4 edges meet no other surface (surfaces 2, 3, 4, 5)"
+    },
+    "duplicate": {
+      "code": "GEOMETRY",
+      "where": "evaluate",
+      "details": {
+        "feature": "sew1",
+        "kernelCode": "GEOMETRY"
+      },
+      "message": "[GEOMETRY] sew1: the surfaces are not all joined into one shell"
+    },
+    "disconnected": {
+      "code": "GEOMETRY",
+      "where": "evaluate",
+      "details": {
+        "feature": "sew1",
+        "kernelCode": "GEOMETRY"
+      },
+      "message": "[GEOMETRY] sew1: the surfaces are not all joined into one shell"
+    },
+    "param_T": {
+      "code": "PARAMETER_UNBINDABLE",
+      "where": "facade",
+      "message": "[PARAMETER_UNBINDABLE] sew's tol can't take a parameter in a CadPartDocument (its options that do are none)"
+    },
+    "param_missing": {
+      "code": "PARAMETER_UNKNOWN",
+      "where": "facade",
+      "message": "[PARAMETER_UNKNOWN] no parameter missing; add it with parameter(name, value) (the parameters are T)"
+    }
+  },
+  "autoEntityTolerances": {
+    "vertices": [
+      0.05
+    ],
+    "edges": [
+      0.05
+    ]
+  }
+}

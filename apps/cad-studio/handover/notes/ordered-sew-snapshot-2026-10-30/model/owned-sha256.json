@@ -1,0 +1,14 @@
+{
+  "packages/barocss-cad-model/src/engine/sew.ts": "651a6292d8835f2a480de7974e87abd942b45e2c0ec681713f379a36c5035c22",
+  "packages/barocss-cad-model/src/app/sewCommand.ts": "25ef4c4580d241adb0cf87d111be640697ef59015c65601d4f9fd0dd9e6562b8",
+  "packages/barocss-cad-model/src/app/commands.ts": "262a33d624dee206fcc4224613cce152bff820098bfa4ceac8fdbd12fec1249b",
+  "packages/barocss-cad-model/src/api/studio.ts": "cdfc18c5de4b7deeb28b809f9bdb86af029970176b9f005f86769ad27c6ef53d",
+  "packages/barocss-cad-model/src/api/index.ts": "49689e113c348f5dd0eda53ea7e52a85cf5fea66fd0622eaa2aae4df8d52264b",
+  "packages/barocss-cad-model/src/chat/features.ts": "a916cd326fad39b27d753222dc42db82eae8a0d08c8fdd1b1fd46e32760ead07",
+  "packages/barocss-cad-model/src/app/editFields.ts": "596e362c3a5965fa669f3083512f5b114ce9b4de9bc086774c812f06c7eb5739",
+  "packages/barocss-cad-model/src/engine/parameters.ts": "8e5c164f3df59f63875c82f2db6e86052da25213054fed812ac5eb5bb1560100",
+  "apps/cad-studio/src/ui/DirectInspector.tsx": "00b5e04f82b5e008992da73847763f1f9a14e8313ab795da8eb78f895549c9cd",
+  "apps/cad-studio/src/App.tsx": "3c63784292ce77094a659b638e847bd5560305717d947cdff1d9c98d74296a1b",
+  "packages/barocss-cad-model/README.md": "03be1648a6eb2418f082e831d5993adc3ced10fc1c1456439a174a6f285eb261",
+  "packages/barocss-cad-model/test/api-sew.test.ts": "8750a6dac9031c7a5799cad66b4fac03b453b802c73e5ee5734222bacbc04364"
+}

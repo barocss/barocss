@@ -1,0 +1,135 @@
+[
+  {
+    "key": [
+      "@barocss/cad",
+      "./api",
+      "FeatureSpec"
+    ],
+    "addedMembers": [
+      {
+        "kind": "property",
+        "name": "command",
+        "optional": false,
+        "readonly": true,
+        "type": "\"sew\""
+      },
+      {
+        "kind": "property",
+        "name": "surfaces",
+        "optional": false,
+        "readonly": true,
+        "type": "readonly RawNurbsSurface[]"
+      },
+      {
+        "kind": "property",
+        "name": "values",
+        "optional": false,
+        "readonly": true,
+        "type": "{ readonly tol: number; }"
+      }
+    ],
+    "removedMembers": []
+  },
+  {
+    "key": [
+      "@barocss/cad",
+      "./api",
+      "KernelPart"
+    ],
+    "addedMembers": [
+      {
+        "kind": "method",
+        "name": "sew",
+        "optional": false,
+        "readonly": false,
+        "type": "(surfaces: readonly RawNurbsSurface[], options?: SewOptions) => KernelPart"
+      }
+    ],
+    "removedMembers": []
+  },
+  {
+    "key": [
+      "@barocss/cad",
+      "./api",
+      "Part"
+    ],
+    "addedMembers": [
+      {
+        "kind": "method",
+        "name": "sew",
+        "optional": false,
+        "readonly": false,
+        "type": "(surfaces: readonly RawNurbsSurface[], options?: SewOptions) => Part<D>"
+      }
+    ],
+    "removedMembers": []
+  },
+  {
+    "key": [
+      "@barocss/cad-model",
+      "./api",
+      "StudioPart"
+    ],
+    "addedMembers": [
+      {
+        "kind": "method",
+        "name": "sew",
+        "optional": false,
+        "readonly": false,
+        "type": "(surfaces: readonly RawNurbsSurface[], options?: SewOptions) => StudioPart"
+      }
+    ],
+    "removedMembers": []
+  },
+  {
+    "key": [
+      "@barocss/cad-model",
+      "./api/index",
+      "StudioPart"
+    ],
+    "addedMembers": [
+      {
+        "kind": "method",
+        "name": "sew",
+        "optional": false,
+        "readonly": false,
+        "type": "(surfaces: readonly RawNurbsSurface[], options?: SewOptions) => StudioPart"
+      }
+    ],
+    "removedMembers": []
+  },
+  {
+    "key": [
+      "@barocss/cad-model",
+      "./api/part",
+      "StudioPart"
+    ],
+    "addedMembers": [
+      {
+        "kind": "method",
+        "name": "sew",
+        "optional": false,
+        "readonly": false,
+        "type": "(surfaces: readonly RawNurbsSurface[], options?: SewOptions) => StudioPart"
+      }
+    ],
+    "removedMembers": []
+  },
+  {
+    "key": [
+      "@barocss/cad-model",
+      "./app/commands",
+      "Ctx"
+    ],
+    "addedMembers": [
+      {
+        "kind": "property",
+        "name": "sewSnapshot",
+        "optional": true,
+        "readonly": false,
+        "type": "SewSnapshot | undefined"
+      }
+    ],
+    "removedMembers": []
+  }
+]

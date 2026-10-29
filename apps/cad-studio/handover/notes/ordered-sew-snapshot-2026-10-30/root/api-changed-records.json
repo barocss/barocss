@@ -1,0 +1,5358 @@
+[
+  {
+    "key": [
+      "@barocss/cad",
+      "./api",
+      "FeatureSpec"
+    ],
+    "before": {
+      "package": "@barocss/cad",
+      "subpath": "./api",
+      "exportName": "FeatureSpec",
+      "space": "type",
+      "observedRole": "facade-exposure; immutability NOT_PROVEN",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/api/spec.ts",
+            "name": "FeatureSpec",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "BaseSpec & { readonly bound?: Bound | undefined; }",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "BaseSpec & {\n    readonly bound?: Bound;\n}"
+              }
+            ],
+            "members": [
+              {
+                "name": "anchor",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly [number, number]"
+              },
+              {
+                "name": "bound",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "Bound | undefined"
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"box\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"chamfer\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"circular-pattern\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"curve-feature-pattern\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"cylinder\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"cylindrical-wrap\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"extrude\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"fill-feature-pattern\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"fillet\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"hole\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"linear-feature-pattern\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"linear-pattern\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"mirror\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"move\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"rectangular-feature-pattern\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"revolve\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"rotate\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"scale\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"shell\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"split\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"thicken\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "BooleanCommand"
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "StudioCommand"
+              },
+              {
+                "name": "edges",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly string[]"
+              },
+              {
+                "name": "face",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "faces",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly string[]"
+              },
+              {
+                "name": "path",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "CurveFeaturePatternPath"
+              },
+              {
+                "name": "region",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "FillFeaturePatternRegion"
+              },
+              {
+                "name": "sketch",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "SketchData"
+              },
+              {
+                "name": "surface",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "RawNurbsSurface"
+              },
+              {
+                "name": "tool",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "Readonly<Record<string, string | number>>"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "Record<string, never>"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly axis: \"x\" | \"y\"; readonly deg: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly axis: AxisName; readonly angle: number; readonly px: number; readonly py: number; readonly pz: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly axis: AxisName; readonly at: number; } | { readonly axis: \"n\"; readonly nx: number; readonly ny: number; readonly nz: number; readonly at: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly axis: AxisName; readonly count: number; readonly span: number; readonly px: number; readonly py: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly axis: AxisName; readonly spacing: number; readonly count: number; readonly axis2: AxisName; readonly spacing2: number; readonly count2: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly axis: AxisName; readonly spacing: number; readonly count: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly distance: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly factor: number; readonly px: number; readonly py: number; readonly pz: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly h: number; readonly draft: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly plane: \"xy\" | \"xz\" | \"yz\"; readonly at: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly r: number; readonly h: number; readonly x: number; readonly y: number; readonly z: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly radius: number; readonly endRadius?: number | undefined; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly spacing: number; readonly count: number; readonly spacing2: number; readonly count2: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly spacing: number; readonly count: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly t: number; readonly side?: \"reverse\" | \"normal\" | \"both\" | undefined; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly t: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly type: \"through\" | \"blind\"; readonly d: number; readonly x: number; readonly y: number; readonly depth?: number | undefined; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly u0: number; readonly u1: number; readonly v0: number; readonly v1: number; readonly height: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly w: number; readonly d: number; readonly h: number; readonly x: number; readonly y: number; readonly z: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly x: number; readonly y: number; readonly z: number; }"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    "after": {
+      "package": "@barocss/cad",
+      "subpath": "./api",
+      "exportName": "FeatureSpec",
+      "space": "type",
+      "observedRole": "facade-exposure; immutability NOT_PROVEN",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/api/spec.ts",
+            "name": "FeatureSpec",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "BaseSpec & { readonly bound?: Bound | undefined; }",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "BaseSpec & {\n    readonly bound?: Bound;\n}"
+              }
+            ],
+            "members": [
+              {
+                "name": "anchor",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly [number, number]"
+              },
+              {
+                "name": "bound",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "Bound | undefined"
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"box\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"chamfer\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"circular-pattern\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"curve-feature-pattern\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"cylinder\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"cylindrical-wrap\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"extrude\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"fill-feature-pattern\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"fillet\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"hole\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"linear-feature-pattern\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"linear-pattern\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"mirror\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"move\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"rectangular-feature-pattern\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"revolve\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"rotate\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"scale\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"sew\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"shell\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"split\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "\"thicken\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "BooleanCommand"
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "StudioCommand"
+              },
+              {
+                "name": "edges",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly string[]"
+              },
+              {
+                "name": "face",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "faces",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly string[]"
+              },
+              {
+                "name": "path",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "CurveFeaturePatternPath"
+              },
+              {
+                "name": "region",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "FillFeaturePatternRegion"
+              },
+              {
+                "name": "sketch",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "SketchData"
+              },
+              {
+                "name": "surface",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "RawNurbsSurface"
+              },
+              {
+                "name": "surfaces",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly RawNurbsSurface[]"
+              },
+              {
+                "name": "tool",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "Readonly<Record<string, string | number>>"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "Record<string, never>"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly axis: \"x\" | \"y\"; readonly deg: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly axis: AxisName; readonly angle: number; readonly px: number; readonly py: number; readonly pz: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly axis: AxisName; readonly at: number; } | { readonly axis: \"n\"; readonly nx: number; readonly ny: number; readonly nz: number; readonly at: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly axis: AxisName; readonly count: number; readonly span: number; readonly px: number; readonly py: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly axis: AxisName; readonly spacing: number; readonly count: number; readonly axis2: AxisName; readonly spacing2: number; readonly count2: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly axis: AxisName; readonly spacing: number; readonly count: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly distance: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly factor: number; readonly px: number; readonly py: number; readonly pz: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly h: number; readonly draft: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly plane: \"xy\" | \"xz\" | \"yz\"; readonly at: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly r: number; readonly h: number; readonly x: number; readonly y: number; readonly z: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly radius: number; readonly endRadius?: number | undefined; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly spacing: number; readonly count: number; readonly spacing2: number; readonly count2: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly spacing: number; readonly count: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly t: number; readonly side?: \"reverse\" | \"normal\" | \"both\" | undefined; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly t: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly tol: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly type: \"through\" | \"blind\"; readonly d: number; readonly x: number; readonly y: number; readonly depth?: number | undefined; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly u0: number; readonly u1: number; readonly v0: number; readonly v1: number; readonly height: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly w: number; readonly d: number; readonly h: number; readonly x: number; readonly y: number; readonly z: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly x: number; readonly y: number; readonly z: number; }"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    }
+  },
+  {
+    "key": [
+      "@barocss/cad",
+      "./api",
+      "KernelPart"
+    ],
+    "before": {
+      "package": "@barocss/cad",
+      "subpath": "./api",
+      "exportName": "KernelPart",
+      "space": "type+value",
+      "observedRole": "facade-exposure; immutability NOT_PROVEN",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/api/kernel.ts",
+            "name": "KernelPart",
+            "kind": "class"
+          },
+          "shape": {
+            "type": "KernelPart",
+            "declarationSignatures": [
+              {
+                "kind": "ClassDeclaration",
+                "heritage": [
+                  " extends Part<CadPartDocument>"
+                ]
+              }
+            ],
+            "members": [
+              {
+                "name": "bodies",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string[]"
+              },
+              {
+                "name": "body",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => KernelPart"
+              },
+              {
+                "name": "box",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: BoxOptions) => KernelPart"
+              },
+              {
+                "name": "chamfer",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edges: (body: BodyQuery) => EdgeQuery, options: ChamferOptions) => KernelPart"
+              },
+              {
+                "name": "circularPattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CircularPatternOptions) => KernelPart"
+              },
+              {
+                "name": "curveFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CurveFeaturePatternOptions) => KernelPart"
+              },
+              {
+                "name": "cylinder",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CylinderOptions) => KernelPart"
+              },
+              {
+                "name": "cylindricalWrap",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: CylindricalWrapOptions) => KernelPart"
+              },
+              {
+                "name": "doc",
+                "kind": "getter",
+                "optional": false,
+                "readonly": false,
+                "type": "CadPartDocument"
+              },
+              {
+                "name": "extrude",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(profile: Sketch, options: ExtrudeOptions) => KernelPart"
+              },
+              {
+                "name": "features",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => FeatureInfo[]"
+              },
+              {
+                "name": "fillFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: FillFeaturePatternOptions) => KernelPart"
+              },
+              {
+                "name": "fillet",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edges: (body: BodyQuery) => EdgeQuery, options: FilletOptions) => KernelPart"
+              },
+              {
+                "name": "hole",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(face: (body: BodyQuery) => FaceQuery, options: HoleOptions) => KernelPart"
+              },
+              {
+                "name": "intersect",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<KernelPart>) => KernelPart"
+              },
+              {
+                "name": "linearFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: LinearPatternOptions) => KernelPart"
+              },
+              {
+                "name": "linearPattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: LinearPatternOptions) => KernelPart"
+              },
+              {
+                "name": "mass",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(density: Density) => MassResult"
+              },
+              {
+                "name": "meshes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => MeshData[]"
+              },
+              {
+                "name": "mirror",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: MirrorOptions) => KernelPart"
+              },
+              {
+                "name": "moved",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(location: Location) => KernelPart"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "parameter",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string, value: number) => KernelPart"
+              },
+              {
+                "name": "parameters",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Record<string, number>"
+              },
+              {
+                "name": "rectangularFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: RectangularFeaturePatternOptions) => KernelPart"
+              },
+              {
+                "name": "revolve",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(profile: Sketch, options?: RevolveOptions | undefined) => KernelPart"
+              },
+              {
+                "name": "scale",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: ScaleOptions) => KernelPart"
+              },
+              {
+                "name": "select",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => BodyQuery"
+              },
+              {
+                "name": "shell",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (options: ShellOptions): KernelPart; (open: (body: BodyQuery) => FaceQuery, options: ShellOptions): KernelPart; }"
+              },
+              {
+                "name": "split",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: SplitOptions) => KernelPart"
+              },
+              {
+                "name": "step",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name?: string) => string"
+              },
+              {
+                "name": "stl",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Uint8Array<ArrayBufferLike>"
+              },
+              {
+                "name": "subtract",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<KernelPart>) => KernelPart"
+              },
+              {
+                "name": "suppressed",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string, suppressed?: boolean) => KernelPart"
+              },
+              {
+                "name": "thicken",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surface: RawNurbsSurface, options: ThickenOptions) => KernelPart"
+              },
+              {
+                "name": "union",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<KernelPart>) => KernelPart"
+              },
+              {
+                "name": "withParameters",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edits: Readonly<Record<string, number>>) => KernelPart"
+              }
+            ],
+            "indexSignatures": [],
+            "bases": [
+              "Part<CadPartDocument>"
+            ],
+            "constructSignatures": [
+              "new (backend: PartBackend<CadPartDocument>, name: string, doc: CadPartDocument, focus?: string | null) => KernelPart"
+            ],
+            "staticMembers": [],
+            "abstract": false,
+            "role": "resource-or-facade-NOT_PROVEN"
+          }
+        }
+      ]
+    },
+    "after": {
+      "package": "@barocss/cad",
+      "subpath": "./api",
+      "exportName": "KernelPart",
+      "space": "type+value",
+      "observedRole": "facade-exposure; immutability NOT_PROVEN",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/api/kernel.ts",
+            "name": "KernelPart",
+            "kind": "class"
+          },
+          "shape": {
+            "type": "KernelPart",
+            "declarationSignatures": [
+              {
+                "kind": "ClassDeclaration",
+                "heritage": [
+                  " extends Part<CadPartDocument>"
+                ]
+              }
+            ],
+            "members": [
+              {
+                "name": "bodies",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string[]"
+              },
+              {
+                "name": "body",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => KernelPart"
+              },
+              {
+                "name": "box",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: BoxOptions) => KernelPart"
+              },
+              {
+                "name": "chamfer",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edges: (body: BodyQuery) => EdgeQuery, options: ChamferOptions) => KernelPart"
+              },
+              {
+                "name": "circularPattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CircularPatternOptions) => KernelPart"
+              },
+              {
+                "name": "curveFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CurveFeaturePatternOptions) => KernelPart"
+              },
+              {
+                "name": "cylinder",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CylinderOptions) => KernelPart"
+              },
+              {
+                "name": "cylindricalWrap",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: CylindricalWrapOptions) => KernelPart"
+              },
+              {
+                "name": "doc",
+                "kind": "getter",
+                "optional": false,
+                "readonly": false,
+                "type": "CadPartDocument"
+              },
+              {
+                "name": "extrude",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(profile: Sketch, options: ExtrudeOptions) => KernelPart"
+              },
+              {
+                "name": "features",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => FeatureInfo[]"
+              },
+              {
+                "name": "fillFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: FillFeaturePatternOptions) => KernelPart"
+              },
+              {
+                "name": "fillet",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edges: (body: BodyQuery) => EdgeQuery, options: FilletOptions) => KernelPart"
+              },
+              {
+                "name": "hole",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(face: (body: BodyQuery) => FaceQuery, options: HoleOptions) => KernelPart"
+              },
+              {
+                "name": "intersect",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<KernelPart>) => KernelPart"
+              },
+              {
+                "name": "linearFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: LinearPatternOptions) => KernelPart"
+              },
+              {
+                "name": "linearPattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: LinearPatternOptions) => KernelPart"
+              },
+              {
+                "name": "mass",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(density: Density) => MassResult"
+              },
+              {
+                "name": "meshes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => MeshData[]"
+              },
+              {
+                "name": "mirror",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: MirrorOptions) => KernelPart"
+              },
+              {
+                "name": "moved",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(location: Location) => KernelPart"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "parameter",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string, value: number) => KernelPart"
+              },
+              {
+                "name": "parameters",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Record<string, number>"
+              },
+              {
+                "name": "rectangularFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: RectangularFeaturePatternOptions) => KernelPart"
+              },
+              {
+                "name": "revolve",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(profile: Sketch, options?: RevolveOptions | undefined) => KernelPart"
+              },
+              {
+                "name": "scale",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: ScaleOptions) => KernelPart"
+              },
+              {
+                "name": "select",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => BodyQuery"
+              },
+              {
+                "name": "sew",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surfaces: readonly RawNurbsSurface[], options?: SewOptions) => KernelPart"
+              },
+              {
+                "name": "shell",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (options: ShellOptions): KernelPart; (open: (body: BodyQuery) => FaceQuery, options: ShellOptions): KernelPart; }"
+              },
+              {
+                "name": "split",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: SplitOptions) => KernelPart"
+              },
+              {
+                "name": "step",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name?: string) => string"
+              },
+              {
+                "name": "stl",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Uint8Array<ArrayBufferLike>"
+              },
+              {
+                "name": "subtract",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<KernelPart>) => KernelPart"
+              },
+              {
+                "name": "suppressed",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string, suppressed?: boolean) => KernelPart"
+              },
+              {
+                "name": "thicken",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surface: RawNurbsSurface, options: ThickenOptions) => KernelPart"
+              },
+              {
+                "name": "union",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<KernelPart>) => KernelPart"
+              },
+              {
+                "name": "withParameters",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edits: Readonly<Record<string, number>>) => KernelPart"
+              }
+            ],
+            "indexSignatures": [],
+            "bases": [
+              "Part<CadPartDocument>"
+            ],
+            "constructSignatures": [
+              "new (backend: PartBackend<CadPartDocument>, name: string, doc: CadPartDocument, focus?: string | null) => KernelPart"
+            ],
+            "staticMembers": [],
+            "abstract": false,
+            "role": "resource-or-facade-NOT_PROVEN"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "key": [
+      "@barocss/cad",
+      "./api",
+      "Part"
+    ],
+    "before": {
+      "package": "@barocss/cad",
+      "subpath": "./api",
+      "exportName": "Part",
+      "space": "type+value",
+      "observedRole": "facade-exposure; immutability NOT_PROVEN",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/api/part.ts",
+            "name": "Part",
+            "kind": "class"
+          },
+          "shape": {
+            "type": "Part<D>",
+            "declarationSignatures": [
+              {
+                "kind": "ClassDeclaration",
+                "typeParameters": [
+                  "D"
+                ]
+              }
+            ],
+            "members": [
+              {
+                "name": "bodies",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string[]"
+              },
+              {
+                "name": "body",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => Part<D>"
+              },
+              {
+                "name": "box",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: BoxOptions) => Part<D>"
+              },
+              {
+                "name": "chamfer",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edges: (body: BodyQuery) => EdgeQuery, options: ChamferOptions) => Part<D>"
+              },
+              {
+                "name": "circularPattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CircularPatternOptions) => Part<D>"
+              },
+              {
+                "name": "curveFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CurveFeaturePatternOptions) => Part<D>"
+              },
+              {
+                "name": "cylinder",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CylinderOptions) => Part<D>"
+              },
+              {
+                "name": "cylindricalWrap",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: CylindricalWrapOptions) => Part<D>"
+              },
+              {
+                "name": "doc",
+                "kind": "getter",
+                "optional": false,
+                "readonly": false,
+                "type": "D"
+              },
+              {
+                "name": "extrude",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(profile: Sketch, options: ExtrudeOptions) => Part<D>"
+              },
+              {
+                "name": "features",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => FeatureInfo[]"
+              },
+              {
+                "name": "fillFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: FillFeaturePatternOptions) => Part<D>"
+              },
+              {
+                "name": "fillet",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edges: (body: BodyQuery) => EdgeQuery, options: FilletOptions) => Part<D>"
+              },
+              {
+                "name": "hole",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(face: (body: BodyQuery) => FaceQuery, options: HoleOptions) => Part<D>"
+              },
+              {
+                "name": "intersect",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<Part<D>>) => Part<D>"
+              },
+              {
+                "name": "linearFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: LinearPatternOptions) => Part<D>"
+              },
+              {
+                "name": "linearPattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: LinearPatternOptions) => Part<D>"
+              },
+              {
+                "name": "mass",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(density: Density) => MassResult"
+              },
+              {
+                "name": "meshes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => MeshData[]"
+              },
+              {
+                "name": "mirror",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: MirrorOptions) => Part<D>"
+              },
+              {
+                "name": "moved",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(location: Location) => Part<D>"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "parameter",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string, value: number) => Part<D>"
+              },
+              {
+                "name": "parameters",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Record<string, number>"
+              },
+              {
+                "name": "rectangularFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: RectangularFeaturePatternOptions) => Part<D>"
+              },
+              {
+                "name": "revolve",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(profile: Sketch, options?: RevolveOptions | undefined) => Part<D>"
+              },
+              {
+                "name": "scale",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: ScaleOptions) => Part<D>"
+              },
+              {
+                "name": "select",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => BodyQuery"
+              },
+              {
+                "name": "shell",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (options: ShellOptions): Part<D>; (open: (body: BodyQuery) => FaceQuery, options: ShellOptions): Part<D>; }"
+              },
+              {
+                "name": "split",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: SplitOptions) => Part<D>"
+              },
+              {
+                "name": "step",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name?: string) => string"
+              },
+              {
+                "name": "subtract",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<Part<D>>) => Part<D>"
+              },
+              {
+                "name": "suppressed",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string, suppressed?: boolean) => Part<D>"
+              },
+              {
+                "name": "thicken",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surface: RawNurbsSurface, options: ThickenOptions) => Part<D>"
+              },
+              {
+                "name": "union",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<Part<D>>) => Part<D>"
+              },
+              {
+                "name": "withParameters",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edits: Readonly<Record<string, number>>) => Part<D>"
+              }
+            ],
+            "indexSignatures": [],
+            "bases": [],
+            "constructSignatures": [
+              "new <D>(backend: PartBackend<D>, name: string, doc: D, focus?: string | null) => Part<D>"
+            ],
+            "staticMembers": [],
+            "abstract": false,
+            "role": "resource-or-facade-NOT_PROVEN"
+          }
+        }
+      ]
+    },
+    "after": {
+      "package": "@barocss/cad",
+      "subpath": "./api",
+      "exportName": "Part",
+      "space": "type+value",
+      "observedRole": "facade-exposure; immutability NOT_PROVEN",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/api/part.ts",
+            "name": "Part",
+            "kind": "class"
+          },
+          "shape": {
+            "type": "Part<D>",
+            "declarationSignatures": [
+              {
+                "kind": "ClassDeclaration",
+                "typeParameters": [
+                  "D"
+                ]
+              }
+            ],
+            "members": [
+              {
+                "name": "bodies",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string[]"
+              },
+              {
+                "name": "body",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => Part<D>"
+              },
+              {
+                "name": "box",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: BoxOptions) => Part<D>"
+              },
+              {
+                "name": "chamfer",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edges: (body: BodyQuery) => EdgeQuery, options: ChamferOptions) => Part<D>"
+              },
+              {
+                "name": "circularPattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CircularPatternOptions) => Part<D>"
+              },
+              {
+                "name": "curveFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CurveFeaturePatternOptions) => Part<D>"
+              },
+              {
+                "name": "cylinder",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CylinderOptions) => Part<D>"
+              },
+              {
+                "name": "cylindricalWrap",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: CylindricalWrapOptions) => Part<D>"
+              },
+              {
+                "name": "doc",
+                "kind": "getter",
+                "optional": false,
+                "readonly": false,
+                "type": "D"
+              },
+              {
+                "name": "extrude",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(profile: Sketch, options: ExtrudeOptions) => Part<D>"
+              },
+              {
+                "name": "features",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => FeatureInfo[]"
+              },
+              {
+                "name": "fillFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: FillFeaturePatternOptions) => Part<D>"
+              },
+              {
+                "name": "fillet",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edges: (body: BodyQuery) => EdgeQuery, options: FilletOptions) => Part<D>"
+              },
+              {
+                "name": "hole",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(face: (body: BodyQuery) => FaceQuery, options: HoleOptions) => Part<D>"
+              },
+              {
+                "name": "intersect",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<Part<D>>) => Part<D>"
+              },
+              {
+                "name": "linearFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: LinearPatternOptions) => Part<D>"
+              },
+              {
+                "name": "linearPattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: LinearPatternOptions) => Part<D>"
+              },
+              {
+                "name": "mass",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(density: Density) => MassResult"
+              },
+              {
+                "name": "meshes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => MeshData[]"
+              },
+              {
+                "name": "mirror",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: MirrorOptions) => Part<D>"
+              },
+              {
+                "name": "moved",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(location: Location) => Part<D>"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "parameter",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string, value: number) => Part<D>"
+              },
+              {
+                "name": "parameters",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Record<string, number>"
+              },
+              {
+                "name": "rectangularFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: RectangularFeaturePatternOptions) => Part<D>"
+              },
+              {
+                "name": "revolve",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(profile: Sketch, options?: RevolveOptions | undefined) => Part<D>"
+              },
+              {
+                "name": "scale",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: ScaleOptions) => Part<D>"
+              },
+              {
+                "name": "select",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => BodyQuery"
+              },
+              {
+                "name": "sew",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surfaces: readonly RawNurbsSurface[], options?: SewOptions) => Part<D>"
+              },
+              {
+                "name": "shell",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (options: ShellOptions): Part<D>; (open: (body: BodyQuery) => FaceQuery, options: ShellOptions): Part<D>; }"
+              },
+              {
+                "name": "split",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: SplitOptions) => Part<D>"
+              },
+              {
+                "name": "step",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name?: string) => string"
+              },
+              {
+                "name": "subtract",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<Part<D>>) => Part<D>"
+              },
+              {
+                "name": "suppressed",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string, suppressed?: boolean) => Part<D>"
+              },
+              {
+                "name": "thicken",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surface: RawNurbsSurface, options: ThickenOptions) => Part<D>"
+              },
+              {
+                "name": "union",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<Part<D>>) => Part<D>"
+              },
+              {
+                "name": "withParameters",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edits: Readonly<Record<string, number>>) => Part<D>"
+              }
+            ],
+            "indexSignatures": [],
+            "bases": [],
+            "constructSignatures": [
+              "new <D>(backend: PartBackend<D>, name: string, doc: D, focus?: string | null) => Part<D>"
+            ],
+            "staticMembers": [],
+            "abstract": false,
+            "role": "resource-or-facade-NOT_PROVEN"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "key": [
+      "@barocss/cad-model",
+      "./api",
+      "StudioPart"
+    ],
+    "before": {
+      "package": "@barocss/cad-model",
+      "subpath": "./api",
+      "exportName": "StudioPart",
+      "space": "type+value",
+      "observedRole": "facade-exposure; immutability NOT_PROVEN",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/part.ts",
+            "name": "StudioPart",
+            "kind": "class"
+          },
+          "shape": {
+            "type": "StudioPart",
+            "declarationSignatures": [
+              {
+                "kind": "ClassDeclaration",
+                "heritage": [
+                  " extends Part<StudioDoc>"
+                ]
+              }
+            ],
+            "members": [
+              {
+                "name": "autoDimension",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o?: { layout?: boolean | undefined; }) => StudioPart"
+              },
+              {
+                "name": "bodies",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string[]"
+              },
+              {
+                "name": "body",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "bought",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(value?: boolean | null, features?: readonly string[] | undefined) => StudioPart"
+              },
+              {
+                "name": "box",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: BoxOptions) => StudioPart"
+              },
+              {
+                "name": "camPackage",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o?: { toolDiameter?: number | undefined; }) => Promise<Record<string, unknown>>"
+              },
+              {
+                "name": "casting",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: CastingOptions) => StudioPart"
+              },
+              {
+                "name": "chamfer",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edges: (body: BodyQuery) => EdgeQuery, options: ChamferOptions) => StudioPart"
+              },
+              {
+                "name": "circularPattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CircularPatternOptions) => StudioPart"
+              },
+              {
+                "name": "configuration",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "configurations",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Record<string, Record<string, number>>"
+              },
+              {
+                "name": "curveFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CurveFeaturePatternOptions) => StudioPart"
+              },
+              {
+                "name": "cylinder",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CylinderOptions) => StudioPart"
+              },
+              {
+                "name": "cylindricalWrap",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: StudioCylindricalWrapOptions) => StudioPart"
+              },
+              {
+                "name": "doc",
+                "kind": "getter",
+                "optional": false,
+                "readonly": false,
+                "type": "StudioDoc"
+              },
+              {
+                "name": "draft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: StudioDraftOptions) => StudioPart"
+              },
+              {
+                "name": "drawing",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => { svg: string; dxf: string; pdf: Uint8Array<ArrayBufferLike>; pdfMissing: string[]; sheet: Record<string, unknown>; issues: { code: string; severity: string; message: string; fix?: string | undefined; }[]; }"
+              },
+              {
+                "name": "drawingSettings",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: DrawingSettingsInput) => StudioPart"
+              },
+              {
+                "name": "extrude",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(profile: Sketch, options: ExtrudeOptions) => StudioPart"
+              },
+              {
+                "name": "faceFillet",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: StudioFaceFilletOptions) => StudioPart"
+              },
+              {
+                "name": "fastener",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: { kind: string; size: string; length?: string | undefined; joint?: string | undefined; grip?: number | undefined; x?: number | undefined; y?: number | undefined; z?: number | undefined; model?: string | undefined; }) => StudioPart"
+              },
+              {
+                "name": "features",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => FeatureInfo[]"
+              },
+              {
+                "name": "fillFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: FillFeaturePatternOptions) => StudioPart"
+              },
+              {
+                "name": "fillet",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edges: (body: BodyQuery) => EdgeQuery, options: FilletOptions) => StudioPart"
+              },
+              {
+                "name": "fullRound",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options?: StudioFullRoundOptions) => StudioPart"
+              },
+              {
+                "name": "gear",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: { m: number; teeth: number; b: number; shift?: number | undefined; helix?: number | undefined; hand?: \"left\" | \"right\" | undefined; bore?: number | undefined; x?: number | undefined; y?: number | undefined; z?: number | undefined; }) => StudioPart"
+              },
+              {
+                "name": "gearMesh",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: { teeth: number; dir: number; bore?: number | undefined; shift?: number | undefined; }) => StudioPart"
+              },
+              {
+                "name": "hole",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(face: (body: BodyQuery) => FaceQuery, options: HoleOptions) => StudioPart"
+              },
+              {
+                "name": "intersect",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<StudioPart>) => StudioPart"
+              },
+              {
+                "name": "libraryPart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(library: string, item: string, o: LibraryPartInput & { face: (body: BodyQuery) => FaceQuery; point: Vec3; }) => StudioPart"
+              },
+              {
+                "name": "libraryWarnings",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => { part: string; warning: string; }[]"
+              },
+              {
+                "name": "linearFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: LinearPatternOptions) => StudioPart"
+              },
+              {
+                "name": "linearPattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: LinearPatternOptions) => StudioPart"
+              },
+              {
+                "name": "loadRows",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(kind: \"rings\" | \"bend\" | \"sections\" | \"fits\" | \"bearings\" | \"orings\" | \"drives\" | \"connectors\" | \"mounts\" | \"stock\" | \"frame-stock\" | \"fasteners\" | \"fastener-sizes\" | \"casting-rules\", file: { name: string; text: string; }) => StudioPart"
+              },
+              {
+                "name": "loft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(sections: readonly StudioLoftSection[], options?: StudioLoftOptions) => StudioPart"
+              },
+              {
+                "name": "manufacturability",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o?: { direction?: Vec3 | undefined; finish?: string | undefined; sides?: Readonly<Record<string, \"+\" | \"-\">> | undefined; }) => Promise<PrintabilityReport>"
+              },
+              {
+                "name": "mass",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(material?: string | Density | undefined) => MassResult"
+              },
+              {
+                "name": "material",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string) => StudioPart"
+              },
+              {
+                "name": "meshes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => MeshData[]"
+              },
+              {
+                "name": "mirror",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: MirrorOptions) => StudioPart"
+              },
+              {
+                "name": "moved",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(location: Location) => StudioPart"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "named",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "parameter",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string, value: number) => StudioPart"
+              },
+              {
+                "name": "parameters",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Record<string, number>"
+              },
+              {
+                "name": "process",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string | null, o?: { pull?: Vec3 | undefined; finish?: string | undefined; }) => StudioPart"
+              },
+              {
+                "name": "rectangularFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: RectangularFeaturePatternOptions) => StudioPart"
+              },
+              {
+                "name": "rectangularRelief",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: StudioRectangularReliefOptions) => StudioPart"
+              },
+              {
+                "name": "revolve",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(profile: Sketch, options?: RevolveOptions | undefined) => StudioPart"
+              },
+              {
+                "name": "rib",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: StudioRibOptions) => StudioPart"
+              },
+              {
+                "name": "scale",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: ScaleOptions) => StudioPart"
+              },
+              {
+                "name": "select",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => BodyQuery"
+              },
+              {
+                "name": "shell",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (options: ShellOptions): StudioPart; (open: (body: BodyQuery) => FaceQuery, options: ShellOptions): StudioPart; }"
+              },
+              {
+                "name": "split",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: SplitOptions) => StudioPart"
+              },
+              {
+                "name": "spring",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: Readonly<Record<string, string | number>>) => StudioPart"
+              },
+              {
+                "name": "step",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name?: string) => string"
+              },
+              {
+                "name": "subtract",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<StudioPart>) => StudioPart"
+              },
+              {
+                "name": "suppressed",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string, suppressed?: boolean) => StudioPart"
+              },
+              {
+                "name": "text",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(font: FontSource, text: string, options: StudioTextOptions) => StudioPart"
+              },
+              {
+                "name": "textRelief",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, font: FontSource, text: string, options: StudioTextReliefOptions) => StudioPart"
+              },
+              {
+                "name": "thicken",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surface: RawNurbsSurface, options: ThickenOptions) => StudioPart"
+              },
+              {
+                "name": "thread",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(face: (body: BodyQuery) => FaceQuery, options: StudioThreadOptions) => StudioPart"
+              },
+              {
+                "name": "union",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<StudioPart>) => StudioPart"
+              },
+              {
+                "name": "withConfiguration",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "withParameters",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edits: Readonly<Record<string, number>>) => StudioPart"
+              }
+            ],
+            "indexSignatures": [],
+            "bases": [
+              "Part<StudioDoc>"
+            ],
+            "constructSignatures": [
+              "new (backend: PartBackend<StudioDoc>, name: string, doc: StudioDoc, focus?: string | null) => StudioPart"
+            ],
+            "staticMembers": [],
+            "abstract": false,
+            "role": "resource-or-facade-NOT_PROVEN"
+          }
+        }
+      ]
+    },
+    "after": {
+      "package": "@barocss/cad-model",
+      "subpath": "./api",
+      "exportName": "StudioPart",
+      "space": "type+value",
+      "observedRole": "facade-exposure; immutability NOT_PROVEN",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/part.ts",
+            "name": "StudioPart",
+            "kind": "class"
+          },
+          "shape": {
+            "type": "StudioPart",
+            "declarationSignatures": [
+              {
+                "kind": "ClassDeclaration",
+                "heritage": [
+                  " extends Part<StudioDoc>"
+                ]
+              }
+            ],
+            "members": [
+              {
+                "name": "autoDimension",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o?: { layout?: boolean | undefined; }) => StudioPart"
+              },
+              {
+                "name": "bodies",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string[]"
+              },
+              {
+                "name": "body",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "bought",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(value?: boolean | null, features?: readonly string[] | undefined) => StudioPart"
+              },
+              {
+                "name": "box",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: BoxOptions) => StudioPart"
+              },
+              {
+                "name": "camPackage",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o?: { toolDiameter?: number | undefined; }) => Promise<Record<string, unknown>>"
+              },
+              {
+                "name": "casting",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: CastingOptions) => StudioPart"
+              },
+              {
+                "name": "chamfer",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edges: (body: BodyQuery) => EdgeQuery, options: ChamferOptions) => StudioPart"
+              },
+              {
+                "name": "circularPattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CircularPatternOptions) => StudioPart"
+              },
+              {
+                "name": "configuration",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "configurations",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Record<string, Record<string, number>>"
+              },
+              {
+                "name": "curveFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CurveFeaturePatternOptions) => StudioPart"
+              },
+              {
+                "name": "cylinder",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CylinderOptions) => StudioPart"
+              },
+              {
+                "name": "cylindricalWrap",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: StudioCylindricalWrapOptions) => StudioPart"
+              },
+              {
+                "name": "doc",
+                "kind": "getter",
+                "optional": false,
+                "readonly": false,
+                "type": "StudioDoc"
+              },
+              {
+                "name": "draft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: StudioDraftOptions) => StudioPart"
+              },
+              {
+                "name": "drawing",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => { svg: string; dxf: string; pdf: Uint8Array<ArrayBufferLike>; pdfMissing: string[]; sheet: Record<string, unknown>; issues: { code: string; severity: string; message: string; fix?: string | undefined; }[]; }"
+              },
+              {
+                "name": "drawingSettings",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: DrawingSettingsInput) => StudioPart"
+              },
+              {
+                "name": "extrude",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(profile: Sketch, options: ExtrudeOptions) => StudioPart"
+              },
+              {
+                "name": "faceFillet",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: StudioFaceFilletOptions) => StudioPart"
+              },
+              {
+                "name": "fastener",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: { kind: string; size: string; length?: string | undefined; joint?: string | undefined; grip?: number | undefined; x?: number | undefined; y?: number | undefined; z?: number | undefined; model?: string | undefined; }) => StudioPart"
+              },
+              {
+                "name": "features",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => FeatureInfo[]"
+              },
+              {
+                "name": "fillFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: FillFeaturePatternOptions) => StudioPart"
+              },
+              {
+                "name": "fillet",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edges: (body: BodyQuery) => EdgeQuery, options: FilletOptions) => StudioPart"
+              },
+              {
+                "name": "fullRound",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options?: StudioFullRoundOptions) => StudioPart"
+              },
+              {
+                "name": "gear",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: { m: number; teeth: number; b: number; shift?: number | undefined; helix?: number | undefined; hand?: \"left\" | \"right\" | undefined; bore?: number | undefined; x?: number | undefined; y?: number | undefined; z?: number | undefined; }) => StudioPart"
+              },
+              {
+                "name": "gearMesh",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: { teeth: number; dir: number; bore?: number | undefined; shift?: number | undefined; }) => StudioPart"
+              },
+              {
+                "name": "hole",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(face: (body: BodyQuery) => FaceQuery, options: HoleOptions) => StudioPart"
+              },
+              {
+                "name": "intersect",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<StudioPart>) => StudioPart"
+              },
+              {
+                "name": "libraryPart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(library: string, item: string, o: LibraryPartInput & { face: (body: BodyQuery) => FaceQuery; point: Vec3; }) => StudioPart"
+              },
+              {
+                "name": "libraryWarnings",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => { part: string; warning: string; }[]"
+              },
+              {
+                "name": "linearFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: LinearPatternOptions) => StudioPart"
+              },
+              {
+                "name": "linearPattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: LinearPatternOptions) => StudioPart"
+              },
+              {
+                "name": "loadRows",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(kind: \"rings\" | \"bend\" | \"sections\" | \"fits\" | \"bearings\" | \"orings\" | \"drives\" | \"connectors\" | \"mounts\" | \"stock\" | \"frame-stock\" | \"fasteners\" | \"fastener-sizes\" | \"casting-rules\", file: { name: string; text: string; }) => StudioPart"
+              },
+              {
+                "name": "loft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(sections: readonly StudioLoftSection[], options?: StudioLoftOptions) => StudioPart"
+              },
+              {
+                "name": "manufacturability",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o?: { direction?: Vec3 | undefined; finish?: string | undefined; sides?: Readonly<Record<string, \"+\" | \"-\">> | undefined; }) => Promise<PrintabilityReport>"
+              },
+              {
+                "name": "mass",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(material?: string | Density | undefined) => MassResult"
+              },
+              {
+                "name": "material",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string) => StudioPart"
+              },
+              {
+                "name": "meshes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => MeshData[]"
+              },
+              {
+                "name": "mirror",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: MirrorOptions) => StudioPart"
+              },
+              {
+                "name": "moved",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(location: Location) => StudioPart"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "named",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "parameter",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string, value: number) => StudioPart"
+              },
+              {
+                "name": "parameters",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Record<string, number>"
+              },
+              {
+                "name": "process",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string | null, o?: { pull?: Vec3 | undefined; finish?: string | undefined; }) => StudioPart"
+              },
+              {
+                "name": "rectangularFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: RectangularFeaturePatternOptions) => StudioPart"
+              },
+              {
+                "name": "rectangularRelief",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: StudioRectangularReliefOptions) => StudioPart"
+              },
+              {
+                "name": "revolve",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(profile: Sketch, options?: RevolveOptions | undefined) => StudioPart"
+              },
+              {
+                "name": "rib",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: StudioRibOptions) => StudioPart"
+              },
+              {
+                "name": "scale",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: ScaleOptions) => StudioPart"
+              },
+              {
+                "name": "select",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => BodyQuery"
+              },
+              {
+                "name": "sew",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surfaces: readonly RawNurbsSurface[], options?: SewOptions) => StudioPart"
+              },
+              {
+                "name": "shell",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (options: ShellOptions): StudioPart; (open: (body: BodyQuery) => FaceQuery, options: ShellOptions): StudioPart; }"
+              },
+              {
+                "name": "split",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: SplitOptions) => StudioPart"
+              },
+              {
+                "name": "spring",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: Readonly<Record<string, string | number>>) => StudioPart"
+              },
+              {
+                "name": "step",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name?: string) => string"
+              },
+              {
+                "name": "subtract",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<StudioPart>) => StudioPart"
+              },
+              {
+                "name": "suppressed",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string, suppressed?: boolean) => StudioPart"
+              },
+              {
+                "name": "text",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(font: FontSource, text: string, options: StudioTextOptions) => StudioPart"
+              },
+              {
+                "name": "textRelief",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, font: FontSource, text: string, options: StudioTextReliefOptions) => StudioPart"
+              },
+              {
+                "name": "thicken",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surface: RawNurbsSurface, options: ThickenOptions) => StudioPart"
+              },
+              {
+                "name": "thread",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(face: (body: BodyQuery) => FaceQuery, options: StudioThreadOptions) => StudioPart"
+              },
+              {
+                "name": "union",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<StudioPart>) => StudioPart"
+              },
+              {
+                "name": "withConfiguration",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "withParameters",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edits: Readonly<Record<string, number>>) => StudioPart"
+              }
+            ],
+            "indexSignatures": [],
+            "bases": [
+              "Part<StudioDoc>"
+            ],
+            "constructSignatures": [
+              "new (backend: PartBackend<StudioDoc>, name: string, doc: StudioDoc, focus?: string | null) => StudioPart"
+            ],
+            "staticMembers": [],
+            "abstract": false,
+            "role": "resource-or-facade-NOT_PROVEN"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "key": [
+      "@barocss/cad-model",
+      "./api/index",
+      "StudioPart"
+    ],
+    "before": {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/index",
+      "exportName": "StudioPart",
+      "space": "type+value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/part.ts",
+            "name": "StudioPart",
+            "kind": "class"
+          },
+          "shape": {
+            "type": "StudioPart",
+            "declarationSignatures": [
+              {
+                "kind": "ClassDeclaration",
+                "heritage": [
+                  " extends Part<StudioDoc>"
+                ]
+              }
+            ],
+            "members": [
+              {
+                "name": "autoDimension",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o?: { layout?: boolean | undefined; }) => StudioPart"
+              },
+              {
+                "name": "bodies",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string[]"
+              },
+              {
+                "name": "body",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "bought",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(value?: boolean | null, features?: readonly string[] | undefined) => StudioPart"
+              },
+              {
+                "name": "box",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: BoxOptions) => StudioPart"
+              },
+              {
+                "name": "camPackage",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o?: { toolDiameter?: number | undefined; }) => Promise<Record<string, unknown>>"
+              },
+              {
+                "name": "casting",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: CastingOptions) => StudioPart"
+              },
+              {
+                "name": "chamfer",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edges: (body: BodyQuery) => EdgeQuery, options: ChamferOptions) => StudioPart"
+              },
+              {
+                "name": "circularPattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CircularPatternOptions) => StudioPart"
+              },
+              {
+                "name": "configuration",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "configurations",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Record<string, Record<string, number>>"
+              },
+              {
+                "name": "curveFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CurveFeaturePatternOptions) => StudioPart"
+              },
+              {
+                "name": "cylinder",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CylinderOptions) => StudioPart"
+              },
+              {
+                "name": "cylindricalWrap",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: StudioCylindricalWrapOptions) => StudioPart"
+              },
+              {
+                "name": "doc",
+                "kind": "getter",
+                "optional": false,
+                "readonly": false,
+                "type": "StudioDoc"
+              },
+              {
+                "name": "draft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: StudioDraftOptions) => StudioPart"
+              },
+              {
+                "name": "drawing",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => { svg: string; dxf: string; pdf: Uint8Array<ArrayBufferLike>; pdfMissing: string[]; sheet: Record<string, unknown>; issues: { code: string; severity: string; message: string; fix?: string | undefined; }[]; }"
+              },
+              {
+                "name": "drawingSettings",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: DrawingSettingsInput) => StudioPart"
+              },
+              {
+                "name": "extrude",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(profile: Sketch, options: ExtrudeOptions) => StudioPart"
+              },
+              {
+                "name": "faceFillet",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: StudioFaceFilletOptions) => StudioPart"
+              },
+              {
+                "name": "fastener",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: { kind: string; size: string; length?: string | undefined; joint?: string | undefined; grip?: number | undefined; x?: number | undefined; y?: number | undefined; z?: number | undefined; model?: string | undefined; }) => StudioPart"
+              },
+              {
+                "name": "features",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => FeatureInfo[]"
+              },
+              {
+                "name": "fillFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: FillFeaturePatternOptions) => StudioPart"
+              },
+              {
+                "name": "fillet",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edges: (body: BodyQuery) => EdgeQuery, options: FilletOptions) => StudioPart"
+              },
+              {
+                "name": "fullRound",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options?: StudioFullRoundOptions) => StudioPart"
+              },
+              {
+                "name": "gear",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: { m: number; teeth: number; b: number; shift?: number | undefined; helix?: number | undefined; hand?: \"left\" | \"right\" | undefined; bore?: number | undefined; x?: number | undefined; y?: number | undefined; z?: number | undefined; }) => StudioPart"
+              },
+              {
+                "name": "gearMesh",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: { teeth: number; dir: number; bore?: number | undefined; shift?: number | undefined; }) => StudioPart"
+              },
+              {
+                "name": "hole",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(face: (body: BodyQuery) => FaceQuery, options: HoleOptions) => StudioPart"
+              },
+              {
+                "name": "intersect",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<StudioPart>) => StudioPart"
+              },
+              {
+                "name": "libraryPart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(library: string, item: string, o: LibraryPartInput & { face: (body: BodyQuery) => FaceQuery; point: Vec3; }) => StudioPart"
+              },
+              {
+                "name": "libraryWarnings",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => { part: string; warning: string; }[]"
+              },
+              {
+                "name": "linearFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: LinearPatternOptions) => StudioPart"
+              },
+              {
+                "name": "linearPattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: LinearPatternOptions) => StudioPart"
+              },
+              {
+                "name": "loadRows",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(kind: \"rings\" | \"bend\" | \"sections\" | \"fits\" | \"bearings\" | \"orings\" | \"drives\" | \"connectors\" | \"mounts\" | \"stock\" | \"frame-stock\" | \"fasteners\" | \"fastener-sizes\" | \"casting-rules\", file: { name: string; text: string; }) => StudioPart"
+              },
+              {
+                "name": "loft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(sections: readonly StudioLoftSection[], options?: StudioLoftOptions) => StudioPart"
+              },
+              {
+                "name": "manufacturability",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o?: { direction?: Vec3 | undefined; finish?: string | undefined; sides?: Readonly<Record<string, \"+\" | \"-\">> | undefined; }) => Promise<PrintabilityReport>"
+              },
+              {
+                "name": "mass",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(material?: string | Density | undefined) => MassResult"
+              },
+              {
+                "name": "material",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string) => StudioPart"
+              },
+              {
+                "name": "meshes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => MeshData[]"
+              },
+              {
+                "name": "mirror",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: MirrorOptions) => StudioPart"
+              },
+              {
+                "name": "moved",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(location: Location) => StudioPart"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "named",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "parameter",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string, value: number) => StudioPart"
+              },
+              {
+                "name": "parameters",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Record<string, number>"
+              },
+              {
+                "name": "process",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string | null, o?: { pull?: Vec3 | undefined; finish?: string | undefined; }) => StudioPart"
+              },
+              {
+                "name": "rectangularFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: RectangularFeaturePatternOptions) => StudioPart"
+              },
+              {
+                "name": "rectangularRelief",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: StudioRectangularReliefOptions) => StudioPart"
+              },
+              {
+                "name": "revolve",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(profile: Sketch, options?: RevolveOptions | undefined) => StudioPart"
+              },
+              {
+                "name": "rib",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: StudioRibOptions) => StudioPart"
+              },
+              {
+                "name": "scale",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: ScaleOptions) => StudioPart"
+              },
+              {
+                "name": "select",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => BodyQuery"
+              },
+              {
+                "name": "shell",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (options: ShellOptions): StudioPart; (open: (body: BodyQuery) => FaceQuery, options: ShellOptions): StudioPart; }"
+              },
+              {
+                "name": "split",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: SplitOptions) => StudioPart"
+              },
+              {
+                "name": "spring",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: Readonly<Record<string, string | number>>) => StudioPart"
+              },
+              {
+                "name": "step",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name?: string) => string"
+              },
+              {
+                "name": "subtract",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<StudioPart>) => StudioPart"
+              },
+              {
+                "name": "suppressed",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string, suppressed?: boolean) => StudioPart"
+              },
+              {
+                "name": "text",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(font: FontSource, text: string, options: StudioTextOptions) => StudioPart"
+              },
+              {
+                "name": "textRelief",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, font: FontSource, text: string, options: StudioTextReliefOptions) => StudioPart"
+              },
+              {
+                "name": "thicken",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surface: RawNurbsSurface, options: ThickenOptions) => StudioPart"
+              },
+              {
+                "name": "thread",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(face: (body: BodyQuery) => FaceQuery, options: StudioThreadOptions) => StudioPart"
+              },
+              {
+                "name": "union",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<StudioPart>) => StudioPart"
+              },
+              {
+                "name": "withConfiguration",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "withParameters",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edits: Readonly<Record<string, number>>) => StudioPart"
+              }
+            ],
+            "indexSignatures": [],
+            "bases": [
+              "Part<StudioDoc>"
+            ],
+            "constructSignatures": [
+              "new (backend: PartBackend<StudioDoc>, name: string, doc: StudioDoc, focus?: string | null) => StudioPart"
+            ],
+            "staticMembers": [],
+            "abstract": false,
+            "role": "resource-or-facade-NOT_PROVEN"
+          }
+        }
+      ]
+    },
+    "after": {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/index",
+      "exportName": "StudioPart",
+      "space": "type+value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/part.ts",
+            "name": "StudioPart",
+            "kind": "class"
+          },
+          "shape": {
+            "type": "StudioPart",
+            "declarationSignatures": [
+              {
+                "kind": "ClassDeclaration",
+                "heritage": [
+                  " extends Part<StudioDoc>"
+                ]
+              }
+            ],
+            "members": [
+              {
+                "name": "autoDimension",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o?: { layout?: boolean | undefined; }) => StudioPart"
+              },
+              {
+                "name": "bodies",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string[]"
+              },
+              {
+                "name": "body",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "bought",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(value?: boolean | null, features?: readonly string[] | undefined) => StudioPart"
+              },
+              {
+                "name": "box",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: BoxOptions) => StudioPart"
+              },
+              {
+                "name": "camPackage",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o?: { toolDiameter?: number | undefined; }) => Promise<Record<string, unknown>>"
+              },
+              {
+                "name": "casting",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: CastingOptions) => StudioPart"
+              },
+              {
+                "name": "chamfer",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edges: (body: BodyQuery) => EdgeQuery, options: ChamferOptions) => StudioPart"
+              },
+              {
+                "name": "circularPattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CircularPatternOptions) => StudioPart"
+              },
+              {
+                "name": "configuration",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "configurations",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Record<string, Record<string, number>>"
+              },
+              {
+                "name": "curveFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CurveFeaturePatternOptions) => StudioPart"
+              },
+              {
+                "name": "cylinder",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CylinderOptions) => StudioPart"
+              },
+              {
+                "name": "cylindricalWrap",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: StudioCylindricalWrapOptions) => StudioPart"
+              },
+              {
+                "name": "doc",
+                "kind": "getter",
+                "optional": false,
+                "readonly": false,
+                "type": "StudioDoc"
+              },
+              {
+                "name": "draft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: StudioDraftOptions) => StudioPart"
+              },
+              {
+                "name": "drawing",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => { svg: string; dxf: string; pdf: Uint8Array<ArrayBufferLike>; pdfMissing: string[]; sheet: Record<string, unknown>; issues: { code: string; severity: string; message: string; fix?: string | undefined; }[]; }"
+              },
+              {
+                "name": "drawingSettings",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: DrawingSettingsInput) => StudioPart"
+              },
+              {
+                "name": "extrude",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(profile: Sketch, options: ExtrudeOptions) => StudioPart"
+              },
+              {
+                "name": "faceFillet",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: StudioFaceFilletOptions) => StudioPart"
+              },
+              {
+                "name": "fastener",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: { kind: string; size: string; length?: string | undefined; joint?: string | undefined; grip?: number | undefined; x?: number | undefined; y?: number | undefined; z?: number | undefined; model?: string | undefined; }) => StudioPart"
+              },
+              {
+                "name": "features",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => FeatureInfo[]"
+              },
+              {
+                "name": "fillFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: FillFeaturePatternOptions) => StudioPart"
+              },
+              {
+                "name": "fillet",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edges: (body: BodyQuery) => EdgeQuery, options: FilletOptions) => StudioPart"
+              },
+              {
+                "name": "fullRound",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options?: StudioFullRoundOptions) => StudioPart"
+              },
+              {
+                "name": "gear",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: { m: number; teeth: number; b: number; shift?: number | undefined; helix?: number | undefined; hand?: \"left\" | \"right\" | undefined; bore?: number | undefined; x?: number | undefined; y?: number | undefined; z?: number | undefined; }) => StudioPart"
+              },
+              {
+                "name": "gearMesh",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: { teeth: number; dir: number; bore?: number | undefined; shift?: number | undefined; }) => StudioPart"
+              },
+              {
+                "name": "hole",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(face: (body: BodyQuery) => FaceQuery, options: HoleOptions) => StudioPart"
+              },
+              {
+                "name": "intersect",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<StudioPart>) => StudioPart"
+              },
+              {
+                "name": "libraryPart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(library: string, item: string, o: LibraryPartInput & { face: (body: BodyQuery) => FaceQuery; point: Vec3; }) => StudioPart"
+              },
+              {
+                "name": "libraryWarnings",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => { part: string; warning: string; }[]"
+              },
+              {
+                "name": "linearFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: LinearPatternOptions) => StudioPart"
+              },
+              {
+                "name": "linearPattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: LinearPatternOptions) => StudioPart"
+              },
+              {
+                "name": "loadRows",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(kind: \"rings\" | \"bend\" | \"sections\" | \"fits\" | \"bearings\" | \"orings\" | \"drives\" | \"connectors\" | \"mounts\" | \"stock\" | \"frame-stock\" | \"fasteners\" | \"fastener-sizes\" | \"casting-rules\", file: { name: string; text: string; }) => StudioPart"
+              },
+              {
+                "name": "loft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(sections: readonly StudioLoftSection[], options?: StudioLoftOptions) => StudioPart"
+              },
+              {
+                "name": "manufacturability",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o?: { direction?: Vec3 | undefined; finish?: string | undefined; sides?: Readonly<Record<string, \"+\" | \"-\">> | undefined; }) => Promise<PrintabilityReport>"
+              },
+              {
+                "name": "mass",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(material?: string | Density | undefined) => MassResult"
+              },
+              {
+                "name": "material",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string) => StudioPart"
+              },
+              {
+                "name": "meshes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => MeshData[]"
+              },
+              {
+                "name": "mirror",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: MirrorOptions) => StudioPart"
+              },
+              {
+                "name": "moved",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(location: Location) => StudioPart"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "named",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "parameter",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string, value: number) => StudioPart"
+              },
+              {
+                "name": "parameters",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Record<string, number>"
+              },
+              {
+                "name": "process",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string | null, o?: { pull?: Vec3 | undefined; finish?: string | undefined; }) => StudioPart"
+              },
+              {
+                "name": "rectangularFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: RectangularFeaturePatternOptions) => StudioPart"
+              },
+              {
+                "name": "rectangularRelief",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: StudioRectangularReliefOptions) => StudioPart"
+              },
+              {
+                "name": "revolve",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(profile: Sketch, options?: RevolveOptions | undefined) => StudioPart"
+              },
+              {
+                "name": "rib",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: StudioRibOptions) => StudioPart"
+              },
+              {
+                "name": "scale",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: ScaleOptions) => StudioPart"
+              },
+              {
+                "name": "select",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => BodyQuery"
+              },
+              {
+                "name": "sew",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surfaces: readonly RawNurbsSurface[], options?: SewOptions) => StudioPart"
+              },
+              {
+                "name": "shell",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (options: ShellOptions): StudioPart; (open: (body: BodyQuery) => FaceQuery, options: ShellOptions): StudioPart; }"
+              },
+              {
+                "name": "split",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: SplitOptions) => StudioPart"
+              },
+              {
+                "name": "spring",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: Readonly<Record<string, string | number>>) => StudioPart"
+              },
+              {
+                "name": "step",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name?: string) => string"
+              },
+              {
+                "name": "subtract",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<StudioPart>) => StudioPart"
+              },
+              {
+                "name": "suppressed",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string, suppressed?: boolean) => StudioPart"
+              },
+              {
+                "name": "text",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(font: FontSource, text: string, options: StudioTextOptions) => StudioPart"
+              },
+              {
+                "name": "textRelief",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, font: FontSource, text: string, options: StudioTextReliefOptions) => StudioPart"
+              },
+              {
+                "name": "thicken",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surface: RawNurbsSurface, options: ThickenOptions) => StudioPart"
+              },
+              {
+                "name": "thread",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(face: (body: BodyQuery) => FaceQuery, options: StudioThreadOptions) => StudioPart"
+              },
+              {
+                "name": "union",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<StudioPart>) => StudioPart"
+              },
+              {
+                "name": "withConfiguration",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "withParameters",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edits: Readonly<Record<string, number>>) => StudioPart"
+              }
+            ],
+            "indexSignatures": [],
+            "bases": [
+              "Part<StudioDoc>"
+            ],
+            "constructSignatures": [
+              "new (backend: PartBackend<StudioDoc>, name: string, doc: StudioDoc, focus?: string | null) => StudioPart"
+            ],
+            "staticMembers": [],
+            "abstract": false,
+            "role": "resource-or-facade-NOT_PROVEN"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "key": [
+      "@barocss/cad-model",
+      "./api/part",
+      "StudioPart"
+    ],
+    "before": {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/part",
+      "exportName": "StudioPart",
+      "space": "type+value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/part.ts",
+            "name": "StudioPart",
+            "kind": "class"
+          },
+          "shape": {
+            "type": "StudioPart",
+            "declarationSignatures": [
+              {
+                "kind": "ClassDeclaration",
+                "heritage": [
+                  " extends Part<StudioDoc>"
+                ]
+              }
+            ],
+            "members": [
+              {
+                "name": "autoDimension",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o?: { layout?: boolean | undefined; }) => StudioPart"
+              },
+              {
+                "name": "bodies",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string[]"
+              },
+              {
+                "name": "body",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "bought",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(value?: boolean | null, features?: readonly string[] | undefined) => StudioPart"
+              },
+              {
+                "name": "box",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: BoxOptions) => StudioPart"
+              },
+              {
+                "name": "camPackage",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o?: { toolDiameter?: number | undefined; }) => Promise<Record<string, unknown>>"
+              },
+              {
+                "name": "casting",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: CastingOptions) => StudioPart"
+              },
+              {
+                "name": "chamfer",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edges: (body: BodyQuery) => EdgeQuery, options: ChamferOptions) => StudioPart"
+              },
+              {
+                "name": "circularPattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CircularPatternOptions) => StudioPart"
+              },
+              {
+                "name": "configuration",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "configurations",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Record<string, Record<string, number>>"
+              },
+              {
+                "name": "curveFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CurveFeaturePatternOptions) => StudioPart"
+              },
+              {
+                "name": "cylinder",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CylinderOptions) => StudioPart"
+              },
+              {
+                "name": "cylindricalWrap",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: StudioCylindricalWrapOptions) => StudioPart"
+              },
+              {
+                "name": "doc",
+                "kind": "getter",
+                "optional": false,
+                "readonly": false,
+                "type": "StudioDoc"
+              },
+              {
+                "name": "draft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: StudioDraftOptions) => StudioPart"
+              },
+              {
+                "name": "drawing",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => { svg: string; dxf: string; pdf: Uint8Array<ArrayBufferLike>; pdfMissing: string[]; sheet: Record<string, unknown>; issues: { code: string; severity: string; message: string; fix?: string | undefined; }[]; }"
+              },
+              {
+                "name": "drawingSettings",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: DrawingSettingsInput) => StudioPart"
+              },
+              {
+                "name": "extrude",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(profile: Sketch, options: ExtrudeOptions) => StudioPart"
+              },
+              {
+                "name": "faceFillet",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: StudioFaceFilletOptions) => StudioPart"
+              },
+              {
+                "name": "fastener",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: { kind: string; size: string; length?: string | undefined; joint?: string | undefined; grip?: number | undefined; x?: number | undefined; y?: number | undefined; z?: number | undefined; model?: string | undefined; }) => StudioPart"
+              },
+              {
+                "name": "features",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => FeatureInfo[]"
+              },
+              {
+                "name": "fillFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: FillFeaturePatternOptions) => StudioPart"
+              },
+              {
+                "name": "fillet",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edges: (body: BodyQuery) => EdgeQuery, options: FilletOptions) => StudioPart"
+              },
+              {
+                "name": "fullRound",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options?: StudioFullRoundOptions) => StudioPart"
+              },
+              {
+                "name": "gear",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: { m: number; teeth: number; b: number; shift?: number | undefined; helix?: number | undefined; hand?: \"left\" | \"right\" | undefined; bore?: number | undefined; x?: number | undefined; y?: number | undefined; z?: number | undefined; }) => StudioPart"
+              },
+              {
+                "name": "gearMesh",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: { teeth: number; dir: number; bore?: number | undefined; shift?: number | undefined; }) => StudioPart"
+              },
+              {
+                "name": "hole",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(face: (body: BodyQuery) => FaceQuery, options: HoleOptions) => StudioPart"
+              },
+              {
+                "name": "intersect",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<StudioPart>) => StudioPart"
+              },
+              {
+                "name": "libraryPart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(library: string, item: string, o: LibraryPartInput & { face: (body: BodyQuery) => FaceQuery; point: Vec3; }) => StudioPart"
+              },
+              {
+                "name": "libraryWarnings",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => { part: string; warning: string; }[]"
+              },
+              {
+                "name": "linearFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: LinearPatternOptions) => StudioPart"
+              },
+              {
+                "name": "linearPattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: LinearPatternOptions) => StudioPart"
+              },
+              {
+                "name": "loadRows",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(kind: \"rings\" | \"bend\" | \"sections\" | \"fits\" | \"bearings\" | \"orings\" | \"drives\" | \"connectors\" | \"mounts\" | \"stock\" | \"frame-stock\" | \"fasteners\" | \"fastener-sizes\" | \"casting-rules\", file: { name: string; text: string; }) => StudioPart"
+              },
+              {
+                "name": "loft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(sections: readonly StudioLoftSection[], options?: StudioLoftOptions) => StudioPart"
+              },
+              {
+                "name": "manufacturability",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o?: { direction?: Vec3 | undefined; finish?: string | undefined; sides?: Readonly<Record<string, \"+\" | \"-\">> | undefined; }) => Promise<PrintabilityReport>"
+              },
+              {
+                "name": "mass",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(material?: string | Density | undefined) => MassResult"
+              },
+              {
+                "name": "material",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string) => StudioPart"
+              },
+              {
+                "name": "meshes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => MeshData[]"
+              },
+              {
+                "name": "mirror",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: MirrorOptions) => StudioPart"
+              },
+              {
+                "name": "moved",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(location: Location) => StudioPart"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "named",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "parameter",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string, value: number) => StudioPart"
+              },
+              {
+                "name": "parameters",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Record<string, number>"
+              },
+              {
+                "name": "process",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string | null, o?: { pull?: Vec3 | undefined; finish?: string | undefined; }) => StudioPart"
+              },
+              {
+                "name": "rectangularFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: RectangularFeaturePatternOptions) => StudioPart"
+              },
+              {
+                "name": "rectangularRelief",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: StudioRectangularReliefOptions) => StudioPart"
+              },
+              {
+                "name": "revolve",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(profile: Sketch, options?: RevolveOptions | undefined) => StudioPart"
+              },
+              {
+                "name": "rib",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: StudioRibOptions) => StudioPart"
+              },
+              {
+                "name": "scale",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: ScaleOptions) => StudioPart"
+              },
+              {
+                "name": "select",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => BodyQuery"
+              },
+              {
+                "name": "shell",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (options: ShellOptions): StudioPart; (open: (body: BodyQuery) => FaceQuery, options: ShellOptions): StudioPart; }"
+              },
+              {
+                "name": "split",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: SplitOptions) => StudioPart"
+              },
+              {
+                "name": "spring",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: Readonly<Record<string, string | number>>) => StudioPart"
+              },
+              {
+                "name": "step",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name?: string) => string"
+              },
+              {
+                "name": "subtract",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<StudioPart>) => StudioPart"
+              },
+              {
+                "name": "suppressed",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string, suppressed?: boolean) => StudioPart"
+              },
+              {
+                "name": "text",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(font: FontSource, text: string, options: StudioTextOptions) => StudioPart"
+              },
+              {
+                "name": "textRelief",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, font: FontSource, text: string, options: StudioTextReliefOptions) => StudioPart"
+              },
+              {
+                "name": "thicken",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surface: RawNurbsSurface, options: ThickenOptions) => StudioPart"
+              },
+              {
+                "name": "thread",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(face: (body: BodyQuery) => FaceQuery, options: StudioThreadOptions) => StudioPart"
+              },
+              {
+                "name": "union",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<StudioPart>) => StudioPart"
+              },
+              {
+                "name": "withConfiguration",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "withParameters",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edits: Readonly<Record<string, number>>) => StudioPart"
+              }
+            ],
+            "indexSignatures": [],
+            "bases": [
+              "Part<StudioDoc>"
+            ],
+            "constructSignatures": [
+              "new (backend: PartBackend<StudioDoc>, name: string, doc: StudioDoc, focus?: string | null) => StudioPart"
+            ],
+            "staticMembers": [],
+            "abstract": false,
+            "role": "resource-or-facade-NOT_PROVEN"
+          }
+        }
+      ]
+    },
+    "after": {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/part",
+      "exportName": "StudioPart",
+      "space": "type+value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/part.ts",
+            "name": "StudioPart",
+            "kind": "class"
+          },
+          "shape": {
+            "type": "StudioPart",
+            "declarationSignatures": [
+              {
+                "kind": "ClassDeclaration",
+                "heritage": [
+                  " extends Part<StudioDoc>"
+                ]
+              }
+            ],
+            "members": [
+              {
+                "name": "autoDimension",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o?: { layout?: boolean | undefined; }) => StudioPart"
+              },
+              {
+                "name": "bodies",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string[]"
+              },
+              {
+                "name": "body",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "bought",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(value?: boolean | null, features?: readonly string[] | undefined) => StudioPart"
+              },
+              {
+                "name": "box",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: BoxOptions) => StudioPart"
+              },
+              {
+                "name": "camPackage",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o?: { toolDiameter?: number | undefined; }) => Promise<Record<string, unknown>>"
+              },
+              {
+                "name": "casting",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: CastingOptions) => StudioPart"
+              },
+              {
+                "name": "chamfer",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edges: (body: BodyQuery) => EdgeQuery, options: ChamferOptions) => StudioPart"
+              },
+              {
+                "name": "circularPattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CircularPatternOptions) => StudioPart"
+              },
+              {
+                "name": "configuration",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "configurations",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Record<string, Record<string, number>>"
+              },
+              {
+                "name": "curveFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CurveFeaturePatternOptions) => StudioPart"
+              },
+              {
+                "name": "cylinder",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: CylinderOptions) => StudioPart"
+              },
+              {
+                "name": "cylindricalWrap",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: StudioCylindricalWrapOptions) => StudioPart"
+              },
+              {
+                "name": "doc",
+                "kind": "getter",
+                "optional": false,
+                "readonly": false,
+                "type": "StudioDoc"
+              },
+              {
+                "name": "draft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: StudioDraftOptions) => StudioPart"
+              },
+              {
+                "name": "drawing",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => { svg: string; dxf: string; pdf: Uint8Array<ArrayBufferLike>; pdfMissing: string[]; sheet: Record<string, unknown>; issues: { code: string; severity: string; message: string; fix?: string | undefined; }[]; }"
+              },
+              {
+                "name": "drawingSettings",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: DrawingSettingsInput) => StudioPart"
+              },
+              {
+                "name": "extrude",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(profile: Sketch, options: ExtrudeOptions) => StudioPart"
+              },
+              {
+                "name": "faceFillet",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options: StudioFaceFilletOptions) => StudioPart"
+              },
+              {
+                "name": "fastener",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: { kind: string; size: string; length?: string | undefined; joint?: string | undefined; grip?: number | undefined; x?: number | undefined; y?: number | undefined; z?: number | undefined; model?: string | undefined; }) => StudioPart"
+              },
+              {
+                "name": "features",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => FeatureInfo[]"
+              },
+              {
+                "name": "fillFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: FillFeaturePatternOptions) => StudioPart"
+              },
+              {
+                "name": "fillet",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edges: (body: BodyQuery) => EdgeQuery, options: FilletOptions) => StudioPart"
+              },
+              {
+                "name": "fullRound",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, options?: StudioFullRoundOptions) => StudioPart"
+              },
+              {
+                "name": "gear",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: { m: number; teeth: number; b: number; shift?: number | undefined; helix?: number | undefined; hand?: \"left\" | \"right\" | undefined; bore?: number | undefined; x?: number | undefined; y?: number | undefined; z?: number | undefined; }) => StudioPart"
+              },
+              {
+                "name": "gearMesh",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: { teeth: number; dir: number; bore?: number | undefined; shift?: number | undefined; }) => StudioPart"
+              },
+              {
+                "name": "hole",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(face: (body: BodyQuery) => FaceQuery, options: HoleOptions) => StudioPart"
+              },
+              {
+                "name": "intersect",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<StudioPart>) => StudioPart"
+              },
+              {
+                "name": "libraryPart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(library: string, item: string, o: LibraryPartInput & { face: (body: BodyQuery) => FaceQuery; point: Vec3; }) => StudioPart"
+              },
+              {
+                "name": "libraryWarnings",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => { part: string; warning: string; }[]"
+              },
+              {
+                "name": "linearFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: LinearPatternOptions) => StudioPart"
+              },
+              {
+                "name": "linearPattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: LinearPatternOptions) => StudioPart"
+              },
+              {
+                "name": "loadRows",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(kind: \"rings\" | \"bend\" | \"sections\" | \"fits\" | \"bearings\" | \"orings\" | \"drives\" | \"connectors\" | \"mounts\" | \"stock\" | \"frame-stock\" | \"fasteners\" | \"fastener-sizes\" | \"casting-rules\", file: { name: string; text: string; }) => StudioPart"
+              },
+              {
+                "name": "loft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(sections: readonly StudioLoftSection[], options?: StudioLoftOptions) => StudioPart"
+              },
+              {
+                "name": "manufacturability",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o?: { direction?: Vec3 | undefined; finish?: string | undefined; sides?: Readonly<Record<string, \"+\" | \"-\">> | undefined; }) => Promise<PrintabilityReport>"
+              },
+              {
+                "name": "mass",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(material?: string | Density | undefined) => MassResult"
+              },
+              {
+                "name": "material",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string) => StudioPart"
+              },
+              {
+                "name": "meshes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => MeshData[]"
+              },
+              {
+                "name": "mirror",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: MirrorOptions) => StudioPart"
+              },
+              {
+                "name": "moved",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(location: Location) => StudioPart"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "string"
+              },
+              {
+                "name": "named",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "parameter",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string, value: number) => StudioPart"
+              },
+              {
+                "name": "parameters",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => Record<string, number>"
+              },
+              {
+                "name": "process",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string | null, o?: { pull?: Vec3 | undefined; finish?: string | undefined; }) => StudioPart"
+              },
+              {
+                "name": "rectangularFeaturePattern",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: RectangularFeaturePatternOptions) => StudioPart"
+              },
+              {
+                "name": "rectangularRelief",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: StudioRectangularReliefOptions) => StudioPart"
+              },
+              {
+                "name": "revolve",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(profile: Sketch, options?: RevolveOptions | undefined) => StudioPart"
+              },
+              {
+                "name": "rib",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: StudioRibOptions) => StudioPart"
+              },
+              {
+                "name": "scale",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: ScaleOptions) => StudioPart"
+              },
+              {
+                "name": "select",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => BodyQuery"
+              },
+              {
+                "name": "sew",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surfaces: readonly RawNurbsSurface[], options?: SewOptions) => StudioPart"
+              },
+              {
+                "name": "shell",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (options: ShellOptions): StudioPart; (open: (body: BodyQuery) => FaceQuery, options: ShellOptions): StudioPart; }"
+              },
+              {
+                "name": "split",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(options: SplitOptions) => StudioPart"
+              },
+              {
+                "name": "spring",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: Readonly<Record<string, string | number>>) => StudioPart"
+              },
+              {
+                "name": "step",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name?: string) => string"
+              },
+              {
+                "name": "subtract",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<StudioPart>) => StudioPart"
+              },
+              {
+                "name": "suppressed",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string, suppressed?: boolean) => StudioPart"
+              },
+              {
+                "name": "text",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(font: FontSource, text: string, options: StudioTextOptions) => StudioPart"
+              },
+              {
+                "name": "textRelief",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(faces: (body: BodyQuery) => FaceQuery, font: FontSource, text: string, options: StudioTextReliefOptions) => StudioPart"
+              },
+              {
+                "name": "thicken",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surface: RawNurbsSurface, options: ThickenOptions) => StudioPart"
+              },
+              {
+                "name": "thread",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(face: (body: BodyQuery) => FaceQuery, options: StudioThreadOptions) => StudioPart"
+              },
+              {
+                "name": "union",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(tool: Tool<StudioPart>) => StudioPart"
+              },
+              {
+                "name": "withConfiguration",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => StudioPart"
+              },
+              {
+                "name": "withParameters",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(edits: Readonly<Record<string, number>>) => StudioPart"
+              }
+            ],
+            "indexSignatures": [],
+            "bases": [
+              "Part<StudioDoc>"
+            ],
+            "constructSignatures": [
+              "new (backend: PartBackend<StudioDoc>, name: string, doc: StudioDoc, focus?: string | null) => StudioPart"
+            ],
+            "staticMembers": [],
+            "abstract": false,
+            "role": "resource-or-facade-NOT_PROVEN"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "key": [
+      "@barocss/cad-model",
+      "./app/commands",
+      "Ctx"
+    ],
+    "before": {
+      "package": "@barocss/cad-model",
+      "subpath": "./app/commands",
+      "exportName": "Ctx",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/app/commands.ts",
+            "name": "Ctx",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "Ctx",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "bearingAssembly",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "BearingAssemblyInput | undefined"
+              },
+              {
+                "name": "bodies",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "BodyResult[]"
+              },
+              {
+                "name": "curvePatternPath",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "CurveFeaturePatternPath | undefined"
+              },
+              {
+                "name": "direct",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string[] | undefined"
+              },
+              {
+                "name": "doc",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "StudioDoc"
+              },
+              {
+                "name": "fillPatternAnchor",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "readonly [number, number] | undefined"
+              },
+              {
+                "name": "fillPatternRegion",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "FillFeaturePatternRegion | undefined"
+              },
+              {
+                "name": "pick",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "[number, number, number] | undefined"
+              },
+              {
+                "name": "selection",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Selection"
+              },
+              {
+                "name": "thickenSnapshot",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "ThickenSnapshot | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    "after": {
+      "package": "@barocss/cad-model",
+      "subpath": "./app/commands",
+      "exportName": "Ctx",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/app/commands.ts",
+            "name": "Ctx",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "Ctx",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "bearingAssembly",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "BearingAssemblyInput | undefined"
+              },
+              {
+                "name": "bodies",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "BodyResult[]"
+              },
+              {
+                "name": "curvePatternPath",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "CurveFeaturePatternPath | undefined"
+              },
+              {
+                "name": "direct",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string[] | undefined"
+              },
+              {
+                "name": "doc",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "StudioDoc"
+              },
+              {
+                "name": "fillPatternAnchor",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "readonly [number, number] | undefined"
+              },
+              {
+                "name": "fillPatternRegion",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "FillFeaturePatternRegion | undefined"
+              },
+              {
+                "name": "pick",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "[number, number, number] | undefined"
+              },
+              {
+                "name": "selection",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Selection"
+              },
+              {
+                "name": "sewSnapshot",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "SewSnapshot | undefined"
+              },
+              {
+                "name": "thickenSnapshot",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "ThickenSnapshot | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    }
+  }
+]

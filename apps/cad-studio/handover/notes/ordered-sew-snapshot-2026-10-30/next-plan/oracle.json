@@ -1,0 +1,14 @@
+{
+  "status":"SOURCE_PLAN_ARITHMETIC_NOT_EXECUTED_PRODUCT_ORACLE",
+  "support":{"worldMap":["20+5u","-11+5v","3"],"u":[-2,6],"v":[1,7],"worldBounds":[[10,-6,3],[50,24,3]],"area":1200},
+  "worldLoop":[[15,-1],[35,-1],[35,15],[29,15],[29,5],[21,5],[21,15],[15,15]],
+  "idealLoop":{"area":240,"centroid":[25,6,3]},
+  "primaryCut":{"axis":"v","representedParameter":3.7,"idealWorldY":7.5,"authority":"exact Fraction.from_float(3.7); y=5*p-11, not decimal 37/10"},
+  "idealInside":{"lower":[{"area":150,"centroid":[25,2.85,3]}],"upper":[{"area":45,"centroid":[18,11.25,3]},{"area":45,"centroid":[32,11.25,3]}]},
+  "idealOutside":{"originalArea":960,"originalCentroid":[31.25,9.75,3],"lower":[{"area":370,"centroidFractions":["1195/37","-59/148","3"]},{"area":20,"centroid":[25,6.25,3]}],"upper":[{"area":570,"centroidFractions":["585/19","1251/76","3"]}]},
+  "emptyChildCut":{"axis":"v","representedParameter":5.7,"idealWorldY":17.5,"keep":"inside","lowerComponents":1,"lowerArea":240,"upperComponents":0},
+  "publicProducer":"Use the actual trimByCurve-produced stored160 UV values as oracle.py input. The eight authored curve spans divide160 samples evenly, but do not assume native floating samples exactly equal ideal coordinates.",
+  "nativeChildNonAffineControl":{"degreeU":1,"degreeV":1,"u":[-2,6],"v":[1,7],"points":[[[0,0,0],[0,1,1]],[[1,0,1],[1,1,2]]],"weights":[[1,1],[1,1]],"axis":"u","parameter":0.4,"reason":"insertion involves alpha approximately0.3; generated z=alpha and z=1+alpha need not satisfy exact affine fourth-pole identity. Native result must be checked by whole-child residual bound, not an exact-affine re-admission shortcut.","runtime":"NOT_RUN"},
+  "witness":{"boxMin":[80,-3,1],"boxMax":[92,4,6],"volume":420,"centroid":[86,0.5,3.5],"ownership":"unchanged solid geometry/names; no solid mass for Direct surface components"},
+  "oracleScript":"oracle.py uses independent exact Fraction slab integration and positive-interval connectivity; it imports no product implementation and was not run during planning."
+}

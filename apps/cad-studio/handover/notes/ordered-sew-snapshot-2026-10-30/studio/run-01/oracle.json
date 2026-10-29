@@ -1,0 +1,33 @@
+{
+  "status": "INDEPENDENT_PLANNING_ARITHMETIC_NOT_PRODUCT_EXECUTION",
+  "profile": "six natural nonunit-domain rectangular box surfaces, mixed authored orientations",
+  "knotsU": [-2, -2, 6, 6],
+  "knotsV": [1, 1, 7, 7],
+  "degreeU": 1,
+  "degreeV": 1,
+  "weights": [[1, 1], [1, 1]],
+  "orderedControlPoints": [
+    [[[10,-6,3],[50,-6,3]],[[10,24,3],[50,24,3]]],
+    [[[10,-6,15],[50,-6,15]],[[10,24,15],[50,24,15]]],
+    [[[10,-6,3],[10,-6,15]],[[50,-6,3],[50,-6,15]]],
+    [[[10,24,3],[10,24,15]],[[50,24,3],[50,24,15]]],
+    [[[10,-6,3],[10,-6,15]],[[10,24,3],[10,24,15]]],
+    [[[50,-6,3],[50,-6,15]],[[50,24,3],[50,24,15]]]
+  ],
+  "bounds": {"min":[10,-6,3],"max":[50,24,15]},
+  "dimensions": [40,30,12],
+  "volume": 14400,
+  "centroid": [30,9,9],
+  "surfaceArea": 4080,
+  "orderedFaceAreas": [1200,1200,480,480,360,360],
+  "orderedOutwardNormals": [[0,0,-1],[0,0,1],[0,-1,0],[0,1,0],[-1,0,0],[1,0,0]],
+  "orderedFaceCentroids": [[30,9,3],[30,9,15],[30,-6,9],[30,24,9],[10,9,9],[50,9,9]],
+  "expectedNaturalBoxTopology": {"bodies":1,"closedShells":1,"vertices":8,"edges":12,"faces":6,"euler":2},
+  "toleranceEdits": [0.01,0.02,0],
+  "nativeAutoToleranceForThisProfile": 0.05,
+  "kernelNamesForEmptyPart": ["sew1.surface0","sew1.surface1","sew1.surface2","sew1.surface3","sew1.surface4","sew1.surface5"],
+  "namesQualification": "verify actual native and Model public sets separately; feature prefix derives from accepted IDs; no whole-family count claim",
+  "witness": {"min":[80,-3,1],"max":[92,4,6],"volume":420,"centroid":[86,0.5,3.5]},
+  "separateBodiesArithmeticVolume": 14820,
+  "execution": "NOT_RUN"
+}

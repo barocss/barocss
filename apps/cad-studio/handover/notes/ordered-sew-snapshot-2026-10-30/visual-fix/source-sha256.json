@@ -1,0 +1,5 @@
+{
+  "apps/cad-studio/src/App.tsx": "fd7460aeef6c800d1de457039f34574fcff825dad3a23463e15800e729c517b0",
+  "apps/cad-studio/src/viewport/sewPreviewDirect.ts": "46ee54cb7e852b09e498244a6d6379299fa64666f9e0f2596d97905d78d2dab3",
+  "apps/cad-studio/test/sew-preview-direct.test.ts": "faa5a4c97fa18575edf653e0b88442d80c0ab1224f2896485b4d3797b9cecb40"
+}

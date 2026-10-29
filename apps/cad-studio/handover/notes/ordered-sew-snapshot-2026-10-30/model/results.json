@@ -1,0 +1,75 @@
+{
+  "node": "22.19.0",
+  "checks": {
+    "api-sew-1": {
+      "status": "PASS",
+      "tests": 6,
+      "log": "/tmp/d339-model/api-sew-1.log"
+    },
+    "related-1": {
+      "status": "PASS",
+      "tests": 28,
+      "log": "/tmp/d339-model/related-1.log"
+    },
+    "model-types-1": {
+      "status": "FAIL",
+      "exit": 2,
+      "reason": "test TS7022 local declaration inference; explicit ModelNode annotations added",
+      "log": "/tmp/d339-model/model-types-1.log"
+    },
+    "model-types-2": {
+      "status": "PASS",
+      "exit": 0,
+      "log": "/tmp/d339-model/model-types-2.log"
+    },
+    "studio-types-1": {
+      "status": "PASS",
+      "exit": 0,
+      "log": "/tmp/d339-model/studio-types-1.log"
+    },
+    "studio-related-1": {
+      "status": "PASS",
+      "tests": 7,
+      "log": "/tmp/d339-model/studio-related-1.log"
+    },
+    "kernel-lint-1": {
+      "status": "PASS",
+      "exit": 0,
+      "log": "/tmp/d339-kernel/lint-1.log"
+    }
+  },
+  "observations": {
+    "featureId": "n0",
+    "publicNames": [
+      "n0.surface0",
+      "n0.surface1",
+      "n0.surface2",
+      "n0.surface3",
+      "n0.surface4",
+      "n0.surface5"
+    ],
+    "nativeNames": [
+      "n0.surface0",
+      "n0.surface1",
+      "n0.surface2",
+      "n0.surface3",
+      "n0.surface4",
+      "n0.surface5"
+    ],
+    "volume": 14400,
+    "area": 4080,
+    "centroid": [
+      30,
+      9,
+      9
+    ],
+    "open5PreviewCode": "GEOMETRY",
+    "open5FacadeCode": "GEOMETRY"
+  },
+  "limits": [
+    "Actual browser Apply/Cancel/UndoRedo/Save/Open NOT_RUN by this worker",
+    "No commit or push",
+    "Behavioral test receipt precedes annotation-only type fix; production source unchanged"
+  ],
+  "heavy": "RELEASED"
+}

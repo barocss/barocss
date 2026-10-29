@@ -1,0 +1,10 @@
+{
+  "status": "VISUAL_REVIEW_FAIL",
+  "automatedReceipt": "/tmp/d339-studio/run-01/receipt.json",
+  "automatedStatus": "PASS",
+  "image": "/tmp/d339-studio/run-01/02-preview.png",
+  "observation": "Severe coplanar z-fighting across six selected source surfaces and the sewn-body preview.",
+  "requiredRepair": "Exclude captured consumed Direct source display items only while their sewn preview is drawn. Preserve accepted document, selection and Undo; restore source display on Cancel and refused preview.",
+  "geometryChange": false,
+  "toleranceChange": false
+}
