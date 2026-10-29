@@ -1,0 +1,1089 @@
+{
+  "status": "PASS_BOUNDED_PUBLIC_CSS_UNIFORM_RECOVERY",
+  "sourceCommit": "1bc963c317eae13b284350076c4e5ee73d3feea4",
+  "endObservedHead": "1bc963c317eae13b284350076c4e5ee73d3feea4",
+  "endDirty": "?? .claude/\n",
+  "profileCount": 1,
+  "attempts": 1,
+  "assertions": 45,
+  "allAssertionsPass": true,
+  "assertionDetails": [
+    {
+      "name": "valid-public-CSS-compile",
+      "status": "PASS",
+      "details": {
+        "ok": true,
+        "uniforms": [
+          {
+            "name": "time",
+            "min": 0,
+            "max": 2,
+            "default": 0,
+            "index": 0
+          }
+        ],
+        "usesUV": false,
+        "declarations": "struct MaterialParams {\n  slot: array<vec4<f32>, 4>,\n}\nfn material_mix(a: vec3<f32>, b: vec3<f32>, ratio: f32) -> vec3<f32> {\n  let t = clamp(ratio, 0.0, 1.0);\n  return a * (1.0 - t) + b * t;\n}\n",
+        "expression": "clamp(material_mix(vec3<f32>(1.44438436e-2f,5.12694567e-2f,2.15860501e-1f),vec3<f32>(7.45404184e-1f,2.15860501e-1f,1.44438436e-2f),((sin((materialParams.slot[0].x*1.57079637e+0f))*5.00000000e-1f)+5.00000000e-1f)),vec3<f32>(0.0),vec3<f32>(1.0))"
+      }
+    },
+    {
+      "name": "declared-time-0-to-2",
+      "status": "PASS",
+      "details": {
+        "name": "time",
+        "min": 0,
+        "max": 2,
+        "default": 0,
+        "index": 0
+      }
+    },
+    {
+      "name": "public-material-patch-identity-and-options",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "before0:mapped-dimensions",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "before0:nonbackground",
+      "status": "PASS",
+      "details": {
+        "covered": 6084
+      }
+    },
+    {
+      "name": "before0:expected-color",
+      "status": "PASS",
+      "details": {
+        "expected": [
+          166,
+          102,
+          95,
+          255
+        ],
+        "actual": [
+          {
+            "point": [
+              48,
+              48
+            ],
+            "rgba": [
+              166,
+              102,
+              95,
+              255
+            ]
+          },
+          {
+            "point": [
+              64,
+              64
+            ],
+            "rgba": [
+              166,
+              102,
+              95,
+              255
+            ]
+          },
+          {
+            "point": [
+              80,
+              80
+            ],
+            "rgba": [
+              166,
+              102,
+              95,
+              255
+            ]
+          }
+        ],
+        "tolerance": 2
+      }
+    },
+    {
+      "name": "before0:background",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "before0:logical-shader-and-live-params-identity",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "before0:original-mesh-geometry",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "before0:original-pick-metadata",
+      "status": "PASS",
+      "details": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": null,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.2328007847880108,
+          7.962675475472604e-07,
+          0.07760026159600361
+        ]
+      }
+    },
+    {
+      "name": "before0:worldpoint-tolerance",
+      "status": "PASS",
+      "details": [
+        0.2328007847880108,
+        7.962675475472604e-07,
+        0.07760026159600361
+      ]
+    },
+    {
+      "name": "before1:mapped-dimensions",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "before1:nonbackground",
+      "status": "PASS",
+      "details": {
+        "covered": 6084
+      }
+    },
+    {
+      "name": "before1:expected-color",
+      "status": "PASS",
+      "details": {
+        "expected": [
+          224,
+          128,
+          32,
+          255
+        ],
+        "actual": [
+          {
+            "point": [
+              48,
+              48
+            ],
+            "rgba": [
+              224,
+              128,
+              32,
+              255
+            ]
+          },
+          {
+            "point": [
+              64,
+              64
+            ],
+            "rgba": [
+              224,
+              128,
+              32,
+              255
+            ]
+          },
+          {
+            "point": [
+              80,
+              80
+            ],
+            "rgba": [
+              224,
+              128,
+              32,
+              255
+            ]
+          }
+        ],
+        "tolerance": 2
+      }
+    },
+    {
+      "name": "before1:background",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "before1:logical-shader-and-live-params-identity",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "before1:original-mesh-geometry",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "before1:original-pick-metadata",
+      "status": "PASS",
+      "details": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": null,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.2328007847880108,
+          7.962675475472604e-07,
+          0.07760026159600361
+        ]
+      }
+    },
+    {
+      "name": "before1:worldpoint-tolerance",
+      "status": "PASS",
+      "details": [
+        0.2328007847880108,
+        7.962675475472604e-07,
+        0.07760026159600361
+      ]
+    },
+    {
+      "name": "baseline-live-uniform-change-including-zero",
+      "status": "PASS",
+      "details": [
+        58,
+        26,
+        -63,
+        0
+      ]
+    },
+    {
+      "name": "baseline-diagnostics-empty",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "owned-device-lost-promise",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "supported-loss-and-normal-recovery",
+      "status": "PASS",
+      "details": {
+        "reason": "destroyed",
+        "message": "Device was destroyed."
+      }
+    },
+    {
+      "name": "distinct-replacement-state",
+      "status": "PASS",
+      "details": {
+        "distinctDevice": true,
+        "ready": true,
+        "recoveryCleared": true,
+        "lossesBefore": 0,
+        "lossesAfter": 1,
+        "recoverCalls": 1
+      }
+    },
+    {
+      "name": "after1:mapped-dimensions",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "after1:nonbackground",
+      "status": "PASS",
+      "details": {
+        "covered": 6084
+      }
+    },
+    {
+      "name": "after1:expected-color",
+      "status": "PASS",
+      "details": {
+        "expected": [
+          224,
+          128,
+          32,
+          255
+        ],
+        "actual": [
+          {
+            "point": [
+              48,
+              48
+            ],
+            "rgba": [
+              224,
+              128,
+              32,
+              255
+            ]
+          },
+          {
+            "point": [
+              64,
+              64
+            ],
+            "rgba": [
+              224,
+              128,
+              32,
+              255
+            ]
+          },
+          {
+            "point": [
+              80,
+              80
+            ],
+            "rgba": [
+              224,
+              128,
+              32,
+              255
+            ]
+          }
+        ],
+        "tolerance": 2
+      }
+    },
+    {
+      "name": "after1:background",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "after1:logical-shader-and-live-params-identity",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "after1:original-mesh-geometry",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "after1:original-pick-metadata",
+      "status": "PASS",
+      "details": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": null,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.2328007847880108,
+          7.962675475472604e-07,
+          0.07760026159600361
+        ]
+      }
+    },
+    {
+      "name": "after1:worldpoint-tolerance",
+      "status": "PASS",
+      "details": [
+        0.2328007847880108,
+        7.962675475472604e-07,
+        0.07760026159600361
+      ]
+    },
+    {
+      "name": "recovery-full-image-channel-tolerance3",
+      "status": "PASS",
+      "details": {
+        "maxDelta": 0,
+        "differentBytes": 0,
+        "bytes": 65536
+      }
+    },
+    {
+      "name": "recovery-point-continuity",
+      "status": "PASS",
+      "details": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "after0:mapped-dimensions",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "after0:nonbackground",
+      "status": "PASS",
+      "details": {
+        "covered": 6084
+      }
+    },
+    {
+      "name": "after0:expected-color",
+      "status": "PASS",
+      "details": {
+        "expected": [
+          166,
+          102,
+          95,
+          255
+        ],
+        "actual": [
+          {
+            "point": [
+              48,
+              48
+            ],
+            "rgba": [
+              166,
+              102,
+              95,
+              255
+            ]
+          },
+          {
+            "point": [
+              64,
+              64
+            ],
+            "rgba": [
+              166,
+              102,
+              95,
+              255
+            ]
+          },
+          {
+            "point": [
+              80,
+              80
+            ],
+            "rgba": [
+              166,
+              102,
+              95,
+              255
+            ]
+          }
+        ],
+        "tolerance": 2
+      }
+    },
+    {
+      "name": "after0:background",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "after0:logical-shader-and-live-params-identity",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "after0:original-mesh-geometry",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "after0:original-pick-metadata",
+      "status": "PASS",
+      "details": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": null,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.2328007847880108,
+          7.962675475472604e-07,
+          0.07760026159600361
+        ]
+      }
+    },
+    {
+      "name": "after0:worldpoint-tolerance",
+      "status": "PASS",
+      "details": [
+        0.2328007847880108,
+        7.962675475472604e-07,
+        0.07760026159600361
+      ]
+    },
+    {
+      "name": "rebuilt-live-uniform-zero-color-change",
+      "status": "PASS",
+      "details": [
+        -58,
+        -26,
+        63,
+        0
+      ]
+    },
+    {
+      "name": "no-shader-recompile-or-material-reassign",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "no-unexpected-diagnostics",
+      "status": "PASS",
+      "details": null
+    }
+  ],
+  "hookCalls": 1,
+  "shaderCompilerCalls": 1,
+  "materialPatchCalls": 1,
+  "sourceManifestSha256": "fb3b826b3bf4f8f970f6909fcaca59d76be7ba579a6788556c6b5e3abacc8662",
+  "snapshotFiles": 2237,
+  "allSourceGitBlobsAndSha256Match": true,
+  "buildInputCount": 548,
+  "productInputsByPackage": {
+    "barocss-gpu": 134,
+    "barocss-cad": 413
+  },
+  "ownedFixtureInputs": 1,
+  "thirdPartyBrowserInputs": 0,
+  "browserExternalImports": 0,
+  "acceptanceSha256": "67fe7e07ea3839df7e73244e7a62ca9f90c6d28beb02a52b02978bdb96bdacb7",
+  "acceptanceAndHarnessUnchangedAfterAttempt": true,
+  "oracle": {
+    "0": {
+      "ratio": 0.5,
+      "linearRGB": [
+        0.37992402656824,
+        0.13356497924397126,
+        0.1151521718549959
+      ],
+      "rgba": [
+        166,
+        102,
+        95,
+        255
+      ]
+    },
+    "1": {
+      "ratio": 1.0,
+      "linearRGB": [
+        0.7454042095403874,
+        0.21586050011389926,
+        0.014443843596092545
+      ],
+      "rgba": [
+        224,
+        128,
+        32,
+        255
+      ]
+    }
+  },
+  "expectedColorTolerance": 2,
+  "recoveryChannelTolerance": 3,
+  "pointTolerance": 0.05,
+  "coveredMinimumExclusive": 1000,
+  "samples": {
+    "before0": {
+      "width": 128,
+      "height": 128,
+      "uniform": 0,
+      "interior": [
+        {
+          "point": [
+            48,
+            48
+          ],
+          "rgba": [
+            166,
+            102,
+            95,
+            255
+          ]
+        },
+        {
+          "point": [
+            64,
+            64
+          ],
+          "rgba": [
+            166,
+            102,
+            95,
+            255
+          ]
+        },
+        {
+          "point": [
+            80,
+            80
+          ],
+          "rgba": [
+            166,
+            102,
+            95,
+            255
+          ]
+        }
+      ],
+      "corner": [
+        16,
+        24,
+        32,
+        255
+      ],
+      "covered": 6084,
+      "expectedRGBA": [
+        166,
+        102,
+        95,
+        255
+      ],
+      "shaderSame": true,
+      "paramsSame": true,
+      "meshSame": true,
+      "geometrySame": true,
+      "geometryDisposed": false,
+      "hit": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": null,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.2328007847880108,
+          7.962675475472604e-07,
+          0.07760026159600361
+        ]
+      },
+      "rawPixels": {
+        "path": "before0.rgba",
+        "bytes": 65536,
+        "sha256": "025d44b9c07f9592e8d37f03043f05384bc13730a7a8848393dc83257e1dc3f4",
+        "layout": "RGBA8 top-to-bottom"
+      }
+    },
+    "before1": {
+      "width": 128,
+      "height": 128,
+      "uniform": 1,
+      "interior": [
+        {
+          "point": [
+            48,
+            48
+          ],
+          "rgba": [
+            224,
+            128,
+            32,
+            255
+          ]
+        },
+        {
+          "point": [
+            64,
+            64
+          ],
+          "rgba": [
+            224,
+            128,
+            32,
+            255
+          ]
+        },
+        {
+          "point": [
+            80,
+            80
+          ],
+          "rgba": [
+            224,
+            128,
+            32,
+            255
+          ]
+        }
+      ],
+      "corner": [
+        16,
+        24,
+        32,
+        255
+      ],
+      "covered": 6084,
+      "expectedRGBA": [
+        224,
+        128,
+        32,
+        255
+      ],
+      "shaderSame": true,
+      "paramsSame": true,
+      "meshSame": true,
+      "geometrySame": true,
+      "geometryDisposed": false,
+      "hit": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": null,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.2328007847880108,
+          7.962675475472604e-07,
+          0.07760026159600361
+        ]
+      },
+      "rawPixels": {
+        "path": "before1.rgba",
+        "bytes": 65536,
+        "sha256": "d4ad3d34b9e00f11d6c81f5a560ef32a42a243e553c54632d34a50f07f9fe719",
+        "layout": "RGBA8 top-to-bottom"
+      }
+    },
+    "after1": {
+      "width": 128,
+      "height": 128,
+      "uniform": 1,
+      "interior": [
+        {
+          "point": [
+            48,
+            48
+          ],
+          "rgba": [
+            224,
+            128,
+            32,
+            255
+          ]
+        },
+        {
+          "point": [
+            64,
+            64
+          ],
+          "rgba": [
+            224,
+            128,
+            32,
+            255
+          ]
+        },
+        {
+          "point": [
+            80,
+            80
+          ],
+          "rgba": [
+            224,
+            128,
+            32,
+            255
+          ]
+        }
+      ],
+      "corner": [
+        16,
+        24,
+        32,
+        255
+      ],
+      "covered": 6084,
+      "expectedRGBA": [
+        224,
+        128,
+        32,
+        255
+      ],
+      "shaderSame": true,
+      "paramsSame": true,
+      "meshSame": true,
+      "geometrySame": true,
+      "geometryDisposed": false,
+      "hit": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": null,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.2328007847880108,
+          7.962675475472604e-07,
+          0.07760026159600361
+        ]
+      },
+      "rawPixels": {
+        "path": "after1.rgba",
+        "bytes": 65536,
+        "sha256": "d4ad3d34b9e00f11d6c81f5a560ef32a42a243e553c54632d34a50f07f9fe719",
+        "layout": "RGBA8 top-to-bottom"
+      }
+    },
+    "after0": {
+      "width": 128,
+      "height": 128,
+      "uniform": 0,
+      "interior": [
+        {
+          "point": [
+            48,
+            48
+          ],
+          "rgba": [
+            166,
+            102,
+            95,
+            255
+          ]
+        },
+        {
+          "point": [
+            64,
+            64
+          ],
+          "rgba": [
+            166,
+            102,
+            95,
+            255
+          ]
+        },
+        {
+          "point": [
+            80,
+            80
+          ],
+          "rgba": [
+            166,
+            102,
+            95,
+            255
+          ]
+        }
+      ],
+      "corner": [
+        16,
+        24,
+        32,
+        255
+      ],
+      "covered": 6084,
+      "expectedRGBA": [
+        166,
+        102,
+        95,
+        255
+      ],
+      "shaderSame": true,
+      "paramsSame": true,
+      "meshSame": true,
+      "geometrySame": true,
+      "geometryDisposed": false,
+      "hit": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": null,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.2328007847880108,
+          7.962675475472604e-07,
+          0.07760026159600361
+        ]
+      },
+      "rawPixels": {
+        "path": "after0.rgba",
+        "bytes": 65536,
+        "sha256": "025d44b9c07f9592e8d37f03043f05384bc13730a7a8848393dc83257e1dc3f4",
+        "layout": "RGBA8 top-to-bottom"
+      }
+    }
+  },
+  "uniformSequence": [
+    0,
+    1,
+    "logical loss/recovery at1",
+    0
+  ],
+  "beforeColorDelta": [
+    58,
+    26,
+    -63,
+    0
+  ],
+  "afterColorDelta": [
+    -58,
+    -26,
+    63,
+    0
+  ],
+  "recoveryPixelDelta": {
+    "maxDelta": 0,
+    "differentBytes": 0,
+    "bytes": 65536
+  },
+  "recoveryPointDelta": [
+    0,
+    0,
+    0
+  ],
+  "oldDeviceLoss": {
+    "reason": "destroyed",
+    "message": "Device was destroyed."
+  },
+  "replacement": {
+    "distinctDevice": true,
+    "ready": true,
+    "recoveryCleared": true,
+    "lossesBefore": 0,
+    "lossesAfter": 1,
+    "recoverCalls": 1
+  },
+  "actualOldOwnedDeviceAdapterInfo": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "",
+    "description": ""
+  },
+  "replacementAdapterInfo": "NOT_RECORDED; distinct logical device identity independently observed",
+  "fallbackIdentity": "UNKNOWN",
+  "identityContract": {
+    "factoryShaderEqualsAcceptedWrapper": false,
+    "hostFloat32Array": true,
+    "wrapperFrozen": true,
+    "declarations": "struct MaterialParams {\n  slot: array<vec4<f32>, 4>,\n}\nfn material_mix(a: vec3<f32>, b: vec3<f32>, ratio: f32) -> vec3<f32> {\n  let t = clamp(ratio, 0.0, 1.0);\n  return a * (1.0 - t) + b * t;\n}\n",
+    "expression": "clamp(material_mix(vec3<f32>(1.44438436e-2f,5.12694567e-2f,2.15860501e-1f),vec3<f32>(7.45404184e-1f,2.15860501e-1f,1.44438436e-2f),((sin((materialParams.slot[0].x*1.57079637e+0f))*5.00000000e-1f)+5.00000000e-1f)),vec3<f32>(0.0),vec3<f32>(1.0))"
+  },
+  "events": [
+    {
+      "type": "createViewer",
+      "at": 74.30000019073486
+    },
+    {
+      "type": "before0:requestRender",
+      "at": 211.40000009536743
+    },
+    {
+      "type": "before0:frame-complete",
+      "at": 234.30000019073486
+    },
+    {
+      "type": "before0:capture-complete",
+      "at": 238.5
+    },
+    {
+      "type": "before0:all-capture-assertions-pass",
+      "at": 465.30000019073486
+    },
+    {
+      "type": "before1:requestRender",
+      "at": 590.9000000953674
+    },
+    {
+      "type": "before1:frame-complete",
+      "at": 592.4000000953674
+    },
+    {
+      "type": "before1:capture-complete",
+      "at": 593.7000000476837
+    },
+    {
+      "type": "before1:all-capture-assertions-pass",
+      "at": 894.3000001907349
+    },
+    {
+      "type": "supported-hook-call",
+      "at": 1351.2000000476837
+    },
+    {
+      "type": "old-device-lost-observed",
+      "at": 1352
+    },
+    {
+      "type": "onRecover",
+      "at": 1369
+    },
+    {
+      "type": "after1:requestRender",
+      "at": 1841.4000000953674
+    },
+    {
+      "type": "after1:frame-complete",
+      "at": 1843.1000001430511
+    },
+    {
+      "type": "after1:capture-complete",
+      "at": 1844.9000000953674
+    },
+    {
+      "type": "after1:all-capture-assertions-pass",
+      "at": 2294.4000000953674
+    },
+    {
+      "type": "same-host-params-zero-after-recovery",
+      "at": 2660.2000000476837
+    },
+    {
+      "type": "after0:requestRender",
+      "at": 2660.2000000476837
+    },
+    {
+      "type": "after0:frame-complete",
+      "at": 2662.600000143051
+    },
+    {
+      "type": "after0:capture-complete",
+      "at": 2663.7000000476837
+    },
+    {
+      "type": "after0:all-capture-assertions-pass",
+      "at": 3193.800000190735
+    }
+  ],
+  "firstFailure": null,
+  "errors": [],
+  "diagnostics": [],
+  "recoveryErrors": [],
+  "viewerCleanup": {
+    "disposed": true,
+    "ready": false,
+    "deviceNull": true
+  },
+  "runtimeCleanup": {
+    "page": "CLOSED",
+    "context": "CLOSED",
+    "browser": "CLOSED",
+    "server": "CLOSED"
+  },
+  "exits": {
+    "gate": 0,
+    "syntax-browser": 0,
+    "syntax-runner": 0,
+    "probe": 0,
+    "release": 0
+  },
+  "actualPNGsViewed": [
+    "capture-before0.png",
+    "capture-before1.png",
+    "capture-after1.png",
+    "capture-after0.png"
+  ],
+  "notRun": [
+    "maps",
+    "instancing",
+    "full PBR coverage",
+    "SDK/App recovery UI",
+    "natural driver failure",
+    "OOM/VRAM/performance",
+    "pipeline creation count",
+    "Three.js parity",
+    "invalid raw WGSL/pipeline replacement failure"
+  ],
+  "resultBoundary": "one immutable wave shader/frozen wrapper and same host Float32Array on original Mesh/Geometry; basic GPU003 and old CSS23 not repeated;45 assertions/fourimages are one profile, not45tests",
+  "productMutation": false,
+  "priorEvidenceMutation": false,
+  "nextCheckpoint": "Parent records custom CSS/liveuniform Core recovery gate PASS; maps/instanced resources/SDK/App/natural failures remain separate gates"
+}

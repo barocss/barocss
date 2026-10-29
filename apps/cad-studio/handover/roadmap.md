@@ -1999,3 +1999,34 @@ profile using the existing public materialShader/CSS recipe and live uniform val
 preserving the original mesh/geometry through device replacement. Do not repeat the basic success or
 historical suites merely to acknowledge this evidence. No new issue, immediate implementation or
 priority switch; existing A05/A06 order remains. Root read/copies the supplied documents only.
+
+
+### GPU004 custom CSS/live-uniform recovery evidence — 2026-10-29
+
+Attach the [supplied report and verification](notes/gpu-recovery-css-intake-2026-10-29/gpu-004-css-recovery-102421.md)
+to existing GMAT-5/G15-accept. Status: **BOUNDED PASS, ONE CORE CSS/LIVE-UNIFORM PROFILE** at exact1bc963c3.
+One attempt contains45 assertions and four captures, not45 tests. Existing public CSS wave recipe and
+neutral environment are unchanged. Independent expected colors and original tolerances were fixed
+before execution, not fitted to observations. This adds a specific material recovery result, not a new
+language, implementation, issue or general G15 completion.
+
+Author observations: time0 RGBA[166,102,95,255] changes to time1[224,128,32,255]; one owned logical-device
+hook causes old-device lost, distinct new device, one normal onRecover and a new frame preserving time1.
+Updating the same live params to zero after recovery restores time0. Each state has6084 covered pixels;
+before1/after1 raw65536 bytes match, and the sender's parent also reports per-time before/after equality
+and zero-versus-one inequality. Original Mesh/Geometry, face71/triangle0/instance=null, accepted shader
+wrapper and host Float32Array remain. Point delta is zero. The public factory is called once and the
+material patched once; the host does not recreate/reassign them after loss. **Native GPU module/pipeline
+creation counts are NOT_MEASURED** and must not be inferred from host factory counts.
+
+The author reports2237 snapshot files, actual548 inputs(product547+fixture1), zero external imports/dist
+escape, acceptance/harness hashes unchanged, no first failure or retry, all guard/syntax/build/probe/
+release exits zero and owned cleanup complete. Actual oldDevice.adapterInfo is apple/metal-3; replacement
+adapterInfo was not recorded and fallback identity remains UNKNOWN. Root read and retained the supplied
+documents; it has not independently repeated runtime, image, raw-byte or input-graph verification.
+
+Maps, instanced buffers, full PBR, SDK/App recovery UI, natural driver failure, OOM/VRAM/performance and
+Three.js parity remain NOT_RUN. Logical-device hook injection does not prove natural failure recovery.
+The next resource profile at existing priority is the original map fixture's Texture/Material binding
+through device replacement. Do not repeat successful CSS45/GPU003/historical suites for this intake.
+No immediate implementation, duplicate issue or priority switch; A05/A06 ordering remains unchanged.
