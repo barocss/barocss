@@ -6,6 +6,7 @@ import { massOf, meshOf, outputsOf, selectionOf, stepOf, stlOf } from './core.js
 import { Part, type PartBackend } from './part.js';
 import type { FeatureSpec } from './spec.js';
 import { refuse } from './refusal.js';
+import type { RawNurbsPath } from '../features/curve-cut-pattern.js';
 
 const emptyDocument = (): CadPartDocument => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [] });
 
@@ -88,6 +89,11 @@ function featuresOf(doc: CadPartDocument, spec: FeatureSpec, body: string | null
       const { axis, spacing, count, axis2, spacing2, count2 } = spec.values;
       return [{ id: nextId(doc, 'rectangular-feature-pattern'), kind: 'rectangular-feature-pattern', target: target(), axis, spacing, count, axis2, spacing2, count2 }];
     }
+    case 'curve-feature-pattern': {
+      const { spacing, count } = spec.values;
+      // The evaluator gives a typed CAPABILITY refusal for a direct reference: the kernel has no direct sources.
+      return [{ id: nextId(doc, 'curve-feature-pattern'), kind: 'curve-feature-pattern', target: target(), path: spec.path as RawNurbsPath, spacing, count }];
+    }
     case 'circular-pattern': {
       const { axis, count, span, px, py } = spec.values;
       return [{ id: nextId(doc, 'circular-pattern'), kind: 'circular-pattern', target: target(), axis, angle: axis === 'z' ? step(span, count) : 90, count, ...(axis === 'z' && (px || py) ? { pivot: [px, py, 0] } : {}) }];
@@ -137,6 +143,7 @@ const BINDS: Record<string, Record<string, readonly [feature: number, path: read
   'linear-pattern': { spacing: [0, ['spacing']] },
   'linear-feature-pattern': { spacing: [0, ['spacing']] },
   'rectangular-feature-pattern': { spacing: [0, ['spacing']], spacing2: [0, ['spacing2']] },
+  'curve-feature-pattern': { spacing: [0, ['spacing']] },
   split: { at: [0, ['at']] },
 };
 

@@ -6,6 +6,7 @@ import { readConnector, validateBallOptions, validateFastenedOptions, validateUn
 import { emptyDoc, type PartInstance, type StudioDoc } from '../engine/doc';
 import { coded, refusal, type CadModelCode } from '../engine/refusal';
 import { nextFreeId } from '../util/ids';
+import { curvePatternDocumentProblem } from '../engine/curveFeaturePattern';
 import { tablesFor } from './faces';
 import { BASE, KIND_LABEL, mateKindsOf, mateFacesOf, lockRel, mateRefusal, solveAssembly, type Mate, type MateRef, type MateKind, type Vec3 } from './mates';
 import { readRobot, type JointTree, type RobotSettings } from '../robot/joints';
@@ -38,6 +39,8 @@ export interface Edited { doc: StudioDoc; problems: { mate: string; reason: stri
 
 /** add_part: a part placed by a rotation and a move, the assembly solved again; its id. */
 export function addPart(doc: StudioDoc, o: AddPartOptions): Edited & { id: string } {
+  const pathProblem = o.doc && curvePatternDocumentProblem({ instances: [{ doc: o.doc }] });
+  if (pathProblem) throw refusal('VALUE', pathProblem);
   const instances = doc.instances ?? [], id = nextFreeId('p', new Set(instances.map(i => i.id)));
   const inst: PartInstance = { id, name: o.name, doc: o.doc ?? emptyDoc(), position: o.position ?? [0, 0, 0], rotation: o.rotation ?? [0, 0, 0], ...(o.grounded ? { grounded: true } : {}) };
   return { ...solveDoc({ ...doc, instances: [...instances, inst] }, instances), id };
@@ -47,6 +50,8 @@ export function addPart(doc: StudioDoc, o: AddPartOptions): Edited & { id: strin
 export function partCopy(doc: StudioDoc, part: string): StudioDoc {
   const src = partDocOf(doc, part);
   if (!src) throw refusal('NO_PART', `No part "${part}" to copy; parts: ${partList(doc)}.`);
+  const pathProblem = curvePatternDocumentProblem({ instances: [{ doc: src }] });
+  if (pathProblem) throw refusal('VALUE', pathProblem);
   return { ...src, instances: undefined, mates: undefined, render: undefined, drawing: undefined, direct: undefined };
 }
 

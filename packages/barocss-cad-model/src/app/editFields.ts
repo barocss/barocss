@@ -1,3 +1,5 @@
+import { eligibleCurvePatternPaths } from '../engine/curveFeaturePattern';
+import type { StudioDoc } from '../engine/doc';
 // The editable dimensions of a feature, including those of the sketch it is made from: each field
 // reads its value from the document's nodes and writes a changed copy of them (sketch edits change the
 // sketch node, so every feature made from it follows).
@@ -83,7 +85,7 @@ export type BindableField = Extract<EditField, { kind: 'number' }> & { param(nod
  * Where a part-scoped edit stands (O167, F6), when no assembly input is given: the part draft's bearing context (its
  * occurrence and the other parts, as the bearing command reads it) and the fit tables the draft sees.
  */
-export interface EditScope { readonly context?: BearingAssemblyContext; readonly fits?: StudioFits }
+export interface EditScope { readonly context?: BearingAssemblyContext; readonly fits?: StudioFits; readonly doc?: Pick<StudioDoc, 'direct'> }
 export function editFields(nodes: Nodes, i: number, params?: Record<string, number>, bearingAssembly?: BearingAssemblyInput, scope?: EditScope): EditField[] {
   const raw = editFieldsRaw(nodes, i, bearingAssembly, scope);
   if (!params) return raw;
@@ -93,7 +95,7 @@ export function editFields(nodes: Nodes, i: number, params?: Record<string, numb
     set: (n, v) => within(params, () => f.set(n, v)).value,
     param: (n: Nodes) => { const r = within(params, () => f.get(n)); return r.seen.length === 1 ? r.seen[0] : null; },
     bind: (n: Nodes, name: string) => {
-      if ((n[i]?.kind === 'linear-feature-pattern' && f.key === 'count') || (n[i]?.kind === 'rectangular-feature-pattern' && (f.key === 'count' || f.key === 'count2'))) return null;
+      if (((n[i]?.kind === 'linear-feature-pattern' || n[i]?.kind === 'curve-feature-pattern') && f.key === 'count') || (n[i]?.kind === 'rectangular-feature-pattern' && (f.key === 'count' || f.key === 'count2'))) return null;
       if (!(name in params)) return null;
       const next = within(params, () => f.set(n, params[name])).value;
       // (The value must land as it is in one place: then that place holds the reference.)
@@ -551,6 +553,11 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       out.push({ kind: 'choice', key: 'plane', label: 'Plane', options: [{ value: 'yz', label: 'YZ' }, { value: 'xz', label: 'XZ' }, { value: 'xy', label: 'XY' }], get: n => self<typeof node>(n).plane, set: (n, v) => replace(n, i, { ...self<typeof node>(n), plane: v as typeof node.plane }) });
       break;
     case 'scale': number('k', 'Factor', undefined, n => (n as typeof node).factor, (n, v) => ({ ...(n as typeof node), factor: v })); break;
+    case 'curve-feature-pattern':
+      out.push({ kind: 'choice', key: 'path', label: 'Path', options: [...('objectId' in node.path ? [] : [{ value: '', label: 'Inline path' }]), ...eligibleCurvePatternPaths(scope?.doc ?? {})], get: n => { const p = self<typeof node>(n).path; return 'objectId' in p ? p.objectId : ''; }, set: (n, v) => v === '' ? [...n] : replace(n, i, { ...self<typeof node>(n), path: { objectId: v } }) });
+      number('spacing', 'Spacing', 'mm', n => num((n as typeof node).spacing), (n, v) => ({ ...(n as typeof node), spacing: v }));
+      number('count', 'Count', undefined, n => (n as typeof node).count, (n, v) => ({ ...(n as typeof node), count: v }));
+      break;
     case 'rectangular-feature-pattern':
       out.push({ kind: 'choice', key: 'axis', label: 'First direction', options: axes(['x', 'y', 'z']), get: n => self<typeof node>(n).axis, set: (n, v) => replace(n, i, { ...self<typeof node>(n), axis: v as Axis }) });
       number('spacing', 'First spacing', 'mm', n => num((n as typeof node).spacing), (n, v) => ({ ...(n as typeof node), spacing: v }));

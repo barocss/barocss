@@ -30,6 +30,7 @@ import { SelectionInspector } from './ui/SelectionInspector';
 import { useMeshImport } from './files/useMeshImport';
 import { MeshFileDialogs } from './files/MeshFileDialogs';
 import { useRouteBundleEditor } from './state/useRouteBundleEditor';
+import { curvePatternDocumentProblem, insertedCurvePartProblem, prepareDirectCurveCandidate } from './app/directCurveCandidate';
 import { ReferenceDecisions } from './ui/ReferenceDecisions';
 import { useRobotExports } from './robot/useRobotExports';
 import { RobotInspector } from './robot/RobotInspector';
@@ -212,7 +213,8 @@ export function App() {
   // Even a no-op dispatch invalidates an older receipt; functional updates retain React's queued semantics.
   const saveDocumentToken = useRef<object>({});
   const openIntent = useRef<OpenScope>({});
-  const beginOpenIntent = useCallback((): OpenScope => { const scope = {}; openIntent.current = scope; return scope; }, []);
+  const discardDirectCandidateRef = useRef<() => void>(() => {});
+  const beginOpenIntent = useCallback((): OpenScope => { discardDirectCandidateRef.current(); const scope = {}; openIntent.current = scope; return scope; }, []);
   const currentOpenScope = useCallback(() => openIntent.current, []);
   const isOpenCurrent = useCallback((scope: OpenScope) => openIntent.current === scope, []);
   useEffect(() => () => { openIntent.current = {}; }, []);
@@ -241,6 +243,8 @@ export function App() {
     const intent = undoFor.current; undoFor.current = null;
     const why = !replacementScope.current && (intent?.base ?? doc) !== docNow.current ? 'stale' : workEditRefusal(workOwnership.current, replacementScope.current ?? intent?.scope ?? acceptanceScope, workCompletion.current);
     if (why) { setToast({ title: 'Change not applied', hint: why === 'pending' ? 'Wait for the computation to finish, or stop it, before changing the document.' : 'The document or operation changed. Try this edit again.', detail: '' }); return false; }
+    const pathProblem = curvePatternDocumentProblem(next);
+    if (pathProblem) { setToast({ title: 'Change not applied', hint: pathProblem, detail: 'The document is unchanged.' }); return false; }
     if (!whole && shownVariant.current && changesBeyondVariability(docNow.current, next)) { setToast({ title: 'Can’t change the part now', hint: `Showing ${shownVariant.current}: show the master to edit.`, detail: '' }); return false; }
     if (next !== docNow.current) discardRouteRef.current();
     if (routeAcceptedHandoff.current?.doc !== next) routeAcceptedHandoff.current = null;
@@ -261,7 +265,8 @@ export function App() {
   const [bodiesFor, setBodiesFor] = useState<StudioDoc | null>(null);
   // Parameter candidates use the normal evaluation lane before the accepted document changes.
   const parameterRequest = useRef(0);
-  const [parameterEdit, setParameterEdit] = useState<{ request: number; base: StudioDoc; baseInput: StudioDoc; input: StudioDoc; next: StudioDoc; accept(next: StudioDoc): void } | null>(null);
+  const [parameterEdit, setParameterEdit] = useState<{ kind?: 'direct'; request: number; base: StudioDoc; baseInput: StudioDoc; input: StudioDoc; next: StudioDoc; accept(next: StudioDoc): void } | null>(null);
+  const parameterEditNow = useRef(parameterEdit); parameterEditNow.current = parameterEdit;
   const acceptedEvaluation = useRef<{ key: string; result: Extract<EvalResult, { ok: true }> } | null>(null);
   // Only a parameter transition may hand a result to the next effect once; ordinary evaluations still run.
   const parameterHandoff = useRef<{ target: StudioDoc; key: string; result: Extract<EvalResult, { ok: true }> } | null>(null);
@@ -651,6 +656,7 @@ export function App() {
       // A display-only edit cancels the candidate without evaluating the unchanged accepted model again.
       if (parameterEdit.baseInput === evaluated && acceptedEvaluation.current) parameterHandoff.current = { target: docNow.current, ...acceptedEvaluation.current, result: { ...acceptedEvaluation.current.result, bodies: bodiesRef.current } };
       if (parameterMass.current?.request === parameterEdit.request && !parameterMass.current.target) parameterMass.current = null;
+      if (parameterEdit.kind === 'direct') parameterEditNow.current = null;
       setParameterEdit(null); return;
     }
     const edit = parameterEdit;
@@ -664,8 +670,9 @@ export function App() {
       const accepted = acceptedEvaluation.current;
       if (accepted) parameterHandoff.current = { target: edit.base, ...accepted, result: { ...accepted.result, bodies: bodiesRef.current } };
       if (parameterMass.current?.request === edit?.request && !parameterMass.current?.target) parameterMass.current = null;
+      if (edit.kind === 'direct') parameterEditNow.current = null;
       setParameterEdit(null); setBusy(false);
-      setToast({ title: 'Parameters not changed', hint: 'The accepted part and its references are unchanged.', detail });
+      setToast({ title: edit.kind === 'direct' ? 'Direct geometry not changed' : 'Parameters not changed', hint: 'The accepted part and its references are unchanged.', detail });
     };
     setBusy(true);
     const run = async () => {
@@ -718,6 +725,7 @@ export function App() {
         const installed = docNow.current;
         parameterHandoff.current = { target: installed, key: nextKey, result };
         if (parameterMass.current?.request === edit.request) parameterMass.current.target = installed;
+        if (edit.kind === 'direct') parameterEditNow.current = null;
         setParameterEdit(null);
         return;
       }
@@ -755,6 +763,16 @@ export function App() {
   const bodiesRef = useRef(bodies); bodiesRef.current = bodies;
   const ctx: Ctx = { doc: evaluated, bodies, selection, pick: pick ?? undefined, direct: directSel, bearingAssembly: { root: doc, owner: 'base' } };
   const evaluatedRef = useRef(evaluated); evaluatedRef.current = evaluated;
+  discardDirectCandidateRef.current = () => {
+    const pending = parameterEditNow.current;
+    if (pending?.kind !== 'direct') return;
+    parameterRequest.current++; parameterEditNow.current = null;
+    if (acceptedEvaluation.current) parameterHandoff.current = { target: docNow.current, ...acceptedEvaluation.current, result: { ...acceptedEvaluation.current.result, bodies: bodiesRef.current } };
+    if (parameterMass.current && !parameterMass.current.target) parameterMass.current = null;
+    const run = workOwnership.current.run;
+    if (run?.candidate) workOwnership.current = finishWork(workOwnership.current, run.token);
+    setParameterEdit(null); setBusy(false);
+  };
 
   /** The document as it is, kept for undo (redo is gone once something new is done). */
   const pushUndo = () => { undoFor.current = { entry: { doc: docNow.current, marker: markerNow.current }, scope: replacementScope.current ?? acceptanceScope, base: doc, beforeInput: evaluatedRef.current }; };
@@ -803,16 +821,31 @@ export function App() {
     pushUndo();
     if (!setDoc({ ...doc, drawing: next })) return; setDirty(true);
   }, [doc, marker, acceptanceScope]);
+  const stageCurveCandidate = useCallback((candidate: { next: StudioDoc; input: StudioDoc }, select?: string[]) => {
+    if (bodiesFor !== evaluatedRef.current || !massReady || shownVariant.current) { setToast({ title: 'Direct geometry not changed', hint: 'Wait for the accepted part and its mass results to finish evaluating.', detail: '' }); return; }
+    const edit = { ...candidate, kind: 'direct' as const, request: ++parameterRequest.current, base: doc, baseInput: evaluatedRef.current,
+      accept: (accepted: StudioDoc) => { if (commit(accepted, false) && select) setDirectSel(select); } };
+    // Reserve before React renders so a second edit cannot change the accepted input.
+    workOwnership.current = beginWork(workOwnership.current, doc, candidate.input, true);
+    parameterEditNow.current = edit; setParameterEdit(edit); setBusy(true);
+  }, [doc, bodiesFor, massReady, commit]);
   /** One undoable change of the direct geometry (the model stays as evaluated). */
   const commitDirect = useCallback((next: DirectGeometry, select?: string[]) => {
     if (!canChangeDocument()) return false;
     try { assertRouteBundleDocument({ ...doc, direct: next }); }
     catch (error) { setToast({ title: 'Direct geometry not changed', hint: `${routeMessage(error)} Detach the route bundle before editing a bound member.`, detail: '' }); return false; }
+    try {
+      const candidate = prepareDirectCurveCandidate(doc, next);
+      if (candidate) {
+        stageCurveCandidate(candidate, select);
+        return false;
+      }
+    } catch (error) { setToast({ title: 'Direct geometry not changed', hint: routeMessage(error), detail: '' }); return false; }
     pushUndo();
     if (!setDoc({ ...doc, direct: next })) return false; setDirty(true);
     if (select) setDirectSel(select);
     return true;
-  }, [doc, marker, acceptanceScope]);
+  }, [doc, marker, acceptanceScope, stageCurveCandidate]);
   const poleObj = directSel.length === 1 ? directSel[0] : null;
   // The direct tools load when the document first has direct geometry (state: re-render once they are in).
   const [directReady, setDirectReady] = useState(() => !!directNow());
@@ -953,6 +986,8 @@ export function App() {
       const read = await readStudioFile(new Uint8Array(await file.arrayBuffer()));
       if ('error' in read) throw new Error(read.error);
       const parsed = read.doc;
+      const pathProblem = insertedCurvePartProblem(parsed);
+      if (pathProblem) throw new Error(pathProblem);
       if (parsed.schema === 4 || Object.prototype.hasOwnProperty.call(parsed, 'routeBundles')) throw refusal('BAD_REFERENCE', 'Route bundle: inserting a linked route document as a part is not supported. Detach the bundle first.');
       const list = doc.instances ?? [], used = new Set(list.map(i => i.id));
       let n = 1; while (used.has(`inst${n}`)) n++;
@@ -965,7 +1000,7 @@ export function App() {
   };
   const { play, animatedAt, videoBusy, recordVideo, exportImage } = useRenderPlayback({ render, rendering, state: { time, setTime, playing, setPlaying, turnFrom }, viewport, fileName, onNotice: setToast });
 
-  const cancel = useCallback(() => { discardRouteRef.current(); setActive(null); setPreviewBodies(null); setSketch(null); }, [setSketch]);
+  const cancel = useCallback(() => { discardDirectCandidateRef.current(); discardRouteRef.current(); setActive(null); setPreviewBodies(null); setSketch(null); }, [setSketch]);
 
   const openRoute = () => {
     cancel(); setPole(null); setPoleDrag(null); routeEditor.open(directSel);
@@ -1164,7 +1199,7 @@ export function App() {
   useEffect(() => { if (!busy) { setSlow(false); return; } const t = setTimeout(() => setSlow(true), 1000); return () => clearTimeout(t); }, [busy]);
   const invalidateDocumentWork = () => {
     workOwnership.current = invalidateWork(workOwnership.current); undoFor.current = null; workCompletion.current = null;
-    parameterRequest.current++; setParameterEdit(null); parameterHandoff.current = null;
+    parameterRequest.current++; parameterEditNow.current = null; setParameterEdit(null); parameterHandoff.current = null;
     if (parameterMass.current && !parameterMass.current.target) parameterMass.current = null;
     setBusy(false);
   };
@@ -1196,7 +1231,7 @@ export function App() {
     workOwnership.current = stopped.state; undoFor.current = null; workCompletion.current = null;
     // Invalidate before restart resolves pending promises. An unaccepted candidate has no history to undo.
     parameterRequest.current++;
-    setParameterEdit(null);
+    parameterEditNow.current = null; setParameterEdit(null);
     restartDocumentWorker();
     const target = stopped.target;
     if (target) {
@@ -1505,6 +1540,7 @@ export function App() {
         chatSelection.current = { faces: [], edges: [], bodies: [bodyKeyFor(r.doc.nodes, r.top)] }; commit(r.doc); return;
       }
       if (drawing) return; // (the Drawing workspace has its own keys)
+      if (e.key === 'Escape' && parameterEditNow.current?.kind === 'direct') { e.preventDefault(); discardDirectCandidateRef.current(); return; }
       if (e.key === 'Escape' && routePanelOpen && !active && !sketch && !assembly.draft && !measure && !cageEd.session && !skel.session) { e.preventDefault(); discardRouteRef.current(); return; }
       if (e.key === 'Escape') { if (palette) setPalette(false); else if (sketch && !active && (sketch.picked?.length || sketch.editDim)) setSketch(s => s && { ...s, picked: [], editDim: null }); else if (active || sketch) cancel(); else if (assembly.draft) assembly.cancel(); else if (measure) setMeasure(null); else { setSelection(emptySel); setInstanceSel([]); setDirectSel([]); } return; }
       // Enter applies; Shift-Enter applies and starts the same command again (another hole, another shape).
@@ -1516,7 +1552,12 @@ export function App() {
       // Nudge the picked body: arrows 1 mm along X and Y (Shift: 10 mm), Page Up / Down along Z.
       if (/^(Arrow(Left|Right|Up|Down)|PageUp|PageDown)$/.test(e.key) && !active && !sketch && !measure) { const one = selectedBodies(selection); if (one.length === 1 && bodies[one[0]]) { e.preventDefault(); nudge(one[0], e.key, e.shiftKey ? 10 : 1); return; } }
       if (e.key === '?') { e.preventDefault(); setHelp(true); return; }
-      if ((e.key === 'Delete' || e.key === 'Backspace') && !sketch && !active && !measure) { e.preventDefault(); deleteSelection(); return; }
+      if ((e.key === 'Delete' || e.key === 'Backspace') && !sketch && !active && !measure) {
+        e.preventDefault();
+        if (directSel.length && doc.direct) commitDirect({ ...doc.direct, objects: doc.direct.objects.filter(object => !directSel.includes(object.id)) }, []);
+        else deleteSelection();
+        return;
+      }
       if (sketch) {
         if (e.key.toLowerCase() === 'x' && !e.metaKey && !e.ctrlKey) { if (typing) { e.preventDefault(); (e.target as HTMLElement).blur(); } setSketch(s => s && { ...s, construct: !s.construct }); return; }
         const t = (TOOLS.find(x => x.key.toLowerCase() === e.key.toLowerCase()) ?? TOOLS.find(x => x.tool === 'polygon' && e.key.toLowerCase() === 'p'))?.tool;
@@ -1878,12 +1919,13 @@ export function App() {
       {skel.session && !rendering && !drawing && <SkeletonPanel editor={skel} name={skel.session.node === null ? 'new skeleton' : featureLabel(doc.nodes[skel.session.node], skel.session.node, doc.nodes)} />}
       {!cageEd.session && !skel.session && !rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <SelectionInspector model={{ doc, evaluated, bodies, fresh, busy, massReady }} selection={selection} materialSettings={{ material, setMaterial }}
         display={{ showBox, setShowBox, inertiaAt, setInertiaAt }} changes={{ commit, setSelection, edgesToCurves, loadBendTable, setFlatView, setCutListView, separate }}>
-        {editNode !== null && <NodeEditor nodes={doc.nodes} parameters={doc.parameters} bearingAssembly={{ root: doc, owner: 'base' }} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode} onEditSketch={(() => { const n = doc.nodes[editNode]; const s = n?.kind === 'sketch' ? editNode : n && 'sketch' in n ? n.sketch : null; return s !== null && doc.nodes[s]?.kind === 'sketch' ? () => editSketch(s) : undefined; })()} onApply={nodes => {
+        {editNode !== null && <NodeEditor nodes={doc.nodes} parameters={doc.parameters} doc={doc} pending={parameterEdit?.kind === 'direct'} pendingLabel="Checking the path cut pattern…" bearingAssembly={{ root: doc, owner: 'base' }} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode} onEditSketch={(() => { const n = doc.nodes[editNode]; const s = n?.kind === 'sketch' ? editNode : n && 'sketch' in n ? n.sketch : null; return s !== null && doc.nodes[s]?.kind === 'sketch' ? () => editSketch(s) : undefined; })()} onApply={nodes => {
           if (!canChangeDocument()) return;
           const scope = bearingEditScope.current;
           const next = { ...doc, nodes: dropStaleMade(doc.nodes, nodes) };
+          if (doc.nodes[editNode]?.kind === 'curve-feature-pattern' || nodes[editNode]?.kind === 'curve-feature-pattern') { stageCurveCandidate({ next, input: prefixDoc(next, next.nodes.length) }); return; }
           engine.evaluate(next, revision.current++).then(r => { if (!r || bearingEditScope.current !== scope) return; if (r.ok) commit(next); else setToast({ ...r.error, hint: 'The design was not changed. Adjust the values and try again.' }); });
-        }} onDelete={() => deleteNode(editNode)} onClose={() => setEditNode(null)} />}
+        }} onDelete={() => deleteNode(editNode)} onClose={() => { discardDirectCandidateRef.current(); setEditNode(null); }} />}
       </SelectionInspector>}
       </div></Profiler>
   );

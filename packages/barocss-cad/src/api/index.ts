@@ -4,10 +4,10 @@
 export { part, KernelPart, kernelBackend } from './kernel.js';
 export { Part, withParameters, type PartBackend, type Density, type Tool, type FeatureInfo } from './part.js';
 export {
-  boxSpec, cylindricalWrapSpec, cylinderSpec, extrudeSpec, revolveSpec, holeSpec, filletSpec, chamferSpec, shellSpec, booleanSpec, linearPatternSpec, rectangularFeaturePatternSpec, circularPatternSpec, moveSpec, rotateSpec, mirrorSpec, scaleSpec, splitSpec, studioSpec, type StudioCommand,
+  boxSpec, cylindricalWrapSpec, cylinderSpec, extrudeSpec, revolveSpec, holeSpec, filletSpec, chamferSpec, shellSpec, booleanSpec, linearPatternSpec, rectangularFeaturePatternSpec, curveFeaturePatternSpec, circularPatternSpec, moveSpec, rotateSpec, mirrorSpec, scaleSpec, splitSpec, studioSpec, type StudioCommand,
   param, isParam, type Param, type Dim, type Bound, type Resolved,
   type FeatureSpec, type BooleanCommand, type BoxOptions, type CylindricalWrapOptions, type CylinderOptions, type ExtrudeOptions, type RevolveOptions, type HoleOptions, type FilletOptions, type ChamferOptions,
-  type ShellOptions, type RectangularFeaturePatternOptions, type LinearPatternOptions, type CircularPatternOptions, type MirrorOptions, type ScaleOptions, type SplitOptions,
+  type ShellOptions, type RectangularFeaturePatternOptions, type CurveFeaturePatternOptions, type CurveFeaturePatternPath, type RawNurbsPath, type LinearPatternOptions, type CircularPatternOptions, type MirrorOptions, type ScaleOptions, type SplitOptions,
 } from './spec.js';
 export { Plane, Location, Sketch, SketchStart, SketchPath, sketch, type PlaneData, type PoseData, type SketchData, type LoopSegment, type Vec2 } from './sketch.js';
 export type { MassResult, MeshData } from './core.js';

@@ -52,6 +52,23 @@ original cut. Both spacings must be positive and at most 10000. Both spacings ca
 the two counts cannot. The command defaults to a 3 × 2 grid on global X and Y. Existing schema-3 files
 store the node, its stable ID, body reference and spacing bindings without a migration.
 
+### Path cut patterns
+
+`part.curveFeaturePattern({ path, spacing: 8, count: 5 })` repeats the tool of the current
+unsuppressed subtract result. It keeps the original cut. Copies use the offset from the path start
+to each spacing distance. Their orientation stays fixed. `path` is either a literal raw NURBS path
+(`degree`, `knots`, `controlPoints`, `weights`) or `{ objectId }`, which resolves the current direct
+curve in the base document on every build. Hidden and renamed objects keep their reference.
+Nested and placed parts must use literal paths. The GUI Path choice stores a stable object reference.
+
+Use an open degree 1 polyline or degree 2 straight spans with double interior knots and exact midpoint
+controls. Weights must equal 1. There are 2 to 64 finite control points, each coordinate within
+±10000 mm. Each span has positive length. Spacing is positive and at most 10000 mm. Count is a whole
+number from 1 to 64, including the original cut. `(count - 1) * spacing` must fit the current path
+without extrapolation or tolerance. Spacing can bind to a parameter. Count cannot. The saved
+`curve-feature-pattern` node keeps its parent, literal path or object reference, spacing and count
+in the existing file schema. Missing, ambiguous, mixed or unsupported paths refuse the operation.
+
 ## Status
 
 Version `0.0.0-experimental`. The API may change between versions: there is no compatibility promise yet. The

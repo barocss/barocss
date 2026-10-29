@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
-import type { ModelNode } from '@barocss/cad-model/engine/doc';
+import type { ModelNode, StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BearingAssemblyInput } from '@barocss/cad-model/engine/bearingContext';
 import { editFields, type BindableField } from '@barocss/cad-model/app/editFields';
 import { ToolIconButton } from '@/components/ui/tool-button';
 import { Icon } from './atoms';
-export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDelete, parameters, onRefuse, bearingAssembly, pending = false }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[]): void; onClose(): void; onEditSketch?(): void; onDelete?(): void; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; pending?: boolean }) {
+export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDelete, parameters, onRefuse, bearingAssembly, doc, pending = false, pendingLabel = 'Checking the current bearing and housing…' }: { nodes: ModelNode[]; index: number; onApply(nodes: ModelNode[]): void; onClose(): void; onEditSketch?(): void; onDelete?(): void; parameters: Record<string, number>; onRefuse(message: string): void; bearingAssembly?: BearingAssemblyInput; doc?: Pick<StudioDoc, 'direct'>; pending?: boolean; pendingLabel?: string }) {
   // The draft is the whole node list: a sketch dimension changes the sketch the feature is made from.
   const [draft, setDraft] = useState<ModelNode[]>(nodes);
   // What is typed in a number box until it reads as a number (so a box can be cleared and retyped).
   const [typed, setTyped] = useState<Record<string, string>>({});
   useEffect(() => { setDraft(nodes); setTyped({}); }, [nodes, index]);
-  const fields = editFields(draft, index, parameters, bearingAssembly).filter(f => f.kind !== 'number' || !Number.isNaN(f.get(draft)));
+  const fields = editFields(draft, index, parameters, bearingAssembly, { doc }).filter(f => f.kind !== 'number' || !Number.isNaN(f.get(draft)));
   const names = Object.keys(parameters);
   const changed = draft !== nodes;
   return (
@@ -28,7 +28,7 @@ export function NodeEditor({ nodes, index, onApply, onClose, onEditSketch, onDel
         </label>
       )) : <div className="empty">This feature has no editable dimensions.</div>}
       {onDelete && <button className="ghost danger" disabled={pending} aria-label="Delete feature" title="Delete this feature (and the sketch only it uses) · Undo restores it" onClick={onDelete}><Icon name="delete" small /> Delete feature</button>}
-      {pending && <div className="empty" role="status">Checking the current bearing and housing…</div>}
+      {pending && <div className="empty" role="status">{pendingLabel}</div>}
       {fields.length > 0 && <div className="row-actions"><button className="primary" disabled={!changed || pending} onClick={() => onApply(draft)}>Apply</button><button className="ghost" disabled={!changed || pending} onClick={() => { setDraft(nodes); setTyped({}); }}>Reset</button></div>}
     </div>
   );

@@ -1,3 +1,5 @@
+import { curvePatternDocumentProblem } from './curveFeaturePattern';
+import { refusal } from './refusal';
 import { provenanceOfTree, registerShopRowProvenance, resolveShopTree, type ShopTreeProvenance } from './shopRows';
 // The document as the engine worker sees it: what evaluation reads (parameters, nodes, outputs and the
 // placed instances, and the section library and weld records (FRc/FRk2) — not render, drawing, direct geometry, looks, mates or pending revisions), with its
@@ -29,11 +31,13 @@ const PRUNE_EVERY = 64, KEEP_FOR = 256;
 
 /** What evaluation reads of a document (an instance's part likewise). */
 export function evaluatedPart(doc: StudioDoc): StudioDoc {
+  const pathProblem = curvePatternDocumentProblem(doc);
+  if (pathProblem) throw refusal('VALUE', pathProblem);
   doc = resolveShopTree(doc);
   const out: StudioDoc = { format: doc.format, schema: doc.schema, units: doc.units, parameters: doc.parameters, nodes: doc.nodes, outputs: doc.outputs };
   // Ordinary evaluation strips direct geometry. Bundle admission instead needs its metadata
   // and direct sources: keep each field's own presence and value, including invalid values.
-  if (doc.schema === 4 || Object.prototype.hasOwnProperty.call(doc, 'routeBundles')) {
+  if (doc.schema === 4 || Object.prototype.hasOwnProperty.call(doc, 'routeBundles') || doc.nodes.some(n => n.kind === 'curve-feature-pattern' && 'objectId' in n.path)) {
     if (Object.prototype.hasOwnProperty.call(doc, 'routeBundles')) out.routeBundles = doc.routeBundles;
     if (Object.prototype.hasOwnProperty.call(doc, 'direct')) out.direct = doc.direct;
   }

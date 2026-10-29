@@ -106,6 +106,7 @@ export const COMMAND_DOCS: Record<string, { selection: string; values: Record<st
   duplicate: { selection: 'bodies: [one body]', values: { dx: 'copy offset X', dy: 'copy offset Y', dz: 'copy offset Z' } },
   mirror: { selection: 'bodies: [one body]', values: { plane: 'yz | xz | xy; keeps the original', at: 'where the plane crosses its axis (yz: X; 0: through the origin)' } },
   'linear-pattern': { selection: 'bodies: [one body]', values: { axis: 'x | y | z', spacing: 'mm between copies', count: 'copies including the original', result: 'one (joined) | separate (each its own body)' } },
+  'curve-feature-pattern': { selection: 'bodies: [one current unsuppressed subtract result]', values: { path: 'stable direct curve object id (open polyline or straight quadratic spans; fixed orientation)', spacing: 'positive distance at most 10000; total distance must fit the current path', count: 'whole number 1–64 including original' } },
   'rectangular-feature-pattern': { selection: 'bodies: [one current unsuppressed subtract result]', values: { axis: 'x | y | z (first global direction)', spacing: 'positive distance between cuts (at most 10000)', count: 'whole number 1–64', axis2: 'x | y | z (different from axis)', spacing2: 'positive distance between cuts (at most 10000)', count2: 'whole number 1–64; count × count2 at most 64 including original' } },
   'linear-feature-pattern': { selection: 'bodies: [one current unsuppressed subtract result]', values: { axis: 'x | y | z', spacing: 'positive mm between cuts (at most 10000)', count: 'whole number 2–64, including the original cut' } },
   'circular-pattern': { selection: 'bodies: [one body]', values: { axis: 'z | x | y (quarter turns)', count: 'copies including the original', span: 'degrees the copies spread over about Z (360: an even full turn)', px: 'Z axis position X (default 0)', py: 'Z axis position Y (default 0)', result: 'one (joined) | separate (each its own body)' } },
@@ -204,7 +205,7 @@ async function editFeatureTool(state: ChatState, args: Record<string, unknown>, 
     next = nodes.map((n, i) => i === index ? { ...withFollowed(state.doc, args.feature as ModelNode), id: n.id } : n);
   } else {
     // (O167, F6: a part-scoped edit offers what the bearing command offers — the draft's context and its fit tables.)
-    const fields = editFields(nodes, index, undefined, undefined, { context: bearingContextOf(state.doc), fits: state.doc.fits }), given = isObj(args.values) ? args.values : {};
+    const fields = editFields(nodes, index, undefined, undefined, { context: bearingContextOf(state.doc), fits: state.doc.fits, doc: state.doc }), given = isObj(args.values) ? args.values : {};
     if (!Object.keys(given).length) return fail(state, `Pass "values" or a whole "feature". Feature ${index}'s values: ${fields.map(f => `${f.key} (${f.label} = ${String(f.get(nodes))})`).join(', ') || 'none — replace it with "feature"'}.`);
     next = [...nodes];
     for (const [key, v] of Object.entries(given)) {

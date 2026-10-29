@@ -1,3 +1,4 @@
+import { curveFeaturePatternProblem, eligibleCurvePatternPaths, type CurveFeaturePatternPath } from '../engine/curveFeaturePattern';
 // Commands are driven by the current selection. Each one says whether it applies (and why not),
 // which fields its HUD shows, and how it changes the document.
 import { profileCommands } from './profileCommands';
@@ -37,7 +38,7 @@ export interface EdgeSel { body: number; edge: number }
 /** `vertices`: corners picked (ends of edges), by body and position. */
 export interface Selection { faces: FaceSel[]; edges: EdgeSel[]; bodies: number[]; sketches?: number[]; vertices?: { body: number; at: [number, number, number] }[] }
 /** `direct`: the direct curves and surfaces picked (their ids). */
-export interface Ctx { doc: StudioDoc; bodies: BodyResult[]; selection: Selection; pick?: [number, number, number]; direct?: string[]; bearingAssembly?: BearingAssemblyInput }
+export interface Ctx { curvePatternPath?: CurveFeaturePatternPath; doc: StudioDoc; bodies: BodyResult[]; selection: Selection; pick?: [number, number, number]; direct?: string[]; bearingAssembly?: BearingAssemblyInput }
 
 export type Values = Record<string, number | string>;
 /** `when`: shown (and required) only for these values. */
@@ -780,6 +781,20 @@ const allCommands: Command[] = [
       if (!Number.isFinite(spacing) || spacing <= 0 || spacing > 10000) throw refusal('VALUE', 'Spacing must be positive and at most 10000 mm.');
       if (!Number.isInteger(count) || count < 2 || count > 64) throw refusal('VALUE', 'Count must be a whole number from 2 to 64, including the original cut.');
       return withNode(ctx.doc, { kind: 'linear-feature-pattern', parent: refOf(oneBody(ctx)!), axis, spacing, count });
+    },
+  },
+  {
+    id: 'curve-feature-pattern', label: 'Path cut pattern', icon: 'cad-pattern-linear', hint: 'Repeat a cut on an open polyline with fixed orientation', group: 'pattern', keywords: 'curve path feature cut repeat subtract',
+    available: ctx => { const why = linearCutProblem(ctx); return why ? no(why.message) : ok; },
+    fields: ctx => [...(ctx.curvePatternPath ? [] : [{ key: 'path', label: 'Path', kind: 'choice' as const, options: eligibleCurvePatternPaths(ctx.doc), empty: 'Add an open polyline or straight quadratic path.' }]),
+      { key: 'spacing', label: 'Spacing', kind: 'mm', min: 0, max: 10000 }, { key: 'count', label: 'Count', kind: 'count', min: 1, max: 64 }],
+    defaults: ctx => ({ path: eligibleCurvePatternPaths(ctx.doc)[0]?.value ?? '', spacing: 8, count: 3 }),
+    build: (ctx, v) => {
+      const why = linearCutProblem(ctx); if (why) throw why;
+      const node = { kind: 'curve-feature-pattern' as const, parent: refOf(oneBody(ctx)!), path: ctx.curvePatternPath ?? { objectId: String(v.path) }, spacing: Number(v.spacing), count: Number(v.count) };
+      const problem = curveFeaturePatternProblem(node, ctx.doc.nodes, ctx.doc.parameters, ctx.doc);
+      if (problem) throw coded(problem.startsWith('[BAD_REFERENCE]') ? 'BAD_REFERENCE' : 'VALUE', problem);
+      return withNode(ctx.doc, structuredClone(node));
     },
   },
   {

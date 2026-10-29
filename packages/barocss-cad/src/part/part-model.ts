@@ -27,6 +27,7 @@ import { polynomialFaceFillet } from '../blend/polynomial-face-fillet.js';
 import { draftedExtrusion } from '../features/drafted-extrusion.js';
 import { profileRelief, type ReliefSketch } from '../features/profile-relief.js';
 import { cylindricalWrapFeature, type CylindricalWrapReport } from '../features/cylindrical-wrap-feature.js';
+import { curveCutOffsets, type RawNurbsPath } from '../features/curve-cut-pattern.js';
 import { stepTessellatedChars } from '../io/step.js';
 import { brepFromTriangles, isMeshBrepError } from '../mesh/mesh-brep.js';
 import { facetBrepFromTriangles, weldVertices } from '../mesh/facet-brep.js';
@@ -182,6 +183,8 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'linear-feature-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number }
   /** Repeat an active difference tool on two distinct global axes; both counts include the original cut. */
   | { readonly kind: 'rectangular-feature-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number; readonly axis2: CadPartAxis; readonly spacing2: CadPartDim; readonly count2: number }
+  /** Repeat a difference's cut tool along an open polyline, with its original orientation. */
+  | { readonly kind: 'curve-feature-pattern'; readonly target: string; readonly path: RawNurbsPath; readonly spacing: CadPartDim; readonly count: number }
   /** Copies k·angle about the axis through `pivot` (about X or Y: multiples of 90°). */
   | { readonly kind: 'circular-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly angle: number; readonly count: number; readonly pivot?: CadPartPoint3 }
   /**
@@ -233,7 +236,7 @@ export type CadPartFeature = Base & (
    * The sketch's profile swept along a curve (any NURBS path in mm): its middle starts on the path's
    * start, square to it, carried along without twisting; the ends capped; holes run through. Faceted.
    */
-  | { readonly kind: 'sweep-curve'; readonly sketch: string; readonly path: { readonly degree: number; readonly knots: readonly number[]; readonly controlPoints: readonly (readonly [number, number, number])[]; readonly weights: readonly number[] } }
+  | { readonly kind: 'sweep-curve'; readonly sketch: string; readonly path: RawNurbsPath }
   /**
    * Draft (taper) on chosen side faces along the signed `pull` axis (default: positive Z). Each planar side
    * face turns about its line on the neutral plane by `angle` degrees: positive leans into the material,
@@ -1917,6 +1920,19 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
           const offset: Point = [0, 0, 0]; offset[first] = spacing * i; offset[second] = spacing2 * j;
           cut = boolean(cut, affine(joined, matrix, offset, `@${i},${j}`), 'difference', at);
         }
+        return one(cut);
+      };
+    }
+    case 'curve-feature-pattern': {
+      const spacing = dim(f.spacing as CadPartDim, 'spacing', true), count = integer(f.count, 'count', 1, CadPartLimits.copies);
+      const offsets = curveCutOffsets(f.path, spacing, count, CadPartLimits.length, fail);
+      const { seed, tool } = t.cutSource(f.target);
+      const matrix: BrepAffine['matrix'] = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+      return () => {
+        if (count === 1 || !tool.length) return { kind: 'solid', parts: [seed] };
+        const joined = unionAll(tool.map(p => p.solid), at);
+        let cut = seed.solid;
+        for (let k = 1; k < count; k++) cut = boolean(cut, affine(joined, matrix, offsets[k], `@${k}`), 'difference', at);
         return one(cut);
       };
     }

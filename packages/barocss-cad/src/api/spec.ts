@@ -7,6 +7,8 @@
 import { refuse } from './refusal.js';
 import { Sketch, type SketchData } from './sketch.js';
 import type { AxisName, EdgeInfo } from './select.js';
+import type { RawNurbsPath } from '../features/curve-cut-pattern.js';
+export type { RawNurbsPath } from '../features/curve-cut-pattern.js';
 
 export type BooleanCommand = 'union' | 'difference' | 'intersect';
 
@@ -38,6 +40,7 @@ type BaseSpec =
   | { readonly command: 'linear-pattern'; readonly values: { readonly axis: AxisName; readonly spacing: number; readonly count: number } }
   | { readonly command: 'linear-feature-pattern'; readonly values: { readonly axis: AxisName; readonly spacing: number; readonly count: number } }
   | { readonly command: 'rectangular-feature-pattern'; readonly values: { readonly axis: AxisName; readonly spacing: number; readonly count: number; readonly axis2: AxisName; readonly spacing2: number; readonly count2: number } }
+  | { readonly command: 'curve-feature-pattern'; readonly path: CurveFeaturePatternPath; readonly values: { readonly spacing: number; readonly count: number } }
   | { readonly command: 'circular-pattern'; readonly values: { readonly axis: AxisName; readonly count: number; readonly span: number; readonly px: number; readonly py: number } }
   | { readonly command: 'move'; readonly values: { readonly x: number; readonly y: number; readonly z: number } }
   | { readonly command: 'mirror'; readonly values: { readonly plane: 'yz' | 'xz' | 'xy'; readonly at: number } }
@@ -78,6 +81,10 @@ export interface ShellOptions { t: Dim }
 export interface LinearPatternOptions { axis: AxisName; spacing: Dim; count: Dim }
 /** Repeat a difference tool on two distinct global axes; each count includes the original cut. */
 export interface RectangularFeaturePatternOptions { axis: AxisName; spacing: Dim; count: Dim; axis2: AxisName; spacing2: Dim; count2: Dim }
+/** Raw authored geometry, or a cad-model direct curve's stable object id. */
+export type CurveFeaturePatternPath = RawNurbsPath | { readonly objectId: string };
+/** Fixed-orientation cuts along an open polyline; count includes the original cut (1..64). */
+export interface CurveFeaturePatternOptions { path: CurveFeaturePatternPath; spacing: Dim; count: Dim }
 /**
  * `circular-pattern`: `count` copies (the original among them) about an axis, joined into one body. About Z they spread
  * over `span` (360, the default: an even full turn) round the axis through (px, py); about X or Y the kernel steps by
@@ -182,6 +189,13 @@ export function rectangularFeaturePatternSpec(o: Resolved<RectangularFeaturePatt
   if (!Number.isSafeInteger(o.count) || o.count < 1 || !Number.isSafeInteger(o.count2) || o.count2 < 1)
     throw refuse('VALUE', 'rectangular feature pattern counts must be safe whole numbers of at least 1');
   return { command: 'rectangular-feature-pattern', values: { axis, spacing: positive('spacing', o.spacing), count: o.count, axis2, spacing2: positive('spacing2', o.spacing2), count2: o.count2 } };
+}
+
+export function curveFeaturePatternSpec(o: Resolved<CurveFeaturePatternOptions>): FeatureSpec {
+  const spacing = positive('spacing', o.spacing);
+  if (spacing > 10000) throw refuse('VALUE', 'path cut pattern spacing must be at most 10000 mm');
+  if (!Number.isSafeInteger(o.count) || o.count < 1 || o.count > 64) throw refuse('VALUE', 'path cut pattern count must be a whole number from 1 to 64, including the original cut');
+  return { command: 'curve-feature-pattern', path: o.path, values: { spacing, count: o.count } };
 }
 
 export function circularPatternSpec(o: Resolved<CircularPatternOptions>): FeatureSpec {
