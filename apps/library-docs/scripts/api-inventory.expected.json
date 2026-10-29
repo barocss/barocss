@@ -225172,14 +225172,21 @@
             "kind": "type"
           },
           "shape": {
-            "type": "{ readonly points: readonly (readonly [number, number])[]; }",
+            "type": "{ readonly points: readonly (readonly [number, number])[]; readonly holes?: readonly (readonly (readonly [number, number])[])[] | undefined; }",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "{\n    readonly points: readonly (readonly [\n        number,\n        number\n    ])[];\n}"
+                "definition": "{\n    readonly points: readonly (readonly [\n        number,\n        number\n    ])[];\n    readonly holes?: readonly (readonly (readonly [\n        number,\n        number\n    ])[])[];\n}"
               }
             ],
             "members": [
+              {
+                "name": "holes",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "readonly (readonly (readonly [number, number])[])[] | undefined"
+              },
               {
                 "name": "points",
                 "kind": "property",
@@ -234357,14 +234364,21 @@
             "kind": "type"
           },
           "shape": {
-            "type": "{ readonly points: readonly (readonly [number, number])[]; }",
+            "type": "{ readonly points: readonly (readonly [number, number])[]; readonly holes?: readonly (readonly (readonly [number, number])[])[] | undefined; }",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "{\n    readonly points: readonly (readonly [\n        number,\n        number\n    ])[];\n}"
+                "definition": "{\n    readonly points: readonly (readonly [\n        number,\n        number\n    ])[];\n    readonly holes?: readonly (readonly (readonly [\n        number,\n        number\n    ])[])[];\n}"
               }
             ],
             "members": [
+              {
+                "name": "holes",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "readonly (readonly (readonly [number, number])[])[] | undefined"
+              },
               {
                 "name": "points",
                 "kind": "property",
@@ -242134,14 +242148,21 @@
             "kind": "type"
           },
           "shape": {
-            "type": "{ readonly points: readonly (readonly [number, number])[]; }",
+            "type": "{ readonly points: readonly (readonly [number, number])[]; readonly holes?: readonly (readonly (readonly [number, number])[])[] | undefined; }",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "{\n    readonly points: readonly (readonly [\n        number,\n        number\n    ])[];\n}"
+                "definition": "{\n    readonly points: readonly (readonly [\n        number,\n        number\n    ])[];\n    readonly holes?: readonly (readonly (readonly [\n        number,\n        number\n    ])[])[];\n}"
               }
             ],
             "members": [
+              {
+                "name": "holes",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "readonly (readonly (readonly [number, number])[])[] | undefined"
+              },
               {
                 "name": "points",
                 "kind": "property",

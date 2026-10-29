@@ -792,9 +792,9 @@ const allCommands: Command[] = [
     },
   },
   {
-    id: 'fill-feature-pattern', label: 'Fill cut pattern', icon: 'cad-pattern-linear', hint: 'Capture a region snapshot. Later sketch edits do not change it. Reference points control placement; a cut may cross the region boundary.', group: 'pattern', keywords: 'fill region feature cut repeat subtract',
+    id: 'fill-feature-pattern', label: 'Fill cut pattern', icon: 'cad-pattern-linear', hint: 'Capture a straight world XY mask with at most 16 total vertices. Later sketch edits do not change it. The original cut stays; added reference points inside or on holes are skipped. Cuts may cross boundaries.', group: 'pattern', keywords: 'fill region feature cut repeat subtract',
     available: ctx => { const why = linearCutProblem(ctx); return why ? no(why.message) : ok; },
-    fields: ctx => [...(ctx.fillPatternRegion ? [] : [{ key: 'region', label: 'Region snapshot', kind: 'choice' as const, options: eligibleFillPatternRegions(ctx.doc), empty: 'Add a closed straight world XY sketch without holes.' }]),
+    fields: ctx => [...(ctx.fillPatternRegion ? [] : [{ key: 'region', label: 'Region snapshot', kind: 'choice' as const, options: eligibleFillPatternRegions(ctx.doc), empty: 'Add a closed straight world XY sketch with at most 16 outer and hole vertices in total.' }]),
       { key: 'anchorX', label: 'Reference X', kind: 'number', min: -10000, max: 10000 }, { key: 'anchorY', label: 'Reference Y', kind: 'number', min: -10000, max: 10000 },
       { key: 'spacing', label: 'X spacing', kind: 'mm', min: 0, max: 10000 }, { key: 'count', label: 'Columns', kind: 'count', min: 1, max: 64 },
       { key: 'spacing2', label: 'Y spacing', kind: 'mm', min: 0, max: 10000 }, { key: 'count2', label: 'Rows', kind: 'count', min: 1, max: 64 }],

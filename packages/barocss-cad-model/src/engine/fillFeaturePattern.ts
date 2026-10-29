@@ -1,54 +1,96 @@
 import { fillFeaturePatternSpec, type FillFeaturePatternRegion } from '@barocss/cad/api';
-import { leafBodies, NODE_EXTRA_FIELDS, type Dim, type ModelNode, type StudioDoc } from './doc';
+import { leafBodies, NODE_EXTRA_FIELDS, type ModelNode, type StudioDoc } from './doc';
 import { refusal } from './refusal';
 
 const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const fail = (message: string): never => { throw refusal('VALUE', `Fill cut pattern: ${message}`); };
+type DataFields = Record<string, PropertyDescriptor>;
+function dataFields(value: unknown, what: string): DataFields {
+  if (!record(value)) return fail(`${what} must be plain data.`);
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) return fail(`${what} must be plain data.`);
+  return Object.getOwnPropertyDescriptors(value);
+}
+function ownValue(fields: DataFields, key: string): unknown {
+  if (!Object.hasOwn(fields, key)) return undefined;
+  const descriptor = fields[key];
+  if (!descriptor) return undefined;
+  if (!('value' in descriptor)) return fail('snapshot fields must be own data, without accessors.');
+  return descriptor.value;
+}
+function arrayData(value: unknown, min: number, max: number, what: string): unknown[] {
+  if (!Array.isArray(value) || value.length < min || value.length > max) return fail(`${what} has an unsupported length.`);
+  const length = value.length, fields = Object.getOwnPropertyDescriptors(value);
+  if (Reflect.ownKeys(fields).length !== length + 1) return fail(`${what} contains an unknown field.`);
+  const result: unknown[] = [];
+  for (let i = 0; i < length; i++) {
+    if (!Object.hasOwn(fields, String(i))) return fail(`${what} must not be sparse.`);
+    result.push(ownValue(fields, String(i)));
+  }
+  return result;
+}
 const planeKeys = ['origin', 'normal', 'xAxis'] as const;
 const planeVectors = [[0, 0, 0], [0, 0, 1], [1, 0, 0]] as const;
 function worldXY(plane: unknown): boolean {
-  if (!record(plane) || Object.keys(plane).sort().join(',') !== 'normal,origin,xAxis') return false;
+  const fields = dataFields(plane, 'plane');
+  if (Reflect.ownKeys(fields).length !== 3 || planeKeys.some(key => !Object.hasOwn(fields, key))) return false;
   for (let k = 0; k < 3; k++) {
-    const v = plane[planeKeys[k]], expected = planeVectors[k];
-    if (!Array.isArray(v) || v.length !== 3) return false;
-    for (let axis = 0; axis < 3; axis++) if (!Object.hasOwn(v, axis) || typeof v[axis] !== 'number' || !Number.isFinite(v[axis]) || v[axis] !== expected[axis]) return false;
+    const vector = arrayData(ownValue(fields, planeKeys[k]), 3, 3, 'plane vector'), expected = planeVectors[k];
+    for (let axis = 0; axis < 3; axis++) if (vector[axis] !== expected[axis]) return false;
   }
   return true;
 }
-const emptyLoops = (loops: unknown): boolean => loops === undefined || Array.isArray(loops) && loops.length === 0;
+const emptyLoops = (loops: unknown): boolean => loops === undefined || arrayData(loops, 0, 0, 'other regions').length === 0;
 const dimension = (value: unknown, parameters: Record<string, number>): number => {
   if (typeof value === 'number') return value;
-  if (record(value) && Object.keys(value).length === 1 && typeof value.parameter === 'string' && typeof parameters[value.parameter] === 'number') return parameters[value.parameter];
-  return fail('a spacing needs a finite number or a resolved parameter.');
+  const fields = dataFields(value, 'dimension');
+  if (Reflect.ownKeys(fields).length !== 1 || !Object.hasOwn(fields, 'parameter')) return fail('a coordinate or spacing needs a resolved numeric parameter.');
+  const parameter = ownValue(fields, 'parameter');
+  const resolved = typeof parameter === 'string' ? Object.getOwnPropertyDescriptor(parameters, parameter) : undefined;
+  if (!resolved || !('value' in resolved) || typeof resolved.value !== 'number') return fail('a coordinate or spacing needs a resolved numeric parameter.');
+  return resolved.value;
 };
-function snapshotPoint(p: readonly Dim[], parameters: Record<string, number>): [number, number] {
-  return [dimension(p[0], parameters), dimension(p[1], parameters)];
+function snapshotPoint(value: unknown, parameters: Record<string, number>): [number, number] {
+  const point = arrayData(value, 2, 2, 'point');
+  return [dimension(point[0], parameters), dimension(point[1], parameters)];
+}
+function lineLoop(segments: readonly unknown[], parameters: Record<string, number>): [number, number][] {
+  return segments.map(segment => {
+    const fields = dataFields(segment, 'loop segment');
+    if (ownValue(fields, 'kind') !== 'line') return fail('curved regions are unsupported.');
+    if (Reflect.ownKeys(fields).length !== 2 || !Object.hasOwn(fields, 'start')) return fail('line segments must contain only kind and start.');
+    return snapshotPoint(ownValue(fields, 'start'), parameters);
+  });
 }
 
-/** Capture the stored resolved profile, as the part compiler does after removing outline edit metadata. No sketch reference survives this copy. */
+/** Capture resolved owned rings. Edit metadata and source sketch references do not become mask geometry. */
 export function fillRegionSnapshot(doc: Pick<StudioDoc, 'nodes' | 'parameters'>, index: number): FillFeaturePatternRegion {
-  const node = doc.nodes[index];
-  if (!Number.isSafeInteger(index) || node?.kind !== 'sketch' || node.suppressed || node.plane !== undefined && !worldXY(node.plane) || node.on || node.association || !emptyLoops(node.holes) || !emptyLoops(node.regions)) return fail('select one resolved closed straight world XY sketch without holes or other regions.');
+  if (!Number.isSafeInteger(index) || index < 0 || index >= doc.nodes.length) return fail('select one resolved closed straight world XY sketch.');
+  const entry = Object.getOwnPropertyDescriptor(doc.nodes, String(index));
+  if (!entry || !('value' in entry)) return fail('sketch must be own data, without accessors.');
+  const fields = dataFields(entry.value, 'sketch');
+  const plane = ownValue(fields, 'plane');
+  if (ownValue(fields, 'kind') !== 'sketch' || ownValue(fields, 'suppressed') || plane !== undefined && !worldXY(plane) || ownValue(fields, 'on') || ownValue(fields, 'association') || !emptyLoops(ownValue(fields, 'regions'))) return fail('select one resolved closed straight world XY sketch without other regions or association.');
+  const profile = ownValue(fields, 'profile');
+  const outer = profile === 'rectangle' ? null : profile === 'polygon' ? arrayData(ownValue(fields, 'points'), 3, 16, 'outer points') : profile === 'loop' ? arrayData(ownValue(fields, 'segments'), 3, 16, 'outer segments') : fail('curved regions are unsupported.');
+  const inputHoles = ownValue(fields, 'holes');
+  const holeLoops = inputHoles === undefined ? [] : arrayData(inputHoles, 0, 4, 'holes').map(loop => arrayData(loop, 3, 16, 'hole segments'));
+  if ((outer?.length ?? 4) + holeLoops.reduce((sum, loop) => sum + loop.length, 0) > 16) return fail('outer and holes together need at most 16 vertices.');
   let points: [number, number][];
-  if (node.profile === 'rectangle') {
-    const a = snapshotPoint(node.min, doc.parameters), b = snapshotPoint(node.max, doc.parameters);
+  if (profile === 'rectangle') {
+    const a = snapshotPoint(ownValue(fields, 'min'), doc.parameters), b = snapshotPoint(ownValue(fields, 'max'), doc.parameters);
     points = [a, [b[0], a[1]], b, [a[0], b[1]]];
-  } else if (node.profile === 'polygon') {
-    points = [];
-    for (const point of node.points) points.push(snapshotPoint(point, doc.parameters));
-  } else if (node.profile === 'loop') {
-    for (const segment of node.segments) if (segment.kind !== 'line') return fail('curved regions are unsupported.');
-    points = [];
-    for (const segment of node.segments) points.push(snapshotPoint(segment.start, doc.parameters));
-  }
-  else return fail('curved regions are unsupported.');
-  return fillFeaturePatternSpec({ region: { points }, anchor: [0, 0], spacing: 1, count: 1, spacing2: 1, count2: 1 }).region;
+  } else if (profile === 'polygon') points = outer!.map(point => snapshotPoint(point, doc.parameters));
+  else points = lineLoop(outer!, doc.parameters);
+  const holes = holeLoops.map(loop => lineLoop(loop, doc.parameters));
+  // Sketch holes:[] means no holes; a present empty holes field in a raw mask remains a Core refusal.
+  const region = { points, ...(holes.length ? { holes } : {}) };
+  return fillFeaturePatternSpec({ region, anchor: [0, 0], spacing: 1, count: 1, spacing2: 1, count2: 1 }).region;
 }
 
 export function eligibleFillPatternRegions(doc: Pick<StudioDoc, 'nodes' | 'parameters'>): { value: string; label: string }[] {
   const choices: { value: string; label: string }[] = [];
   for (let index = 0; index < doc.nodes.length; index++) {
-    if (doc.nodes[index].kind !== 'sketch') continue;
     try { fillRegionSnapshot(doc, index); choices.push({ value: String(index), label: `Sketch ${index + 1} (snapshot)` }); } catch { /* Unsupported sketches are not choices. */ }
   }
   return choices;
