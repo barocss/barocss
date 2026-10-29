@@ -45,6 +45,8 @@ function featuresOf(doc: CadPartDocument, spec: FeatureSpec, body: string | null
       const sketch = nextId(doc, 'sketch'), { h, draft } = spec.values;
       return [{ id: sketch, kind: 'sketch', ...spec.sketch } as CadPartFeature, { id: nextId(doc, 'extrude'), kind: 'extrude', sketch, height: h, ...(draft ? { draft } : {}) }];
     }
+    case 'thicken':
+      return [{ id: nextId(doc, 'thicken'), kind: 'thicken', surface: spec.surface, thickness: spec.values.t, ...(spec.values.side ? { side: spec.values.side } : {}) }];
     case 'revolve': {
       const sketch = nextId(doc, 'sketch'), { axis, deg } = spec.values;
       return [{ id: sketch, kind: 'sketch', ...spec.sketch } as CadPartFeature, { id: nextId(doc, 'revolve'), kind: 'revolve', sketch, axis: { origin: [0, 0], direction: axis }, angle: deg }];
@@ -143,6 +145,7 @@ const BINDS: Record<string, Record<string, readonly [feature: number, path: read
   fillet: { radius: [0, ['radius']] },
   chamfer: { distance: [0, ['distance']] },
   shell: { t: [0, ['thickness']] },
+  thicken: { t: [0, ['thickness']] },
   'cylindrical-wrap': { height: [0, ['height']] },
   'linear-pattern': { spacing: [0, ['spacing']] },
   'linear-feature-pattern': { spacing: [0, ['spacing']] },

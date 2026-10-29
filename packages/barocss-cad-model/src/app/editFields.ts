@@ -529,7 +529,16 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       if (node.offsets) [0, 1].forEach(k => number('o' + k, k ? 'Offset at end' : 'Offset at start', 'mm', n => num((n as F).offsets![k]), (n, v) => { const o = [...(n as F).offsets!] as [Dim, Dim]; o[k] = v; return { ...(n as F), offsets: o }; }));
       break;
     }
-    case 'thicken': number('t', 'Thickness', 'mm', n => num((n as typeof node).thickness), (n, v) => ({ ...(n as typeof node), thickness: v })); break;
+    case 'thicken':
+      number('t', 'Thickness', 'mm', n => num((n as typeof node).thickness), (n, v) => ({ ...(n as typeof node), thickness: v }));
+      out.push({ kind: 'choice', key: 'side', label: 'Side', options: [{ value: 'normal', label: 'Normal' }, { value: 'reverse', label: 'Reverse' }, { value: 'both', label: 'Both' }],
+        get: ns => self<typeof node>(ns).side ?? 'normal', set: (ns, value) => {
+          if (!['normal', 'reverse', 'both'].includes(value)) throw new Error('[VALUE] Thicken side is normal, reverse or both.');
+          const next = { ...self<typeof node>(ns) };
+          if (value === 'normal') delete next.side; else next.side = value as 'reverse' | 'both';
+          return replace(ns, i, next);
+        } });
+      break;
     case 'sew': number('tol', 'Tolerance', 'mm', n => (n as typeof node).tolerance ?? 0, (n, v) => { const next = { ...(n as typeof node) }; if (v > 0) next.tolerance = Math.min(1, v); else delete next.tolerance; return next; }); break;
     case 'draft':
       number('deg', 'Angle', '°', n => (n as typeof node).angle, (n, v) => ({ ...(n as typeof node), angle: v }));

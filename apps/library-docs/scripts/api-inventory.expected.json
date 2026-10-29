@@ -223120,6 +223120,13 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": true,
+                "type": "\"thicken\""
+              },
+              {
+                "name": "command",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
                 "type": "BooleanCommand"
               },
               {
@@ -223170,6 +223177,13 @@
                 "optional": false,
                 "readonly": true,
                 "type": "SketchData"
+              },
+              {
+                "name": "surface",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "RawNurbsSurface"
               },
               {
                 "name": "tool",
@@ -223289,6 +223303,13 @@
                 "optional": false,
                 "readonly": true,
                 "type": "{ readonly spacing: number; readonly count: number; }"
+              },
+              {
+                "name": "values",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "{ readonly t: number; readonly side?: \"reverse\" | \"normal\" | \"both\" | undefined; }"
               },
               {
                 "name": "values",
@@ -223844,6 +223865,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(id: string, suppressed?: boolean) => KernelPart"
+              },
+              {
+                "name": "thicken",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surface: RawNurbsSurface, options: ThickenOptions) => KernelPart"
               },
               {
                 "name": "union",
@@ -224587,6 +224615,13 @@
                 "type": "(id: string, suppressed?: boolean) => Part<D>"
               },
               {
+                "name": "thicken",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surface: RawNurbsSurface, options: ThickenOptions) => Part<D>"
+              },
+              {
                 "name": "union",
                 "kind": "method",
                 "optional": false,
@@ -225013,6 +225048,84 @@
                 "optional": false,
                 "readonly": true,
                 "type": "readonly number[]"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": "./api",
+      "exportName": "RawNurbsSurface",
+      "space": "type",
+      "observedRole": "facade-exposure; immutability NOT_PROVEN",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/api/spec.ts",
+            "name": "RawNurbsSurface",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "RawNurbsSurface",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "controlPoints",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly (readonly (readonly [number, number, number])[])[]"
+              },
+              {
+                "name": "degreeU",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "degreeV",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "knotsU",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly number[]"
+              },
+              {
+                "name": "knotsV",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly number[]"
+              },
+              {
+                "name": "weights",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly (readonly number[])[]"
               }
             ],
             "indexSignatures": []
@@ -226435,6 +226548,56 @@
                 "callable": false
               }
             ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": "./api",
+      "exportName": "ThickenOptions",
+      "space": "type",
+      "observedRole": "facade-exposure; immutability NOT_PROVEN",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/api/spec.ts",
+            "name": "ThickenOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "ThickenOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "side",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "\"reverse\" | \"normal\" | \"both\" | undefined"
+              },
+              {
+                "name": "t",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Dim"
+              }
+            ],
+            "indexSignatures": []
           }
         }
       ]
@@ -228346,6 +228509,42 @@
             ],
             "callSignatures": [
               "(command: StudioCommand, values: Readonly<Record<string, string | number | undefined>>) => FeatureSpec"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad",
+      "subpath": "./api",
+      "exportName": "thickenSpec",
+      "space": "value",
+      "observedRole": "facade-exposure; immutability NOT_PROVEN",
+      "variants": [
+        {
+          "conditions": [
+            [
+              "import"
+            ],
+            [
+              "types"
+            ]
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/api/spec.ts",
+            "name": "thickenSpec",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(surface: RawNurbsSurface, o: Resolved<ThickenOptions>) => { readonly command: \"thicken\"; readonly surface: RawNurbsSurface; readonly values: { readonly t: number; readonly side?: \"reverse\" | \"normal\" | \"both\" | undefined; }; } & { readonly bound?: Bound | undefined; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(surface: RawNurbsSurface, o: Resolved<ThickenOptions>) => { readonly command: \"thicken\"; readonly surface: RawNurbsSurface; readonly values: { readonly t: number; readonly side?: \"reverse\" | \"normal\" | \"both\" | undefined; }; } & { readonly bound?: Bound | undefined; }"
             ]
           }
         }
@@ -233373,6 +233572,79 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./api",
+      "exportName": "RawNurbsSurface",
+      "space": "type",
+      "observedRole": "facade-exposure; immutability NOT_PROVEN",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/api/spec.ts",
+            "name": "RawNurbsSurface",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "RawNurbsSurface",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "controlPoints",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly (readonly (readonly [number, number, number])[])[]"
+              },
+              {
+                "name": "degreeU",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "degreeV",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "knotsU",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly number[]"
+              },
+              {
+                "name": "knotsV",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly number[]"
+              },
+              {
+                "name": "weights",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly (readonly number[])[]"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api",
       "exportName": "RectangularFeaturePatternOptions",
       "space": "type",
       "observedRole": "facade-exposure; immutability NOT_PROVEN",
@@ -234807,6 +235079,13 @@
                 "type": "(faces: (body: BodyQuery) => FaceQuery, font: FontSource, text: string, options: StudioTextReliefOptions) => StudioPart"
               },
               {
+                "name": "thicken",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surface: RawNurbsSurface, options: ThickenOptions) => StudioPart"
+              },
+              {
                 "name": "thread",
                 "kind": "method",
                 "optional": false,
@@ -234981,6 +235260,51 @@
                 "optional": true,
                 "readonly": true,
                 "type": "Dim | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api",
+      "exportName": "ThickenOptions",
+      "space": "type",
+      "observedRole": "facade-exposure; immutability NOT_PROVEN",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/api/spec.ts",
+            "name": "ThickenOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "ThickenOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "side",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "\"reverse\" | \"normal\" | \"both\" | undefined"
+              },
+              {
+                "name": "t",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Dim"
               }
             ],
             "indexSignatures": []
@@ -240980,6 +241304,79 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./api/index",
+      "exportName": "RawNurbsSurface",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/api/spec.ts",
+            "name": "RawNurbsSurface",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "RawNurbsSurface",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "controlPoints",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly (readonly (readonly [number, number, number])[])[]"
+              },
+              {
+                "name": "degreeU",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "degreeV",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "knotsU",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly number[]"
+              },
+              {
+                "name": "knotsV",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly number[]"
+              },
+              {
+                "name": "weights",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "readonly (readonly number[])[]"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/index",
       "exportName": "RectangularFeaturePatternOptions",
       "space": "type",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -242414,6 +242811,13 @@
                 "type": "(faces: (body: BodyQuery) => FaceQuery, font: FontSource, text: string, options: StudioTextReliefOptions) => StudioPart"
               },
               {
+                "name": "thicken",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surface: RawNurbsSurface, options: ThickenOptions) => StudioPart"
+              },
+              {
                 "name": "thread",
                 "kind": "method",
                 "optional": false,
@@ -242588,6 +242992,51 @@
                 "optional": true,
                 "readonly": true,
                 "type": "Dim | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/index",
+      "exportName": "ThickenOptions",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad",
+            "file": "src/api/spec.ts",
+            "name": "ThickenOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "ThickenOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "side",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "\"reverse\" | \"normal\" | \"both\" | undefined"
+              },
+              {
+                "name": "t",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Dim"
               }
             ],
             "indexSignatures": []
@@ -244411,6 +244860,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(faces: (body: BodyQuery) => FaceQuery, font: FontSource, text: string, options: StudioTextReliefOptions) => StudioPart"
+              },
+              {
+                "name": "thicken",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(surface: RawNurbsSurface, options: ThickenOptions) => StudioPart"
               },
               {
                 "name": "thread",
@@ -248570,6 +249026,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "Selection"
+              },
+              {
+                "name": "thickenSnapshot",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "ThickenSnapshot | undefined"
               }
             ],
             "indexSignatures": []
@@ -253636,6 +254099,34 @@
             ],
             "callSignatures": [
               "(index: number, node: TextReliefNode & NodeExtras) => Command"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./app/thickenCommand",
+      "exportName": "thickenCommand",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/app/thickenCommand.ts",
+            "name": "thickenCommand",
+            "kind": "const"
+          },
+          "shape": {
+            "type": "Command",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
             ]
           }
         }
@@ -338987,6 +339478,144 @@
             ],
             "callSignatures": [
               "(mesh: DisplayMesh, name: string) => Uint8Array<ArrayBufferLike>"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/thicken",
+      "exportName": "ThickenSnapshot",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/thicken.ts",
+            "name": "ThickenSnapshot",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "ThickenSnapshot",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "surface",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "RawNurbsSurface"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/thicken",
+      "exportName": "thickenNode",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/thicken.ts",
+            "name": "thickenNode",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(snapshot: ThickenSnapshot, t: number, side: string) => { kind: \"thicken\"; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][]; }; thickness: Dim; side?: \"reverse\" | \"normal\" | \"both\" | undefined; } & NodeExtras",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(snapshot: ThickenSnapshot, t: number, side: string) => { kind: \"thicken\"; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][]; }; thickness: Dim; side?: \"reverse\" | \"normal\" | \"both\" | undefined; } & NodeExtras"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/thicken",
+      "exportName": "thickenNodeProblem",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/thicken.ts",
+            "name": "thickenNodeProblem",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(node: Record<string, unknown>, parameters: Record<string, number>) => string | null",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(node: Record<string, unknown>, parameters: Record<string, number>) => string | null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/thicken",
+      "exportName": "thickenSnapshot",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/thicken.ts",
+            "name": "thickenSnapshot",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(ctx: Pick<Ctx, \"direct\" | \"doc\" | \"thickenSnapshot\">) => ThickenSnapshot",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(ctx: Pick<Ctx, \"direct\" | \"doc\" | \"thickenSnapshot\">) => ThickenSnapshot"
             ]
           }
         }

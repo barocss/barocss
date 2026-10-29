@@ -5,6 +5,7 @@
 // own command, as the agent's run_command does. The body a spec acts on (the part's one body, or the chosen one) is the
 // backend's argument beside it.
 import { refuse } from './refusal.js';
+import { surfaceSnapshot } from './surface-snapshot.js';
 import { fillCutSnapshot, type FillFeaturePatternRegion } from '../features/fill-cut-pattern.js';
 export type { FillFeaturePatternRegion } from '../features/fill-cut-pattern.js';
 import { Sketch, type SketchData } from './sketch.js';
@@ -31,6 +32,7 @@ export type FeatureSpec = BaseSpec & { readonly bound?: Bound };
 type BaseSpec =
   | { readonly command: 'box'; readonly values: { readonly w: number; readonly d: number; readonly h: number; readonly x: number; readonly y: number; readonly z: number } }
   | { readonly command: 'cylinder'; readonly values: { readonly r: number; readonly h: number; readonly x: number; readonly y: number; readonly z: number } }
+  | { readonly command: 'thicken'; readonly surface: RawNurbsSurface; readonly values: { readonly t: number; readonly side?: 'normal' | 'reverse' | 'both' } }
   | { readonly command: 'extrude'; readonly sketch: SketchData; readonly values: { readonly h: number; readonly draft: number } }
   | { readonly command: 'revolve'; readonly sketch: SketchData; readonly values: { readonly axis: 'x' | 'y'; readonly deg: number } }
   | { readonly command: 'hole'; readonly face: string; readonly values: { readonly type: 'through' | 'blind'; readonly d: number; readonly x: number; readonly y: number; readonly depth?: number } }
@@ -78,6 +80,17 @@ export interface HoleOptions { d: Dim; x: Dim; y: Dim; type?: 'through' | 'blind
 export interface FilletOptions { radius: Dim; endRadius?: Dim }
 /** `chamfer`: on the edges a selector picks, at 45°. */
 export interface ChamferOptions { distance: Dim }
+/** A copied whole, untrimmed NURBS support, with no native identity or live source reference. */
+export interface RawNurbsSurface {
+  readonly degreeU: number;
+  readonly degreeV: number;
+  readonly knotsU: readonly number[];
+  readonly knotsV: readonly number[];
+  readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[];
+  readonly weights: readonly (readonly number[])[];
+}
+/** `thicken`: total thickness t; normal is du × dv, both offsets half t in each direction. */
+export interface ThickenOptions { t: Dim; side?: 'normal' | 'reverse' | 'both' }
 /** `shell`: walls t thick, the faces a selector picks left open (none: a closed hollow). */
 export interface ShellOptions { t: Dim }
 /** `linear-pattern`: `count` copies (the original among them) `spacing` apart along an axis, joined into one body. */
@@ -174,6 +187,14 @@ export function cylindricalWrapSpec(face: string, o: Resolved<CylindricalWrapOpt
 
 export function shellSpec(open: readonly string[], o: Resolved<ShellOptions>): FeatureSpec {
   return { command: 'shell', faces: open, values: { t: positive('t', o.t) } };
+}
+
+/** Capture a whole-surface recipe once; curved results use the native faceted approximation. */
+export function thickenSpec(surface: RawNurbsSurface, o: Resolved<ThickenOptions>): Extract<FeatureSpec, { readonly command: 'thicken' }> {
+  const t = positive('t', o.t), side = o.side;
+  if (t > 10000) throw refuse('VALUE', 'thicken t must be at most 10000 mm');
+  if (side !== undefined && side !== 'normal' && side !== 'reverse' && side !== 'both') throw refuse('VALUE', 'thicken side must be normal, reverse or both');
+  return { command: 'thicken', surface: surfaceSnapshot(surface), values: { t, ...(side !== undefined && side !== 'normal' ? { side } : {}) } };
 }
 
 export function booleanSpec(command: BooleanCommand, tool: string): FeatureSpec {

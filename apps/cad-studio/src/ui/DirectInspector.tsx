@@ -10,23 +10,17 @@ interface DirectInspectorProps {
   directSel: string[];
   D: ReturnType<typeof directNow>;
   changes: { commit(next: StudioDoc): boolean; commitDirect(next: DirectGeometry, selection?: string[]): boolean; setDirectSel: Dispatch<SetStateAction<string[]>> };
+  onThicken(id: string, thickness: number, side: 'normal' | 'reverse' | 'both'): void;
   onNotice(notice: FriendlyError): void;
 }
 /** Direct surface actions keep the existing geometry checks and central commit. */
-export function DirectInspector({ doc, evaluated, directSel, D, changes, onNotice: setToast }: DirectInspectorProps) {
+export function DirectInspector({ doc, evaluated, directSel, D, changes, onThicken, onNotice: setToast }: DirectInspectorProps) {
   const { commit, commitDirect, setDirectSel } = changes;
   if (!doc.direct) return null;
   return <Suspense fallback={null}><DirectPanel direct={doc.direct} selected={directSel}
         onChange={commitDirect} onError={m => setToast({ title: 'The operation was refused', hint: m, detail: '' })}
         onHide={ids => { commitDirect({ ...doc.direct!, objects: doc.direct!.objects.map(o => ids.includes(o.id) ? { ...o, hidden: true } : o) }, []); }}
-        onThicken={(id, thickness, side) => {
-          const o = doc.direct!.objects.find(x => x.id === id)!, g = D!.geometryOf(doc.direct!, o);
-          if (g.kind !== 'surface') return;
-          if (o.trims?.length) { setToast({ title: 'Untrim it first', hint: 'Thicken uses the whole surface; a trimmed one is not thickened along its trim yet.', detail: '' }); return; }
-          if (!(thickness > 0)) { setToast({ title: 'Give it a thickness', hint: 'A wall is thicker than 0 mm.', detail: '' }); return; }
-          const surface = { degreeU: g.degreeU, degreeV: g.degreeV, knotsU: [...g.knotsU], knotsV: [...g.knotsV], controlPoints: g.controlPoints.map(r => r.map(p => [p[0], p[1], p[2]] as [number, number, number])), weights: g.weights.map(r => [...r]) };
-          setDirectSel([]); commit(withNode(evaluated, { kind: 'thicken', name: o.name, surface, thickness, ...(side !== 'normal' ? { side } : {}) }));
-        }}
+        onThicken={onThicken}
         onSew={(ids, tolerance) => {
           const objs = ids.map(id => doc.direct!.objects.find(x => x.id === id)!), gs = objs.map(o => D!.geometryOf(doc.direct!, o));
           const surfaces = gs.flatMap(g => g.kind === 'surface' ? [{ degreeU: g.degreeU, degreeV: g.degreeV, knotsU: [...g.knotsU], knotsV: [...g.knotsV], controlPoints: g.controlPoints.map(r => r.map(p => [p[0], p[1], p[2]] as [number, number, number])), weights: g.weights.map(r => [...r]) }] : []);

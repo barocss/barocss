@@ -1030,6 +1030,11 @@ export function App() {
     // (R1d: the command as it is now, its values and preview state — the App may not have rendered since they changed.)
     const active = activeStore.get();
     if (!active?.cmd.build || !canChangeDocument()) return;
+    if (active.cmd.id === 'thicken' && active.ctx.doc !== commandDoc) {
+      applyWhenReady.current = null;
+      setToast({ title: 'Source changed', hint: 'Start Thicken again to copy the current surface.', detail: '' });
+      return;
+    }
     if (active.upload) { applyWhenReady.current = null; return; }
     if (!bearingRootCurrent) { applyWhenReady.current = null; return; }
     if (active.preview === 'busy') { applyWhenReady.current = active.cmd; return; }
@@ -1040,9 +1045,10 @@ export function App() {
     const next = active.cmd.build(active.ctx, active.values);
     // (Not when it places an instance: those bodies are the instance's, shown once it is evaluated.)
     if (!commit(next)) return;
+    if (active.cmd.id === 'thicken') setDirectSel([]);
     if (previewBodies && Object.keys(next.outputs).length && (next.instances?.length ?? 0) === (active.ctx.doc.instances?.length ?? 0)) { setBodies(previewBodies); claimBodies.current = true; }
     setActive(null); setPreviewBodies(null); setSketch(null);
-  }, [activeStore, commit, previewBodies, bearingRootCurrent, setSketch, acceptanceScope]);
+  }, [activeStore, commit, previewBodies, bearingRootCurrent, commandDoc, setSketch, acceptanceScope]);
   const uploadFont = useCallback(async (key: string, file: File) => {
     const captured = activeStore.get();
     if (!captured || key !== 'font') return;
@@ -1082,7 +1088,7 @@ export function App() {
     return activeStore.subscribe(check);
   }, [previewBodies, active?.cmd, apply, activeStore]);
 
-  const start = useCallback((cmd: Command) => {
+  const start = useCallback((cmd: Command, initial?: Values) => {
     if ((cmd.build || cmd.action === 'sketch' || cmd.action === 'cage' || cmd.id === SKETCH3D_COMMAND.id) && !canChangeDocument()) return;
     discardRouteRef.current(); setRoutePanelOpen(false);
     setPalette(false); setRendering(false); setPlaying(false); setDrawing(false);
@@ -1130,7 +1136,7 @@ export function App() {
     // Loft also captures the shown document's current curves without changing its evaluated prefix.
     const startCtx = cmd.id === 'bearing' ? { ...ctx, doc: { ...ctx.doc, instances: doc.instances } }
       : cmd.id === 'loft' ? { ...ctx, doc: { ...ctx.doc, direct: shownDoc.direct } } : ctx;
-    setActive({ cmd, values: cmd.defaults?.(startCtx) ?? {}, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
+    setActive({ cmd, values: { ...(cmd.defaults?.(startCtx) ?? {}), ...initial }, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
   }, [ctx, selection, bodies, engine, commit, evaluated.nodes, shownDoc.direct, variants.showing, setSketch, acceptanceScope]);
 
   const openHistoryFeature = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
@@ -1917,8 +1923,10 @@ export function App() {
       {!rendering && !drawing && !sketch && !measure && !instanceSel.length && <GravityExperimentPanel doc={doc} joints={jointTree?.joints ?? []} />}
       {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || instanceSel.length === 1) && <MatePanel assembly={assembly} instances={doc.instances} instance={instanceSel.length === 1 ? instanceSel[0] : undefined}
         onRefused={why => setToast({ title: 'The mate was refused', hint: why, detail: '' })} />}
-      {!rendering && !sketch && !measure && !instanceSel.length && directSel.length > 0 && doc.direct && <DirectInspector doc={doc} evaluated={evaluated} directSel={directSel} D={D}
-        changes={{ commit, commitDirect, setDirectSel }} onNotice={setToast} />}
+      {!rendering && !active && !sketch && !measure && !instanceSel.length && directSel.length > 0 && doc.direct && <DirectInspector doc={doc} evaluated={evaluated} directSel={directSel} D={D}
+        changes={{ commit, commitDirect, setDirectSel }} onThicken={(id, t, side) => {
+          if (directSel.length === 1 && directSel[0] === id) start(commands.find(c => c.id === 'thicken')!, { t, side });
+        }} onNotice={setToast} />}
       {clashes && !rendering && !sketch && <InterferenceInspector doc={doc} bodies={bodies} clashes={clashes} setClashes={setClashes} setSelection={setSelection} />}
       {/* (A running command's HUD takes this place at the right.) */}
       {cageEd.session && doc.nodes[cageEd.session.node] && !rendering && !drawing && <CagePanel editor={cageEd} name={featureLabel(doc.nodes[cageEd.session.node], cageEd.session.node, doc.nodes)} />}

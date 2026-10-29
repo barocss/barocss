@@ -130,3 +130,35 @@ or clip trim boundaries.
 `directIGES` refuses the whole export when any visible surface has trims. Hidden trimmed
 objects do not block export of the other visible curves and surfaces. Explicit `Untrim`
 removes trims when that is intended; ordinary untrimmed operations remain available.
+
+### Whole-surface Thicken
+
+`part().thicken(surface, { t, side })` creates a new body from an owned raw NURBS
+snapshot. `surface` has exactly `degreeU`, `degreeV`, `knotsU`, `knotsV`,
+`controlPoints` and `weights`. The command works on an empty part and retains
+existing bodies. `t` is the total positive thickness in mm and can use `param(name)`.
+Only `t` binds to a parameter. `side` is `normal` (default), `reverse` or `both`.
+The normal is `du × dv`; `both` offsets half the thickness in each direction.
+
+The Studio Thicken command copies one selected whole surface through the same
+snapshot checks and uses Preview, Apply and Cancel. The source stays independent:
+later source edits or deletion do not change an accepted body. Trimmed selections
+and malformed trim containers refuse before the snapshot is copied. API-created
+nodes use the label `Whole surface snapshot`; selected sources retain their name.
+The saved feature exposes Thickness and Side in the editor after reopening.
+
+The existing construction uses 40 samples per direction. Curved results are
+faceted approximations. Existing fold and geometry refusals still apply.
+
+```ts
+import { part, param, type RawNurbsSurface } from '@barocss/cad-model/api';
+
+const surface: RawNurbsSurface = {
+  degreeU: 1, degreeV: 1,
+  knotsU: [-2, -2, 6, 6], knotsV: [1, 1, 7, 7],
+  controlPoints: [[[10, -6, 3], [10, 24, 3]], [[50, -6, 3], [50, 24, 3]]],
+  weights: [[1, 1], [1, 1]],
+};
+const wall = part('Wall').parameter('wall', 2).thicken(surface, { t: param('wall') });
+const wider = wall.withParameters({ wall: 3 });
+```

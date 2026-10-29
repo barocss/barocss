@@ -8,10 +8,10 @@
 // body that body is meant. The choice is the facade's view of the document, never written into it: `.doc` is the same
 // with or without it. It follows the body through the verbs that replace it (a fillet's result is the filleted body).
 import {
-  booleanSpec, cylindricalWrapSpec, boxSpec, chamferSpec, circularPatternSpec, fillFeaturePatternSpec, curveFeaturePatternSpec, cylinderSpec, extrudeSpec, filletSpec, holeSpec, linearFeaturePatternSpec, rectangularFeaturePatternSpec, linearPatternSpec, mirrorSpec, moveSpec, revolveSpec, rotateSpec, scaleSpec, shellSpec, splitSpec,
+  thickenSpec, booleanSpec, cylindricalWrapSpec, boxSpec, chamferSpec, circularPatternSpec, fillFeaturePatternSpec, curveFeaturePatternSpec, cylinderSpec, extrudeSpec, filletSpec, holeSpec, linearFeaturePatternSpec, rectangularFeaturePatternSpec, linearPatternSpec, mirrorSpec, moveSpec, revolveSpec, rotateSpec, scaleSpec, shellSpec, splitSpec,
   type BooleanCommand, type CylindricalWrapOptions, type BoxOptions, type ChamferOptions, type CircularPatternOptions, type CylinderOptions, type ExtrudeOptions, type FeatureSpec, type FilletOptions,
   type HoleOptions, type RectangularFeaturePatternOptions, type FillFeaturePatternOptions, type CurveFeaturePatternOptions, type LinearPatternOptions, type MirrorOptions, type RevolveOptions, type ScaleOptions, type ShellOptions, type SplitOptions,
-  type Bound, type Resolved, isParam,
+  type RawNurbsSurface, type ThickenOptions, type Bound, type Resolved, isParam,
 } from './spec.js';
 import type { BodyQuery, EdgeQuery, FaceQuery } from './select.js';
 import { Location, type Sketch } from './sketch.js';
@@ -147,6 +147,9 @@ export class Part<D> {
 
   /** `revolve`: a finished sketch turned about its plane's Y axis (or X), a body of its own. */
   revolve(profile: Sketch, options?: RevolveOptions): this { return this.#make(this.#spec(options ?? {}, o => revolveSpec(profile, o))); }
+
+  /** `thicken`: copy one whole surface into a new body, retaining the current body choice. */
+  thicken(surface: RawNurbsSurface, options: ThickenOptions): this { return this.#make(this.#spec(options, o => thickenSpec(surface, o))); }
 
   /** `hole`: a round hole into the one flat face a selector picks, at (x, y) on that face's plane; through unless blind. */
   hole(face: (body: BodyQuery) => FaceQuery, options: HoleOptions): this {

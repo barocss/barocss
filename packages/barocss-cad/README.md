@@ -37,6 +37,33 @@ errors and verification commands. Existing low-level exports and legacy file
 readers below remain compatibility interfaces; new authors do not choose a v1/v2
 facade or supply topology incident-use identities.
 
+## Whole-surface snapshot thicken facade
+
+The document facade `@barocss/cad/api` provides `part().thicken(surface, { t, side })`.
+It creates one new body from a copied whole, untrimmed `RawNurbsSurface`:
+
+```ts
+import { part, param } from '@barocss/cad/api';
+const surface = {
+  degreeU: 1, degreeV: 1,
+  knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1],
+  controlPoints: [[[0, 0, 0], [0, 10, 0]], [[20, 0, 0], [20, 10, 0]]],
+  weights: [[1, 1], [1, 1]],
+} as const;
+const plate = part('plate').parameter('T', 2).thicken(surface, { t: param('T'), side: 'both' });
+const thicker = plate.withParameters({ T: 3 });
+```
+
+`t` is the total thickness in mm, finite, positive and at most 10000.
+Only `t` can bind to a parameter. `side` is `normal` (the default, du×dv),
+`reverse`, or `both` (half the thickness on each side). Curved results use the
+existing faceted approximation and native fold refusals.
+The surface must have exactly the six shown fields, with plain dense numeric
+arrays. Native identity, trim metadata, wrappers and source references refuse
+with `VALUE`. Accepted geometry owns its coefficients; later caller or source
+edits do not change the body. A second body preserves the current body choice;
+use `.body(newBodyName)` to query the new body in a part with several bodies.
+
 ## Mounting-plate through-hole
 
 A direct origin-aligned rectangular extrusion can author

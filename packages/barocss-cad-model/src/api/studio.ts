@@ -44,6 +44,7 @@ function apply(doc: StudioDoc, spec: FeatureSpec, body: string | null): StudioDo
   const cmd = commandById(spec.command)!, ctx: Ctx = { doc: withSketch(doc, spec), bodies, selection };
   if (spec.command === 'fill-feature-pattern') { ctx.fillPatternRegion = spec.region; ctx.fillPatternAnchor = spec.anchor; }
   if (spec.command === 'curve-feature-pattern') ctx.curvePatternPath = spec.path;
+  if (spec.command === 'thicken') ctx.thickenSnapshot = { surface: spec.surface, name: 'Whole surface snapshot' };
   const avail = cmd.available(ctx);
   // (A command that can't run says why; a reason that carries the core's own code — [FASTENER_SIZE_ROW] — keeps it, §6.)
   if (!avail.ok) { const code = bracketedCode(avail.reason); throw code ? new BarocssError(code, `${cmd.label} can't run: ${avail.reason}`, 'evaluate') : refuse('UNAVAILABLE', `${cmd.label} can't run: ${avail.reason}`); }
@@ -79,6 +80,7 @@ const BINDS: Record<string, Record<string, readonly [node: number, field: string
   fillet: { radius: [0, 'r'], endRadius: [0, 'r1'] },
   chamfer: { distance: [0, 'd'] },
   shell: { t: [0, 't'] },
+  thicken: { t: [0, 't'] },
   'linear-pattern': { spacing: [0, 'spacing'], count: [0, 'count'] },
   'fill-feature-pattern': { spacing: [0, 'spacing'], spacing2: [0, 'spacing2'] },
   'curve-feature-pattern': { spacing: [0, 'spacing'] },
