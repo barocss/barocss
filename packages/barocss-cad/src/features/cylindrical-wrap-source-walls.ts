@@ -3,7 +3,7 @@ import type { Part } from '../part/part-model.js';
 import { SectionRationalContext } from '../section-rational-internal.js';
 import type { Surface } from '../types.js';
 import type { CylindricalWrapAssemblyComponent } from './cylindrical-wrap-assembly.js';
-import { buildCylindricalWrapBoundReference, type CylindricalWrapBoundReferenceOptions, type CylindricalWrapBoundReferenceResult } from './cylindrical-wrap-bound-reference.js';
+import { buildCylindricalWrapBoundReference, type CylindricalWrapBoundReferenceOptions, type CylindricalWrapAnyReferenceResult } from './cylindrical-wrap-bound-reference.js';
 import { certifyCylindricalWallCycle, wallCycleFailure, type WallCycleContext, type WallCycleSpan, type WallCycleProof } from './cylindrical-wrap-wall-cycle.js';
 
 interface WallBoundary {
@@ -15,10 +15,10 @@ export interface SourceWallProof {
   readonly bottom: WallBoundary; readonly top: WallBoundary;
 }
 export interface CylindricalWrapWallReferenceResult {
-  readonly reference: CylindricalWrapBoundReferenceResult;
+  readonly reference: CylindricalWrapAnyReferenceResult;
   readonly sourceWalls: { readonly walls: readonly SourceWallProof[]; readonly cycle: WallCycleProof; readonly z: readonly [number, number] };
   readonly counts: { readonly exactOperations: number; readonly referenceOperations: number; readonly rationalOperations: number; readonly directOperations: number; readonly work: number; readonly localWork: number; readonly maximumBits: number; readonly localGcdSteps: number };
-  readonly limits: CylindricalWrapBoundReferenceResult['limits'];
+  readonly limits: CylindricalWrapAnyReferenceResult['limits'];
   readonly meaning: typeof MEANING; readonly solidQualified: false;
 }
 const MEANING = Object.freeze({
@@ -42,7 +42,7 @@ function exactFailure(code: 'BUDGET' | 'REPRESENTABILITY', detail: string): neve
 class Context implements WallCycleContext {
   readonly q = new SectionRationalContext(exactFailure);
   directOperations = 0; structural = 0; integerBits = 0;
-  constructor(readonly reference: CylindricalWrapBoundReferenceResult) {}
+  constructor(readonly reference: CylindricalWrapAnyReferenceResult) {}
   localWork(): number { const c = this.q.counts(); return this.structural + this.directOperations + c.operations + c.gcdSteps + c.floatSearchSteps; }
   check(): void {
     const c = this.q.counts(), prior = this.reference.counts;
@@ -120,7 +120,7 @@ function freezeProof(value: unknown, ctx: Context): void {
   ctx.structure(4 + (typeof value === 'string' ? value.length : 0));
   if (value !== null && typeof value === 'object') { for (const child of Object.values(value)) freezeProof(child, ctx); Object.freeze(value); }
 }
-function originalWalls(reference: CylindricalWrapBoundReferenceResult, ctx: Context): CylindricalWrapWallReferenceResult['sourceWalls'] {
+function originalWalls(reference: CylindricalWrapAnyReferenceResult, ctx: Context): CylindricalWrapWallReferenceResult['sourceWalls'] {
   // This source was freshly checked inside the same synchronous request. No third
   // producer call or copied receipt/authority flag is accepted from a caller.
   const source = reference.formal.source, brep = source.brep, z = source.z, walls: SourceWallProof[] = [], spans: WallCycleSpan[] = [];
@@ -146,7 +146,11 @@ function originalWalls(reference: CylindricalWrapBoundReferenceResult, ctx: Cont
 }
 /** Original-wall theorem plus both fresh native/formal children, under the same accepted total cap. */
 export function buildCylindricalWrapWallReference(part: Part, components: readonly CylindricalWrapAssemblyComponent[], options: CylindricalWrapBoundReferenceOptions): CylindricalWrapWallReferenceResult {
-  const reference = buildCylindricalWrapBoundReference(part, components, options), ctx = new Context(reference);
+  return continueCylindricalWrapReferenceWalls(buildCylindricalWrapBoundReference(part, components, options));
+}
+/** Private continuation over the caller's freshly constructed immutable reference. */
+export function continueCylindricalWrapReferenceWalls(reference: CylindricalWrapAnyReferenceResult): CylindricalWrapWallReferenceResult {
+  const ctx = new Context(reference);
   // Conservative reservation for fixed final records and their freezes. Child records
   // are already owned/frozen; only newly constructed proof data is traversed again.
   ctx.structure(128);

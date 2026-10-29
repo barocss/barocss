@@ -345,6 +345,16 @@ export function certifyCylindricalWrapFormalPadMass(part: Part, rectangleInput: 
   countData(options, ctx); countData(rectangle, ctx);
   // Source has no caller-supplied radius/certificate and no maxOperations option. Its actual reported cost is imported, never reset.
   const source = buildCylindricalWrapUVSource(part, { id: options.id }); ctx.importSource(source); countData(source, ctx);
+  return finishFormalMass(source, rectangle, options, ctx);
+}
+/** Private continuation: its caller has just constructed and counted this owned native source. */
+export function continueCylindricalWrapFormalPadMass(source: CylindricalWrapUVSource, rectangleInput: FormalPadRectangle, optionsInput: FormalPadMassOptions): CylindricalWrapFormalPadMass {
+  const options = optionsSnapshot(optionsInput), rectangle = rectangleSnapshot(rectangleInput), ctx = new Context(options.maxOperations ?? LIMITS.operations);
+  countData(options, ctx); countData(rectangle, ctx); countData(source, ctx);
+  // No extraction is executed here. Its cost remains in the actual native parent.
+  return finishFormalMass(source, rectangle, options, ctx);
+}
+function finishFormalMass(source: CylindricalWrapUVSource, rectangle: FormalPadRectangle, options: FormalPadMassOptions, ctx: Context): CylindricalWrapFormalPadMass {
   sourceChecks(source, rectangle, ctx);
   const data = moments(source, rectangle, ctx), converted = publicProperties(data, options.density, ctx), properties = converted.properties;
   const volume = audit(properties.volume, data.total[0], options.budgets.volume, ctx), mass = audit(properties.mass, converted.mass, options.budgets.mass, ctx);

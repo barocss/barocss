@@ -1,8 +1,8 @@
 import { kernelRefusal, isFrom, type KernelError } from '../core/barocss-error.js';
 import { ownSnapshot, hasExactOwnFields, type OwnSnapshotSpec } from '../core/own-data.js';
 import type { Part } from '../part/part-model.js';
-import { buildCylindricalWrapNativeBoundAssembly, type CylindricalWrapAssemblyComponent, type CylindricalWrapNativeBoundResult } from './cylindrical-wrap-assembly.js';
-import { certifyCylindricalWrapFormalPadMass, type FormalPadBudgets, type FormalPadRectangle, type CylindricalWrapFormalPadMass } from './cylindrical-wrap-formal-mass.js';
+import { buildCylindricalWrapNativeSourceAssembly, buildCylindricalWrapNativeBoundAssembly, type CylindricalWrapAssemblyComponent, type CylindricalWrapNativeBoundResult } from './cylindrical-wrap-assembly.js';
+import { continueCylindricalWrapFormalPadMass, certifyCylindricalWrapFormalPadMass, type FormalPadBudgets, type FormalPadRectangle, type CylindricalWrapFormalPadMass } from './cylindrical-wrap-formal-mass.js';
 
 export interface CylindricalWrapBoundReferenceOptions {
   readonly id: string; readonly height: number; readonly density: number;
@@ -164,4 +164,28 @@ export function buildCylindricalWrapBoundReference(partInput: Part, componentsIn
   const counts = Object.freeze(ledger.counts()), reservations = Object.freeze({ native: nativeReservation, formal: formalReservation });
   const limits = Object.freeze({ exactOperations: ledger.maximum, hardExactOperations: 200000, integerBits: 8192, work: 1048576 } as const);
   return Object.freeze({ native, formal, rectangle, options, reservations, counts, limits, meaning: MEANING, solidQualified: false as const });
+}
+
+const SHARED_MEANING = Object.freeze({ ...MEANING,
+  sourceIdentity: 'one-owned-frozen-native-source-live-continuation' as const,
+  sourceChecks: 1 as const,
+  sourceCosts: 'one-actual-execution-counted-in-native-parent' as const,
+});
+export type CylindricalWrapSharedReferenceResult = Omit<CylindricalWrapBoundReferenceResult, 'meaning'> & { readonly meaning: typeof SHARED_MEANING };
+export type CylindricalWrapAnyReferenceResult = CylindricalWrapBoundReferenceResult | CylindricalWrapSharedReferenceResult;
+/** Private combined entry. It executes source extraction once and does not subtract any executed work. */
+export function buildCylindricalWrapSharedReference(partInput: Part, componentsInput: readonly CylindricalWrapAssemblyComponent[], optionsInput: CylindricalWrapBoundReferenceOptions): CylindricalWrapSharedReferenceResult {
+  const ledger = new Ledger();
+  const part = owned<Part>(partInput, ledger), components = owned<readonly CylindricalWrapAssemblyComponent[]>(componentsInput, ledger), options = owned<CylindricalWrapBoundReferenceOptions>(optionsInput, ledger);
+  ledger.maximum = optionsMaximum(options, ledger); ledger.check();
+  ledger.direct(CHILD_IMPORT_COMPARISONS); ledger.structure(FINAL_RECORD_WORK);
+  const nativeReservation = ledger.remaining();
+  const fresh = buildCylindricalWrapNativeSourceAssembly(part, components, { id: options.id, height: options.height, maxOperations: nativeReservation });
+  const native = fresh.native; ledger.native(native);
+  const rectangle = rectangleOf(components, ledger), formalReservation = ledger.remaining();
+  const formal = continueCylindricalWrapFormalPadMass(fresh.source, rectangle, { id: options.id, density: options.density, budgets: options.budgets, maxOperations: formalReservation });
+  ledger.formal(formal); ledger.check();
+  const counts = Object.freeze(ledger.counts()), reservations = Object.freeze({ native: nativeReservation, formal: formalReservation });
+  const limits = Object.freeze({ exactOperations: ledger.maximum, hardExactOperations: 200000, integerBits: 8192, work: 1048576 } as const);
+  return Object.freeze({ native, formal, rectangle, options, reservations, counts, limits, meaning: SHARED_MEANING, solidQualified: false as const });
 }

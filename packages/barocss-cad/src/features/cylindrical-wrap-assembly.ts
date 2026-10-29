@@ -944,3 +944,16 @@ export function buildCylindricalWrapNativeBoundAssembly(part: Part, input: reado
     return fail('INPUT', 'the native position request could not be admitted');
   }
 }
+
+/** Private fresh-source entry for synchronous continuations; no supplied receipt is accepted. */
+export function buildCylindricalWrapNativeSourceAssembly(part: Part, input: readonly CylindricalWrapAssemblyComponent[], options: CylindricalWrapNativeBoundOptions): { readonly native: CylindricalWrapNativeBoundResult; readonly source: CylindricalWrapUVSource } {
+  try {
+    const selected = nativeOptions(options), components = onePad(input), run = runAssembly(part, components, selected.options, true, selected.maximum);
+    const native = finishNativeAssembly(run, run.context.counts());
+    return Object.freeze({ native, source: run.source });
+  } catch (error) {
+    if (isCylindricalWrapAssemblyError(error)) throw error;
+    if (isNativeD0Error(error) || isNativePositionError(error) || isCylindricalWrapChartError(error)) fail(error.code === 'BUDGET' ? 'BUDGET' : 'BINDING', error.message);
+    return fail('INPUT', 'the native position request could not be admitted');
+  }
+}

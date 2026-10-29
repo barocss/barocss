@@ -76,7 +76,7 @@ function aligned(value: Dyadic, denominator: bigint, ctx: WallCycleContext): big
   if (remainder !== 0n) wallCycleFailure('SUPPORT', 'the homogeneous common denominator must divide exactly');
   return product(value.n, ctx.integer(denominator / value.d), ctx);
 }
-function homogeneous(span: WallCycleSpan, ctx: WallCycleContext): { poles: H[]; denominator: bigint } {
+function homogeneous(span: WallCycleSpan, ctx: WallCycleContext, cap: boolean): { poles: H[]; denominator: bigint } {
   const q = ctx.q, rows: (readonly Dyadic[])[] = []; let denominator = 1n;
   for (let j = 0; j < 3; j++) {
     ctx.direct(2);
@@ -87,6 +87,9 @@ function homogeneous(span: WallCycleSpan, ctx: WallCycleContext): { poles: H[]; 
   }
   const poles: H[] = [];
   for (const row of rows) poles.push({ x: aligned(row[0], denominator, ctx), y: aligned(row[1], denominator, ctx), w: aligned(row[2], denominator, ctx) });
+  if (cap) for (let i = 0; i < poles.length; i++) {
+    const p = poles[i]; poles[i] = { x: difference(product(2n, p.x, ctx), p.w, ctx), y: difference(product(2n, p.y, ctx), p.w, ctx), w: p.w };
+  }
   return { poles, denominator };
 }
 function cross(a: H, b: H, ctx: WallCycleContext): bigint { return difference(product(a.x, b.y, ctx), product(a.y, b.x, ctx), ctx); }
@@ -111,8 +114,8 @@ function halfPlane(poles: readonly H[], denominator: bigint, ctx: WallCycleConte
 function fractions(values: readonly bigint[], denominator: bigint, ctx: WallCycleContext): SectionFraction[] {
   const out: SectionFraction[] = []; for (const value of values) out.push(fraction(value, denominator, ctx)); return out;
 }
-function spanProof(span: WallCycleSpan, radius: R, ctx: WallCycleContext): { proof: WallCycleSpanProof; radial: R } {
-  const q = ctx.q, data = homogeneous(span, ctx), h = data.poles, d = data.denominator;
+function spanProof(span: WallCycleSpan, radius: R, ctx: WallCycleContext, cap: boolean): { proof: WallCycleSpanProof; radial: R } {
+  const q = ctx.q, data = homogeneous(span, ctx, cap), h = data.poles, d = data.denominator;
   // All homogeneous coordinates share d. Integer products are exact and checked
   // against the same bit/operation cap; only final receipts need reduced fractions.
   const angular = [product(2n, cross(h[0], h[1], ctx), ctx), cross(h[0], h[2], ctx), product(2n, cross(h[1], h[2], ctx), ctx)];
@@ -136,7 +139,10 @@ function spanProof(span: WallCycleSpan, radius: R, ctx: WallCycleContext): { pro
  * Private coefficient theorem. The caller owns finite operands and the aggregate ledger.
  * This function proves no producer identity, topology, cap, native evaluation or mass claim.
  */
-export function certifyCylindricalWallCycle(spans: readonly WallCycleSpan[], radius: number, ctx: WallCycleContext): WallCycleProof {
+export function certifyCylindricalWallCycle(spans: readonly WallCycleSpan[], radius: number, ctx: WallCycleContext): WallCycleProof { return cycleProof(spans, radius, ctx, false); }
+/** Private cap continuation: XY means exact normalized (2u-1,2v-1), without Number lifting. */
+export function certifyCylindricalCapCycle(spans: readonly WallCycleSpan[], ctx: WallCycleContext): WallCycleProof { return cycleProof(spans, 1, ctx, true); }
+function cycleProof(spans: readonly WallCycleSpan[], radius: number, ctx: WallCycleContext, cap: boolean): WallCycleProof {
   ctx.direct(4); ctx.structure(4);
   if (spans.length !== 4 || !Number.isFinite(radius) || radius < 0.01 || radius > CadNumericPolicy.coordinateAbs) wallCycleFailure('SUPPORT', 'four actual quadratic spans and a native radius are required');
   for (const span of spans) {
@@ -150,7 +156,7 @@ export function certifyCylindricalWallCycle(spans: readonly WallCycleSpan[], rad
   }
   const cycle = endpointCycle(spans, ctx), q = ctx.q, r = q.from(radius), proofs: WallCycleSpanProof[] = [];
   let radial = q.rat(0n);
-  for (const span of spans) { const result = spanProof(span, r, ctx); proofs.push(result.proof); radial = q.max(radial, result.radial); ctx.check(); }
+  for (const span of spans) { const result = spanProof(span, r, ctx, cap); proofs.push(result.proof); radial = q.max(radial, result.radial); ctx.check(); }
   // Each increasing argument stays inside one open half-plane, so its increment is
   // strictly between 0 and pi. A closed four-span cycle has 0 < 2*pi*k < 4*pi: k=1.
   const result: WallCycleProof = { spans: proofs, cycle, radial: q.text(radial), radialNormalizationL1: q.text(q.mul(q.integer(2), radial)), winding: 1, simpleRadialGraph: true, projection: 'xy', authority: 'exact-stored-rational-coefficients', nativeEvaluatorCertified: false };

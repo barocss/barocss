@@ -12,6 +12,7 @@ const D = new URL('../dist', import.meta.url).pathname;
 const K = await import(`${D}/index.js`);
 const { buildCylindricalWrapNativeBoundAssembly } = await import(`${D}/features/cylindrical-wrap-assembly.js`);
 const { certifyCylindricalWrapFormalPadMass } = await import(`${D}/features/cylindrical-wrap-formal-mass.js`);
+const { buildCylindricalWrapClosedReference } = await import(`${D}/features/cylindrical-wrap-closed-reference.js`);
 const doc = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
 const fp = x => createHash('sha256').update(JSON.stringify(x, (k, v) => (v instanceof Float32Array || v instanceof Float64Array || v instanceof Uint32Array) ? Array.from(v) : v)).digest('hex').slice(0, 16);
 const out = (f, id) => K.outputOf(K.evaluateCadPart(doc(f)), id);
@@ -65,7 +66,17 @@ function formalPadMass() {
     id: 'formal_pad', density: 7.85, budgets: { volume: 1e-8, mass: 1e-10, centroid: [1e-10, 1e-10, 1e-10], inertia: [1e-7, 1e-7, 1e-7, 1e-7, 1e-7, 1e-7] },
   }).properties;
 }
+// The D311 baseline contains D310 walls; the completed case also proves caps/closure/mass.
+// Both versions fingerprint the same actual assembled B-rep, not proof counters.
+function closedReferencePad() {
+  const solid = K.prismaticFromProfile({ outer: [{ kind: 'arc', start: [10, 0], center: [0, 0], direction: 'ccw' }], height: 30, from: -5, tag: 'post' });
+  const part = { solid: { kind: 'upright', solid }, brep: K.brepFromPrismatic(solid, { id: 'post' }) };
+  return buildCylindricalWrapClosedReference(part, [{ outer: [[0.125, 0.25], [0.375, 0.25], [0.375, 0.75], [0.125, 0.75]], holes: [] }], {
+    id: 'wrap', height: 10, density: 7.85, budgets: { volume: 1e-8, mass: 1e-10, centroid: [1e-10, 1e-10, 1e-10], inertia: [1e-7, 1e-7, 1e-7, 1e-7, 1e-7, 1e-7] },
+  }).walls.reference.native.assembly.brep;
+}
 const CASES = {
+  'closed-reference-pad': closedReferencePad,
   'formal-pad-mass': formalPadMass,
   'native-bound-pad': nativeBoundPad,
   'profile-relief-emboss': () => reliefCase('emboss'),
