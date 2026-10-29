@@ -3,6 +3,13 @@
 The owner asked: "지금까지 하던거 멈추고 인수인계 할 수 있도록 해줘". This note lets the next session continue the
 kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-10-27 to 2026-10-28.
 
+## Current owner policy — 2026-10-29
+
+- Push each qualified roadmap feature to `origin/local/cad-dev` with a normal push. Exclude unfinished changes. PRs and releases need direct instructions.
+- Register messages from other chats in the roadmap first. Finish the selected D316 boundary, then select work by urgency; do not switch tasks on message arrival.
+- Issues2235–2240 are closed after roadmap transfer, with original bodies preserved. Their defects and product acceptance remain incomplete in the roadmap. See [closure receipt](../engine-audit-reproductions-2026-10-29.closure.json).
+- Earlier no-feature-push statements below describe historical checkpoints.
+
 ## Latest resume checkpoint — Codex, 2026-10-28
 
 - PR #2226 merged as `a780578a2` after the reviewed API-inventory fix `111b7d58c`. Only that CI fix was pushed.

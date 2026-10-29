@@ -60,5 +60,8 @@
     }
   ],
   "separateFromArchive": "These six open defect issues are not part of the owner-authorized73-issue research archive.",
-  "executionOrder": "Attach to existing EA/numbered rows without replacing the owner's07->08->09 order."
+  "executionOrder": "Attach to existing EA/numbered rows without replacing the owner's07->08->09 order.",
+  "stateSnapshot": "Initial issue states at retrieval; see closure receipt for current disposition.",
+  "closureReceipt": "engine-audit-reproductions-2026-10-29.closure.json",
+  "currentDisposition": "All six closed after roadmap transfer; defect acceptance remains incomplete."
 }

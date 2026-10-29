@@ -11,7 +11,14 @@ existing GitHub investigations to these numbered scopes; it creates no second im
 
 Keep existing CG/DR/K/O/R/RS/PB/V and issue IDs. Earlier lane assignments, stop/resume statements
 and time-sensitive next steps below are historical. The owner's current instructions control
-this worktree. Remote publication requires a new direct owner instruction.
+this worktree. The owner now authorizes a normal push to `origin/local/cad-dev` after each
+qualified roadmap feature. Exclude unfinished working-tree changes. PRs and releases still require
+a direct owner instruction.
+
+Register messages from other chats in this roadmap before considering implementation. Do not
+switch tasks on message arrival. Finish the selected D316 boundary, then choose the most urgent
+registered work; prioritize confirmed data loss, wrong physical units and runtime failures over
+optional extensions. Keep existing holds and ownership boundaries.
 
 Complete each feature through **Kernel/GPU/CAD → Model/API → actual Studio/Viewer consumer**,
 with its source, required checks and file flow recorded separately. Fix reproduced false success,
@@ -125,8 +132,11 @@ A08 [#2239](https://github.com/barocss/barocss/issues/2239) actual display/publi
 [Exact execution limits and remaining acceptance](notes/engine-audit-intake-2026-10-29.md)
 replace NOT_REPRODUCED only for those cases. An additional fixed-source unit-import report [#2240](https://github.com/barocss/barocss/issues/2240)
 attaches to13/16: declared unsupported NANO is accepted as undeclared millimetres. Preserve
-correct conversion or explicit refusal and accepted-state/file evidence. Keep these six defect
-issues OPEN, separate from the completed research archive. This intake reran no product test and does not reorder07->08->09.
+correct conversion or explicit refusal and accepted-state/file evidence. The owner authorized
+closing all six after roadmap transfer. Fresh reads confirm6/6 CLOSED with bodies preserved;
+[the closure receipt](notes/engine-audit-reproductions-2026-10-29.closure.json) records state-only
+writes. Closure means transfer, not defect repair or product acceptance. All six acceptance tasks
+remain incomplete here. This intake reran no product test; apply the execution priority above.
 
 ### 제품 완료와 인계의 공통 조건
 

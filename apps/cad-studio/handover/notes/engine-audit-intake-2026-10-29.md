@@ -96,8 +96,11 @@ The later audit reports were read from the actual GitHub issues and are indexed 
 `5463dbf32af5dd10670badd0d334c68504615292` snapshot and did not modify or qualify the D315 WIP.
 This intake did not rerun their probes. The five directly affected files have no committed diff
 from that snapshot through D315 `dbfe93216`; that source comparison is not a new product run.
-Keep the owner's07->08->09 order and existing source ownership. These are new OPEN defect issues,
-separate from the already archived73-issue research intake; do not close them as research transfer.
+Preserve existing source ownership. The initial source snapshot records these issues as OPEN.
+The owner's later instruction authorizes closure after roadmap transfer, including these defect
+reports. Fresh reads confirm all six CLOSED with original bodies preserved and no comment writes:
+[closure receipt](engine-audit-reproductions-2026-10-29.closure.json). Their remaining defect
+acceptance is still incomplete. The earlier73-issue research archive remains a separate receipt.
 
 | Existing candidate / destination | Issue and executed scope reported by the audit | Remaining acceptance |
 |---|---|---|
@@ -125,5 +128,13 @@ no scale node. Its independent external STEP-reader conformance is NOT_RUN.
 Remaining acceptance is declared-but-unsupported versus undeclared units, correct one-time
 conversion or explicit refusal, retained accepted state and the actual file Open/reopen flow.
 Preserve the existing supported-prefix/no-prefix/undeclared controls. This intake reads the
-GitHub execution report and reruns no product probe. Keep this defect OPEN alongside the five
-bounded audit cases; it is outside the completed research archive and does not reorder07->08->09.
+GitHub execution report and reruns no product probe. This issue is now closed for roadmap transfer
+alongside the five bounded audit cases; closure does not claim a fix.
+
+### Current execution policy
+
+Register incoming reports from other chats in the roadmap first. Do not execute them on arrival.
+Finish the selected D316 boundary, then select the most urgent registered task. Confirmed data
+loss, wrong physical units and runtime failures precede optional extensions. Existing holds and
+source ownership remain in force. Push each qualified roadmap feature to `origin/local/cad-dev`
+with a normal push. Exclude unfinished changes. PR and release need direct owner instructions.
