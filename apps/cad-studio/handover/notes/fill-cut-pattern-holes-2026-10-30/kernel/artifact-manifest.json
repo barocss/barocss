@@ -1,0 +1,20 @@
+{
+  "baseline-first.json": "2770e682b8fc85ecc833f2ddd23c26f317b98adae1bd92e21b2c156d2d9ff30e",
+  "build-first.log": "fd7bdf27d4356f0ddc4e316370b3ea415486f1dee34df05feb32bceee89fec31",
+  "build-second.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "executed-oracle-sha256.json": "72e82e67341e4700b126d3318da44cc667ccd385925345ab555b976e06a047e4",
+  "fill-cut-pattern-before.ts": "3252a00f9f7c5cbf4c66e094027450ba92fe7bb9f30dc5667fa65a30c18158b5",
+  "fixed-source-sha256.json": "8c03690f94a3b1e616239a3c9c6ba420e6ffbaccf104d80a493b7466cc29e62f",
+  "focused-second.log": "9006e361876f241baab3951f8010040f9bcbbd0f832eb44a9f97dfc952d8ab3d",
+  "focused-third.log": "3e53f5b5d095d0301824d35f1efe1c3892111b5d369115e95fae0de5b7aa0f93",
+  "gate.log": "a3ff11efdf8a241f969ae4e2df9fbf5b39d5af5b5d6183a7f6bae3f6b04fd462",
+  "lint-third.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "oracle-before.mjs": "d13110dcc72373bc1f9bba181657e97459d9fea7ae2e7e55bbe472d904bdd5bf",
+  "oracle-first.json": "990215d928adf618da8bc35428266bb7ec179152117cb818fd513fce5db8553a",
+  "oracle-second.json": "4955c838aa6b2e179e49f9320a7a2c7a65afaf00800af9f201c15cd102f26185",
+  "owned-sha256.json": "c823a716d0157b0aa2b0b4fa8f8497a4a561e5326f5c9f492fe943cc4d490be4",
+  "receipt.md": "ceaf6e1b0fc5ad4ff6622a6e3e7c1b3eef5f6b4324bdc68578a6496c2d908c2a",
+  "related-third.log": "d7df32e2f2ea8c7151f1069cd159dd10064ff34dac5b9d5961b44d73d696fdc9",
+  "run-candidate.sh": "23eaf4acfadef74be93dd155320d77c96f10fb741f257bec2a89869a06dc471f",
+  "types-third.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

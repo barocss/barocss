@@ -1,0 +1,9 @@
+{
+  "status": "JUSTIFIED_COMPATIBLE_OPTIONAL_PROPERTY_ADOPTION",
+  "exportsAdded": 0,
+  "exportsRemoved": 0,
+  "changedExposures": 3,
+  "logicalChange": "One optional readonly holes field on FillFeaturePatternRegion; old points member unchanged. Runtime nonempty/total16 constraints documented and tested.",
+  "beforeSHA256": "29813d19597b73f7f9fd6b29ef2cc3de6e0d42a014fc989a6275b2b93ed5bc51",
+  "afterSHA256": "a6f2b4b9632b39767cb4cb7de80af92c1079b2bcced084262a138e6a85a54a73"
+}

@@ -1,0 +1,40 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
+  [
+    {
++     d: '18',
++     n: '545'
+-     d: '306',
+-     n: '9265'
+    },
+    {
+      d: '306',
+      n: '6161'
+    },
+
+    at file:///private/tmp/d345-plan/oracle.mjs:40:8
+    at ModuleJob.run (node:internal/modules/esm/module_job:345:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:651:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [
+    { n: '545', d: '18' },
+    { n: '6161', d: '306' },
+    { n: '5', d: '1' }
+  ],
+  expected: [
+    { n: '9265', d: '306' },
+    { n: '6161', d: '306' },
+    { n: '5', d: '1' }
+  ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.19.0

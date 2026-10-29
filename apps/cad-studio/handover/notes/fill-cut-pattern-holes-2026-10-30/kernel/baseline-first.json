@@ -1,0 +1,14 @@
+{
+  "failures": [
+    {
+      "route": "Core snapshot",
+      "code": "INPUT",
+      "message": "region must contain only points"
+    },
+    {
+      "route": "API spec",
+      "code": "VALUE",
+      "message": "[VALUE] region must contain only points"
+    }
+  ]
+}

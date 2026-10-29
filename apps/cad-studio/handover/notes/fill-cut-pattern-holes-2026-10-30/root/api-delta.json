@@ -1,0 +1,294 @@
+{
+  "added": [],
+  "removed": [],
+  "changed": [
+    {
+      "key": [
+        "@barocss/cad",
+        "./api",
+        "FillFeaturePatternRegion"
+      ],
+      "before": {
+        "package": "@barocss/cad",
+        "subpath": "./api",
+        "exportName": "FillFeaturePatternRegion",
+        "space": "type",
+        "observedRole": "facade-exposure; immutability NOT_PROVEN",
+        "variants": [
+          {
+            "conditions": [
+              [
+                "import"
+              ],
+              [
+                "types"
+              ]
+            ],
+            "target": {
+              "package": "@barocss/cad",
+              "file": "src/features/fill-cut-pattern.ts",
+              "name": "FillFeaturePatternRegion",
+              "kind": "type"
+            },
+            "shape": {
+              "type": "{ readonly points: readonly (readonly [number, number])[]; }",
+              "declarationSignatures": [
+                {
+                  "kind": "TypeAliasDeclaration",
+                  "definition": "{\n    readonly points: readonly (readonly [\n        number,\n        number\n    ])[];\n}"
+                }
+              ],
+              "members": [
+                {
+                  "name": "points",
+                  "kind": "property",
+                  "optional": false,
+                  "readonly": true,
+                  "type": "readonly (readonly [number, number])[]"
+                }
+              ],
+              "indexSignatures": []
+            }
+          }
+        ]
+      },
+      "after": {
+        "package": "@barocss/cad",
+        "subpath": "./api",
+        "exportName": "FillFeaturePatternRegion",
+        "space": "type",
+        "observedRole": "facade-exposure; immutability NOT_PROVEN",
+        "variants": [
+          {
+            "conditions": [
+              [
+                "import"
+              ],
+              [
+                "types"
+              ]
+            ],
+            "target": {
+              "package": "@barocss/cad",
+              "file": "src/features/fill-cut-pattern.ts",
+              "name": "FillFeaturePatternRegion",
+              "kind": "type"
+            },
+            "shape": {
+              "type": "{ readonly points: readonly (readonly [number, number])[]; readonly holes?: readonly (readonly (readonly [number, number])[])[] | undefined; }",
+              "declarationSignatures": [
+                {
+                  "kind": "TypeAliasDeclaration",
+                  "definition": "{\n    readonly points: readonly (readonly [\n        number,\n        number\n    ])[];\n    readonly holes?: readonly (readonly (readonly [\n        number,\n        number\n    ])[])[];\n}"
+                }
+              ],
+              "members": [
+                {
+                  "name": "holes",
+                  "kind": "property",
+                  "optional": true,
+                  "readonly": true,
+                  "type": "readonly (readonly (readonly [number, number])[])[] | undefined"
+                },
+                {
+                  "name": "points",
+                  "kind": "property",
+                  "optional": false,
+                  "readonly": true,
+                  "type": "readonly (readonly [number, number])[]"
+                }
+              ],
+              "indexSignatures": []
+            }
+          }
+        ]
+      }
+    },
+    {
+      "key": [
+        "@barocss/cad-model",
+        "./api",
+        "FillFeaturePatternRegion"
+      ],
+      "before": {
+        "package": "@barocss/cad-model",
+        "subpath": "./api",
+        "exportName": "FillFeaturePatternRegion",
+        "space": "type",
+        "observedRole": "facade-exposure; immutability NOT_PROVEN",
+        "variants": [
+          {
+            "conditions": [
+              []
+            ],
+            "target": {
+              "package": "@barocss/cad",
+              "file": "src/features/fill-cut-pattern.ts",
+              "name": "FillFeaturePatternRegion",
+              "kind": "type"
+            },
+            "shape": {
+              "type": "{ readonly points: readonly (readonly [number, number])[]; }",
+              "declarationSignatures": [
+                {
+                  "kind": "TypeAliasDeclaration",
+                  "definition": "{\n    readonly points: readonly (readonly [\n        number,\n        number\n    ])[];\n}"
+                }
+              ],
+              "members": [
+                {
+                  "name": "points",
+                  "kind": "property",
+                  "optional": false,
+                  "readonly": true,
+                  "type": "readonly (readonly [number, number])[]"
+                }
+              ],
+              "indexSignatures": []
+            }
+          }
+        ]
+      },
+      "after": {
+        "package": "@barocss/cad-model",
+        "subpath": "./api",
+        "exportName": "FillFeaturePatternRegion",
+        "space": "type",
+        "observedRole": "facade-exposure; immutability NOT_PROVEN",
+        "variants": [
+          {
+            "conditions": [
+              []
+            ],
+            "target": {
+              "package": "@barocss/cad",
+              "file": "src/features/fill-cut-pattern.ts",
+              "name": "FillFeaturePatternRegion",
+              "kind": "type"
+            },
+            "shape": {
+              "type": "{ readonly points: readonly (readonly [number, number])[]; readonly holes?: readonly (readonly (readonly [number, number])[])[] | undefined; }",
+              "declarationSignatures": [
+                {
+                  "kind": "TypeAliasDeclaration",
+                  "definition": "{\n    readonly points: readonly (readonly [\n        number,\n        number\n    ])[];\n    readonly holes?: readonly (readonly (readonly [\n        number,\n        number\n    ])[])[];\n}"
+                }
+              ],
+              "members": [
+                {
+                  "name": "holes",
+                  "kind": "property",
+                  "optional": true,
+                  "readonly": true,
+                  "type": "readonly (readonly (readonly [number, number])[])[] | undefined"
+                },
+                {
+                  "name": "points",
+                  "kind": "property",
+                  "optional": false,
+                  "readonly": true,
+                  "type": "readonly (readonly [number, number])[]"
+                }
+              ],
+              "indexSignatures": []
+            }
+          }
+        ]
+      }
+    },
+    {
+      "key": [
+        "@barocss/cad-model",
+        "./api/index",
+        "FillFeaturePatternRegion"
+      ],
+      "before": {
+        "package": "@barocss/cad-model",
+        "subpath": "./api/index",
+        "exportName": "FillFeaturePatternRegion",
+        "space": "type",
+        "observedRole": "unclassified-observed; no policy exemption",
+        "variants": [
+          {
+            "conditions": [
+              []
+            ],
+            "target": {
+              "package": "@barocss/cad",
+              "file": "src/features/fill-cut-pattern.ts",
+              "name": "FillFeaturePatternRegion",
+              "kind": "type"
+            },
+            "shape": {
+              "type": "{ readonly points: readonly (readonly [number, number])[]; }",
+              "declarationSignatures": [
+                {
+                  "kind": "TypeAliasDeclaration",
+                  "definition": "{\n    readonly points: readonly (readonly [\n        number,\n        number\n    ])[];\n}"
+                }
+              ],
+              "members": [
+                {
+                  "name": "points",
+                  "kind": "property",
+                  "optional": false,
+                  "readonly": true,
+                  "type": "readonly (readonly [number, number])[]"
+                }
+              ],
+              "indexSignatures": []
+            }
+          }
+        ]
+      },
+      "after": {
+        "package": "@barocss/cad-model",
+        "subpath": "./api/index",
+        "exportName": "FillFeaturePatternRegion",
+        "space": "type",
+        "observedRole": "unclassified-observed; no policy exemption",
+        "variants": [
+          {
+            "conditions": [
+              []
+            ],
+            "target": {
+              "package": "@barocss/cad",
+              "file": "src/features/fill-cut-pattern.ts",
+              "name": "FillFeaturePatternRegion",
+              "kind": "type"
+            },
+            "shape": {
+              "type": "{ readonly points: readonly (readonly [number, number])[]; readonly holes?: readonly (readonly (readonly [number, number])[])[] | undefined; }",
+              "declarationSignatures": [
+                {
+                  "kind": "TypeAliasDeclaration",
+                  "definition": "{\n    readonly points: readonly (readonly [\n        number,\n        number\n    ])[];\n    readonly holes?: readonly (readonly (readonly [\n        number,\n        number\n    ])[])[];\n}"
+                }
+              ],
+              "members": [
+                {
+                  "name": "holes",
+                  "kind": "property",
+                  "optional": true,
+                  "readonly": true,
+                  "type": "readonly (readonly (readonly [number, number])[])[] | undefined"
+                },
+                {
+                  "name": "points",
+                  "kind": "property",
+                  "optional": false,
+                  "readonly": true,
+                  "type": "readonly (readonly [number, number])[]"
+                }
+              ],
+              "indexSignatures": []
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "oldCount": 6834,
+  "newCount": 6834
+}

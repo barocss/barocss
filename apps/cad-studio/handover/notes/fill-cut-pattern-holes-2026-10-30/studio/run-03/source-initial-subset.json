@@ -1,0 +1,14 @@
+{
+  "count": 9,
+  "hashes": {
+    "apps/cad-studio/src/App.tsx": "878f77670463ebddeca3038de8a7b97a3bc2240fba006e9b3119709a72912670",
+    "apps/cad-studio/src/sketch/useSketchActions.ts": "86995291fe858fffddc813926e914fab9329b37bb16c431a62c96f6a98df2c4f",
+    "apps/cad-studio/src/ui/SketchPanel.tsx": "f34d280de50d1114a7c2caf595ea4c795e951a3b5590a81e513efb26109ec942",
+    "apps/cad-studio/test/fill-cut-pattern-holes-browser.mjs": "3e570f0ea6660a3600223363c391e7e09d34898bf21f27c0872116822fe833da",
+    "packages/barocss-cad-model/src/app/commands.ts": "2e446d417d4b70e67e015206a33f02750075e019871dc95c57acb5de02d5914c",
+    "packages/barocss-cad-model/src/app/editFields.ts": "596e362c3a5965fa669f3083512f5b114ce9b4de9bc086774c812f06c7eb5739",
+    "packages/barocss-cad-model/src/engine/fillFeaturePattern.ts": "ba0cf70af894f67e508d01a4ecfdcae8bc09476f8331fa6d2bef9da963ef2f05",
+    "packages/barocss-cad-model/src/sketch/loops.ts": "89ee4923fd4e3176ae785ed407c0507ac2a585025759ea62db90055ad0beb92e",
+    "packages/barocss-cad/src/features/fill-cut-pattern.ts": "0fec3fd49214621265507db89229fe957cfa6aef2ad0e1ccf42150ebd1e0684f"
+  }
+}

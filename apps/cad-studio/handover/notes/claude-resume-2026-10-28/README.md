@@ -1,5 +1,12 @@
 # Hand-over (2026-10-28)
 
+## Latest D345 checkpoint — 2026-10-30
+
+- Shared optional readonly polygon-hole Fill CUT mask implemented in `eaa1ec299`, driver locator fix `b22f7ba2e`, successful-Fill selection fix `283b48afb`; nine distinct implementation paths. [Qualification](../fill-cut-pattern-holes-2026-10-30/qualification.json). Existing total16 straight vertices, worldXY/reference-point/seed/order/names semantics remain. Curves, frames and full-tool containment remain open.
+- Kernel new9+related22 and Model new6+related87 pass, types/scoped lint/API/generated/Studio build/chat23 pass. API0new/0removed exports; three exposures of one optional holes field. No dependency/schema/tolerance change.
+- Run01 label mm locator FAIL and run02 actual witness-selection alias FAIL are preserved. Successful Fill now clears consumed geometry selection; refusal/Cancel unchanged. Postfix Studio types/build/App-driverlint/chat23 pass. Clean run03 uses one Chrome/four serial contexts,15states/8nativeReads/6independent Fraction oracles/2nativefiles. Actual7→9cuts, source outer edit leaves7snapshot, explicit reselect gives5, UndoRedo/fresh Open/editability and witness420 pass. Root views6 images separately; source9subset→976frozen/after/cleanup match, errors0/allclose.
+- Full Kernel for D345/fullModel/fullStudio/performance/remoteCI/release NOT_RUN. Do not reuse earlier full suite as current full PASS. Continue remaining08 before09;07delivered/Electron15queued. Next decision D346. Final docs/publication state is in qualification.json.
+
 ## Latest D344 checkpoint — 2026-10-30
 
 - Source `28a80e8695a92e92e5e50f6a5d34c569a02c0e5f`, initial `fbf8a7afb555ee7302bd3c6a6ed9e034a9a8b51a`; seven distinct implementation paths. [Qualification](../native-quadrature-conditioning-2026-10-30/qualification.json). Body-global centering now precedes wholePatch homogeneous weighting; rules/classification/fallback/native geometry/names/API/schema stay unchanged.
