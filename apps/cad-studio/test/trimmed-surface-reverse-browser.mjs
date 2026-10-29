@@ -275,7 +275,10 @@ try {
     .replace('[[15,-1,3],[25,-1,3],[25,9,3],[15,9,3],[15,-1,3]]',
       '[[15,-1,3.0208333333333335],[25,-1,3.0625],[25,9,3.1875],[15,9,3.0625],[15,-1,3.0208333333333335]]');
   const unsupportedSeed = await seedVariant('nonplanar',unsupportedCSS);
-  const generationInputs = Object.keys(built.metafile.inputs).map(file => resolve(file));
+  // esbuild records the virtual stdin name alongside real inputs. Its exact
+  // contents are saved as seed-generator.ts; it has no source file on disk.
+  const virtualSeed = resolve(app, 'd337-untrimmed-seed.ts');
+  const generationInputs = Object.keys(built.metafile.inputs).map(file => resolve(file)).filter(file => file !== virtualSeed);
   // Include all actual public seed-bundle inputs and their source companions before browser startup.
   const frozenFiles = [...inputs,...generationInputs];
   report.sourceFrozen = await capsule('frozen-before-browser',frozenFiles);
