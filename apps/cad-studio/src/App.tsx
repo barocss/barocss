@@ -210,6 +210,7 @@ export function App() {
   const beginOpenIntent = useCallback((): OpenScope => { const scope = {}; openIntent.current = scope; return scope; }, []);
   const currentOpenScope = useCallback(() => openIntent.current, []);
   const isOpenCurrent = useCallback((scope: OpenScope) => openIntent.current === scope, []);
+  useEffect(() => () => { openIntent.current = {}; }, []);
   const saveAcceptanceScope = saveDocumentToken.current;
   const setDocState = useCallback((update: StudioDoc | ((previous: StudioDoc) => StudioDoc)) => {
     saveDocumentToken.current = {};
@@ -301,6 +302,7 @@ export function App() {
   // (Each entry keeps the instance it was evaluated for; `key` changes whenever its bodies are evaluated anew.)
   const [instanceBodies, setInstanceBodies] = useState<Map<string, { key: string; sourceKey: string; inst: PartInstance; bodies: BodyResult[] }>>(new Map());
   const [workerSession, setWorkerSession] = useState(0);
+  const [importWorkerRecovery, setImportWorkerRecovery] = useState(0);
   const workerSessionNow = useRef(0);
   // O18 (P): the worker replies without the bodies' masses and posts them after, by mass ref; each body still waiting
   // gets its own B-rep's (placed by its massPlace) — never another revision's, whose B-rep has its own ref.
@@ -727,7 +729,7 @@ export function App() {
     };
     void run().catch(cause => { if (edit) refuse(cause instanceof Error ? cause.message : String(cause)); else if (current()) { setBusy(false); setToast({ title: 'Could not evaluate the part', hint: 'The previous part remains shown.', detail: String(cause) }); } }).finally(() => { workOwnership.current = finishWork(workOwnership.current, work.token); });
     return () => { live = false; workOwnership.current = finishWork(workOwnership.current, work.token); };
-  }, [engine, evaluated, parameterEdit, parameterCurrent]);
+  }, [engine, evaluated, parameterEdit, parameterCurrent, importWorkerRecovery]);
   // (A command's preview is what the part becomes: its bodies belong to the document it commits.)
   useEffect(() => { if (claimBodies.current) { claimBodies.current = false; setBodiesFor(evaluated); } }, [evaluated]);
   const fresh = bodiesFor === evaluated;
@@ -1160,6 +1162,14 @@ export function App() {
     if (parameterMass.current && !parameterMass.current.target) parameterMass.current = null;
     setBusy(false);
   };
+  // Every restart revokes import completions and clears results from the previous worker session.
+  const restartDocumentWorker = () => {
+    // A content match cannot carry worker provenance across restart. Keep old pixels stale until recomputed.
+    acceptedEvaluation.current = null; parameterHandoff.current = null; routeAcceptedHandoff.current = null; parameterMass.current = null;
+    claimBodies.current = false; setBodiesFor(null); discardRouteRef.current();
+    setInstanceBodies(new Map()); workerSessionNow.current++; setWorkerSession(workerSessionNow.current);
+    engine.restart(); setBusy(false); setSlow(false); setPreviewBodies(null);
+  };
   const cancelWork = () => {
     if (!workOwnership.current.run) { setBusy(false); setSlow(false); return; }
     const stopped = stopOwnedWork(workOwnership.current, docNow.current, evaluatedRef.current, undo[undo.length - 1]);
@@ -1167,11 +1177,7 @@ export function App() {
     // Invalidate before restart resolves pending promises. An unaccepted candidate has no history to undo.
     parameterRequest.current++;
     setParameterEdit(null);
-    // A content match cannot carry worker provenance across restart. Keep old pixels stale until recomputed.
-    acceptedEvaluation.current = null; parameterHandoff.current = null; routeAcceptedHandoff.current = null; parameterMass.current = null;
-    claimBodies.current = false; setBodiesFor(null); discardRouteRef.current();
-    setInstanceBodies(new Map()); workerSessionNow.current++; setWorkerSession(workerSessionNow.current);
-    engine.restart(); setBusy(false); setSlow(false); setPreviewBodies(null);
+    restartDocumentWorker();
     const target = stopped.target;
     if (target) {
       const redoEntry = { doc: docNow.current, marker: markerNow.current };
@@ -1296,9 +1302,23 @@ export function App() {
   const [flatView, setFlatView] = useState<string | null>(null);
   // (FR4a: the part's cut list, open or not.)
   const [cutListView, setCutListView] = useState(false);
-  const meshImport = useMeshImport({ doc, engine, nextRevision: () => revision.current++, onNotice: setToast,
-    onOpened: (next, name) => { replaceDoc(next); setFileName(name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300); }, onCommit: commit });
-  const { meshAsk, setMeshAsk, stage, repairAsk, setRepairAsk, stopStage, editRepair } = meshImport;
+  const captureImportOwner = () => {
+    const scope = openIntent.current, dispatch = saveDocumentToken.current, session = workerSessionNow.current;
+    return { isCurrent: () => isOpenCurrent(scope) && saveDocumentToken.current === dispatch && workerSessionNow.current === session };
+  };
+  const fitImportedLater = () => {
+    const accepted = captureImportOwner();
+    setTimeout(() => { if (accepted.isCurrent()) viewport.current?.fit(); }, 300);
+  };
+  const openedImport = (next: StudioDoc, name: string) => {
+    replaceDoc(next); if (docNow.current !== next) return false;
+    setFileName(name); setDirty(true); fitImportedLater(); return true;
+  };
+  const meshImport = useMeshImport({ doc, engine, captureOwner: captureImportOwner,
+    onStop: () => { beginOpenIntent(); invalidateDocumentWork(); restartDocumentWorker(); setImportWorkerRecovery(value => value + 1); },
+    nextRevision: () => revision.current++, onNotice: setToast, onOpened: openedImport, onCommit: commit });
+  const { meshAsk, setMeshAsk, stage, repairAsk, setRepairAsk, stopStage } = meshImport;
+  const editRepair = (index: number) => { beginOpenIntent(); setMeshAsk(null); setRepairAsk(null); return meshImport.editRepair(index); };
   /**
    * A mesh body's badges (M3, D47): repaired (its filled area; shows the fill faces and opens the repair again), an
    * open sheet (no volume, no Booleans), and where it crosses itself (marked in the viewport).
@@ -1328,11 +1348,12 @@ export function App() {
     return () => clearTimeout(t);
   }, [doc, undo, redo, repairAsk]);
   const open = async (file: File) => {
-    const scope = beginOpenIntent();
+    const scope = beginOpenIntent(), owner = captureImportOwner();
+    setMeshAsk(null); setRepairAsk(null);
     try {
       if (isImportedFile(file.name)) {
-        await openImportedFile(file, { doc, worker: { engine, nextRevision: () => revision.current++ }, mesh: meshImport, onNotice: setToast,
-          changes: { commitDirect, fitLater: () => setTimeout(() => viewport.current?.fit(), 300), onOpened: (next, name) => { replaceDoc(next); setFileName(name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300); } } });
+        await openImportedFile(file, { doc, ownership: owner, worker: { engine, nextRevision: () => revision.current++ }, mesh: meshImport, onNotice: setToast,
+          changes: { commitDirect, fitLater: fitImportedLater, onOpened: openedImport } });
         return;
       }
       // Any other kind of file is named, with what Open reads; the part unchanged. (A file without an extension is still
@@ -1349,7 +1370,7 @@ export function App() {
       if (read.notes.length) setToast({ title: 'Opened an older model', hint: `${read.notes.join('; ')}. Save to keep it in the current form (the file is unchanged until then).`, detail: '' });
       setTimeout(() => { if (isOpenCurrent(accepted)) viewport.current?.fit(); }, 300);
       void verifyOpened(acceptedDoc, accepted, dispatch);
-    } catch (e) { if (isOpenCurrent(scope)) setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); }
+    } catch (e) { if (owner.isCurrent()) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
   };
   const { refLocal, keepoutBodies, keepoutVerdicts, spec, specRunning } = useModelChecks({ model: { doc, evaluated, bodies, fresh, busy, active, sketch, previewBodies },
     worker: { engine, nextRevision: () => revision.current++ }, onNotice: setToast });
