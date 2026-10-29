@@ -1,5 +1,6 @@
 // D335: one native Chrome WebGPU browser, serial contexts. Public controls mutate;
 // development hooks observe only. Run only against a frozen qualified source capsule.
+// D335_RESUME_FILE=/absolute/accepted.bcad runs only the source-sketch / snapshot replacement tail.
 // PW_DIR=/absolute/playwright CHROME=/absolute/chrome node test/fill-cut-pattern-browser.mjs /absolute/artifacts
 import assert from 'node:assert/strict';
 import { build } from 'esbuild';
@@ -34,6 +35,9 @@ const seed = part('Fill cut seed').box({w:60,d:40,h:10})
 assert.ok(Math.abs(seed.mass({density:1}).volume - 23850) < 1e-7);
 assert.ok(!seed.doc.nodes.some(n => n.kind === 'fill-feature-pattern'));
 writeFileSync(process.argv[2], JSON.stringify(seed.doc,null,2)+'\\n');`;
+const resumeFile = process.env.D335_RESUME_FILE;
+if (resumeFile) assert.equal(resolve(resumeFile), resumeFile, 'D335_RESUME_FILE must be absolute');
+report.mode = resumeFile ? 'RESUME_REGION_TAIL' : 'FULL_FLOW';
 const hud = () => page.getByRole('dialog', { name: 'Fill cut pattern', exact: true });
 const editor = () => page.locator('.node-editor');
 const sketchPanel = () => page.getByRole('complementary', { name: 'Sketch', exact: true });
@@ -85,7 +89,10 @@ async function freshOpen(saved, key, label) {
   await same(saved.doc, key); await snapshot(label);
 }
 async function openEditor(index) {
-  await page.locator(`.history .hs[data-node-index="${index}"]`).click(); await editor().waitFor();
+  const node = (await doc()).nodes[index];
+  if (node.kind === 'sketch') await page.getByRole('group', { name: 'History', exact: true }).getByRole('button', { name: `Sketch ${index + 1}`, exact: true }).click();
+  else await page.locator(`.history .hs[data-node-index="${index}"]`).click();
+  await editor().waitFor();
 }
 function assertHint(text) {
   assert.match(text, /snapshot/i); assert.match(text, /Editing the source sketch does not change this pattern/);
@@ -121,7 +128,9 @@ async function applyEditor(before, key) {
   await waitDocChange(before); await ready(key); await editor().waitFor({ state: 'hidden' });
 }
 try {
+  let sketchIndex, index, feature;
   const seedFile = join(output, 'seed.bcad');
+  if (!resumeFile) {
   const built = await build({ stdin: { contents: generator, resolveDir: app, sourcefile: 'fill-cut-seed.ts', loader: 'ts' }, bundle: true, platform: 'node', format: 'esm', target: 'node22', write: false, metafile: true });
   const bundle = join(output, 'seed-generator.mjs');
   await writeFile(join(output, 'seed-generator.ts'), generator); await writeFile(bundle, built.outputFiles[0].contents);
@@ -129,11 +138,24 @@ try {
   const run = spawnSync(process.execPath, [bundle, seedFile], { encoding: 'utf8' });
   await writeFile(join(output, 'seed.stdout.txt'), run.stdout ?? ''); await writeFile(join(output, 'seed.stderr.txt'), run.stderr ?? ''); assert.equal(run.status, 0, run.stderr);
   report.seed = { file: seedFile, sha256: hash(await readFile(seedFile)), generatorSHA256: hash(generator), bundleSHA256: hash(built.outputFiles[0].contents) };
+  }
   phase = 'actual Studio start';
   server = await createServer({ root: app, configFile: join(app, 'vite.config.ts'), server: { host: '127.0.0.1', port: 0 }, logLevel: 'error' });
   server.watcher.on('change', file => report.changes.push(file)); await server.listen();
   const { chromium } = createRequire(join(process.env.PW_DIR, 'package.json'))('playwright');
   browser = await chromium.launch({ executablePath: process.env.CHROME, headless: true, args: ['--enable-unsafe-webgpu'] });
+  if (resumeFile) {
+    phase = 'public Open accepted ten-cut prefix for region tail';
+    const bytes = await readFile(resumeFile), source = JSON.parse(bytes);
+    index = source.nodes.length - 1; feature = source.nodes[index];
+    sketchIndex = source.nodes.findLastIndex(node => node.kind === 'sketch');
+    assert.equal(feature.kind, 'fill-feature-pattern'); assert.equal(feature.count, 4); assert.equal(feature.count2, 3);
+    assert.equal(feature.spacing, 12); assert.equal(feature.spacing2, 10); assert.deepEqual(feature.anchor, [8.5, 8.5]);
+    assert.deepEqual(feature.region, { points: region }); assert.deepEqual(sketchPoints(source.nodes[sketchIndex]), region);
+    report.resume = { file: resumeFile, sha256: hash(bytes), prefix: 'NOT_RERUN: original creation/refusal/edit/native-file receipt is retained separately' };
+    report.sketchIndex = sketchIndex; report.featureId = feature.id; report.parent = feature.parent;
+    await freshPage(); await page.setInputFiles('input[aria-label="Model file"]', resumeFile); await same(source, 'base'); await snapshot('resume-ten-cut-prefix');
+  } else {
   await freshPage(); await page.setInputFiles('input[aria-label="Model file"]', seedFile); await ready('seed'); await snapshot('01-seed');
 
   phase = 'public closed L sketch';
@@ -149,7 +171,7 @@ try {
   for (const [i, point] of region.entries()) for (const [axis, value] of point.entries())
     await sketchPanel().getByLabel(`Point ${i + 1} ${'XY'[axis]}`, { exact: true }).fill(String(value));
   await finishSketch(beforeSketch); await ready('seed');
-  const withRegion = await doc(), sketchIndex = withRegion.nodes.length - 1;
+  const withRegion = await doc(); sketchIndex = withRegion.nodes.length - 1;
   assert.equal(withRegion.nodes.length, beforeSketch.nodes.length + 1, 'Finish stores only the standalone region sketch');
   assert.deepEqual(sketchPoints(withRegion.nodes[sketchIndex]), region);
   report.sketchIndex = sketchIndex; await snapshot('02-authored-L');
@@ -168,7 +190,7 @@ try {
   phase = 'valid repair Apply Undo Redo';
   await selectBody(); await command('Fill cut pattern'); await hud().waitFor(); await configure(sketchIndex); await previewStatus('preview');
   await hud().getByRole('button', { name: 'Apply', exact: true }).click(); await waitDocChange(withRegion); await ready('base');
-  const accepted = await doc(), index = accepted.nodes.length - 1, feature = accepted.nodes[index];
+  const accepted = await doc(); index = accepted.nodes.length - 1; feature = accepted.nodes[index];
   assert.equal(feature.kind, 'fill-feature-pattern'); assert.deepEqual(feature.region, { points: region });
   assert.deepEqual(feature.anchor, [8.5, 8.5]); assert.equal(accepted.nodes[feature.parent.node].kind, 'difference');
   assert.ok(feature.id, 'stable feature identity'); assert.ok(!JSON.stringify(feature.region).includes('objectId'));
@@ -187,6 +209,7 @@ try {
   assert.deepEqual(spaced.nodes[index].region, feature.region); await snapshot('09-eight-cuts-Y-spacing');
   await page.keyboard.press('Meta+z'); await same(accepted, 'base');
 
+  }
   phase = 'source sketch edit retains accepted snapshot and mass';
   await openEditor(sketchIndex); await editor().getByRole('button', { name: 'Edit sketch', exact: true }).click(); await sketchPanel().waitFor();
   const beforeSource = await doc(); await sketchPanel().getByLabel('Point 4 X', { exact: true }).fill('16');
