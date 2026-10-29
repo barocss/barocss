@@ -1863,3 +1863,35 @@ Only if broader byte/provenance acceptance is required, preserve the original tw
 bytes, hashes and executing source graph in that future scoped verification. Do not rerun successful
 checks merely to accept this bounded review. Root read/copies both supplied documents without product
 execution or cross-chat reply. Current roadmap priority remains unchanged.
+
+
+### D324/A07 delayed pick retained-receipt review — 2026-10-29
+
+Attach the [supplied review and verification](notes/gpu-pick-instance-ownership-2026-10-29/retained-receipt-review/d324-gpu-pick-receipt-review.md)
+to existing06/R2,05 SDK,G15-accept and transferred #2237. Verdict: **APPROVE_BOUNDED_AUTHOR_RECEIPTS**
+for exactd85558ce. Approved instance replacement and membership changes increment private ownership
+revision. The actual pickNow checks it after native GPU map/read/unmap and before metadata reconstruction.
+This is the product execution path, not a helper-only change. Preserve later clipping/camera/pick changes
+as separate evidence; the old native receipt does not certify the current GPU runtime.
+
+Counts: CPU357 includes the new15; native is one selected test with six groups, not six tests:
+unchanged, replacement, reorder, shrink, instances-null and mesh-removal. Author observations include
+real raster pixel[255,64,32,255], instance/face71/triangle0, delayed/fresh ownership and buffer unmap/reuse.
+Native instrumentation holds only the return after the original mapAsync Promise fulfills. GPU bytes,
+IDs and draw results are not replaced; this remains controlled scheduling, not natural GPU delay,
+driver failure or device-loss evidence. Reviewer reports47 unique artifact paths from63 references
+(sixteen overlap), six source bindings and three gzip capsules checked against exact Git bytes/hashes.
+Original CPU baseline1PASS/1FAIL and API IV001 old-expected FAIL remain. API adoption covers exactly
+three existing declarations; do not count candidate generation as final check acceptance.
+
+**Adapter wording correction:** Apple/metal-3 identifies a separate availability requestAdapter result.
+Actual Viewer adapter identity is **UNKNOWN**. Cleanup dispose after finished picks does not establish
+native dispose-during-pending-map behavior. Native clear/ABA/invalid-setter/dispose-pending cases outside
+the six groups, complete dist/import graph, current GPU runtime, recovery/device loss/VRAM/OOM,
+performance and whole suites remain outside this acceptance. Transfer closure of #2237 is not current
+fix-completion evidence; no reopening or duplicate issue.
+
+Only if expanding scope, capture the actual Viewer adapter, the specific missing native lifecycle case
+and executing input graph. Do not rerun successful checks for this bounded receipt review. Root read
+and retained both supplied documents without independent execution, remote action or reply. Existing
+A05/A06 and other roadmap priorities remain unchanged.
