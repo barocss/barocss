@@ -19,14 +19,19 @@ export const HIDDEN_DASH: readonly [number, number] = [6, 4];
 export const HATCH_OPACITY = 0.55;
 /** Thread lines' opacity. */
 export const THREAD_OPACITY = 0.55;
-/** The accent, and a selected face's (and cap's) share of it. */
+/** Tool/section accent and its share of a section cap's base colour. */
 export const ACCENT: Vec3 = [0.910, 0.761, 0.353];
 export const SELECT_MIX = 0.42;
+/** Selection uses its own cyan palette; tool accents and section caps retain their existing colour. */
+export const SELECTION_MIX = 0.64;
+export const SELECTION_HOVER_MIX = 0.22;
+export const SELECTION_EDGE_WIDTH = 3.4;
+export const SELECTION_OUTLINE_WIDTH = 3;
 
 /** The colours both renderers' themes share. */
 export const PALETTE = {
-  dark: { bgTop: [0.180, 0.188, 0.208] as Vec3, bgBottom: [0.094, 0.098, 0.106] as Vec3, grid: [0.55, 0.55, 0.57] as Vec3, base: [0.74, 0.75, 0.78] as Vec3, edge: [0.05, 0.05, 0.06] as Vec3 },
-  light: { bgTop: [0.965, 0.972, 0.980] as Vec3, bgBottom: [0.780, 0.812, 0.851] as Vec3, grid: [0.30, 0.34, 0.40] as Vec3, base: [0.70, 0.74, 0.80] as Vec3, edge: [0.11, 0.14, 0.19] as Vec3 },
+  dark: { selection: [34 / 255, 211 / 255, 238 / 255] as Vec3, selectionHover: [0.30, 0.62, 0.68] as Vec3, bgTop: [0.180, 0.188, 0.208] as Vec3, bgBottom: [0.094, 0.098, 0.106] as Vec3, grid: [0.55, 0.55, 0.57] as Vec3, base: [0.74, 0.75, 0.78] as Vec3, edge: [0.05, 0.05, 0.06] as Vec3 },
+  light: { selection: [0, 127 / 255, 158 / 255] as Vec3, selectionHover: [0.22, 0.52, 0.60] as Vec3, bgTop: [0.965, 0.972, 0.980] as Vec3, bgBottom: [0.780, 0.812, 0.851] as Vec3, grid: [0.30, 0.34, 0.40] as Vec3, base: [0.70, 0.74, 0.80] as Vec3, edge: [0.11, 0.14, 0.19] as Vec3 },
 };
 
 /** A body's faces as hovered (1) and selected (2): selection over hover. */

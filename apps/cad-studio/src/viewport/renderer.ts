@@ -3,7 +3,7 @@
 // edges) → resolve colour + depth → screen-space ambient occlusion composite to the canvas.
 // An ID pass serves face picking. Resources persist: camera moves only write uniforms and
 // selection changes only rewrite small state buffers.
-import { EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, PALETTE, THREAD_OPACITY, XRAY_OPACITY, edgeStateOf, faceStateOf } from './displayPolicy';
+import { EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, PALETTE, SELECTION_MIX, SELECTION_HOVER_MIX, SELECTION_EDGE_WIDTH, SELECTION_OUTLINE_WIDTH, THREAD_OPACITY, XRAY_OPACITY, edgeStateOf, faceStateOf } from './displayPolicy';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { BASE } from '@barocss/cad-model/assembly/mates';
 import type { ProposalOverlay } from '../engine/client';
@@ -243,7 +243,7 @@ export interface ViewRenderer {
   setInstancePreview?(preview: { id: string; matrix: Float64Array } | null): void;
 }
 
-interface Theme { amb: number; bgTop: number[]; bgBottom: number[]; grid: number[]; gridAlpha: number[]; base: number[]; edge: number[]; shadow: number; ao: number }
+interface Theme { selection: Vec3; selectionHover: Vec3; amb: number; bgTop: number[]; bgBottom: number[]; grid: number[]; gridAlpha: number[]; base: number[]; edge: number[]; shadow: number; ao: number }
 const THEMES: Record<ThemeName, Theme> = {
   dark: { ...PALETTE.dark, amb: 0.18, gridAlpha: [0.12, 0.26], shadow: 0.55, ao: 0.85 },
   light: { ...PALETTE.light, amb: 0.34, gridAlpha: [0.10, 0.22], shadow: 0.32, ao: 0.75 },
@@ -258,7 +258,7 @@ void main(){ vVN=mat3(uView)*(uNormal*aNor); vState=aState; vFace=aFace; gl_Posi
 const MESH_FS = `#version 300 es
 precision highp float;
 in vec3 vVN; in float vState; flat in float vFace;
-uniform vec3 uBase; uniform float uAmb; uniform float uBodySel; uniform float uContact; uniform float uGhost; uniform float uOpacity;
+uniform vec3 uBase; uniform vec3 uSelection; uniform vec3 uSelectionHover; uniform float uAmb; uniform float uBodySel; uniform float uContact; uniform float uGhost; uniform float uOpacity;
 out vec4 o;
 void main(){
   vec3 n=normalize(vVN); if(!gl_FrontFacing) n=-n;
@@ -268,10 +268,9 @@ void main(){
   float rim=pow(1.0-max(n.z,0.0),3.0);
   vec3 h=normalize(key+vec3(0.0,0.0,1.0)); float spec=pow(max(dot(n,h),0.0),48.0);
   vec3 c=uBase*(uAmb+0.26*hemi+0.58*k+0.10*f)+vec3(0.08)*rim+vec3(0.10)*spec;
-  vec3 accent=vec3(0.910,0.761,0.353);
-  c=mix(c, accent, max(uBodySel*0.22, step(1.5,vState)*0.42));
+  c=mix(c, uSelection, max(uBodySel*0.32, step(1.5,vState)*${SELECTION_MIX}));
   c=mix(c, vec3(0.92,0.27,0.24), uContact*0.55);
-  c=mix(c, accent, step(0.5,vState)*(1.0-step(1.5,vState))*0.20);
+  c=mix(c, uSelectionHover, step(0.5,vState)*(1.0-step(1.5,vState))*${SELECTION_HOVER_MIX});
   o=vec4(c, uOpacity*(1.0-uGhost*0.65));
 }`;
 
@@ -287,7 +286,7 @@ void main(){ if(uInstanceId>0u){ uint v=uInstanceId+uint(vFace); id=vec4(float(v
 // Wide lines: one instance per segment, expanded to a screen-space quad.
 const LINE_VS = `#version 300 es
 layout(location=0) in vec2 aCorner; layout(location=1) in vec3 aA; layout(location=2) in vec3 aB; layout(location=3) in float aState;
-uniform mat4 uVP; uniform mat4 uModel; uniform vec2 uViewport; uniform float uWidth; out float vState;
+uniform mat4 uVP; uniform mat4 uModel; uniform vec2 uViewport; uniform float uWidth; uniform float uSelectedWidth; out float vState;
 flat out vec2 vLineOrigin; flat out vec2 vLineDirection;
 void main(){
   vState=aState;
@@ -295,7 +294,7 @@ void main(){
   vec2 sa=a.xy/a.w*uViewport, sb=b.xy/b.w*uViewport; vec2 d=sb-sa; float l=length(d);
   vec2 dir=l>1e-6? d/l : vec2(1.0,0.0); vec2 nrm=vec2(-dir.y,dir.x);
   vLineOrigin=sa+uViewport; vLineDirection=dir;
-  float w=uWidth*(aState>1.5?2.4:(aState>0.5?1.9:1.0));
+  float w=aState>1.5?uSelectedWidth:uWidth*(aState>0.5?1.9:1.0);
   vec4 p=mix(a,b,aCorner.x);
   p.xy+=nrm*aCorner.y*w/uViewport*p.w;
   p.z-=0.00008*p.w;
@@ -303,11 +302,11 @@ void main(){
 }`;
 
 const LINE_FS = `#version 300 es
-precision highp float; in float vState; uniform vec4 uColor; uniform vec2 uDash;
+precision highp float; in float vState; uniform vec4 uColor; uniform vec3 uSelection; uniform vec3 uSelectionHover; uniform vec2 uDash;
 flat in vec2 vLineOrigin; flat in vec2 vLineDirection; out vec4 o;
 void main(){
   if(uDash.x>0.0 && uDash.y>0.0 && mod(dot(gl_FragCoord.xy-vLineOrigin,vLineDirection),uDash.x+uDash.y)>=uDash.x) discard;
-  vec3 c=uColor.rgb; float a=uColor.a; if(vState>1.5){c=vec3(1.0,0.84,0.36);a=1.0;} else if(vState>0.5){c=vec3(0.95,0.78,0.36);a=1.0;} o=vec4(c,a);
+  vec3 c=uColor.rgb; float a=uColor.a; if(vState>1.5){c=uSelection;a=1.0;} else if(vState>0.5){c=uSelectionHover;a=1.0;} o=vec4(c,a);
 }`;
 
 const GRID_VS = `#version 300 es
@@ -392,7 +391,7 @@ const DIRECT_ID = 15 << 20;
 const INSTANCE_ID = 1 << 24;
 const IDENTITY = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]), IDENTITY3 = new Float32Array([1, 0, 0, 0, 1, 0, 0, 0, 1]);
 const INSTANCE_IDENTITY = Float64Array.from(IDENTITY);
-const DIRECT_LOOK = { surface: [0.561, 0.702, 0.851], surfaceOn: [0.910, 0.761, 0.353], curve: [0.369, 0.784, 0.898, 1], curveOn: [1, 0.827, 0.361, 1], isos: [0.953, 0.961, 0.969, 0.55], controls: [0.788, 0.639, 1, 1] } as const;
+const DIRECT_LOOK = { surface: [0.561, 0.702, 0.851], curve: [0.369, 0.784, 0.898, 1], isos: [0.953, 0.961, 0.969, 0.55], controls: [0.788, 0.639, 1, 1] } as const;
 /** Line pick candidates tried a mesh, nearest first, before it gives up on the hidden ones (as the GPU viewer's G3). */
 const HIDDEN_TRIES = 16;
 
@@ -872,6 +871,7 @@ export class Renderer implements ViewRenderer {
     if (lineOnly) gl.colorMask(false, false, false, false);
     gl.enable(gl.POLYGON_OFFSET_FILL); gl.polygonOffset(1, 1);
     gl.useProgram(this.mesh);
+    gl.uniform3fv(this.u(this.mesh, 'uSelection'), t.selection); gl.uniform3fv(this.u(this.mesh, 'uSelectionHover'), t.selectionHover);
     gl.uniformMatrix4fv(this.u(this.mesh, 'uVP'), false, vp); gl.uniformMatrix4fv(this.u(this.mesh, 'uView'), false, viewM);
     gl.uniform3fv(this.u(this.mesh, 'uBase'), t.base); gl.uniform1f(this.u(this.mesh, 'uAmb'), t.amb); gl.uniform1f(this.u(this.mesh, 'uOpacity'), 1);
     // The opaque bodies, the direct surfaces, then the ghosted bodies over them.
@@ -894,7 +894,7 @@ export class Renderer implements ViewRenderer {
         this.unplaced(this.mesh); gl.uniform1f(this.u(this.mesh, 'uBodySel'), 0); gl.uniform1f(this.u(this.mesh, 'uContact'), 0); gl.uniform1f(this.u(this.mesh, 'uGhost'), 0);
         for (const d of this.direct) {
           if (!d.tri) continue;
-          gl.uniform3fv(this.u(this.mesh, 'uBase'), d.on ? DIRECT_LOOK.surfaceOn : DIRECT_LOOK.surface);
+          gl.uniform3fv(this.u(this.mesh, 'uBase'), d.on ? t.selection : DIRECT_LOOK.surface);
           gl.bindVertexArray(d.tri.vao); gl.drawElements(gl.TRIANGLES, d.tri.count, gl.UNSIGNED_INT, 0);
           if (T) T.add(null, 'surface', d.tri.count / 3, 0, 0);
         }
@@ -925,7 +925,9 @@ export class Renderer implements ViewRenderer {
     gl.depthMask(true); gl.disable(gl.POLYGON_OFFSET_FILL);
     const dpr = w / Math.max(1, this.canvas.clientWidth);
     gl.useProgram(this.line); gl.uniformMatrix4fv(this.u(this.line, 'uVP'), false, vp);
+    gl.uniform3fv(this.u(this.line, 'uSelection'), t.selection); gl.uniform3fv(this.u(this.line, 'uSelectionHover'), t.selectionHover);
     gl.uniform2f(this.u(this.line, 'uViewport'), w / 2, h / 2); gl.uniform1f(this.u(this.line, 'uWidth'), 0.62 * dpr);
+    gl.uniform1f(this.u(this.line, 'uSelectedWidth'), SELECTION_EDGE_WIDTH / 2 * dpr);
     gl.uniform2f(this.u(this.line, 'uDash'), 0, 0);
     // Appearance passes never replace the nearest surface depth used to classify the next edge.
     if (mode !== 'shaded-with-edges' || view.isolatedInstances?.length) gl.depthMask(false);
@@ -934,7 +936,10 @@ export class Renderer implements ViewRenderer {
       const b = this.bodies[bi];
       if (view.hiddenBodies?.has(bi)) continue;
       this.place(this.line, view, bi, false);
-      gl.uniform4f(this.u(this.line, 'uColor'), t.edge[0], t.edge[1], t.edge[2], (view.ghostBodies.has(bi) ? GHOST_OPACITY : EDGE_OPACITY) * (view.isolatedInstances?.length ? FADED : 1));
+      const bodySelected = view.selectedBodies.includes(bi) && !view.ghostBodies.has(bi) && !view.isolatedInstances?.length;
+      const edgeColor = bodySelected && !this.contactLinks.has(BASE) ? t.selection : t.edge;
+      gl.uniform1f(this.u(this.line, 'uWidth'), (bodySelected ? SELECTION_OUTLINE_WIDTH / 2 : 0.62) * dpr);
+      gl.uniform4f(this.u(this.line, 'uColor'), edgeColor[0], edgeColor[1], edgeColor[2], (view.ghostBodies.has(bi) ? GHOST_OPACITY : EDGE_OPACITY) * (view.isolatedInstances?.length ? FADED : 1));
       gl.bindVertexArray(b.lineVao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, b.segments);
       const cost = T && this.costOf(b, b.result.key);
       if (cost) T!.add(cost, 'surface', 0, b.segments, 0);
@@ -948,7 +953,10 @@ export class Renderer implements ViewRenderer {
       }
     }
     for (const it of this.instances) {
-      gl.uniform4f(this.u(this.line, 'uColor'), t.edge[0], t.edge[1], t.edge[2], EDGE_OPACITY * (this.fadedInstance(it.item.id) ? FADED : 1));
+      const bodySelected = this.instanceSelection.includes(it.item.id) && !this.fadedInstance(it.item.id);
+      const edgeColor = bodySelected && !this.contactLinks.has(it.item.id) ? t.selection : t.edge;
+      gl.uniform1f(this.u(this.line, 'uWidth'), (bodySelected ? SELECTION_OUTLINE_WIDTH / 2 : 0.62) * dpr);
+      gl.uniform4f(this.u(this.line, 'uColor'), edgeColor[0], edgeColor[1], edgeColor[2], EDGE_OPACITY * (this.fadedInstance(it.item.id) ? FADED : 1));
       for (let bi = 0; bi < it.bodies.length; bi++) {
         const gpu = it.bodies[bi].gpu;
         this.placeInstance(this.line, it, bi, false);
@@ -988,10 +996,11 @@ export class Renderer implements ViewRenderer {
     }
     if (this.direct.length || this.proposal.length) {
       this.unplaced(this.line, false);
-      // (Widths as the GPU viewer's, in CSS pixels: curves 2, selected 3; their nets 1.2 and isocurves 1; a proposal's edges 1.6.)
+      // (Widths as the GPU viewer's, in CSS pixels: curves 2, selected 3.4; their nets 1.2 and isocurves 1; a proposal's edges 1.6.)
       for (const d of this.direct) {
         if (!d.line) continue;
-        gl.uniform1f(this.u(this.line, 'uWidth'), (d.on ? 1.5 : 1) * dpr); gl.uniform4fv(this.u(this.line, 'uColor'), d.on ? DIRECT_LOOK.curveOn : DIRECT_LOOK.curve);
+        gl.uniform1f(this.u(this.line, 'uWidth'), (d.on ? SELECTION_EDGE_WIDTH / 2 : 1) * dpr);
+        if (d.on) gl.uniform4f(this.u(this.line, 'uColor'), ...t.selection, 1); else gl.uniform4fv(this.u(this.line, 'uColor'), DIRECT_LOOK.curve);
         gl.bindVertexArray(d.line.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, d.line.count);
         if (T) T.add(null, 'surface', 0, d.line.count, 0);
       }

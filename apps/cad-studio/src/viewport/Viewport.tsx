@@ -1470,9 +1470,17 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       items.push(<circle key={'pole' + p.key} cx={q[0]} cy={q[1]} r={on ? 5.5 : 3.5} className={on ? 'pole-mark picked' : 'pole-mark'} />);
     });
     // The corner under the pointer, and the picked ones.
-    [...(props.pickedVertices ?? []), ...(hover.current.vertex && !sk ? [hover.current.vertex] : [])].forEach((v, k) => {
-      const q = cam.project(v.at, w, h); items.push(<circle key={'vx' + k} cx={q[0]} cy={q[1]} r={5} className="vertex-mark" />);
-    });
+    for (const [k, vertex] of (props.pickedVertices ?? []).entries()) {
+      const q = cam.project(vertex.at, w, h); items.push(<circle key={'vx' + k} cx={q[0]} cy={q[1]} r={6} className="vertex-mark selected" />);
+    }
+    const hoveredVertex = hover.current.vertex;
+    let vertexSelected = false;
+    if (hoveredVertex) for (const vertex of props.pickedVertices ?? []) {
+      if (vertex.body === hoveredVertex.body && vertex.at[0] === hoveredVertex.at[0] && vertex.at[1] === hoveredVertex.at[1] && vertex.at[2] === hoveredVertex.at[2]) { vertexSelected = true; break; }
+    }
+    if (hoveredVertex && !sk && !vertexSelected) {
+      const q = cam.project(hoveredVertex.at, w, h); items.push(<circle key="vertex-hover" cx={q[0]} cy={q[1]} r={4} className="vertex-mark hover" />);
+    }
     const ml = props.measureLine;
     if (ml) {
       const a = cam.project(ml.a, w, h), b = cam.project(ml.b, w, h), mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, tw = Math.max(52, ml.label.length * 7 + 14);
