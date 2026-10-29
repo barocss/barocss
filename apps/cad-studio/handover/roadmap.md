@@ -2225,3 +2225,17 @@ reference/shared-revision saved meaning and release-binding evidence gaps under 
 MODEL-EVALMEMO-EVALUATOR-SCOPE remains conditional CONTRACT_GAP, not a reproduced defect; establish
 caller semantics before any check. No duplicate issue, implementation dispatch, cross-chat reply, remote
 state change, priority switch or repetition of passed checks. Owner/HOLD boundaries remain.
+
+
+### Electron execution validation — queued under15 desktop (owner, 2026-10-29)
+
+The owner explicitly requests roadmap registration of Electron execution, while regular08→09 work
+continues. Reuse the existing desktop scope; this is not an immediate wrapper/packaging restart or
+automatic WebGL2 deletion. When selected, pin an Electron/Chromium build and supported platform/GPU/
+driver profile. Verify actual packaged startup, observed WebGPU adapter/device/backend, Worker startup,
+public CAD edit/pick and native Save/fresh Open, document-preserving unsupported-device refusal and
+device-loss/retry/close cleanup. Record actual binary/version/platform and source, supported limits,
+owned process cleanup and original failures separately from Chrome browser receipts. Start with one
+supported local profile; Windows/Linux/general hardware acceptance needs its own actual evidence.
+Current Electron execution is NOT_RUN. Existing D332 four browser/theme profiles are reused only as
+Chrome evidence. Continue next08 rectangular cut feature grid, then09; no new parallel release queue.
