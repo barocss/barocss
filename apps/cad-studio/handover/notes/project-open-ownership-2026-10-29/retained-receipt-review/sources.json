@@ -1,0 +1,17 @@
+{
+  "rootScope": "Read supplied source/retained-author-receipt review and parsed verification; register existing roadmap evidence only. No independent runtime/byte re-audit, product mutation, issue change or cross-chat reply.",
+  "files": [
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/d326-project-open-receipt-review.md",
+      "copy": "d326-project-open-receipt-review.md",
+      "bytes": 11633,
+      "sha256": "e78ce37c747d2a6c6fdb72fa213757405ba36d02d9c106907f67ae524925b8b8"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/verification/d326-project-open-receipt-review.json",
+      "copy": "d326-project-open-receipt-review.json",
+      "bytes": 59201,
+      "sha256": "9179d302bc77e5bb48fa9a64114e6f9e581d8a13d99b0d89d3efb0befe62d811"
+    }
+  ]
+}

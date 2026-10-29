@@ -1931,3 +1931,40 @@ Only for a broader claim, collect the requested missing native profile and compl
 dist binding. Do not repeat the successful selected native case. Transfer closure of #2239 is not
 fix-acceptance evidence; no reopening or new issue. Root read and retained the supplied report and
 parsed verification without independent execution or reply. Existing A05/A06 priority remains.
+
+
+### D326 selected Open ownership retained-receipt review — 2026-10-29
+
+Attach the [supplied review and verification](notes/project-open-ownership-2026-10-29/retained-receipt-review/d326-project-open-receipt-review.md)
+to existing12/O9. Verdict: **APPROVE_BOUNDED_AUTHOR_RECEIPTS** for exact1266 project and serialized-file
+Open ownership. Actual paths check request/session/store/path/App scope after their awaits, retain the
+accepted-scope handoff, and guard late errors, versions/autosave/linked metadata and reference followup.
+D321/D322 contracts remain. This review does not accept all A05/A06 or current whole App runtime;
+D327/D328 qualifications remain separate receipts rather than extensions of the old1266 run.
+
+Counts: Studio423 includes focused29(project20+existingSave9). Earlier24 is an overlapping intermediate
+checkpoint. Final native TAP contains five actual cases and no separate starter; do not count six.
+Preserve hook baseline1PASS/6FAIL, first actual setup/schedule FAIL before A was armed, and second actual
+stale A-overwrites-live-B product FAIL while original B file bytes remain unchanged. These are different
+failure types, not disk data loss or extra successful coverage.
+
+Reviewer reports144 unique artifact paths from269 references (125 overlaps), five source bindings and
+eight gzip capsules checked against exact Git bytes/hashes. Five-case raw before/after fields are present
+and equal, including real typed nonempty History. Actual A/B file bytes and normal B parsed semantics
+are checked in that review. Offer null staying null is not nonempty-offer preservation. Original File
+arrayBuffer returns are held only after native fulfillment; real UI-saved bytes pass through public
+project/file-input flow with picker/input substitution. This is not synthetic document injection, but
+also not natural OS failure, OS chooser or actual external-folder proof.
+
+Retained .bcad files are asset-free plain JSON, not binary containers. The original operation Promise
+is NOT_EXPOSED. Trace/MessageChannel/UI-frame observations support only finite plain-JSON continuation,
+not arbitrary blob/crypto/linked I/O completion. Critical source/capsule hashes do not establish the
+complete executing Vite import graph. Reviewed useProject/OpenScope/focused drivers remain equivalent;
+App was refactored later, so current full-App acceptance requires its own bound evidence.
+
+Other import formats and stage A05, worker sender A06, native reference-remap negatives, metadata/linked
+stall matrices, actual native folder, fresh-context/cross-tab/crash and whole other-package/browser/CI
+or performance remain outside this review. Do not repeat the successful selected five to acknowledge
+it. Expand only with evidence for the requested actual path/file/runtime. Transfer closure is not
+fix acceptance; no issue reopening. Root read and retained the documents without independent execution
+or reply. Existing A05/A06 priority remains unchanged.
