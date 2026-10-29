@@ -1809,3 +1809,28 @@ geometric tolerance, independent numerical/manufacturing acceptance, product fix
 full suite or remote CI is claimed by this intake. Do not rerun the already-passed DA-1a batch merely
 to acknowledge this report. Schedule implementation and differential checks at the existing drawing
 priority; no new issue or priority change.
+
+
+### DA-DUP-1 runtime differential supplement — 2026-10-29
+
+Status remains **CONFIRMED DEFECT / FIX NOT STARTED**, after existing A05/A06. The
+[supplied report and original receipt](notes/drawing-assistant-maps-intake-2026-10-29/duplicate-differential/duplicate-differential-092450.md)
+and [existing #2243 comment](https://github.com/barocss/barocss/issues/2243#issuecomment-6493092551)
+add exact4428c79a runtime evidence to the same task. No duplicate issue or new queue.
+
+The previously NOT_RUN differential and coverage paths now have author runtime observations:
+- A single public edit keeps d3 at15, changes d9 from15 to17, and removes this pair's DUPLICATE.
+- With d9 absent and the same ten annotations, hole Y15/15 yields zero location warnings; Y15/17
+  yields one right-view HOLE_NOT_LOCATED. An unrelated hole's equal coordinate masks the missing
+  independent target location. This confirms the coverage portion of DA-DUP-1 at runtime.
+- Four check groups give three PASS and one PRODUCT_CONTRACT FAIL, run exit1. The first failure is
+  equal_coordinate_missing_target_location_diagnostic. This run has no harness/support failure.
+  Twenty legitimate sig additions are checked as metadata. The earlier091150 harness FAIL remains
+  unchanged and is not retroactively converted to PASS. No retry, new tolerance or product fix.
+
+The owner repair must still pass at its exact repaired SHA: preserve both independent15/15 target
+location dimensions, resolve15/17 by target, require feature-aware location coverage, and retain genuine
+same-measurement orthographic duplicate and manual/auto controls. Do not repeat unchanged defective
+baseline reproduction merely to acknowledge this receipt. Studio UI/Undo, manual dimensions, external
+PDF, native roundtrip and independent numerical/manufacturing accuracy remain separate. Root read the
+full report/receipt; no independent execution, issue change or reply. Keep existing roadmap priority.

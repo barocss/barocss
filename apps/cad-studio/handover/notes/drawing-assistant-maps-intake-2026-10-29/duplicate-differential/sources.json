@@ -1,0 +1,17 @@
+{
+  "rootScope": "Read supplied differential report and receipt; register evidence only. No independent rerun, product mutation or cross-chat reply.",
+  "files": [
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/drawing-assistant-20261029/duplicate-differential-092450.md",
+      "copy": "duplicate-differential-092450.md",
+      "bytes": 8729,
+      "sha256": "8b3f3f06bb2ed1cb8351fd7a66f387b3102c8a970775bb77184232e4b8706b86"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/drawing-duplicate-differential-20261029T092450/receipt.json",
+      "copy": "receipt.json",
+      "bytes": 4196,
+      "sha256": "76c51c3480ef0041c87b729e24fcdea32e538828e5d166dd12f8cebd92ed262d"
+    }
+  ]
+}
