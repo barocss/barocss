@@ -42,6 +42,7 @@ function apply(doc: StudioDoc, spec: FeatureSpec, body: string | null): StudioDo
   const { selection, unknown } = resolveNames(bodies, namesOf(spec, body));
   if (unknown.length) throw refuse('SELECTION_UNKNOWN', `no face, edge or body named ${unknown.join(', ')} on the part`);
   const cmd = commandById(spec.command)!, ctx: Ctx = { doc: withSketch(doc, spec), bodies, selection };
+  if (spec.command === 'fill-feature-pattern') { ctx.fillPatternRegion = spec.region; ctx.fillPatternAnchor = spec.anchor; }
   if (spec.command === 'curve-feature-pattern') ctx.curvePatternPath = spec.path;
   const avail = cmd.available(ctx);
   // (A command that can't run says why; a reason that carries the core's own code — [FASTENER_SIZE_ROW] — keeps it, §6.)
@@ -79,6 +80,7 @@ const BINDS: Record<string, Record<string, readonly [node: number, field: string
   chamfer: { distance: [0, 'd'] },
   shell: { t: [0, 't'] },
   'linear-pattern': { spacing: [0, 'spacing'], count: [0, 'count'] },
+  'fill-feature-pattern': { spacing: [0, 'spacing'], spacing2: [0, 'spacing2'] },
   'curve-feature-pattern': { spacing: [0, 'spacing'] },
   'linear-feature-pattern': { spacing: [0, 'spacing'] },
   'rectangular-feature-pattern': { spacing: [0, 'spacing'], spacing2: [0, 'spacing2'] },

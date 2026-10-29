@@ -1,3 +1,5 @@
+import { eligibleFillPatternRegions, fillFeaturePatternProblem, fillRegionSnapshot } from '../engine/fillFeaturePattern';
+import type { FillFeaturePatternRegion } from '@barocss/cad/api';
 import { curveFeaturePatternProblem, eligibleCurvePatternPaths, type CurveFeaturePatternPath } from '../engine/curveFeaturePattern';
 // Commands are driven by the current selection. Each one says whether it applies (and why not),
 // which fields its HUD shows, and how it changes the document.
@@ -38,7 +40,7 @@ export interface EdgeSel { body: number; edge: number }
 /** `vertices`: corners picked (ends of edges), by body and position. */
 export interface Selection { faces: FaceSel[]; edges: EdgeSel[]; bodies: number[]; sketches?: number[]; vertices?: { body: number; at: [number, number, number] }[] }
 /** `direct`: the direct curves and surfaces picked (their ids). */
-export interface Ctx { curvePatternPath?: CurveFeaturePatternPath; doc: StudioDoc; bodies: BodyResult[]; selection: Selection; pick?: [number, number, number]; direct?: string[]; bearingAssembly?: BearingAssemblyInput }
+export interface Ctx { fillPatternRegion?: FillFeaturePatternRegion; fillPatternAnchor?: readonly [number, number]; curvePatternPath?: CurveFeaturePatternPath; doc: StudioDoc; bodies: BodyResult[]; selection: Selection; pick?: [number, number, number]; direct?: string[]; bearingAssembly?: BearingAssemblyInput }
 
 export type Values = Record<string, number | string>;
 /** `when`: shown (and required) only for these values. */
@@ -781,6 +783,23 @@ const allCommands: Command[] = [
       if (!Number.isFinite(spacing) || spacing <= 0 || spacing > 10000) throw refusal('VALUE', 'Spacing must be positive and at most 10000 mm.');
       if (!Number.isInteger(count) || count < 2 || count > 64) throw refusal('VALUE', 'Count must be a whole number from 2 to 64, including the original cut.');
       return withNode(ctx.doc, { kind: 'linear-feature-pattern', parent: refOf(oneBody(ctx)!), axis, spacing, count });
+    },
+  },
+  {
+    id: 'fill-feature-pattern', label: 'Fill cut pattern', icon: 'cad-pattern-linear', hint: 'Capture a region snapshot. Later sketch edits do not change it. Reference points control placement; a cut may cross the region boundary.', group: 'pattern', keywords: 'fill region feature cut repeat subtract',
+    available: ctx => { const why = linearCutProblem(ctx); return why ? no(why.message) : ok; },
+    fields: ctx => [...(ctx.fillPatternRegion ? [] : [{ key: 'region', label: 'Region snapshot', kind: 'choice' as const, options: eligibleFillPatternRegions(ctx.doc), empty: 'Add a closed straight world XY sketch without holes.' }]),
+      { key: 'anchorX', label: 'Reference X', kind: 'number', min: -10000, max: 10000 }, { key: 'anchorY', label: 'Reference Y', kind: 'number', min: -10000, max: 10000 },
+      { key: 'spacing', label: 'X spacing', kind: 'mm', min: 0, max: 10000 }, { key: 'count', label: 'Columns', kind: 'count', min: 1, max: 64 },
+      { key: 'spacing2', label: 'Y spacing', kind: 'mm', min: 0, max: 10000 }, { key: 'count2', label: 'Rows', kind: 'count', min: 1, max: 64 }],
+    defaults: ctx => ({ region: eligibleFillPatternRegions(ctx.doc)[0]?.value ?? '', anchorX: ctx.fillPatternAnchor?.[0] ?? 0, anchorY: ctx.fillPatternAnchor?.[1] ?? 0, spacing: 12, count: 4, spacing2: 10, count2: 3 }),
+    build: (ctx, v) => {
+      const why = linearCutProblem(ctx); if (why) throw why;
+      if (!ctx.fillPatternRegion && (typeof v.region !== 'string' || !/^(0|[1-9][0-9]*)$/.test(v.region))) throw refusal('VALUE', 'Select a region snapshot.');
+      const node = { kind: 'fill-feature-pattern' as const, parent: refOf(oneBody(ctx)!), region: ctx.fillPatternRegion ?? fillRegionSnapshot(ctx.doc, Number(v.region)), anchor: ctx.fillPatternAnchor ?? [Number(v.anchorX), Number(v.anchorY)] as const, spacing: Number(v.spacing), count: Number(v.count), spacing2: Number(v.spacing2), count2: Number(v.count2) };
+      const problem = fillFeaturePatternProblem(node, ctx.doc.nodes, ctx.doc.parameters);
+      if (problem) throw coded(problem.startsWith('[BAD_REFERENCE]') ? 'BAD_REFERENCE' : 'VALUE', problem);
+      return withNode(ctx.doc, structuredClone(node));
     },
   },
   {

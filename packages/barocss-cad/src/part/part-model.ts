@@ -27,6 +27,7 @@ import { polynomialFaceFillet } from '../blend/polynomial-face-fillet.js';
 import { draftedExtrusion } from '../features/drafted-extrusion.js';
 import { profileRelief, type ReliefSketch } from '../features/profile-relief.js';
 import { cylindricalWrapFeature, type CylindricalWrapReport } from '../features/cylindrical-wrap-feature.js';
+import { fillCutSnapshot, fillCutPlacements, type FillFeaturePatternRegion } from '../features/fill-cut-pattern.js';
 import { curveCutOffsets, type RawNurbsPath } from '../features/curve-cut-pattern.js';
 import { stepTessellatedChars } from '../io/step.js';
 import { brepFromTriangles, isMeshBrepError } from '../mesh/mesh-brep.js';
@@ -183,6 +184,8 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'linear-feature-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number }
   /** Repeat an active difference tool on two distinct global axes; both counts include the original cut. */
   | { readonly kind: 'rectangular-feature-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number; readonly axis2: CadPartAxis; readonly spacing2: CadPartDim; readonly count2: number }
+  /** Repeat the original CUT tool on a finite XY grid, masked by an inline reference-point region. */
+  | { readonly kind: 'fill-feature-pattern'; readonly target: string; readonly region: FillFeaturePatternRegion; readonly anchor: readonly [number, number]; readonly spacing: CadPartDim; readonly count: number; readonly spacing2: CadPartDim; readonly count2: number }
   /** Repeat a difference's cut tool along an open polyline, with its original orientation. */
   | { readonly kind: 'curve-feature-pattern'; readonly target: string; readonly path: RawNurbsPath; readonly spacing: CadPartDim; readonly count: number }
   /** Copies k·angle about the axis through `pivot` (about X or Y: multiples of 90°). */
@@ -1920,6 +1923,23 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
           const offset: Point = [0, 0, 0]; offset[first] = spacing * i; offset[second] = spacing2 * j;
           cut = boolean(cut, affine(joined, matrix, offset, `@${i},${j}`), 'difference', at);
         }
+        return one(cut);
+      };
+    }
+    case 'fill-feature-pattern': {
+      const spacing = dim(f.spacing as CadPartDim, 'spacing'), spacing2 = dim(f.spacing2 as CadPartDim, 'spacing2');
+      if (spacing === 0 || spacing2 === 0) fail('PARAMETER', 'fill feature pattern spacing must not be zero');
+      const count = integer(f.count, 'count', 1, CadPartLimits.copies), count2 = integer(f.count2, 'count2', 1, CadPartLimits.copies);
+      if (count * count2 > CadPartLimits.copies) fail('INPUT', `fill feature pattern must have at most ${CadPartLimits.copies} candidate cells`);
+      const snapshot = fillCutSnapshot(f.region, f.anchor, fail);
+      const placements = fillCutPlacements(snapshot.region, snapshot.anchor, spacing, count, spacing2, count2);
+      const { seed, tool } = t.cutSource(f.target);
+      const matrix: BrepAffine['matrix'] = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+      return () => {
+        if (!placements.length || !tool.length) return { kind: 'solid', parts: [seed] };
+        const joined = unionAll(tool.map(p => p.solid), at);
+        let cut = seed.solid;
+        for (const placement of placements) cut = boolean(cut, affine(joined, matrix, placement.offset, placement.suffix), 'difference', at);
         return one(cut);
       };
     }

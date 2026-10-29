@@ -89,6 +89,10 @@ function featuresOf(doc: CadPartDocument, spec: FeatureSpec, body: string | null
       const { axis, spacing, count, axis2, spacing2, count2 } = spec.values;
       return [{ id: nextId(doc, 'rectangular-feature-pattern'), kind: 'rectangular-feature-pattern', target: target(), axis, spacing, count, axis2, spacing2, count2 }];
     }
+    case 'fill-feature-pattern': {
+      const { spacing, count, spacing2, count2 } = spec.values;
+      return [{ id: nextId(doc, 'fill-feature-pattern'), kind: 'fill-feature-pattern', target: target(), region: spec.region, anchor: spec.anchor, spacing, count, spacing2, count2 }];
+    }
     case 'curve-feature-pattern': {
       const { spacing, count } = spec.values;
       // The evaluator gives a typed CAPABILITY refusal for a direct reference: the kernel has no direct sources.
@@ -143,6 +147,7 @@ const BINDS: Record<string, Record<string, readonly [feature: number, path: read
   'linear-pattern': { spacing: [0, ['spacing']] },
   'linear-feature-pattern': { spacing: [0, ['spacing']] },
   'rectangular-feature-pattern': { spacing: [0, ['spacing']], spacing2: [0, ['spacing2']] },
+  'fill-feature-pattern': { spacing: [0, ['spacing']], spacing2: [0, ['spacing2']] },
   'curve-feature-pattern': { spacing: [0, ['spacing']] },
   split: { at: [0, ['at']] },
 };

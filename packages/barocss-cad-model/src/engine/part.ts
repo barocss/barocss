@@ -1,3 +1,4 @@
+import { fillPatternDocumentProblem } from './fillFeaturePattern';
 import { curvePatternDocumentProblem, resolveCurveFeaturePatternPath } from './curveFeaturePattern';
 import { resolveShopTree } from './shopRows';
 // The studio document as a kernel part document: a node is the feature of its stable id (`n<k>`, see ids.ts),
@@ -134,6 +135,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'scale': return { ...at, kind: 'scale', target: ref(node.parent), factor: node.factor, ...(node.pivot ? { pivot: node.pivot } : {}) };
     case 'linear-pattern': return { ...at, kind: 'linear-pattern', target: ref(node.parent), axis: node.axis, spacing: node.spacing, count: node.count };
     case 'linear-feature-pattern': return { ...at, kind: 'linear-feature-pattern', target: ref(node.parent), axis: node.axis, spacing: node.spacing, count: node.count };
+    case 'fill-feature-pattern': return { ...at, kind: 'fill-feature-pattern', target: ref(node.parent), region: node.region, anchor: node.anchor, spacing: node.spacing, count: node.count, spacing2: node.spacing2, count2: node.count2 };
     case 'curve-feature-pattern': return { ...at, kind: 'curve-feature-pattern', target: ref(node.parent), path: resolveCurveFeaturePatternPath(curvePathDoc, node.path), spacing: node.spacing, count: node.count };
     case 'rectangular-feature-pattern': return { ...at, kind: 'rectangular-feature-pattern', target: ref(node.parent), axis: node.axis, spacing: node.spacing, count: node.count, axis2: node.axis2, spacing2: node.spacing2, count2: node.count2 };
     case 'circular-pattern': return { ...at, kind: 'circular-pattern', target: ref(node.parent), axis: node.axis, angle: node.angle, count: node.count, ...(node.pivot ? { pivot: node.pivot } : {}) };
@@ -499,6 +501,8 @@ export function resolveAssociativeSketch(doc: StudioDoc, index: number): SketchN
 export function toPartDocument(doc: StudioDoc): CadPartDocument { return buildPartDocument(doc); }
 
 function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
+  const fillProblem = fillPatternDocumentProblem(doc);
+  if (fillProblem) throw coded(fillProblem.startsWith('[BAD_REFERENCE]') ? 'BAD_REFERENCE' : 'VALUE', fillProblem);
   const curveProblem = curvePatternDocumentProblem(doc);
   if (curveProblem) throw coded(curveProblem.startsWith('[BAD_REFERENCE]') ? 'BAD_REFERENCE' : 'VALUE', curveProblem);
   curvePathDoc = doc;
@@ -561,7 +565,7 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
     }
     // Active cut patterns, ribs and reliefs must reach kernel source admission even when their parent is gone.
     // Suppressing the pattern itself keeps the ordinary parent pass-through below.
-    if ((node.kind === 'curve-feature-pattern' || node.kind === 'linear-feature-pattern' || node.kind === 'rectangular-feature-pattern' || node.kind === 'rib' || node.kind === 'rectangular-relief' || node.kind === 'text-relief') && !node.suppressed) { features.push(...featuresOf(node, i, CadPartLimits.features - features.length)); return; }
+    if ((node.kind === 'fill-feature-pattern' || node.kind === 'curve-feature-pattern' || node.kind === 'linear-feature-pattern' || node.kind === 'rectangular-feature-pattern' || node.kind === 'rib' || node.kind === 'rectangular-relief' || node.kind === 'text-relief') && !node.suppressed) { features.push(...featuresOf(node, i, CadPartLimits.features - features.length)); return; }
     const parent = (node as { parent: BodyRef }).parent;
     if (gone.has(parent.node)) { gone.add(i); return; }
     if (node.suppressed) { pass(i, parent); return; }

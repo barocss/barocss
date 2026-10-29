@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Icon } from './atoms';
+import { FillPatternHints } from './FillPatternHints';
 
 /** The HUD's field box: 26 px, the studio's mono type, the accent ring when focused. */
 const FIELD = 'h-[26px]! w-full px-1.5! text-xs! font-medium [font-family:var(--mono)] bg-[var(--bg)] focus-visible:ring-1 focus-visible:ring-primary';
@@ -63,6 +64,7 @@ export function Hud({ store, onChange, onApply, onCancel, onFile }: Props) {
       <div className="hud-fields">
         {fields.map(renderField)}
       </div>
+      {active.cmd.id === 'fill-feature-pattern' && <FillPatternHints />}
       {active.preview === 'error' && active.error && <div className="hud-error" role="status">
         <div className="hud-error-title">{active.error.title}</div><div>{active.error.hint}</div>
         {active.error.detail && <details><summary onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') e.stopPropagation(); }}>Kernel detail</summary><code>{active.error.detail}</code></details>}

@@ -30,7 +30,7 @@ import { SelectionInspector } from './ui/SelectionInspector';
 import { useMeshImport } from './files/useMeshImport';
 import { MeshFileDialogs } from './files/MeshFileDialogs';
 import { useRouteBundleEditor } from './state/useRouteBundleEditor';
-import { curvePatternInputKey, curvePatternDocumentProblem, directCommandDocument, insertedCurvePartProblem, prepareDirectCurveCandidate } from './app/directCurveCandidate';
+import { curvePatternInputKey, curvePatternDocumentProblem, directCommandDocument, insertedCurvePartProblem, prepareDirectCurveCandidate, preparePatternNodeCandidate } from './app/directCurveCandidate';
 import { ReferenceDecisions } from './ui/ReferenceDecisions';
 import { useRobotExports } from './robot/useRobotExports';
 import { RobotInspector } from './robot/RobotInspector';
@@ -265,7 +265,7 @@ export function App() {
   const [bodiesFor, setBodiesFor] = useState<StudioDoc | null>(null);
   // Parameter candidates use the normal evaluation lane before the accepted document changes.
   const parameterRequest = useRef(0);
-  const [parameterEdit, setParameterEdit] = useState<{ kind?: 'direct'; request: number; base: StudioDoc; baseInput: StudioDoc; input: StudioDoc; next: StudioDoc; accept(next: StudioDoc): void } | null>(null);
+  const [parameterEdit, setParameterEdit] = useState<{ kind?: 'direct'; failureTitle?: string; request: number; base: StudioDoc; baseInput: StudioDoc; input: StudioDoc; next: StudioDoc; accept(next: StudioDoc): void } | null>(null);
   const parameterEditNow = useRef(parameterEdit); parameterEditNow.current = parameterEdit;
   const acceptedEvaluation = useRef<{ key: string; result: Extract<EvalResult, { ok: true }> } | null>(null);
   // Only a parameter transition may hand a result to the next effect once; ordinary evaluations still run.
@@ -678,7 +678,7 @@ export function App() {
       if (parameterMass.current?.request === edit?.request && !parameterMass.current?.target) parameterMass.current = null;
       if (edit.kind === 'direct') parameterEditNow.current = null;
       setParameterEdit(null); setBusy(false);
-      setToast({ title: edit.kind === 'direct' ? 'Direct geometry not changed' : 'Parameters not changed', hint: 'The accepted part and its references are unchanged.', detail });
+      setToast({ title: edit.failureTitle ?? (edit.kind === 'direct' ? 'Direct geometry not changed' : 'Parameters not changed'), hint: 'The accepted part and its references are unchanged.', detail });
     };
     setBusy(true);
     const run = async () => {
@@ -827,8 +827,8 @@ export function App() {
     pushUndo();
     if (!setDoc({ ...doc, drawing: next })) return; setDirty(true);
   }, [doc, marker, acceptanceScope]);
-  const stageCurveCandidate = useCallback((candidate: { next: StudioDoc; input: StudioDoc }, select?: string[]) => {
-    if (bodiesFor !== evaluatedRef.current || !massReady || shownVariant.current) { setToast({ title: 'Direct geometry not changed', hint: 'Wait for the accepted part and its mass results to finish evaluating.', detail: '' }); return; }
+  const stageCurveCandidate = useCallback((candidate: { next: StudioDoc; input: StudioDoc; failureTitle?: string }, select?: string[]) => {
+    if (bodiesFor !== evaluatedRef.current || !massReady || shownVariant.current) { setToast({ title: candidate.failureTitle ?? 'Direct geometry not changed', hint: 'Wait for the accepted part and its mass results to finish evaluating.', detail: '' }); return; }
     const edit = { ...candidate, kind: 'direct' as const, request: ++parameterRequest.current, base: doc, baseInput: evaluatedRef.current,
       accept: (accepted: StudioDoc) => { if (commit(accepted, false) && select) setDirectSel(select); } };
     // Reserve before React renders so a second edit cannot change the accepted input.
@@ -1925,11 +1925,12 @@ export function App() {
       {skel.session && !rendering && !drawing && <SkeletonPanel editor={skel} name={skel.session.node === null ? 'new skeleton' : featureLabel(doc.nodes[skel.session.node], skel.session.node, doc.nodes)} />}
       {!cageEd.session && !skel.session && !rendering && !sketch && !measure && !active && !directSel.length && !instanceSel.length && !assembly.draft && <SelectionInspector model={{ doc, evaluated, bodies, fresh, busy, massReady }} selection={selection} materialSettings={{ material, setMaterial }}
         display={{ showBox, setShowBox, inertiaAt, setInertiaAt }} changes={{ commit, setSelection, edgesToCurves, loadBendTable, setFlatView, setCutListView, separate }}>
-        {editNode !== null && <NodeEditor nodes={doc.nodes} parameters={doc.parameters} doc={doc} pending={parameterEdit?.kind === 'direct'} pendingLabel="Checking the path cut pattern…" bearingAssembly={{ root: doc, owner: 'base' }} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode} onEditSketch={(() => { const n = doc.nodes[editNode]; const s = n?.kind === 'sketch' ? editNode : n && 'sketch' in n ? n.sketch : null; return s !== null && doc.nodes[s]?.kind === 'sketch' ? () => editSketch(s) : undefined; })()} onApply={nodes => {
+        {editNode !== null && <NodeEditor nodes={doc.nodes} parameters={doc.parameters} doc={doc} pending={parameterEdit?.kind === 'direct'} pendingLabel={doc.nodes[editNode]?.kind === 'fill-feature-pattern' ? 'Checking the fill cut pattern…' : 'Checking the path cut pattern…'} bearingAssembly={{ root: doc, owner: 'base' }} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode} onEditSketch={(() => { const n = doc.nodes[editNode]; const s = n?.kind === 'sketch' ? editNode : n && 'sketch' in n ? n.sketch : null; return s !== null && doc.nodes[s]?.kind === 'sketch' ? () => editSketch(s) : undefined; })()} onApply={nodes => {
           if (!canChangeDocument()) return;
           const scope = bearingEditScope.current;
           const next = { ...doc, nodes: dropStaleMade(doc.nodes, nodes) };
-          if (doc.nodes[editNode]?.kind === 'curve-feature-pattern' || nodes[editNode]?.kind === 'curve-feature-pattern') { stageCurveCandidate({ next, input: prefixDoc(next, next.nodes.length) }); return; }
+          const candidate = preparePatternNodeCandidate(doc, next, editNode);
+          if (candidate) { stageCurveCandidate(candidate); return; }
           engine.evaluate(next, revision.current++).then(r => { if (!r || bearingEditScope.current !== scope) return; if (r.ok) commit(next); else setToast({ ...r.error, hint: 'The design was not changed. Adjust the values and try again.' }); });
         }} onDelete={() => deleteNode(editNode)} onClose={() => { discardDirectCandidateRef.current(); setEditNode(null); }} />}
       </SelectionInspector>}

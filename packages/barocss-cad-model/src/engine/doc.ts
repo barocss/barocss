@@ -1,4 +1,4 @@
-import type { CurveFeaturePatternPath } from '@barocss/cad/api';
+import type { FillFeaturePatternRegion, CurveFeaturePatternPath } from '@barocss/cad/api';
 import { flattenShopView, resolveShopTree } from './shopRows';
 import { refusal } from './refusal';
 import { CadNumericPolicy, CadPartLimits } from '@barocss/cad';
@@ -329,6 +329,7 @@ type ModelNodeBase = SketchNode | TextNode | TextReliefNode | CylindricalWrapNod
   | { kind: 'linear-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
   /** Repeat a current difference's cut; spacing keeps the stored dimension reference. */
   | { kind: 'linear-feature-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
+  | { kind: 'fill-feature-pattern'; parent: BodyRef; region: FillFeaturePatternRegion; anchor: readonly [number, number]; spacing: Dim; count: number; spacing2: Dim; count2: number }
   | { kind: 'curve-feature-pattern'; parent: BodyRef; path: CurveFeaturePatternPath; spacing: Dim; count: number }
   | { kind: 'rectangular-feature-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number; axis2: Axis; spacing2: Dim; count2: number }
   /** About `axis` through `pivot` (default the origin). */
@@ -1034,6 +1035,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'scale': return `Scale ×${node.factor}`;
     case 'linear-pattern': return `Pattern ×${node.count}`;
     case 'linear-feature-pattern': return `Cut pattern ×${node.count}`;
+    case 'fill-feature-pattern': return `Fill cut pattern ${node.count} × ${node.count2}`;
     case 'curve-feature-pattern': return `Path cut pattern ×${node.count}`;
     case 'rectangular-feature-pattern': return `Cut pattern ${node.count} × ${node.count2}`;
     case 'circular-pattern': return `Circular ×${node.count}`;

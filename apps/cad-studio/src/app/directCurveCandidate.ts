@@ -27,6 +27,14 @@ export function prepareDirectCurveCandidate(before: StudioDoc, direct: DirectGeo
   return { next, input: prefixDoc(next, next.nodes.length) };
 }
 
+/** Edited CUT recipes use the same unaccepted Worker lane as a consumed direct path. */
+export function preparePatternNodeCandidate(before: StudioDoc, next: StudioDoc, index: number): { next: StudioDoc; input: StudioDoc; failureTitle?: string } | null {
+  const oldKind = before.nodes[index]?.kind, nextKind = next.nodes[index]?.kind;
+  const fill = oldKind === 'fill-feature-pattern' || nextKind === 'fill-feature-pattern';
+  if (!fill && oldKind !== 'curve-feature-pattern' && nextKind !== 'curve-feature-pattern') return null;
+  return { next, input: prefixDoc(next, next.nodes.length), ...(fill ? { failureTitle: 'Fill cut pattern not changed' } : {}) };
+}
+
 /** Part insertion must check the placed context before its direct geometry is stripped. */
 export function insertedCurvePartProblem(part: StudioDoc): string | null {
   return curvePatternDocumentProblem({ instances: [{ doc: part }] });

@@ -1,3 +1,4 @@
+import { fillPatternDocumentProblem } from './fillFeaturePattern';
 import { curvePatternDocumentProblem } from './curveFeaturePattern';
 import { refusal } from './refusal';
 import { provenanceOfTree, registerShopRowProvenance, resolveShopTree, type ShopTreeProvenance } from './shopRows';
@@ -31,6 +32,8 @@ const PRUNE_EVERY = 64, KEEP_FOR = 256;
 
 /** What evaluation reads of a document (an instance's part likewise). */
 export function evaluatedPart(doc: StudioDoc): StudioDoc {
+  const fillProblem = fillPatternDocumentProblem(doc);
+  if (fillProblem) throw refusal('VALUE', fillProblem);
   const pathProblem = curvePatternDocumentProblem(doc);
   if (pathProblem) throw refusal('VALUE', pathProblem);
   doc = resolveShopTree(doc);

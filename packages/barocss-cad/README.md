@@ -11585,3 +11585,23 @@ displacement; they are not claimed unchanged. Pcurves are regenerated under the
 existing whole UV policy, without sampled cross-copy D1 bit identity. The pivot
 branch retains its original failure cause and completed-work report. No fusion,
 persistent naming, mass, STL, editor, GPU or manufacturing acceptance is added.
+
+## Reference-point fill CUT pattern
+
+`part.fillFeaturePattern({ region: { points }, anchor: [x, y], spacing, count, spacing2, count2 })`
+repeats the current active, unsuppressed difference's original tool in world XY. The region is an owned numeric
+snapshot of one simple straight polygon with 3..16 distinct finite vertices, implicit closure, either winding,
+and coordinates within ±10000 mm. Concave outlines are supported. Holes, curves, live region references, repeated
+vertices and self-touching or crossing boundaries are refused. The explicit reference anchor has the same coordinate bound.
+
+Counts include the original cut. Each count is 1..64 and their product must be at most 64 **before** masking.
+The grid has offsets `[i * spacing, j * spacing2, 0]`, in row-major order. The original cut stays even if its
+reference is outside the region. Additional cuts are admitted when the authored anchor plus the represented offset
+is inside or exactly on the boundary. The sum and polygon tests use exact rational predicates without rounding the
+sum to a Number. This tests reference points; a cutter can cross the boundary. It does not clip cutter geometry.
+
+The public spacings are positive and at most 10000 mm. The Kernel document also accepts signed nonzero spacings
+with absolute value at most 10000 mm, as rectangular CUT patterns do. Only the two spacings can bind parameters;
+counts cannot. No cumulative offset cap is added. Surviving cell names use their original `@i,j` indices. The
+recipe, source history, region snapshot and anchor survive native Save/Open without a schema change. One-cell,
+empty-tool and zero-additional-placement cases keep the seed and still validate the recipe and source.

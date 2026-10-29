@@ -95,3 +95,20 @@ are checked separately from displayed callout text.
 Pass the same resolver to the trailing `autoDimensions` argument when using that function directly.
 The normal document/Studio pipelines supply it. A custom string formatter alone does not establish
 compound ownership; absent or unresolved ownership keeps independent locations conservative.
+
+### Fill cut patterns
+
+`part.fillFeaturePattern({ region: { points }, anchor: [8.5, 8.5], spacing: 12,
+count: 4, spacing2: 10, count2: 3 })` repeats the current difference's original CUT tool
+on a finite world XY grid. The simple straight region has 3–16 finite vertices.
+Each count is 1–64, including the original; their product is at most 64 before masking.
+Both positive spacings can bind to parameters. Counts and reference coordinates cannot bind.
+
+The region tests authored reference points, including exact boundary points. A cutter can cross
+the region boundary. The original CUT always remains, even when its reference lies outside.
+Stable names use original grid indices, `@i,j`.
+
+The command's **Region snapshot** captures resolved points from one eligible closed straight
+world XY sketch. Later sketch edits do not change the pattern. The feature editor can capture
+a new snapshot. Curved, holed, multiple, unresolved and unsupported framed regions are refused.
+The copied inline region and reference survive native Save/Open and nested part placement.

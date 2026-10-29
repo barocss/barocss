@@ -5,6 +5,8 @@
 // own command, as the agent's run_command does. The body a spec acts on (the part's one body, or the chosen one) is the
 // backend's argument beside it.
 import { refuse } from './refusal.js';
+import { fillCutSnapshot, type FillFeaturePatternRegion } from '../features/fill-cut-pattern.js';
+export type { FillFeaturePatternRegion } from '../features/fill-cut-pattern.js';
 import { Sketch, type SketchData } from './sketch.js';
 import type { AxisName, EdgeInfo } from './select.js';
 import type { RawNurbsPath } from '../features/curve-cut-pattern.js';
@@ -40,6 +42,7 @@ type BaseSpec =
   | { readonly command: 'linear-pattern'; readonly values: { readonly axis: AxisName; readonly spacing: number; readonly count: number } }
   | { readonly command: 'linear-feature-pattern'; readonly values: { readonly axis: AxisName; readonly spacing: number; readonly count: number } }
   | { readonly command: 'rectangular-feature-pattern'; readonly values: { readonly axis: AxisName; readonly spacing: number; readonly count: number; readonly axis2: AxisName; readonly spacing2: number; readonly count2: number } }
+  | { readonly command: 'fill-feature-pattern'; readonly region: FillFeaturePatternRegion; readonly anchor: readonly [number, number]; readonly values: { readonly spacing: number; readonly count: number; readonly spacing2: number; readonly count2: number } }
   | { readonly command: 'curve-feature-pattern'; readonly path: CurveFeaturePatternPath; readonly values: { readonly spacing: number; readonly count: number } }
   | { readonly command: 'circular-pattern'; readonly values: { readonly axis: AxisName; readonly count: number; readonly span: number; readonly px: number; readonly py: number } }
   | { readonly command: 'move'; readonly values: { readonly x: number; readonly y: number; readonly z: number } }
@@ -81,6 +84,8 @@ export interface ShellOptions { t: Dim }
 export interface LinearPatternOptions { axis: AxisName; spacing: Dim; count: Dim }
 /** Repeat a difference tool on two distinct global axes; each count includes the original cut. */
 export interface RectangularFeaturePatternOptions { axis: AxisName; spacing: Dim; count: Dim; axis2: AxisName; spacing2: Dim; count2: Dim }
+/** An inline XY region snapshot masks authored reference points; counts include the original cut. */
+export interface FillFeaturePatternOptions { region: FillFeaturePatternRegion; anchor: readonly [number, number]; spacing: Dim; count: Dim; spacing2: Dim; count2: Dim }
 /** Raw authored geometry, or a cad-model direct curve's stable object id. */
 export type CurveFeaturePatternPath = RawNurbsPath | { readonly objectId: string };
 /** Fixed-orientation cuts along an open polyline; count includes the original cut (1..64). */
@@ -189,6 +194,14 @@ export function rectangularFeaturePatternSpec(o: Resolved<RectangularFeaturePatt
   if (!Number.isSafeInteger(o.count) || o.count < 1 || !Number.isSafeInteger(o.count2) || o.count2 < 1)
     throw refuse('VALUE', 'rectangular feature pattern counts must be safe whole numbers of at least 1');
   return { command: 'rectangular-feature-pattern', values: { axis, spacing: positive('spacing', o.spacing), count: o.count, axis2, spacing2: positive('spacing2', o.spacing2), count2: o.count2 } };
+}
+
+export function fillFeaturePatternSpec(o: Resolved<FillFeaturePatternOptions>): Extract<FeatureSpec, { readonly command: 'fill-feature-pattern' }> {
+  const spacing = positive('spacing', o.spacing), spacing2 = positive('spacing2', o.spacing2);
+  if (spacing > 10000 || spacing2 > 10000) throw refuse('VALUE', 'fill cut pattern spacing must be at most 10000 mm');
+  if (!Number.isSafeInteger(o.count) || o.count < 1 || o.count > 64 || !Number.isSafeInteger(o.count2) || o.count2 < 1 || o.count2 > 64 || o.count * o.count2 > 64) throw refuse('VALUE', 'fill cut pattern needs at most 64 candidate cells, with each count from 1 to 64');
+  const snapshot = fillCutSnapshot(o.region, o.anchor, (_code, message) => { throw refuse('VALUE', message); });
+  return { command: 'fill-feature-pattern', ...snapshot, values: { spacing, count: o.count, spacing2, count2: o.count2 } };
 }
 
 export function curveFeaturePatternSpec(o: Resolved<CurveFeaturePatternOptions>): FeatureSpec {

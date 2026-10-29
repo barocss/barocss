@@ -1,3 +1,4 @@
+import { fillFeaturePatternProblem } from '../engine/fillFeaturePattern';
 import { curveFeaturePatternProblem } from '../engine/curveFeaturePattern';
 // Feature nodes written by the model (add_features / edit_feature), checked before the kernel sees
 // them: every field of the node's kind with the right type, references to earlier sketches and to
@@ -28,6 +29,7 @@ const SPECS: Record<string, Spec> = {
   mirror: { parent: 'ref', plane: 'enum:xy|xz|yz' },
   scale: { parent: 'ref', factor: 'pos', 'pivot?': 'dim3' },
   'linear-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'count' },
+  'fill-feature-pattern': { parent: 'ref', region: 'any', anchor: 'any', spacing: 'dim', count: 'positive-index', spacing2: 'dim', count2: 'positive-index' },
   'curve-feature-pattern': { parent: 'ref', path: 'any', spacing: 'dim', count: 'positive-index' },
   'rectangular-feature-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'positive-index', axis2: 'enum:x|y|z', spacing2: 'dim', count2: 'positive-index' },
   'linear-feature-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'count' },
@@ -141,6 +143,7 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
   if (kind === 'text') return textNodeProblem(node, parameters);
   if (kind === 'cylindrical-wrap') return cylindricalWrapNodeProblem(node, parameters);
   if (kind === 'text-relief') return textReliefNodeProblem(node, parameters);
+  if (kind === 'fill-feature-pattern') return fillFeaturePatternProblem(node, nodes, parameters);
   if (kind === 'curve-feature-pattern') return curveFeaturePatternProblem(node, nodes, parameters);
   if (kind === 'rectangular-feature-pattern') return rectangularFeaturePatternProblem(node, nodes, parameters);
   if (kind === 'linear-feature-pattern') {

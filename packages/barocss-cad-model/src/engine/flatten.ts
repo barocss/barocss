@@ -1,3 +1,4 @@
+import { fillPatternDocumentProblem } from './fillFeaturePattern';
 // A sub-assembly as one part: a document's own features, then each visible instance's features placed as
 // they stand (their mates were solved when the file was saved), renumbered after them. Inserted into
 // another assembly, it is then one instance with several bodies whose faces mate like any part's.
@@ -9,7 +10,7 @@ import { curvePatternDocumentProblem } from './curveFeaturePattern';
 
 /** The document with its instances folded in as features (nested sub-assemblies too). */
 export function flattenAssembly(doc: StudioDoc): StudioDoc {
-  const pathProblem = curvePatternDocumentProblem({ instances: [{ doc }] });
+  const pathProblem = fillPatternDocumentProblem(doc) ?? curvePatternDocumentProblem({ instances: [{ doc }] });
   if (pathProblem) throw refusal('VALUE', pathProblem);
   assertRouteBundleDocument(doc);
   if (doc.schema === 4 || Object.prototype.hasOwnProperty.call(doc, 'routeBundles') || doc.nodes.some(n => Object.prototype.hasOwnProperty.call(n, 'routeBundleMember'))) throw refusal('BAD_REFERENCE', 'Route bundle: flattening linked route documents is not supported.');
