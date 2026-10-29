@@ -6,6 +6,8 @@
 //   BASE=base.json node scripts/perf-bench.mjs save|compare [cases] fingerprints (RUNS=3 runs a case, default)
 //   SHAPE=shape.json node scripts/perf-bench.mjs shape-save|shape-compare [cases]
 // A/B: save on the old build, rebuild with the change, compare (same machine, nothing else heavy running).
+// native-cylinder-*-first-mass only: WARMUP=3 untimed batches, BATCH=32 fresh B-reps per timed batch;
+// cloning/setup stay outside the timer. New-case rawDuration/median/perQuery retain sub-ms precision (unit: ms).
 import { createHash } from 'node:crypto';
 import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 const D = new URL('../dist', import.meta.url).pathname;
@@ -14,7 +16,29 @@ const { buildCylindricalWrapNativeBoundAssembly } = await import(`${D}/features/
 const { certifyCylindricalWrapFormalPadMass } = await import(`${D}/features/cylindrical-wrap-formal-mass.js`);
 const { buildCylindricalWrapClosedReference } = await import(`${D}/features/cylindrical-wrap-closed-reference.js`);
 const doc = f => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: f });
-const fp = x => createHash('sha256').update(JSON.stringify(threadFingerprint(x), (k, v) => (v instanceof Float32Array || v instanceof Float64Array || v instanceof Uint32Array) ? Array.from(v) : v)).digest('hex').slice(0, 16);
+const fp = x => createHash('sha256').update(JSON.stringify(nativeMassReceipts.has(x) ? { brep: x, masses: nativeMassReceipts.get(x) } : threadFingerprint(x), (k, v) => (v instanceof Float32Array || v instanceof Float64Array || v instanceof Uint32Array) ? Array.from(v) : v)).digest('hex').slice(0, 16);
+// Only these two cases prepare outside the timer. Every query receives a fresh B-rep identity,
+// so neither the quadrature WeakMap nor a preceding area query can supply its integrals.
+const nativeMassReceipts = new WeakMap();
+function nativeCylinderFirstMass(height) {
+  let fixture;
+  const batch = Number(process.env.BATCH ?? 32), warmup = Number(process.env.WARMUP ?? 3);
+  const run = breps => {
+    const masses = breps.map(brep => K.brepMassProperties(brep, 1, { quadratureSegments: 8 }));
+    nativeMassReceipts.set(breps[0], masses);
+    return breps[0];
+  };
+  run.prepare = () => {
+    if (!Number.isInteger(batch) || batch < 1 || !Number.isInteger(warmup) || warmup < 0) throw new Error('BATCH must be positive and WARMUP nonnegative integers');
+    fixture ??= K.brepFromPrismatic(K.transformPrismatic(K.prismaticFromProfile({
+      outer: [{ kind: 'arc', start: [3, 0], center: [0, 0], direction: 'ccw' }], height, tag: 'cylinder',
+    }), { matrix: [1, 0, 0, 1], offset: [.1234567, -.2345678], zOffset: .3456789 }), { id: 'cylinder' });
+    return Array.from({ length: batch }, () => structuredClone(fixture));
+  };
+  run.batch = batch;
+  run.warmup = warmup;
+  return run;
+}
 // New thread cases still return actual B-reps, so shape-save/compare retain their existing meaning.
 // Construction-only cases calculate their acceptance mass after the runner stops its timer, in fp().
 // The first-mass case computes it inside its timer on a freshly constructed B-rep: construction + first mass,
@@ -44,7 +68,6 @@ function directLongThread() {
 function directLongThreadConstruction() { return threadBenchmark(directLongThread()); }
 function directLongThreadConstructionFirstMass() { return threadBenchmark(directLongThread(), true); }
 const out = (f, id) => K.outputOf(K.evaluateCadPart(doc(f)), id);
-const XZ = { origin: [0, 0, 0], normal: [0, -1, 0], xAxis: [1, 0, 0] };
 const tee = (tilt) => { const t = tilt * Math.PI / 180, n = [Math.cos(t), 0, Math.sin(t)]; return [{ id: 'ms', kind: 'sketch', profile: 'circle', plane: { origin: [-30, 0, 0], normal: [1, 0, 0], xAxis: [0, 1, 0] }, center: [0, 0], radius: 10 }, { id: 'm', kind: 'extrude', sketch: 'ms', height: 60 }, { id: 'bs', kind: 'sketch', profile: 'circle', plane: { origin: [0, 0, 0], normal: n, xAxis: [0, 1, 0] }, center: [0, 0], radius: 6 }, { id: 'b', kind: 'extrude', sketch: 'bs', height: 25 }, { id: 'u', kind: 'union', target: 'm', tool: 'b' }]; };
 const pin = () => { const n = [0.5, 0, Math.sqrt(3) / 2]; return [{ id: 'ps', kind: 'sketch', profile: 'rectangle', min: [-25, -25], max: [25, 25] }, { id: 'p', kind: 'extrude', sketch: 'ps', height: 5 }, { id: 'cs', kind: 'sketch', profile: 'circle', plane: { origin: [0, 0, 3], normal: n, xAxis: [0, 1, 0] }, center: [0, 0], radius: 4 }, { id: 'c', kind: 'extrude', sketch: 'cs', height: 20 }, { id: 'u', kind: 'union', target: 'p', tool: 'c' }]; };
 const ff = (id, target, faces, radius) => ({ id, kind: 'face-fillet', target, faces, radius });
@@ -110,6 +133,8 @@ function closedReferencePad(z = -5, u = [0.125, 0.375], v = [0.25, 0.75]) {
 }
 function closedReferenceAsymmetricPad() { return closedReferencePad(-7, [0.1, 0.4], [0.2, 0.7]); }
 const CASES = {
+  'native-cylinder-ordinary-first-mass': nativeCylinderFirstMass(5.00009),
+  'native-cylinder-tiny-first-mass': nativeCylinderFirstMass(.34567890000000023 - .3456789),
   'closed-reference-asymmetric-pad': closedReferenceAsymmetricPad,
   'native-bound-asymmetric-pad': nativeBoundAsymmetricPad,
   'closed-reference-pad': closedReferencePad,
@@ -150,7 +175,7 @@ const shapeOf = r => {
 };
 if (process.argv[2] === 'shape-save' || process.argv[2] === 'shape-compare') {
   const file = process.env.SHAPE ?? `${process.cwd()}/shape.json`, only = process.argv[3], res = {};
-  for (const [name, fn] of Object.entries(CASES)) { if (only && !only.split(',').includes(name)) continue; const t0 = performance.now(); res[name] = shapeOf(fn()); res[name].ms = Math.round(performance.now() - t0); }
+  for (const [name, fn] of Object.entries(CASES)) { if (only && !only.split(',').includes(name)) continue; const input = fn.prepare?.(); const t0 = performance.now(); res[name] = shapeOf(fn(input)); res[name].ms = Math.round(performance.now() - t0); }
   if (process.argv[2] === 'shape-save') { const prev = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : {}; writeFileSync(file, JSON.stringify({ ...prev, ...res }, null, 1)); console.log(JSON.stringify(res)); }
   else { const base = JSON.parse(readFileSync(file, 'utf8')); let bad = 0;
     for (const [n, r] of Object.entries(res)) { const b = base[n], why = [];
@@ -166,9 +191,12 @@ const [mode = 'run', only] = process.argv.slice(2), file = process.env.BASE ?? `
 const res = {};
 for (const [name, fn] of Object.entries(CASES)) {
   if (only && !only.split(',').includes(name)) continue;
+  for (let i = 0; i < (fn.warmup ?? 0); i++) fn(fn.prepare());
   const times = []; let f = null;
-  for (let i = 0; i < (name === 'tee60-over-round' ? 1 : runs); i++) { const t0 = performance.now(); const r = fn(); times.push(performance.now() - t0); const g = fp(r); if (f && f !== g) throw new Error(`${name}: not deterministic`); f = g; }
+  for (let i = 0; i < (name === 'tee60-over-round' ? 1 : runs); i++) { const input = fn.prepare?.(); const t0 = performance.now(); const r = fn(input); times.push(performance.now() - t0); const g = fp(r); if (f && f !== g) throw new Error(`${name}: not deterministic`); f = g; }
+  const rawDuration = [...times];
   times.sort((a, b) => a - b); res[name] = { ms: Math.round(times[Math.floor(times.length / 2)]), fp: f };
+  if (fn.prepare) res[name] = { ...res[name], rawDuration, median: times[Math.floor(times.length / 2)], perQuery: times[Math.floor(times.length / 2)] / fn.batch, unit: 'ms', batch: fn.batch, warmup: fn.warmup, runs: times.length };
   console.log(name.padEnd(28), String(res[name].ms).padStart(7), 'ms', f);
 }
 if (mode === 'save') { const prev = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : {}; writeFileSync(file, JSON.stringify({ ...prev, ...res }, null, 1)); }

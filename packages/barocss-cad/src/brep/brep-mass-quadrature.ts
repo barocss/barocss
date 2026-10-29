@@ -38,7 +38,11 @@ const RULE: readonly (readonly [number, number, number, number])[] = (() => {
  */
 const centre: Point = [0, 0, 0];
 function accumulate(I: number[], p: Point, n: Point, w: number) {
-  const x = p[0] - centre[0], y = p[1] - centre[1], z = p[2] - centre[2], nx = n[0] * w, ny = n[1] * w, nz = n[2] * w;
+  accumulateLocal(I, p[0] - centre[0], p[1] - centre[1], p[2] - centre[2], n, w);
+}
+/** All face fields use the same body origin; the closed body's integrals move back only once. */
+function accumulateLocal(I: number[], x: number, y: number, z: number, n: Point, w: number) {
+  const nx = n[0] * w, ny = n[1] * w, nz = n[2] * w;
   I[0] += x * nx; I[1] += x * x / 2 * nx; I[2] += y * y / 2 * ny; I[3] += z * z / 2 * nz;
   I[4] += x * x * x / 3 * nx; I[5] += y * y * y / 3 * ny; I[6] += z * z * z / 3 * nz;
   I[7] += x * x * y / 2 * nx; I[8] += x * x * z / 2 * nx; I[9] += y * y * z / 2 * ny;
@@ -726,8 +730,10 @@ function patchIntegrals(face: BrepFace, I: number[]): void {
   // poles kept homogeneous in one array; the u sums made once per Gauss point in u and reused along v. No evaluator
   // call, validation or allocation per point: a 20k-span SubD body in a fraction of a second.)
   const bu = spanBases(S.knotsU, S.degreeU, spans(S.knotsU, U), gu.x), bv = spanBases(S.knotsV, S.degreeV, spans(S.knotsV, V), gv.x);
+  // Center before weighting and column sums: late subtraction cannot recover a tiny derivative
+  // lost between large absolute homogeneous coordinates. Native poles remain untouched.
   const nu = S.controlPoints.length, nv = S.controlPoints[0].length, Pw = new Float64Array(4 * nu * nv);
-  for (let r = 0; r < nu; r++) for (let c = 0; c < nv; c++) { const w = S.weights[r][c], q = S.controlPoints[r][c], o = 4 * (r * nv + c); Pw[o] = q[0] * w; Pw[o + 1] = q[1] * w; Pw[o + 2] = q[2] * w; Pw[o + 3] = w; }
+  for (let r = 0; r < nu; r++) for (let c = 0; c < nv; c++) { const w = S.weights[r][c], q = S.controlPoints[r][c], o = 4 * (r * nv + c); Pw[o] = (q[0] - centre[0]) * w; Pw[o + 1] = (q[1] - centre[1]) * w; Pw[o + 2] = (q[2] - centre[2]) * w; Pw[o + 3] = w; }
   const p = S.degreeU, q = S.degreeV, R = new Float64Array(4 * (q + 1)), Ru = new Float64Array(4 * (q + 1));
   for (let a = 0; a < bu.length; a++) {
     const A = bu[a];
@@ -794,7 +800,6 @@ function uSums(Pw: Float64Array, nv: number, ru: number, cv: number, p: number, 
     Ru[4 * s] = xu; Ru[4 * s + 1] = yu; Ru[4 * s + 2] = zu; Ru[4 * s + 3] = wu;
   }
 }
-const point3: Point = [0, 0, 0];
 /** At Gauss point j in v: the surface point and its partials (the quotient rule from the homogeneous sums), into I. */
 function patchPoint(I: number[], R: Float64Array, Ru: Float64Array, N: Float64Array, D: Float64Array, j: number, q: number, weight: number): void {
   const o = j * (q + 1);
@@ -808,8 +813,8 @@ function patchPoint(I: number[], R: Float64Array, Ru: Float64Array, N: Float64Ar
   const px = x / w, py = y / w, pz = z / w;
   const ux = (xu - px * wu) / w, uy = (yu - py * wu) / w, uz = (zu - pz * wu) / w, vx = (xv - px * wv) / w, vy = (yv - py * wv) / w, vz = (zv - pz * wv) / w;
   normal[0] = uy * vz - uz * vy; normal[1] = uz * vx - ux * vz; normal[2] = ux * vy - uy * vx;
-  point3[0] = px; point3[1] = py; point3[2] = pz;
-  accumulate(I, point3, normal, weight);
+  // The projected point is already local. Re-adding and subtracting the origin would lose bits again.
+  accumulateLocal(I, px, py, pz, normal, weight);
   I[10] += Math.hypot(normal[0], normal[1], normal[2]) * Math.abs(weight);
 }
 /** A knot vector's distinct values inside the domain, ends included. */
