@@ -180,9 +180,13 @@ maximum absolute control coordinate. It does not mean zero matching allowance.
 The Studio Sew command copies every selected whole support and source name.
 It validates all original trim containers before loading source geometry.
 Trimmed, malformed, stale, ambiguous and non-surface selections refuse.
-Preview and Cancel retain source visibility and selection. Apply hides the
+Preview and Cancel do not change saved visibility or selection. While a Sew
+candidate is drawn, its copied source displays are omitted to prevent coplanar
+overlap; Cancel or refusal restores them. Apply hides the
 copied sources in the same Undo step that adds the body. Later source edits
 or deletion do not change the saved snapshots. Raw API calls hide no sources.
+When raw snapshots duplicate visible Direct supports, use Hide explicitly to
+inspect the sewn body without overlapping geometry.
 The saved Tolerance field remains editable after reopening; 0 selects automatic.
 
 Sew retains the existing natural-boundary matching, orientation and closed

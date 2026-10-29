@@ -111,10 +111,17 @@ async function openSew(selected=ids,tol=.01){
  assert.equal(await hud().getByLabel('Tolerance (0: automatic)',{exact:true}).inputValue(),String(tol));
 }
 async function selection(){return page.locator('.ol.direct.sel').allTextContents();}
+async function directDisplayProbe(label,expected){
+ const point=[30,9,15];
+ await page.waitForFunction(({point,expected})=>window.__studioDirectAt?.(point)===expected,{point,expected},{timeout:30000});
+ const actual=await page.evaluate(point=>window.__studioDirectAt(point),point);
+ report.directDisplayProbes??=[];report.directDisplayProbes.push({label,point,expected,actual,route:'Existing read-only renderer Direct pick hook'});
+}
 async function preview(original,label,selected){
  await page.waitForFunction(()=>document.querySelector('.hud .status')?.textContent==='preview',null,{timeout:60000});
  await page.waitForFunction(()=>Math.abs((window.__studioSection?.().shownVolume??0)-14820)<1e-6,null,{timeout:60000});
  assert.deepEqual(await doc(),original);assert.deepEqual(await selection(),selected);
+ await directDisplayProbe(`${label}-consumed-sources-not-rendered`,null);
  const state=await snapshot(label);assert.equal(state.bodies.bodies.length,1);close(state.bodies.bodies[0].volume,420,'Accepted witness during preview');
  assert.ok(Math.abs(state.shown.shownVolume-14820)<1e-6,'Preview sewn box + witness mesh volume');
 }
@@ -157,6 +164,7 @@ async function editTolerance(index,value){
 async function undo(expected,label) {phase=label; await page.keyboard.press('Meta+z'); await same(expected); return snapshot(label);}
 async function redo(expected,label) {phase=label; await page.keyboard.press('Meta+Shift+z'); await same(expected); return snapshot(label);}
 const inputs=['apps/cad-studio/test/sew-snapshot-browser.mjs','apps/cad-studio/src/App.tsx','apps/cad-studio/src/ui/DirectInspector.tsx','apps/cad-studio/src/ui/DirectPanel.tsx',
+ 'apps/cad-studio/src/viewport/sewPreviewDirect.ts',
  'apps/cad-studio/src/state/useCommandPreview.ts','apps/cad-studio/vite.config.ts','packages/barocss-cad/src/api/spec.ts','packages/barocss-cad/src/api/part.ts','packages/barocss-cad/src/api/kernel.ts',
  'packages/barocss-cad/src/api/surface-snapshot.ts','packages/barocss-cad/src/brep/sew-solid.ts','packages/barocss-cad-model/src/engine/sew.ts','packages/barocss-cad-model/src/app/sewCommand.ts',
  'packages/barocss-cad-model/src/app/commands.ts','packages/barocss-cad-model/src/api/studio.ts','packages/barocss-cad-model/src/app/editFields.ts','packages/barocss-cad-model/src/chat/features.ts','packages/barocss-cad/dist/index.js'];
@@ -190,8 +198,9 @@ try{
  const {chromium}=createRequire(join(process.env.PW_DIR,'package.json'))('playwright');
  browser=await chromium.launch({executablePath:process.env.CHROME,headless:true,args:['--enable-unsafe-webgpu']});report.chromeProcessesLaunched=1;
  await freshOpen(seed,'01-ui-seed');
+ await directDisplayProbe('initial-source-rendered','obj_2');
  phase='actual Sew preview Cancel';await openSew();const selected=await selection();await preview(seed.doc,'02-preview',selected);
- await hud().getByRole('button',{name:'Cancel',exact:true}).click();await same(seed.doc);assert.deepEqual(await selection(),selected);await snapshot('03-cancel');
+ await hud().getByRole('button',{name:'Cancel',exact:true}).click();await same(seed.doc);assert.deepEqual(await selection(),selected);await directDisplayProbe('cancel-restores-source','obj_2');await snapshot('03-cancel');
  phase='actual Sew retry Apply';await openSew();await preview(seed.doc,'04-retry-preview',selected);
  await hud().getByRole('button',{name:'Apply',exact:true}).click();await ready(2);const accepted=await doc(),index=accepted.nodes.length-1,node=accepted.nodes[index];
  assert.equal(node.kind,'sew');assert.deepEqual(node.surfaces,surfaces);assert.equal(node.tolerance,.01);
@@ -216,6 +225,7 @@ try{
  await page.waitForFunction(()=>document.querySelector('.hud .status')?.textContent==='refused',null,{timeout:60000});
  const detail=hud().getByText('Kernel detail',{exact:true});if(await detail.count())await detail.click();
  assert.equal(await hud().getByRole('button',{name:'Apply',exact:true}).isDisabled(),true);await same(trimmed);assert.deepEqual(await selection(),fiveSelection);assert.equal(report.downloads.length,downloads);
+ await directDisplayProbe('refused-preview-keeps-source-rendered','obj_2');
  report.refusals.push({kind:'open-five-surfaces',actualHudText:await hud().textContent(),documentUnchanged:true,visibilityUnchanged:true,selectionUnchanged:true,noDownload:true});await snapshot('16-open-five-refusal');
  await hud().getByRole('button',{name:'Cancel',exact:true}).click();await undo(seed.doc,'17-open-five-no-undo-entry');await redo(trimmed,'18-redo-public-trim');
  phase='late member trimmed context refusal';await selectOrdered();await panel().getByRole('button',{name:'Sew into a body',exact:true}).waitFor();const trimSelection=await selection();
@@ -227,6 +237,13 @@ try{
  // A separate facade file has owned recipes and no selected-source hiding context.
  await freshOpen(apiSeed,'23-public-facade-open');const apiNode=apiSeed.doc.nodes.at(-1),apiIndex=apiSeed.doc.nodes.length-1;
  assert.equal(apiNode.kind,'sew');assert.deepEqual(apiNode.surfaces,surfaces);assert.equal(apiNode.tolerance,.01);assert.deepEqual(apiSeed.doc.direct,seed.doc.direct);const apiNames=await geometry('23-public-facade-open');
+ // Raw snapshots carry no source IDs. Retain the caller's visibility, then use
+ // the actual Hide action to inspect the sewn body without duplicate supports.
+ await selectOrdered();await panel().getByRole('button',{name:'Hide',exact:true}).click();await changed(apiSeed.doc);
+ const apiHidden=await doc();assert.deepEqual(apiHidden.nodes,apiSeed.doc.nodes);
+ assert.deepEqual(apiHidden.direct,{...apiSeed.doc.direct,objects:apiSeed.doc.direct.objects.map(o=>ids.includes(o.id)?{...o,hidden:true}:o)});
+ await directDisplayProbe('raw-facade-explicit-user-hide',null);await snapshot('23a-facade-explicit-hide');
+ await undo(apiSeed.doc,'23b-facade-undo-explicit-hide');await redo(apiHidden,'23c-facade-redo-explicit-hide');
  const apiSaved=await save('facade-accepted');await freshOpen(apiSaved,'24-facade-fresh-open');await geometry('24-facade-fresh-open',apiNames);
  await page.locator(`.history .hs[data-node-index="${apiIndex}"]`).click();assert.equal(await editor().getByLabel('Tolerance',{exact:true}).inputValue(),'0.01');assert.equal(await editor().getByLabel('Tolerance parameter',{exact:true}).count(),0);await snapshot('25-facade-reeditable');
  assert.deepEqual(report.errors,[]);assert.deepEqual(report.consoleErrors,[]);assert.deepEqual(report.changes,[]);
