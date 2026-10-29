@@ -111,3 +111,19 @@ The same audit independently observed D315's original17/64-control constructor/m
 Surface/strict/tessellation failure at the fixed baseline. It added no duplicate issue. D315's
 later source repair and actual consumer checks are a separate receipt, not supplied by that baseline.
 The remaining original audit candidates retain their original unexecuted status and scope.
+
+
+### Additional unit-import report — #2240
+
+[#2240 P1](https://github.com/barocss/barocss/issues/2240) attaches to existing13 CG7/16 units,
+not to a new importer project. At the same fixed5463dbf32 snapshot the audit reports actual
+Studio Open of a public-exported1000-coordinate cube. Replacing only the declared MILLI prefix
+with NANO still accepts1000mm bounds/about1e9mm³ and reports no declared unit. The report's
+expected NANO result is0.001mm/about1e-9mm³. Accepted original STEP text is preserved; there is
+no scale node. Its independent external STEP-reader conformance is NOT_RUN.
+
+Remaining acceptance is declared-but-unsupported versus undeclared units, correct one-time
+conversion or explicit refusal, retained accepted state and the actual file Open/reopen flow.
+Preserve the existing supported-prefix/no-prefix/undeclared controls. This intake reads the
+GitHub execution report and reruns no product probe. Keep this defect OPEN alongside the five
+bounded audit cases; it is outside the completed research archive and does not reorder07->08->09.

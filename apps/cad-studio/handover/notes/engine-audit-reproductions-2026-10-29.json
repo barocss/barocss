@@ -48,8 +48,17 @@
       "createdAt": "2026-10-29T03:56:11Z",
       "updatedAt": "2026-10-29T03:56:11Z",
       "comments": 0
+    },
+    {
+      "number": 2240,
+      "title": "[P1] fix(studio): preserve declared STEP units instead of assuming millimetres",
+      "url": "https://github.com/barocss/barocss/issues/2240",
+      "state": "open",
+      "createdAt": "2026-10-29T04:04:09Z",
+      "updatedAt": "2026-10-29T04:04:09Z",
+      "comments": 0
     }
   ],
-  "separateFromArchive": "These five open defect issues are not part of the owner-authorized73-issue research archive.",
+  "separateFromArchive": "These six open defect issues are not part of the owner-authorized73-issue research archive.",
   "executionOrder": "Attach to existing EA/numbered rows without replacing the owner's07->08->09 order."
 }

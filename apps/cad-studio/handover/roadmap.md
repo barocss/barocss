@@ -123,8 +123,10 @@ A07 [#2237](https://github.com/barocss/barocss/issues/2237) delayed CPU readback
 A03 [#2238](https://github.com/barocss/barocss/issues/2238) actual WebGPU retained Geometry growth;
 A08 [#2239](https://github.com/barocss/barocss/issues/2239) actual display/public CPU clip mismatch.
 [Exact execution limits and remaining acceptance](notes/engine-audit-intake-2026-10-29.md)
-replace NOT_REPRODUCED only for those cases. Keep these five defect issues OPEN, separate from
-the completed research archive. This intake reran no product test and does not reorder07->08->09.
+replace NOT_REPRODUCED only for those cases. An additional fixed-source unit-import report [#2240](https://github.com/barocss/barocss/issues/2240)
+attaches to13/16: declared unsupported NANO is accepted as undeclared millimetres. Preserve
+correct conversion or explicit refusal and accepted-state/file evidence. Keep these six defect
+issues OPEN, separate from the completed research archive. This intake reran no product test and does not reorder07->08->09.
 
 ### 제품 완료와 인계의 공통 조건
 
