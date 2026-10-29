@@ -1,0 +1,22 @@
+[
+  {
+    "path": "apps/cad-studio/src/App.tsx",
+    "same": false,
+    "observedSha256": "04a883cc8cae037b4724bb6d44358b19cab7cb8796a1263bdd82d114ee0cd0c3"
+  },
+  {
+    "path": "apps/cad-studio/src/files/importedFile.ts",
+    "same": true,
+    "observedSha256": "f480fe54ee697731186b1c26b802cbbc704e3bd76e85c95103f650250b7127e0"
+  },
+  {
+    "path": "apps/cad-studio/src/files/meshImportController.ts",
+    "same": true,
+    "observedSha256": "2d82851d6f78fe9731287a18851887fca957dd560b0ab6bd2435c5c874e1d0f9"
+  },
+  {
+    "path": "apps/cad-studio/src/files/useMeshImport.ts",
+    "same": true,
+    "observedSha256": "77bb3fb267a9e8095b2baf5c79365324b5750a8e40594e4b18d8b221536f4805"
+  }
+]

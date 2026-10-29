@@ -1,0 +1,2793 @@
+TAP version 13
+# Subtest: ten briefs; every variant's ideal calls pass the oracle, in v2 names
+ok 1 - ten briefs; every variant's ideal calls pass the oracle, in v2 names
+  ---
+  duration_ms: 6001.591583
+  type: 'test'
+  ...
+# Subtest: the oracle fails a wrong part: no hole, the wrong size, two solids, no part
+ok 2 - the oracle fails a wrong part: no hole, the wrong size, two solids, no part
+  ---
+  duration_ms: 10.299167
+  type: 'test'
+  ...
+# Subtest: what a turn reads: the 13 tools and the prompt; the estimate grows with each turn
+ok 3 - what a turn reads: the 13 tools and the prompt; the estimate grows with each turn
+  ---
+  duration_ms: 0.392375
+  type: 'test'
+  ...
+# Subtest: the summary: pass@k (any) and pass^k (all) per brief; the report
+ok 4 - the summary: pass@k (any) and pass^k (all) per brief; the report
+  ---
+  duration_ms: 0.581791
+  type: 'test'
+  ...
+# Subtest: a dry run of the real script through the real chat server and tool server: the scripted agent, two briefs
+ok 5 - a dry run of the real script through the real chat server and tool server: the scripted agent, two briefs
+  ---
+  duration_ms: 4451.4585
+  type: 'test'
+  ...
+# Subtest: live runs need --live and CAD_AB_LIVE=1: refused without them (exit 2), nothing run
+ok 6 - live runs need --live and CAD_AB_LIVE=1: refused without them (exit 2), nothing run
+  ---
+  duration_ms: 0.386333
+  type: 'test'
+  ...
+# Subtest: G6 the thickness map: one value a display triangle, the wall samples' local thickness; its range and thresholds from the wall report and the moulding rules (O-G6)
+ok 7 - G6 the thickness map: one value a display triangle, the wall samples' local thickness; its range and thresholds from the wall report and the moulding rules (O-G6)
+  ---
+  duration_ms: 82.514959
+  type: 'test'
+  ...
+# Subtest: G6 the mould's view: IM7's plate with a Ø10 hole along +Z — one flat closed loop; its halves 48000 and the block less the part less that (as the tooling's, 1e-6); none without a pull
+ok 8 - G6 the mould's view: IM7's plate with a Ø10 hole along +Z — one flat closed loop; its halves 48000 and the block less the part less that (as the tooling's, 1e-6); none without a pull
+  ---
+  duration_ms: 798.466042
+  type: 'test'
+  ...
+# Subtest: G6 the renderer: a body's field set once per map and cleared; the mould's loops and halves drawn, spread ± along the pull, the bodies kept from picks while the halves show
+ok 9 - G6 the renderer: a body's field set once per map and cleared; the mould's loops and halves drawn, spread ± along the pull, the bodies kept from picks while the halves show
+  ---
+  duration_ms: 644.056708
+  type: 'test'
+  ...
+# Subtest: G6 the draft map (O-G6's draftSamples): a box along +Z — its walls 0°, its top +90°, its bottom −90°; marks at ± the finish's least draft; none without a finish
+ok 10 - G6 the draft map (O-G6's draftSamples): a box along +Z — its walls 0°, its top +90°, its bottom −90°; marks at ± the finish's least draft; none without a finish
+  ---
+  duration_ms: 129.202125
+  type: 'test'
+  ...
+# Subtest: G6 the access map (O-G6's accessSamples): the share per display triangle a 3-axis mill does not reach, as accessSamples gives it
+ok 11 - G6 the access map (O-G6's accessSamples): the share per display triangle a 3-axis mill does not reach, as accessSamples gives it
+  ---
+  duration_ms: 976.523
+  type: 'test'
+  ...
+# Subtest: G6 the isoclines (O-G6's isoclinePolylines): a rod across the pull has its n·d = 0 lines along its sides; a box along it none
+ok 12 - G6 the isoclines (O-G6's isoclinePolylines): a rod across the pull has its n·d = 0 lines along its sides; a box along it none
+  ---
+  duration_ms: 24.355958
+  type: 'test'
+  ...
+# Subtest: linked reads use the exact base (evaluated) and immediate occurrence local documents, without flatten or partial publication
+ok 13 - linked reads use the exact base (evaluated) and immediate occurrence local documents, without flatten or partial publication
+  ---
+  duration_ms: 2.870791
+  type: 'test'
+  ...
+# Subtest: a new root callback, evaluated input or occurrence clears linked tables during render, and stale APIs cannot solve
+ok 14 - a new root callback, evaluated input or occurrence clears linked tables during render, and stale APIs cannot solve
+  ---
+  duration_ms: 2.482209
+  type: 'test'
+  ...
+# Subtest: late linked responses never refill a newer root group; only the complete current group reaches the solver
+ok 15 - late linked responses never refill a newer root group; only the complete current group reaches the solver
+  ---
+  duration_ms: 0.258084
+  type: 'test'
+  ...
+# Subtest: null, missing, rejected and synchronously thrown linked reads clear the whole group and cannot mate
+ok 16 - null, missing, rejected and synchronously thrown linked reads clear the whole group and cannot mate
+  ---
+  duration_ms: 16.554541
+  type: 'test'
+  ...
+# Subtest: leaving linked mode hides old linked tables until fresh legacy tables arrive, keeping the legacy flattened inputs
+ok 17 - leaving linked mode hides old linked tables until fresh legacy tables arrive, keeping the legacy flattened inputs
+  ---
+  duration_ms: 1.204458
+  type: 'test'
+  ...
+# Subtest: O24 b: current linked picks keep connector options through the undoable assembly commit
+ok 18 - O24 b: current linked picks keep connector options through the undoable assembly commit
+  ---
+  duration_ms: 0.426667
+  type: 'test'
+  ...
+# Subtest: MCP captures and versions document-only batches/scripts, and does not save dry runs, failures or no-ops
+ok 19 - MCP captures and versions document-only batches/scripts, and does not save dry runs, failures or no-ops
+  ---
+  duration_ms: 880.302166
+  type: 'test'
+  ...
+# Subtest: MCP .bcad saves document-only batch/script changes and reopens them in a fresh session
+ok 20 - MCP .bcad saves document-only batch/script changes and reopens them in a fresh session
+  ---
+  duration_ms: 79.210792
+  type: 'test'
+  ...
+# Subtest: shared authored child documents retain explicit occurrence ownership and only the selected root slot changes
+ok 21 - shared authored child documents retain explicit occurrence ownership and only the selected root slot changes
+  ---
+  duration_ms: 9.257667
+  type: 'test'
+  ...
+# Subtest: inherited bearing/fit rows are available for editing and validation but never copied into saved authored child state
+ok 22 - inherited bearing/fit rows are available for editing and validation but never copied into saved authored child state
+  ---
+  duration_ms: 8.605792
+  type: 'test'
+  ...
+# Subtest: the Model Housing setter keeps opaque stable links, clears old fields and retains missing current values
+ok 23 - the Model Housing setter keeps opaque stable links, clears old fields and retains missing current values
+  ---
+  duration_ms: 2.523167
+  type: 'test'
+  ...
+# Subtest: capture refuses base/missing/duplicate occurrence IDs and invalid or non-bearing local indices
+ok 24 - capture refuses base/missing/duplicate occurrence IDs and invalid or non-bearing local indices
+  ---
+  duration_ms: 0.775083
+  type: 'test'
+  ...
+# Subtest: preparation drops a stale command receipt (dropStaleMade) without changing the authored source
+ok 25 - preparation drops a stale command receipt (dropStaleMade) without changing the authored source
+  ---
+  duration_ms: 1.614291
+  type: 'test'
+  ...
+# Subtest: freshness requires the captured root, the exact selected owner and address, and the same unique immediate occurrence
+ok 26 - freshness requires the captured root, the exact selected owner and address, and the same unique immediate occurrence
+  ---
+  duration_ms: 0.75775
+  type: 'test'
+  ...
+# Subtest: mate-face inputs bind the current explicit occurrence and base targets before faceKey reads them
+ok 27 - mate-face inputs bind the current explicit occurrence and base targets before faceKey reads them
+  ---
+  duration_ms: 1.624875
+  type: 'test'
+  ...
+# Subtest: a linked current source hides old rows and CSV on first render and while pending; a failure shows its real reason
+ok 28 - a linked current source hides old rows and CSV on first render and while pending; a failure shows its real reason
+  ---
+  duration_ms: 1.458875
+  type: 'test'
+  ...
+# Subtest: only the current authored root and name may publish; stale successes and failures are ignored, before effect cleanup too
+ok 29 - only the current authored root and name may publish; stale successes and failures are ignored, before effect cleanup too
+  ---
+  duration_ms: 0.461125
+  type: 'test'
+  ...
+# Subtest: rows, fits, parameters, target poses, hidden flags, outputs and deletion each make a linked result stale, with the same bearing nodes
+ok 30 - rows, fits, parameters, target poses, hidden flags, outputs and deletion each make a linked result stale, with the same bearing nodes
+  ---
+  duration_ms: 1.6555
+  type: 'test'
+  ...
+# Subtest: linked detection covers nested occurrences and malformed refs; removing the last link cannot flash its previous data
+ok 31 - linked detection covers nested occurrences and malformed refs; removing the last link cannot flash its previous data
+  ---
+  duration_ms: 0.206166
+  type: 'test'
+  ...
+# Subtest: unrelated legacy documents keep previous partial data and CSV while pending or after an evaluation failure
+ok 32 - unrelated legacy documents keep previous partial data and CSV while pending or after an evaluation failure
+  ---
+  duration_ms: 0.252083
+  type: 'test'
+  ...
+# Subtest: cad-mcp --doc: spawned as a client would, a script run and saved; a second session reopens the same part
+ok 33 - cad-mcp --doc: spawned as a client would, a script run and saved; a second session reopens the same part
+  ---
+  duration_ms: 4163.088916
+  type: 'test'
+  ...
+# Subtest: cad-mcp on a container with mesh blobs: a change saved with its blobs, the file read back whole
+ok 34 - cad-mcp on a container with mesh blobs: a change saved with its blobs, the file read back whole
+  ---
+  duration_ms: 727.386959
+  type: 'test'
+  ...
+# Subtest: cad-mcp options: local .bcad files only, the flags, the usage
+ok 35 - cad-mcp options: local .bcad files only, the flags, the usage
+  ---
+  duration_ms: 1680.5095
+  type: 'test'
+  ...
+# Subtest: a change the file cannot take is said so: the call is an error and the part stays changed in the session only
+ok 36 - a change the file cannot take is said so: the call is an error and the part stays changed in the session only
+  ---
+  duration_ms: 37.174083
+  type: 'test'
+  ...
+# Subtest: cad-cli run: a script to .bcad, STEP and STL; check; refusals write nothing; exit codes
+ok 37 - cad-cli run: a script to .bcad, STEP and STL; check; refusals write nothing; exit codes
+  ---
+  duration_ms: 270.887625
+  type: 'test'
+  ...
+# Subtest: cad-cli spawned: the real script runs a file and writes the part
+ok 38 - cad-cli spawned: the real script runs a file and writes the part
+  ---
+  duration_ms: 1949.969667
+  type: 'test'
+  ...
+# Subtest: camera.project after target[0] in place: the same as a fresh camera's
+ok 39 - camera.project after target[0] in place: the same as a fresh camera's
+  ---
+  duration_ms: 12.1925
+  type: 'test'
+  ...
+# Subtest: camera.project after target[1] in place: the same as a fresh camera's
+ok 40 - camera.project after target[1] in place: the same as a fresh camera's
+  ---
+  duration_ms: 0.294167
+  type: 'test'
+  ...
+# Subtest: camera.project after target[2] in place: the same as a fresh camera's
+ok 41 - camera.project after target[2] in place: the same as a fresh camera's
+  ---
+  duration_ms: 0.355333
+  type: 'test'
+  ...
+# Subtest: camera.project after target replaced: the same as a fresh camera's
+ok 42 - camera.project after target replaced: the same as a fresh camera's
+  ---
+  duration_ms: 0.798667
+  type: 'test'
+  ...
+# Subtest: camera.project after distance: the same as a fresh camera's
+ok 43 - camera.project after distance: the same as a fresh camera's
+  ---
+  duration_ms: 8.642833
+  type: 'test'
+  ...
+# Subtest: camera.project after yaw: the same as a fresh camera's
+ok 44 - camera.project after yaw: the same as a fresh camera's
+  ---
+  duration_ms: 0.149625
+  type: 'test'
+  ...
+# Subtest: camera.project after pitch: the same as a fresh camera's
+ok 45 - camera.project after pitch: the same as a fresh camera's
+  ---
+  duration_ms: 0.177625
+  type: 'test'
+  ...
+# Subtest: camera.project after fovY: the same as a fresh camera's
+ok 46 - camera.project after fovY: the same as a fresh camera's
+  ---
+  duration_ms: 0.5095
+  type: 'test'
+  ...
+# Subtest: camera.project after ortho: the same as a fresh camera's
+ok 47 - camera.project after ortho: the same as a fresh camera's
+  ---
+  duration_ms: 1.138125
+  type: 'test'
+  ...
+# Subtest: camera.project after aspect: the same as a fresh camera's
+ok 48 - camera.project after aspect: the same as a fresh camera's
+  ---
+  duration_ms: 0.426875
+  type: 'test'
+  ...
+# Subtest: camera.project after orbit: the same as a fresh camera's
+ok 49 - camera.project after orbit: the same as a fresh camera's
+  ---
+  duration_ms: 0.25375
+  type: 'test'
+  ...
+# Subtest: camera.project after pan: the same as a fresh camera's
+ok 50 - camera.project after pan: the same as a fresh camera's
+  ---
+  duration_ms: 0.13275
+  type: 'test'
+  ...
+# Subtest: camera.project after zoom: the same as a fresh camera's
+ok 51 - camera.project after zoom: the same as a fresh camera's
+  ---
+  duration_ms: 0.102583
+  type: 'test'
+  ...
+# Subtest: camera.project after fit: the same as a fresh camera's
+ok 52 - camera.project after fit: the same as a fresh camera's
+  ---
+  duration_ms: 0.080291
+  type: 'test'
+  ...
+# Subtest: camera.project after setView: the same as a fresh camera's
+ok 53 - camera.project after setView: the same as a fresh camera's
+  ---
+  duration_ms: 13.295583
+  type: 'test'
+  ...
+# Subtest: camera.project: the same matrix as viewProjection
+ok 54 - camera.project: the same matrix as viewProjection
+  ---
+  duration_ms: 0.238833
+  type: 'test'
+  ...
+# Subtest: A7.5 \#2181's nine steps in this process: every step as the scenario says — volumes by 200·h, codes typed
+ok 55 - A7.5 \#2181's nine steps in this process: every step as the scenario says — volumes by 200·h, codes typed
+  ---
+  duration_ms: 154.793042
+  type: 'test'
+  ...
+# Subtest: A7.5 the same scenario through cad-cli board --fresh (each accepted part read back in a fresh process): the same steps, exit 0
+ok 56 - A7.5 the same scenario through cad-cli board --fresh (each accepted part read back in a fresh process): the same steps, exit 0
+  ---
+  duration_ms: 6589.614209
+  type: 'test'
+  ...
+# Subtest: A7.5 isolation: two candidates built on R0 leave it unchanged and do not see each other; a failure and a cancel leave both intact
+ok 57 - A7.5 isolation: two candidates built on R0 leave it unchanged and do not see each other; a failure and a cancel leave both intact
+  ---
+  duration_ms: 18.546084
+  type: 'test'
+  ...
+# Subtest: A7.5 the replay gate, mutants: the part read back with other facts, a verdict measured past its tolerance, a file that does not read — each refused by name, the part unchanged
+ok 58 - A7.5 the replay gate, mutants: the part read back with other facts, a verdict measured past its tolerance, a file that does not read — each refused by name, the part unchanged
+  ---
+  duration_ms: 41.351708
+  type: 'test'
+  ...
+# Subtest: A7.5 duplicates: a second delivery of an accept is answered from the trace — applied once, one undo; undo and redo restore the source and geometry; a token is never reused
+ok 59 - A7.5 duplicates: a second delivery of an accept is answered from the trace — applied once, one undo; undo and redo restore the source and geometry; a token is never reused
+  ---
+  duration_ms: 17.636167
+  type: 'test'
+  ...
+# Subtest: tool schemas: every buildable command is exposed and documented with the HUD’s own value keys
+ok 60 - tool schemas: every buildable command is exposed and documented with the HUD’s own value keys
+  ---
+  duration_ms: 3977.134292
+  type: 'test'
+  ...
+# Subtest: run_command text relief preserves the prepared original and atomically refuses unsupported placement
+ok 61 - run_command text relief preserves the prepared original and atomically refuses unsupported placement
+  ---
+  duration_ms: 41.904291
+  type: 'test'
+  ...
+# Subtest: run_command applies the UI’s rules: availability reasons, value keys and ranges, names, kernel refusals
+ok 62 - run_command applies the UI’s rules: availability reasons, value keys and ranges, names, kernel refusals
+  ---
+  duration_ms: 97.010417
+  type: 'test'
+  ...
+# Subtest: a scripted model drives the MCP tool server: the plate with four corner holes and R2 vertical edges, correcting a refused hole
+ok 63 - a scripted model drives the MCP tool server: the plate with four corner holes and R2 vertical edges, correcting a refused hole
+  ---
+  duration_ms: 577.686459
+  type: 'test'
+  ...
+# Subtest: add_features checks nodes before the kernel; revolve and polygon profiles build
+ok 64 - add_features checks nodes before the kernel; revolve and polygon profiles build
+  ---
+  duration_ms: 11.718916
+  type: 'test'
+  ...
+# Subtest: edit_feature uses the feature editor’s fields; delete_feature renumbers later features, their names stay (A1)
+ok 65 - edit_feature uses the feature editor’s fields; delete_feature renumbers later features, their names stay (A1)
+  ---
+  duration_ms: 77.111917
+  type: 'test'
+  ...
+# Subtest: measure, select and the part summary read the evaluated part by name
+ok 66 - measure, select and the part summary read the evaluated part by name
+  ---
+  duration_ms: 2.333834
+  type: 'test'
+  ...
+# Subtest: the chat server sends a state only when a tool changed the part since the last one (version, PERF3 A3)
+ok 67 - the chat server sends a state only when a tool changed the part since the last one (version, PERF3 A3)
+  ---
+  duration_ms: 120.51025
+  type: 'test'
+  ...
+# Subtest: the chat server runs the claude CLI with only the studio tools and streams text, tool calls, previews and the result
+ok 68 - the chat server runs the claude CLI with only the studio tools and streams text, tool calls, previews and the result
+  ---
+  duration_ms: 144.157292
+  type: 'test'
+  ...
+# Subtest: the chat server reports a missing CLI, failed turns, and kills the CLI when the browser stops a turn
+ok 69 - the chat server reports a missing CLI, failed turns, and kills the CLI when the browser stops a turn
+  ---
+  duration_ms: 4144.750875
+  type: 'test'
+  ...
+# Subtest: chat images: the server checks type, count, encoding and size; the browser scales to the model’s full-detail size
+ok 70 - chat images: the server checks type, count, encoding and size; the browser scales to the model’s full-detail size
+  ---
+  duration_ms: 7.180375
+  type: 'test'
+  ...
+# Subtest: the tracer splits a character bitmap into a silhouette and its colour regions, with holes
+ok 71 - the tracer splits a character bitmap into a silhouette and its colour regions, with holes
+  ---
+  duration_ms: 177.689334
+  type: 'test'
+  ...
+# Subtest: image width input: schema and describe use mm width; old keys and nonpositive widths are refused without changing the part
+ok 72 - image width input: schema and describe use mm width; old keys and nonpositive widths are refused without changing the part
+  ---
+  duration_ms: 55.6925
+  type: 'test'
+  ...
+# Subtest: extrude_image_layer builds a relief: the silhouette base and colour layers stacked at one scale
+ok 73 - extrude_image_layer builds a relief: the silhouette base and colour layers stacked at one scale
+  ---
+  duration_ms: 192.137708
+  type: 'test'
+  ...
+# Subtest: inflate_image_layer rounds the silhouette into a 3D body and sets features on its surface
+ok 74 - inflate_image_layer rounds the silhouette into a 3D body and sets features on its surface
+  ---
+  duration_ms: 2039.176625
+  type: 'test'
+  ...
+# Subtest: the chat server refuses other sites: Origin or Host must be the studio’s, and turns must be JSON
+ok 75 - the chat server refuses other sites: Origin or Host must be the studio’s, and turns must be JSON
+  ---
+  duration_ms: 81.501333
+  type: 'test'
+  ...
+# Subtest: assembly tools: an agent proposes assembly changes (refused directly at every level); proposed and accepted they apply
+ok 76 - assembly tools: an agent proposes assembly changes (refused directly at every level); proposed and accepted they apply
+  ---
+  duration_ms: 12.758833
+  type: 'test'
+  ...
+# Subtest: assembly tools: a pin added as its own part, built, mated into a plate’s hole through the real solver
+ok 77 - assembly tools: a pin added as its own part, built, mated into a plate’s hole through the real solver
+  ---
+  duration_ms: 74.530917
+  type: 'test'
+  ...
+# Subtest: deleting a feature keeps the names mates and drawing dimensions use and the render keys (A1); refuses a mate on its faces
+ok 78 - deleting a feature keeps the names mates and drawing dimensions use and the render keys (A1); refuses a mate on its faces
+  ---
+  duration_ms: 0.980458
+  type: 'test'
+  ...
+# Subtest: mesh blobs reach the chat server once a conversation: later turns name them; a server without them answers 409 with their hashes
+ok 79 - mesh blobs reach the chat server once a conversation: later turns name them; a server without them answers 409 with their hashes
+  ---
+  duration_ms: 145.723916
+  type: 'test'
+  ...
+# Subtest: general loft guide: chat feature admission and the HUD keep the polynomial guide contract
+ok 80 - general loft guide: chat feature admission and the HUD keep the polynomial guide contract
+  ---
+  duration_ms: 145.487667
+  type: 'test'
+  ...
+# Subtest: a stated quote is checked against what the user typed: a made-up quote cannot overwrite a stated material (SOURCE_NOT_SAID)
+ok 81 - a stated quote is checked against what the user typed: a made-up quote cannot overwrite a stated material (SOURCE_NOT_SAID)
+  ---
+  duration_ms: 9.157875
+  type: 'test'
+  ...
+# Subtest: without a conversation (cad-cli, cad-mcp --doc, a script) a stated field is kept as stated but unverified, and listed so
+ok 82 - without a conversation (cad-cli, cad-mcp --doc, a script) a stated field is kept as stated but unverified, and listed so
+  ---
+  duration_ms: 22.6485
+  type: 'test'
+  ...
+# Subtest: requirements: a stated source must be said; only the user confirms; what the user stated or confirmed is not replaced or dropped by an assumption
+ok 83 - requirements: a stated source must be said; only the user confirms; what the user stated or confirmed is not replaced or dropped by an assumption
+  ---
+  duration_ms: 1.267917
+  type: 'test'
+  ...
+# Subtest: ask_user on the question fixtures (conformance/a6/questions): accepted or refused as each says; the answers written as the user's
+ok 84 - ask_user on the question fixtures (conformance/a6/questions): accepted or refused as each says; the answers written as the user's
+  ---
+  duration_ms: 94.81425
+  type: 'test'
+  ...
+# Subtest: the answers' message, a bad answer refused before anything is written, and accept-all confirming every assumption
+ok 85 - the answers' message, a bad answer refused before anything is written, and accept-all confirming every assumption
+  ---
+  duration_ms: 0.714333
+  type: 'test'
+  ...
+# Subtest: CNC8 inset: a 10 × 4 rectangle by 1 — 8 × 2; by 2 — closed up (null); a chord polygon past its corner radius turns sharp
+ok 86 - CNC8 inset: a 10 × 4 rectangle by 1 — 8 × 2; by 2 — closed up (null); a chord polygon past its corner radius turns sharp
+  ---
+  duration_ms: 1.043084
+  type: 'test'
+  ...
+# Subtest: CNC8 a 50 × 30 pocket, 8 deep, Ø6 tool (an estimate): loops (44 − 4.8k) × (24 − 4.8k), k = 0…4; levels 3, 6, 8; length 1464; the plane +Z at the floor
+ok 87 - CNC8 a 50 × 30 pocket, 8 deep, Ø6 tool (an estimate): loops (44 − 4.8k) × (24 − 4.8k), k = 0…4; levels 3, 6, 8; length 1464; the plane +Z at the floor
+  ---
+  duration_ms: 69.714666
+  type: 'test'
+  ...
+# Subtest: CNC8 the pocket filleted r 5, Ø6: the first loop 44 × 24 with corners r 2 (its length 2(44 + 24) − 16 + 4π within the chord), later loops sharp-cornered
+ok 88 - CNC8 the pocket filleted r 5, Ø6: the first loop 44 × 24 with corners r 2 (its length 2(44 + 24) − 16 + 4π within the chord), later loops sharp-cornered
+  ---
+  duration_ms: 137.283042
+  type: 'test'
+  ...
+# Subtest: CNC8 holes and the rest: Ø6.6 through 20 — from +Z down to z 0 and from −Z up to z 20, 20 deep; Ø5 blind — from +Z, 10; both wider than the Ø4 tool, so circular pockets (O161, F3), a hole of the tool's size a drill point; a slot listed, not previewed; a given tool said given
+ok 89 - CNC8 holes and the rest: Ø6.6 through 20 — from +Z down to z 0 and from −Z up to z 20, 20 deep; Ø5 blind — from +Z, 10; both wider than the Ø4 tool, so circular pockets (O161, F3), a hole of the tool's size a drill point; a slot listed, not previewed; a given tool said given
+  ---
+  duration_ms: 456.177041
+  type: 'test'
+  ...
+# Subtest: CNC8 cad-cli cam-preview: the JSON's first key and each SVG's first line say NOT FOR PRODUCTION; no G-code in any file
+ok 90 - CNC8 cad-cli cam-preview: the JSON's first key and each SVG's first line say NOT FOR PRODUCTION; no G-code in any file
+  ---
+  duration_ms: 1972.538958
+  type: 'test'
+  ...
+# Subtest: the tool profile: flat 0 across, a ball's and a bull's nose exact; a mismatched corner or a flute shorter than the nose refused
+ok 91 - the tool profile: flat 0 across, a ball's and a bull's nose exact; a mismatched corner or a flute shorter than the nose refused
+  ---
+  duration_ms: 1.340375
+  type: 'test'
+  ...
+# Subtest: the setup frame: its inverse turns machine points back exactly for every Model setup; skew and reflection refused
+ok 92 - the setup frame: its inverse turns machine points back exactly for every Model setup; skew and reflection refused
+  ---
+  duration_ms: 45.685584
+  type: 'test'
+  ...
+# Subtest: stock: a box and a bar along the machine Z are fields; a bar across it, a flat box, a too-coarse grid and a mismatched axis refused
+ok 93 - stock: a box and a bar along the machine Z are fields; a bar across it, a flat box, a too-coarse grid and a mismatched axis refused
+  ---
+  duration_ms: 34.064
+  type: 'test'
+  ...
+# Subtest: the field cuts only feeds, plunges and ramps; a prefix rebuilds from pristine stock; a buried flute and too much work are refused
+ok 94 - the field cuts only feeds, plunges and ramps; a prefix rebuilds from pristine stock; a buried flute and too much work are refused
+  ---
+  duration_ms: 1945.163208
+  type: 'test'
+  ...
+# Subtest: the Model's CNC8 pocket: the cut area, end to end, is the pocket's less its corners and the stated boundary band
+ok 95 - the Model's CNC8 pocket: the cut area, end to end, is the pocket's less its corners and the stated boundary band
+  ---
+  duration_ms: 675.617167
+  type: 'test'
+  ...
+# Subtest: overlay drawings: world coordinates through the setup's inverse, identities kept while their inputs are, and cleared on null
+ok 96 - overlay drawings: world coordinates through the setup's inverse, identities kept while their inputs are, and cleared on null
+  ---
+  duration_ms: 90.116
+  type: 'test'
+  ...
+# Subtest: overcut: a slot through a solid part is overcut by all it removes; one reaching a part's top is not; one ending in a part is, in part
+ok 97 - overcut: a slot through a solid part is overcut by all it removes; one reaching a part's top is not; one ending in a part is, in part
+  ---
+  duration_ms: 81.570833
+  type: 'test'
+  ...
+# Subtest: end to end: the Model's CNC8 pocket program, cut through its own part, never enters it and leaves the pocket's floor reached
+ok 98 - end to end: the Model's CNC8 pocket program, cut through its own part, never enters it and leaves the pocket's floor reached
+  ---
+  duration_ms: 62.117416
+  type: 'test'
+  ...
+# Subtest: CNC7b a block: O100's plate (120 × 80 × 28 with its boss) — 122 × 82 × 30 at 1 mm a face (an estimate, said), laid along the part and centred on it; 2 mm set — 125 × 85 × 32
+ok 99 - CNC7b a block: O100's plate (120 × 80 × 28 with its boss) — 122 × 82 × 30 at 1 mm a face (an estimate, said), laid along the part and centred on it; 2 mm set — 125 × 85 × 32
+  ---
+  duration_ms: 1105.191375
+  type: 'test'
+  ...
+# Subtest: CNC7b none loaded — unknown, STOCK_NONE_LOADED (none built in); none fits — warned, STOCK_NONE_FITS, the size needed said
+ok 100 - CNC7b none loaded — unknown, STOCK_NONE_LOADED (none built in); none fits — warned, STOCK_NONE_FITS, the size needed said
+  ---
+  duration_ms: 1558.618458
+  type: 'test'
+  ...
+# Subtest: CNC7b a bar: a turned shaft Ø20 × 52 — the thinnest bar ≥ Ø22 (Ø25 and Ø16 not taken), cut to 54 along its axis from y = −1; one too short refused
+ok 101 - CNC7b a bar: a turned shaft Ø20 × 52 — the thinnest bar ≥ Ø22 (Ø25 and Ø16 not taken), cut to 54 along its axis from y = −1; one too short refused
+  ---
+  duration_ms: 47.484625
+  type: 'test'
+  ...
+# Subtest: CNC7b the export: the stock as a body — the block 122 × 82 × 30 to 1e-6 mm³, the bar π·11²·54 within the chord; its STEP an ISO-10303-21 file
+ok 102 - CNC7b the export: the stock as a body — the block 122 × 82 × 30 to 1e-6 mm³, the bar π·11²·54 within the chord; its STEP an ISO-10303-21 file
+  ---
+  duration_ms: 81.762292
+  type: 'test'
+  ...
+# Subtest: CNC7b set_stock refuses by name: a row without a source, a block of two sides, two rows of one id, a negative allowance
+ok 103 - CNC7b set_stock refuses by name: a row without a source, a block of two sides, two rows of one id, a negative allowance
+  ---
+  duration_ms: 24.571167
+  type: 'test'
+  ...
+# Subtest: CNC7b cad-cli stock: the saved plate with a list given — exit 0, stock.json (B30, the allowance an estimate) and stock.step; with none — exit 1, STOCK_NONE_LOADED
+ok 104 - CNC7b cad-cli stock: the saved plate with a list given — exit 0, stock.json (B30, the allowance an estimate) and stock.step; with none — exit 1, STOCK_NONE_LOADED
+  ---
+  duration_ms: 2020.761209
+  type: 'test'
+  ...
+# Subtest: closing keeps the drawn H/V edges; removing one frees a degree of freedom
+ok 105 - closing keeps the drawn H/V edges; removing one frees a degree of freedom
+  ---
+  duration_ms: 9.519667
+  type: 'test'
+  ...
+# Subtest: parallel, perpendicular and equal length make the outline exact
+ok 106 - parallel, perpendicular and equal length make the outline exact
+  ---
+  duration_ms: 22.247291
+  type: 'test'
+  ...
+# Subtest: a constraint the others already imply is refused as over-defining; a conflict is refused
+ok 107 - a constraint the others already imply is refused as over-defining; a conflict is refused
+  ---
+  duration_ms: 17.140209
+  type: 'test'
+  ...
+# Subtest: fix holds a point; the anchor is already fixed
+ok 108 - fix holds a point; the anchor is already fixed
+  ---
+  duration_ms: 21.982709
+  type: 'test'
+  ...
+# Subtest: dimensions: edge lengths, point distances, redundant and conflicting values
+ok 109 - dimensions: edge lengths, point distances, redundant and conflicting values
+  ---
+  duration_ms: 17.503458
+  type: 'test'
+  ...
+# Subtest: an over-defined outline is reported; settling refuses an edit that adds redundancy
+ok 110 - an over-defined outline is reported; settling refuses an edit that adds redundancy
+  ---
+  duration_ms: 4.412917
+  type: 'test'
+  ...
+# Subtest: coincident puts a point on an arc centre; concentric from two arcs
+ok 111 - coincident puts a point on an arc centre; concentric from two arcs
+  ---
+  duration_ms: 3.874667
+  type: 'test'
+  ...
+# Subtest: picking points before edges in screen space, and the Select / Dimension clicks
+ok 112 - picking points before edges in screen space, and the Select / Dimension clicks
+  ---
+  duration_ms: 0.557625
+  type: 'test'
+  ...
+# Subtest: Select / Dimension turn a rectangle into an outline with its H/V edges; with none current, the last shape comes back
+ok 113 - Select / Dimension turn a rectangle into an outline with its H/V edges; with none current, the last shape comes back
+  ---
+  duration_ms: 1.114625
+  type: 'test'
+  ...
+# Subtest: horizontal and vertical distances between points, also when the points line up
+ok 114 - horizontal and vertical distances between points, also when the points line up
+  ---
+  duration_ms: 116.737458
+  type: 'test'
+  ...
+# Subtest: angle dimensions between two lines: at a shared corner, between separate edges, out of range refused
+ok 115 - angle dimensions between two lines: at a shared corner, between separate edges, out of range refused
+  ---
+  duration_ms: 5.581833
+  type: 'test'
+  ...
+# Subtest: sketch history steps back and forward through outline edits, and only over the shape it left
+ok 116 - sketch history steps back and forward through outline edits, and only over the shape it left
+  ---
+  duration_ms: 2.220959
+  type: 'test'
+  ...
+# Subtest: overlapping shapes in one sketch are refused with a reason, never cut or crashed
+ok 117 - overlapping shapes in one sketch are refused with a reason, never cut or crashed
+  ---
+  duration_ms: 3.454667
+  type: 'test'
+  ...
+# Subtest: a finished outline keeps its constraints in the sketch node; the feature editor drives its dimensions
+ok 118 - a finished outline keeps its constraints in the sketch node; the feature editor drives its dimensions
+  ---
+  duration_ms: 154.617958
+  type: 'test'
+  ...
+# Subtest: a finished sketch node comes back as its shapes: the kept outline with its constraints, loops, regions and holes
+ok 119 - a finished sketch node comes back as its shapes: the kept outline with its constraints, loops, regions and holes
+  ---
+  duration_ms: 2.261167
+  type: 'test'
+  ...
+# Subtest: a Rectangle-tool rectangle stays a rectangle after Select / Dimension while it still is one (QA S3, K29)
+ok 120 - a Rectangle-tool rectangle stays a rectangle after Select / Dimension while it still is one (QA S3, K29)
+  ---
+  duration_ms: 6.04525
+  type: 'test'
+  ...
+# Subtest: a circle is placed from the outline: picked from the sketch, centre distances, diameter, saved, reopened, edited
+ok 121 - a circle is placed from the outline: picked from the sketch, centre distances, diameter, saved, reopened, edited
+  ---
+  duration_ms: 268.369959
+  type: 'test'
+  ...
+# Subtest: Select / Dimension after drawing a circle edit the outline drawn before it; the circle stays beside it
+ok 122 - Select / Dimension after drawing a circle edit the outline drawn before it; the circle stays beside it
+  ---
+  duration_ms: 2.557583
+  type: 'test'
+  ...
+# Subtest: circles are placed from horizontal / vertical edges and from each other
+ok 123 - circles are placed from horizontal / vertical edges and from each other
+  ---
+  duration_ms: 78.19275
+  type: 'test'
+  ...
+# Subtest: a dimension may not push an attached circle across the outline or off it; Finish refuses a crossing one
+ok 124 - a dimension may not push an attached circle across the outline or off it; Finish refuses a crossing one
+  ---
+  duration_ms: 3.145708
+  type: 'test'
+  ...
+# Subtest: a plate with six fully placed holes solves (the kernel’s larger sketch profile)
+ok 125 - a plate with six fully placed holes solves (the kernel’s larger sketch profile)
+  ---
+  duration_ms: 35.741916
+  type: 'test'
+  ...
+# Subtest: concentric circles of an outline (radii kept, listed, removable); loose circles are refused
+ok 126 - concentric circles of an outline (radii kept, listed, removable); loose circles are refused
+  ---
+  duration_ms: 1.113958
+  type: 'test'
+  ...
+# Subtest: tangent: an outline edge and one of its circles come to touch, the radius kept
+ok 127 - tangent: an outline edge and one of its circles come to touch, the radius kept
+  ---
+  duration_ms: 0.847542
+  type: 'test'
+  ...
+# Subtest: symmetric: two points mirror each other across an edge’s line; two degrees of freedom less
+ok 128 - symmetric: two points mirror each other across an edge’s line; two degrees of freedom less
+  ---
+  duration_ms: 0.837333
+  type: 'test'
+  ...
+# Subtest: D85 Simplify mesh on a 6 400-triangle organic torus: offered for a mesh body only; to a quarter — its faces' names kept, the volume near, the report in its notes; its label
+ok 129 - D85 Simplify mesh on a 6 400-triangle organic torus: offered for a mesh body only; to a quarter — its faces' names kept, the volume near, the report in its notes; its label
+  ---
+  duration_ms: 895.65225
+  type: 'test'
+  ...
+# Subtest: D85 the agent: run_command decimate on the mesh body (its keep, bound and crease angle as values) — the body simplified, its notes in the result
+ok 130 - D85 the agent: run_command decimate on the mesh body (its keep, bound and crease angle as values) — the body simplified, its notes in the result
+  ---
+  duration_ms: 642.047917
+  type: 'test'
+  ...
+# Subtest: D85 a simplified mesh's keep is a value: edit_feature changes it (its field Keep %) (at autonomy L2 too, a value edit of the feature)
+ok 131 - D85 a simplified mesh's keep is a value: edit_feature changes it (its field Keep %) (at autonomy L2 too, a value edit of the feature)
+  ---
+  duration_ms: 358.990541
+  type: 'test'
+  ...
+# Subtest: B7 face runs: a face's vertices as runs in vertex order, a face that comes back a run of its own
+ok 132 - B7 face runs: a face's vertices as runs in vertex order, a face that comes back a run of its own
+  ---
+  duration_ms: 0.738083
+  type: 'test'
+  ...
+# Subtest: B7 hover and selection: only the changed faces are written, and the bytes equal a whole repaint at every step; new colours paint the whole body
+ok 133 - B7 hover and selection: only the changed faces are written, and the bytes equal a whole repaint at every step; new colours paint the whole body
+  ---
+  duration_ms: 6.588667
+  type: 'test'
+  ...
+# Subtest: B7 vertexColors converts a run of one colour once: the same bytes as per vertex
+ok 134 - B7 vertexColors converts a run of one colour once: the same bytes as per vertex
+  ---
+  duration_ms: 0.992625
+  type: 'test'
+  ...
+# Subtest: G15a: a look's finish as the viewer takes it — centred on its mesh, Z when no axis; none clears finish, coat and film
+ok 135 - G15a: a look's finish as the viewer takes it — centred on its mesh, Z when no axis; none clears finish, coat and film
+  ---
+  duration_ms: 0.681459
+  type: 'test'
+  ...
+# Subtest: a newer font upload wins even when the older read finishes later
+ok 136 - a newer font upload wins even when the older read finishes later
+  ---
+  duration_ms: 58.858791
+  type: 'test'
+  ...
+# Subtest: Cancel and a different command session suppress stale reads and stale errors
+ok 137 - Cancel and a different command session suppress stale reads and stale errors
+  ---
+  duration_ms: 0.677125
+  type: 'test'
+  ...
+# Subtest: current font errors remain visible and an oversized file is refused before its read
+ok 138 - current font errors remain visible and an oversized file is refused before its read
+  ---
+  duration_ms: 1.207958
+  type: 'test'
+  ...
+# Subtest: ending the HUD after its native read completes never pins a late font import
+ok 139 - ending the HUD after its native read completes never pins a late font import
+  ---
+  duration_ms: 10.607125
+  type: 'test'
+  ...
+# Subtest: FRb cad-cli nest: the mitred L into 600 mm bars at a 3 mm kerf — exit 0, one bar, 543 used and the offcut 57, in nesting.json and nesting.csv; no list, NEST_NO_STOCK; a 300 mm bar, the 320 piece too long — exit 1
+ok 140 - FRb cad-cli nest: the mitred L into 600 mm bars at a 3 mm kerf — exit 0, one bar, 543 used and the offcut 57, in nesting.json and nesting.csv; no list, NEST_NO_STOCK; a 300 mm bar, the 320 piece too long — exit 1
+  ---
+  duration_ms: 5458.762542
+  type: 'test'
+  ...
+# Subtest: D123 Structural member: each section kind from the palette, A·L by the textbook area; the radius prefills flagged estimates in the notes; its label and fields
+ok 141 - D123 Structural member: each section kind from the palette, A·L by the textbook area; the radius prefills flagged estimates in the notes; its label and fields
+  ---
+  duration_ms: 751.695166
+  type: 'test'
+  ...
+# Subtest: D123 a member of a sketch section, saved and read back; the agent's run_command and raw node, its refusals
+ok 142 - D123 a member of a sketch section, saved and read back; the agent's run_command and raw node, its refusals
+  ---
+  duration_ms: 85.265375
+  type: 'test'
+  ...
+# Subtest: D124 Frame from the palette: a table skeleton (8 members), each its own body named by its member, A·L each; the notes say which member and points; the editor moves a point
+ok 143 - D124 Frame from the palette: a table skeleton (8 members), each its own body named by its member, A·L each; the notes say which member and points; the editor moves a point
+  ---
+  duration_ms: 405.216792
+  type: 'test'
+  ...
+# Subtest: D124 Frame on picked edges: a layout box's 12 edges, their corners shared (8 points), a member on each; saved and read back
+ok 144 - D124 Frame on picked edges: a layout box's 12 edges, their corners shared (8 points), a member on each; saved and read back
+  ---
+  duration_ms: 301.773834
+  type: 'test'
+  ...
+# Subtest: D124 the agent's frame: a raw node with an override (the legs mirrored angles), checked and built; refused shapes and skeletons
+ok 145 - D124 the agent's frame: a raw node with an override (the legs mirrored angles), checked and built; refused shapes and skeletons
+  ---
+  duration_ms: 42.502
+  type: 'test'
+  ...
+# Subtest: D125 corners from the palette: a rectangle of sharp tubes mitred (A·L each, 45° ends in the notes); a table's three-member corners left square and said so; a corner set apart in the editor
+ok 146 - D125 corners from the palette: a rectangle of sharp tubes mitred (A·L each, 45° ends in the notes); a table's three-member corners left square and said so; a corner set apart in the editor
+  ---
+  duration_ms: 649.70025
+  type: 'test'
+  ...
+# Subtest: D125 a frame on a sketch section inside an assembly instance: flattened, its section follows its sketch (volumes and face names); the agent's corners, checked
+ok 147 - D125 a frame on a sketch section inside an assembly instance: flattened, its section follows its sketch (volumes and face names); the agent's corners, checked
+  ---
+  duration_ms: 120.055292
+  type: 'test'
+  ...
+# Subtest: D126 the palette's table frame trims its corners in order (legs through, rails between, no warning); a T-joint rail butted on a post; the editor's joint fields; the agent's trims and refusals
+ok 148 - D126 the palette's table frame trims its corners in order (legs through, rails between, no warning); a T-joint rail butted on a post; the editor's joint fields; the agent's trims and refusals
+  ---
+  duration_ms: 469.557833
+  type: 'test'
+  ...
+# Subtest: D127 the cut list: the palette's mitred rectangle of sharp tubes — two rows of two, 600 and 400, 45° both ends, masses by the body's material (aluminium, an estimate); a body in steel is its own row; the agent's cut_list with its CSV
+ok 149 - D127 the cut list: the palette's mitred rectangle of sharp tubes — two rows of two, 600 and 400, 45° both ends, masses by the body's material (aluminium, an estimate); a body in steel is its own row; the agent's cut_list with its CSV
+  ---
+  duration_ms: 350.786417
+  type: 'test'
+  ...
+# Subtest: FRk3 legacy channel labels omit absent and literal zero slope; nonzero and parameter labels stay visible
+ok 150 - FRk3 legacy channel labels omit absent and literal zero slope; nonzero and parameter labels stay visible
+  ---
+  duration_ms: 0.342708
+  type: 'test'
+  ...
+# Subtest: gizmo: arrows from a little out to their tips; an axis pointing at the camera is left out
+ok 151 - gizmo: arrows from a little out to their tips; an axis pointing at the camera is left out
+  ---
+  duration_ms: 5.510167
+  type: 'test'
+  ...
+# Subtest: gizmo: plane squares sit between their two arrows, arcs face the camera
+ok 152 - gizmo: plane squares sit between their two arrows, arcs face the camera
+  ---
+  duration_ms: 2.038333
+  type: 'test'
+  ...
+# Subtest: gizmo: hits find the handle under the pointer; the centre is none
+ok 153 - gizmo: hits find the handle under the pointer; the centre is none
+  ---
+  duration_ms: 13.523834
+  type: 'test'
+  ...
+# Subtest: gizmo: drags in mm along an arrow, in two axes on a square; nothing along an axis at the camera
+ok 154 - gizmo: drags in mm along an arrow, in two axes on a square; nothing along an axis at the camera
+  ---
+  duration_ms: 0.760125
+  type: 'test'
+  ...
+# Subtest: gizmo: sweeping round the centre turns right-handed about an axis seen from its tip
+ok 155 - gizmo: sweeping round the centre turns right-handed about an axis seen from its tip
+  ---
+  duration_ms: 2.711084
+  type: 'test'
+  ...
+# Subtest: G25b access: cad-model's per-triangle share and mask equal the experimental samples folded back
+ok 156 - G25b access: cad-model's per-triangle share and mask equal the experimental samples folded back
+  ---
+  duration_ms: 1918.972125
+  type: 'test'
+  ...
+# Subtest: G25a thickness: cad-model's wallSamples depth and local per triangle equal the mirror within f32
+ok 157 - G25a thickness: cad-model's wallSamples depth and local per triangle equal the mirror within f32
+  ---
+  duration_ms: 54.192125
+  type: 'test'
+  ...
+# Subtest: same-path stale writers validate only after the preceding native stream and tag read finish
+ok 158 - same-path stale writers validate only after the preceding native stream and tag read finish
+  ---
+  duration_ms: 2.84
+  type: 'test'
+  ...
+# Subtest: two expected-absent creates admit one owner; stale serial writes refuse and a fresh returned tag remains usable
+ok 159 - two expected-absent creates admit one owner; stale serial writes refuse and a fresh returned tag remains usable
+  ---
+  duration_ms: 0.674833
+  type: 'test'
+  ...
+# Subtest: unconditional writes share the same exclusion (conditional first)
+ok 160 - unconditional writes share the same exclusion (conditional first)
+  ---
+  duration_ms: 0.811166
+  type: 'test'
+  ...
+# Subtest: unconditional writes share the same exclusion (unconditional first)
+ok 161 - unconditional writes share the same exclusion (unconditional first)
+  ---
+  duration_ms: 0.832291
+  type: 'test'
+  ...
+# Subtest: different paths remain independent while one native write is held
+ok 162 - different paths remain independent while one native write is held
+  ---
+  duration_ms: 0.778625
+  type: 'test'
+  ...
+# Subtest: the returned tag belongs to its own commit even when an unconditional writer is already waiting
+ok 163 - the returned tag belongs to its own commit even when an unconditional writer is already waiting
+  ---
+  duration_ms: 0.543084
+  type: 'test'
+  ...
+# Subtest: an earlier completion does not remove a newer same-path queue tail
+ok 164 - an earlier completion does not remove a newer same-path queue tail
+  ---
+  duration_ms: 1.141958
+  type: 'test'
+  ...
+# Subtest: write failure aborts its stream and releases later requests
+ok 165 - write failure aborts its stream and releases later requests
+  ---
+  duration_ms: 1.950958
+  type: 'test'
+  ...
+# Subtest: close failure aborts its stream and releases later requests
+ok 166 - close failure aborts its stream and releases later requests
+  ---
+  duration_ms: 0.530667
+  type: 'test'
+  ...
+# Subtest: post-commit tag-read failure releases ownership without claiming rollback
+ok 167 - post-commit tag-read failure releases ownership without claiming rollback
+  ---
+  duration_ms: 0.570959
+  type: 'test'
+  ...
+# Subtest: IM7 S0 a plate with a Ø10 through hole along +Z: one flat parting plane at z = 10; the hole's rim a shut-off (π·5² within the chord); no side core; the block 10 mm a side (an estimate)
+ok 168 - IM7 S0 a plate with a Ø10 through hole along +Z: one flat parting plane at z = 10; the hole's rim a shut-off (π·5² within the chord); no side core; the block 10 mm a side (an estimate)
+  ---
+  duration_ms: 563.999833
+  type: 'test'
+  ...
+# Subtest: IM7 S0 the halves: the block less the part cut at z = 10 — the moving half 80·60·10 = 48000, the fixed half 96000 − (24000 − 250π), together the block less the part (exact B-rep volumes, 1e-6)
+ok 169 - IM7 S0 the halves: the block less the part cut at z = 10 — the moving half 80·60·10 = 48000, the fixed half 96000 − (24000 − 250π), together the block less the part (exact B-rep volumes, 1e-6)
+  ---
+  duration_ms: 887.1195
+  type: 'test'
+  ...
+# Subtest: IM7b a rod across the pull (Ø20 × 50 along X): its side split along its isocline (D149) where its seam is off it, none needed where its seam is on it; either way the plane through its axis (z = 0), each half 70·40·20 − 2500π, the block less the part to 1e-6
+ok 170 - IM7b a rod across the pull (Ø20 × 50 along X): its side split along its isocline (D149) where its seam is off it, none needed where its seam is on it; either way the plane through its axis (z = 0), each half 70·40·20 − 2500π, the block less the part to 1e-6
+  ---
+  duration_ms: 1856.978375
+  type: 'test'
+  ...
+# Subtest: IM7a a cup (60 × 40 × 25 shelled 2, open at the top): its inside the moving half's core — with its walls in the fixed half (the parting line stepped 2 and 25, the inner walls the risers) or in the moving one (the rim the one plane); either way the moving half 46368 + 48000, the fixed 108000, the block less the part to 1e-6
+ok 171 - IM7a a cup (60 × 40 × 25 shelled 2, open at the top): its inside the moving half's core — with its walls in the fixed half (the parting line stepped 2 and 25, the inner walls the risers) or in the moving one (the rim the one plane); either way the moving half 46368 + 48000, the fixed 108000, the block less the part to 1e-6
+  ---
+  duration_ms: 348.509833
+  type: 'test'
+  ...
+# Subtest: IM7a a stepped block (50 × 40 × 20 beside 50 × 40 × 10, along X): the parting line at z = 20 and z = 10, the step's wall (x = 50) its riser; the moving half 36000 + 72000, the fixed 120000, the block less the part to 1e-6
+ok 172 - IM7a a stepped block (50 × 40 × 20 beside 50 × 40 × 10, along X): the parting line at z = 20 and z = 10, the step's wall (x = 50) its riser; the moving half 36000 + 72000, the fixed 120000, the block less the part to 1e-6
+  ---
+  duration_ms: 347.468375
+  type: 'test'
+  ...
+# Subtest: IM7 S0 side cores: a block with a side hole along X — its side core's direction across the pull (±X, from IM3), given on the refusal too (its wall straddles: D149); the report's tooling rule says both
+ok 173 - IM7 S0 side cores: a block with a side hole along X — its side core's direction across the pull (±X, from IM3), given on the refusal too (its wall straddles: D149); the report's tooling rule says both
+  ---
+  duration_ms: 3054.194375
+  type: 'test'
+  ...
+# Subtest: IM7 S0 cad-cli mould: the holed plate — exit 0, mould.json (the plane, the halves' volumes, the shut-off, the margin an estimate) and mould.step of two solids; the rod tilted 45° — exit 1, MOULD_STEPPED (a parting surface off the axis planes)
+ok 174 - IM7 S0 cad-cli mould: the holed plate — exit 0, mould.json (the plane, the halves' volumes, the shut-off, the margin an estimate) and mould.step of two solids; the rod tilted 45° — exit 1, MOULD_STEPPED (a parting surface off the axis planes)
+  ---
+  duration_ms: 3592.819
+  type: 'test'
+  ...
+# Subtest: IM8b the data as NPTEL prints it: Table 1 in inch/ft (grey iron 0.125/0.105/0.083 by 2 and 4 ft; cast steel 0.251/0.191/0.155 by 2 and 6 ft; aluminium 0.155/0.143/0.125 by 4 and 6 ft; magnesium 0.173/0.155 by 4 ft); Table 3 in inches; each with its page and rule; grey iron an iron
+ok 175 - IM8b the data as NPTEL prints it: Table 1 in inch/ft (grey iron 0.125/0.105/0.083 by 2 and 4 ft; cast steel 0.251/0.191/0.155 by 2 and 6 ft; aluminium 0.155/0.143/0.125 by 4 and 6 ft; magnesium 0.173/0.155 by 4 ft); Table 3 in inches; each with its page and rule; grey iron an iron
+  ---
+  duration_ms: 14.477958
+  type: 'test'
+  ...
+# Subtest: IM8b shrinkage by band, the band's top in it: aluminium 100 mm and exactly 4 ft 0.155/12, 1500 mm 0.143/12, 2000 mm 0.125/12; steel 700 mm 0.191/12; magnesium 1300 mm 0.155/12; zinc none (said); yours over the table
+ok 176 - IM8b shrinkage by band, the band's top in it: aluminium 100 mm and exactly 4 ft 0.155/12, 1500 mm 0.143/12, 2000 mm 0.125/12; steel 700 mm 0.191/12; magnesium 1300 mm 0.155/12; zinc none (said); yours over the table
+  ---
+  duration_ms: 0.27
+  type: 'test'
+  ...
+# Subtest: IM8b machining allowance by band (inches × 25.4): non-ferrous 100 mm 2.286, 250 mm 3.048; cast steel 700 mm 7.62; cast iron 400 mm 5.08; past 40 in — none, said; yours over the table
+ok 177 - IM8b machining allowance by band (inches × 25.4): non-ferrous 100 mm 2.286, 250 mm 3.048; cast steel 700 mm 7.62; cast iron 400 mm 5.08; past 40 in — none, said; yours over the table
+  ---
+  duration_ms: 0.172958
+  type: 'test'
+  ...
+# Subtest: IM8b in the report: an A356 block 100 × 60 × 20, top machined — shrink 1.012917 and 2.286 mm on one face, each with its page; none marked n/a; a face not on the part fails; die casting's shrinkage unknown
+ok 178 - IM8b in the report: an A356 block 100 × 60 × 20, top machined — shrink 1.012917 and 2.286 mm on one face, each with its page; none marked n/a; a face not on the part fails; die casting's shrinkage unknown
+  ---
+  duration_ms: 2640.061834
+  type: 'test'
+  ...
+# Subtest: IM8b the pattern: the block with 2.286 mm on its top, scaled 1 + 0.155/12 about its box centre — its volume 100·60·22.286·f³ (1e-9 relative) and its box; its STEP read back to the same volume
+ok 179 - IM8b the pattern: the block with 2.286 mm on its top, scaled 1 + 0.155/12 about its box centre — its volume 100·60·22.286·f³ (1e-9 relative) and its box; its STEP read back to the same volume
+  ---
+  duration_ms: 78.315375
+  type: 'test'
+  ...
+# Subtest: IM8b refusals by name: set_casting with a face not on the part, a negative allowance, a shrink of 20 %, nothing given; a pattern of two bodies, of a wrought alloy, of a die-cast part, of a curved machined face
+ok 180 - IM8b refusals by name: set_casting with a face not on the part, a negative allowance, a shrink of 20 %, nothing given; a pattern of two bodies, of a wrought alloy, of a die-cast part, of a curved machined face
+  ---
+  duration_ms: 1028.5375
+  type: 'test'
+  ...
+# Subtest: IM8b cad-cli pattern: the saved block — exit 0, pattern.json (factor 1.012917, 2.286 mm on n1.top, NPTEL's pages) and pattern.step; a die-cast part — exit 1, PATTERN_NOT_CASTING
+ok 181 - IM8b cad-cli pattern: the saved block — exit 0, pattern.json (factor 1.012917, 2.286 mm on n1.top, NPTEL's pages) and pattern.step; a die-cast part — exit 1, PATTERN_NOT_CASTING
+  ---
+  duration_ms: 3852.134458
+  type: 'test'
+  ...
+# Subtest: IM8b the uniform factor said as a simplification (O109): a 1500 × 100 × 100 aluminium bar — one factor by its largest extent (0.143/12, 4–6 ft), and each dimension's own band where they differ (Y, Z 0.155/12); pattern.json lists them
+ok 182 - IM8b the uniform factor said as a simplification (O109): a 1500 × 100 × 100 aluminium bar — one factor by its largest extent (0.143/12, 4–6 ft), and each dimension's own band where they differ (Y, Z 0.155/12); pattern.json lists them
+  ---
+  duration_ms: 469.404
+  type: 'test'
+  ...
+# Subtest: STL read completion cannot show a question or error after a newer intent
+ok 183 - STL read completion cannot show a question or error after a newer intent
+  ---
+  duration_ms: 2.817
+  type: 'test'
+  ...
+# Subtest: DWG header completion cannot replace a newer notice
+ok 184 - DWG header completion cannot replace a newer notice
+  ---
+  duration_ms: 0.231666
+  type: 'test'
+  ...
+# Subtest: STEP file read cannot start a worker after Stop or a newer intent
+ok 185 - STEP file read cannot start a worker after Stop or a newer intent
+  ---
+  duration_ms: 0.09675
+  type: 'test'
+  ...
+# Subtest: STEP mesh reply cannot clear a newer stage or start a part read
+ok 186 - STEP mesh reply cannot clear a newer stage or start a part read
+  ---
+  duration_ms: 0.316416
+  type: 'test'
+  ...
+# Subtest: STEP part failure cannot replace a newer notice
+ok 187 - STEP part failure cannot replace a newer notice
+  ---
+  duration_ms: 0.4435
+  type: 'test'
+  ...
+# Subtest: barocad file completion cannot commit or fit after a newer intent
+ok 188 - barocad file completion cannot commit or fit after a newer intent
+  ---
+  duration_ms: 0.12225
+  type: 'test'
+  ...
+# Subtest: barocad commit refusal does not show success or fit
+ok 189 - barocad commit refusal does not show success or fit
+  ---
+  duration_ms: 1.568958
+  type: 'test'
+  ...
+# Subtest: barocad accepted commit keeps its success and fit sequence
+ok 190 - barocad accepted commit keeps its success and fit sequence
+  ---
+  duration_ms: 0.154792
+  type: 'test'
+  ...
+# Subtest: iges file completion cannot commit or fit after a newer intent
+ok 191 - iges file completion cannot commit or fit after a newer intent
+  ---
+  duration_ms: 0.307417
+  type: 'test'
+  ...
+# Subtest: iges commit refusal does not show success or fit
+ok 192 - iges commit refusal does not show success or fit
+  ---
+  duration_ms: 14.822459
+  type: 'test'
+  ...
+# Subtest: iges accepted commit keeps its success and fit sequence
+ok 193 - iges accepted commit keeps its success and fit sequence
+  ---
+  duration_ms: 2.73325
+  type: 'test'
+  ...
+# Subtest: current OBJ still offers its unit question
+ok 194 - current OBJ still offers its unit question
+  ---
+  duration_ms: 0.34125
+  type: 'test'
+  ...
+# Subtest: current STEP read failure remains visible
+ok 195 - current STEP read failure remains visible
+  ---
+  duration_ms: 0.105792
+  type: 'test'
+  ...
+# Subtest: STEP diagnosis reply cannot clear a newer stage or show an old repair question
+ok 196 - STEP diagnosis reply cannot clear a newer stage or show an old repair question
+  ---
+  duration_ms: 0.116375
+  type: 'test'
+  ...
+# Subtest: rejected STEP file reads cannot show an old error after Stop
+ok 197 - rejected STEP file reads cannot show an old error after Stop
+  ---
+  duration_ms: 0.271667
+  type: 'test'
+  ...
+# Subtest: current STEP file rejection clears its stage and shows an error
+ok 198 - current STEP file rejection clears its stage and shows an error
+  ---
+  duration_ms: 0.08225
+  type: 'test'
+  ...
+# Subtest: current STEP acceptance can change ownership before the success notice
+ok 199 - current STEP acceptance can change ownership before the success notice
+  ---
+  duration_ms: 9.490708
+  type: 'test'
+  ...
+# Subtest: refused STEP acceptance cannot show a success notice
+ok 200 - refused STEP acceptance cannot show a success notice
+  ---
+  duration_ms: 0.239459
+  type: 'test'
+  ...
+# Subtest: instance drag: a move adds to the position; a turn about a world axis keeps the centre
+ok 201 - instance drag: a move adds to the position; a turn about a world axis keeps the centre
+  ---
+  duration_ms: 1.341708
+  type: 'test'
+  ...
+# Subtest: instance drag: the preview matrix moves the placed part where the committed placement puts it
+ok 202 - instance drag: the preview matrix moves the placed part where the committed placement puts it
+  ---
+  duration_ms: 0.258375
+  type: 'test'
+  ...
+# Subtest: instance drag: fixed, hidden and fully mated parts get no gizmo; a part that can only slide gets arrows
+ok 203 - instance drag: fixed, hidden and fully mated parts get no gizmo; a part that can only slide gets arrows
+  ---
+  duration_ms: 0.14975
+  type: 'test'
+  ...
+# Subtest: a dragged move lines up with other bodies’ sides and middles within the tolerance
+ok 204 - a dragged move lines up with other bodies’ sides and middles within the tolerance
+  ---
+  duration_ms: 0.229375
+  type: 'test'
+  ...
+# Subtest: G1 the pose matrices: every vertex, edge point and box where the moved copies put them, over random poses and explode factors
+ok 205 - G1 the pose matrices: every vertex, edge point and box where the moved copies put them, over random poses and explode factors
+  ---
+  duration_ms: 400.986125
+  type: 'test'
+  ...
+# Subtest: G1 the renderer: an instance's meshes made once — a new selection, the same bodies again and every pose only move them; a changed or gone instance alone is rebuilt or released
+ok 206 - G1 the renderer: an instance's meshes made once — a new selection, the same bodies again and every pose only move them; a changed or gone instance alone is rebuilt or released
+  ---
+  duration_ms: 92.261625
+  type: 'test'
+  ...
+# Subtest: G10 copies share a tessellation: four turned copies one geometry, each drawn where its own mesh is; an edited or scaled copy its own; picked faces a private copy and back; all released
+ok 207 - G10 copies share a tessellation: four turned copies one geometry, each drawn where its own mesh is; an edited or scaled copy its own; picked faces a private copy and back; all released
+  ---
+  duration_ms: 308.024458
+  type: 'test'
+  ...
+# Subtest: instances: a part placed by rotation then a move, in display and in STEP
+ok 208 - instances: a part placed by rotation then a move, in display and in STEP
+  ---
+  duration_ms: 39.521375
+  type: 'test'
+  ...
+# Subtest: exploded view: instances pushed out from the middle by the factor; the meshes moved, not the parts
+ok 209 - exploded view: instances pushed out from the middle by the factor; the meshes moved, not the parts
+  ---
+  duration_ms: 7.709167
+  type: 'test'
+  ...
+# Subtest: document receipts preserve dirty/recovery for ABA, old render, mismatched document and renamed file
+ok 210 - document receipts preserve dirty/recovery for ABA, old render, mismatched document and renamed file
+  ---
+  duration_ms: 0.728208
+  type: 'test'
+  ...
+# Subtest: out-of-order success cannot move a current file tag backwards
+ok 211 - out-of-order success cannot move a current file tag backwards
+  ---
+  duration_ms: 0.12
+  type: 'test'
+  ...
+# Subtest: actual hook: late Save retains newer recovery, advances its tag, and keeps saved-equal checkpoint hidden
+ok 212 - actual hook: late Save retains newer recovery, advances its tag, and keeps saved-equal checkpoint hidden
+  ---
+  duration_ms: 5.071458
+  type: 'test'
+  ...
+# Subtest: actual hook: close invalidates a held Save receipt and preserves the next file binding
+ok 213 - actual hook: close invalidates a held Save receipt and preserves the next file binding
+  ---
+  duration_ms: 0.710542
+  type: 'test'
+  ...
+# Subtest: actual hook: detach invalidates a held Save receipt and preserves the next file binding
+ok 214 - actual hook: detach invalidates a held Save receipt and preserves the next file binding
+  ---
+  duration_ms: 0.696709
+  type: 'test'
+  ...
+# Subtest: actual hook: use invalidates a held Save receipt and preserves the next file binding
+ok 215 - actual hook: use invalidates a held Save receipt and preserves the next file binding
+  ---
+  duration_ms: 4.946542
+  type: 'test'
+  ...
+# Subtest: actual hook: openPart invalidates a held Save receipt and preserves the next file binding
+ok 216 - actual hook: openPart invalidates a held Save receipt and preserves the next file binding
+  ---
+  duration_ms: 1.637208
+  type: 'test'
+  ...
+# Subtest: actual hook: session change during versions read suppresses stale log errors and completion
+ok 217 - actual hook: session change during versions read suppresses stale log errors and completion
+  ---
+  duration_ms: 0.720625
+  type: 'test'
+  ...
+# Subtest: actual hook: detach during parts refresh suppresses stale completion and permits the next Save
+ok 218 - actual hook: detach during parts refresh suppresses stale completion and permits the next Save
+  ---
+  duration_ms: 1.0885
+  type: 'test'
+  ...
+# Subtest: the acceptance flow through the agent tools: list the T-slot library, insert a 20×20 rail and an M5 slot nut, snap the nut into the top slot 40 mm along — real mates, the nut under the lips; save and reopen, the same bodies
+ok 219 - the acceptance flow through the agent tools: list the T-slot library, insert a 20×20 rail and an M5 slot nut, snap the nut into the top slot 40 mm along — real mates, the nut under the lips; save and reopen, the same bodies
+  ---
+  duration_ms: 679.938208
+  type: 'test'
+  ...
+# Subtest: an agent writes a library as data: checked at once (builds in each variant, no fits to fail), kept with the document marked as the agent's; not shared until a person confirms it; unlicensed is private use only; imported models refused; the team folder takes a library only when its own run of the check passes
+ok 220 - an agent writes a library as data: checked at once (builds in each variant, no fits to fail), kept with the document marked as the agent's; not shared until a person confirms it; unlicensed is private use only; imported models refused; the team folder takes a library only when its own run of the check passes
+  ---
+  duration_ms: 245.970958
+  type: 'test'
+  ...
+# Subtest: print layers and the CNC overcut take the made bodies only: an O-ring and a bearing left out, unless the person says they are made
+ok 221 - print layers and the CNC overcut take the made bodies only: an O-ring and a bearing left out, unless the person says they are made
+  ---
+  duration_ms: 1.110625
+  type: 'test'
+  ...
+# Subtest: a hidden made body is not printed
+ok 222 - a hidden made body is not printed
+  ---
+  duration_ms: 0.208291
+  type: 'test'
+  ...
+# Subtest: B13 recovery copy: the same text as writing out the whole document, after edits too; a copy past the limit is not tried
+ok 223 - B13 recovery copy: the same text as writing out the whole document, after edits too; a copy past the limit is not tried
+  ---
+  duration_ms: 2.583541
+  type: 'test'
+  ...
+# Subtest: B13 parameters: a rename copies only the nodes that use the parameter (the rest the same objects), with the result the round trip gave; the use count the same
+ok 224 - B13 parameters: a rename copies only the nodes that use the parameter (the rest the same objects), with the result the round trip gave; the use count the same
+  ---
+  duration_ms: 187.95075
+  type: 'test'
+  ...
+# Subtest: B13 opening a mesh: the weld gives the vertices and corners the text-keyed weld gave — repeated corners, near ones, −0, a NaN, single precision, other units
+ok 225 - B13 opening a mesh: the weld gives the vertices and corners the text-keyed weld gave — repeated corners, near ones, −0, a NaN, single precision, other units
+  ---
+  duration_ms: 107.563208
+  type: 'test'
+  ...
+# Subtest: current unit question reaches the real blob and part pipeline
+ok 226 - current unit question reaches the real blob and part pipeline
+  ---
+  duration_ms: 14.469541
+  type: 'test'
+  ...
+# Subtest: a second unit question keeps its state when the first diagnosis completes
+ok 227 - a second unit question keeps its state when the first diagnosis completes
+  ---
+  duration_ms: 7.55025
+  type: 'test'
+  ...
+# Subtest: changing units revokes the diagnosis for the previous unit
+ok 228 - changing units revokes the diagnosis for the previous unit
+  ---
+  duration_ms: 0.276125
+  type: 'test'
+  ...
+# Subtest: repair progress and result cannot write into a newer repair question
+ok 229 - repair progress and result cannot write into a newer repair question
+  ---
+  duration_ms: 0.162333
+  type: 'test'
+  ...
+# Subtest: changing repair steps revokes the old check without losing the new steps
+ok 230 - changing repair steps revokes the old check without losing the new steps
+  ---
+  duration_ms: 0.158
+  type: 'test'
+  ...
+# Subtest: Stop revokes progress before restart and keeps the question ready for a new check
+ok 231 - Stop revokes progress before restart and keeps the question ready for a new check
+  ---
+  duration_ms: 0.134834
+  type: 'test'
+  ...
+# Subtest: Cancel revokes a pending diagnosis and a later worker error
+ok 232 - Cancel revokes a pending diagnosis and a later worker error
+  ---
+  duration_ms: 0.154792
+  type: 'test'
+  ...
+# Subtest: a document replacement hides old questions and revokes a pending part read
+ok 233 - a document replacement hides old questions and revokes a pending part read
+  ---
+  duration_ms: 1.257375
+  type: 'test'
+  ...
+# Subtest: Stop during blob hashing cannot start a part read in the restarted worker
+ok 234 - Stop during blob hashing cannot start a part read in the restarted worker
+  ---
+  duration_ms: 8.551292
+  type: 'test'
+  ...
+# Subtest: current worker errors remain visible and leave the question ready to retry
+ok 235 - current worker errors remain visible and leave the question ready to retry
+  ---
+  duration_ms: 0.571208
+  type: 'test'
+  ...
+# Subtest: controller cleanup revokes pending work and permits a fresh retry
+ok 236 - controller cleanup revokes pending work and permits a fresh retry
+  ---
+  duration_ms: 2.787959
+  type: 'test'
+  ...
+# Subtest: a refused mesh acceptance does not report success
+ok 237 - a refused mesh acceptance does not report success
+  ---
+  duration_ms: 7.262708
+  type: 'test'
+  ...
+# Subtest: an edit repair cannot commit after its document changes during blob hashing
+ok 238 - an edit repair cannot commit after its document changes during blob hashing
+  ---
+  duration_ms: 0.572334
+  type: 'test'
+  ...
+# Subtest: M0 broken set: each defect found and repaired as expected
+ok 239 - M0 broken set: each defect found and repaired as expected
+  ---
+  duration_ms: 1556.918
+  type: 'test'
+  ...
+# Subtest: a repair as a recorded step on the mesh node: the import kept, the result its own blobs, fill faces named, the container round trip; removed, the mesh as imported
+ok 240 - a repair as a recorded step on the mesh node: the import kept, the result its own blobs, fill faces named, the container round trip; removed, the mesh as imported
+  ---
+  duration_ms: 284.492292
+  type: 'test'
+  ...
+# Subtest: IM6 a complete package: an ABS block drafted 3°, 1000 of them stated, PM-T1, pulled along +Z — nothing open; five files, each SHA-256 in the manifest; the request the part's and the pages'
+ok 241 - IM6 a complete package: an ABS block drafted 3°, 1000 of them stated, PM-T1, pulled along +Z — nothing open; five files, each SHA-256 in the manifest; the request the part's and the pages'
+  ---
+  duration_ms: 523.740542
+  type: 'test'
+  ...
+# Subtest: IM6 nothing assumed: no material and no quantity stated — both open, not complete; a finish asking more draft than the part has — warned in the report, not open; no process, a bad quantity — refused
+ok 242 - IM6 nothing assumed: no material and no quantity stated — both open, not complete; a finish asking more draft than the part has — warned in the report, not open; no process, a bad quantity — refused
+  ---
+  duration_ms: 159.745542
+  type: 'test'
+  ...
+# Subtest: IM6 cad-cli mould-quote writes the zip; exit 0 complete, 1 while anything is open
+ok 243 - IM6 cad-cli mould-quote writes the zip; exit 0 complete, 1 while anything is open
+  ---
+  duration_ms: 497.37175
+  type: 'test'
+  ...
+# Subtest: IM3 a block with a hole along the pull and one across it: the side hole's whole bore one undercut region, its area the bore's, freed by a side action along its own axis; the vertical hole none
+ok 244 - IM3 a block with a hole along the pull and one across it: the side hole's whole bore one undercut region, its area the bore's, freed by a side action along its own axis; the vertical hole none
+  ---
+  duration_ms: 7848.890333
+  type: 'test'
+  ...
+# Subtest: IM3 a snap hook standing on a plate: its catch, the beam's face under the latch and the plate under it hidden both ways along the pull; a side action along the latch frees them — a plain post in its place (mutant) has none
+ok 245 - IM3 a snap hook standing on a plate: its catch, the beam's face under the latch and the plate under it hidden both ways along the pull; a side action along the latch frees them — a plain post in its place (mutant) has none
+  ---
+  duration_ms: 355.866584
+  type: 'test'
+  ...
+# Subtest: IM3 an internal groove in a bore along the pull: hidden both ways, and no side action across the pull frees it (the bore's walls in every direction)
+ok 246 - IM3 an internal groove in a bore along the pull: hidden both ways, and no side action across the pull frees it (the bore's walls in every direction)
+  ---
+  duration_ms: 3158.922917
+  type: 'test'
+  ...
+# Subtest: IM3 in the manufacturability report: the side hole warned (a side action named); the groove fails; a plain box passes; no pull — unknown; the regions listed
+ok 247 - IM3 in the manufacturability report: the side hole warned (a side action named); the groove fails; a plain box passes; no pull — unknown; the regions listed
+  ---
+  duration_ms: 3493.608459
+  type: 'test'
+  ...
+# Subtest: client attaches eager part provenance after actual structuredClone and mesh unpack; missing or mismatched envelope stays untracked
+ok 248 - client attaches eager part provenance after actual structuredClone and mesh unpack; missing or mismatched envelope stays untracked
+  ---
+  duration_ms: 30.31625
+  type: 'test'
+  ...
+# Subtest: client rejects old evaluation masses, accepts the exact current body, and rejects a terminated worker after restart
+ok 249 - client rejects old evaluation masses, accepts the exact current body, and rejects a terminated worker after restart
+  ---
+  duration_ms: 9.174375
+  type: 'test'
+  ...
+# Subtest: stale evaluation replies still advance mesh slots but cannot replace or acquire current provenance
+ok 250 - stale evaluation replies still advance mesh slots but cannot replace or acquire current provenance
+  ---
+  duration_ms: 2.116458
+  type: 'test'
+  ...
+# Subtest: client keeps public seconds through real mesh clones, refusals, lost meshes and restart cancellation
+ok 251 - client keeps public seconds through real mesh clones, refusals, lost meshes and restart cancellation
+  ---
+  duration_ms: 5.953083
+  type: 'test'
+  ...
+# Subtest: O15: robot_check is not listed, allowed or callable without CAD_ROBOT_L3; with it, listed, allowed and run (no duty yet: said so); the budget cap passed on
+ok 252 - O15: robot_check is not listed, allowed or callable without CAD_ROBOT_L3; with it, listed, allowed and run (no duty yet: said so); the budget cap passed on
+  ---
+  duration_ms: 369.451041
+  type: 'test'
+  ...
+# Subtest: O15: a run that changed the brief's own terms (the life, a pose, a dwell) is no pass
+ok 253 - O15: a run that changed the brief's own terms (the life, a pose, a dwell) is no pass
+  ---
+  duration_ms: 0.249291
+  type: 'test'
+  ...
+# Subtest: O17: a turn through the AI SDK's Chat — text runs and tool parts in one assistant message; states and the end as data only
+ok 254 - O17: a turn through the AI SDK's Chat — text runs and tool parts in one assistant message; states and the end as data only
+  ---
+  duration_ms: 45.970041
+  type: 'test'
+  ...
+# Subtest: O17: an error and a stop — an error's notice stays in the turn's message; stopped, the stream is read no further; sendMessage settles
+ok 255 - O17: an error and a stop — an error's notice stays in the turn's message; stopped, the stream is read no further; sendMessage settles
+  ---
+  duration_ms: 558.413333
+  type: 'test'
+  ...
+# Subtest: O17 scripted: turns in order, text and tool parts as the server's, the end run on done with its notices
+ok 256 - O17 scripted: turns in order, text and tool parts as the server's, the end run on done with its notices
+  ---
+  duration_ms: 12.478875
+  type: 'test'
+  ...
+# Subtest: O17 scripted: a slow turn stopped ends as aborted, sendMessage settles
+ok 257 - O17 scripted: a slow turn stopped ends as aborted, sendMessage settles
+  ---
+  duration_ms: 126.532083
+  type: 'test'
+  ...
+# Subtest: O17 scripted: one transport a conversation — every message its own id
+ok 258 - O17 scripted: one transport a conversation — every message its own id
+  ---
+  duration_ms: 8.803958
+  type: 'test'
+  ...
+# Subtest: O17: the ok turn — three calls (one refused), the states, the text — as the same chunks in pieces of any size
+ok 259 - O17: the ok turn — three calls (one refused), the states, the text — as the same chunks in pieces of any size
+  ---
+  duration_ms: 40.260041
+  type: 'test'
+  ...
+# Subtest: O17: the error turn ends as an error chunk with the server's reason, its done kept as data
+ok 260 - O17: the error turn ends as an error chunk with the server's reason, its done kept as data
+  ---
+  duration_ms: 0.5555
+  type: 'test'
+  ...
+# Subtest: O17: a turn stopped after its first call ends as abort, what it had streamed kept
+ok 261 - O17: a turn stopped after its first call ends as abort, what it had streamed kept
+  ---
+  duration_ms: 146.725667
+  type: 'test'
+  ...
+# Subtest: O17c: the CLI's thinking deltas stream as reasoning events, before the text; nothing else becomes one
+ok 262 - O17c: the CLI's thinking deltas stream as reasoning events, before the text; nothing else becomes one
+  ---
+  duration_ms: 124.731167
+  type: 'test'
+  ...
+# Subtest: O17c: the A/B harness and the robot L3 run read the same tools and done with reasoning events among them
+ok 263 - O17c: the A/B harness and the robot L3 run read the same tools and done with reasoning events among them
+  ---
+  duration_ms: 0.583375
+  type: 'test'
+  ...
+# Subtest: O17c: the transport writes a reasoning run as one reasoning part, closed before the text starts
+ok 264 - O17c: the transport writes a reasoning run as one reasoning part, closed before the text starts
+  ---
+  duration_ms: 0.187
+  type: 'test'
+  ...
+# Subtest: O24 d ball UI: explicit Ball aligns only origins and keeps all three rotations
+ok 265 - O24 d ball UI: explicit Ball aligns only origins and keeps all three rotations
+  ---
+  duration_ms: 4.133958
+  type: 'test'
+  ...
+# Subtest: O24 d ball UI: connector edits keep rotation and host undo restores the whole accepted change
+ok 266 - O24 d ball UI: connector edits keep rotation and host undo restores the whole accepted change
+  ---
+  duration_ms: 1.095042
+  type: 'test'
+  ...
+# Subtest: O24 d ball UI: selecting Ball hides mate flip, clears its old draft value and keeps Auto first
+ok 267 - O24 d ball UI: selecting Ball hides mate flip, clears its old draft value and keeps Auto first
+  ---
+  duration_ms: 2.106916
+  type: 'test'
+  ...
+# Subtest: O24 d ball UI: explicit conversion drops only old mate scalars/flip and retains the body orientation
+ok 268 - O24 d ball UI: explicit conversion drops only old mate scalars/flip and retains the body orientation
+  ---
+  duration_ms: 3.257292
+  type: 'test'
+  ...
+# Subtest: O24 d ball UI: reversed fixed picks, raw refusal and unsupported second anchors preserve the undo boundary
+ok 269 - O24 d ball UI: reversed fixed picks, raw refusal and unsupported second anchors preserve the undo boundary
+  ---
+  duration_ms: 2.2785
+  type: 'test'
+  ...
+# Subtest: O24 d ball UI: the original Auto, Fastened and Lock paths keep their original placements and freedom
+ok 270 - O24 d ball UI: the original Auto, Fastened and Lock paths keep their original placements and freedom
+  ---
+  duration_ms: 1.7975
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical UI: explicit kind retains axial position and twist with one free turn and slide
+ok 271 - O24 d cylindrical UI: explicit kind retains axial position and twist with one free turn and slide
+  ---
+  duration_ms: 4.338333
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical UI: selecting the explicit kind clears draft flip, hides scalar controls and keeps Auto first
+ok 272 - O24 d cylindrical UI: selecting the explicit kind clears draft flip, hides scalar controls and keeps Auto first
+  ---
+  duration_ms: 0.524666
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical UI: connector line edits retain the axial position and host undo restores the whole commit
+ok 273 - O24 d cylindrical UI: connector line edits retain the axial position and host undo restores the whole commit
+  ---
+  duration_ms: 2.009292
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical UI: local connector flip, turn and offset keep the existing frame contract
+ok 274 - O24 d cylindrical UI: local connector flip, turn and offset keep the existing frame contract
+  ---
+  duration_ms: 0.880041
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical UI: correcting forbidden tilt retains the starting axial offset and permitted twist
+ok 275 - O24 d cylindrical UI: correcting forbidden tilt retains the starting axial offset and permitted twist
+  ---
+  duration_ms: 0.4895
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical UI: converting a classic distance removes its scalar but retains that axial offset
+ok 276 - O24 d cylindrical UI: converting a classic distance removes its scalar but retains that axial offset
+  ---
+  duration_ms: 0.783458
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical UI: fixed-side swap and raw VALUE refusals preserve the undo boundary
+ok 277 - O24 d cylindrical UI: fixed-side swap and raw VALUE refusals preserve the undo boundary
+  ---
+  duration_ms: 0.523667
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical UI: adding a classic mate to a Cylindrical refuses an unsupported combination without committing
+ok 278 - O24 d cylindrical UI: adding a classic mate to a Cylindrical refuses an unsupported combination without committing
+  ---
+  duration_ms: 0.544166
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical UI: unavailable linked geometry prevents a new commit
+ok 279 - O24 d cylindrical UI: unavailable linked geometry prevents a new commit
+  ---
+  duration_ms: 0.408041
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical UI: original Auto, Lock, Universal, Ball and Fastened retain distinct freedom and placements
+ok 280 - O24 d cylindrical UI: original Auto, Lock, Universal, Ball and Fastened retain distinct freedom and placements
+  ---
+  duration_ms: 1.673792
+  type: 'test'
+  ...
+# Subtest: O24 d UI: explicit Fastened aligns frames in one commit; connector edit and host undo restore the whole change
+ok 281 - O24 d UI: explicit Fastened aligns frames in one commit; connector edit and host undo restore the whole change
+  ---
+  duration_ms: 6.772292
+  type: 'test'
+  ...
+# Subtest: O24 d UI: classic Auto choice and Lock keep their original motions and placements
+ok 282 - O24 d UI: classic Auto choice and Lock keep their original motions and placements
+  ---
+  duration_ms: 1.277792
+  type: 'test'
+  ...
+# Subtest: O24 d UI: reversed fixed pick order still aligns; invalid options, connector geometry and conflicts add no undo record
+ok 283 - O24 d UI: reversed fixed pick order still aligns; invalid options, connector geometry and conflicts add no undo record
+  ---
+  duration_ms: 1.7695
+  type: 'test'
+  ...
+# Subtest: O24 d UI: Type offers explicit Fastened; conversion removes only the previous classic scalar, without changing Auto
+ok 284 - O24 d UI: Type offers explicit Fastened; conversion removes only the previous classic scalar, without changing Auto
+  ---
+  duration_ms: 0.903667
+  type: 'test'
+  ...
+# Subtest: O24 d universal UI: explicit Universal leaves two turns and preserves an allowed initial stance
+ok 285 - O24 d universal UI: explicit Universal leaves two turns and preserves an allowed initial stance
+  ---
+  duration_ms: 4.185375
+  type: 'test'
+  ...
+# Subtest: O24 d universal UI: selecting Universal clears old draft flip, hides scalars and keeps Auto first
+ok 286 - O24 d universal UI: selecting Universal clears old draft flip, hides scalars and keeps Auto first
+  ---
+  duration_ms: 0.5735
+  type: 'test'
+  ...
+# Subtest: O24 d universal UI: connector edits are one undoable change of the coincident anchor and pose
+ok 287 - O24 d universal UI: connector edits are one undoable change of the coincident anchor and pose
+  ---
+  duration_ms: 13.264792
+  type: 'test'
+  ...
+# Subtest: O24 d universal UI: changing connector turn changes its moving axis through the real workflow
+ok 288 - O24 d universal UI: changing connector turn changes its moving axis through the real workflow
+  ---
+  duration_ms: 2.452167
+  type: 'test'
+  ...
+# Subtest: O24 d universal UI: a forbidden starting turn is corrected by the existing nearest-turn path
+ok 289 - O24 d universal UI: a forbidden starting turn is corrected by the existing nearest-turn path
+  ---
+  duration_ms: 0.56575
+  type: 'test'
+  ...
+# Subtest: O24 d universal UI: conversion drops only inherited mate scalars/flip and retains allowed body rotation
+ok 290 - O24 d universal UI: conversion drops only inherited mate scalars/flip and retains allowed body rotation
+  ---
+  duration_ms: 1.087625
+  type: 'test'
+  ...
+# Subtest: O24 d universal UI: reversed fixed picks and raw refusal preserve the undo boundary
+ok 291 - O24 d universal UI: reversed fixed picks and raw refusal preserve the undo boundary
+  ---
+  duration_ms: 0.566625
+  type: 'test'
+  ...
+# Subtest: O24 d universal UI: adding a classic mate to an existing Universal refuses the unsupported combination atomically
+ok 292 - O24 d universal UI: adding a classic mate to an existing Universal refuses the unsupported combination atomically
+  ---
+  duration_ms: 0.542042
+  type: 'test'
+  ...
+# Subtest: O24 d universal UI: pending linked geometry prevents a new commit
+ok 293 - O24 d universal UI: pending linked geometry prevents a new commit
+  ---
+  duration_ms: 0.639125
+  type: 'test'
+  ...
+# Subtest: O24 d universal UI: original Auto, Ball, Fastened and Lock paths preserve their distinct freedom and placements
+ok 294 - O24 d universal UI: original Auto, Ball, Fastened and Lock paths preserve their distinct freedom and placements
+  ---
+  duration_ms: 1.564375
+  type: 'test'
+  ...
+# Subtest: O7e: the sample loads the seven sizes with the person's receipt naming it; a bad row is refused
+ok 295 - O7e: the sample loads the seven sizes with the person's receipt naming it; a bad row is refused
+  ---
+  duration_ms: 42.619083
+  type: 'test'
+  ...
+# Subtest: O7c: the casting rules sample loads both processes' rows with the person's receipt
+ok 296 - O7c: the casting rules sample loads both processes' rows with the person's receipt
+  ---
+  duration_ms: 8.527458
+  type: 'test'
+  ...
+# Subtest: O9 lanes: the slow older preview comes back stale after the fast newer one; a lone request is its own result, with what it was asked of
+ok 297 - O9 lanes: the slow older preview comes back stale after the fast newer one; a lone request is its own result, with what it was asked of
+  ---
+  duration_ms: 33.594125
+  type: 'test'
+  ...
+# Subtest: O9 lanes: one placed part's bodies do not supersede another's; the same part's newer request does
+ok 298 - O9 lanes: one placed part's bodies do not supersede another's; the same part's newer request does
+  ---
+  duration_ms: 19.569208
+  type: 'test'
+  ...
+# Subtest: O9 lanes: an older reply arriving first is still stale once a newer request was sent; two parts' drawings apart
+ok 299 - O9 lanes: an older reply arriving first is still stale once a newer request was sent; two parts' drawings apart
+  ---
+  duration_ms: 29.174958
+  type: 'test'
+  ...
+# Subtest: R4b lanes: cancel makes every request waiting on its lane come back stale, others untouched; a later request is current
+ok 300 - R4b lanes: cancel makes every request waiting on its lane come back stale, others untouched; a later request is current
+  ---
+  duration_ms: 12.082
+  type: 'test'
+  ...
+# Subtest: P1-L3 harness: codex exec reaches the part through cad-mcp only — the user config ignored, the built-ins disabled, the brief on stdin
+ok 301 - P1-L3 harness: codex exec reaches the part through cad-mcp only — the user config ignored, the built-ins disabled, the brief on stdin
+  ---
+  duration_ms: 0.953042
+  type: 'test'
+  ...
+# Subtest: P1-L3 harness, dry run: a pass, an oracle failure and an off-contract call — each judged by cad-cli check afresh on the saved part
+ok 302 - P1-L3 harness, dry run: a pass, an oracle failure and an off-contract call — each judged by cad-cli check afresh on the saved part
+  ---
+  duration_ms: 7558.607584
+  type: 'test'
+  ...
+# Subtest: P1-L3 harness, dry run: the tool-call cap and the wall clock end a run (its processes killed), recorded as such
+ok 303 - P1-L3 harness, dry run: the tool-call cap and the wall clock end a run (its processes killed), recorded as such
+  ---
+  duration_ms: 3381.834042
+  type: 'test'
+  ...
+# Subtest: every command, its label typed, comes first (or one of the same label does), available or not
+ok 304 - every command, its label typed, comes first (or one of the same label does), available or not
+  ---
+  duration_ms: 7.468167
+  type: 'test'
+  ...
+# Subtest: a keyword never beats a label: "fillet" gives Fillet before any command only keyed so
+ok 305 - a keyword never beats a label: "fillet" gives Fillet before any command only keyed so
+  ---
+  duration_ms: 0.341833
+  type: 'test'
+  ...
+# Subtest: the palette: each command's label typed gives that command first (empty part, and a plate with nothing picked)
+ok 306 - the palette: each command's label typed gives that command first (empty part, and a plate with nothing picked)
+  ---
+  duration_ms: 21.573292
+  type: 'test'
+  ...
+# Subtest: the palette: no word the browser flow types opens a drive or connector command it did not mean (R12c.6b, D161; R12c.7, D162)
+ok 307 - the palette: no word the browser flow types opens a drive or connector command it did not mean (R12c.6b, D161; R12c.7, D162)
+  ---
+  duration_ms: 34.826166
+  type: 'test'
+  ...
+# Subtest: PKG-b the blockers stay cut: sketch/*, assembly/drag, library/*, the CLI import nothing from viewport/ or ui/; library/ reaches no localStorage
+ok 308 - PKG-b the blockers stay cut: sketch/*, assembly/drag, library/*, the CLI import nothing from viewport/ or ui/; library/ reaches no localStorage
+  ---
+  duration_ms: 2075.170709
+  type: 'test'
+  ...
+# Subtest: PKG-b the user's libraries go to the store the app sets: kept there and read back; with none set nothing is kept
+ok 309 - PKG-b the user's libraries go to the store the app sets: kept there and read back; with none set nothing is kept
+  ---
+  duration_ms: 16.632875
+  type: 'test'
+  ...
+# Subtest: PKG-g2 the recovery blobs go to the BlobStore the app sets: none — kept nowhere, found nowhere; set — kept, read back into the blob store, collected; the model names no IndexedDB and its lib has no DOM
+ok 310 - PKG-g2 the recovery blobs go to the BlobStore the app sets: none — kept nowhere, found nowhere; set — kept, read back into the blob store, collected; the model names no IndexedDB and its lib has no DOM
+  ---
+  duration_ms: 45.377833
+  type: 'test'
+  ...
+# Subtest: every line, arc and head of the data is drawn once; the selected annotation apart, in the accent colour
+ok 311 - every line, arc and head of the data is drawn once; the selected annotation apart, in the accent colour
+  ---
+  duration_ms: 142.463542
+  type: 'test'
+  ...
+# Subtest: texts lie in their planes at their height, or face the eye when the plane is nearly edge-on; the key changes only then
+ok 312 - texts lie in their planes at their height, or face the eye when the plane is nearly edge-on; the key changes only then
+  ---
+  duration_ms: 37.920459
+  type: 'test'
+  ...
+# Subtest: a click on an annotation's text picks it; a miss picks none; its targets are selected by their names on the bodies
+ok 313 - a click on an annotation's text picks it; a miss picks none; its targets are selected by their names on the bodies
+  ---
+  duration_ms: 33.357958
+  type: 'test'
+  ...
+# Subtest: G15d.1: the post as the viewer takes it — nothing when neutral, the grade preset under contrast and saturation, the vignette
+ok 314 - G15d.1: the post as the viewer takes it — nothing when neutral, the grade preset under contrast and saturation, the vignette
+  ---
+  duration_ms: 0.719708
+  type: 'test'
+  ...
+# Subtest: G15d.3: Render focus and blur pass through without unit or pixel-ratio conversions; zero blur stays off
+ok 315 - G15d.3: Render focus and blur pass through without unit or pixel-ratio conversions; zero blur stays off
+  ---
+  duration_ms: 0.179083
+  type: 'test'
+  ...
+# Subtest: project Open unchanged control publishes the requested document, log and autosave offer
+ok 316 - project Open unchanged control publishes the requested document, log and autosave offer
+  ---
+  duration_ms: 7.041583
+  type: 'test'
+  ...
+# Subtest: delayed project Open A cannot replace a newer close owner
+ok 317 - delayed project Open A cannot replace a newer close owner
+  ---
+  duration_ms: 2.844708
+  type: 'test'
+  ...
+# {"action":"close","oldOpenAccepted":false,"callbacks":[],"current":{"L":30},"errors":[]}
+# Subtest: delayed project Open A cannot replace a newer New owner
+ok 318 - delayed project Open A cannot replace a newer New owner
+  ---
+  duration_ms: 2.589708
+  type: 'test'
+  ...
+# {"action":"New","oldOpenAccepted":false,"callbacks":[],"current":{"L":30},"errors":[]}
+# Subtest: delayed project Open A cannot replace a newer Open B owner
+ok 319 - delayed project Open A cannot replace a newer Open B owner
+  ---
+  duration_ms: 1.114167
+  type: 'test'
+  ...
+# {"action":"Open B","oldOpenAccepted":false,"callbacks":["b.bcad"],"current":{"L":20},"errors":[]}
+# Subtest: Open B retains current metadata after superseded A finishes its versions await
+ok 320 - Open B retains current metadata after superseded A finishes its versions await
+  ---
+  duration_ms: 2.960791
+  type: 'test'
+  ...
+# {"stage":"versions","oldOpenAccepted":false,"callbacks":["a.bcad","b.bcad"],"head":"B","offered":{"L":202},"linked":[],"errors":[]}
+# Subtest: Open B retains current metadata after superseded A finishes its autosave await
+ok 321 - Open B retains current metadata after superseded A finishes its autosave await
+  ---
+  duration_ms: 1.175875
+  type: 'test'
+  ...
+# {"stage":"autosave","oldOpenAccepted":false,"callbacks":["a.bcad","b.bcad"],"head":"B","offered":{"L":202},"linked":[],"errors":[]}
+# Subtest: Open B retains current metadata after superseded A finishes its linked await
+ok 322 - Open B retains current metadata after superseded A finishes its linked await
+  ---
+  duration_ms: 1.546833
+  type: 'test'
+  ...
+# {"stage":"linked","oldOpenAccepted":false,"callbacks":["a.bcad","b.bcad"],"head":"B","offered":{"L":202},"linked":[],"errors":[]}
+# Subtest: a late folder project cannot replace a newer accepted folder/path
+ok 323 - a late folder project cannot replace a newer accepted folder/path
+  ---
+  duration_ms: 0.583792
+  type: 'test'
+  ...
+# {"origin":"folder","oldFiles":[],"current":{"L":30},"errors":[]}
+# Subtest: close supersedes a pending folder project selection
+ok 324 - close supersedes a pending folder project selection
+  ---
+  duration_ms: 3.407709
+  type: 'test'
+  ...
+# Subtest: a superseded folder selection error cannot replace the newer folder's status
+ok 325 - a superseded folder selection error cannot replace the newer folder's status
+  ---
+  duration_ms: 0.807417
+  type: 'test'
+  ...
+# Subtest: a late browser project cannot replace a newer accepted folder/path
+ok 326 - a late browser project cannot replace a newer accepted folder/path
+  ---
+  duration_ms: 0.5115
+  type: 'test'
+  ...
+# {"origin":"browser","oldFiles":[],"current":{"L":30},"errors":[]}
+# Subtest: close supersedes a pending browser project selection
+ok 327 - close supersedes a pending browser project selection
+  ---
+  duration_ms: 0.084042
+  type: 'test'
+  ...
+# Subtest: a superseded browser selection error cannot replace the newer folder's status
+ok 328 - a superseded browser selection error cannot replace the newer folder's status
+  ---
+  duration_ms: 0.186042
+  type: 'test'
+  ...
+# Subtest: a stale folder refresh error cannot replace the current folder or its error status
+ok 329 - a stale folder refresh error cannot replace the current folder or its error status
+  ---
+  duration_ms: 0.346
+  type: 'test'
+  ...
+# Subtest: cancelled folder picker preserves the already accepted document/path and its next Save
+ok 330 - cancelled folder picker preserves the already accepted document/path and its next Save
+  ---
+  duration_ms: 0.359542
+  type: 'test'
+  ...
+# Subtest: App bridge hands a successful onOpened dispatch scope to the rest of the actual hook Open
+ok 331 - App bridge hands a successful onOpened dispatch scope to the rest of the actual hook Open
+  ---
+  duration_ms: 0.924083
+  type: 'test'
+  ...
+# Subtest: App bridge rejects a held project read after an external File Open intent without local hook invalidation
+ok 332 - App bridge rejects a held project read after an external File Open intent without local hook invalidation
+  ---
+  duration_ms: 0.588333
+  type: 'test'
+  ...
+# Subtest: App bridge rejects a held project read after an external document dispatch without local hook invalidation
+ok 333 - App bridge rejects a held project read after an external document dispatch without local hook invalidation
+  ---
+  duration_ms: 1.335208
+  type: 'test'
+  ...
+# Subtest: informational linked Check captures the App scope without reserving an intent and drops stale callbacks/errors
+ok 334 - informational linked Check captures the App scope without reserving an intent and drops stale callbacks/errors
+  ---
+  duration_ms: 1.824416
+  type: 'test'
+  ...
+# Subtest: an accepted onLinked document commit does not turn its successful Open into a stale failure
+ok 335 - an accepted onLinked document commit does not turn its successful Open into a stale failure
+  ---
+  duration_ms: 0.487625
+  type: 'test'
+  ...
+# Subtest: recovery (D82 B13 follow-up): a copy past the limit, or one the browser refuses, removes the older copy instead of leaving it to be offered back as the latest
+ok 336 - recovery (D82 B13 follow-up): a copy past the limit, or one the browser refuses, removes the older copy instead of leaving it to be offered back as the latest
+  ---
+  duration_ms: 98.352958
+  type: 'test'
+  ...
+# Subtest: the copy offered at start is set aside until answered: the new session's copies do not write over it, Discard (settle) removes it and not the work since; of two, the newer is offered
+ok 337 - the copy offered at start is set aside until answered: the new session's copies do not write over it, Discard (settle) removes it and not the work since; of two, the newer is offered
+  ---
+  duration_ms: 1.435583
+  type: 'test'
+  ...
+# Subtest: O9 (REVIEW-A1): the blobs are kept before the copy that names them; blobs refused, no copy (the older one removed); an overtaken call writes nothing
+ok 338 - O9 (REVIEW-A1): the blobs are kept before the copy that names them; blobs refused, no copy (the older one removed); an overtaken call writes nothing
+  ---
+  duration_ms: 0.285583
+  type: 'test'
+  ...
+# Subtest: G15d.3: an off-axis surface focuses its view-axis plane in perspective and orthographic views
+ok 339 - G15d.3: an off-axis surface focuses its view-axis plane in perspective and orthographic views
+  ---
+  duration_ms: 0.846792
+  type: 'test'
+  ...
+# Subtest: G15 the panel mutation gate preserves optional mm values and refuses before the accepted render or undo callback changes
+ok 340 - G15 the panel mutation gate preserves optional mm values and refuses before the accepted render or undo callback changes
+  ---
+  duration_ms: 1.173084
+  type: 'test'
+  ...
+# Subtest: G15 the actual renderer forwards world-mm lengths and flags while retaining the existing intensity scale
+ok 341 - G15 the actual renderer forwards world-mm lengths and flags while retaining the existing intensity scale
+  ---
+  duration_ms: 1.052125
+  type: 'test'
+  ...
+# Subtest: G15 replacing settings, switching shadows off and returning to modelling do not retain prior shadow fields
+ok 342 - G15 replacing settings, switching shadows off and returning to modelling do not retain prior shadow fields
+  ---
+  duration_ms: 2.978834
+  type: 'test'
+  ...
+# Subtest: G15 an invalid renderer replacement leaves the previously accepted lights and appearance installed
+ok 343 - G15 an invalid renderer replacement leaves the previously accepted lights and appearance installed
+  ---
+  duration_ms: 0.355542
+  type: 'test'
+  ...
+# RD9: 80 margins, least joint range l1~l2 0.25; actuators {"base~l1":"hd-csg-14-50-2a-r-bb-lw","l1~l2":"hd-csg-14-100-2a-r-bb-lw","l2~l3":"hd-csg-14-100-2a-r-bb-lw"}
+# Subtest: the clean duty: every margin above 0, each listed — the actuators, the joints, the sweep — the model consistent; a rerun byte-identical
+ok 344 - the clean duty: every margin above 0, each listed — the actuators, the joints, the sweep — the model consistent; a rerun byte-identical
+  ---
+  duration_ms: 2137.571959
+  type: 'test'
+  ...
+# Subtest: seeded defects: each a negative margin at its own check and only there; a missing rating unknown, never a pass
+ok 345 - seeded defects: each a negative margin at its own check and only there; a missing rating unknown, never a pass
+  ---
+  duration_ms: 4657.478875
+  type: 'test'
+  ...
+# Subtest: closed form: the holding torques at the shoulder-horizontal pose, g Σ m dz from the parts' own masses and centres, to 1e-9; the harness's numbers RD2's and RD3's own
+ok 346 - closed form: the holding torques at the shoulder-horizontal pose, g Σ m dz from the parts' own masses and centres, to 1e-9; the harness's numbers RD2's and RD3's own
+  ---
+  duration_ms: 1008.452959
+  type: 'test'
+  ...
+# Subtest: cad-cli robot-check: the frozen arm and duty exit 0; a seeded duty exits 1 with its failing margin; a malformed duty is refused
+ok 347 - cad-cli robot-check: the frozen arm and duty exit 0; a seeded duty exits 1 with its failing margin; a malformed duty is refused
+  ---
+  duration_ms: 2410.394083
+  type: 'test'
+  ...
+# Subtest: L3 start preserves 1 rad/s and 1 Nm internally; prompt and help use public degree, Nmm and seconds
+ok 348 - L3 start preserves 1 rad/s and 1 Nm internally; prompt and help use public degree, Nmm and seconds
+  ---
+  duration_ms: 213.243833
+  type: 'test'
+  ...
+# Subtest: L3 local tool projects original harness and preserves validated canonical numbers through file reuse and refusals
+ok 349 - L3 local tool projects original harness and preserves validated canonical numbers through file reuse and refusals
+  ---
+  duration_ms: 1592.696875
+  type: 'test'
+  ...
+# Subtest: L3 real sizer script supplies two canonical calls; local tool saves a brief-preserving design that a fresh CLI checks
+ok 350 - L3 real sizer script supplies two canonical calls; local tool saves a brief-preserving design that a fresh CLI checks
+  ---
+  duration_ms: 6568.304333
+  type: 'test'
+  ...
+# fresh local CLI exit=0, margins=80, serviceLife=72000000; no model or budget run
+# Subtest: canonical document operations reject invalid duties with exact typed BAD_VALUES and preserve inputs
+ok 351 - canonical document operations reject invalid duties with exact typed BAD_VALUES and preserve inputs
+  ---
+  duration_ms: 328.714416
+  type: 'test'
+  ...
+# Subtest: quaternions: unit, w ≥ 0, and back to the same rotation, near a half turn too
+ok 352 - quaternions: unit, w ≥ 0, and back to the same rotation, near a half turn too
+  ---
+  duration_ms: 1.188875
+  type: 'test'
+  ...
+# Subtest: the 6R arm's MJCF read back: MuJoCo's structure, seven nested bodies, six hinges on their bodies' Z, meshes present
+ok 353 - the 6R arm's MJCF read back: MuJoCo's structure, seven nested bodies, six hinges on their bodies' Z, meshes present
+  ---
+  duration_ms: 322.511167
+  type: 'test'
+  ...
+# Subtest: FK read back from the MJCF equals RM2's and the URDF's: the 6R arm (200 poses), the gear pair (an equality), a slide chain
+ok 354 - FK read back from the MJCF equals RM2's and the URDF's: the 6R arm (200 poses), the gear pair (an equality), a slide chain
+  ---
+  duration_ms: 2092.80175
+  type: 'test'
+  ...
+# Subtest: the checker catches what MuJoCo's compiler would refuse: angles not radians, a missing mesh, a bad quaternion, an empty range, an equality to nothing, an inertia not positive
+ok 355 - the checker catches what MuJoCo's compiler would refuse: angles not radians, a missing mesh, a bad quaternion, an empty range, an equality to nothing, an inertia not positive
+  ---
+  duration_ms: 31.708333
+  type: 'test'
+  ...
+# Subtest: the export_mjcf tool and cad-cli mjcf; the arm-6r conformance case with what the gravity oracle will run (pending)
+ok 356 - the export_mjcf tool and cad-cli mjcf; the arm-6r conformance case with what the gravity oracle will run (pending)
+  ---
+  duration_ms: 947.898667
+  type: 'test'
+  ...
+# Subtest: MuJoCo 3.3.0's reading of the frozen arm-6r export (O18): bodies, frames and gravity torques to 1e-6; passive energy to 1e-4; the damped hang settles and falls
+ok 357 - MuJoCo 3.3.0's reading of the frozen arm-6r export (O18): bodies, frames and gravity torques to 1e-6; passive energy to 1e-4; the damped hang settles and falls
+  ---
+  duration_ms: 37.202292
+  type: 'test'
+  ...
+# RD10: 16 failing margins at the start; 8 rounds:
+#   1. joint velocity base~l1 (-5) → base~l1: velocity rating 8.901179 rad/s, min(motor max speed, reducer max input speed) / N
+#   2. joint velocity l1~l2 (-5) → l1~l2: velocity rating 8.901179 rad/s, min(motor max speed, reducer max input speed) / N
+#   3. joint effort l1~l2 (-3.739645137) → l1~l2: effort rating 36 N·m, the reducer's repeated peak torque
+#   4. joint velocity l2~l3 (-3.105263158) → l2~l3: velocity rating 8.901179 rad/s, min(motor max speed, reducer max input speed) / N
+#   5. joint effort l2~l3 (-2.325892505) → l2~l3: effort rating 36 N·m, the reducer's repeated peak torque
+#   6. motor torque–speed line l1~l2 (-1.302672384) → l1~l2: maxon-608131 + hd-csg-14-50-2a-r-bb-lw, the lightest pair passing every RD3 check in every move; its ratings held to its capability (effort 23)
+#   7. joint effort base~l1 (-0.920446559) → base~l1: effort rating 36 N·m, the reducer's repeated peak torque
+#   8. motor torque–speed line base~l1 (-0.908204901) → base~l1: maxon-608131 + hd-csg-14-50-2a-r-bb-lw, the lightest pair passing every RD3 check in every move; its ratings held to its capability (effort 23)
+#   least after: {"check":"joint range","joint":"l1~l2","move":1,"margin":0.25}
+# Subtest: from an undersized start to every margin above 0 within 10 rounds, one change a round, each naming its check; the saved design passes a fresh harness run; deterministic
+ok 358 - from an undersized start to every margin above 0 within 10 rounds, one change a round, each naming its check; the saved design passes a fresh harness run; deterministic
+  ---
+  duration_ms: 8796.019041
+  type: 'test'
+  ...
+# Subtest: a brief no sizing fixes stops typed: a pose past a limit, a move into the base — BRIEF_INFEASIBLE, never done; a round cap NOT_CONVERGED
+ok 359 - a brief no sizing fixes stops typed: a pose past a limit, a move into the base — BRIEF_INFEASIBLE, never done; a round cap NOT_CONVERGED
+  ---
+  duration_ms: 1859.70425
+  type: 'test'
+  ...
+# Subtest: cad-cli robot-size writes the sized design and its duty; cad-cli robot-check on them exits 0 (both spawned)
+ok 360 - cad-cli robot-size writes the sized design and its duty; cad-cli robot-check on them exits 0 (both spawned)
+  ---
+  duration_ms: 2966.771042
+  type: 'test'
+  ...
+# Subtest: the convex hull: a cube with points inside — 12 triangles, volume 1, closed; 2000 random points — closed, convex, every point in; flat input refused
+ok 361 - the convex hull: a cube with points inside — 12 triangles, volume 1, closed; 2000 random points — closed, convex, every point in; flat input refused
+  ---
+  duration_ms: 30.636541
+  type: 'test'
+  ...
+# Subtest: the XML reader: elements, attributes, comments, entities; typed errors with their place
+ok 362 - the XML reader: elements, attributes, comments, entities; typed errors with their place
+  ---
+  duration_ms: 0.939625
+  type: 'test'
+  ...
+# Subtest: the export read back: the URDF spec's structure, the joints, the inertials as RM3, the meshes named and present
+ok 363 - the export read back: the URDF spec's structure, the joints, the inertials as RM3, the meshes named and present
+  ---
+  duration_ms: 299.397958
+  type: 'test'
+  ...
+# Subtest: forward kinematics read back from the URDF equals RM2's: the 2R arm, the gear pair (mimic), a slide-and-turn chain through a dummy link
+ok 364 - forward kinematics read back from the URDF equals RM2's: the 2R arm, the gear pair (mimic), a slide-and-turn chain through a dummy link
+  ---
+  duration_ms: 1858.608542
+  type: 'test'
+  ...
+# Subtest: the collision hull holds every vertex of the visual mesh; the visual mesh is the part, in the link frame, in metres
+ok 365 - the collision hull holds every vertex of the visual mesh; the visual mesh is the part, in the link frame, in metres
+  ---
+  duration_ms: 154.5275
+  type: 'test'
+  ...
+# Subtest: what URDF cannot hold is refused, typed: limits missing, an unsupported motion; loops left out with a note
+ok 366 - what URDF cannot hold is refused, typed: limits missing, an unsupported motion; loops left out with a note
+  ---
+  duration_ms: 222.737833
+  type: 'test'
+  ...
+# Subtest: roll, pitch, yaw: URDF's Rz·Ry·Rx read back, through the reader's own matrix, gimbal lock included
+ok 367 - roll, pitch, yaw: URDF's Rz·Ry·Rx read back, through the reader's own matrix, gimbal lock included
+  ---
+  duration_ms: 0.384833
+  type: 'test'
+  ...
+# Subtest: the export_urdf tool and cad-cli urdf; the conformance cases with what the MuJoCo oracle will compare (pending)
+ok 368 - the export_urdf tool and cad-cli urdf; the conformance cases with what the MuJoCo oracle will compare (pending)
+  ---
+  duration_ms: 1348.292542
+  type: 'test'
+  ...
+# Subtest: MuJoCo 3.3.0's reading of the frozen URDF exports (O17): masses, centres, principal inertia and link frames to 1e-6
+ok 369 - MuJoCo 3.3.0's reading of the frozen URDF exports (O17): masses, centres, principal inertia and link frames to 1e-6
+  ---
+  duration_ms: 25.778708
+  type: 'test'
+  ...
+# Subtest: route editor hands off only the exact final validated candidate once
+ok 370 - route editor hands off only the exact final validated candidate once
+  ---
+  duration_ms: 18.920125
+  type: 'test'
+  ...
+# Subtest: route editor discard while preview waits rejects its reply before final evaluation
+ok 371 - route editor discard while preview waits rejects its reply before final evaluation
+  ---
+  duration_ms: 6.519458
+  type: 'test'
+  ...
+# Subtest: route editor discard while final validation waits rejects the old ready handoff
+ok 372 - route editor discard while final validation waits rejects the old ready handoff
+  ---
+  duration_ms: 4.284708
+  type: 'test'
+  ...
+# Subtest: route editor rejects a final reply after same-value document identity replacement
+ok 373 - route editor rejects a final reply after same-value document identity replacement
+  ---
+  duration_ms: 3.911083
+  type: 'test'
+  ...
+# Subtest: route editor blocked owner rejects held preview before final evaluation
+ok 374 - route editor blocked owner rejects held preview before final evaluation
+  ---
+  duration_ms: 3.099833
+  type: 'test'
+  ...
+# Subtest: route editor active command rejects held final response without adopting the candidate
+ok 375 - route editor active command rejects held final response without adopting the candidate
+  ---
+  duration_ms: 3.833375
+  type: 'test'
+  ...
+# Subtest: Studio RS6 uses the shared closed pose, while the facade wrapper still returns driver inputs only
+ok 376 - Studio RS6 uses the shared closed pose, while the facade wrapper still returns driver inputs only
+  ---
+  duration_ms: 772.010458
+  type: 'test'
+  ...
+# Subtest: Studio RS6 drives 720 degrees and renders the passive slide in mm without saving it as a driver
+ok 377 - Studio RS6 drives 720 degrees and renders the passive slide in mm without saving it as a driver
+  ---
+  duration_ms: 670.829416
+  type: 'test'
+  ...
+# Subtest: Studio RS6 refusals preserve typed errors and leave time, inputs and displayed pose unchanged
+ok 378 - Studio RS6 refusals preserve typed errors and leave time, inputs and displayed pose unchanged
+  ---
+  duration_ms: 165.631375
+  type: 'test'
+  ...
+# Subtest: Studio RS6 refuses a toggle excursion before a return-home seek can skip the preceding seam
+ok 379 - Studio RS6 refuses a toggle excursion before a return-home seek can skip the preceding seam
+  ---
+  duration_ms: 55.342334
+  type: 'test'
+  ...
+# Subtest: Studio open-chain motion keeps native radians/mm and public saved degrees/mm with its original timing
+ok 380 - Studio open-chain motion keeps native radians/mm and public saved degrees/mm with its original timing
+  ---
+  duration_ms: 109.749417
+  type: 'test'
+  ...
+# Subtest: G20 a cut-out on the CPU: the box less its corner — a quarter 20·12·8 − 10·6·8, an octant − 10·6·4; wholly kept, wholly cut; the notch hatched
+ok 381 - G20 a cut-out on the CPU: the box less its corner — a quarter 20·12·8 − 10·6·8, an octant − 10·6·4; wholly kept, wholly cut; the notch hatched
+  ---
+  duration_ms: 86.105875
+  type: 'test'
+  ...
+# Subtest: G20 the exact cut-out: the pieces split off in turn, one body a source body at the closed volume; the default corner faces the eye
+ok 382 - G20 the exact cut-out: the pieces split off in turn, one body a source body at the closed volume; the default corner faces the eye
+  ---
+  duration_ms: 38.331542
+  type: 'test'
+  ...
+# Subtest: G19.3 the plane's hatch axes: an axis plane's the next axes in turn, a plane and its flip alike, orthonormal in the plane
+ok 383 - G19.3 the plane's hatch axes: an axis plane's the next axes in turn, a plane and its flip alike, orthonormal in the plane
+  ---
+  duration_ms: 0.907875
+  type: 'test'
+  ...
+# Subtest: G19.3 hatch segments on a clipped cap: at the angle and spacing, on the plane, within the cap, the length the closed form gives
+ok 384 - G19.3 hatch segments on a clipped cap: at the angle and spacing, on the plane, within the cap, the length the closed form gives
+  ---
+  duration_ms: 29.328291
+  type: 'test'
+  ...
+# Subtest: G19.3 the exact section's cut face hatched as the clipped cap; each body at its angle in turn; the spacing by the scene's size
+ok 385 - G19.3 the exact section's cut face hatched as the clipped cap; each body at its angle in turn; the spacing by the scene's size
+  ---
+  duration_ms: 17.817417
+  type: 'test'
+  ...
+# Subtest: G19 clipMeshPlane: along an axis clipMesh itself; an oblique plane through a box at the closed form, its points on the kept side
+ok 386 - G19 clipMeshPlane: along an axis clipMesh itself; an oblique plane through a box at the closed form, its points on the kept side
+  ---
+  duration_ms: 51.994458
+  type: 'test'
+  ...
+# Subtest: G19 a box section on the CPU: every face of what is kept a cap, the inner box's surface
+ok 387 - G19 a box section on the CPU: every face of what is kept a cap, the inner box's surface
+  ---
+  duration_ms: 6.001291
+  type: 'test'
+  ...
+# Subtest: G19 the exact section: one axis plane as before; planes chained — each kept piece split by the next — at the closed volumes
+ok 388 - G19 the exact section: one axis plane as before; planes chained — each kept piece split by the next — at the closed volumes
+  ---
+  duration_ms: 226.791959
+  type: 'test'
+  ...
+# Subtest: G19 a plane from a face: the face's plane, the material behind it kept, moved in to the middle along it
+ok 389 - G19 a plane from a face: the face's plane, the material behind it kept, moved in to the middle along it
+  ---
+  duration_ms: 1.392042
+  type: 'test'
+  ...
+# Subtest: G2 the WebGL2 path unchanged: the bodies and instances clipped and capped as the CPU section always made them
+ok 390 - G2 the WebGL2 path unchanged: the bodies and instances clipped and capped as the CPU section always made them
+  ---
+  duration_ms: 114.507666
+  type: 'test'
+  ...
+# Subtest: G2 CPU instance provenance keeps original body/face/edge authority after pose, filtering and a real cap
+ok 391 - G2 CPU instance provenance keeps original body/face/edge authority after pose, filtering and a real cap
+  ---
+  duration_ms: 1.751292
+  type: 'test'
+  ...
+# Subtest: G2 the WebGPU path: the same bodies (not copies), less exactly those clipMesh drops; the instances as placed; the plane
+ok 392 - G2 the WebGPU path: the same bodies (not copies), less exactly those clipMesh drops; the instances as placed; the plane
+  ---
+  duration_ms: 216.978167
+  type: 'test'
+  ...
+# Subtest: G2 clipMesh's caps at the closed forms: a box, a cylinder, a plate with a hole across and along it
+ok 393 - G2 clipMesh's caps at the closed forms: a box, a cylinder, a plate with a hole across and along it
+  ---
+  duration_ms: 19.865
+  type: 'test'
+  ...
+# Subtest: G2 the CPU ray with the clip plane against a ray on clipMesh's mesh: the same parameter, the cap where clipMesh's cap is, on a holed plate and a box moved by a matrix
+ok 394 - G2 the CPU ray with the clip plane against a ray on clipMesh's mesh: the same parameter, the cap where clipMesh's cap is, on a holed plate and a box moved by a matrix
+  ---
+  duration_ms: 55.418667
+  type: 'test'
+  ...
+# 4000 rays, 2378 hits, 548 on caps, worst Δt 0.000014158923377749488 mm, 0 cap mismatches
+# Subtest: 3D sketch Apply preserves the existing feature identity and metadata while replacing geometry
+ok 395 - 3D sketch Apply preserves the existing feature identity and metadata while replacing geometry
+  ---
+  duration_ms: 0.786542
+  type: 'test'
+  ...
+# Subtest: G17 a ray on the work plane through a point, and on an axis line through one
+ok 396 - G17 a ray on the work plane through a point, and on an axis line through one
+  ---
+  duration_ms: 0.716292
+  type: 'test'
+  ...
+# Subtest: G17 snaps: the sketch's own point first, a body corner else, none past the reach
+ok 397 - G17 snaps: the sketch's own point first, a body corner else, none past the reach
+  ---
+  duration_ms: 0.160042
+  type: 'test'
+  ...
+# Subtest: G17 a drag solved live: a free end reaches the pointer, the rest as little moved as the constraints let it
+ok 398 - G17 a drag solved live: a free end reaches the pointer, the rest as little moved as the constraints let it
+  ---
+  duration_ms: 2.781541
+  type: 'test'
+  ...
+# Subtest: G17 a free segment dragged by its end: the end at the pointer, its length kept by the other end moving
+ok 399 - G17 a free segment dragged by its end: the end at the pointer, its length kept by the other end moving
+  ---
+  duration_ms: 0.2135
+  type: 'test'
+  ...
+# Subtest: G17 the diagnosis on the draft: well with the six rigid motions taken, a conflict named
+ok 400 - G17 the diagnosis on the draft: well with the six rigid motions taken, a conflict named
+  ---
+  duration_ms: 2.569333
+  type: 'test'
+  ...
+# Subtest: G17 offers by selection, and removing renumbers the constraints left
+ok 401 - G17 offers by selection, and removing renumbers the constraints left
+  ---
+  duration_ms: 0.880041
+  type: 'test'
+  ...
+# Subtest: sketch framing fits the rectangle into the free band between the panels
+ok 402 - sketch framing fits the rectangle into the free band between the panels
+  ---
+  duration_ms: 0.956834
+  type: 'test'
+  ...
+# Subtest: R10a ids: each side of a drawn shape one, in order after the highest, kept when present; the node sends them as sideTags and the walls take their names
+ok 403 - R10a ids: each side of a drawn shape one, in order after the highest, kept when present; the node sends them as sideTags and the walls take their names
+  ---
+  duration_ms: 357.287209
+  type: 'test'
+  ...
+# Subtest: R10a a vertex inserted keeps every other side's name: the fillet on the corner at (10, 10) needs no re-match, the split edge's first part keeps its id; a kept dimension on another edge stays
+ok 404 - R10a a vertex inserted keeps every other side's name: the fillet on the corner at (10, 10) needs no re-match, the split edge's first part keeps its id; a kept dimension on another edge stays
+  ---
+  duration_ms: 41.116417
+  type: 'test'
+  ...
+# Subtest: R10a a rectangle drawn from its top-right corner: its ids matched to the rectangle node's sides by their ends; a rounded corner keeps both edges' ids, the arc a new one; a trim keeps the pieces' ids by where they start
+ok 405 - R10a a rectangle drawn from its top-right corner: its ids matched to the rectangle node's sides by their ends; a rounded corner keeps both edges' ids, the arc a new one; a trim keeps the pieces' ids by where they start
+  ---
+  duration_ms: 0.970708
+  type: 'test'
+  ...
+# Subtest: R10a a sketch from before (no ids) reopened: ids in the order its sides were numbered, and Finish renames the features on it from side<k> to side[e<k+1>] — the fillet's edge and a face colour — once; a v2 sketch reopens with its own ids
+ok 406 - R10a a sketch from before (no ids) reopened: ids in the order its sides were numbered, and Finish renames the features on it from side<k> to side[e<k+1>] — the fillet's edge and a face colour — once; a v2 sketch reopens with its own ids
+  ---
+  duration_ms: 19.294083
+  type: 'test'
+  ...
+# Subtest: pending work refuses an independent document edit before caller document, history, dirty or recovery values change
+ok 407 - pending work refuses an independent document edit before caller document, history, dirty or recovery values change
+  ---
+  duration_ms: 3.042416
+  type: 'test'
+  ...
+# Subtest: Stop returns exactly the originating accepted edit and its rollback marker without popping caller history
+ok 408 - Stop returns exactly the originating accepted edit and its rollback marker without popping caller history
+  ---
+  duration_ms: 0.241583
+  type: 'test'
+  ...
+# Subtest: an idle Stop never replays old history and future work is still allowed
+ok 409 - an idle Stop never replays old history and future work is still allowed
+  ---
+  duration_ms: 0.068916
+  type: 'test'
+  ...
+# Subtest: initial, variant and unaccepted parameter evaluations cannot claim an unrelated Undo entry
+ok 410 - initial, variant and unaccepted parameter evaluations cannot claim an unrelated Undo entry
+  ---
+  duration_ms: 0.0815
+  type: 'test'
+  ...
+# Subtest: only the current parameter candidate token authorizes its pre-effect accept closure, and acceptance consumes it
+ok 411 - only the current parameter candidate token authorizes its pre-effect accept closure, and acceptance consumes it
+  ---
+  duration_ms: 0.139167
+  type: 'test'
+  ...
+# Subtest: a candidate or view-only run never borrows an accepted model rollback reservation
+ok 412 - a candidate or view-only run never borrows an accepted model rollback reservation
+  ---
+  duration_ms: 0.054625
+  type: 'test'
+  ...
+# Subtest: same-content document or input ABA and a lookalike history entry do not authorize rollback
+ok 413 - same-content document or input ABA and a lookalike history entry do not authorize rollback
+  ---
+  duration_ms: 0.146667
+  type: 'test'
+  ...
+# Subtest: old completion and finally callbacks cannot release a newer owner or a newer Render reservation
+ok 414 - old completion and finally callbacks cannot release a newer owner or a newer Render reservation
+  ---
+  duration_ms: 0.07025
+  type: 'test'
+  ...
+# Subtest: new Open invalidates ownership even when the old document object is reused; redo gets a new owner
+ok 415 - new Open invalidates ownership even when the old document object is reused; redo gets a new owner
+  ---
+  duration_ms: 0.297667
+  type: 'test'
+  ...
+# Subtest: two Render-only reservations settle normally and cannot attach themselves to a later model computation
+ok 416 - two Render-only reservations settle normally and cannot attach themselves to a later model computation
+  ---
+  duration_ms: 0.314958
+  type: 'test'
+  ...
+# Subtest: a reservation survives a changed evaluated identity until the corresponding work begins
+ok 417 - a reservation survives a changed evaluated identity until the corresponding work begins
+  ---
+  duration_ms: 0.106083
+  type: 'test'
+  ...
+# Subtest: a rejected or throwing pre-accept transition releases its reservation without reserving an unrelated document
+ok 418 - a rejected or throwing pre-accept transition releases its reservation without reserving an unrelated document
+  ---
+  duration_ms: 0.200958
+  type: 'test'
+  ...
+# Subtest: matching completion releases ordinary or hand-off work without a worker request and allows the next edit
+ok 419 - matching completion releases ordinary or hand-off work without a worker request and allows the next edit
+  ---
+  duration_ms: 0.051542
+  type: 'test'
+  ...
+# Subtest: project versions preserve an admitted snapshot with omitted nextId under its original canonical key
+ok 420 - project versions preserve an admitted snapshot with omitted nextId under its original canonical key
+  ---
+  duration_ms: 2.903541
+  type: 'test'
+  ...
+# Subtest: project versions: schema3 raw optional fields, original identifiers and binary mesh survive
+ok 421 - project versions: schema3 raw optional fields, original identifiers and binary mesh survive
+  ---
+  duration_ms: 12.714375
+  type: 'test'
+  ...
+# schema3 fixture re-encoded bytes equal: true
+# Subtest: project versions: schema4 raw optional fields, original identifiers and binary mesh survive
+ok 422 - project versions: schema4 raw optional fields, original identifiers and binary mesh survive
+  ---
+  duration_ms: 14.855375
+  type: 'test'
+  ...
+# schema4 fixture re-encoded bytes equal: true
+# Subtest: project versions retain missing-snapshot refusal and refuse a different document stored under an original key
+ok 423 - project versions retain missing-snapshot refusal and refuse a different document stored under an original key
+  ---
+  duration_ms: 1.313334
+  type: 'test'
+  ...
+# Subtest: ordinary part and autosave Open still normalize omitted nextId while version snapshot remains raw
+ok 424 - ordinary part and autosave Open still normalize omitted nextId while version snapshot remains raw
+  ---
+  duration_ms: 0.32675
+  type: 'test'
+  ...
+# Subtest: store (memory): write, read, list, remove; tags; paths
+ok 425 - store (memory): write, read, list, remove; tags; paths
+  ---
+  duration_ms: 1.335959
+  type: 'test'
+  ...
+# Subtest: store (handle): write, read, list, remove; tags; paths
+ok 426 - store (handle): write, read, list, remove; tags; paths
+  ---
+  duration_ms: 1.030208
+  type: 'test'
+  ...
+# Subtest: paths: what a project path may be
+ok 427 - paths: what a project path may be
+  ---
+  duration_ms: 0.186
+  type: 'test'
+  ...
+# Subtest: project (memory): parts as Save writes them, version logs with write-once documents, autosave
+ok 428 - project (memory): parts as Save writes them, version logs with write-once documents, autosave
+  ---
+  duration_ms: 30.137084
+  type: 'test'
+  ...
+# Subtest: project (handle): parts as Save writes them, version logs with write-once documents, autosave
+ok 429 - project (handle): parts as Save writes them, version logs with write-once documents, autosave
+  ---
+  duration_ms: 17.684959
+  type: 'test'
+  ...
+# Subtest: project: a document with mesh data keeps it — the container written and read back with its arrays
+ok 430 - project: a document with mesh data keeps it — the container written and read back with its arrays
+  ---
+  duration_ms: 141.961667
+  type: 'test'
+  ...
+# Subtest: linked parts: a part inserted from the project is offered again when its file changes, accepted keeps the link; unchanged, waiting or from disk: nothing
+ok 431 - linked parts: a part inserted from the project is offered again when its file changes, accepted keeps the link; unchanged, waiting or from disk: nothing
+  ---
+  duration_ms: 12.872
+  type: 'test'
+  ...
+# Subtest: a complete bundle: the document, the approved baseline, sourced materials, current results, ECRs, the manifest; verified complete in a fresh process
+ok 432 - a complete bundle: the document, the approved baseline, sourced materials, current results, ECRs, the manifest; verified complete in a fresh process
+  ---
+  duration_ms: 3587.79875
+  type: 'test'
+  ...
+# Subtest: an incomplete bundle, each gap listed and never complete: a file deleted, a file edited, a result stale, no approved baseline, a material unsourced, a rewritten baseline
+ok 433 - an incomplete bundle, each gap listed and never complete: a file deleted, a file edited, a result stale, no approved baseline, a material unsourced, a rewritten baseline
+  ---
+  duration_ms: 1260.387
+  type: 'test'
+  ...
+# Subtest: the scripted roles on the seeded defects: every detector at precision 1 and recall 1; the counts
+ok 434 - the scripted roles on the seeded defects: every detector at precision 1 and recall 1; the counts
+  ---
+  duration_ms: 1742.849042
+  type: 'test'
+  ...
+# Subtest: the metric itself: a mislabel is a miss and a false alarm; a defect past a detector that never ran is a miss; a Verifier rejecting all, false alarms
+ok 435 - the metric itself: a mislabel is a miss and a false alarm; a defect past a detector that never ran is a miss; a Verifier rejecting all, false alarms
+  ---
+  duration_ms: 1799.927541
+  type: 'test'
+  ...
+# Subtest: cad-cli team --metrics prints the same table
+ok 436 - cad-cli team --metrics prints the same table
+  ---
+  duration_ms: 481.278875
+  type: 'test'
+  ...
+# Subtest: the seeded-defect scenarios: each stopped at its gate (or by the Verifier), typed; the later gates not reached; byte-identical on a rerun
+ok 437 - the seeded-defect scenarios: each stopped at its gate (or by the Verifier), typed; the later gates not reached; byte-identical on a rerun
+  ---
+  duration_ms: 359.063625
+  type: 'test'
+  ...
+# Subtest: patches on a base revision: a stale one refused (STALE_BASE) and the state unchanged; rebasing explicit; the revision covers the model and the contracts
+ok 438 - patches on a base revision: a stale one refused (STALE_BASE) and the state unchanged; rebasing explicit; the revision covers the model and the contracts
+  ---
+  duration_ms: 4.020375
+  type: 'test'
+  ...
+# Subtest: a hash collision cannot apply a patch: the canonical JSON confirms the base, and an unknown base is refused (STALE_BASE)
+ok 439 - a hash collision cannot apply a patch: the canonical JSON confirms the base, and an unknown base is refused (STALE_BASE)
+  ---
+  duration_ms: 1.40625
+  type: 'test'
+  ...
+# Subtest: the REFERENCE_LOCKED exemption is narrow: datums and keep-outs may be added or deleted; deleting a reference or using its geometry in a part or assembly op is refused, for every role
+ok 440 - the REFERENCE_LOCKED exemption is narrow: datums and keep-outs may be added or deleted; deleting a reference or using its geometry in a part or assembly op is refused, for every role
+  ---
+  duration_ms: 171.894708
+  type: 'test'
+  ...
+# Subtest: the Verifier is given artifacts and requirements only: its view's keys the fixed set, nothing of the patch in it, frozen
+ok 441 - the Verifier is given artifacts and requirements only: its view's keys the fixed set, nothing of the patch in it, frozen
+  ---
+  duration_ms: 7.050166
+  type: 'test'
+  ...
+# Subtest: cad-cli team runs a scenario: the traces printed, byte-identical twice; exit 1 when nothing was applied
+ok 442 - cad-cli team runs a scenario: the traces printed, byte-identical twice; exit 1 when nothing was applied
+  ---
+  duration_ms: 62.78425
+  type: 'test'
+  ...
+# Subtest: a root text recipe is refused without changing existing template data or the document
+ok 443 - a root text recipe is refused without changing existing template data or the document
+  ---
+  duration_ms: 1.328791
+  type: 'test'
+  ...
+# Subtest: a proposal-only prepared text command is refused before its font becomes an authored node
+ok 444 - a proposal-only prepared text command is refused before its font becomes an authored node
+  ---
+  duration_ms: 0.402458
+  type: 'test'
+  ...
+# Subtest: pending parts and nested instance font references are refused even when the root has no text
+ok 445 - pending parts and nested instance font references are refused even when the root has no text
+  ---
+  duration_ms: 0.47625
+  type: 'test'
+  ...
+# Subtest: closed proposals do not require font bytes and retain normal template behavior
+ok 446 - closed proposals do not require font bytes and retain normal template behavior
+  ---
+  duration_ms: 1.242292
+  type: 'test'
+  ...
+# Subtest: incomplete font templates are hidden from the list without changing stored entries
+ok 447 - incomplete font templates are hidden from the list without changing stored entries
+  ---
+  duration_ms: 1.313333
+  type: 'test'
+  ...
+# Subtest: unrelated save and removal preserve hidden font entries in storage
+ok 448 - unrelated save and removal preserve hidden font entries in storage
+  ---
+  duration_ms: 0.410583
+  type: 'test'
+  ...
+# Subtest: normal current templates still save, replace, list, and remove without mutating their input
+ok 449 - normal current templates still save, replace, list, and remove without mutating their input
+  ---
+  duration_ms: 0.247083
+  type: 'test'
+  ...
+# Subtest: storage refusal and unavailable mesh blobs leave the existing saved data intact
+ok 450 - storage refusal and unavailable mesh blobs leave the existing saved data intact
+  ---
+  duration_ms: 0.214875
+  type: 'test'
+  ...
+# Subtest: the MCP server: its contract version, the v2 tools with titles and annotations, structured results; a handler's own name refused
+ok 451 - the MCP server: its contract version, the v2 tools with titles and annotations, structured results; a handler's own name refused
+  ---
+  duration_ms: 83.336959
+  type: 'test'
+  ...
+# Subtest: the MCP server: the v2 contract, 13 tools, v2 calls, structured results for read actions; a handler's name refused
+ok 452 - the MCP server: the v2 contract, 13 tools, v2 calls, structured results for read actions; a handler's name refused
+  ---
+  duration_ms: 118.356167
+  type: 'test'
+  ...
+# Subtest: the chat server lists the v2 tools it serves, with their prompt
+ok 453 - the chat server lists the v2 tools it serves, with their prompt
+  ---
+  duration_ms: 0.176167
+  type: 'test'
+  ...
+# Subtest: O105b through MCP: refusals and hints name v2 tools — no requirements, no snapshot, L2's proposal; a stored call in a result read as its v2 call
+ok 454 - O105b through MCP: refusals and hints name v2 tools — no requirements, no snapshot, L2's proposal; a stored call in a result read as its v2 call
+  ---
+  duration_ms: 155.001791
+  type: 'test'
+  ...
+# Subtest: trim: a rectangle and a circle across its edge become one keyhole outline in two clicks
+ok 455 - trim: a rectangle and a circle across its edge become one keyhole outline in two clicks
+  ---
+  duration_ms: 2.853959
+  type: 'test'
+  ...
+# Subtest: trim: an open line is cut back to its crossings, or split in two; a lone circle goes
+ok 456 - trim: an open line is cut back to its crossings, or split in two; a lone circle goes
+  ---
+  duration_ms: 0.3065
+  type: 'test'
+  ...
+# Subtest: extend: a line runs on to the shape ahead of it; an arc round its circle; nothing ahead is refused
+ok 457 - extend: a line runs on to the shape ahead of it; an arc round its circle; nothing ahead is refused
+  ---
+  duration_ms: 0.99475
+  type: 'test'
+  ...
+# Subtest: MCP: a turn's version log — a version made without changing the part is written back; an old version asked for; folded into the project's
+ok 458 - MCP: a turn's version log — a version made without changing the part is written back; an old version asked for; folded into the project's
+  ---
+  duration_ms: 269.62725
+  type: 'test'
+  ...
+# Subtest: O179: merged pieces — a tessellated piece makes the whole one, bounds summed; one unknown, unknown; all exact, none
+ok 459 - O179: merged pieces — a tessellated piece makes the whole one, bounds summed; one unknown, unknown; all exact, none
+  ---
+  duration_ms: 102.560667
+  type: 'test'
+  ...
+# Subtest: webm: header, track and blocks at their own timecodes, a cluster per key frame
+ok 460 - webm: header, track and blocks at their own timecodes, a cluster per key frame
+  ---
+  duration_ms: 2.152041
+  type: 'test'
+  ...
+1..460
+# tests 460
+# suites 0
+# pass 460
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 21128.146333

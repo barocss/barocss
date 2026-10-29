@@ -1,0 +1,118 @@
+{
+  "status": "QUALIFIED_BOUNDED_IMPORT_STAGE_OWNERSHIP",
+  "baseline": "5168183e88c29d70468628b18bb91e5f7a10dbda",
+  "sourceCommit": "a7264f0e59c25580b185b814a5e4b6b3a946f2a3",
+  "productionProfile": "final-source/profile.json",
+  "productionFiles": 4,
+  "baselineUnit": {
+    "tests": 5,
+    "pass": 0,
+    "fail": 5,
+    "skip": 0,
+    "exit": 1
+  },
+  "intermediateFocused": [
+    {
+      "tests": 23,
+      "pass": 23
+    },
+    {
+      "tests": 26,
+      "pass": 26
+    }
+  ],
+  "studio": {
+    "tests": 460,
+    "pass": 460,
+    "fail": 0,
+    "skip": 0,
+    "new31Included": true
+  },
+  "buildIncludingTypes": {
+    "exit": 0,
+    "existingBundlerWarningsRetained": true
+  },
+  "scopedLint": {
+    "exit": 0,
+    "errors": 0,
+    "warnings": 0
+  },
+  "existingBrowserDriverLint": {
+    "exit": 0,
+    "errors": 0,
+    "existingWarnings": 45
+  },
+  "sourceReview": {
+    "model": "GPT-6.1 Sol High",
+    "mode": "SOURCE_ONLY",
+    "verdict": "PASS",
+    "restorationGitBytesVerified": true
+  },
+  "implementationModel": "GPT-6.1 Sol Medium",
+  "native": {
+    "first": {
+      "tests": 7,
+      "pass": 5,
+      "fail": 2,
+      "skip": 0,
+      "exit": 1,
+      "acceptance": "WITHHELD_SOURCE_DRIFT"
+    },
+    "second": {
+      "tests": 7,
+      "pass": 7,
+      "fail": 0,
+      "skip": 0,
+      "exit": 0,
+      "serial": true
+    },
+    "normal": {
+      "selected": 6,
+      "starter": 1,
+      "pass": 7,
+      "fail": 0,
+      "skip": 0,
+      "exit": 0,
+      "serial": true
+    },
+    "uniqueSelectedPass": 13,
+    "automaticStarter": "Separate1, not added to selected cases",
+    "boundary": "Original fulfilled File text/bytes or actual Worker reply event is held; public input/HUD/New/Cancel; finite task/frame observation. No replaced bytes/IDs/results, no OS chooser/natural failure/general operation Promise completion claim.",
+    "actualStop": "Current C returns fresh/massReady; public Undo/Redo unchanged. Original units question retries successfully after Stop.",
+    "cleanup": "Each case closes owned context/browser/server before the next; concurrency1. Native first7 and second7 are separate attempts, not cumulative coverage."
+  },
+  "sourceDrift": {
+    "observedSha256": "04a883cc8cae037b4724bb6d44358b19cab7cb8796a1263bdd82d114ee0cd0c3",
+    "frozenSha256": "d669b9138128b2684f36a3fa1fdd8c0dfd19f8f39e647f61a23c13b7143e1fda",
+    "path": "apps/cad-studio/src/App.tsx",
+    "cause": "UNKNOWN",
+    "effect": "Latest guards/recovery trigger absent; first native batch cannot qualify frozen graph. Preserve raw5P/2F and both source capsules.",
+    "restoration": "Only owned missing guards restored from exact reviewed capsule and saved in new commit, no reset/amend/rebase. Other3 source unchanged.",
+    "finalRuns": "Source metadata watch and final hash checks match all4 source paths; no changes observed. Build/types/Studio460 receipts reused on exact restored bytes, not rerun for acknowledgement."
+  },
+  "intermediateFailures": {
+    "types": "Three new fixture type errors retained in types-first.txt; complete EvalResult/BodyResult fixture metadata added.",
+    "lint": "Root native driver no-this-alias error retained in lint-first.txt; holder object preserves original Worker receiver."
+  },
+  "notQualified": [
+    "All A05 async paths or version-write/linked-stall matrices",
+    "A06 sender disposal and long-tail blob GC",
+    "Native IGES/loadDirect, accepted-fit timer and project-metadata negative matrix",
+    "Full kernel/model/GPU/Viewer/browser suites",
+    "Remote CI",
+    "Performance or heap/RSS improvement",
+    "Natural OS/driver failure or binary-container byte preservation"
+  ],
+  "docs": {
+    "exit": 0,
+    "pages": 68,
+    "shots": 55,
+    "shotKB": 4811,
+    "labels": 860
+  },
+  "rootViewedFinalCaptures": [
+    "step-read-new/current-after-release",
+    "step-stage-stop/current-after-release",
+    "mesh-diagnose-stop-retry/retry-accepted"
+  ]
+}

@@ -1,0 +1,390 @@
+{
+  "scenario": "step-read-new",
+  "status": "PASS",
+  "runnerProcess": 7515,
+  "states": [
+    {
+      "label": "normal-current-control",
+      "state": {
+        "doc": {
+          "format": "barocss-cad-model",
+          "schema": 3,
+          "units": "mm",
+          "parameters": {},
+          "nodes": [
+            {
+              "kind": "sketch",
+              "profile": "rectangle",
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                8,
+                9
+              ],
+              "id": "n0"
+            },
+            {
+              "kind": "extrude",
+              "sketch": 0,
+              "height": 11,
+              "id": "n1",
+              "made": {
+                "command": "box",
+                "values": {
+                  "w": 8,
+                  "d": 9,
+                  "h": 11,
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "b1": {
+              "node": 1,
+              "side": "solid"
+            }
+          },
+          "nextId": 2
+        },
+        "body": {
+          "fresh": true,
+          "bodies": [
+            {
+              "key": "b1",
+              "volume": 792,
+              "centroid": [
+                4,
+                4.5,
+                5.5
+              ],
+              "massRef": null
+            }
+          ],
+          "massReady": true,
+          "colored": []
+        },
+        "name": "C-current",
+        "dirty": true,
+        "recovery": "{\"fileName\":\"C-current\",\"savedAt\":1793271899070,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[8,9],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":11,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":8,\"d\":9,\"h\":11,\"x\":0,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"}},\"nextId\":2}}",
+        "history": {
+          "present": true,
+          "type": "HTMLDivElement",
+          "labels": [
+            "Box 8×9×11"
+          ]
+        },
+        "working": null,
+        "units": null,
+        "repair": null,
+        "toast": null
+      },
+      "transport": {
+        "selected": null,
+        "events": []
+      }
+    },
+    {
+      "label": "original-return-held",
+      "state": {
+        "doc": {
+          "format": "barocss-cad-model",
+          "schema": 3,
+          "units": "mm",
+          "parameters": {},
+          "nodes": [
+            {
+              "kind": "sketch",
+              "profile": "rectangle",
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                8,
+                9
+              ],
+              "id": "n0"
+            },
+            {
+              "kind": "extrude",
+              "sketch": 0,
+              "height": 11,
+              "id": "n1",
+              "made": {
+                "command": "box",
+                "values": {
+                  "w": 8,
+                  "d": 9,
+                  "h": 11,
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "b1": {
+              "node": 1,
+              "side": "solid"
+            }
+          },
+          "nextId": 2
+        },
+        "body": {
+          "fresh": true,
+          "bodies": [
+            {
+              "key": "b1",
+              "volume": 792,
+              "centroid": [
+                4,
+                4.5,
+                5.5
+              ],
+              "massRef": null
+            }
+          ],
+          "massReady": true,
+          "colored": []
+        },
+        "name": "C-current",
+        "dirty": true,
+        "recovery": "{\"fileName\":\"C-current\",\"savedAt\":1793271899070,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[8,9],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":11,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":8,\"d\":9,\"h\":11,\"x\":0,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"}},\"nextId\":2}}",
+        "history": {
+          "present": true,
+          "type": "HTMLDivElement",
+          "labels": [
+            "Box 8×9×11"
+          ]
+        },
+        "working": null,
+        "units": null,
+        "repair": null,
+        "toast": null
+      },
+      "transport": {
+        "selected": {
+          "kind": "text",
+          "fulfilled": true,
+          "returned": false,
+          "length": 10584
+        },
+        "events": [
+          {
+            "kind": "original-read-fulfilled",
+            "sequence": 0
+          }
+        ]
+      }
+    },
+    {
+      "label": "current-before-release",
+      "state": {
+        "doc": {
+          "format": "barocss-cad-model",
+          "schema": 3,
+          "units": "mm",
+          "parameters": {},
+          "nodes": [
+            {
+              "kind": "sketch",
+              "profile": "rectangle",
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                8,
+                9
+              ],
+              "id": "n0"
+            },
+            {
+              "kind": "extrude",
+              "sketch": 0,
+              "height": 11,
+              "id": "n1",
+              "made": {
+                "command": "box",
+                "values": {
+                  "w": 8,
+                  "d": 9,
+                  "h": 11,
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "b1": {
+              "node": 1,
+              "side": "solid"
+            }
+          },
+          "nextId": 2
+        },
+        "body": {
+          "fresh": true,
+          "bodies": [
+            {
+              "key": "b1",
+              "volume": 792,
+              "centroid": [
+                4,
+                4.5,
+                5.5
+              ],
+              "massRef": null
+            }
+          ],
+          "massReady": true,
+          "colored": []
+        },
+        "name": "C-current",
+        "dirty": true,
+        "recovery": "{\"fileName\":\"C-current\",\"savedAt\":1793271899070,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[8,9],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":11,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":8,\"d\":9,\"h\":11,\"x\":0,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"}},\"nextId\":2}}",
+        "history": {
+          "present": true,
+          "type": "HTMLDivElement",
+          "labels": [
+            "Box 8×9×11"
+          ]
+        },
+        "working": null,
+        "units": null,
+        "repair": null,
+        "toast": null
+      },
+      "transport": {
+        "selected": {
+          "kind": "text",
+          "fulfilled": true,
+          "returned": false,
+          "length": 10584
+        },
+        "events": [
+          {
+            "kind": "original-read-fulfilled",
+            "sequence": 0
+          }
+        ]
+      }
+    },
+    {
+      "label": "current-after-release",
+      "state": {
+        "doc": {
+          "format": "barocss-cad-model",
+          "schema": 3,
+          "units": "mm",
+          "parameters": {},
+          "nodes": [
+            {
+              "kind": "sketch",
+              "profile": "rectangle",
+              "min": [
+                0,
+                0
+              ],
+              "max": [
+                8,
+                9
+              ],
+              "id": "n0"
+            },
+            {
+              "kind": "extrude",
+              "sketch": 0,
+              "height": 11,
+              "id": "n1",
+              "made": {
+                "command": "box",
+                "values": {
+                  "w": 8,
+                  "d": 9,
+                  "h": 11,
+                  "x": 0,
+                  "y": 0,
+                  "z": 0
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "b1": {
+              "node": 1,
+              "side": "solid"
+            }
+          },
+          "nextId": 2
+        },
+        "body": {
+          "fresh": true,
+          "bodies": [
+            {
+              "key": "b1",
+              "volume": 792,
+              "centroid": [
+                4,
+                4.5,
+                5.5
+              ],
+              "massRef": null
+            }
+          ],
+          "massReady": true,
+          "colored": []
+        },
+        "name": "C-current",
+        "dirty": true,
+        "recovery": "{\"fileName\":\"C-current\",\"savedAt\":1793271899070,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[8,9],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":11,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":8,\"d\":9,\"h\":11,\"x\":0,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"}},\"nextId\":2}}",
+        "history": {
+          "present": true,
+          "type": "HTMLDivElement",
+          "labels": [
+            "Box 8×9×11"
+          ]
+        },
+        "working": null,
+        "units": null,
+        "repair": null,
+        "toast": null
+      },
+      "transport": {
+        "selected": {
+          "kind": "text",
+          "fulfilled": true,
+          "returned": true,
+          "length": 10584
+        },
+        "events": [
+          {
+            "kind": "original-read-fulfilled",
+            "sequence": 0
+          },
+          {
+            "kind": "release-requested",
+            "sequence": 1
+          },
+          {
+            "kind": "original-read-return",
+            "sequence": 2
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "boundary": "Original native return scheduling only; public UI; no OS chooser/natural failure/general operation-Promise completion claim",
+  "context": "CLOSED",
+  "browser": "CLOSED",
+  "server": "CLOSED"
+}

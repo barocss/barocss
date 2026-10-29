@@ -138,7 +138,14 @@ for (const scenario of ['step-read-new', 'stl-read-new', 'direct-read-new', 'ste
         report.retry = 'ORIGINAL_UNIT_QUESTION_RETRY_ACCEPTED'; await snapshot('retry-accepted');
       }
       assert.deepEqual(report.errors, []); report.status = 'PASS';
-    } catch (error) { report.status = 'FAIL'; report.firstFailure = { message: error.message, stack: error.stack }; throw error; }
+    } catch (error) {
+      report.status = 'FAIL'; report.firstFailure = { message: error.message, stack: error.stack };
+      if (page && !page.isClosed()) {
+        report.failureState = await page.evaluate(() => ({ doc: window.__studioDoc, body: window.__studioBodies?.(), work: document.querySelector('[aria-label="Working"]')?.textContent ?? null, trace: window.__importHold?.snapshot(), text: document.body.innerText })).catch(cause => ({ captureError: String(cause) }));
+        await page.screenshot({ path: path.join(output, 'failure.png') }).catch(cause => { report.failureScreenshotError = String(cause); });
+      }
+      throw error;
+    }
     finally {
       if (context) { await context.close(); report.context = 'CLOSED'; }
       if (browser) { await browser.close(); report.browser = 'CLOSED'; }

@@ -16368,3 +16368,31 @@ production files unchanged. No whole other-package/browser suites, remote CI or 
 Prior D321 Render-history gap and remaining A05/A06 remain open. Evidence:
 notes/app-decomposition-second-2026-10-29/qualification.json. Normal feature push is authorized; no PR
 or release. Incoming DA-1a results attach to the existing drawing roadmap without changing priority.
+
+
+## D329 — Bind nonserialized import and mesh-stage completion to current ownership (2026-10-29)
+
+A05 followup at baseline5168183e8: actual importedFile regression tests expose five stale continuation
+failures. Guard every file/loadDirect/worker/blob await and rejection by captured Open intent, document
+dispatch and worker session. Only admitted direct/replacement changes emit success or accepted fit.
+Mesh workflow is a private controller with immutable useSyncExternalStore snapshots and synchronous
+question/task generations. Cancel/units/steps/new question/Stop revoke old work. Stop revokes before
+restart, hands retryable questions to the new owner, and uses a stage-only current-model re-evaluation
+trigger. It does not roll back unrelated Undo entries or change central D321 Stop semantics. Unmount
+and repair entry supersede older intents. No schema/dependency/WASM/geometry policy changes.
+
+Sol Medium implements; Sol High source-only review passes. Build/types/scoped lint pass; Studio460
+includes new31 (0FAIL/0SKIP). Initial type fixture errors and root driver lint failure remain. Initial
+native batch5PASS/2FAIL is withheld because App changed from frozen d669 to earlyWIP04a883 during the
+run; cause UNKNOWN. Preserve both capsules/diff/raw failures. Restore only owned missing guards after
+browser closure and commit a7264f0e5. High confirms all4 restored source paths equal frozen/Git bytes.
+Final native7PASS/0FAIL sequential cases include public Stop Undo/Redo and retry; normal selected6 plus
+starter pass sequentially. External metadata watch/final hashes show no final-run source drift. Do not
+count repeats or claim whole-browser acceptance. Normal original file/event return scheduling is held;
+no fabricated bytes/results, OS chooser or natural failure proof. Existing exact-source build/test
+receipts are reused after byte-identical restoration.
+
+Evidence: notes/import-open-stage-ownership-2026-10-29/qualification.json. Wider A05/version-write/linked
+matrices, native IGES/fit/project negatives, A06 resources, full other-package/browser suites, remoteCI
+and performance/heap remain outside scope. Normal feature push authorized; no PR/release. Next A06
+sender/worker disposal. Record the owner's77-prop SceneViewport feedback as further App decomposition.

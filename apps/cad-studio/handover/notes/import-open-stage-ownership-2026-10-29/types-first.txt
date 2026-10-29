@@ -1,0 +1,10 @@
+test/mesh-import-ownership.test.ts(22,11): error TS2352: Conversion of type '() => Promise<{ ok: true; bodies: { mesh: { faces: never[]; }; volume: number; }[]; }>' to type '(doc: StudioDoc, revision: number, slot?: PartSlot) => Promise<EvalResult>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'Promise<{ ok: true; bodies: { mesh: { faces: never[]; }; volume: number; }[]; }>' is not comparable to type 'Promise<EvalResult>'.
+    Type '{ ok: true; bodies: { mesh: { faces: never[]; }; volume: number; }[]; }' is not comparable to type 'EvalResult'.
+      Type '{ ok: true; bodies: { mesh: { faces: never[]; }; volume: number; }[]; }' is missing the following properties from type '{ ok: true; revision: number; bodies: BodyResult[]; wallTime: number; faceTable?: FaceTable | undefined; shopRows?: readonly ShopTreeProvenance[] | undefined; rebuild?: RebuildData | undefined; }': revision, wallTime
+test/mesh-import-ownership.test.ts(102,17): error TS2345: Argument of type '{ ok: false; error: { title: string; hint: string; detail: string; }; }' is not assignable to parameter of type 'EvalResult'.
+  Type '{ ok: false; error: { title: string; hint: string; detail: string; }; }' is missing the following properties from type '{ ok: false; revision: number; error: FriendlyError; wallTime: number; }': revision, wallTime
+test/mesh-import-ownership.test.ts(110,3): error TS2322: Type '() => Promise<{ ok: false; error: { title: string; hint: string; detail: string; }; }>' is not assignable to type '(doc: StudioDoc, revision: number, slot?: PartSlot) => Promise<EvalResult>'.
+  Type 'Promise<{ ok: false; error: { title: string; hint: string; detail: string; }; }>' is not assignable to type 'Promise<EvalResult>'.
+    Type '{ ok: false; error: { title: string; hint: string; detail: string; }; }' is not assignable to type 'EvalResult'.
+      Type '{ ok: false; error: { title: string; hint: string; detail: string; }; }' is missing the following properties from type '{ ok: false; revision: number; error: FriendlyError; wallTime: number; }': revision, wallTime

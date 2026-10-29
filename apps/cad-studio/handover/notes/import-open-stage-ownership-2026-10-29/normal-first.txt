@@ -1,0 +1,9 @@
+flow display: {"requestedDpr":1,"renderer":"webgpu","devicePixelRatio":1,"cssWidth":1140,"cssHeight":900,"backingWidth":1140,"backingHeight":900}
+ok 1 starter plate loads
+ok 53 open an STL in centimetres: the unit asked for, the block in mm with its hole, its flat faces merged
+ok 57 a mesh with a hole: checked, the repair gate (steps, holes, its numbers before it is applied), applied as a recorded step, its badge shows the fill and opens it again
+ok 58 STEP and meshes: asked how mesh bodies go out (tessellated AP242 or planar); a tessellated file reads back; a mesh-only STEP that does not close goes through the repair gate
+ok 59 D317: unsupported STEP length declarations preserve accepted B-rep and AP242 Open state
+ok 60 open a STEP file as a new part
+ok 63 import a .barocad source and use curve and surface tools
+screenshots: /tmp/d329/normal-first

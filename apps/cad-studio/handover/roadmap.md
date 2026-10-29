@@ -2064,3 +2064,48 @@ map/G15/recovery acceptance. Next at existing resource priority: the two-instanc
 selection continuity through device replacement and subsequent public instance replacement. Do not
 repeat packed-map/CSS45/GPU003/full-map successes for this intake. No new issue, immediate implementation
 or priority switch; existing A05/A06 order remains unchanged.
+
+
+### GPU006 two-instance recovery and reorder evidence — 2026-10-29
+
+Attach the [supplied report, execution verification and parent review](notes/gpu-recovery-instance-intake-2026-10-29/gpu-006-instance-recovery-104421.md)
+to existing GMAT-5/G15-accept and06/R2. BOUNDED PASS at exact5168183e8: one two-translation profile,
+one attempt,43 assertions/three captures, not43 tests. After valid baseline, one owned logical-device
+hook leads to old lost, distinct new device, onRecover and a new frame/mapped capture. Before any new
+setter, original Mesh/Geometry/Material and logical instance order/picks[0,1] remain. One public
+setInstances reorder then changes fresh picks to[1,0]. All307200 RGBA bytes and both point deltas remain
+zero; identical images alone are not reorder proof. Public count/pick behavior is separate from read-
+only internal CPU-state evidence and does not guarantee input-object identity or native buffer counts.
+
+The author/parent report2237 fixed source files,452 actual inputs(451+fixture1),47 artifacts and raw/PNG
+checks; original channel<=3/point<=0.05 policies, no first failure, guard/probe/release0 and owned cleanup.
+Actual old owned adapter is apple/metal-3; replacement/fallback remain UNKNOWN. Root read the report and
+parsed both verifications without independent execution or hash/image re-audit.
+
+General matrices/scale/reflection, shader/PBR combinations, SDK/App, natural failure, OOM/VRAM/
+performance and native allocations remain unaccepted. Do not extend this to D324 delayed readback race
+or whole GPU completion. Further SDK/App recovery-wiring research stays an intake at existing priority.
+No immediate implementation, success-suite repetition, duplicate issue or priority switch. A05/A06 stay
+first; DA-DUP-1 is still unfixed at the report's source.
+
+
+### D329 nonserialized import and stage ownership — qualified (2026-10-29)
+
+[Full evidence and source-drift boundary](notes/import-open-stage-ownership-2026-10-29/README.md) extends
+existing12/O9 A05: every import continuation/rejection, modal generation, accepted fit and stage Stop
+checks current ownership. Stop preserves the current doc/Undo/Redo and keeps surviving questions
+retryable. Build/types/lint and Studio460(new31 included) pass. Initial native5PASS/2FAIL is withheld for
+unexplained App source drift. Exact reviewed source restored and committed; final native7 and normal
+selected6+starter pass in sequence with no observed final source drift. Preserve all original failures.
+No full-browser/other-package/remoteCI/performance claim. Wider A05 matrices remain explicit. Next urgent
+existing A06: WireSender eviction subscription, restart/dispose/error/unmount ownership and retained maps.
+
+### Further App decomposition candidate — owner feedback, 2026-10-29
+
+The actual SceneViewport call has77 attributes including ref (76 ordinary props),20 on-events and nine
+inline callbacks. Keep this as the next App-specific structural target under existing App/workspace
+maintenance: separate scene data, selection interactions, sketch editing and analysis/presentation
+contracts; move each derived value and callback to its owning module. Preserve memo identities, fresh
+body provenance, current refs and event ordering. Also retain command start/apply/cancel and keyboard
+routing as coherent candidates. Complete active A05/A06 before optional structural changes; no new
+queue or automatic whole-App acceptance from moving JSX or wrapping all props in a bag.

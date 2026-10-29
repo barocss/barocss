@@ -1,0 +1,167 @@
+TAP version 13
+# Subtest: STL read completion cannot show a question or error after a newer intent
+not ok 1 - STL read completion cannot show a question or error after a newer intent
+  ---
+  duration_ms: 2.376708
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-k9npIv/imported-file-ownership.test.mjs:39250:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   'notice'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'notice'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-k9npIv/imported-file-ownership.test.mjs:39257:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: DWG header completion cannot replace a newer notice
+not ok 2 - DWG header completion cannot replace a newer notice
+  ---
+  duration_ms: 0.713959
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-k9npIv/imported-file-ownership.test.mjs:39259:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   'notice'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'notice'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-k9npIv/imported-file-ownership.test.mjs:39266:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: STEP file read cannot start a worker after Stop or a newer intent
+not ok 3 - STEP file read cannot start a worker after Stop or a newer intent
+  ---
+  duration_ms: 0.806375
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-k9npIv/imported-file-ownership.test.mjs:39268:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   'stage:reading the file',
+    +   'stepMeshes',
+    +   'stage:null',
+    +   'part',
+    +   'notice'
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 'stage:reading the file'
+    1: 'stepMeshes'
+    2: 'stage:null'
+    3: 'part'
+    4: 'notice'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-k9npIv/imported-file-ownership.test.mjs:39274:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: STEP mesh reply cannot clear a newer stage or start a part read
+not ok 4 - STEP mesh reply cannot clear a newer stage or start a part read
+  ---
+  duration_ms: 0.4645
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-k9npIv/imported-file-ownership.test.mjs:39276:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        'stage:reading the file',
+    +   'stage:null',
+    +   'part',
+    +   'notice'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'stage:reading the file'
+  actual:
+    0: 'stage:reading the file'
+    1: 'stage:null'
+    2: 'part'
+    3: 'notice'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-k9npIv/imported-file-ownership.test.mjs:39285:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: STEP part failure cannot replace a newer notice
+not ok 5 - STEP part failure cannot replace a newer notice
+  ---
+  duration_ms: 0.209166
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-k9npIv/imported-file-ownership.test.mjs:39287:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        'stage:reading the file',
+        'stepMeshes',
+        'stage:null',
+    +   'notice'
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 'stage:reading the file'
+    1: 'stepMeshes'
+    2: 'stage:null'
+  actual:
+    0: 'stage:reading the file'
+    1: 'stepMeshes'
+    2: 'stage:null'
+    3: 'notice'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-k9npIv/imported-file-ownership.test.mjs:39300:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 0
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 93.848458

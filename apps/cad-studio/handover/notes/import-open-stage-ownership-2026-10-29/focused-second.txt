@@ -1,0 +1,166 @@
+TAP version 13
+# Subtest: STL read completion cannot show a question or error after a newer intent
+ok 1 - STL read completion cannot show a question or error after a newer intent
+  ---
+  duration_ms: 1.345875
+  type: 'test'
+  ...
+# Subtest: DWG header completion cannot replace a newer notice
+ok 2 - DWG header completion cannot replace a newer notice
+  ---
+  duration_ms: 0.190375
+  type: 'test'
+  ...
+# Subtest: STEP file read cannot start a worker after Stop or a newer intent
+ok 3 - STEP file read cannot start a worker after Stop or a newer intent
+  ---
+  duration_ms: 0.090875
+  type: 'test'
+  ...
+# Subtest: STEP mesh reply cannot clear a newer stage or start a part read
+ok 4 - STEP mesh reply cannot clear a newer stage or start a part read
+  ---
+  duration_ms: 0.289833
+  type: 'test'
+  ...
+# Subtest: STEP part failure cannot replace a newer notice
+ok 5 - STEP part failure cannot replace a newer notice
+  ---
+  duration_ms: 0.401834
+  type: 'test'
+  ...
+# Subtest: barocad file completion cannot commit or fit after a newer intent
+ok 6 - barocad file completion cannot commit or fit after a newer intent
+  ---
+  duration_ms: 0.1105
+  type: 'test'
+  ...
+# Subtest: barocad commit refusal does not show success or fit
+ok 7 - barocad commit refusal does not show success or fit
+  ---
+  duration_ms: 1.416417
+  type: 'test'
+  ...
+# Subtest: barocad accepted commit keeps its success and fit sequence
+ok 8 - barocad accepted commit keeps its success and fit sequence
+  ---
+  duration_ms: 0.133375
+  type: 'test'
+  ...
+# Subtest: iges file completion cannot commit or fit after a newer intent
+ok 9 - iges file completion cannot commit or fit after a newer intent
+  ---
+  duration_ms: 0.285791
+  type: 'test'
+  ...
+# Subtest: iges commit refusal does not show success or fit
+ok 10 - iges commit refusal does not show success or fit
+  ---
+  duration_ms: 6.149416
+  type: 'test'
+  ...
+# Subtest: iges accepted commit keeps its success and fit sequence
+ok 11 - iges accepted commit keeps its success and fit sequence
+  ---
+  duration_ms: 2.62725
+  type: 'test'
+  ...
+# Subtest: current OBJ still offers its unit question
+ok 12 - current OBJ still offers its unit question
+  ---
+  duration_ms: 0.242958
+  type: 'test'
+  ...
+# Subtest: current STEP read failure remains visible
+ok 13 - current STEP read failure remains visible
+  ---
+  duration_ms: 0.08725
+  type: 'test'
+  ...
+# Subtest: STEP diagnosis reply cannot clear a newer stage or show an old repair question
+ok 14 - STEP diagnosis reply cannot clear a newer stage or show an old repair question
+  ---
+  duration_ms: 0.10175
+  type: 'test'
+  ...
+# Subtest: rejected STEP file reads cannot show an old error after Stop
+ok 15 - rejected STEP file reads cannot show an old error after Stop
+  ---
+  duration_ms: 0.23725
+  type: 'test'
+  ...
+# Subtest: current STEP file rejection clears its stage and shows an error
+ok 16 - current STEP file rejection clears its stage and shows an error
+  ---
+  duration_ms: 0.075375
+  type: 'test'
+  ...
+# Subtest: current unit question reaches the real blob and part pipeline
+ok 17 - current unit question reaches the real blob and part pipeline
+  ---
+  duration_ms: 36.021125
+  type: 'test'
+  ...
+# Subtest: a second unit question keeps its state when the first diagnosis completes
+ok 18 - a second unit question keeps its state when the first diagnosis completes
+  ---
+  duration_ms: 0.281375
+  type: 'test'
+  ...
+# Subtest: changing units revokes the diagnosis for the previous unit
+ok 19 - changing units revokes the diagnosis for the previous unit
+  ---
+  duration_ms: 0.1685
+  type: 'test'
+  ...
+# Subtest: repair progress and result cannot write into a newer repair question
+ok 20 - repair progress and result cannot write into a newer repair question
+  ---
+  duration_ms: 0.147208
+  type: 'test'
+  ...
+# Subtest: changing repair steps revokes the old check without losing the new steps
+ok 21 - changing repair steps revokes the old check without losing the new steps
+  ---
+  duration_ms: 0.148291
+  type: 'test'
+  ...
+# Subtest: Stop revokes progress before restart and keeps the question ready for a new check
+ok 22 - Stop revokes progress before restart and keeps the question ready for a new check
+  ---
+  duration_ms: 0.125167
+  type: 'test'
+  ...
+# Subtest: Cancel revokes a pending diagnosis and a later worker error
+ok 23 - Cancel revokes a pending diagnosis and a later worker error
+  ---
+  duration_ms: 0.166833
+  type: 'test'
+  ...
+# Subtest: a document replacement hides old questions and revokes a pending part read
+ok 24 - a document replacement hides old questions and revokes a pending part read
+  ---
+  duration_ms: 1.21175
+  type: 'test'
+  ...
+# Subtest: Stop during blob hashing cannot start a part read in the restarted worker
+ok 25 - Stop during blob hashing cannot start a part read in the restarted worker
+  ---
+  duration_ms: 0.610042
+  type: 'test'
+  ...
+# Subtest: current worker errors remain visible and leave the question ready to retry
+ok 26 - current worker errors remain visible and leave the question ready to retry
+  ---
+  duration_ms: 0.318334
+  type: 'test'
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 26
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 107.724125

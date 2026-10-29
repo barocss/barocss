@@ -1,0 +1,6 @@
+{
+  "path": "apps/cad-studio/test/browser-flow.mjs",
+  "bytes": 964416,
+  "sha256": "f052d62e221c06ed46ef809f077cf27197dd9ec04ae5e06c9c75228fd689b77d",
+  "change": "Scope STL bounds observation to actual Selection panel; legacy first .props selects Gravity panel."
+}

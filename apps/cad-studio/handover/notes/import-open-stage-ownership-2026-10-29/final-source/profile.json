@@ -1,0 +1,30 @@
+{
+  "baseline": "5168183e88c29d70468628b18bb91e5f7a10dbda",
+  "kind": "Source provenance, not product checksum testing",
+  "files": [
+    {
+      "path": "apps/cad-studio/src/App.tsx",
+      "bytes": 189661,
+      "sha256": "d669b9138128b2684f36a3fa1fdd8c0dfd19f8f39e647f61a23c13b7143e1fda",
+      "capsule": "apps__cad-studio__src__App.tsx.gz"
+    },
+    {
+      "path": "apps/cad-studio/src/files/importedFile.ts",
+      "bytes": 8257,
+      "sha256": "f480fe54ee697731186b1c26b802cbbc704e3bd76e85c95103f650250b7127e0",
+      "capsule": "apps__cad-studio__src__files__importedFile.ts.gz"
+    },
+    {
+      "path": "apps/cad-studio/src/files/meshImportController.ts",
+      "bytes": 13506,
+      "sha256": "2d82851d6f78fe9731287a18851887fca957dd560b0ab6bd2435c5c874e1d0f9",
+      "capsule": "apps__cad-studio__src__files__meshImportController.ts.gz"
+    },
+    {
+      "path": "apps/cad-studio/src/files/useMeshImport.ts",
+      "bytes": 773,
+      "sha256": "77bb3fb267a9e8095b2baf5c79365324b5750a8e40594e4b18d8b221536f4805",
+      "capsule": "apps__cad-studio__src__files__useMeshImport.ts.gz"
+    }
+  ]
+}

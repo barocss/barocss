@@ -1,0 +1,7 @@
+{
+  "path": "apps/cad-studio/test/imported-open-ownership-browser.mjs",
+  "bytes": 12435,
+  "sha256": "9b0b7b1c359bf95c9a26d6365d24852dc996668ad37ded6fb9c70331c9e35d65",
+  "productionCommit": "a7264f0e59c25580b185b814a5e4b6b3a946f2a3",
+  "difference": "Failure-state capture only, no scenario/admission change"
+}
