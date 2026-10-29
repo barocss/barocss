@@ -1587,6 +1587,76 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'mesh' && window.__studioDoc.nodes[0].repair?.report.closed, null, { timeout: 15000 });
   });
 
+  await check('D317: unsupported STEP length declarations preserve accepted B-rep and AP242 Open state', async () => {
+    const { evaluateCadPart, exportStep, tessellateBrep, facetBrepFromTriangles } = await import('../../../packages/barocss-cad/dist/index.js');
+    const cube = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
+      { id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [1000, 1000] }, { id: 'cube', kind: 'extrude', sketch: 's', height: 1000 },
+    ] }).outputs[0].brep;
+    const triangles = tessellateBrep(cube), mesh = facetBrepFromTriangles(triangles.positions, triangles.indices, { id: 'cube' });
+    const sources = { brep: exportStep([cube], { name: '1000 cube' }), ap242: exportStep([mesh], { name: '1000 cube mesh', meshes: 'tessellated' }) };
+    assert.match(sources.ap242, /TRIANGULATED_FACE/); assert.doesNotMatch(sources.ap242, /ADVANCED_FACE/);
+    for (const [route, source] of Object.entries(sources)) {
+      assert.equal(source.split('SI_UNIT(.MILLI.,.METRE.)').length, 2);
+      writeFileSync(join(out, `d317-${route}-milli.step`), source);
+      writeFileSync(join(out, `d317-${route}-nano.step`), source.replace('SI_UNIT(.MILLI.,.METRE.)', 'SI_UNIT(.NANO.,.METRE.)'));
+    }
+    const acceptedInput = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2,
+      nodes: [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 }], outputs: { b1: { node: 1, side: 'solid' } } };
+    const file = join(out, 'd317-accepted.bcad'); writeFileSync(file, JSON.stringify(acceptedInput)); await openModel(file, 2); await idle();
+    await page.locator('.history .hs[data-node-index="1"]').click();
+    await page.locator('.node-editor input[aria-label="Width"]').fill('12');
+    await page.locator('.node-editor button', { hasText: 'Apply' }).click();
+    const ready = volume => page.waitForFunction(volume => { const b = window.__studioBodies?.(); return b?.fresh && b.massReady === true && b.bodies.length === 1 && Math.abs(b.bodies[0].volume - volume) < 1e-7; }, volume, { timeout: 30000 });
+    await ready(1200); await press('Escape');
+    const state = async () => ({ doc: await doc(), bodies: await page.evaluate(() => window.__studioBodies()), history: await history(),
+      name: await page.locator('.doc-tab input').inputValue(), dirty: await page.locator('[aria-label="Unsaved changes"]').count(),
+      undoDisabled: await page.locator('[aria-label="Undo"]').isDisabled(), redoDisabled: await page.locator('[aria-label="Redo"]').isDisabled() });
+    for (const route of ['brep', 'ap242']) {
+      if (route === 'ap242') {
+        const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+        await saved.saveAs(join(out, 'd317-accepted-saved.bcad'));
+        await page.waitForSelector('[aria-label="Unsaved changes"]', { state: 'detached' });
+      }
+      if (await page.locator('.toast [aria-label="Dismiss"]').count()) await page.locator('.toast [aria-label="Dismiss"]').click();
+      const before = await state(); assert.equal(before.dirty, route === 'brep' ? 1 : 0); assert.equal(before.undoDisabled, false);
+      await page.setInputFiles('input[aria-label="Model file"]', join(out, `d317-${route}-nano.step`));
+      await page.waitForFunction(() => /\[NOT_READ\].*unsupported SI length prefix NANO/.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 15000 });
+      assert.match(await page.locator('.toast').innerText(), /Could not open this file/);
+      assert.deepEqual(await state(), before, 'refusal preserves document, body, history, filename, dirty state and Undo/Redo availability');
+      assert.equal(await page.locator('[aria-label="Mesh repair"]').count(), 0); assert.equal(await page.locator('.vp-error').count(), 0);
+      await iso(); await snap(`d317-${route}-nano-refused`);
+      await page.locator('.toast [aria-label="Dismiss"]').click();
+      await press('Meta+z'); await ready(1000); assert.deepEqual((await doc()).nodes, acceptedInput.nodes);
+      await press('Meta+Shift+z'); await ready(1200); assert.deepEqual((await doc()).nodes, before.doc.nodes);
+    }
+    // Supported scaling and undeclared fallback use the same genuine public-exported coordinates.
+    const micro = sources.brep.replace('SI_UNIT(.MILLI.,.METRE.)', 'SI_UNIT(.MICRO.,.METRE.)');
+    // Remove the length entity and its global context/uncertainty references; geometry entities are untouched.
+    const undeclared = sources.ap242.replace(/^#\d+=\(LENGTH_UNIT\(\)[^;]*;\r?\n/gm, '')
+      .replace(/^#\d+=UNCERTAINTY_MEASURE_WITH_UNIT[^;]*;\r?\n/gm, '')
+      .replace(/GLOBAL_UNIT_ASSIGNED_CONTEXT\(\([^)]*\)\)/g, '').replace(/GLOBAL_UNCERTAINTY_ASSIGNED_CONTEXT\(\([^)]*\)\)/g, '');
+    assert.doesNotMatch(undeclared, /LENGTH_UNIT/);
+    for (const [name, source, side, volume, message] of [['micro-brep', micro, 1, 1, /micrometres.*scaled ×0.001/], ['undeclared-ap242', undeclared, 1000, 1e9, /no length unit declared \(read as millimetres\)/]]) {
+      const step = join(out, `d317-${name}.step`); writeFileSync(step, source);
+      await page.setInputFiles('input[aria-label="Model file"]', step);
+      await page.waitForFunction(({ source, volume }) => { const b = window.__studioBodies?.(), d = window.__studioDoc; return d.nodes[0]?.kind === 'import' && d.nodes[0].step === source && b?.fresh && b.massReady === true && b.bodies.length === 1 && Number.isFinite(b.bodies[0].volume) && Math.abs(b.bodies[0].volume - volume) <= Math.max(1e-7, volume * 1e-9); }, { source, volume }, { timeout: 30000 });
+      assert.match(await page.locator('.toast').innerText(), message);
+      assert.ok((await page.evaluate(() => window.__studioBodies())).bodies[0].centroid.every(v => Math.abs(v - side / 2) < Math.max(1e-7, side * 1e-9)));
+      assert.equal(await page.locator('.vp-error').count(), 0); assert.match(await outliner(), /1 body/);
+      assert.match((await page.locator('.props').allInnerTexts()).join('\n'), side === 1 ? /Bounds\s*1 × 1 × 1/ : /Bounds\s*1,?000 × 1,?000 × 1,?000/);
+      await iso(); await snap(`d317-${name}-opened`);
+      const accepted = await doc(); assert.equal(accepted.nodes[0].step, source);
+      const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+      const savedFile = join(out, `d317-${name}-saved.bcad`); await saved.saveAs(savedFile);
+      assert.deepEqual(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readFileSync(savedFile))), JSON.parse(JSON.stringify(accepted)));
+      await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+      await openModel(savedFile, accepted.nodes.length); await idle();
+      assert.deepEqual(await doc(), accepted); assert.equal((await doc()).nodes[0].step, source);
+      const body = (await page.evaluate(() => window.__studioBodies())).bodies[0]; assert.ok(Number.isFinite(body.volume) && Math.abs(body.volume - volume) <= Math.max(1e-7, volume * 1e-9));
+      assert.equal(await page.locator('.vp-error').count(), 0); await iso(); await snap(`d317-${name}-reopened`);
+    }
+  });
+
   await check('open a STEP file as a new part', async () => {
     const { holedBoxStep } = await import('../../../packages/barocss-cad/test/step-fixtures.mjs');
     const file = join(out, 'holed-box.step'); (await import('node:fs')).writeFileSync(file, holedBoxStep());

@@ -148,3 +148,13 @@ without starting implementation or creating issues. Model004 and GPU002 remain N
 the reporting session's exit75 guard refusal. This intake ran no product probe. D316 remains selected.
 
 Retained source SHA256: `61ec10ca85052a676096de007c0e818cefe45eaecfeceacc4e24bb1d025ac515`.
+
+### D317 selected unit-loss disposition
+
+The later D317 repair rejects matched unsupported SI length declarations before Studio Open or
+reference evaluation. Actual B-rep/AP242 rejection preserves the accepted state and Undo/Redo;
+supported MICRO and undeclared AP242 controls retain physical scale and source/JSON through
+Save/New/Open. See [qualification](step-declared-unit-admission-2026-10-29/qualification.json).
+This supplies the selected #2240 admission gate; it does not qualify a general unit-context
+resolver, unknown conversion units or external reader conformance. The original audit report
+and six-issue state-only transfer receipt remain historical evidence; other five defects remain open in the roadmap.

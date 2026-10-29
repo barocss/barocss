@@ -34,6 +34,11 @@ A file that can't be read leaves your part unchanged. A file whose extension Ope
 program's `.cad`, is refused as **Can't open** with its name, and the toast lists what Open reads. A file with no
 extension is tried as a model.
 
+STEP checks declared SI length prefixes before opening solids or meshes. An unsupported prefix, such as
+NANO, is refused with `NOT_READ`; it is not treated as an undeclared millimetre file. A supported declaration
+elsewhere in the file does not hide that refusal. The accepted part and its edits remain unchanged. Supported
+unit scaling and the millimetre fallback for files with no declared length unit retain their existing behavior.
+
 A STEP file that holds only meshes (AP242 tessellated, from scans or other systems) is read like an STL. A mesh that
 isn't closed and clean goes through the **mesh repair** dialog before it opens:
 

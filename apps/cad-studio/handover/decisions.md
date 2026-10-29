@@ -16015,3 +16015,40 @@ Push the qualified feature with a normal `local/cad-dev` push under the owner's 
 instruction. No PR or release is authorized. Incoming package/Stop assessments are registered
 in existing roadmap scopes and do not initiate work on arrival. Next priority is the registered
 silent STEP unit-declaration loss (#2240,13/16), then resume remaining07→08→09 extensions.
+
+
+## D317 — Refuse declared unsupported STEP SI lengths before Open (2026-10-29)
+
+The file-level unit reader matched NANO declarations but fell back to undeclared millimetres.
+Reject every unsupported SI length prefix recognized by the existing length matcher with the
+existing typed NOT_READ code. Scan all matches before selecting a known unit, so a supported
+SI or conversion declaration cannot hide an unsupported one. Preserve supported factors,
+conversion precedence, no-prefix metres, angle exclusion and genuine undeclared-mm fallback.
+This is a bounded admission repair, not a representation-context or conversion-unit parser.
+
+Studio reads the unit once immediately after file.text(), before mesh/worker/repair/document
+replacement, and reuses it for both STEP routes. Keep the Kernel importer and scale algebra
+unchanged: supported conversion still occurs at the existing one boundary. Reference admission
+uses the same reader and rejects before evaluation/insertion. Original STEP bytes are not rewritten.
+
+The new regression on original source had3pass/1fail, `Missing expected exception.` After the
+repair, the two affected Model files pass6/6; final reference2/2 overlaps that coverage after a
+test-only union-narrowing assertion. First Model types failed with TS2339 on ReferenceSource.step;
+adding the assertion repairs the test without changing acceptance expectations. Final Model and
+Studio types and all changed-file lint pass. Logs retain first failures and empty successful output.
+
+Actual first-run Chrome/WebGPU/DPR1 Open tests use public-exported1000-coordinate B-rep and
+AP242 cube files, replacing only MILLI with NANO for rejection. Dirty B-rep and clean AP242
+attempts preserve document, bodies, history, filename, dirty and Undo/Redo, and actual subsequent
+Undo/Redo works. Supported MICRO B-rep opens as side1mm/V1mm³ with one scale operation;
+undeclared AP242 retains side1000mm/V1e9mm³. Both preserve original STEP text and complete
+semantic JSON through real Save/New/Open. Root reviews six actual screenshots separately.
+General unit contexts, unknown conversion units, external STEP-reader conformance, other
+browsers/DPRs and full suites are NOT_RUN. The Kernel source is unchanged, so no whole Kernel
+repeat is required. Full Model/Studio repeats would add no selected admission evidence.
+
+Evidence: notes/step-declared-unit-admission-2026-10-29/qualification.json and consumers/.
+Generated NOT_READ docs add its engine producer; final generated/API/docs checks are recorded
+there. The owner authorizes a normal per-feature push. No PR/release or schema/dependency/cap/
+tolerance change. #2240 remains archived for transfer; this bounded repair supplies its selected
+unit-loss acceptance. Next priority: #2235 skeleton Save/fresh Open/re-edit identity under09/12.

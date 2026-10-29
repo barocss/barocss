@@ -2067,7 +2067,7 @@ export function App() {
       if (/\.dwg$/i.test(file.name)) { const e = dwgRefusal(new TextDecoder('latin1').decode(new Uint8Array(await file.slice(0, 6).arrayBuffer()))); setToast({ title: 'DWG files are not read', hint: e ? e.message.replace(/^\[[A-Z_]+\] /, '') : `This is not a DWG file the studio knows. ${DWG_ROUTES}`, detail: '' }); return; }
       // A STEP file starts a new part from its solids.
       if (/\.(step|stp)$/i.test(file.name)) {
-        const name = file.name.replace(/\.(step|stp)$/i, ''), step = await file.text();
+        const name = file.name.replace(/\.(step|stp)$/i, ''), step = await file.text(), unit = stepLengthUnit(step);
         // A file of meshes only (AP242 tessellated: scans, other systems' exports) is checked like an STL: closed and
         // clean it imports as it is (its faces' names kept), else through the repair gate as a mesh (R3.5, D48).
         setStage('reading the file');
@@ -2076,7 +2076,7 @@ export function App() {
         if (meshes && 'error' in meshes) { if (meshes.error !== 'stopped') setToast({ title: 'Could not open this file', hint: `${meshes.error[0].toUpperCase()}${meshes.error.slice(1)}. Your part is unchanged.`, detail: meshes.error }); return; }
         if (meshes) {
           // (Typed arrays, not number lists: posted to the worker by copying bytes, not element by element; PERF3 B13.)
-          const k = stepLengthUnit(step).to, positions = new Float64Array(meshes.reduce((n, m) => n + m.positions.length, 0)), indices = new Uint32Array(meshes.reduce((n, m) => n + m.indices.length, 0));
+          const k = unit.to, positions = new Float64Array(meshes.reduce((n, m) => n + m.positions.length, 0)), indices = new Uint32Array(meshes.reduce((n, m) => n + m.indices.length, 0));
           let pv = 0, pi = 0;
           for (const m of meshes) { const base = pv / 3; for (let i = 0; i < m.positions.length; i++) positions[pv++] = m.positions[i] * k; for (let i = 0; i < m.indices.length; i++) indices[pi++] = base + m.indices[i]; }
           setStage('checking the mesh');
@@ -2091,7 +2091,7 @@ export function App() {
         if (!read.ok) { setToast({ title: 'Could not open this file', hint: `The kernel can’t read it as STEP: ${read.error.detail}. Your part is unchanged.`, detail: read.error.detail }); return; }
         let next = withNode(emptyDoc(), { kind: 'import', name, step, ...(read.bodies.length > 1 ? { solids: read.bodies.length } : {}) });
         // In other units than millimetres: each solid scaled about the origin to its true size.
-        const unit = stepLengthUnit(step), n = read.bodies.length;
+        const n = read.bodies.length;
         if (unit.to !== 1) for (let k = 0; k < n; k++) next = withNode(next, { kind: 'scale', parent: { node: 0, side: n > 1 ? `part${k}` as Side : 'solid' }, factor: unit.to, pivot: [0, 0, 0] });
         replaceDoc(next); setFileName(name); setDirty(true); setTimeout(() => viewport.current?.fit(), 300);
         const vol = read.bodies.reduce((t, b) => t + (b.volume ?? 0), 0) * unit.to ** 3;

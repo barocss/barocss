@@ -459,7 +459,7 @@
 | `[NOT_NEEDED]` | `print` | the part (… mm) fits … as it is |
 | `[NOT_ONE_LOOP]` | `robot` | a planar loop has three moving joints round it besides its pin; this one has … |
 | `[NOT_PLANAR]` | `robot` | … is not a turn about the pin's axis direction |
-| `[NOT_READ]` | `chat` | … could not be read: … |
+| `[NOT_READ]` | `chat`, `engine` | … could not be read: … |
 | `[NO_BASELINE]` | `team` | no baseline …; baselines: … |
 | `[NO_BODY]` | `engine` | … |
 | `[NO_CHANGE]` | `app`, `team` | It is already there. |
