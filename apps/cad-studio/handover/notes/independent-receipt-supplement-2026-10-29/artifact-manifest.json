@@ -1,0 +1,22 @@
+{
+  "README.md": {
+    "bytes": 2825,
+    "sha256": "9c7ccaebed3045229f70b9ec79579233a6a3476e0d60dc8ed041c65a44fcdf40"
+  },
+  "d319-review.md": {
+    "bytes": 9795,
+    "sha256": "f990f549ae5fde66718a88da5a724a58e6b2361a82784d2044b743ce60c72eb0"
+  },
+  "d320-review.md": {
+    "bytes": 9039,
+    "sha256": "df82f6baacdddd46012dd1df1018fde43ac81b04256bd4ab49cfc09444f76659"
+  },
+  "original-skeleton-ui-review.md": {
+    "bytes": 3314,
+    "sha256": "3031040cfd179bc45e80e642ebcc972b8cdc2b37d53828de02dde0604f4bb498"
+  },
+  "original-skeleton-ui-verification.json": {
+    "bytes": 1584,
+    "sha256": "01c6f320282a02c09e139af929398c06118972220a05c54aee3fb282d7ce0398"
+  }
+}

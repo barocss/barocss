@@ -1487,6 +1487,128 @@ try {
     await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
   });
 
+  await check('D321: Stop rolls back its owned Box while pending Render and Drawing edits refuse', async () => {
+    const { installD321NativeWorkerHold } = await import('./stop-work-native-worker.mjs');
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
+    await page.addInitScript(installD321NativeWorkerHold); expectLoad(); await page.reload(); await idle();
+    if (await page.locator('[aria-label="Recover unsaved work"]').count()) throw new Error('D321 must start without a prior recovery offer');
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
+    const states = [], observations = {};
+    const snapshot = async label => {
+      const value = await page.evaluate(label => ({ label, doc: window.__studioDoc, bodies: window.__studioBodies?.(), fresh: window.__studioFresh,
+        trace: window.__d321Worker.snapshot(), recovery: localStorage.getItem('studio.recovery'), history: document.querySelector('.history')?.textContent,
+        dirty: !!document.querySelector('[aria-label="Unsaved changes"]'), name: document.querySelector('.doc-tab input')?.value,
+        feedback: [...document.querySelectorAll('.toast')].map(element => element.textContent), eye: window.__studioEye?.() }), label);
+      states.push(value); writeFileSync(join(out, 'd321-states.json'), JSON.stringify({ states, observations }, null, 2)); return value;
+    };
+    const ready = async (nodes, count, volume) => {
+      await page.waitForFunction(({ nodes, count, volume }) => {
+        const state = window.__studioBodies?.(); return window.__studioDoc.nodes.length === nodes && state?.fresh && state.massReady === true
+          && state.bodies.length === count && state.bodies.every(body => Number.isFinite(body.volume))
+          && Math.abs(state.bodies.reduce((sum, body) => sum + body.volume, 0) - volume) < 1e-7;
+      }, { nodes, count, volume }, { timeout: 30000 }).catch(async error => {
+        await snapshot(`readiness-failure-${nodes}-${count}-${volume}`); throw error;
+      });
+      assert.equal(await page.locator('.vp-error').count(), 0);
+    };
+    const recovery = async nodes => {
+      await page.waitForFunction(nodes => { const raw = localStorage.getItem('studio.recovery'); return raw && JSON.parse(raw).doc.nodes.length === nodes; }, nodes, { timeout: 15000 });
+    };
+    const previewBox = async (x, width = 10) => {
+      await page.click('.mode button:text-is("Model")'); await press('b'); await hudReady();
+      await field('Width X').fill(String(width)); await field('Depth Y').fill('10'); await field('Height Z').fill('10');
+      await field('At X').fill(String(x)); await field('At Y').fill('0'); await hudReady();
+      await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 20000 });
+    };
+    const heldApply = async nodes => {
+      await page.evaluate(() => window.__d321Worker.arm()); await page.locator('.hud button', { hasText: 'Apply' }).click();
+      await page.waitForFunction(nodes => {
+        const trace = window.__d321Worker.snapshot(), claim = trace.claimed;
+        return window.__studioDoc.nodes.length === nodes && claim && trace.events.some(event => event.kind === 'held' && event.key === claim.key && event.id === claim.id && event.resultOK === true)
+          && trace.events.some(event => event.kind === 'held' && event.key === claim.key && event.masses);
+      }, nodes, { timeout: 20000 });
+      await page.waitForSelector('[aria-label="Cancel the computation"]', { timeout: 15000 });
+    };
+    const checkDiscard = trace => {
+      const claim = trace.claimed, terminated = trace.events.find(event => event.kind === 'terminate' && event.key === claim.key);
+      assert.ok(terminated?.discardedHeld >= 2, 'termination discards the real held result and mass messages');
+      const claimed = trace.events.find(event => event.kind === 'claimed' && event.key === claim.key && event.id === claim.id);
+      assert.equal(trace.events.filter(event => event.kind === 'delivery-to-client' && event.key === claim.key && event.sequence > claimed.sequence).length, 0, 'no held old-native event is delivered or replayed');
+    };
+    const refusal = async () => {
+      await page.waitForSelector('.toast', { timeout: 5000 });
+      const text = await page.locator('.toast').innerText();
+      assert.match(text, /Change not applied/); assert.match(text, /Wait for the computation to finish, or stop it, before changing the document\./); return text;
+    };
+    await previewBox(0); await page.locator('.hud button', { hasText: 'Apply' }).click(); await ready(2, 1, 1000); await iso();
+    const d0 = await snapshot('D0-computed');
+    await previewBox(20); await heldApply(4); await recovery(4);
+    const d1 = await snapshot('D1-native-complete-client-pending'); assert.equal(d1.dirty, true); assert.deepEqual(JSON.parse(d1.recovery).doc, d1.doc);
+    await page.click('.views button:text-is("Top")');
+    await page.waitForFunction(eye => JSON.stringify(window.__studioEye?.()) !== JSON.stringify(eye), d1.eye);
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('.render-panel');
+    await page.locator('.render-panel [role="tab"]', { hasText: 'Scene' }).click();
+    const grid = page.locator('.render-panel [role="checkbox"][aria-label="Grid"], .render-panel input[aria-label="Grid"]');
+    const renderPending = await snapshot('Render-workspace-pending'); assert.deepEqual(renderPending.doc, d1.doc);
+    for (let attempt = 0; attempt < 2; attempt++) {
+      if (await page.locator('.toast [aria-label="Dismiss"]').count()) await page.locator('.toast [aria-label="Dismiss"]').click();
+      await grid.click(); await refusal();
+      const blocked = await snapshot(`Grid-refused-${attempt + 1}`);
+      assert.deepEqual(blocked.doc, d1.doc); assert.equal(blocked.history, renderPending.history); assert.equal(blocked.recovery, d1.recovery); assert.equal(blocked.dirty, true);
+    }
+    await page.click('.mode button:text-is("Drawing")');
+    const paper = page.locator('[aria-label="Sheet size"]');
+    try { await paper.waitFor({ timeout: 10000 }); }
+    catch (error) { if (error.name !== 'TimeoutError') throw error; observations.drawing = { status: 'NOT_RUN', reason: 'Sheet size was not available while native client delivery was pending.' }; }
+    if (!observations.drawing) {
+      if (!await paper.isEnabled()) observations.drawing = { status: 'NOT_RUN', reason: 'Sheet size was disabled by local drawing readiness while pending.' };
+      else {
+        if (await page.locator('.toast [aria-label="Dismiss"]').count()) await page.locator('.toast [aria-label="Dismiss"]').click();
+        const drawingPending = await snapshot('Drawing-workspace-pending');
+        const prior = await paper.inputValue(); await paper.selectOption(prior === 'A3' ? 'A4' : 'A3');
+        observations.drawing = { status: 'PASS', refusal: await refusal() };
+        const blocked = await snapshot('Drawing-setting-refused'); assert.deepEqual(blocked.doc, d1.doc); assert.equal(blocked.history, drawingPending.history); assert.equal(blocked.recovery, d1.recovery);
+      }
+    }
+    await page.click('.mode button:text-is("Model")');
+    const modelPending = await snapshot('Model-history-after-refusals'); assert.equal(modelPending.history, d1.history); assert.deepEqual(modelPending.doc, d1.doc);
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('.render-panel');
+    const beforeStop = await snapshot('before-Stop'); assert.deepEqual(beforeStop.doc, d1.doc); assert.deepEqual(beforeStop.trace.claimed, d1.trace.claimed);
+    await snap('d321-refused-before-stop');
+    await page.click('[aria-label="Cancel the computation"]'); await ready(2, 1, 1000); await recovery(2);
+    const stopped = await snapshot('Stop-owned-D1-restores-D0'); assert.deepEqual(stopped.doc, d0.doc); assert.equal(stopped.dirty, true); assert.deepEqual(JSON.parse(stopped.recovery).doc, d0.doc); checkDiscard(stopped.trace);
+    const old = stopped.trace.claimed, terminated = stopped.trace.events.find(event => event.kind === 'terminate' && event.key === old.key);
+    const freshSubmit = stopped.trace.events.find(event => event.kind === 'submit' && event.type === 'evaluate' && event.sequence > terminated.sequence && event.key !== old.key);
+    assert.ok(freshSubmit?.nativeSource?.epoch > old.nativeSource.epoch, 'owned Stop evaluates D0 on a new native backend epoch');
+    assert.equal(freshSubmit.sourceNodeCount, d0.doc.nodes.length); assert.deepEqual(freshSubmit.sourceNodes.map(node => node.id), d0.doc.nodes.map(node => node.id));
+    assert.ok(stopped.trace.events.some(event => event.kind === 'delivery-to-client' && event.key === freshSubmit.key && event.id === freshSubmit.id && event.resultOK === true));
+    observations.newBackend = { submit: freshSubmit, bodies: stopped.bodies, viewportExactProvenance: 'NOT_EXPOSED' };
+    await snap('d321-owned-stop');
+    await page.click('[aria-label="Redo"]'); await ready(4, 2, 2000); assert.deepEqual(await doc(), d1.doc);
+    await page.locator('.render-panel [role="tab"]', { hasText: 'Scene' }).click();
+    const evaluationsBeforeGrid = await page.evaluate(() => window.__d321Worker.snapshot().events.filter(event => event.kind === 'submit' && event.type === 'evaluate').length);
+    await grid.setChecked(!(await grid.isChecked())); await page.waitForFunction(() => !!window.__studioDoc.render);
+    const gridDoc = await doc();
+    await page.click('[aria-label="Undo"]'); await ready(4, 2, 2000); assert.deepEqual(await doc(), d1.doc);
+    await page.click('[aria-label="Redo"]'); await ready(4, 2, 2000); assert.deepEqual(await doc(), gridDoc);
+    await page.click('[aria-label="Undo"]'); await ready(4, 2, 2000); assert.deepEqual(await doc(), d1.doc);
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const evaluationsAfterGrid = await page.evaluate(() => window.__d321Worker.snapshot().events.filter(event => event.kind === 'submit' && event.type === 'evaluate').length);
+    assert.equal(evaluationsAfterGrid, evaluationsBeforeGrid, 'normal Grid and its Undo/Redo do not submit unnecessary model evaluation');
+    observations.normalGrid = { evaluationsBeforeGrid, evaluationsAfterGrid };
+    await snapshot('normal-Grid-and-Undo');
+
+    await previewBox(40); await heldApply(6); const third = await snapshot('normal-no-Grid-D2-pending');
+    await page.click('[aria-label="Cancel the computation"]'); await ready(4, 2, 2000); assert.deepEqual(await doc(), d1.doc);
+    const noGrid = await snapshot('normal-no-Grid-Stop'); checkDiscard(noGrid.trace);
+    await page.click('[aria-label="Redo"]'); await ready(6, 3, 3000); assert.deepEqual(await doc(), third.doc);
+    await page.click('[aria-label="Undo"]'); await ready(4, 2, 2000); assert.deepEqual(await doc(), d1.doc);
+    await previewBox(60, 12); await page.locator('.hud button', { hasText: 'Apply' }).click(); await ready(6, 3, 3200);
+    await page.click('[aria-label="Undo"]'); await ready(4, 2, 2000); assert.deepEqual(await doc(), d1.doc);
+    const final = await snapshot('normal-Box-Apply-and-Undo'); checkDiscard(final.trace);
+    await iso(); await snap('d321-normal-work-after-stop');
+  });
+
   await check('a mesh saved as the container opens again the same; unsaved, its copy (blobs in IndexedDB) comes back after a reload', async () => {
     const fs = await import('node:fs');
     await page.setInputFiles('input[aria-label="Model file"]', join(root, '../../packages/barocss-cad-model/test/fixtures/block-cm.stl'));

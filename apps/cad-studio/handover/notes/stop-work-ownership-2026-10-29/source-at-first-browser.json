@@ -1,0 +1,10 @@
+{
+  "path": "apps/cad-studio/src/App.tsx",
+  "sha256": "b86265aafcb141b91e214e92be63c4bff75bd60cfa36d5e90e41163f97132115",
+  "bytes": 382951,
+  "artifact": "source-at-first-browser.ts.gz",
+  "artifactSha256": "181a526d26bce71856c406ddb99fe8f50651980cf5074a939d66ca53eda347d9",
+  "reconstruction": "Exactly remove the sole inactive-run guard line from the subsequent source; original b862 hash verified.",
+  "actualResult": "First browser execution failed on History DOM fixture; consumer original source binding is retained separately.",
+  "baselineCommit": "e1f2b05d62b8011412a1d8ee9c1cc73256737177"
+}

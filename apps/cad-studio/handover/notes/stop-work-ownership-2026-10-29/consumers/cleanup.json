@@ -1,0 +1,8 @@
+{
+  "firstRun": "runner exited1 after finally; owned browser/server closed, gate returned",
+  "secondRun": "runner exited1 after finally; owned browser/server closed, gate returned",
+  "thirdRun": "runner exited0 after finally; owned browser/server closed, gate returned",
+  "d318Regression": "runner exited0 after finally; all owned fresh contexts/browser/server closed, gate returned",
+  "currentOwnedHeavyOrBrowser": "NONE",
+  "runtimeSourceFreeze": "still held by parent for full unit/docs; consumer edits evidence only"
+}

@@ -4,6 +4,11 @@ Every command adds a feature to the part's history. Each feature is kept as data
 is built on — so the part can be edited and rebuilt. Start a command from its key, from the shapes in the top bar,
 from the **Tools** rail or from the command palette (<kbd>Space</kbd>).
 
+While the part is computing, wait or use **Cancel** before making another document change.
+The app refuses that change before adding it to history. Camera and workspace controls remain available.
+Cancel takes back only the accepted change that started the computation. If the computation has no accepted
+change to take back, the document stays unchanged and the view remains out of date until recomputed.
+
 ## Shapes
 
 **Box**, **Cylinder**, **Sphere**, **Cone**, **Torus**, **Tube**, **Wedge** and **Polygon prism** make a body from

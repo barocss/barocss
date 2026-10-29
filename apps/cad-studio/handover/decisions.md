@@ -16155,3 +16155,27 @@ product boundary. Generated/API/docs pass; whole suites, actual Studio save sche
 coordination, physical user-file loss and performance are NOT_RUN. Normal push is authorized;
 no PR/release. Next D321/#2242: explicit unsupported-edit refusal before history acceptance and
 origin-bound Stop, preserving normal/candidate/initial/variant and dirty/recovery distinctions.
+
+
+## D321 — Bind Stop to its originating accepted change (2026-10-29)
+
+Use policy B for #2242: explicitly refuse unsupported independent document edits before history acceptance
+while the main computation is pending. Reserve the accepted transition synchronously before its effect.
+Claim it only for the exact changed evaluated input; candidates/initial/variant work borrow no old history.
+Stop matches generation/document/input/top-entry identity, invalidates before restart, and captures Redo
+synchronously before mutating the live ref. Gate stale callbacks/candidate completion and token cleanup.
+Keep worker-bound caches stale across selected restart; placed loops follow the matching worker session,
+not unrelated history generations. A noactive Stop changes no ownership/history/cache. No new public API,
+schema, Undo framework or runtime dependency is introduced.
+
+Final Studio389/389/0skip, types/lint and generated/API/docs pass. Actual Chrome/WebGPU/DPR1 selected
+D321 plus same-source D318 regression pass, each with a separate starter smoke. Native computation is real;
+the scheduler holds actual result/mass client delivery and discards it on termination. Grid twice/Drawing
+refuse; camera/workspace work; Doc/recovery stay; Stop/Redo/fresh masses/further edits pass. Root views three
+actual PNGs. Earlier fixture failure and actual Redo regression, source capsules and raw logs are preserved.
+Focused17 overlaps the final suite. No whole Kernel/Model/Viewer or full browser matrix is claimed.
+
+Evidence: notes/stop-work-ownership-2026-10-29/qualification.json. Exact completed-click UI race,
+initial/variant/parameter/async-image full matrix, all restart paths, full Undo depth and exact viewport
+provenance remain NOT_RUN. No performance claim. Normal per-feature push authorized, no PR/release.
+Next:D322 existing A02/P1 late Save ownership reproduction, still source-only; no duplicate issue.

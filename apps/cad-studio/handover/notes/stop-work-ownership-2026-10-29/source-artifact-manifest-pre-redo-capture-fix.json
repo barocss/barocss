@@ -1,0 +1,80 @@
+{
+  "artifacts": {
+    "README.md": {
+      "sha256": "8b9b24774a3f6df53f6979b12b8390917c5b3b06ada8ac3fb0302d12e48c772d",
+      "bytes": 3296
+    },
+    "completed-guard-change.json": {
+      "sha256": "8c800a883af96999cf53e6b9aefeff83fea100d6b086831252879691bf6bde38",
+      "bytes": 516
+    },
+    "lint-completed-guard.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "lint-final.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "lint-freeze.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "lint-production.txt": {
+      "sha256": "0c4c3265555327e9af78b1a48e91f188832a4547b7de4cac28cc07802dec61e6",
+      "bytes": 295
+    },
+    "lint-restart-cache.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "report-pre-completed-guard.json": {
+      "sha256": "f317d956bee98dcbefb3635b4c036cfb2dcf4e494ef70d261beacc09e9c8fe29",
+      "bytes": 1553
+    },
+    "report.json": {
+      "sha256": "806fd38712bb5c8b829b0ab96710fa4ad332a849abc437217df8a9c8a7222a13",
+      "bytes": 2118
+    },
+    "source-artifact-manifest-pre-completed-guard.json": {
+      "sha256": "fcfa1a574f8cf00adb594b3a101917a9bb2a74a12002ea808b10452324e2ba0e",
+      "bytes": 1648
+    },
+    "source-at-first-browser.json": {
+      "sha256": "1d3b3beaba1806d265ef0ffdaf3cffe2960d19bdd5f526d6beb0b8a62fedd444",
+      "bytes": 603
+    },
+    "source-at-first-browser.ts.gz": {
+      "sha256": "181a526d26bce71856c406ddb99fe8f50651980cf5074a939d66ca53eda347d9",
+      "bytes": 109220
+    },
+    "source-baseline.json": {
+      "sha256": "10fcefaaee85c0f85664191fd68958b7f5e22ae5fa71eec201f1ee397bd453fa",
+      "bytes": 451
+    },
+    "source-plan.md": {
+      "sha256": "2e2729458a2c64be81fafe5e8329308a9d4aef7ac8024a9e894e05f7a46fab77",
+      "bytes": 6554
+    },
+    "types-completed-guard.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "types-final.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "types-freeze.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "types-initial.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "types-restart-cache.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  }
+}

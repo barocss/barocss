@@ -1,0 +1,10 @@
+{
+  "status": "FAIL",
+  "appSHA256": "b86265aafcb141b91e214e92be63c4bff75bd60cfa36d5e90e41163f97132115",
+  "ownerHelperSHA256": "d95db66ed196df304ce29d2b6d497b589eca361160812cb5cbca30da376f6ed8",
+  "sourceBinding": "Producer final-source freeze receipt supplied by parent before first actual execution.",
+  "failure": "Test compared hidden Render history DOM (undefined) with visible Model history text short_text. Exact Grid refusal and D1 document/recovery already observed; whole case failed before Stop.",
+  "harnessRepair": "Compare same-workspace DOM before/after attempts, then return to Model and verify D1 history there. Keep exact document/recovery and actual Stop/Redo assertions.",
+  "fullUndoDepth": "NOT_EXPOSED",
+  "resolution": "Workspace-aware history assertion repaired; final third run passes on later source. First full-driver source remains NOT_RETAINED."
+}

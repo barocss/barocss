@@ -1,0 +1,39 @@
+{
+  "baselineCommit": "e1f2b05d62b8011412a1d8ee9c1cc73256737177",
+  "currentCheckout": "e1f2b05d62b8011412a1d8ee9c1cc73256737177",
+  "node": "v22.19.0",
+  "policy": "B: reject unsupported independent undoable document edits before acceptance",
+  "sourceFrozen": true,
+  "gate": "RELEASED",
+  "unit": {
+    "status": "PASS",
+    "newPureHelperTests": 13,
+    "existingLaneTests": 4,
+    "failed": 0,
+    "skipped": 0,
+    "scope": "Pure helper and existing lanes; not App wiring or product UI"
+  },
+  "types": {
+    "status": "PASS",
+    "command": "node node_modules/typescript/bin/tsc -p apps/cad-studio/tsconfig.json --noEmit",
+    "receipt": "types-freeze.txt",
+    "exitCode": 0
+  },
+  "lint": {
+    "status": "PASS",
+    "receipt": "lint-freeze.txt",
+    "exitCode": 0
+  },
+  "firstLintFailure": "Unused state argument; renamed to _state, no behavior change. Original failure retained in lint-production.txt.",
+  "browser": "CONSUMER_LANE_PENDING",
+  "fullStudio": "ROOT_AFTER_ACTUAL",
+  "fullModel": "NOT_RUN",
+  "fullKernel": "NOT_RUN",
+  "hashes": {
+    "apps/cad-studio/src/App.tsx": "b86265aafcb141b91e214e92be63c4bff75bd60cfa36d5e90e41163f97132115",
+    "apps/cad-studio/src/state/workOwnership.ts": "d95db66ed196df304ce29d2b6d497b589eca361160812cb5cbca30da376f6ed8",
+    "apps/cad-studio/test/stop-work-ownership.test.ts": "986f3fc5cb8cfe650831940f52ed622eacc50c31ad79e5b96171bf6a9f96ac3f",
+    "apps/cad-studio/src/engine/client.ts": "56f10abe7acc2c3d528a7fc6096e8dbf0b6b5b1417d41e85dc6752cd76303d6b"
+  },
+  "engineClientUnchanged": true
+}

@@ -1,6 +1,7 @@
 import { revokePersonRowFiles, isPersonRowFiles, type PersonRowFiles } from '@barocss/cad-model/engine/rowFiles';
 import { Fragment, Profiler, Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { EngineClient, type ProposalOverlay } from './engine/client';
+import { beginWork, createWorkOwnership, finishWork, invalidateWork, reserveAcceptedChange, settleWorkReservation, stopOwnedWork, workEditRefusal, type WorkHistory } from './state/workOwnership';
 import { PROPOSAL_ADDED, PROPOSAL_REMOVED, type DisplayMode, type DisplayModeStatus } from './viewport/renderer';
 import { multiply } from '@barocss/gpu/viewer';
 import { resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
@@ -380,16 +381,34 @@ export function App() {
   const docNow = useRef(doc); docNow.current = doc;
   const discardRouteRef = useRef<() => void>(() => {});
   const routeAcceptedHandoff = useRef<{ doc: StudioDoc; identity: string; evaluatedIdentity: string; revision: number; result: Extract<EvalResult, { ok: true }> } | null>(null);
-  const shownVariant = useRef<string | null>(null), undoFor = useRef<{ doc: StudioDoc; marker: number | null } | null>(null);
-  const setDoc = (next: StudioDoc, whole = false) => {
-    const entry = undoFor.current; undoFor.current = null;
-    if (!whole && shownVariant.current && changesBeyondVariability(docNow.current, next)) { setToast({ title: 'Can’t change the part now', hint: `Showing ${shownVariant.current}: show the master to edit.`, detail: '' }); return; }
+  const workOwnership = useRef(createWorkOwnership<StudioDoc, StudioDoc>());
+  const acceptanceScope = workOwnership.current.scope;
+  const replacementScope = useRef<object | null>(null), workCompletion = useRef<object | null>(null);
+  const shownVariant = useRef<string | null>(null);
+  const undoFor = useRef<{ entry: WorkHistory<StudioDoc>; scope: object; base: StudioDoc; beforeInput: StudioDoc } | null>(null);
+  const canChangeDocument = () => {
+    const why = !replacementScope.current && doc !== docNow.current ? 'stale' : workEditRefusal(workOwnership.current, replacementScope.current ?? acceptanceScope, workCompletion.current);
+    if (!why) return true;
+    undoFor.current = null;
+    setToast({ title: 'Change not applied', hint: why === 'pending' ? 'Wait for the computation to finish, or stop it, before changing the document.' : 'The document or operation changed. Try this edit again.', detail: '' });
+    return false;
+  };
+  const setDoc = (next: StudioDoc, whole = false): boolean => {
+    const intent = undoFor.current; undoFor.current = null;
+    const why = !replacementScope.current && (intent?.base ?? doc) !== docNow.current ? 'stale' : workEditRefusal(workOwnership.current, replacementScope.current ?? intent?.scope ?? acceptanceScope, workCompletion.current);
+    if (why) { setToast({ title: 'Change not applied', hint: why === 'pending' ? 'Wait for the computation to finish, or stop it, before changing the document.' : 'The document or operation changed. Try this edit again.', detail: '' }); return false; }
+    if (!whole && shownVariant.current && changesBeyondVariability(docNow.current, next)) { setToast({ title: 'Can’t change the part now', hint: `Showing ${shownVariant.current}: show the master to edit.`, detail: '' }); return false; }
     if (next !== docNow.current) discardRouteRef.current();
     if (routeAcceptedHandoff.current?.doc !== next) routeAcceptedHandoff.current = null;
-    if (entry) { setUndo(u => [...u.slice(-49), entry]); setRedo([]); }
+    if (intent) {
+      setUndo(u => [...u.slice(-49), intent.entry]); setRedo([]);
+      workOwnership.current = reserveAcceptedChange(workOwnership.current, intent.entry, next, intent.beforeInput);
+    }
     docNow.current = next; setDocState(next);
+    return true;
   };
   const [marker, setMarker] = useState<number | null>(null);
+  const markerNow = useRef(marker); markerNow.current = marker;
   const [undo, setUndo] = useState<{ doc: StudioDoc; marker: number | null }[]>([]);
   const [redo, setRedo] = useState<{ doc: StudioDoc; marker: number | null }[]>([]);
   const [bodies, setBodies] = useState<BodyResult[]>([]);
@@ -443,6 +462,8 @@ export function App() {
   const [instanceSel, setInstanceSel] = useState<string[]>([]);
   // (Each entry keeps the instance it was evaluated for; `key` changes whenever its bodies are evaluated anew.)
   const [instanceBodies, setInstanceBodies] = useState<Map<string, { key: string; sourceKey: string; inst: PartInstance; bodies: BodyResult[] }>>(new Map());
+  const [workerSession, setWorkerSession] = useState(0);
+  const workerSessionNow = useRef(0);
   // O18 (P): the worker replies without the bodies' masses and posts them after, by mass ref; each body still waiting
   // gets its own B-rep's (placed by its massPlace) — never another revision's, whose B-rep has its own ref.
   useEffect(() => engine.onMasses(masses => {
@@ -830,6 +851,8 @@ export function App() {
   const sectionBodies = section ? (sectionExactShown ? sectionExact!.bodies : sectionClipped) : null;
   const render = useMemo(() => doc.render ?? defaultRender(), [doc.render]);
 
+  // A display-only commit does not rerun the main effect: release its reservation on the same exact input.
+  useEffect(() => { workOwnership.current = settleWorkReservation(workOwnership.current, doc, evaluated); }, [doc, evaluated, acceptanceScope]);
   // A parameter candidate and its BRep stay together. A refusal keeps the last accepted document and bodies.
   const parameterCurrent = !parameterEdit || (parameterEdit.base === doc && parameterEdit.baseInput === evaluated && !shownVariant.current);
   useEffect(() => {
@@ -842,7 +865,10 @@ export function App() {
     }
     const edit = parameterEdit;
     const input = edit?.input ?? evaluated;
-    const current = () => live && (!edit || (parameterRequest.current === edit.request && docNow.current === edit.base && evaluatedRef.current === evaluated && !shownVariant.current));
+    const started = beginWork(workOwnership.current, doc, input, !!edit || !!variants.showing || marker !== null);
+    workOwnership.current = started;
+    const work = started.run!;
+    const current = () => live && workOwnership.current.run?.token === work.token && (!edit || (parameterRequest.current === edit.request && docNow.current === edit.base && evaluatedRef.current === evaluated && !shownVariant.current));
     const refuse = (detail: string) => {
       if (!edit || !current()) return;
       const accepted = acceptedEvaluation.current;
@@ -896,7 +922,8 @@ export function App() {
         // Compute the handoff key before accepting: a failed key cannot partially commit the candidate.
         const nextKey = evaluationKey(prefixDoc(next, next.nodes.length));
         // Reuse this exact result when installing the accepted document; do not evaluate it twice.
-        edit.accept(next);
+        workCompletion.current = work.token;
+        try { edit.accept(next); } finally { workCompletion.current = null; }
         if (docNow.current === edit.base) { refuse('The parameter change was not accepted.'); return; }
         const installed = docNow.current;
         parameterHandoff.current = { target: installed, key: nextKey, result };
@@ -916,8 +943,8 @@ export function App() {
       }
       else setToast(result.error);
     };
-    void run().catch(cause => { if (edit) refuse(cause instanceof Error ? cause.message : String(cause)); else if (current()) { setBusy(false); setToast({ title: 'Could not evaluate the part', hint: 'The previous part remains shown.', detail: String(cause) }); } });
-    return () => { live = false; };
+    void run().catch(cause => { if (edit) refuse(cause instanceof Error ? cause.message : String(cause)); else if (current()) { setBusy(false); setToast({ title: 'Could not evaluate the part', hint: 'The previous part remains shown.', detail: String(cause) }); } }).finally(() => { workOwnership.current = finishWork(workOwnership.current, work.token); });
+    return () => { live = false; workOwnership.current = finishWork(workOwnership.current, work.token); };
   }, [engine, evaluated, parameterEdit, parameterCurrent]);
   // (A command's preview is what the part becomes: its bodies belong to the document it commits.)
   useEffect(() => { if (claimBodies.current) { claimBodies.current = false; setBodiesFor(evaluated); } }, [evaluated]);
@@ -940,53 +967,62 @@ export function App() {
   const evaluatedRef = useRef(evaluated); evaluatedRef.current = evaluated;
 
   /** The document as it is, kept for undo (redo is gone once something new is done). */
-  const pushUndo = () => { undoFor.current = { doc, marker }; };
+  const pushUndo = () => { undoFor.current = { entry: { doc: docNow.current, marker: markerNow.current }, scope: replacementScope.current ?? acceptanceScope, base: doc, beforeInput: evaluatedRef.current }; };
   // (`capture`: references this change wrote were picked on the bodies shown; a whole document replaced was not.
   // `whole`: a new or opened document, nothing of the one before carried into it.)
   const commit = useCallback((next: StudioDoc, capture = true, whole = false) => {
+    if (!canChangeDocument()) return false;
     // Counted as the History bar shows them: sketches are part of the feature made from them.
     const nextFeatureIds = marker !== null ? new Set(next.nodes.map((_, i) => featureId(next.nodes, i))) : null;
     const dropped = marker !== null && nextFeatureIds ? doc.nodes.slice(marker).filter((n, i) => n.kind !== 'sketch' && !nextFeatureIds.has(featureId(doc.nodes, marker + i))).length : 0;
-    pushUndo();
     // Commands build on the evaluated document, which follows the model only: what they leave as it was
     // there (every field but the model's own: engine/doc.ts carryOver) is the document's newest.
     const was = evaluatedRef.current;
     if (!whole) next = carryOver(next, was, doc);
     // (References written by this change get their signatures from the bodies they were picked on, engine/references.ts.)
     if (capture) next = captureSignatures(next, bodies);
-    setDoc(next, whole); setMarker(null); setDirty(true); setEditNode(null);
+    pushUndo();
+    if (!setDoc(next, whole)) return false;
+    setMarker(null); setDirty(true); setEditNode(null);
     // An empty document has no bodies; clear them now so defaults are not computed from the old model.
     if (!Object.keys(next.outputs).length) { setBodies([]); claimBodies.current = true; setSelection(emptySel); }
     if (dropped > 0) setToast({ title: `Removed ${dropped} later feature${dropped > 1 ? 's' : ''}`, hint: 'You added a feature while rolled back. Undo restores them.', detail: '' });
-  }, [doc, marker, bodies]);
+    return true;
+  }, [doc, marker, bodies, acceptanceScope]);
   commitRef.current = commit; cageEdRef.current = cageEd;
   /** One undoable change of the render settings (the model and the rollback marker stay). */
   const commitRender = useCallback((next: RenderSettings) => {
+    if (!canChangeDocument()) return;
     pushUndo();
-    setDoc({ ...doc, render: next }); setDirty(true);
-  }, [doc, marker]);
+    if (!setDoc({ ...doc, render: next })) return; setDirty(true);
+  }, [doc, marker, acceptanceScope]);
   /** Saved display controls use the existing undo/document path and preserve a rollback marker. */
   const commitPrintPreview = useCallback((patch: PrintPreviewPatch) => {
-    try { const next = withPrintPreviewSettings(doc, patch); pushUndo(); setDoc(next); setDirty(true); }
+    if (!canChangeDocument()) return;
+    try { const next = withPrintPreviewSettings(doc, patch); pushUndo(); if (!setDoc(next)) return; setDirty(true); }
     catch (error) { setToast({ title: 'Print settings not changed', hint: error instanceof Error ? error.message : String(error), detail: '' }); }
-  }, [doc, marker]);
+  }, [doc, marker, acceptanceScope]);
   const commitPrintDirection = useCallback((direction: Vec3 | undefined) => {
+    if (!canChangeDocument()) return;
     const next = { ...doc }; if (direction) next.print = { direction }; else delete next.print;
-    pushUndo(); setDoc(next); setDirty(true);
-  }, [doc, marker]);
+    pushUndo(); if (!setDoc(next)) return; setDirty(true);
+  }, [doc, marker, acceptanceScope]);
   /** One undoable change of the drawing settings (the model stays). */
   const commitDrawing = useCallback((next: DrawingSettings) => {
+    if (!canChangeDocument()) return;
     pushUndo();
-    setDoc({ ...doc, drawing: next }); setDirty(true);
-  }, [doc, marker]);
+    if (!setDoc({ ...doc, drawing: next })) return; setDirty(true);
+  }, [doc, marker, acceptanceScope]);
   /** One undoable change of the direct geometry (the model stays as evaluated). */
   const commitDirect = useCallback((next: DirectGeometry, select?: string[]) => {
+    if (!canChangeDocument()) return false;
     try { assertRouteBundleDocument({ ...doc, direct: next }); }
-    catch (error) { setToast({ title: 'Direct geometry not changed', hint: `${routeMessage(error)} Detach the route bundle before editing a bound member.`, detail: '' }); return; }
+    catch (error) { setToast({ title: 'Direct geometry not changed', hint: `${routeMessage(error)} Detach the route bundle before editing a bound member.`, detail: '' }); return false; }
     pushUndo();
-    setDoc({ ...doc, direct: next }); setDirty(true);
+    if (!setDoc({ ...doc, direct: next })) return false; setDirty(true);
     if (select) setDirectSel(select);
-  }, [doc, marker]);
+    return true;
+  }, [doc, marker, acceptanceScope]);
   const poleObj = directSel.length === 1 ? directSel[0] : null;
   // The direct tools load when the document first has direct geometry (state: re-render once they are in).
   const [directReady, setDirectReady] = useState(() => !!directNow());
@@ -1004,10 +1040,12 @@ export function App() {
   }, [doc.direct, poleDrag, poleHere, poleObj, D, routeVisualDoc]);
   /** One undoable change of the placed instances. */
   const commitInstances = useCallback((next: PartInstance[], select?: string[]) => {
+    if (!canChangeDocument()) return false;
     pushUndo();
-    setDoc({ ...doc, instances: next }); setDirty(true);
+    if (!setDoc({ ...doc, instances: next })) return false; setDirty(true);
     if (select) setInstanceSel(select);
-  }, [doc, marker]);
+    return true;
+  }, [doc, marker, acceptanceScope]);
   const applyInstanceBearing = async (session: BearingEditSession, nodes: ModelNode[]) => {
     const scope = bearingEditScope.current;
     if (!bearingEditCurrent(session, scope.doc, scope.instanceSel, scope.instanceEdit)) return;
@@ -1023,7 +1061,7 @@ export function App() {
     if ('error' in out) { if (current === scope) setToast({ title: 'Bearing not changed', hint: out.error instanceof Error ? out.error.message : String(out.error), detail: '' }); return; }
     if (current !== scope || !bearingEditCurrent(session, current.doc, current.instanceSel, current.instanceEdit)) return;
     if (!out.result.ok) { setToast(out.result.error); return; }
-    commitInstances(out.prepared.root.instances!, [session.owner]);
+    if (!commitInstances(out.prepared.root.instances!, [session.owner])) return;
     setInstanceEdit(null);
   };
   // Evaluate each instance whose placed part changed (in the worker, beside the main part).
@@ -1031,10 +1069,11 @@ export function App() {
   useEffect(() => {
     // (R4b: each placed part on its own O9 lane, `placed:<id>`; this run's lanes cancelled by its cleanup, so a reply from
     // a document since replaced comes back stale and the run stops, setting nothing.)
-    const asked = (shownDoc.instances ?? []).map(i => `placed:${i.id}`);
+    const asked = (shownDoc.instances ?? []).map(i => `placed:${i.id}`), generation = workerSessionNow.current;
     (async () => {
       const next = new Map<string, { key: string; sourceKey: string; inst: PartInstance; bodies: BodyResult[] }>();
       for (const inst of shownDoc.instances ?? []) {
+        if (generation !== workerSessionNow.current) return;
         const source = instanceSources.get(inst.id);
         if (!source?.ok) { setToast({ title: 'The placed part could not be evaluated', hint: source && !source.ok ? source.error : 'Missing part context.', detail: '' }); continue; }
         // The same placement of the same part (objects are replaced on edit, so by reference first; a new
@@ -1042,25 +1081,28 @@ export function App() {
         const have = instanceBodies.get(inst.id);
         if (have && have.sourceKey === source.key && samePlacement(have.inst, inst)) { next.set(inst.id, have.inst === inst ? have : { ...have, inst }); continue; }
         const at = revision.current++, reply = await lanes.run(`placed:${inst.id}`, { revision: at, source: source.key }, () => engine.placed(placedDoc(inst, shownDoc), source.base, placementOf(inst), at));
-        if (reply.stale) return;
+        if (reply.stale || generation !== workerSessionNow.current) return;
         const r = reply.result;
         if (r.ok) next.set(inst.id, { key: `${inst.id}#${++instanceRun.current}`, sourceKey: source.key, inst, bodies: r.bodies });
         else setToast(r.error);
       }
-      setInstanceBodies(next);
+      if (generation === workerSessionNow.current) setInstanceBodies(next);
     })();
     return () => { for (const lane of asked) lanes.cancel(lane); };
-  }, [shownDoc.instances, instanceSources]);
+  }, [shownDoc.instances, instanceSources, workerSession]);
   /** One undoable change of the instances and their mates together. */
   /** One undoable change of the placed parts and their waiting revisions (shared definitions). */
   const commitParts = useCallback((next: Pick<StudioDoc, 'instances' | 'pendingParts'>) => {
+    if (!canChangeDocument()) return;
     pushUndo();
-    setDoc({ ...doc, instances: next.instances, pendingParts: next.pendingParts }); setDirty(true);
-  }, [doc, marker]);
+    if (!setDoc({ ...doc, instances: next.instances, pendingParts: next.pendingParts })) return; setDirty(true);
+  }, [doc, marker, acceptanceScope]);
   const commitAssembly = useCallback((instances: PartInstance[], mates: Mate[]) => {
+    if (!canChangeDocument()) return false;
     pushUndo();
-    setDoc({ ...doc, instances, mates }); setDirty(true);
-  }, [doc, marker]);
+    if (!setDoc({ ...doc, instances, mates })) return false; setDirty(true);
+    return true;
+  }, [doc, marker, acceptanceScope]);
   const readLinkedFaces = useCallback(async (owner: string, input: StudioDoc) => {
     const result = await engine.part(bearingFaceInput(doc, owner, input), revision.current++, 'read');
     return result.ok ? result.faceTable ?? null : null;
@@ -1151,7 +1193,7 @@ export function App() {
       // Placed to the right of everything shown.
       const right = Math.max(0, ...bodies.map(b => b.mesh.bounds.max[0]), ...[...instanceBodies.values()].flatMap(v => v.bodies.map(b => b.mesh.bounds.max[0])));
       const inst: PartInstance = { id: `inst${n}`, name: file.name.replace(/\.(bcad|json)$/i, ''), doc: { ...parsed, render: undefined, direct: undefined }, position: [Math.ceil(right + 20), 0, 0], rotation: [0, 0, 0], part: { id: freshPartId(doc), rev: revisionOf(parsed), source } };
-      commitInstances([...list, inst], [inst.id]); setSelection(emptySel); setDirectSel([]);
+      if (!commitInstances([...list, inst], [inst.id])) return; setSelection(emptySel); setDirectSel([]);
       setTimeout(() => viewport.current?.fit(), 600);
     } catch (e) { setToast({ title: 'Could not insert this part', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
   };
@@ -1317,10 +1359,11 @@ export function App() {
       assertRouteBundleDocument(ready.candidate);
       if (routeBundleDocumentIdentity(ready.candidate) !== ready.identity) throw new Error('The draft changed. Preview it again.');
       const candidate = ready.candidate, id = session.bundleId;
+      if (!canChangeDocument()) return;
       discardRouteRef.current();
       routeAcceptedHandoff.current = { doc: candidate, identity: ready.identity, evaluatedIdentity: ready.evaluatedIdentity, revision: ready.result.revision, result: ready.result };
       // The full candidate was evaluated against this exact accepted document; do not rebase it.
-      commit(candidate, false, true); setRouteSelected(candidate.routeBundles?.some(b => b.id === id) ? id : null);
+      if (!commit(candidate, false, true)) return; setRouteSelected(candidate.routeBundles?.some(b => b.id === id) ? id : null);
     } catch (error) { routeFail(error); }
   };
   const detachRoute = () => {
@@ -1431,7 +1474,7 @@ export function App() {
   const apply = useCallback(() => {
     // (R1d: the command as it is now, its values and preview state — the App may not have rendered since they changed.)
     const active = activeStore.get();
-    if (!active?.cmd.build) return;
+    if (!active?.cmd.build || !canChangeDocument()) return;
     if (active.upload) { applyWhenReady.current = null; return; }
     if (!bearingRootCurrent) { applyWhenReady.current = null; return; }
     if (active.preview === 'busy') { applyWhenReady.current = active.cmd; return; }
@@ -1441,9 +1484,10 @@ export function App() {
     // while the committed document evaluates).
     const next = active.cmd.build(active.ctx, active.values);
     // (Not when it places an instance: those bodies are the instance's, shown once it is evaluated.)
-    if (previewBodies && (next.instances?.length ?? 0) === (active.ctx.doc.instances?.length ?? 0)) { setBodies(previewBodies); claimBodies.current = true; }
-    commit(next); setActive(null); setPreviewBodies(null); setSketch(null);
-  }, [activeStore, commit, previewBodies, bearingRootCurrent, setSketch]);
+    if (!commit(next)) return;
+    if (previewBodies && Object.keys(next.outputs).length && (next.instances?.length ?? 0) === (active.ctx.doc.instances?.length ?? 0)) { setBodies(previewBodies); claimBodies.current = true; }
+    setActive(null); setPreviewBodies(null); setSketch(null);
+  }, [activeStore, commit, previewBodies, bearingRootCurrent, setSketch, acceptanceScope]);
   const uploadFont = useCallback(async (key: string, file: File) => {
     const captured = activeStore.get();
     if (!captured || key !== 'font') return;
@@ -1484,6 +1528,7 @@ export function App() {
   }, [previewBodies, active?.cmd, apply, activeStore]);
 
   const start = useCallback((cmd: Command) => {
+    if ((cmd.build || cmd.action === 'sketch' || cmd.action === 'cage' || cmd.id === SKETCH3D_COMMAND.id) && !canChangeDocument()) return;
     discardRouteRef.current(); setRoutePanelOpen(false);
     setPalette(false); setRendering(false); setPlaying(false); setDrawing(false);
     const avail = cmd.available(ctx);
@@ -1531,7 +1576,7 @@ export function App() {
     const startCtx = cmd.id === 'bearing' ? { ...ctx, doc: { ...ctx.doc, instances: doc.instances } }
       : cmd.id === 'loft' ? { ...ctx, doc: { ...ctx.doc, direct: shownDoc.direct } } : ctx;
     setActive({ cmd, values: cmd.defaults?.(startCtx) ?? {}, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
-  }, [ctx, selection, bodies, engine, commit, evaluated.nodes, shownDoc.direct, variants.showing, setSketch]);
+  }, [ctx, selection, bodies, engine, commit, evaluated.nodes, shownDoc.direct, variants.showing, setSketch, acceptanceScope]);
 
   const openHistoryFeature = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     const raw = event.currentTarget.dataset.nodeIndex;
@@ -1598,7 +1643,8 @@ export function App() {
     if (curves.length > 16) { setToast({ title: 'Too many shapes', hint: 'Make curves of at most 16 shapes at a time.', detail: '' }); return; }
     const { importSource } = await loadDirect();
     const made = (doc.direct?.objects ?? []).filter(o => o.name.startsWith('Sketch curve')).length, next = importSource(doc.direct ?? emptyDirect(), curvesSource('sketch', curves), `Sketch curve ${made + 1}`);
-    setSketch(null); commitDirect(next, next.objects.slice(doc.direct?.objects.length ?? 0).map(o => o.id));
+    if (!commitDirect(next, next.objects.slice(doc.direct?.objects.length ?? 0).map(o => o.id))) return;
+    setSketch(null);
   };
   /** The picked edges as curves of the direct geometry. */
   const edgesToCurves = async () => {
@@ -1650,6 +1696,7 @@ export function App() {
     } catch (error) { setToast({ title: 'Cannot link face outline', hint: error instanceof Error ? error.message : String(error), detail: '' }); }
   };
   const finishSketch = useCallback(() => {
+    if (!canChangeDocument()) return;
     if (!sketch || (!sketch.shape && !sketch.done?.length)) { setSketch(null); return; }
     const requestedGeneration = sketchGeneration.current;
     const linked = !!(sketch.association || sketch.associationDetached);
@@ -1669,19 +1716,19 @@ export function App() {
       const edited = { ...doc, nodes: dropStaleMade(doc.nodes, doc.nodes.map((n, k) => k === at ? replacement : n)) };
       // (A sketch from before R10a getting its side ids: the features on it keep their references, by the new names.)
       const tags = (placedNode as SketchNode).sideTags, next = sketch.positional && tags && !(doc.nodes[at] as SketchNode).sideTags ? renameToTagged(edited, at, sketch.positional, tags, featureId) : edited;
-      engine.evaluate(sketch.association || sketch.associationDetached ? next : prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r || (linked && !requestCurrent())) return; if (r.ok) { commit(next); setSketch(null); } else setToast(r.error); });
+      engine.evaluate(sketch.association || sketch.associationDetached ? next : prefixDoc(next, marker ?? next.nodes.length), revision.current++).then(r => { if (!r || (linked && !requestCurrent())) return; if (r.ok) { if (!commit(next)) return; setSketch(null); } else setToast(r.error); });
       return;
     }
     // A finished sketch is a feature of its own (it remembers the body it was drawn on): picked, ready
     // for Extrude, Revolve, Pipe or Loft.
     const base = sketch.base ?? null, next = withNode(doc, { ...placedNode, ...(base ? { on: base } : {}) } as SketchNode);
     if (sketch.association) {
-      engine.evaluate(next, revision.current++).then(r => { if (!r || !requestCurrent()) return; if (r.ok) { commit(next); setSketch(null); setSelection({ ...emptySel, sketches: [next.nodes.length - 1] }); } else setToast(r.error); });
+      engine.evaluate(next, revision.current++).then(r => { if (!r || !requestCurrent()) return; if (r.ok) { if (!commit(next)) return; setSketch(null); setSelection({ ...emptySel, sketches: [next.nodes.length - 1] }); } else setToast(r.error); });
       return;
     }
-    commit(next); setSketch(null);
+    if (!commit(next)) return; setSketch(null);
     setSelection({ ...emptySel, sketches: [next.nodes.length - 1] });
-  }, [sketch, doc, marker, commit, engine, setSketch]);
+  }, [sketch, doc, marker, commit, engine, setSketch, acceptanceScope]);
 
   const onPick = useCallback((hit: { face: { body: number; face: number } | null; edge: { body: number; edge: number } | null; point: Vec3 | null; direct?: string; instance?: string; instanceFace?: { body: number; face: number }; instanceCap?: { body: number }; vertex?: { body: number; at: Vec3 } }, additive: boolean) => {
     // (The section view shows cut copies of the bodies: picks wait until it is closed.)
@@ -1765,24 +1812,48 @@ export function App() {
   // triangles takes a few seconds): the worker restarts and the change that started it is taken back.
   const [slow, setSlow] = useState(false);
   useEffect(() => { if (!busy) { setSlow(false); return; } const t = setTimeout(() => setSlow(true), 1000); return () => clearTimeout(t); }, [busy]);
+  const invalidateDocumentWork = () => {
+    workOwnership.current = invalidateWork(workOwnership.current); undoFor.current = null; workCompletion.current = null;
+    parameterRequest.current++; setParameterEdit(null); parameterHandoff.current = null;
+    if (parameterMass.current && !parameterMass.current.target) parameterMass.current = null;
+    setBusy(false);
+  };
   const cancelWork = () => {
+    if (!workOwnership.current.run) { setBusy(false); setSlow(false); return; }
+    const stopped = stopOwnedWork(workOwnership.current, docNow.current, evaluatedRef.current, undo[undo.length - 1]);
+    workOwnership.current = stopped.state; undoFor.current = null; workCompletion.current = null;
+    // Invalidate before restart resolves pending promises. An unaccepted candidate has no history to undo.
+    parameterRequest.current++;
+    setParameterEdit(null);
+    // A content match cannot carry worker provenance across restart. Keep old pixels stale until recomputed.
+    acceptedEvaluation.current = null; parameterHandoff.current = null; routeAcceptedHandoff.current = null; parameterMass.current = null;
+    claimBodies.current = false; setBodiesFor(null); discardRouteRef.current();
+    setInstanceBodies(new Map()); workerSessionNow.current++; setWorkerSession(workerSessionNow.current);
     engine.restart(); setBusy(false); setSlow(false); setPreviewBodies(null);
-    if (undo.length) { doUndo(); setToast({ title: 'Stopped', hint: 'The computation was stopped and the change taken back.', detail: '' }); }
-    else setToast({ title: 'Stopped', hint: 'The computation was stopped; the part shows as it was last computed.', detail: '' });
+    const target = stopped.target;
+    if (target) {
+      const redoEntry = { doc: docNow.current, marker: markerNow.current };
+      setRedo(r => [...r, redoEntry]); setUndo(u => u.slice(0, -1));
+      docNow.current = target.doc; setDocState(target.doc); setMarker(target.marker); setDirty(true); cancel();
+      setToast({ title: 'Stopped', hint: 'The computation was stopped and its change taken back.', detail: '' });
+    } else setToast({ title: 'Stopped', hint: 'The computation was stopped; no unrelated change was taken back.', detail: 'The document is unchanged. The view is not up to date.' });
   };
   const doUndo = useCallback(() => {
     if (!undo.length) return; const last = undo[undo.length - 1];
+    invalidateDocumentWork(); docNow.current = last.doc;
     setRedo(r => [...r, { doc, marker }]); setUndo(u => u.slice(0, -1)); setDocState(last.doc); setMarker(last.marker); cancel();
   }, [undo, doc, marker, cancel]);
   // (The latest undo, for a toast made before the change it takes back was committed.)
   const undoNow = useRef(doUndo); undoNow.current = doUndo;
   const doRedo = useCallback(() => {
     if (!redo.length) return; const last = redo[redo.length - 1];
+    invalidateDocumentWork(); docNow.current = last.doc;
     setUndo(u => [...u, { doc, marker }]); setRedo(r => r.slice(0, -1)); setDocState(last.doc); setMarker(last.marker); cancel();
   }, [redo, doc, marker, cancel]);
 
   // Deleting a feature (with the sketches only it used): later features, mates and drawing dimensions follow.
   const deleteNode = (index: number) => {
+    if (!canChangeDocument()) return;
     if (marker !== null) { setToast({ title: 'Roll forward to delete', hint: 'Features are deleted from the whole history: roll forward to the end first.', detail: '' }); return; }
     const label = featureLabel(doc.nodes[index], index, doc.nodes), r = deleteFeature(doc, index);
     if ('error' in r) {
@@ -1794,7 +1865,7 @@ export function App() {
     engine.evaluate(prefixDoc(r.doc, r.doc.nodes.length), revision.current++).then(e => {
       if (!e) return;
       if (!e.ok) { setToast({ ...e.error, title: `Cannot delete ${label}: ${e.error.title}` }); return; }
-      commit(r.doc);
+      if (!commit(r.doc)) return;
       if (r.droppedDimensions) setToast({ title: `Removed ${r.droppedDimensions} drawing dimension${r.droppedDimensions > 1 ? 's' : ''}`, hint: `They measured ${label}. Undo restores them.`, detail: '' });
     });
   };
@@ -1815,16 +1886,18 @@ export function App() {
   };
   /** A body in several pieces made one body per piece (a Separate step), checked by evaluating first. */
   const separate = (b: BodyResult) => {
+    if (!canChangeDocument()) return;
     if (marker !== null) { setToast({ title: 'Roll forward first', hint: 'New steps go at the end of the history.', detail: '' }); return; }
     const next = withNode(doc, { kind: 'separate', parent: refOf(b) });
     engine.evaluate(prefixDoc(next, next.nodes.length), revision.current++).then(e => {
       if (!e) return;
       if (!e.ok) { setToast({ ...e.error, title: `Cannot separate it: ${e.error.title}` }); return; }
-      commit(next); setSelection(emptySel);
+      if (!commit(next)) return; setSelection(emptySel);
     });
   };
   /** Moves a history step one earlier or later (refused before what it is built on), checked by evaluating first. */
   const reorder = (i: number, dir: -1 | 1) => {
+    if (!canChangeDocument()) return;
     if (marker !== null) { setToast({ title: 'Roll forward to reorder', hint: 'Steps are moved in the whole history: roll forward to the end first.', detail: '' }); return; }
     const label = featureLabel(doc.nodes[i], i, doc.nodes), r = moveFeature(doc, i, dir);
     if ('error' in r) { setToast({ title: `Cannot move ${label}`, hint: r.error, detail: '' }); return; }
@@ -1836,6 +1909,7 @@ export function App() {
   };
   /** Leaves a feature out of the model (or brings it back): checked by evaluating first, like any edit. */
   const toggleSuppress = (i: number) => {
+    if (!canChangeDocument()) return;
     const n = doc.nodes[i]; if (!n) return;
     const next = { ...doc, nodes: doc.nodes.map((x, k) => k !== i ? x : x.suppressed ? (({ suppressed: _s, ...rest }) => rest as ModelNode)(x) : { ...x, suppressed: true as const }) };
     const label = featureLabel(n, i, doc.nodes);
@@ -1848,6 +1922,7 @@ export function App() {
   /** A delete waiting on its review: the feature, and the ones built on it that would go with it. */
   const [cascade, setCascade] = useState<{ index: number; label: string; deps: string[]; all: number[] } | null>(null);
   const deleteCascade = () => {
+    if (!canChangeDocument()) return;
     if (!cascade) return;
     const r = deleteFeatures(doc, cascade.all), label = cascade.label; setCascade(null);
     if ('error' in r) { setToast({ title: `Cannot delete ${label}`, hint: r.error, detail: '' }); return; }
@@ -1898,6 +1973,7 @@ export function App() {
    * with all it was built from.
    */
   const deleteSelection = () => {
+    if (!canChangeDocument()) return;
     if (marker !== null) { setToast({ title: 'Roll forward to delete', hint: 'Features are deleted from the whole history: roll forward to the end first.', detail: '' }); return; }
     const nodes = doc.nodes, body = (k: number) => bodies[k] ? bodyNodes(nodes, refOf(bodies[k]).node) : [];
     let indices: number[] = [], what = '';
@@ -1914,7 +1990,7 @@ export function App() {
     engine.evaluate(prefixDoc(r.doc, r.doc.nodes.length), revision.current++).then(e => {
       if (!e) return;
       if (!e.ok) { setToast({ ...e.error, title: `Cannot delete ${what}: ${e.error.title}` }); return; }
-      setSelection(emptySel); commit(r.doc);
+      if (!commit(r.doc)) return; setSelection(emptySel);
       if (r.droppedDimensions) setToast({ title: `Removed ${r.droppedDimensions} drawing dimension${r.droppedDimensions > 1 ? 's' : ''}`, hint: `They measured ${what}. Undo restores them.`, detail: '' });
     });
   };
@@ -1922,7 +1998,14 @@ export function App() {
   // and face references into it, so they close first (U4).
   // (What was picked in the old part goes too: instances, direct-edit faces, measurements.)
   // (CG6: from anywhere but the project, the document is no longer its open one — `fromProject` keeps it so.)
-  const replaceDoc = (next: StudioDoc, fromProject = false) => { if (!fromProject) { project.detach(); setCompareBase(null); } cancel(); setDocGeneration(g => g + 1); setSelection(emptySel); setPick(null); setInstanceSel([]); setIsolatedInstances(undefined); setDirectSel([]); setMeasure(null); setEditNode(null); commit(next, false, true); };
+  const replaceDoc = (next: StudioDoc, fromProject = false) => {
+    invalidateDocumentWork(); replacementScope.current = workOwnership.current.scope;
+    try {
+      if (!commit(next, false, true)) return;
+      if (!fromProject) { project.detach(); setCompareBase(null); }
+      cancel(); setDocGeneration(g => g + 1); setSelection(emptySel); setPick(null); setInstanceSel([]); setIsolatedInstances(undefined); setDirectSel([]); setMeasure(null); setEditNode(null);
+    } finally { replacementScope.current = null; }
+  };
   // (A document with mesh blobs is saved as the container, else as plain JSON: engine/container.ts. Saved, the
   // recovery copy and its blobs go.)
   const writeFile = (d: StudioDoc, name: string) => {
@@ -2210,7 +2293,7 @@ export function App() {
     const r = await (await import('@barocss/cad-model/chat/tools')).rebaseProposal({ doc, bodies, rowFiles: chatRowFiles.current }, p.id, partEval);
     setProposalBusy(false);
     if ('error' in r) { setToast({ title: `${p.id} could not be rebased`, hint: r.error, detail: 'Nothing changed; the proposal stays open.' }); return; }
-    commit(r.state.doc, false);
+    if (!commit(r.state.doc, false)) return;
     await showProposal(r.state.doc.proposals!.find(q => q.id === p.id)!, r.state.doc);
   };
   /** A feature of the shown proposal ticked or unticked: the ghost rebuilt without what is left out. */
@@ -2249,9 +2332,10 @@ export function App() {
     const r = await (await import('@barocss/cad-model/chat/tools')).acceptProposal({ doc, bodies, rowFiles: chatRowFiles.current }, p.id, partEval, { leaveOut });
     setProposalBusy(false);
     if ('error' in r) { setToast({ title: `${p.id} could not be applied`, hint: r.error, detail: 'Nothing changed; the proposal stays open.' }); return; }
-    setGhost(null); setPreviewBodies(null); commit(r.state.doc, false);
+    if (!commit(r.state.doc, false)) return;
+    setGhost(null); setPreviewBodies(null);
   };
-  const rejectIt = (p: Proposal) => { const next = rejectProposal(doc, p.id); if ('error' in next) return; if (ghost?.id === p.id) { setGhost(null); setPreviewBodies(null); } commit(next, false); };
+  const rejectIt = (p: Proposal) => { const next = rejectProposal(doc, p.id); if ('error' in next || !commit(next, false)) return; if (ghost?.id === p.id) { setGhost(null); setPreviewBodies(null); } };
   const volumeOf = (list: readonly BodyResult[]) => list.reduce((s, b) => s + (b.volume ?? 0), 0);
   /** An assumed (or ambiguous) requirement's value set by the user, and confirmed: stated from now on, with who and when. */
   const setRequirement = (id: string, value: number) => {
@@ -2263,11 +2347,11 @@ export function App() {
   const answerQuestions = (answers: Record<string, string | number | null>) => {
     const r = answerBatch(doc, answers, new Date().toISOString());
     if ('error' in r) { setToast({ title: 'Answer not taken', hint: r.error, detail: '' }); return; }
-    commit(applyBrief(r.doc, readBrief(r.doc.brief)), false); setChat(true); setChatOutbox({ id: Date.now(), text: r.message });
+    if (!commit(applyBrief(r.doc, readBrief(r.doc.brief)), false)) return; setChat(true); setChatOutbox({ id: Date.now(), text: r.message });
   };
   const acceptAll = () => {
     const r = acceptAssumptions(doc, new Date().toISOString()); if (!r.count) return;
-    commit(applyBrief(r.doc, readBrief(r.doc.brief)), false); setChat(true); setChatOutbox({ id: Date.now(), text: r.message });
+    if (!commit(applyBrief(r.doc, readBrief(r.doc.brief)), false)) return; setChat(true); setChatOutbox({ id: Date.now(), text: r.message });
   };
   /** The References card's actions (A6.3): through the same tool code the agent uses; a reference itself is the user's. */
   const refTool = async (name: string, args: Record<string, unknown>) => {
@@ -2279,7 +2363,7 @@ export function App() {
   const addDrawingFile = async (file: File) => {
     const out = runDraftTool(doc, 'import_drawing', { dxf: await file.text(), name: file.name.replace(/\.dxf$/i, '') });
     if ('error' in out) { setToast({ title: 'Could not read this drawing', hint: out.error.replace(/^\[[A-Z_]+\] /, ''), detail: out.error }); return; }
-    commit(out.doc);
+    if (!commit(out.doc)) return;
     const c = out.content as { draft: string | null; dims?: { key: string }[]; unit: string; underlay?: Record<string, number>; left_out?: Record<string, number> };
     // (O68: what came in as the underlay, to trace over — never geometry.)
     const list = (r: Record<string, number>) => Object.entries(r).map(([t, n]) => `${n} ${t}`).join(', '), under = c.underlay ? ` Shown as an underlay: ${list(c.underlay)}.` : '';
@@ -2327,8 +2411,9 @@ export function App() {
   };
   const settleRef = async (index: number, to?: string) => {
     const next = await confirmReference(doc, index, bodies, d => engine.part(d, revision.current++, 'refs'), to);
-    setRefProblems(ps => ps.filter(p => p.index !== index)); setRefChoices(null);
-    pushUndo(); setDoc(next); setDirty(true);
+    if (!canChangeDocument()) return;
+    pushUndo(); if (!setDoc(next)) return;
+    setRefProblems(ps => ps.filter(p => p.index !== index)); setRefChoices(null); setDirty(true);
   };
   const showRefChoices = async (index: number) => setRefChoices({ index, names: await candidatesFor(doc, index, bodies, d => engine.part(d, revision.current++, 'refs')) });
   // The opened file's stored references checked against their signatures (no prior document: a newer kernel may
@@ -3084,7 +3169,7 @@ export function App() {
           return <Fragment key={b.key}><div className={'ol-row' + (sel ? ' sel' : '') + (look.hidden ? ' hidden-obj' : '')} onMouseEnter={() => setRowHover(i)} onMouseLeave={() => setRowHover(h => h === i ? null : h)}>
             <button className="ol-caret" aria-label={open ? 'Hide its features' : 'Show its features'} disabled={steps.length < 2} onClick={() => setExpanded(x => open ? x.filter(k => k !== b.key) : [...x, b.key])}><Icon name={open ? 'expand_more' : 'chevron_right'} small /></button>
             <button className="ol-eye" aria-label={look.hidden ? 'Show body' : 'Hide body'} data-tip={look.hidden ? 'Show' : 'Hide'}
-              onClick={() => { commit(withLook(doc, b, { hidden: !look.hidden })); if (!look.hidden) setSelection(emptySel); }}><Icon name={look.hidden ? 'visibility_off' : 'visibility'} small /></button>
+              onClick={() => { if (!commit(withLook(doc, b, { hidden: !look.hidden }))) return; if (!look.hidden) setSelection(emptySel); }}><Icon name={look.hidden ? 'visibility_off' : 'visibility'} small /></button>
             <span className="ol-swatch" style={look.color ? { background: look.color } : undefined} />
             {renaming === b.key
               ? <input className="ol-name-edit" autoFocus defaultValue={bodyName(doc, b)} aria-label="Body name"
@@ -3161,6 +3246,8 @@ export function App() {
       {libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <LibraryPanel doc={doc} onCommit={next => commit(next)} onClose={() => setLibraryOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} onQuote={() => { void exportQuote(); }} />}
       {paramsOpen && !rendering && !drawing && !sketch && !active && <ParametersPanel doc={doc} onClose={() => setParamsOpen(false)}
         onChange={p => {
+          const ownCandidate = workOwnership.current.run?.candidate && parameterEdit?.base === doc && parameterEdit.baseInput === evaluated && docNow.current === doc && acceptanceScope === workOwnership.current.scope;
+          if (!ownCandidate && !canChangeDocument()) return;
           const request = ++parameterRequest.current;
           const cancelCandidate = () => {
             if (parameterEdit?.base === doc && acceptedEvaluation.current) parameterHandoff.current = { target: doc, ...acceptedEvaluation.current, result: { ...acceptedEvaluation.current.result, bodies } };
@@ -3232,7 +3319,7 @@ export function App() {
             if ('error' in r) setToast({ title: 'Nothing to update', hint: r.error, detail: '' }); else commitParts(r.doc);
           }}
           onAccept={() => commitParts(acceptRevision(doc, inst.part!.id))} onDismiss={() => commitParts(dismissRevision(doc, inst.part!.id))}
-          onRemove={() => { commitAssembly(list.filter(i => i.id !== inst.id), assembly.without(inst.id)); setInstanceSel([]); }} />;
+          onRemove={() => { if (!commitAssembly(list.filter(i => i.id !== inst.id), assembly.without(inst.id))) return; setInstanceSel([]); }} />;
       })()}
       {!rendering && !sketch && !measure && jointTree && !assembly.draft && !instanceSel.length && <JointsPanelLive poseStore={poseStore} tree={jointTree} masses={jointMasses} instances={doc.instances ?? []}
         onValue={(k, v) => { stopMotion(); setJointPlaying(null); setJointValues(x => ({ ...x, [k]: v })); }} onHome={() => { stopMotion(); setJointPlaying(null); setJointValues({}); }} playing={jointPlaying} onPlay={k => { stopMotion(); setJointPlaying(k); }} links={linkInertias}
@@ -3249,9 +3336,10 @@ export function App() {
                 if (jointTree.loops.length) timedMotion(draft, loopMotionContext);
                 path = motionOf(jointTree, draft);
               } catch (e) { setToast({ title: 'Could not save the motion', hint: e instanceof Error ? e.message : String(e), detail: '' }); return; }
-              pushUndo(); const robot = { ...(doc.robot ?? { version: 1 as const }) };
+              if (!canChangeDocument()) return;
+              const robot = { ...(doc.robot ?? { version: 1 as const }) };
               robot.motions = [...(robot.motions ?? []).filter(m => m.name !== name), { name, path }];
-              setDoc({ ...doc, robot }); setDirty(true); setMotionChoice(name);
+              pushUndo(); if (!setDoc({ ...doc, robot })) return; setDirty(true); setMotionChoice(name);
             } } }}
         onExportUrdf={() => {
           // (RM4: the bodies as placed, so each part's placement is the identity here; the same robot as from part coordinates.)
@@ -3317,7 +3405,7 @@ export function App() {
           downloadBytes(sourceBytes(sourceRecord(doc, [`${fileName}.usda`], { robot: true })), `${fileName}.source.json`, 'application/json');
           if (r.notes.length) setToast({ title: 'USD written', hint: r.notes.join(' '), detail: '' });
         }}
-        onBase={b => { pushUndo(); const robot = { ...(doc.robot ?? { version: 1 as const }) }; if (b === BASE) delete robot.base; else robot.base = b; setDoc({ ...doc, robot }); setDirty(true); }} />}
+        onBase={b => { if (!canChangeDocument()) return; const robot = { ...(doc.robot ?? { version: 1 as const }) }; if (b === BASE) delete robot.base; else robot.base = b; pushUndo(); if (!setDoc({ ...doc, robot })) return; setDirty(true); }} />}
       {!rendering && !drawing && !sketch && !measure && !instanceSel.length && <GravityExperimentPanel doc={doc} joints={jointTree?.joints ?? []} />}
       {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || instanceSel.length === 1) && <MatePanel assembly={assembly} instances={doc.instances} instance={instanceSel.length === 1 ? instanceSel[0] : undefined}
         onRefused={why => setToast({ title: 'The mate was refused', hint: why, detail: '' })} />}
@@ -3392,7 +3480,7 @@ export function App() {
               <label className="swatch pick" data-tip="Any colour" style={look.color && !(BODY_COLOURS as readonly string[]).includes(look.color) ? { background: look.color } : undefined}>
                 <input type="color" aria-label="Any colour" value={look.color ?? '#bcc0c7'} onChange={e => commit(withLook(doc, b, { color: e.target.value }))} /></label>
             </span></div>
-            <label className="kv">Visible <input type="checkbox" checked={!look.hidden} onChange={e => { commit(withLook(doc, b, { hidden: !e.target.checked })); if (!e.target.checked) setSelection(emptySel); }} /></label>
+            <label className="kv">Visible <input type="checkbox" checked={!look.hidden} onChange={e => { if (!commit(withLook(doc, b, { hidden: !e.target.checked }))) return; if (!e.target.checked) setSelection(emptySel); }} /></label>
             <label className="kv"><span>Bounds <b>{fmt(max[0] - min[0])} × {fmt(max[1] - min[1])} × {fmt(max[2] - min[2])}</b></span><span className="kv-check"><input type="checkbox" aria-label="Show the bounding box" checked={showBox} onChange={e => setShowBox(e.target.checked)} /> box</span></label>
             {/* (O18: a mass still being worked out reads "…", never 0 or the last revision's.) */}
             {b.volume !== null ? <div className="kv">Volume <b>{fmt(Math.round(b.volume))} mm³</b></div> : b.massRef !== undefined ? <div className="kv">Volume <b aria-label="Mass pending">…</b></div> : null}
@@ -3435,6 +3523,7 @@ export function App() {
             <div className="kv">Mass <b>{fmt(Math.round(c.mass * 10) / 10)} g</b></div><div className="kv">Centre of mass <b>{c.centroid.map(v => fmt(Math.round(v * 100) / 100)).join(', ')}</b></div>
             <label className="kv"><span>Bounds <b>{[0, 1, 2].map(k => fmt(Math.round((box.max[k] - box.min[k]) * 100) / 100)).join(' × ')}</b></span><span className="kv-check"><input type="checkbox" aria-label="Show the bounding box" checked={showBox} onChange={e => setShowBox(e.target.checked)} /> box</span></label></div> : null; })()}
         {editNode !== null && <NodeEditor nodes={doc.nodes} parameters={doc.parameters} bearingAssembly={{ root: doc, owner: 'base' }} onRefuse={m => setToast({ title: 'Cannot bind that value', hint: m, detail: '' })} index={editNode} onEditSketch={(() => { const n = doc.nodes[editNode]; const s = n?.kind === 'sketch' ? editNode : n && 'sketch' in n ? n.sketch : null; return s !== null && doc.nodes[s]?.kind === 'sketch' ? () => editSketch(s) : undefined; })()} onApply={nodes => {
+          if (!canChangeDocument()) return;
           const scope = bearingEditScope.current;
           const next = { ...doc, nodes: dropStaleMade(doc.nodes, nodes) };
           engine.evaluate(next, revision.current++).then(r => { if (!r || bearingEditScope.current !== scope) return; if (r.ok) commit(next); else setToast({ ...r.error, hint: 'The design was not changed. Adjust the values and try again.' }); });
@@ -3812,17 +3901,18 @@ export function App() {
         content={rendering || drawing ? null : <Suspense fallback={null}><ChatPanel versions={project.chat} onRowFiles={files => { if (files === chatRowFiles.current || (files && !isPersonRowFiles(files))) return; revokePersonRowFiles(chatRowFiles.current); chatRowFiles.current = files; }} base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)} check={partEval}
         blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
         onPreview={setPreviewBodies} onCommit={(next, sel, merged) => {
-          chatSelection.current = sel ?? null;
           // (Merged onto the edits made while it ran, O133: what applied, and what waits as a proposal and why.)
           if (merged) {
-            commit(next, true, true);
+            if (!commit(next, true, true)) return;
+            chatSelection.current = sel ?? null;
             const n = merged.applied.length + merged.deferred.length, why = merged.deferred[0]?.reason;
             setToast({ title: 'Chat turn merged with your edits', hint: `${merged.applied.length} of ${n} change${n > 1 ? 's' : ''} applied${merged.proposal ? `; ${merged.deferred.length} wait${merged.deferred.length > 1 ? '' : 's'} as ${merged.proposal}${why ? ` (${why})` : ''}` : ''}.`, detail: '', action: { label: 'Undo', run: () => { undoNow.current(); setToast(null); } } });
             return;
           }
           // (Applied directly by the agent — at L2 only value edits — said so with an undo, D41.)
           const direct = JSON.stringify(next.nodes) !== JSON.stringify(doc.nodes) || JSON.stringify(next.parameters) !== JSON.stringify(doc.parameters), what = direct ? describeChange(doc, next) : '';
-          commit(next);
+          if (!commit(next)) return;
+          chatSelection.current = sel ?? null;
           if (direct) setToast({ title: 'Applied by the agent', hint: `${what[0]?.toUpperCase() ?? ''}${what.slice(1)}.`, detail: '', action: { label: 'Undo', run: () => { undoNow.current(); setToast(null); } } });
         }}
         onSelect={sel => setSelection(resolveNames(bodies, sel).selection)} onClose={() => setChat(false)} context={chatContext} outbox={chatOutbox} onOutboxSent={id => setChatOutbox(o => (o?.id === id ? null : o))}

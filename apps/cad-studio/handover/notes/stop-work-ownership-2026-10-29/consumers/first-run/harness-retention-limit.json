@@ -1,0 +1,11 @@
+{
+  "fullFirstRunBrowserFlowSource": "NOT_RETAINED at first run; do not reconstruct or claim exact full replay",
+  "testHelperAtFirstRun": "No independent first-run source capture/hash receipt; trace/log remain",
+  "availableEvidence": [
+    "original failure stdout",
+    "raw document/recovery/worker trace snapshots",
+    "actual screenshot",
+    "High separately retained exact b862 App source gzip/hash"
+  ],
+  "nextRun": "Full driver and test-only worker helper gzip/source hashes captured before execution in separate second-run profile."
+}

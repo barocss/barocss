@@ -3,6 +3,12 @@
 The owner asked: "지금까지 하던거 멈추고 인수인계 할 수 있도록 해줘". This note lets the next session continue the
 kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-10-27 to 2026-10-28.
 
+## Latest D321 checkpoint — 2026-10-29
+
+- Policy B refuses unsupported independent document edits before acceptance during main computation. Stop replays only its originating accepted transition; synchronous Redo snapshot and worker-session invalidation preserve the selected flow.
+- Final Studio389/389/0skip, types/lint, selected actual Chrome/WebGPU D321 and same-source D318 regression pass. Generated/API/docs pass. [Qualification](../stop-work-ownership-2026-10-29/qualification.json) separates earlier fixture/product failures and NOT_RUN limits.
+- Next D322: existing A02/P1 delayed Save completion ownership under12/CG6/O9. First reproduce at the current source; do not promote source-only concerns to runtime defects. Normal per-feature push authorized; no PR/release.
+
 ## Latest D320 checkpoint — 2026-10-29
 
 - Same handleStore/exact-path writes are owned through expect validation, native commit and returned-tag read. Unconditional writes share the queue; other paths progress. Latest-tail cleanup and original failure semantics remain.
@@ -298,7 +304,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D321**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D322**).
 
 ## 0. State at the stop
 

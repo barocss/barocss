@@ -1,0 +1,9 @@
+{
+  "commit": "e1f2b05d62b8011412a1d8ee9c1cc73256737177",
+  "path": "apps/cad-studio/src/App.tsx",
+  "gitBlob": "a302ed0966f89299e89ecda5daee301d0b227803",
+  "sha256": "2ee6565e79125c56905b9418adcbc6fc8286449bee939609cfe7ead6814c3593",
+  "controlledUIBaseline": "5463dbf32af5dd10670badd0d334c68504615292",
+  "currentRuntimeBaseline": "NOT_RUN",
+  "sourceOnlyComparison": "Stop/Render/Undo/client semantics reviewed; separate intake evidence reused"
+}
