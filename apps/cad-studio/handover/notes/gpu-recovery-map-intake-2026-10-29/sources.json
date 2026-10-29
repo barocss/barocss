@@ -1,0 +1,17 @@
+{
+  "rootScope": "Read supplied report and parsed verification; register bounded author evidence only. No independent runtime, sourcegraph/image/raw-byte re-audit, product edit, issue mutation or cross-chat reply.",
+  "files": [
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/gpu-005-map-recovery-103521.md",
+      "copy": "gpu-005-map-recovery-103521.md",
+      "bytes": 7326,
+      "sha256": "a827850c2d5b88986069acaf91469542959886893d206c1cf410203ece0ba5bf"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/gpu-005-map-recovery-20261029T103521/verification.json",
+      "copy": "verification.json",
+      "bytes": 13935,
+      "sha256": "5b44eccd4e8f576bd422a5678824d22d46c20d1c1b5fee90c3c1c832e7e1c52f"
+    }
+  ]
+}

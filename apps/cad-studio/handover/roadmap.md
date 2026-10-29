@@ -2030,3 +2030,37 @@ Three.js parity remain NOT_RUN. Logical-device hook injection does not prove nat
 The next resource profile at existing priority is the original map fixture's Texture/Material binding
 through device replacement. Do not repeat successful CSS45/GPU003/historical suites for this intake.
 No immediate implementation, duplicate issue or priority switch; A05/A06 ordering remains unchanged.
+
+
+### GPU005 packed texture-map recovery evidence — 2026-10-29
+
+Connect the [supplied report and verification](notes/gpu-recovery-map-intake-2026-10-29/gpu-005-map-recovery-103521.md)
+to existing GMAT-5/G15-accept. Status: **BOUNDED PASS, ONE SHARED PACKED DATA-MAP CORE PROFILE** at
+exact86c7aff3. One attempt,28 assertions and four captures are one profile, not28 tests or a rerun of
+the full material-map suite. The original shared roughnessG128/metallicB64 raster row is reused.
+
+Author profile: one1×1 ImageTexture[7,128,64,255],srgb=false,nearest,mipmaps=false shared by two map slots.
+Original center16×16 RGB reference max<=1 and wrong-sRGB mean>3 were fixed before execution. Before and
+after recovery, literal-reference max/mean are0/0 and wrong-control mean is13; activeRGBA[117,72,55,255].
+These ROI checks are separate from recovery of the entire128×96 RGBA image:49152 bytes match with max
+channel delta0. Pick remains instance=null/face71/triangle0 with point delta0. No absolute world-point
+accuracy oracle is added.
+
+One owned logical-device hook leads to old-device lost, a distinct new device, onRecover once, a new
+frame and fresh mapped capture. Original Texture, normalized active Material, Mesh and Geometry remain;
+the two slots reference the same original Texture, not disposed during recovery. Public Texture creation
+count1 and active Material reassignment0 mean no host recreation/rebinding after loss. Native resource
+allocation and pipeline creation counts remain NOT_MEASURED; do not infer them from public call counts.
+
+Author reports2237 fixed source files, actual452 inputs(451 product+fixture1), zero external imports/
+dist escape, no first failure or retry, all guard/syntax/build/probe/release exits zero, and owned
+Texture-inclusive cleanup complete. The sender's parent reports49 artifact/input452 hash and four PNG/
+raw-byte checks. Actual oldDevice adapter is apple/metal-3; replacement adapter/fallback remain UNKNOWN.
+Root read and retained the supplied documents without independent runtime or source/image/raw-byte audit.
+
+Other maps/normal maps, dynamic Texture updates, progressive/full PBR, instancing, SDK/App recovery UI,
+natural driver failure, OOM/VRAM/performance and Three.js parity remain NOT_RUN. Do not close general
+map/G15/recovery acceptance. Next at existing resource priority: the two-instance profile's GPU buffer/
+selection continuity through device replacement and subsequent public instance replacement. Do not
+repeat packed-map/CSS45/GPU003/full-map successes for this intake. No new issue, immediate implementation
+or priority switch; existing A05/A06 order remains unchanged.

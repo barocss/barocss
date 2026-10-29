@@ -1,0 +1,623 @@
+{
+  "status": "PASS_BOUNDED_PACKED_DATA_MAP_RESOURCE_RECOVERY",
+  "sourceCommit": "86c7aff39593484b60f64de6130ad2c38a693695",
+  "endObservedHead": "86c7aff39593484b60f64de6130ad2c38a693695",
+  "endDirty": "?? .claude/\n",
+  "profileCount": 1,
+  "attempts": 1,
+  "assertions": 28,
+  "allAssertionsPass": true,
+  "assertionDetails": [
+    {
+      "name": "reference:mapped-dimensions",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "reference:original-material-shared-texture-identity",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "reference:original-mesh-geometry",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "wrong:mapped-dimensions",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "wrong:original-material-shared-texture-identity",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "wrong:original-mesh-geometry",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "before:mapped-dimensions",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "before:original-material-shared-texture-identity",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "before:original-mesh-geometry",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "before:original-pick-fields",
+      "status": "PASS",
+      "details": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": null,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.2729776756996517,
+          -0.2729776756996517,
+          0
+        ],
+        "depth": 0.5
+      }
+    },
+    {
+      "name": "before:finite-baseline-pick",
+      "status": "PASS",
+      "details": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": null,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.2729776756996517,
+          -0.2729776756996517,
+          0
+        ],
+        "depth": 0.5
+      }
+    },
+    {
+      "name": "original-center16x16-reference-max<=1",
+      "status": "PASS",
+      "details": {
+        "max": 0,
+        "mean": 0,
+        "different": 0,
+        "region": "center16x16 RGB",
+        "channels": 768,
+        "wholeRGBABytes": 49152
+      }
+    },
+    {
+      "name": "original-center16x16-sRGB-wrong-mean>3",
+      "status": "PASS",
+      "details": {
+        "max": 17,
+        "mean": 13,
+        "different": 9900,
+        "region": "center16x16 RGB",
+        "channels": 768,
+        "wholeRGBABytes": 49152
+      }
+    },
+    {
+      "name": "baseline-diagnostics-empty",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "owned-device-lost-promise",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "supported-loss-normal-recovery",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "distinct-replacement-state",
+      "status": "PASS",
+      "details": {
+        "distinctDevice": true,
+        "ready": true,
+        "recoveryCleared": true,
+        "lossesBefore": 0,
+        "lossesAfter": 1,
+        "recoverCalls": 1
+      }
+    },
+    {
+      "name": "after:mapped-dimensions",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "after:original-material-shared-texture-identity",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "after:original-mesh-geometry",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "after:original-pick-fields",
+      "status": "PASS",
+      "details": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": null,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.2729776756996517,
+          -0.2729776756996517,
+          0
+        ],
+        "depth": 0.5
+      }
+    },
+    {
+      "name": "after:finite-baseline-pick",
+      "status": "PASS",
+      "details": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": null,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.2729776756996517,
+          -0.2729776756996517,
+          0
+        ],
+        "depth": 0.5
+      }
+    },
+    {
+      "name": "recovered-original-reference-max<=1",
+      "status": "PASS",
+      "details": {
+        "max": 0,
+        "mean": 0,
+        "different": 0,
+        "region": "center16x16 RGB",
+        "channels": 768,
+        "wholeRGBABytes": 49152
+      }
+    },
+    {
+      "name": "recovered-sRGB-negative-mean>3",
+      "status": "PASS",
+      "details": {
+        "max": 17,
+        "mean": 13,
+        "different": 9900,
+        "region": "center16x16 RGB",
+        "channels": 768,
+        "wholeRGBABytes": 49152
+      }
+    },
+    {
+      "name": "recovery-whole-RGBA-channel<=3",
+      "status": "PASS",
+      "details": {
+        "maxDelta": 0,
+        "differentBytes": 0,
+        "bytes": 49152
+      }
+    },
+    {
+      "name": "original-point-continuity<=.05",
+      "status": "PASS",
+      "details": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "active-texture-created-once-no-material-rebind",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "no-unexpected-diagnostics",
+      "status": "PASS",
+      "details": null
+    }
+  ],
+  "hookCalls": 1,
+  "textureCreationCalls": 1,
+  "activeMaterialReassignments": 0,
+  "callCountBoundary": "fixture-owned public call counters/static harness; not pipeline/native allocation metric",
+  "baselineReference": {
+    "max": 0,
+    "mean": 0,
+    "different": 0,
+    "region": "center16x16 RGB",
+    "channels": 768,
+    "wholeRGBABytes": 49152
+  },
+  "baselineWrongControl": {
+    "max": 17,
+    "mean": 13,
+    "different": 9900,
+    "region": "center16x16 RGB",
+    "channels": 768,
+    "wholeRGBABytes": 49152
+  },
+  "afterReference": {
+    "max": 0,
+    "mean": 0,
+    "different": 0,
+    "region": "center16x16 RGB",
+    "channels": 768,
+    "wholeRGBABytes": 49152
+  },
+  "afterWrongControl": {
+    "max": 17,
+    "mean": 13,
+    "different": 9900,
+    "region": "center16x16 RGB",
+    "channels": 768,
+    "wholeRGBABytes": 49152
+  },
+  "recoveryFullRGBA": {
+    "maxDelta": 0,
+    "differentBytes": 0,
+    "bytes": 49152
+  },
+  "recoveryPointDelta": [
+    0,
+    0,
+    0
+  ],
+  "samples": {
+    "reference": {
+      "width": 128,
+      "height": 96,
+      "centerRGBA": [
+        117,
+        72,
+        55,
+        255
+      ],
+      "cornerRGBA": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "activeMaterialSame": true,
+      "roughnessTextureSame": true,
+      "metallicTextureSame": true,
+      "textureDisposed": false,
+      "textureSize": [
+        1,
+        1
+      ],
+      "sameGeometry": true,
+      "geometryDisposed": false,
+      "activeInScene": true,
+      "pickCSS": null,
+      "hit": null,
+      "rawPixels": {
+        "path": "reference.rgba",
+        "bytes": 49152,
+        "sha256": "225900116454efdae825793b32f0e1e8e5e3e2fb65c486b2114388e0a1d29eec",
+        "layout": "RGBA8 top-to-bottom"
+      }
+    },
+    "wrong": {
+      "width": 128,
+      "height": 96,
+      "centerRGBA": [
+        108,
+        59,
+        38,
+        255
+      ],
+      "cornerRGBA": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "activeMaterialSame": true,
+      "roughnessTextureSame": true,
+      "metallicTextureSame": true,
+      "textureDisposed": false,
+      "textureSize": [
+        1,
+        1
+      ],
+      "sameGeometry": true,
+      "geometryDisposed": false,
+      "activeInScene": true,
+      "pickCSS": null,
+      "hit": null,
+      "rawPixels": {
+        "path": "wrong.rgba",
+        "bytes": 49152,
+        "sha256": "b79f75e27020bc8ce1e6e73353e8285aeac55473b3fea73ccf53eaf2dc53dc5f",
+        "layout": "RGBA8 top-to-bottom"
+      }
+    },
+    "before": {
+      "width": 128,
+      "height": 96,
+      "centerRGBA": [
+        117,
+        72,
+        55,
+        255
+      ],
+      "cornerRGBA": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "activeMaterialSame": true,
+      "roughnessTextureSame": true,
+      "metallicTextureSame": true,
+      "textureDisposed": false,
+      "textureSize": [
+        1,
+        1
+      ],
+      "sameGeometry": true,
+      "geometryDisposed": false,
+      "activeInScene": true,
+      "pickCSS": [
+        68.12121612918193,
+        52.12121612918194
+      ],
+      "hit": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": null,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.2729776756996517,
+          -0.2729776756996517,
+          0
+        ],
+        "depth": 0.5
+      },
+      "rawPixels": {
+        "path": "before.rgba",
+        "bytes": 49152,
+        "sha256": "225900116454efdae825793b32f0e1e8e5e3e2fb65c486b2114388e0a1d29eec",
+        "layout": "RGBA8 top-to-bottom"
+      }
+    },
+    "after": {
+      "width": 128,
+      "height": 96,
+      "centerRGBA": [
+        117,
+        72,
+        55,
+        255
+      ],
+      "cornerRGBA": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "activeMaterialSame": true,
+      "roughnessTextureSame": true,
+      "metallicTextureSame": true,
+      "textureDisposed": false,
+      "textureSize": [
+        1,
+        1
+      ],
+      "sameGeometry": true,
+      "geometryDisposed": false,
+      "activeInScene": true,
+      "pickCSS": [
+        68.12121612918193,
+        52.12121612918194
+      ],
+      "hit": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": null,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.2729776756996517,
+          -0.2729776756996517,
+          0
+        ],
+        "depth": 0.5
+      },
+      "rawPixels": {
+        "path": "after.rgba",
+        "bytes": 49152,
+        "sha256": "225900116454efdae825793b32f0e1e8e5e3e2fb65c486b2114388e0a1d29eec",
+        "layout": "RGBA8 top-to-bottom"
+      }
+    }
+  },
+  "textureContract": {
+    "sourceBytes": [
+      7,
+      128,
+      64,
+      255
+    ],
+    "options": {
+      "srgb": false,
+      "mipmaps": false,
+      "wrap": "repeat",
+      "filter": "nearest"
+    },
+    "width": 1,
+    "height": 1,
+    "sharedSlots": true
+  },
+  "oldDeviceLoss": {
+    "reason": "destroyed",
+    "message": "Device was destroyed."
+  },
+  "replacement": {
+    "distinctDevice": true,
+    "ready": true,
+    "recoveryCleared": true,
+    "lossesBefore": 0,
+    "lossesAfter": 1,
+    "recoverCalls": 1
+  },
+  "sourceManifestSha256": "b7a9fc7aba58ae9bbb31682dc9a7a884ee6df634a2e39aecfeef264af01310de",
+  "snapshotFiles": 2237,
+  "allSnapshotSha256AndGitBlobsMatch": true,
+  "buildInputCount": 452,
+  "productInputsByPackage": {
+    "barocss-gpu": 38,
+    "barocss-cad": 413
+  },
+  "ownFixtureInputs": 1,
+  "thirdPartyBrowserInputs": 0,
+  "externalImports": 0,
+  "acceptanceSha256": "c9b71263c3e3a62f211fa6f535ba35ba636032e1846b9b4c249869c45ec9521f",
+  "acceptanceAndHarnessUnchangedAfterAttempt": true,
+  "originalSpecSha256": "6c3ec2da920c2bcc8044e43fd10056597ce380b938b6c8604b6e72c71b04c3a5",
+  "originalSpecSameAs1266": true,
+  "referenceDomain": "center16x16 RGB;256pixels/768channels; max<=1byte; wrong-sRGB mean>3",
+  "recoveryDomain": "whole128x96 RGBA;49152bytes; maxchannel<=3",
+  "pointDomain": "finite baseline public pick; before-after component delta<=.05; no absolute accuracy oracle",
+  "actualOldOwnedDeviceAdapterInfo": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "",
+    "description": ""
+  },
+  "replacementAdapterInfo": "UNKNOWN_NOT_RECORDED",
+  "fallbackIdentity": "UNKNOWN",
+  "events": [
+    {
+      "type": "reference:requestRender",
+      "at": 187.89999985694885
+    },
+    {
+      "type": "reference:frame-complete",
+      "at": 196.39999985694885
+    },
+    {
+      "type": "reference:capture-complete",
+      "at": 199.59999990463257
+    },
+    {
+      "type": "wrong:requestRender",
+      "at": 495.69999980926514
+    },
+    {
+      "type": "wrong:frame-complete",
+      "at": 497.19999980926514
+    },
+    {
+      "type": "wrong:capture-complete",
+      "at": 498.69999980926514
+    },
+    {
+      "type": "before:requestRender",
+      "at": 1027.5
+    },
+    {
+      "type": "before:frame-complete",
+      "at": 1029.1999998092651
+    },
+    {
+      "type": "before:capture-complete",
+      "at": 1030.5
+    },
+    {
+      "type": "supported-hook-call",
+      "at": 2235.699999809265
+    },
+    {
+      "type": "old-device-lost-observed",
+      "at": 2236.2999999523163
+    },
+    {
+      "type": "onRecover",
+      "at": 2253.699999809265
+    },
+    {
+      "type": "after:requestRender",
+      "at": 2788.7999999523163
+    },
+    {
+      "type": "after:frame-complete",
+      "at": 2790.5999999046326
+    },
+    {
+      "type": "after:capture-complete",
+      "at": 2791.7999999523163
+    }
+  ],
+  "firstFailure": null,
+  "errors": [],
+  "diagnostics": [],
+  "recoveryErrors": [],
+  "viewerTextureCleanup": {
+    "disposed": true,
+    "ready": false,
+    "deviceNull": true,
+    "originalTextureDisposed": true
+  },
+  "runtimeCleanup": {
+    "page": "CLOSED",
+    "context": "CLOSED",
+    "browser": "CLOSED",
+    "server": "CLOSED"
+  },
+  "exits": {
+    "gate": 0,
+    "syntax-browser": 0,
+    "syntax-runner": 0,
+    "probe": 0,
+    "release": 0
+  },
+  "actualPNGsViewed": [
+    "capture-reference.png",
+    "capture-wrong.png",
+    "capture-before.png",
+    "capture-after.png"
+  ],
+  "notRun": [
+    "other maps",
+    "progressive",
+    "dynamic Texture update",
+    "instancing",
+    "SDK/App",
+    "natural failure",
+    "OOM/VRAM/performance",
+    "full PBR matrix",
+    "dynamic Texture source update",
+    "pipeline creation count",
+    "Three.js parity"
+  ],
+  "productMutation": false,
+  "priorEvidenceMutation": false,
+  "nextCheckpoint": "Parent records one packed data-map Core recovery profile PASS; remaining resource/SDK profiles separate, no retry"
+}
