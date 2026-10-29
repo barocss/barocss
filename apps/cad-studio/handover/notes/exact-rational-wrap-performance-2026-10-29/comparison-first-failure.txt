@@ -1,0 +1,54 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
++ actual - expected
+
++ [
++   'native.nativeBinding.evaluator.limits.operations',
++   'native.nativeBinding.sideFamily.componentCounts.rational.operations',
++   'native.nativeBinding.sideFamily.componentCounts.rational.gcdSteps',
++   'native.nativeBinding.sideFamily.componentCounts.totalOperations',
++   'native.nativeBinding.sideFamily.startedCounts.rational.operations',
++   'native.nativeBinding.sideFamily.startedCounts.rational.gcdSteps',
++   'native.nativeBinding.sideFamily.startedCounts.totalOperations',
++   'native.nativeBinding.sideFamily.budget.maxOperations',
++   'complete.walls.reference.native.nativeBinding.evaluator.limits.operations',
++   'complete.walls.reference.native.nativeBinding.sideFamily.componentCounts.rational.operations',
++   'complete.walls.reference.native.nativeBinding.sideFamily.componentCounts.rational.gcdSteps',
++   'complete.walls.reference.native.nativeBinding.sideFamily.componentCounts.totalOperations',
++   'complete.walls.reference.native.nativeBinding.sideFamily.startedCounts.rational.operations',
++   'complete.walls.reference.native.nativeBinding.sideFamily.startedCounts.rational.gcdSteps',
++   'complete.walls.reference.native.nativeBinding.sideFamily.startedCounts.totalOperations',
++   'complete.walls.reference.native.nativeBinding.sideFamily.budget.maxOperations'
++ ]
+- []
+
+    at file:///private/tmp/barocss-asymmetric-compare.mjs:12:183 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: [
+    'native.nativeBinding.evaluator.limits.operations',
+    'native.nativeBinding.sideFamily.componentCounts.rational.operations',
+    'native.nativeBinding.sideFamily.componentCounts.rational.gcdSteps',
+    'native.nativeBinding.sideFamily.componentCounts.totalOperations',
+    'native.nativeBinding.sideFamily.startedCounts.rational.operations',
+    'native.nativeBinding.sideFamily.startedCounts.rational.gcdSteps',
+    'native.nativeBinding.sideFamily.startedCounts.totalOperations',
+    'native.nativeBinding.sideFamily.budget.maxOperations',
+    'complete.walls.reference.native.nativeBinding.evaluator.limits.operations',
+    'complete.walls.reference.native.nativeBinding.sideFamily.componentCounts.rational.operations',
+    'complete.walls.reference.native.nativeBinding.sideFamily.componentCounts.rational.gcdSteps',
+    'complete.walls.reference.native.nativeBinding.sideFamily.componentCounts.totalOperations',
+    'complete.walls.reference.native.nativeBinding.sideFamily.startedCounts.rational.operations',
+    'complete.walls.reference.native.nativeBinding.sideFamily.startedCounts.rational.gcdSteps',
+    'complete.walls.reference.native.nativeBinding.sideFamily.startedCounts.totalOperations',
+    'complete.walls.reference.native.nativeBinding.sideFamily.budget.maxOperations'
+  ],
+  expected: [],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.19.0

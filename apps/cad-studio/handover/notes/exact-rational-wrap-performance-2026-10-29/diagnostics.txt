@@ -1,0 +1,31 @@
+Original failures are preserved, not rewritten:
+
+1. focused-first.tap: 182 pass, 2 fail. Both expected an R100 inverse BUDGET refusal; both
+   now succeeded under unchanged limits. Error: 'Missing expected exception.'
+   The tests now verify source/quarter preservation and full-map error/ledger invariants.
+   The R100 map also runs the independent interval interpolation/endpoint-error oracle.
+
+2. focused-id-mismatch.tap: 183 pass, 1 fail. The new source equality test accidentally
+   used different extraction IDs, producing:
+       +   id: 'wrap_quarter',
+       -   id: 'native_uv_quarter',
+   The test now supplies the same requested ID to both paths and keeps whole-object equality.
+
+3. comparison-first-failure.txt: the all-field comparison reported 16 additional ledger
+   paths (evaluator limits, componentCounts, startedCounts and remaining side budget).
+   Those explicit ledger families are now classified with the other counters/reservations.
+   All changed paths remain enumerated in equivalence.json; no geometry/proof field is omitted.
+
+4. Two read-only searches used unmatched zsh globs:
+       zsh:1: no matches found: packages/barocss-cad/src/*native*
+       zsh:1: no matches found: packages/barocss-cad/test/section*
+   Subsequent searches used rg paths. No source write depended on these searches.
+
+The initial candidate optimization alone still returned the original formal BUDGET failure.
+Adding exact dyadic reduction resolved the complete request. No cap/tolerance increase,
+source-checksum pin or skipped assertion was used.
+
+5. git diff --cached --check reports trailing whitespace on the two blank diff lines
+   in focused-id-mismatch.tap (lines967 and982). The original failure output is preserved
+   byte-for-byte. The final whitespace check excludes only this raw TAP receipt; all code,
+   tests, scripts and prose remain in the check.

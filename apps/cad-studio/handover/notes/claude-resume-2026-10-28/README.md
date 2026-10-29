@@ -200,9 +200,20 @@ kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-1
   Literal stored-B-rep mass/native SI/Part/provider/product remain unqualified. See
   `../cylindrical-wrap-closed-reference-2026-10-29/README.md`. Next D312 is bounded Part/provider/
   API/Model/Studio integration with explicit physical/trim/render admission and product checks.
+- D312 runtime`7a1a462ca` resolves D311's larger asymmetric budget refusal. Exact dyadic reduction
+  and exactly verified Number conversion candidates reduce the complete Z-7/U[.1,.4]/V[.2,.7]
+  request to150147ops/work319917; mirrored150161. Caps and all scalar budgets remain unchanged.
+  Old complete/native/formal non-ledger fields and actual Number bits match. Local perf median15
+  improves asymmetric native27->21ms and centered complete25->22ms with SAME output fingerprints.
+  Final focused185/185 and independent Sol High source review pass. Whole kernel2179pass/0fail/
+  6existing skips passes. Model1824/1824 and Studio365/365 pass; generated/API/docs pass. Consumer types/browser NOT RUN. Original R100 budget expectations are now
+  source/domain/error-proof success tests; original failures and corrected test-ID/comparison
+  diagnostics remain preserved. No literal B-rep/Part/product qualification or feature push.
+  See `../exact-rational-wrap-performance-2026-10-29/README.md`. Next D313 is bounded provider/
+  API/Model/Studio integration with actual physical/trim/render admission and product checks.
 - Next: roadmap07's remaining wrap provider and broader face-fillet/thread ranges, then08,09. General/curved,
   rational/smooth wrapping, shaping, kerning, bidi and normalization remain unimplemented. D291's broader
-  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D312.
+  free-form pairs/concave/multi-span ranges stay open. No feature push, new PR or release. Next decision:D313.
 
 The original hand-over below records the earlier stop. D288 closes its bounded CG1.3 unfinished list.
 
@@ -211,7 +222,7 @@ The original hand-over below records the earlier stop. D288 closes its bounded C
 2. `../claude-resume-2026-10-24/README.md` §1–§3 (where things are, tooling, verification windows) and
    `../claude-resume-2026-10-23/common.md` (standing rules) — still current except where this note says otherwise;
 3. `../../roadmap.md` rows 07, 08, 09, 16 and 22 (the work in order);
-4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D312**).
+4. `../../decisions.md` from D282 on (this session's decisions; the next free id is **D313**).
 
 ## 0. State at the stop
 

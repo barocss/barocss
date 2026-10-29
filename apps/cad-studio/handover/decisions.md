@@ -15748,3 +15748,60 @@ NOT RUN; latest whole consumers/types D299901b4ce45. No push/PR/release. Next D3
 bounded reference to Part/provider/API/Model/Studio with explicit physical/trim/render admission
 and consumer/browser checks. General text/rational/smooth wrap and broader07 remain open before
 08->09. Existing Part.mass/makeOutput/massPropertiesOf route is still source evidence only.
+
+
+## D312 — Exact arithmetic makes the asymmetric reference fit its original budget (2026-10-29)
+
+**Decision.** Runtime `7a1a462ca` fixes D311's R10/H30/Z-7/U[.1,.4]/V[.2,.7]/density7.85
+refusal without raising any operation, work, bit or accuracy cap. The input still has nine
+faces and four pad edges. Long exact fractions from decimal binary64 inputs increase the
+cost of repeated Euclidean reduction; generic full-code float searches add conversion work.
+Before the fix native189532+separately measured formal29260 already exceed200000. These are
+diagnostic child measurements, not a previously accepted complete request.
+
+The shared private SectionRationalContext now reduces positive power-of-two denominators by
+removing exact common trailing powers of two. Denominator1 returns the already-sized integer.
+Sign, zero and8192-bit input checks remain first; other denominators retain Euclid. A floating
+ratio may propose a binary64 floor code, but exact rational current/next comparisons alone
+certify it. At most three local corrections are attempted; nonfinite/unresolved estimates
+retain the original whole-code search. Maximum-finite guarding, exact nearest distance,
+even-code ties, upward bounds and every new operation remain accounted. No approximate
+coefficient, relaxed budget, test-only flag or Number candidate supplies proof authority.
+
+The candidate conversion alone still refused the combined case. With exact dyadic reduction,
+actual native120515/formal15475/full150147ops,319917work,bits1284 pass. Mirrored V[.3,.8]
+uses150161ops/work319755. Standard/centered/lower/upper complete requests now use137555/
+136559/137149/137153ops. Original200k/1m/8192 limits and all11 scalar budgets are unchanged.
+Full old/new Object.is comparison preserves every non-ledger field, including geometry,
+names, fractions, proof/error bounds and mass Number bits, for four old complete successes.
+Native/formal fields also match for both former complete refusals; no old complete result
+exists for those inputs. Every changed counter/reservation path is retained in the evidence.
+
+Mandatory perf-bench median15 local runs: asymmetric native27->21ms, centered complete25->22ms,
+formal7->6ms, centered native22->18ms. All actual geometry/properties fingerprints are SAME.
+These measured12–22% reductions are local observations, not Studio or hardware-independent
+latency guarantees. The newly accepted complete asymmetric case has no successful old timing.
+
+Independent generic Euclid and whole-code conversion oracles cover signed/mixed/unreduced
+fractions,8192-bit boundaries, binary64 ties/subnormals/range/negative zero, finite two-code
+candidate correction, overflow fallback and operation guards. All six complete references
+pass independent cap and geometric mass error oracles. Old R100 inverse BUDGET expectations
+became successes; tests now assert source/domain preservation and full interpolation/endpoint
+error bounds at unchanged0.01. Invalid-source and exact-total-minus-one refusals remain.
+
+Full build/lint/code-shape pass; focused185/185, kernel2185total/2179pass/0fail/6existing
+skips, Model1824/1824 and Studio365/365 pass. Sol Medium ran consumer suites serially;
+no production source changed during them. Generated agent-tools/refusals/unchanged API SCOPED_PASS/docs
+pass. Consumer type checks/browser NOT RUN. The new complete asymmetric benchmark is24ms
+median15, with the same actual B-rep as its native baseline. Non-wrap controls median7:
+planar Boolean23->21ms and shaft thread583->578ms, both fingerprints SAME; no meaningful
+thread speedup is claimed.
+
+Sol High read-only review found no P0–P2 issue and supplied the two-code correction fixture.
+Original focused184/182pass/2fail, subsequent test-ID mismatch and first comparison-ledger
+classification failure remain recorded verbatim; the final focused185/185 passes. No source
+checksum pin, dependency, WASM, lockfile, schema change, push, PR or release. Evidence:
+notes/exact-rational-wrap-performance-2026-10-29/README.md. Literal stored-B-rep closure/mass,
+native SI and Part/provider/product integration remain unqualified. Next D313 is bounded
+Part/provider/API/Model/Studio integration with physical/trim/render admission and actual
+product checks, followed by remaining07 before08->09.

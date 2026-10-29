@@ -1,0 +1,1257 @@
+TAP version 13
+# Subtest: rectilinear ring and separate stroke form one strict diagnostic shell with the independent incidence oracle
+ok 1 - rectilinear ring and separate stroke form one strict diagnostic shell with the independent incidence oracle
+  ---
+  duration_ms: 75.03575
+  type: 'test'
+  ...
+# Subtest: all original caps, opposite-half bits, IDs, names, pcurves and tolerances remain protected
+ok 2 - all original caps, opposite-half bits, IDs, names, pcurves and tolerances remain protected
+  ---
+  duration_ms: 25.487542
+  type: 'test'
+  ...
+# Subtest: counter basal face and pcurve winding independently preserve the exact UV ink identity
+ok 3 - counter basal face and pcurve winding independently preserve the exact UV ink identity
+  ---
+  duration_ms: 21.599708
+  type: 'test'
+  ...
+# Subtest: canonical edge/pcurve direction, shared endpoints, exact homothety and side rows agree independently
+ok 4 - canonical edge/pcurve direction, shared endpoints, exact homothety and side rows agree independently
+  ---
+  duration_ms: 28.612833
+  type: 'test'
+  ...
+# Subtest: nonzero Z and opposite authored ring winding keep the same rectilinear diagnostic contract
+ok 5 - nonzero Z and opposite authored ring winding keep the same rectilinear diagnostic contract
+  ---
+  duration_ms: 21.4515
+  type: 'test'
+  ...
+# Subtest: diagonal, touching, cap/seam contact, degenerate and nested ink refuse atomically
+ok 6 - diagonal, touching, cap/seam contact, degenerate and nested ink refuse atomically
+  ---
+  duration_ms: 37.867791
+  type: 'test'
+  ...
+# Subtest: wrong height, malformed records, arrays and work exhaustion have typed refusal boundaries
+ok 7 - wrong height, malformed records, arrays and work exhaustion have typed refusal boundaries
+  ---
+  duration_ms: 40.523708
+  type: 'test'
+  ...
+# Subtest: inconsistent source, range overflow and persistent-name collisions cannot change the accepted source
+ok 8 - inconsistent source, range overflow and persistent-name collisions cannot change the accepted source
+  ---
+  duration_ms: 15.884708
+  type: 'test'
+  ...
+# Subtest: one bound reference contains both complete actual child results under one final ledger
+ok 9 - one bound reference contains both complete actual child results under one final ledger
+  ---
+  duration_ms: 110.514083
+  type: 'test'
+  ...
+# Subtest: clockwise and rotated starts derive actual rectangle min/max without assuming native ID rotation
+ok 10 - clockwise and rotated starts derive actual rectangle min/max without assuming native ID rotation
+  ---
+  duration_ms: 82.018375
+  type: 'test'
+  ...
+# Subtest: exact total reservation succeeds and total minus one refuses without changing caller data
+ok 11 - exact total reservation succeeds and total minus one refuses without changing caller data
+  ---
+  duration_ms: 95.766333
+  type: 'test'
+  ...
+# Subtest: owned frozen results do not freeze or alias the original Part, ring or options
+ok 12 - owned frozen results do not freeze or alias the original Part, ring or options
+  ---
+  duration_ms: 27.615125
+  type: 'test'
+  ...
+# Subtest: fresh source checking refuses changed coefficients and metadata after an earlier successful request
+ok 13 - fresh source checking refuses changed coefficients and metadata after an earlier successful request
+  ---
+  duration_ms: 29.008792
+  type: 'test'
+  ...
+# Subtest: getters, inherited options and caller authority flags cannot supply wrapper inputs
+ok 14 - getters, inherited options and caller authority flags cannot supply wrapper inputs
+  ---
+  duration_ms: 8.854791
+  type: 'test'
+  ...
+# Subtest: original native and formal refusals propagate with their namespace and wording
+ok 15 - original native and formal refusals propagate with their namespace and wording
+  ---
+  duration_ms: 37.423958
+  type: 'test'
+  ...
+# Subtest: the separately measured Z0 reference pad accepts both complete source checks without a prefix deduction
+ok 16 - the separately measured Z0 reference pad accepts both complete source checks without a prefix deduction
+  ---
+  duration_ms: 24.133458
+  type: 'test'
+  ...
+# Subtest: complete projected outer and clockwise hole use one ledger and preserve owned canonical data
+ok 17 - complete projected outer and clockwise hole use one ledger and preserve owned canonical data
+  ---
+  duration_ms: 7.234667
+  type: 'test'
+  ...
+# Subtest: two sibling holes have mutual zero winding after every cross-ring pair is separated
+ok 18 - two sibling holes have mutual zero winding after every cross-ring pair is separated
+  ---
+  duration_ms: 4.241
+  type: 'test'
+  ...
+# Subtest: outer hint is an individual-ring witness and may lie in a hole without claiming material placement
+ok 19 - outer hint is an individual-ring witness and may lie in a hole without claiming material placement
+  ---
+  duration_ms: 1.815
+  type: 'test'
+  ...
+# Subtest: wrong orientation, outside holes and nested holes in either input order cannot certify roles
+ok 20 - wrong orientation, outside holes and nested holes in either input order cannot certify roles
+  ---
+  duration_ms: 9.77425
+  type: 'test'
+  ...
+# Subtest: touching/crossing boundaries and a bow tie never yield a partial component certificate
+ok 21 - touching/crossing boundaries and a bow tie never yield a partial component certificate
+  ---
+  duration_ms: 3.486959
+  type: 'test'
+  ...
+# Subtest: cycle closure, unique complete ownership and minimum ring length are exact input boundaries
+ok 22 - cycle closure, unique complete ownership and minimum ring length are exact input boundaries
+  ---
+  duration_ms: 2.156417
+  type: 'test'
+  ...
+# Subtest: boundary and exterior hints, unknown options, getters and late tightened budget are atomic refusals
+ok 23 - boundary and exterior hints, unknown options, getters and late tightened budget are atomic refusals
+  ---
+  duration_ms: 4.250875
+  type: 'test'
+  ...
+# Subtest: native original quarter diagonal triangle connects without asserting native trim or physical solid binding
+ok 24 - native original quarter diagonal triangle connects without asserting native trim or physical solid binding
+  ---
+  duration_ms: 32.776
+  type: 'test'
+  ...
+# Subtest: independent linear projection and endpoint-factor formula gives exact integer cone coefficients
+ok 25 - independent linear projection and endpoint-factor formula gives exact integer cone coefficients
+  ---
+  duration_ms: 4.012708
+  type: 'test'
+  ...
+# Subtest: all explicit endpoint choices preserve canonical curve direction and exact coefficient reversal
+ok 26 - all explicit endpoint choices preserve canonical curve direction and exact coefficient reversal
+  ---
+  duration_ms: 2.652709
+  type: 'test'
+  ...
+# Subtest: opposite represented normal candidates reverse signs without changing the projected relation
+ok 27 - opposite represented normal candidates reverse signs without changing the projected relation
+  ---
+  duration_ms: 1.32825
+  type: 'test'
+  ...
+# Subtest: equal world endpoints with different weights are compared by exact projected ratios
+ok 28 - equal world endpoints with different weights are compared by exact projected ratios
+  ---
+  duration_ms: 0.508291
+  type: 'test'
+  ...
+# Subtest: curved whole-edge sectors with varying Z remain strictly in opposite projected half-planes
+ok 29 - curved whole-edge sectors with varying Z remain strictly in opposite projected half-planes
+  ---
+  duration_ms: 0.367459
+  type: 'test'
+  ...
+# Subtest: large exact coefficient integers use a finite bounded tangent hint instead of overflowing Number ratios
+ok 30 - large exact coefficient integers use a finite bounded tangent hint instead of overflowing Number ratios
+  ---
+  duration_ms: 1.609333
+  type: 'test'
+  ...
+# Subtest: equal projections at different radial points and nearly equal endpoints cannot be sewn
+ok 31 - equal projections at different radial points and nearly equal endpoints cannot be sewn
+  ---
+  duration_ms: 1.036084
+  type: 'test'
+  ...
+# Subtest: same outgoing ray, zero normal and zero functional coefficients remain unresolved
+ok 32 - same outgoing ray, zero normal and zero functional coefficients remain unresolved
+  ---
+  duration_ms: 0.999542
+  type: 'test'
+  ...
+# Subtest: malformed hints, endpoint indices and foreign context curves have typed refusals
+ok 33 - malformed hints, endpoint indices and foreign context curves have typed refusals
+  ---
+  duration_ms: 2.006
+  type: 'test'
+  ...
+# Subtest: the one shared exact/direct request budget can only tighten and bounds cone work
+ok 34 - the one shared exact/direct request budget can only tighten and bounds cone work
+  ---
+  duration_ms: 0.55175
+  type: 'test'
+  ...
+# Subtest: owned frozen certificates cannot alias or change caller geometry and normal arrays
+ok 35 - owned frozen certificates cannot alias or change caller geometry and normal arrays
+  ---
+  duration_ms: 0.643959
+  type: 'test'
+  ...
+# Subtest: projected pair wrapper admits separated lines with bounded owned receipts and explicit false options
+ok 36 - projected pair wrapper admits separated lines with bounded owned receipts and explicit false options
+  ---
+  duration_ms: 2.548583
+  type: 'test'
+  ...
+# Subtest: shared endpoint selection certifies only the common projected point, preserving canonical directions
+ok 37 - shared endpoint selection certifies only the common projected point, preserving canonical directions
+  ---
+  duration_ms: 2.470042
+  type: 'test'
+  ...
+# Subtest: original native quarter diagonal curves connect to projected separation and a shared-corner cone
+ok 38 - original native quarter diagonal curves connect to projected separation and a shared-corner cone
+  ---
+  duration_ms: 34.814208
+  type: 'test'
+  ...
+# Subtest: pair options, budgets, source getters and duplicate identifiers have typed refusal boundaries
+ok 39 - pair options, budgets, source getters and duplicate identifiers have typed refusal boundaries
+  ---
+  duration_ms: 1.092916
+  type: 'test'
+  ...
+# Subtest: two actual curved cubics separate after exact subdivision although both initial ratio boxes overlap
+ok 40 - two actual curved cubics separate after exact subdivision although both initial ratio boxes overlap
+  ---
+  duration_ms: 8.946208
+  type: 'test'
+  ...
+# Subtest: an initial strict ratio gap needs one complete leaf and omits optional witnesses by default
+ok 41 - an initial strict ratio gap needs one complete leaf and omits optional witnesses by default
+  ---
+  duration_ms: 0.939875
+  type: 'test'
+  ...
+# Subtest: crossing, exact interior tangency, endpoint contact and full overlap never produce a partial certificate
+ok 42 - crossing, exact interior tangency, endpoint contact and full overlap never produce a partial certificate
+  ---
+  duration_ms: 3.241625
+  type: 'test'
+  ...
+# Subtest: curve reversal preserves disjointness and exact original normalized interval coverage
+ok 43 - curve reversal preserves disjointness and exact original normalized interval coverage
+  ---
+  duration_ms: 8.799041
+  type: 'test'
+  ...
+# Subtest: depth uncertainty and resource exhaustion retain different typed refusal codes
+ok 44 - depth uncertainty and resource exhaustion retain different typed refusal codes
+  ---
+  duration_ms: 0.994875
+  type: 'test'
+  ...
+# Subtest: only tighter own options are accepted without running getters or changing source curves
+ok 45 - only tighter own options are accepted without running getters or changing source curves
+  ---
+  duration_ms: 1.829583
+  type: 'test'
+  ...
+# Subtest: foreign or forged chart graphs refuse before access and certificates do not alias caller data
+ok 46 - foreign or forged chart graphs refuse before access and certificates do not alias caller data
+  ---
+  duration_ms: 1.406875
+  type: 'test'
+  ...
+# Subtest: independent rectangle orientation and reversed uses preserve canonical data and signed winding
+ok 47 - independent rectangle orientation and reversed uses preserve canonical data and signed winding
+  ---
+  duration_ms: 4.796208
+  type: 'test'
+  ...
+# Subtest: maximum-q vertices and vertical boundaries are rejected before the half-open crossing rule
+ok 48 - maximum-q vertices and vertical boundaries are rejected before the half-open crossing rule
+  ---
+  duration_ms: 1.639792
+  type: 'test'
+  ...
+# Subtest: local q extrema and endpoint crossings follow the independent upward-ray sign convention
+ok 49 - local q extrema and endpoint crossings follow the independent upward-ray sign convention
+  ---
+  duration_ms: 1.179542
+  type: 'test'
+  ...
+# Subtest: exact midpoint and non-dyadic unique q roots have strict height receipts without Number evaluation
+ok 50 - exact midpoint and non-dyadic unique q roots have strict height receipts without Number evaluation
+  ---
+  duration_ms: 0.647625
+  type: 'test'
+  ...
+# Subtest: height progress with nonconstant q is explicitly outside the first winding family
+ok 51 - height progress with nonconstant q is explicitly outside the first winding family
+  ---
+  duration_ms: 0.202917
+  type: 'test'
+  ...
+# Subtest: decreasing canonical q roots and reversed traversal use the same exact root with opposite contributions
+ok 52 - decreasing canonical q roots and reversed traversal use the same exact root with opposite contributions
+  ---
+  duration_ms: 0.232209
+  type: 'test'
+  ...
+# Subtest: canonical vertex point construction is independent of use sense and preserves exact ratios
+ok 53 - canonical vertex point construction is independent of use sense and preserves exact ratios
+  ---
+  duration_ms: 0.313375
+  type: 'test'
+  ...
+# Subtest: uses and query points require the same context brand before getters or arithmetic work
+ok 54 - uses and query points require the same context brand before getters or arithmetic work
+  ---
+  duration_ms: 0.276833
+  type: 'test'
+  ...
+# Subtest: own finite query admission, use-count bounds and frozen serializable results preserve callers
+ok 55 - own finite query admission, use-count bounds and frozen serializable results preserve callers
+  ---
+  duration_ms: 0.492709
+  type: 'test'
+  ...
+# Subtest: root-depth uncertainty and cumulative request arithmetic keep their original refusal limits
+ok 56 - root-depth uncertainty and cumulative request arithmetic keep their original refusal limits
+  ---
+  duration_ms: 0.92575
+  type: 'test'
+  ...
+# Subtest: stored cubic homogeneous integers preserve every exact cp*weight and own a frozen snapshot
+ok 57 - stored cubic homogeneous integers preserve every exact cp*weight and own a frozen snapshot
+  ---
+  duration_ms: 2.60525
+  type: 'test'
+  ...
+# Subtest: strict degree-five progress has independent rational derivative values and preserves its sign scale
+ok 58 - strict degree-five progress has independent rational derivative values and preserves its sign scale
+  ---
+  duration_ms: 1.186417
+  type: 'test'
+  ...
+# Subtest: axial progress is an independent fallback and mixed-sign or zero progress remains unresolved
+ok 59 - axial progress is an independent fallback and mixed-sign or zero progress remains unresolved
+  ---
+  duration_ms: 0.743209
+  type: 'test'
+  ...
+# Subtest: half subdivision uses a uniform8 scale and matches independent rational de Casteljau controls
+ok 60 - half subdivision uses a uniform8 scale and matches independent rational de Casteljau controls
+  ---
+  duration_ms: 0.595875
+  type: 'test'
+  ...
+# Subtest: exact ratio hulls retain negative Z and bound projected descendants without Number division
+ok 61 - exact ratio hulls retain negative Z and bound projected descendants without Number division
+  ---
+  duration_ms: 0.889875
+  type: 'test'
+  ...
+# Subtest: context ownership rejects copied or foreign graphs and source admission rejects unsupported data atomically
+ok 62 - context ownership rejects copied or foreign graphs and source admission rejects unsupported data atomically
+  ---
+  duration_ms: 0.864667
+  type: 'test'
+  ...
+# Subtest: plain own source/options refuse getters, foreign arrays and malformed fields without invoking accessors
+ok 63 - plain own source/options refuse getters, foreign arrays and malformed fields without invoking accessors
+  ---
+  duration_ms: 0.339708
+  type: 'test'
+  ...
+# Subtest: one ledger bounds rational plus direct work and separates depth uncertainty from global exhaustion
+ok 64 - one ledger bounds rational plus direct work and separates depth uncertainty from global exhaustion
+  ---
+  duration_ms: 0.783625
+  type: 'test'
+  ...
+# Subtest: the shared node cap refuses before another child pair and preserves all admitted immutable nodes
+ok 65 - the shared node cap refuses before another child pair and preserves all admitted immutable nodes
+  ---
+  duration_ms: 2.481375
+  type: 'test'
+  ...
+# Subtest: the loop factory directly creates a fresh frozen fixed profile without upgrading pair contexts
+ok 66 - the loop factory directly creates a fresh frozen fixed profile without upgrading pair contexts
+  ---
+  duration_ms: 0.510542
+  type: 'test'
+  ...
+# Subtest: only the fixed loop profile admits32 original curves and refuses33 without changing admitted data
+ok 67 - only the fixed loop profile admits32 original curves and refuses33 without changing admitted data
+  ---
+  duration_ms: 3.81875
+  type: 'test'
+  ...
+# Subtest: loop and pair profiles preserve identical prefix receipts while the loop keeps one exact operation ledger
+ok 68 - loop and pair profiles preserve identical prefix receipts while the loop keeps one exact operation ledger
+  ---
+  duration_ms: 0.690708
+  type: 'test'
+  ...
+# Subtest: loop ownership retains the global256 nodes and the same depth bit and work ceilings
+ok 69 - loop ownership retains the global256 nodes and the same depth bit and work ceilings
+  ---
+  duration_ms: 4.31125
+  type: 'test'
+  ...
+# Subtest: loop options share strict own-data validation and expose no profile or maxCurves knob
+ok 70 - loop options share strict own-data validation and expose no profile or maxCurves knob
+  ---
+  duration_ms: 0.21225
+  type: 'test'
+  ...
+# Subtest: fresh cap/whole-reference/mass proofs pass independent exact oracles, including signed cross inertia
+ok 71 - fresh cap/whole-reference/mass proofs pass independent exact oracles, including signed cross inertia
+  ---
+  duration_ms: 262.652959
+  type: 'test'
+  ...
+# Subtest: one actual source execution preserves all prior native geometry and formal numerical values
+ok 72 - one actual source execution preserves all prior native geometry and formal numerical values
+  ---
+  duration_ms: 72.817709
+  type: 'test'
+  ...
+# Subtest: clockwise and shifted start inputs retain the same closed region and mass
+ok 73 - clockwise and shifted start inputs retain the same closed region and mass
+  ---
+  duration_ms: 74.750917
+  type: 'test'
+  ...
+# Subtest: the final total cap passes and one fewer operation refuses after the actual prefix
+ok 74 - the final total cap passes and one fewer operation refuses after the actual prefix
+  ---
+  duration_ms: 63.047709
+  type: 'test'
+  ...
+# Subtest: an arithmetic-only budget can pass formal mass yet fail the complete geometric mass audit
+ok 75 - an arithmetic-only budget can pass formal mass yet fail the complete geometric mass audit
+  ---
+  duration_ms: 40.766916
+  type: 'test'
+  ...
+# Subtest: cap coefficients, orientations, ownership and original seam mutations fail their actual predicates
+ok 76 - cap coefficients, orientations, ownership and original seam mutations fail their actual predicates
+  ---
+  duration_ms: 36.7105
+  type: 'test'
+  ...
+# Subtest: the wrapped reference requires reciprocal uses, original rectangle parameters and outward sides
+ok 77 - the wrapped reference requires reciprocal uses, original rectangle parameters and outward sides
+  ---
+  duration_ms: 25.983584
+  type: 'test'
+  ...
+# Subtest: the final entry rejects supplied proof flags and never executes caller getters
+ok 78 - the final entry rejects supplied proof flags and never executes caller getters
+  ---
+  duration_ms: 3.221542
+  type: 'test'
+  ...
+# Subtest: R10/H30 cylinder-intent quarter has independent vertical, horizontal and diagonal midpoint regressions
+ok 79 - R10/H30 cylinder-intent quarter has independent vertical, horizontal and diagonal midpoint regressions
+  ---
+  duration_ms: 5.826166
+  type: 'test'
+  ...
+# Subtest: actual arbitrary trigonometric producer poles remain the composition authority
+ok 80 - actual arbitrary trigonometric producer poles remain the composition authority
+  ---
+  duration_ms: 4.970083
+  type: 'test'
+  ...
+# Subtest: reversed UV direction reverses both curves once and keeps the canonical shared parameter domain
+ok 81 - reversed UV direction reverses both curves once and keeps the canonical shared parameter domain
+  ---
+  duration_ms: 8.545959
+  type: 'test'
+  ...
+# Subtest: positive nonuniform weights in both source directions retain a whole-interval residual certificate
+ok 82 - positive nonuniform weights in both source directions retain a whole-interval residual certificate
+  ---
+  duration_ms: 3.876
+  type: 'test'
+  ...
+# Subtest: endpoint table values are copied exactly and included in the actual stored residual
+ok 83 - endpoint table values are copied exactly and included in the actual stored residual
+  ---
+  duration_ms: 13.007292
+  type: 'test'
+  ...
+# Subtest: same source weights and UV produce identical stored weights for radial ruled-side consumers
+ok 84 - same source weights and UV produce identical stored weights for radial ruled-side consumers
+  ---
+  duration_ms: 7.495041
+  type: 'test'
+  ...
+# Subtest: source, line and options remain unchanged and outputs own their coordinate arrays
+ok 85 - source, line and options remain unchanged and outputs own their coordinate arrays
+  ---
+  duration_ms: 3.190541
+  type: 'test'
+  ...
+# Subtest: malformed source shapes, degree/domain/weights and nonfinite data refuse without partial output
+ok 86 - malformed source shapes, degree/domain/weights and nonfinite data refuse without partial output
+  ---
+  duration_ms: 0.618209
+  type: 'test'
+  ...
+# Subtest: UV extrapolation, degenerate endpoints, unknown options and increased policy/work limits refuse
+ok 87 - UV extrapolation, degenerate endpoints, unknown options and increased policy/work limits refuse
+  ---
+  duration_ms: 0.7695
+  type: 'test'
+  ...
+# Subtest: subnormal input stays inside the same fixed rational work/bit context or refuses typed
+ok 88 - subnormal input stays inside the same fixed rational work/bit context or refuses typed
+  ---
+  duration_ms: 16.473291
+  type: 'test'
+  ...
+# Subtest: actual half-to-quarter direct copy retains its native U[0,.5] coefficients and original UV pcurve
+ok 89 - actual half-to-quarter direct copy retains its native U[0,.5] coefficients and original UV pcurve
+  ---
+  duration_ms: 11.956916
+  type: 'test'
+  ...
+# Subtest: nonunit and translated source domains normalize exactly without rewriting knots or pcurve UV
+ok 90 - nonunit and translated source domains normalize exactly without rewriting knots or pcurve UV
+  ---
+  duration_ms: 10.002166
+  type: 'test'
+  ...
+# Subtest: malformed native domains, extrapolation, zero/nonfinite/overflow spans and pcurve range refuse
+ok 91 - malformed native domains, extrapolation, zero/nonfinite/overflow spans and pcurve range refuse
+  ---
+  duration_ms: 0.595
+  type: 'test'
+  ...
+# Subtest: actual native rays and all ten source/pad/raw moments enclose an independent complex-polar oracle
+ok 92 - actual native rays and all ten source/pad/raw moments enclose an independent complex-polar oracle
+  ---
+  duration_ms: 36.646625
+  type: 'test'
+  ...
+# Subtest: public MMGS values are audited against exact represented density divided by1000
+ok 93 - public MMGS values are audited against exact represented density divided by1000
+  ---
+  duration_ms: 45.597125
+  type: 'test'
+  ...
+# Subtest: negative source Z and asymmetric V preserve signed mixed moments and central inertia
+ok 94 - negative source Z and asymmetric V preserve signed mixed moments and central inertia
+  ---
+  duration_ms: 16.361375
+  type: 'test'
+  ...
+# Subtest: centered axial pad retains exact zero Z/XZ/YZ and nonzero angular moments
+ok 95 - centered axial pad retains exact zero Z/XZ/YZ and nonzero angular moments
+  ---
+  duration_ms: 6.099084
+  type: 'test'
+  ...
+# Subtest: aggregate limits only tighten, and impossible scalar precision is not widened
+ok 96 - aggregate limits only tighten, and impossible scalar precision is not widened
+  ---
+  duration_ms: 25.107208
+  type: 'test'
+  ...
+# Subtest: overflow, underflow, nonfinite input, invalid ranges, and radius overrides refuse
+ok 97 - overflow, underflow, nonfinite input, invalid ranges, and radius overrides refuse
+  ---
+  duration_ms: 31.10975
+  type: 'test'
+  ...
+# Subtest: all scalar budgets must be explicit positive finite values
+ok 98 - all scalar budgets must be explicit positive finite values
+  ---
+  duration_ms: 13.153583
+  type: 'test'
+  ...
+# Subtest: getters never supply authority and input/output snapshots do not alias
+ok 99 - getters never supply authority and input/output snapshots do not alias
+  ---
+  duration_ms: 7.107375
+  type: 'test'
+  ...
+# Subtest: actual rays around the diagonal exercise the bounded three-step angle reduction
+ok 100 - actual rays around the diagonal exercise the bounded three-step angle reduction
+  ---
+  duration_ms: 7.3365
+  type: 'test'
+  ...
+# Subtest: changed actual source coefficients or native metadata cannot borrow formal-circle authority
+ok 101 - changed actual source coefficients or native metadata cannot borrow formal-circle authority
+  ---
+  duration_ms: 6.7965
+  type: 'test'
+  ...
+# Subtest: tiny valid source refuses the overflowing existing native SI density intermediate
+ok 102 - tiny valid source refuses the overflowing existing native SI density intermediate
+  ---
+  duration_ms: 1.801459
+  type: 'test'
+  ...
+# Subtest: all returned raw midpoint Number bits equal generic nearest on positive, negative and zero moments
+ok 103 - all returned raw midpoint Number bits equal generic nearest on positive, negative and zero moments
+  ---
+  duration_ms: 17.292834
+  type: 'test'
+  ...
+# Subtest: native cylinder quarter: original-U map and cubic composition share stored endpoints and separate analytic bounds
+ok 104 - native cylinder quarter: original-U map and cubic composition share stored endpoints and separate analytic bounds
+  ---
+  duration_ms: 52.627375
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap map: synthetic quarter node0/.5/1 has independent 0/pi4/pi2 enclosures and a full secant proof
+ok 105 - cylindrical wrap map: synthetic quarter node0/.5/1 has independent 0/pi4/pi2 enclosures and a full secant proof
+  ---
+  duration_ms: 6.311167
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap map: multiple radii/tolerances preserve analytic bounds; samples are regression observations only
+ok 106 - cylindrical wrap map: multiple radii/tolerances preserve analytic bounds; samples are regression observations only
+  ---
+  duration_ms: 20.971584
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap map: original knot domain is retained and derivative proof is not scaled twice
+ok 107 - cylindrical wrap map: original knot domain is retained and derivative proof is not scaled twice
+  ---
+  duration_ms: 4.049584
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap map: stored native weight defect, angular positivity and arclength drift are separate exact quantities
+ok 108 - cylindrical wrap map: stored native weight defect, angular positivity and arclength drift are separate exact quantities
+  ---
+  duration_ms: 2.111041
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap map: actual native half-to-quarter direct-copy extraction retains near-cardinal source coefficients
+ok 109 - cylindrical wrap map: actual native half-to-quarter direct-copy extraction retains near-cardinal source coefficients
+  ---
+  duration_ms: 9.579625
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap map: degenerate, foreign, reversed, wrong-plane and non-native quarter inputs refuse with typed errors
+ok 110 - cylindrical wrap map: degenerate, foreign, reversed, wrong-plane and non-native quarter inputs refuse with typed errors
+  ---
+  duration_ms: 4.135875
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap map: invalid/huge values, unattainable fixed-grid accuracy and collapsed native domains refuse atomically
+ok 111 - cylindrical wrap map: invalid/huge values, unattainable fixed-grid accuracy and collapsed native domains refuse atomically
+  ---
+  duration_ms: 2.991292
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap map: arclength output is a length residual, not an actual-arclength-domain or offset certificate
+ok 112 - cylindrical wrap map: arclength output is a length residual, not an actual-arclength-domain or offset certificate
+  ---
+  duration_ms: 3.672167
+  type: 'test'
+  ...
+# Subtest: carrier-only certification keeps the same exact source coefficients, original domain and radial bound without an inverse
+ok 113 - carrier-only certification keeps the same exact source coefficients, original domain and radial bound without an inverse
+  ---
+  duration_ms: 6.936375
+  type: 'test'
+  ...
+# Subtest: carrier-only certification neither accepts a chart tolerance nor changes an unattainable full-map refusal
+ok 114 - carrier-only certification neither accepts a chart tolerance nor changes an unattainable full-map refusal
+  ---
+  duration_ms: 2.615709
+  type: 'test'
+  ...
+# Subtest: affine synthetic carrier matches all ten independent triangular-band moments without a cylinder claim
+ok 115 - affine synthetic carrier matches all ten independent triangular-band moments without a cylinder claim
+  ---
+  duration_ms: 3.806458
+  type: 'test'
+  ...
+# Subtest: non-affine polynomial carrier encloses independent exact degree-six moments and proves fourth-order remainder
+ok 116 - non-affine polynomial carrier encloses independent exact degree-six moments and proves fourth-order remainder
+  ---
+  duration_ms: 3.5005
+  type: 'test'
+  ...
+# Subtest: disjoint tiles share one request/node cache and keep the independent addition oracle
+ok 117 - disjoint tiles share one request/node cache and keep the independent addition oracle
+  ---
+  duration_ms: 0.921292
+  type: 'test'
+  ...
+# Subtest: native semicircle direct-copy quarter retains source coefficients/native domains as diagnostic authority
+ok 118 - native semicircle direct-copy quarter retains source coefficients/native domains as diagnostic authority
+  ---
+  duration_ms: 13.634125
+  type: 'test'
+  ...
+# Subtest: invalid product source, overlap, malformed cells and unsupported limits refuse atomically
+ok 119 - invalid product source, overlap, malformed cells and unsupported limits refuse atomically
+  ---
+  duration_ms: 1.259125
+  type: 'test'
+  ...
+# Subtest: output receipt owns snapshots and does not certify B-rep topology or arbitrary ring coverage
+ok 120 - output receipt owns snapshots and does not certify B-rep topology or arbitrary ring coverage
+  ---
+  duration_ms: 0.581708
+  type: 'test'
+  ...
+# Subtest: native nonunit U/V domains preserve the partial added-band volume without span multipliers
+ok 121 - native nonunit U/V domains preserve the partial added-band volume without span multipliers
+  ---
+  duration_ms: 0.625
+  type: 'test'
+  ...
+# Subtest: negative source Z preserves signed added-band first moments and positive second moments
+ok 122 - negative source Z preserves signed added-band first moments and positive second moments
+  ---
+  duration_ms: 0.597291
+  type: 'test'
+  ...
+# Subtest: fresh one-pad native binding covers actual63 slots all36 coedges and all36 stronger vertex relations
+ok 123 - fresh one-pad native binding covers actual63 slots all36 coedges and all36 stronger vertex relations
+  ---
+  duration_ms: 68.203833
+  type: 'test'
+  ...
+# Subtest: legacy geometry exact-operation receipts and returned mutability survive private-run factoring
+ok 124 - legacy geometry exact-operation receipts and returned mutability survive private-run factoring
+  ---
+  duration_ms: 44.61575
+  type: 'test'
+  ...
+# Subtest: only the fresh fixed profile is accepted and caller data never becomes a receipt authority
+ok 125 - only the fresh fixed profile is accepted and caller data never becomes a receipt authority
+  ---
+  duration_ms: 13.298959
+  type: 'test'
+  ...
+# Subtest: one complete request honors fresh aggregate reservations and a final-bound refusal is atomic
+ok 126 - one complete request honors fresh aggregate reservations and a final-bound refusal is atomic
+  ---
+  duration_ms: 66.583167
+  type: 'test'
+  ...
+# Subtest: exact per-face quotient bounds cover independent tensor derivatives without a native D1 call
+ok 127 - exact per-face quotient bounds cover independent tensor derivatives without a native D1 call
+  ---
+  duration_ms: 6.778083
+  type: 'test'
+  ...
+# Subtest: both actual native five-row half-walls retain full-domain Lipschitz bounds across the repeated knot
+ok 128 - both actual native five-row half-walls retain full-domain Lipschitz bounds across the repeated knot
+  ---
+  duration_ms: 13.726708
+  type: 'test'
+  ...
+# Subtest: native cap residual matches an independent exact affine oracle for top and swapped bottom bases
+ok 129 - native cap residual matches an independent exact affine oracle for top and swapped bottom bases
+  ---
+  duration_ms: 6.048542
+  type: 'test'
+  ...
+# Subtest: affine residual is maximum per-pole L1 and unchanged exact canonical basis is mandatory
+ok 130 - affine residual is maximum per-pole L1 and unchanged exact canonical basis is mandatory
+  ---
+  duration_ms: 0.961375
+  type: 'test'
+  ...
+# Subtest: pcurve range uses exact hulls, actual rounded slack endpoints and exact zero Z
+ok 131 - pcurve range uses exact hulls, actual rounded slack endpoints and exact zero Z
+  ---
+  duration_ms: 0.35625
+  type: 'test'
+  ...
+# Subtest: slack alone cannot forgive the exact outside-domain clamp counterexample
+ok 132 - slack alone cannot forgive the exact outside-domain clamp counterexample
+  ---
+  duration_ms: 0.269542
+  type: 'test'
+  ...
+# Subtest: inflation includes both independent D0 terms and exact UV-to-world propagation once
+ok 133 - inflation includes both independent D0 terms and exact UV-to-world propagation once
+  ---
+  duration_ms: 0.250708
+  type: 'test'
+  ...
+# Subtest: endpoint point gaps honor the exact supplied entity tolerance including tiny equality
+ok 134 - endpoint point gaps honor the exact supplied entity tolerance including tiny equality
+  ---
+  duration_ms: 0.243791
+  type: 'test'
+  ...
+# Subtest: prepared faces are owned by one host context and inputs or error rationals stay immutable
+ok 135 - prepared faces are owned by one host context and inputs or error rationals stay immutable
+  ---
+  duration_ms: 0.621
+  type: 'test'
+  ...
+# Subtest: unsupported source nets, affine violations and malformed own data refuse explicitly
+ok 136 - unsupported source nets, affine violations and malformed own data refuse explicitly
+  ---
+  duration_ms: 0.872125
+  type: 'test'
+  ...
+# Subtest: all helper exact and structural work shares the supplied native ledger and existing budgets
+ok 137 - all helper exact and structural work shares the supplied native ledger and existing budgets
+  ---
+  duration_ms: 0.321666
+  type: 'test'
+  ...
+# Subtest: identical finite endpoint axes retain a fresh normalized bound without caller aliasing
+ok 138 - identical finite endpoint axes retain a fresh normalized bound without caller aliasing
+  ---
+  duration_ms: 0.064333
+  type: 'test'
+  ...
+# Subtest: actual weighted side coefficients transfer a mixed-sense outer and hole component with owned serializable receipts
+ok 139 - actual weighted side coefficients transfer a mixed-sense outer and hole component with owned serializable receipts
+  ---
+  duration_ms: 11.022708
+  type: 'test'
+  ...
+# Subtest: exact original field bits domain weights factor sign and side row order are binding requirements
+ok 140 - exact original field bits domain weights factor sign and side row order are binding requirements
+  ---
+  duration_ms: 9.949916
+  type: 'test'
+  ...
+# Subtest: identifier membership uniqueness shapes and all actual coordinate ranges refuse rather than rebind geometry
+ok 141 - identifier membership uniqueness shapes and all actual coordinate ranges refuse rather than rebind geometry
+  ---
+  duration_ms: 5.889042
+  type: 'test'
+  ...
+# Subtest: component authority is checked before purported receipt or piece getters and copied receipts have no capability
+ok 142 - component authority is checked before purported receipt or piece getters and copied receipts have no capability
+  ---
+  duration_ms: 2.198083
+  type: 'test'
+  ...
+# Subtest: one continuation ledger includes the original component and honors exact late operation and work budgets
+ok 143 - one continuation ledger includes the original component and honors exact late operation and work budgets
+  ---
+  duration_ms: 6.041916
+  type: 'test'
+  ...
+# Subtest: actual D298 native assembly sides bind to their authentic component without claiming the original carrier or full construction budget
+ok 144 - actual D298 native assembly sides bind to their authentic component without claiming the original carrier or full construction budget
+  ---
+  duration_ms: 46.431125
+  type: 'test'
+  ...
+# Subtest: all four actual spans match independent generic Bernstein products at multiple native radii
+ok 145 - all four actual spans match independent generic Bernstein products at multiple native radii
+  ---
+  duration_ms: 43.199333
+  type: 'test'
+  ...
+# Subtest: the cycle is derived from actual directed endpoints, independent of span list order
+ok 146 - the cycle is derived from actual directed endpoints, independent of span list order
+  ---
+  duration_ms: 4.919625
+  type: 'test'
+  ...
+# Subtest: nonclosed, branched, reversed, angularly singular and unsupported operands refuse
+ok 147 - nonclosed, branched, reversed, angularly singular and unsupported operands refuse
+  ---
+  duration_ms: 7.70525
+  type: 'test'
+  ...
+# Subtest: a changed admitted lower weight produces its own exact proof instead of borrowing the upper quarter
+ok 148 - a changed admitted lower weight produces its own exact proof instead of borrowing the upper quarter
+  ---
+  duration_ms: 4.270333
+  type: 'test'
+  ...
+# Subtest: the actual fresh native/formal prefix stays identical and its complete cost is retained
+ok 149 - the actual fresh native/formal prefix stays identical and its complete cost is retained
+  ---
+  duration_ms: 102.974625
+  type: 'test'
+  ...
+# Subtest: the complete operation total succeeds, one less refuses, and the former prefix cap cannot fund new work
+ok 150 - the complete operation total succeeds, one less refuses, and the former prefix cap cannot fund new work
+  ---
+  duration_ms: 105.155583
+  type: 'test'
+  ...
+# Subtest: the distinct Z0 original reference request fits with all four spans and unchanged physical exclusions
+ok 151 - the distinct Z0 original reference request fits with all four spans and unchanged physical exclusions
+  ---
+  duration_ms: 26.894375
+  type: 'test'
+  ...
+# Subtest: native circle-extrusion source agrees with actual Part output and keeps the original +Y quarter
+ok 152 - native circle-extrusion source agrees with actual Part output and keeps the original +Y quarter
+  ---
+  duration_ms: 42.610291
+  type: 'test'
+  ...
+# Subtest: the other original semicircle retains its distinct weight bit and every protected original record
+ok 153 - the other original semicircle retains its distinct weight bit and every protected original record
+  ---
+  duration_ms: 13.878417
+  type: 'test'
+  ...
+# Subtest: source, cached B-rep, options and returned data do not alias caller data
+ok 154 - source, cached B-rep, options and returned data do not alias caller data
+  ---
+  duration_ms: 13.183625
+  type: 'test'
+  ...
+# Subtest: the original Z slab may be above or below zero without replacing its wall domains
+ok 155 - the original Z slab may be above or below zero without replacing its wall domains
+  ---
+  duration_ms: 39.477583
+  type: 'test'
+  ...
+# Subtest: every original topology/name/sense/pcurve/tolerance or coefficient mismatch is refused
+ok 156 - every original topology/name/sense/pcurve/tolerance or coefficient mismatch is refused
+  ---
+  duration_ms: 25.412125
+  type: 'test'
+  ...
+# Subtest: hollow, cut, multi-slab, displaced and non-native source families refuse atomically
+ok 157 - hollow, cut, multi-slab, displaced and non-native source families refuse atomically
+  ---
+  duration_ms: 9.678333
+  type: 'test'
+  ...
+# Subtest: a radius label or B-rep provenance string alone cannot replace its native source geometry
+ok 158 - a radius label or B-rep provenance string alone cannot replace its native source geometry
+  ---
+  duration_ms: 5.752375
+  type: 'test'
+  ...
+# Subtest: plain own data and bounded extraction options are required without invoking getters
+ok 159 - plain own data and bounded extraction options are required without invoking getters
+  ---
+  duration_ms: 1.902041
+  type: 'test'
+  ...
+# Subtest: native-UV admission stays distinct from a separately certified full inverse request
+not ok 160 - native-UV admission stays distinct from a separately certified full inverse request
+  ---
+  duration_ms: 26.1935
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:128:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    ... Skipped lines
+    
+      {
+        controlPoints: [
+          [
+            [
+              100,
+    ...
+        degreeV: 1,
+    +   id: 'wrap_quarter',
+    -   id: 'native_uv_quarter',
+        kind: 'surface',
+        knotsU: [
+          0,
+          0,
+          0,
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    kind: 'surface'
+    id: 'native_uv_quarter'
+    degreeU: 2
+    degreeV: 1
+    knotsU:
+      0: 0
+      1: 0
+      2: 0
+      3: 0.5
+      4: 0.5
+      5: 0.5
+    knotsV:
+      0: 0
+      1: 0
+      2: 1
+      3: 1
+    controlPoints:
+      0:
+        0:
+          0: 100
+          1: 0
+          2: -100
+        1:
+          0: 100
+          1: 0
+          2: 50
+      1:
+        0:
+          0: 99.99999999999999
+          1: 99.99999999999997
+          2: -100
+        1:
+          0: 99.99999999999999
+          1: 99.99999999999997
+          2: 50
+      2:
+        0:
+          0: 6.123233995736766e-15
+          1: 100
+          2: -100
+        1:
+          0: 6.123233995736766e-15
+          1: 100
+          2: 50
+    weights:
+      0:
+        0: 1
+        1: 1
+      1:
+        0: 0.7071067811865476
+        1: 0.7071067811865476
+      2:
+        0: 1
+        1: 1
+  actual:
+    kind: 'surface'
+    id: 'wrap_quarter'
+    degreeU: 2
+    degreeV: 1
+    knotsU:
+      0: 0
+      1: 0
+      2: 0
+      3: 0.5
+      4: 0.5
+      5: 0.5
+    knotsV:
+      0: 0
+      1: 0
+      2: 1
+      3: 1
+    controlPoints:
+      0:
+        0:
+          0: 100
+          1: 0
+          2: -100
+        1:
+          0: 100
+          1: 0
+          2: 50
+      1:
+        0:
+          0: 99.99999999999999
+          1: 99.99999999999997
+          2: -100
+        1:
+          0: 99.99999999999999
+          1: 99.99999999999997
+          2: 50
+      2:
+        0:
+          0: 6.123233995736766e-15
+          1: 100
+          2: -100
+        1:
+          0: 6.123233995736766e-15
+          1: 100
+          2: 50
+    weights:
+      0:
+        0: 1
+        1: 1
+      1:
+        0: 0.7071067811865476
+        1: 0.7071067811865476
+      2:
+        0: 1
+        1: 1
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-source.test.mjs:139:52)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: degree1..3 native curves are enclosed against independent exact Bernstein values
+ok 161 - degree1..3 native curves are enclosed against independent exact Bernstein values
+  ---
+  duration_ms: 33.476041
+  type: 'test'
+  ...
+# Subtest: degreeU1..3 by V1 native tensors include cached repeated parameter paths
+ok 162 - degreeU1..3 by V1 native tensors include cached repeated parameter paths
+  ---
+  duration_ms: 19.71775
+  type: 'test'
+  ...
+# Subtest: actual native quarter coefficients and nonzero source Z remain unchanged
+ok 163 - actual native quarter coefficients and nonzero source Z remain unchanged
+  ---
+  duration_ms: 4.411125
+  type: 'test'
+  ...
+# Subtest: reversed stored poles and negative-domain parameters retain the independent bound
+ok 164 - reversed stored poles and negative-domain parameters retain the independent bound
+  ---
+  duration_ms: 6.506875
+  type: 'test'
+  ...
+# Subtest: authored Object.is constant axes restore exact negative zero; mixed zeros are not classified constant
+ok 165 - authored Object.is constant axes restore exact negative zero; mixed zeros are not classified constant
+  ---
+  duration_ms: 5.076583
+  type: 'test'
+  ...
+# Subtest: subnormal coordinates and parameters are covered without a relative-only assumption
+ok 166 - subnormal coordinates and parameters are covered without a relative-only assumption
+  ---
+  duration_ms: 0.793709
+  type: 'test'
+  ...
+# Subtest: snapshots are deeply frozen and do not alias inputs or option data
+ok 167 - snapshots are deeply frozen and do not alias inputs or option data
+  ---
+  duration_ms: 2.01625
+  type: 'test'
+  ...
+# Subtest: valid native curves or surfaces outside the narrow arithmetic templates refuse SUPPORT
+ok 168 - valid native curves or surfaces outside the narrow arithmetic templates refuse SUPPORT
+  ---
+  duration_ms: 0.911834
+  type: 'test'
+  ...
+# Subtest: current own fields, finite native data and nonexecuted getters are enforced
+ok 169 - current own fields, finite native data and nonexecuted getters are enforced
+  ---
+  duration_ms: 0.632625
+  type: 'test'
+  ...
+# Subtest: one ledger preserves exact/direct limits and requested error budgets without automatic relaxation
+ok 170 - one ledger preserves exact/direct limits and requested error budgets without automatic relaxation
+  ---
+  duration_ms: 3.733917
+  type: 'test'
+  ...
+# Subtest: one family covers actual original half-walls, edges, cap pcurves and new cubic sides with their original IDs
+ok 171 - one family covers actual original half-walls, edges, cap pcurves and new cubic sides with their original IDs
+  ---
+  duration_ms: 120.481333
+  type: 'test'
+  ...
+# Subtest: two half-spans cover the repeated-knot right branch, endpoints and neighboring binary64 parameters
+ok 172 - two half-spans cover the repeated-knot right branch, endpoints and neighboring binary64 parameters
+  ---
+  duration_ms: 11.981584
+  type: 'test'
+  ...
+# Subtest: global envelopes come only from actual slots and conservatively cover lower-degree standalone errors
+ok 173 - global envelopes come only from actual slots and conservatively cover lower-degree standalone errors
+  ---
+  duration_ms: 6.084
+  type: 'test'
+  ...
+# Subtest: repeated pcurve IDs with different geometry preserve kind and original slot mapping without aliasing
+ok 174 - repeated pcurve IDs with different geometry preserve kind and original slot mapping without aliasing
+  ---
+  duration_ms: 1.357
+  type: 'test'
+  ...
+# Subtest: family caps count every slot and every stored pole even when geometry and IDs repeat
+ok 175 - family caps count every slot and every stored pole even when geometry and IDs repeat
+  ---
+  duration_ms: 7.673291
+  type: 'test'
+  ...
+# Subtest: family rejects unsupported knots and any malformed slot without accepting a partial family
+ok 176 - family rejects unsupported knots and any malformed slot without accepting a partial family
+  ---
+  duration_ms: 0.505625
+  type: 'test'
+  ...
+# Subtest: one global family ledger tightens budget and leaves standalone serialized results and counts unchanged
+ok 177 - one global family ledger tightens budget and leaves standalone serialized results and counts unchanged
+  ---
+  duration_ms: 9.308083
+  type: 'test'
+  ...
+# Subtest: family fixed128 output matches generic bound and the independent positive predecessor criterion
+ok 178 - family fixed128 output matches generic bound and the independent positive predecessor criterion
+  ---
+  duration_ms: 6.895166
+  type: 'test'
+  ...
+# Subtest: family common-term and equal-axis reuse preserve the full generic recurrence for actual envelope tuples
+ok 179 - family common-term and equal-axis reuse preserve the full generic recurrence for actual envelope tuples
+  ---
+  duration_ms: 93.205084
+  type: 'test'
+  ...
+# Subtest: exact normalization matches generic Euclid for signed dyadic and mixed denominators
+ok 180 - exact normalization matches generic Euclid for signed dyadic and mixed denominators
+  ---
+  duration_ms: 39.701958
+  type: 'test'
+  ...
+# Subtest: nearest and upward preserve exact boundaries and both signs of ties across binary64 ranges
+ok 181 - nearest and upward preserve exact boundaries and both signs of ties across binary64 ranges
+  ---
+  duration_ms: 20.238084
+  type: 'test'
+  ...
+# Subtest: non-dyadic and unreduced conversions match an independent whole-code search
+ok 182 - non-dyadic and unreduced conversions match an independent whole-code search
+  ---
+  duration_ms: 15.102416
+  type: 'test'
+  ...
+# Subtest: overflowing Number operands use the exact fallback without trusting an estimate
+ok 183 - overflowing Number operands use the exact fallback without trusting an estimate
+  ---
+  duration_ms: 1.053542
+  type: 'test'
+  ...
+# Subtest: zero, denominator, finite range, integer size and total operation guards stay active
+ok 184 - zero, denominator, finite range, integer size and total operation guards stay active
+  ---
+  duration_ms: 4.60625
+  type: 'test'
+  ...
+1..184
+# tests 184
+# suites 0
+# pass 183
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1750.288916
