@@ -1775,3 +1775,37 @@ preservation NOT_TESTED. Actual Studio UI/Undo, independent numerical oracle, ex
 post-fix native roundtrip remain unverified. Root read the full supplied report without rerunning or
 accepting its pixel/runtime claims. No immediate implementation, duplicate issue, closure or reply.
 Existing A05/A06 priority remains; schedule this semantic review with the existing drawing work.
+
+
+### DA-DUP-1 — P2 independent-hole location dimension removed as duplicate (2026-10-29)
+
+Status: **CONFIRMED DEFECT / FIX NOT STARTED** from the supplied Sol High review. This supersedes the
+pending defect judgment in the DA-1c entry above; execution priority remains after existing A05/A06.
+Keep this task under CG5/DR1–8/O26/RS7.6 DA-1 and [existing #2243 evidence](https://github.com/barocss/barocss/issues/2243#issuecomment-6492887434).
+[Full review and original FAIL receipt](notes/drawing-assistant-maps-intake-2026-10-29/duplicate-semantics/duplicate-semantics-091150.md)
+are retained. Root read them without independent reproduction or cross-chat reply.
+
+At exact5c965a118, d3(top) locates first hole n2 at Y15 and d9(right) locates second hole n5 at Y15.
+Their circle centers are independent constants with no constraint/parameter linking them. The checker
+proposes remove d9 because axis/span match and both references include stock n0. Existing exact1266
+fix evidence records actual deletion. Shared stock and equal coordinates do not establish the same
+measurement dependency. The public edit changes only n4.center[0] from15 to17 while retaining the
+first hole. Product path: packages/barocss-cad-model/src/drawing/issues.ts:601–612,621–626; coordinate-
+only coverage aggregation at635–644,682–684 may also cover one hole with the other's location value.
+
+Completion criteria:
+- Preserve both independent target location dimensions in the15/15 case.
+- After the15/17 edit, resolve each target's actual value and report no duplicate for this pair.
+- With d9 absent, do not satisfy the second hole's location coverage using an unrelated hole's Y15.
+- Preserve genuine same-measurement orthographic duplicate detection and manual/auto control cases.
+- Base removal on common measurement dependency or an explicit locating relation, not shared stock.
+
+Evidence limits remain explicit: the new runner is **FAIL / run1**, because its drawing deep equality
+assertion rejected20 legitimate reference sig additions. Baseline duplicate proposal and the one-model-
+coordinate edit are observed; edited resolved-dimension/coverage differentials are **NOT_RUN**. Raw
+FAIL remains in receipt.json and is not converted to PASS by static saved-output analysis. A bounded
+followup must allow legitimate sig metadata and save actual resolved output before assertions. No new
+geometric tolerance, independent numerical/manufacturing acceptance, product fix, browser/UI/Undo,
+full suite or remote CI is claimed by this intake. Do not rerun the already-passed DA-1a batch merely
+to acknowledge this report. Schedule implementation and differential checks at the existing drawing
+priority; no new issue or priority change.
