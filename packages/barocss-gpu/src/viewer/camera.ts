@@ -19,8 +19,11 @@ export class Camera implements CameraState {
   target: Vec3 = [0, 0, 0];
   up: Vec3 = [0, 0, 1];
   fovY = 40;
-  /** Clip planes: set from the scene box each frame (see clip()). */
+  /** Raster clip planes: fitted to the scene each frame while autoClip is true (see clip()). */
   near = 0.01; far = 1000;
+  /** Fit raster clip planes to the scene. False uses authored near/far for base raster and GPU picks;
+   * finite manual ranges refuse grid, depth post effects, and active/creating path traces. */
+  autoClip = true;
 
   constructor(state: Partial<CameraState> = {}) { Object.assign(this, state); }
 
@@ -30,12 +33,25 @@ export class Camera implements CameraState {
 
   view(): Mat4 { return lookAt(this.position, this.target, this.up); }
   projectionMatrix(aspect: number): Mat4 {
+    if (this.autoClip === false) {
+      const orthographic = this.projection === 'orthographic';
+      if (!Number.isFinite(this.near) || (!orthographic && this.near <= 0)
+        || !(Number.isFinite(this.far) || (!orthographic && this.far === Infinity)) || this.far <= this.near) {
+        throw new ViewerError('CLIP_INVALID', 'Manual clipping requires ordered finite planes, or a positive perspective near with an infinite far');
+      }
+    }
     if (this.projection === 'orthographic') {
       // (Before clip() has fitted them, a perspective far plane at infinity becomes a finite one.)
       const h = this.halfHeight, far = Number.isFinite(this.far) ? this.far : this.near + 2 * this.distance + 1;
       return orthographicReversed(h * aspect, h, this.near, far);
     }
-    return perspectiveReversed((this.fovY * Math.PI) / 180, aspect, this.near);
+    const projection = perspectiveReversed((this.fovY * Math.PI) / 180, aspect, this.near);
+    if (this.autoClip === false && Number.isFinite(this.far)) {
+      const range = this.far - this.near;
+      projection[10] = this.near / range;
+      projection[14] = this.near * this.far / range;
+    }
+    return projection;
   }
   viewProjection(aspect: number): Mat4 { return multiply(this.projectionMatrix(aspect), this.view()); }
 

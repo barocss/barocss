@@ -1,0 +1,184 @@
+TAP version 13
+# Subtest: camera fit refuses zero aspect before changing state
+ok 1 - camera fit refuses zero aspect before changing state
+  ---
+  duration_ms: 1.259709
+  type: 'test'
+  ...
+# Subtest: camera fit refuses zero margin before changing state
+ok 2 - camera fit refuses zero margin before changing state
+  ---
+  duration_ms: 0.166041
+  type: 'test'
+  ...
+# Subtest: camera fit refuses negative aspect before changing state
+ok 3 - camera fit refuses negative aspect before changing state
+  ---
+  duration_ms: 0.111584
+  type: 'test'
+  ...
+# Subtest: camera fit refuses negative margin before changing state
+ok 4 - camera fit refuses negative margin before changing state
+  ---
+  duration_ms: 0.063083
+  type: 'test'
+  ...
+# Subtest: camera fit refuses NaN aspect before changing state
+ok 5 - camera fit refuses NaN aspect before changing state
+  ---
+  duration_ms: 0.147667
+  type: 'test'
+  ...
+# Subtest: camera fit refuses NaN margin before changing state
+ok 6 - camera fit refuses NaN margin before changing state
+  ---
+  duration_ms: 0.058833
+  type: 'test'
+  ...
+# Subtest: camera fit refuses positive infinity aspect before changing state
+ok 7 - camera fit refuses positive infinity aspect before changing state
+  ---
+  duration_ms: 0.113166
+  type: 'test'
+  ...
+# Subtest: camera fit refuses positive infinity margin before changing state
+ok 8 - camera fit refuses positive infinity margin before changing state
+  ---
+  duration_ms: 0.141208
+  type: 'test'
+  ...
+# Subtest: camera fit refuses negative infinity aspect before changing state
+ok 9 - camera fit refuses negative infinity aspect before changing state
+  ---
+  duration_ms: 0.406458
+  type: 'test'
+  ...
+# Subtest: camera fit refuses negative infinity margin before changing state
+ok 10 - camera fit refuses negative infinity margin before changing state
+  ---
+  duration_ms: 0.958208
+  type: 'test'
+  ...
+# Subtest: camera fit refuses finite positive aspect whose fitted distance overflows
+ok 11 - camera fit refuses finite positive aspect whose fitted distance overflows
+  ---
+  duration_ms: 0.240625
+  type: 'test'
+  ...
+# Subtest: camera fit refuses finite positive margin whose fitted radius overflows
+ok 12 - camera fit refuses finite positive margin whose fitted radius overflows
+  ---
+  duration_ms: 0.119125
+  type: 'test'
+  ...
+# Subtest: camera fit refuses a finite box whose span overflows without replacing its target
+ok 13 - camera fit refuses a finite box whose span overflows without replacing its target
+  ---
+  duration_ms: 0.155292
+  type: 'test'
+  ...
+# Subtest: camera fit refuses a finite box whose centre overflows before assigning either field
+ok 14 - camera fit refuses a finite box whose centre overflows before assigning either field
+  ---
+  duration_ms: 0.070625
+  type: 'test'
+  ...
+# Subtest: camera fit refuses NaN bound with nonfinite computed output atomically
+ok 15 - camera fit refuses NaN bound with nonfinite computed output atomically
+  ---
+  duration_ms: 0.060709
+  type: 'test'
+  ...
+# Subtest: camera fit refuses infinite bound with nonfinite computed output atomically
+ok 16 - camera fit refuses infinite bound with nonfinite computed output atomically
+  ---
+  duration_ms: 0.068583
+  type: 'test'
+  ...
+# Subtest: camera fit preserves the existing finite framing equation for both projections
+ok 17 - camera fit preserves the existing finite framing equation for both projections
+  ---
+  duration_ms: 0.172459
+  type: 'test'
+  ...
+# Subtest: camera fit keeps finite fallback direction for an initially coincident eye and target
+ok 18 - camera fit keeps finite fallback direction for an initially coincident eye and target
+  ---
+  duration_ms: 0.095792
+  type: 'test'
+  ...
+# Subtest: default matrices match independently derived fixed projection and old shape
+ok 19 - default matrices match independently derived fixed projection and old shape
+  ---
+  duration_ms: 1.38
+  type: 'test'
+  ...
+# Subtest: known center, left, right, up and down points detect matrix transpose and Y inversion
+ok 20 - known center, left, right, up and down points detect matrix transpose and Y inversion
+  ---
+  duration_ms: 0.339666
+  type: 'test'
+  ...
+# Subtest: side and oblique look-at frames remain orthonormal and right-handed
+ok 21 - side and oblique look-at frames remain orthonormal and right-handed
+  ---
+  duration_ms: 0.334959
+  type: 'test'
+  ...
+# Subtest: translated target projects to center without changing world geometry
+ok 22 - translated target projects to center without changing world geometry
+  ---
+  duration_ms: 0.069375
+  type: 'test'
+  ...
+# Subtest: near and far map to OpenGL clip endpoints and behind-camera has negative W
+ok 23 - near and far map to OpenGL clip endpoints and behind-camera has negative W
+  ---
+  duration_ms: 0.146291
+  type: 'test'
+  ...
+# Subtest: up rotation, aspect and optics follow analytic projection expectations
+ok 24 - up rotation, aspect and optics follow analytic projection expectations
+  ---
+  duration_ms: 0.138542
+  type: 'test'
+  ...
+# Subtest: nested camera data is copied and frozen while original up magnitude is retained
+ok 25 - nested camera data is copied and frozen while original up magnitude is retained
+  ---
+  duration_ms: 0.371042
+  type: 'test'
+  ...
+# Subtest: strict objects and vectors reject missing, foreign, symbol and accessor fields without reads
+ok 26 - strict objects and vectors reject missing, foreign, symbol and accessor fields without reads
+  ---
+  duration_ms: 0.72825
+  type: 'test'
+  ...
+# Subtest: camera vectors and optics reject all scalar bound violations
+ok 27 - camera vectors and optics reject all scalar bound violations
+  ---
+  duration_ms: 0.628417
+  type: 'test'
+  ...
+# Subtest: singular and almost singular eye/up axes reject before GPU allocation
+ok 28 - singular and almost singular eye/up axes reject before GPU allocation
+  ---
+  duration_ms: 0.414
+  type: 'test'
+  ...
+# Subtest: Float32 clipping collapse, cancellation, overflow and underflow reject without clamping
+ok 29 - Float32 clipping collapse, cancellation, overflow and underflow reject without clamping
+  ---
+  duration_ms: 0.407459
+  type: 'test'
+  ...
+1..29
+# tests 29
+# suites 0
+# pass 29
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 360.195208

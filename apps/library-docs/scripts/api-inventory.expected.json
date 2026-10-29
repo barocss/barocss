@@ -416943,6 +416943,13 @@
             ],
             "members": [
               {
+                "name": "autoClip",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "boolean"
+              },
+              {
                 "name": "basis",
                 "kind": "method",
                 "optional": false,
@@ -464345,6 +464352,13 @@
             ],
             "members": [
               {
+                "name": "autoClip",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "boolean"
+              },
+              {
                 "name": "basis",
                 "kind": "method",
                 "optional": false,
@@ -507962,6 +507976,13 @@
               }
             ],
             "members": [
+              {
+                "name": "autoClip",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "boolean"
+              },
               {
                 "name": "basis",
                 "kind": "method",

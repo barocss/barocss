@@ -16260,3 +16260,36 @@ three Render raw states omit history. Exclude both-undefined equality from actua
 attach presence/type-before-comparison or equivalent public Undo/Redo proof to existingO9/12/16/#2242.
 Keep original receipts and separate Doc/recovery/Drawing/Model/source guards. No whole-suite rerun or
 priority switch. Source/receipt review is not independent runtime or current-HEAD acceptance.
+
+
+## D325 — Align SDK display and selection clipping (2026-10-29)
+
+The current d855 native baseline reproduces #2239: excluded near7/far5 square remains rendered while
+CPU pick returns null. Presenter forwards admitted scene-unit near/far and sets new Camera.autoClip=false;
+default true retains original scene fitting/infinite reversed projection. Manual finite projection
+uses closed axial near<=depth<=far; invalid manual ranges refuse existing CLIP_INVALID, with valid
+orthographic negative near/signed zero preserved. Geometry scale does not rescale clip values.
+
+Manual pick fragments retain raw far-depth0 while a separate exact-zero fragment-depth minimum normal
+passes the cleared buffer once. Strict greater preserves first-hit equal-instance order. autoClip joins
+existing pending-readback camera guards; stale return follows unmap. Core CPU raycast stays geometric.
+Manual finite grid, positive SSAO/contact and enabled DOF refuse CLIP_INVALID before submission;
+active/creating path trace and new trace creation refuse PATH_TRACE_UNSUPPORTED, with post-await
+rechecks and unpublished-session disposal/finally ownership release. No new codes/schema/dependencies.
+
+GPU emit/types and SDK types/lint pass. Normal GPU first355/357 has2 missing-Camera fixture failures;
+actual Camera fixture plus related display26/camera29 reruns pass. SDK final11 pass, with initial8/10
+background-normalization test-fixture failure retained. Counts overlap and no final full-GPU runner
+is claimed. New SDK script registers the CPU file; affected CI still excludes runtime package tests.
+API complete delta is only Camera.autoClip:boolean at3 existing GPU exposures; root reviews/adopts
+exact generated expected bytes, retaining original expected mismatch.
+
+Actual Chrome156/Apple metal-3/DPR1 selected1 passes12 SDK observations at scale1/.001, including
+closed near/far and restoration; excluded coverage0/CPU null. Actual public Core GPU exact-far depth0,
+face71/instance0/triangle0 and strict duplicate tie pass. Native fulfilled map return held across only
+autoClip change yields stale null/unmap1, then fresh far hit/unmap2. Root views PNG3. Owned cleanup and
+source/driver binding retained. Evidence: notes/viewer-clipping-contract-2026-10-29/qualification.json.
+Full other-package/browser suites, caps/effects/orthographic/native off-axis/two-square, other environments,
+world-coordinate certification, device loss/memory/performance remain NOT_RUN. Incoming Studio UX maps
+existing15/20/21 only; preserve D321 Render-history gap and D322 ownership. Normal feature push is
+authorized; no PR/release. Next D326: existing12/O9 A05 late Open request ownership, baseline first.

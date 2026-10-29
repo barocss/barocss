@@ -1,0 +1,76 @@
+TAP version 13
+# Subtest: SDK clipping uses closed axial near/far planes and Presenter preserves them through frame preparation
+ok 1 - SDK clipping uses closed axial near/far planes and Presenter preserves them through frame preparation
+  ---
+  duration_ms: 5.388083
+  type: 'test'
+  ...
+# Subtest: SDK clipping uses scene depth rather than off-axis ray distance, independently of mm scale and nonunit up
+ok 2 - SDK clipping uses scene depth rather than off-axis ray distance, independently of mm scale and nonunit up
+  ---
+  duration_ms: 2.432416
+  type: 'test'
+  ...
+# Subtest: SDK rejects invalid camera clips before replacing accepted camera, scene or CPU hit
+ok 3 - SDK rejects invalid camera clips before replacing accepted camera, scene or CPU hit
+  ---
+  duration_ms: 1.657917
+  type: 'test'
+  ...
+# Subtest: SDK camera replacement and Core manual-auto/projection transitions use the current clipping policy
+ok 4 - SDK camera replacement and Core manual-auto/projection transitions use the current clipping policy
+  ---
+  duration_ms: 0.743084
+  type: 'test'
+  ...
+# Subtest: Core default auto clipping preserves the exact infinite reversed projection; manual finite endpoints remain reversed
+ok 5 - Core default auto clipping preserves the exact infinite reversed projection; manual finite endpoints remain reversed
+  ---
+  duration_ms: 0.155167
+  type: 'test'
+  ...
+# Subtest: manual Core clipping validates projection-specific planes without changing automatic or orthographic negative-near contracts
+ok 6 - manual Core clipping validates projection-specific planes without changing automatic or orthographic negative-near contracts
+  ---
+  duration_ms: 0.520334
+  type: 'test'
+  ...
+# Subtest: manual finite unsupported raster combinations refuse before submission while SDK off states and auto remain admitted
+ok 7 - manual finite unsupported raster combinations refuse before submission while SDK off states and auto remain admitted
+  ---
+  duration_ms: 1.399875
+  type: 'test'
+  ...
+# Subtest: manual finite path trace refuses both initially and after lazy import without allocating or retaining pending ownership
+ok 8 - manual finite path trace refuses both initially and after lazy import without allocating or retaining pending ownership
+  ---
+  duration_ms: 0.805083
+  type: 'test'
+  ...
+# Subtest: manual finite switch during actual async session creation disposes the unpublished owner and permits later auto creation
+ok 9 - manual finite switch during actual async session creation disposes the unpublished owner and permits later auto creation
+  ---
+  duration_ms: 2.863458
+  type: 'test'
+  ...
+# Subtest: active actual path trace refuses manual finite frame preparation until stopped, retaining its owner until disposal
+ok 10 - active actual path trace refuses manual finite frame preparation until stopped, retaining its owner until disposal
+  ---
+  duration_ms: 3.615209
+  type: 'test'
+  ...
+# Subtest: SDK skips an out-of-range nearest surface and still selects the later in-range surface while Core raycast stays raw
+ok 11 - SDK skips an out-of-range nearest surface and still selects the later in-range surface while Core raycast stays raw
+  ---
+  duration_ms: 1.160584
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 487.595416

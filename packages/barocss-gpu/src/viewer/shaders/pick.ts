@@ -17,6 +17,16 @@ struct Ids { @location(0) id: u32, @location(1) depth: f32, @location(2) instanc
   if (clippedAway(in.world)) { discard; }
   return Ids(object.pick.x, in.clip.z, in.instance);
 }
+// A finite far plane has raw depth zero. Keep it in the result, but let the first
+// boundary fragment beat the cleared depth without changing strict-depth ties.
+fn pickTestDepth(z: f32) -> f32 {
+  return select(z, bitcast<f32>(0x00800000u), z == 0.0);
+}
+struct ManualIds { @location(0) id: u32, @location(1) depth: f32, @location(2) instance: u32, @builtin(frag_depth) z: f32 }
+@fragment fn fsManual(in: POut) -> ManualIds {
+  if (clippedAway(in.world)) { discard; }
+  return ManualIds(object.pick.x, in.clip.z, in.instance, pickTestDepth(in.clip.z));
+}
 // The outline mask: which outline (1-based; 0 none) covers each visible pixel.
 @fragment fn fsMask(in: POut) -> @location(0) u32 {
   if (clippedAway(in.world)) { discard; }
@@ -50,6 +60,12 @@ struct CapIds { @location(0) id: u32, @location(1) depth: f32, @location(2) inst
   let z = capDepth(capPoint(in.world));
   if (z < 0.0) { discard; }
   return CapIds(object.pick.x, z, in.instance, z);
+}
+@fragment fn fsCapPickManual(in: POut) -> CapIds {
+  if (!capFirst(in.clip)) { discard; }
+  let z = capDepth(capPoint(in.world));
+  if (z < 0.0) { discard; }
+  return CapIds(object.pick.x, z, in.instance, pickTestDepth(z));
 }
 // The caps in the shadow map (G19.4): as in the scene, from the light — its probe read, the cap at its entry's depth.
 @fragment fn fsCapShadow(in: POut) -> @builtin(frag_depth) f32 {

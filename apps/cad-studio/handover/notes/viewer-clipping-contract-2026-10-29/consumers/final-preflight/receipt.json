@@ -1,0 +1,8 @@
+{
+  "syntax": 0,
+  "lint": 0,
+  "source": "packages/barocss-viewer/tests/clipping-contract-browser.test.mjs",
+  "sha256": "993e51e8afa446af0316d206a5f51c26b84c358bbe924978a153f821b3ee3fdf",
+  "repair": "no-this-alias: store selected native buffer in holder object; native receiver/arguments/results unchanged",
+  "native": "NOT_RUN"
+}

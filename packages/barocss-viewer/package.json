@@ -27,7 +27,8 @@
   "files": ["dist", "README.md", "LICENSE"],
   "scripts": {
     "build:library": "tsc -p tsconfig.json",
-    "type-check": "tsc -p tsconfig.json --noEmit"
+    "type-check": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test tests/clipping-contract.test.mjs"
   },
   "dependencies": {
     "@barocss/cad": "workspace:*",

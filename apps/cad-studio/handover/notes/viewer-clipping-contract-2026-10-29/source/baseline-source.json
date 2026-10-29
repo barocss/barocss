@@ -1,0 +1,29 @@
+{
+  "commit": "d85558ce0031d812341d5871743f8535520eb8d4",
+  "files": [
+    {
+      "path": "packages/barocss-gpu/src/viewer/camera.ts",
+      "gitBlob": "05b4c23f0a4923f63911e7851f9a9d0f4f9b4b43",
+      "sha256": "760fb86765d0f65cc9aef5790afa90e3242708446e8dc54cec63880392c2a73a",
+      "archive": "barocss-gpu-camera.ts.before.gz"
+    },
+    {
+      "path": "packages/barocss-gpu/src/viewer/viewer.ts",
+      "gitBlob": "10f775514a36bc4a8d1c7d437d0bb56fd40b2213",
+      "sha256": "1c1df2143fe714569fe40b7aa27e6772faca9f44c9c50a9cca56194467b052a8",
+      "archive": "barocss-gpu-viewer.ts.before.gz"
+    },
+    {
+      "path": "packages/barocss-gpu/src/viewer/shaders/pick.ts",
+      "gitBlob": "e04474e148aa30e3c79bb8b444b024817f001c3a",
+      "sha256": "4ff333ccf8e3acd880bfca1934a638287cbdad92ba792db085115dd21cd9e2a2",
+      "archive": "barocss-gpu-pick.ts.before.gz"
+    },
+    {
+      "path": "packages/barocss-viewer/src/presenter.ts",
+      "gitBlob": "18a42a3511c40805745c7b4a1b7253e7a01589d3",
+      "sha256": "96ce81cb3be6bc06060a7114a518a0b9925f139c7ce71ce9e7fab3ca0a8a3892",
+      "archive": "barocss-viewer-presenter.ts.before.gz"
+    }
+  ]
+}

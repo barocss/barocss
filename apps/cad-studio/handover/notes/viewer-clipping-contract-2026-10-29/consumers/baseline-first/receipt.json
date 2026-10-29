@@ -1,0 +1,188 @@
+{
+  "status": "BASELINE_REPRODUCED_PRODUCT_FAIL",
+  "baseline": "d85558ce0031d812341d5871743f8535520eb8d4",
+  "worktree": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+  "runnerProcess": 11098,
+  "samples": [
+    {
+      "label": "control",
+      "requestedCamera": {
+        "eye": [
+          0,
+          0,
+          6
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fovY": 45,
+        "near": 0.01,
+        "far": 100
+      },
+      "byteLength": 307200,
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "pick": {
+        "ref": {
+          "modelId": "audit",
+          "surfaceId": "audit_patch"
+        },
+        "triangleIndex": 0,
+        "distanceScene": 6,
+        "positionScene": [
+          0,
+          0,
+          0
+        ],
+        "parameterUV": [
+          0.5,
+          0.5
+        ],
+        "approximate": true,
+        "ambiguous": true
+      }
+    },
+    {
+      "label": "near-excludes",
+      "requestedCamera": {
+        "eye": [
+          0,
+          0,
+          6
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fovY": 45,
+        "near": 7,
+        "far": 100
+      },
+      "byteLength": 307200,
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "pick": null
+    },
+    {
+      "label": "far-excludes",
+      "requestedCamera": {
+        "eye": [
+          0,
+          0,
+          6
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fovY": 45,
+        "near": 0.01,
+        "far": 5
+      },
+      "byteLength": 307200,
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "pick": null
+    }
+  ],
+  "errors": [],
+  "fixture": "Original audit/audit_patch public authored square packet, not a user file or Studio UI-generated document.",
+  "pickPath": "Public SDK CPU pick; internal GPU pick NOT_RUN",
+  "bundle": {
+    "critical": [
+      {
+        "path": "packages/barocss-viewer/src/index.ts",
+        "sha256": "ec81a4222a69b3859fbe16203c07cc1606fa99aa504c8fa521a3ea0c3f114a91"
+      },
+      {
+        "path": "packages/barocss-viewer/src/presenter.ts",
+        "sha256": "96ce81cb3be6bc06060a7114a518a0b9925f139c7ce71ce9e7fab3ca0a8a3892"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/viewer.ts",
+        "sha256": "1c1df2143fe714569fe40b7aa27e6772faca9f44c9c50a9cca56194467b052a8"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/scene.ts",
+        "sha256": "f7e17275a2efb6c8b9d5bf73c89e61902f94a9f01541476ce07c79baf59954d5"
+      }
+    ],
+    "inputCount": 580,
+    "sha256": "769ca9e4d3b5cfdcfcd1c87d447a985dc876e64de30e9e6273655842fa22ece9",
+    "source": "Current worktree SDK source esbuild; no dist rebuild or source patch"
+  },
+  "browser": "156.0.8078.48",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "mismatches": [
+    {
+      "label": "near-excludes",
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "cpuPick": null,
+      "sameCoverageAsControl": true,
+      "sameCenterRGBAAsControl": true
+    },
+    {
+      "label": "far-excludes",
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "cpuPick": null,
+      "sameCoverageAsControl": true,
+      "sameCenterRGBAAsControl": true
+    }
+  ],
+  "failureClass": "SAFE_CLIPPING_CONTRACT_FAILURE",
+  "failure": {
+    "phase": "safe display and CPU clipping assertions after all native observations",
+    "message": "near-excludes: CPU-excluded square must also be absent from actual display\n\n9600 !== 0\n",
+    "stack": "AssertionError [ERR_ASSERTION]: near-excludes: CPU-excluded square must also be absent from actual display\n\n9600 !== 0\n\n    at TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-viewer/tests/clipping-contract-browser.test.mjs:76:14)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)"
+  },
+  "cleanup": "OWN_VIEWER_CONTEXT_BROWSER_SERVER_CLOSED"
+}

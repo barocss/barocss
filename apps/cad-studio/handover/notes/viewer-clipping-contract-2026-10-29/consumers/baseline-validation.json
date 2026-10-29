@@ -1,0 +1,133 @@
+{
+  "status": "BASELINE_REPRODUCED_PRODUCT_FAIL",
+  "meaning": "The single baseline safe-contract test failed after native control and all three observations; both near/far mismatches reproduced. Not a repair PASS.",
+  "baseline": "d85558ce0031d812341d5871743f8535520eb8d4",
+  "selectedTests": {
+    "total": 1,
+    "pass": 0,
+    "fail": 1,
+    "skip": 0
+  },
+  "observations": 3,
+  "mismatches": [
+    {
+      "label": "near-excludes",
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "cpuPick": null,
+      "sameCoverageAsControl": true,
+      "sameCenterRGBAAsControl": true
+    },
+    {
+      "label": "far-excludes",
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "cpuPick": null,
+      "sameCoverageAsControl": true,
+      "sameCenterRGBAAsControl": true
+    }
+  ],
+  "execution": {
+    "exit": 1,
+    "duration": 3213.124292,
+    "testDuration": 3145.303333,
+    "timeUnit": "ms"
+  },
+  "preflight": {
+    "syntax": 0,
+    "lint": 0
+  },
+  "firstFailure": {
+    "phase": "safe display and CPU clipping assertions after all native observations",
+    "message": "near-excludes: CPU-excluded square must also be absent from actual display\n\n9600 !== 0\n",
+    "stack": "AssertionError [ERR_ASSERTION]: near-excludes: CPU-excluded square must also be absent from actual display\n\n9600 !== 0\n\n    at TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-viewer/tests/clipping-contract-browser.test.mjs:76:14)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)"
+  },
+  "pageErrors": [],
+  "sourceProfile": "baseline-first/source-profile.json",
+  "sourceBundleProfile": "baseline-first/receipt.json bundle field",
+  "sourceHashesUnchangedAfterRun": true,
+  "nativeControl": {
+    "label": "control",
+    "requestedCamera": {
+      "eye": [
+        0,
+        0,
+        6
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ],
+      "fovY": 45,
+      "near": 0.01,
+      "far": 100
+    },
+    "byteLength": 307200,
+    "covered": 9600,
+    "centerRGBA": [
+      51,
+      138,
+      201,
+      255
+    ],
+    "pick": {
+      "ref": {
+        "modelId": "audit",
+        "surfaceId": "audit_patch"
+      },
+      "triangleIndex": 0,
+      "distanceScene": 6,
+      "positionScene": [
+        0,
+        0,
+        0
+      ],
+      "parameterUV": [
+        0.5,
+        0.5
+      ],
+      "approximate": true,
+      "ambiguous": true
+    }
+  },
+  "cleanup": {
+    "runnerProcess": 11098,
+    "runnerExited": true,
+    "nativeResources": "OWN_VIEWER_CONTEXT_BROWSER_SERVER_CLOSED",
+    "gate": "holder:none after exit"
+  },
+  "visualReview": [
+    "baseline-first/control.png",
+    "baseline-first/near-excludes.png",
+    "baseline-first/far-excludes.png"
+  ],
+  "boundaries": [
+    "Public SDK CPU pick only; internal native GPU pick NOT_RUN",
+    "Authored public packet, not user file/Studio UI generation",
+    "Coverage and center equality only; full pixel-byte equality NOT_MEASURED",
+    "No private Core far recorded; JSON null does not claim Infinity/null runtime state",
+    "Center hit is approximate/ambiguous because the ray meets a shared triangle edge; original hit fields preserved"
+  ],
+  "notRun": [
+    "Repair validation",
+    "Near/far boundary values or camera transitions beyond three observations",
+    "Other browser/adapter/DPR",
+    "Whole suites"
+  ]
+}

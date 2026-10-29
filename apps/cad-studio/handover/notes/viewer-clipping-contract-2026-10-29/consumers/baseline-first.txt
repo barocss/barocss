@@ -1,0 +1,32 @@
+TAP version 13
+# Subtest: D325 SDK displayed clipping agrees with public CPU pick
+not ok 1 - D325 SDK displayed clipping agrees with public CPU pick
+  ---
+  duration_ms: 3145.303333
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-viewer/tests/clipping-contract-browser.test.mjs:16:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    near-excludes: CPU-excluded square must also be absent from actual display
+    
+    9600 !== 0
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 0
+  actual: 9600
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-viewer/tests/clipping-contract-browser.test.mjs:76:14)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3213.124292

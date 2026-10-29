@@ -177,7 +177,8 @@ export class Presenter {
     for (const m of this.meshes) { m.remove(); m.geometry.dispose(); }
     this.meshes = [];
     const cam = drawing.camera;
-    Object.assign(core.camera, { projection: 'perspective', position: [...cam.eye], target: [...cam.target], up: [...cam.up], fovY: cam.fovY });
+    Object.assign(core.camera, { projection: 'perspective', position: [...cam.eye], target: [...cam.target], up: [...cam.up], fovY: cam.fovY,
+      near: cam.near, far: cam.far, autoClip: false });
     const { lights, environment } = drawing.lights ?? lightsOf(drawing.lighting);
     core.lights = lights; core.environment = environment;
     core.setBackground(drawing.background);

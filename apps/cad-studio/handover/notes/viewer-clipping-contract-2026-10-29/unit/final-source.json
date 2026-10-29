@@ -1,0 +1,34 @@
+{
+  "packages/barocss-gpu/src/viewer/camera.ts": {
+    "sha256": "73d7f311c4e0f65d3755be2364d26dd8dfdf8e39bd894a2757bce39d0ab6ee0a",
+    "bytes": 6032
+  },
+  "packages/barocss-gpu/src/viewer/viewer.ts": {
+    "sha256": "3a67717a03e84782b247d1eb6d0f02d000b84b98134be8df38159b7c994a0c24",
+    "bytes": 166015
+  },
+  "packages/barocss-gpu/src/viewer/shaders/pick.ts": {
+    "sha256": "f56f935d60c540ee3f4fbe40038e459405fb856c63452eaff729acdbe1d36c4b",
+    "bytes": 4816
+  },
+  "packages/barocss-viewer/src/presenter.ts": {
+    "sha256": "2c321cd8753dacc1332cdb491d068ec0636fabf616fca60b687c702bba30f54f",
+    "bytes": 13261
+  },
+  "packages/barocss-gpu/tests/viewer-display.test.mjs": {
+    "sha256": "7d4355e82c6710ef91053cc02960a1fcd2da5f9411944b67f28451e4f6ab1bb3",
+    "bytes": 11398
+  },
+  "packages/barocss-viewer/tests/clipping-contract.test.mjs": {
+    "sha256": "513f309f90be4521c138a0a347d1bbdbe99c43a94af66aa67b0cc44223a333c6",
+    "bytes": 20568
+  },
+  "packages/barocss-viewer/tests/clipping-contract-browser.test.mjs": {
+    "sha256": "993e51e8afa446af0316d206a5f51c26b84c358bbe924978a153f821b3ee3fdf",
+    "bytes": 14184
+  },
+  "packages/barocss-viewer/package.json": {
+    "sha256": "e0166d670504e372fb0bf0a84d6d7591eeea0e87839c2637f3797c0fe88c85cf",
+    "bytes": 971
+  }
+}

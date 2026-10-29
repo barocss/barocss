@@ -1,0 +1,31 @@
+{
+  "status": "SOURCE_READY_CHECKS_NOT_RUN_AFTER_MANUAL_RANGE_VALIDATION",
+  "files": [
+    {
+      "path": "packages/barocss-gpu/src/viewer/camera.ts",
+      "sha256": "73d7f311c4e0f65d3755be2364d26dd8dfdf8e39bd894a2757bce39d0ab6ee0a"
+    },
+    {
+      "path": "packages/barocss-gpu/src/viewer/viewer.ts",
+      "sha256": "3a67717a03e84782b247d1eb6d0f02d000b84b98134be8df38159b7c994a0c24"
+    },
+    {
+      "path": "packages/barocss-gpu/src/viewer/shaders/pick.ts",
+      "sha256": "f56f935d60c540ee3f4fbe40038e459405fb856c63452eaff729acdbe1d36c4b"
+    },
+    {
+      "path": "packages/barocss-viewer/src/presenter.ts",
+      "sha256": "2c321cd8753dacc1332cdb491d068ec0636fabf616fca60b687c702bba30f54f"
+    }
+  ],
+  "changedTests": [
+    {
+      "path": "packages/barocss-gpu/tests/viewer-display.test.mjs",
+      "sha256": "7d4355e82c6710ef91053cc02960a1fcd2da5f9411944b67f28451e4f6ab1bb3"
+    },
+    {
+      "path": "packages/barocss-viewer/tests/clipping-contract.test.mjs",
+      "sha256": "513f309f90be4521c138a0a347d1bbdbe99c43a94af66aa67b0cc44223a333c6"
+    }
+  ]
+}

@@ -1,0 +1,687 @@
+{
+  "status": "SAFE_CONTRACT_PASS",
+  "baseline": "d85558ce0031d812341d5871743f8535520eb8d4",
+  "worktree": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+  "runnerProcess": 68402,
+  "samples": [
+    {
+      "label": "control",
+      "scale": 1,
+      "expectedVisible": true,
+      "requestedCamera": {
+        "eye": [
+          0,
+          0,
+          6
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fovY": 45,
+        "near": 0.01,
+        "far": 100
+      },
+      "byteLength": 307200,
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "pick": {
+        "ref": {
+          "modelId": "audit",
+          "surfaceId": "audit_patch"
+        },
+        "triangleIndex": 0,
+        "distanceScene": 6,
+        "positionScene": [
+          0,
+          0,
+          0
+        ],
+        "parameterUV": [
+          0.5,
+          0.5
+        ],
+        "approximate": true,
+        "ambiguous": true
+      }
+    },
+    {
+      "label": "near-excludes",
+      "scale": 1,
+      "expectedVisible": false,
+      "requestedCamera": {
+        "eye": [
+          0,
+          0,
+          6
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fovY": 45,
+        "near": 7,
+        "far": 100
+      },
+      "byteLength": 307200,
+      "covered": 0,
+      "centerRGBA": [
+        9,
+        14,
+        23,
+        255
+      ],
+      "pick": null
+    },
+    {
+      "label": "far-excludes",
+      "scale": 1,
+      "expectedVisible": false,
+      "requestedCamera": {
+        "eye": [
+          0,
+          0,
+          6
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fovY": 45,
+        "near": 0.01,
+        "far": 5
+      },
+      "byteLength": 307200,
+      "covered": 0,
+      "centerRGBA": [
+        9,
+        14,
+        23,
+        255
+      ],
+      "pick": null
+    },
+    {
+      "label": "closed-near",
+      "scale": 1,
+      "expectedVisible": true,
+      "requestedCamera": {
+        "eye": [
+          0,
+          0,
+          6
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fovY": 45,
+        "near": 6,
+        "far": 12
+      },
+      "byteLength": 307200,
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "pick": {
+        "ref": {
+          "modelId": "audit",
+          "surfaceId": "audit_patch"
+        },
+        "triangleIndex": 0,
+        "distanceScene": 6,
+        "positionScene": [
+          0,
+          0,
+          0
+        ],
+        "parameterUV": [
+          0.5,
+          0.5
+        ],
+        "approximate": true,
+        "ambiguous": true
+      }
+    },
+    {
+      "label": "closed-far",
+      "scale": 1,
+      "expectedVisible": true,
+      "requestedCamera": {
+        "eye": [
+          0,
+          0,
+          6
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fovY": 45,
+        "near": 3,
+        "far": 6
+      },
+      "byteLength": 307200,
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "pick": {
+        "ref": {
+          "modelId": "audit",
+          "surfaceId": "audit_patch"
+        },
+        "triangleIndex": 0,
+        "distanceScene": 6,
+        "positionScene": [
+          0,
+          0,
+          0
+        ],
+        "parameterUV": [
+          0.5,
+          0.5
+        ],
+        "approximate": true,
+        "ambiguous": true
+      }
+    },
+    {
+      "label": "restored",
+      "scale": 1,
+      "expectedVisible": true,
+      "requestedCamera": {
+        "eye": [
+          0,
+          0,
+          6
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fovY": 45,
+        "near": 0.01,
+        "far": 100
+      },
+      "byteLength": 307200,
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "pick": {
+        "ref": {
+          "modelId": "audit",
+          "surfaceId": "audit_patch"
+        },
+        "triangleIndex": 0,
+        "distanceScene": 6,
+        "positionScene": [
+          0,
+          0,
+          0
+        ],
+        "parameterUV": [
+          0.5,
+          0.5
+        ],
+        "approximate": true,
+        "ambiguous": true
+      }
+    },
+    {
+      "label": "control",
+      "scale": 0.001,
+      "expectedVisible": true,
+      "requestedCamera": {
+        "eye": [
+          0,
+          0,
+          6
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fovY": 45,
+        "near": 0.01,
+        "far": 100
+      },
+      "byteLength": 307200,
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "pick": {
+        "ref": {
+          "modelId": "audit",
+          "surfaceId": "audit_patch"
+        },
+        "triangleIndex": 0,
+        "distanceScene": 6,
+        "positionScene": [
+          0,
+          0,
+          0
+        ],
+        "parameterUV": [
+          0.5,
+          0.5
+        ],
+        "approximate": true,
+        "ambiguous": true
+      }
+    },
+    {
+      "label": "near-excludes",
+      "scale": 0.001,
+      "expectedVisible": false,
+      "requestedCamera": {
+        "eye": [
+          0,
+          0,
+          6
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fovY": 45,
+        "near": 7,
+        "far": 100
+      },
+      "byteLength": 307200,
+      "covered": 0,
+      "centerRGBA": [
+        9,
+        14,
+        23,
+        255
+      ],
+      "pick": null
+    },
+    {
+      "label": "far-excludes",
+      "scale": 0.001,
+      "expectedVisible": false,
+      "requestedCamera": {
+        "eye": [
+          0,
+          0,
+          6
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fovY": 45,
+        "near": 0.01,
+        "far": 5
+      },
+      "byteLength": 307200,
+      "covered": 0,
+      "centerRGBA": [
+        9,
+        14,
+        23,
+        255
+      ],
+      "pick": null
+    },
+    {
+      "label": "closed-near",
+      "scale": 0.001,
+      "expectedVisible": true,
+      "requestedCamera": {
+        "eye": [
+          0,
+          0,
+          6
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fovY": 45,
+        "near": 6,
+        "far": 12
+      },
+      "byteLength": 307200,
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "pick": {
+        "ref": {
+          "modelId": "audit",
+          "surfaceId": "audit_patch"
+        },
+        "triangleIndex": 0,
+        "distanceScene": 6,
+        "positionScene": [
+          0,
+          0,
+          0
+        ],
+        "parameterUV": [
+          0.5,
+          0.5
+        ],
+        "approximate": true,
+        "ambiguous": true
+      }
+    },
+    {
+      "label": "closed-far",
+      "scale": 0.001,
+      "expectedVisible": true,
+      "requestedCamera": {
+        "eye": [
+          0,
+          0,
+          6
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fovY": 45,
+        "near": 3,
+        "far": 6
+      },
+      "byteLength": 307200,
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "pick": {
+        "ref": {
+          "modelId": "audit",
+          "surfaceId": "audit_patch"
+        },
+        "triangleIndex": 0,
+        "distanceScene": 6,
+        "positionScene": [
+          0,
+          0,
+          0
+        ],
+        "parameterUV": [
+          0.5,
+          0.5
+        ],
+        "approximate": true,
+        "ambiguous": true
+      }
+    },
+    {
+      "label": "restored",
+      "scale": 0.001,
+      "expectedVisible": true,
+      "requestedCamera": {
+        "eye": [
+          0,
+          0,
+          6
+        ],
+        "target": [
+          0,
+          0,
+          0
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fovY": 45,
+        "near": 0.01,
+        "far": 100
+      },
+      "byteLength": 307200,
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "pick": {
+        "ref": {
+          "modelId": "audit",
+          "surfaceId": "audit_patch"
+        },
+        "triangleIndex": 0,
+        "distanceScene": 6,
+        "positionScene": [
+          0,
+          0,
+          0
+        ],
+        "parameterUV": [
+          0.5,
+          0.5
+        ],
+        "approximate": true,
+        "ambiguous": true
+      }
+    }
+  ],
+  "errors": [],
+  "fixture": "Original audit/audit_patch public authored square packet, not a user file or Studio UI-generated document.",
+  "pickPath": "Public SDK CPU pick plus public Core GPU pick; supported base raster only",
+  "bundle": {
+    "critical": [
+      {
+        "path": "packages/barocss-viewer/src/index.ts",
+        "sha256": "ec81a4222a69b3859fbe16203c07cc1606fa99aa504c8fa521a3ea0c3f114a91"
+      },
+      {
+        "path": "packages/barocss-viewer/src/presenter.ts",
+        "sha256": "2c321cd8753dacc1332cdb491d068ec0636fabf616fca60b687c702bba30f54f"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/viewer.ts",
+        "sha256": "3a67717a03e84782b247d1eb6d0f02d000b84b98134be8df38159b7c994a0c24"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/scene.ts",
+        "sha256": "f7e17275a2efb6c8b9d5bf73c89e61902f94a9f01541476ce07c79baf59954d5"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/camera.ts",
+        "sha256": "73d7f311c4e0f65d3755be2364d26dd8dfdf8e39bd894a2757bce39d0ab6ee0a"
+      },
+      {
+        "path": "packages/barocss-gpu/src/viewer/shaders/pick.ts",
+        "sha256": "f56f935d60c540ee3f4fbe40038e459405fb856c63452eaff729acdbe1d36c4b"
+      }
+    ],
+    "inputCount": 581,
+    "sha256": "f0ca1580af1182884a05820d44699782ec75e39100a8e211d2f72a2b14b29a5c",
+    "source": "Current worktree SDK source esbuild; no dist rebuild or source patch"
+  },
+  "browser": "156.0.8078.48",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "mismatches": [],
+  "core": {
+    "automatic": {
+      "mesh": "duplicates",
+      "face": 71,
+      "instance": 0,
+      "triangle": 0,
+      "depth": 0.7525126338005066,
+      "point": [
+        0.00909925576940297,
+        -0.00909925576940281,
+        5.753363863446035e-8
+      ]
+    },
+    "manual": {
+      "mesh": "duplicates",
+      "face": 71,
+      "instance": 0,
+      "triangle": 0,
+      "depth": 0,
+      "point": [
+        0.009099255856655188,
+        -0.009099255856655025,
+        0
+      ]
+    },
+    "automaticCamera": {
+      "near": 4.51507575950825,
+      "farValue": "Infinity",
+      "farFinite": false,
+      "autoClip": true
+    },
+    "camera": {
+      "near": 3,
+      "far": 6,
+      "autoClip": false
+    }
+  },
+  "cameraGuard": {
+    "before": {
+      "near": 3,
+      "far": 6,
+      "autoClip": false
+    },
+    "afterToggle": {
+      "near": 3,
+      "far": 6,
+      "autoClip": true
+    },
+    "held": {
+      "fulfilled": true,
+      "released": false,
+      "unmaps": 0,
+      "arguments": [
+        1
+      ]
+    },
+    "delayed": null,
+    "afterDelayed": {
+      "fulfilled": true,
+      "released": true,
+      "unmaps": 1,
+      "arguments": [
+        1
+      ]
+    },
+    "fresh": {
+      "mesh": "duplicates",
+      "face": 71,
+      "instance": 0,
+      "triangle": 0,
+      "depth": 0,
+      "point": [
+        0.009099255856655188,
+        -0.009099255856655025,
+        0
+      ]
+    },
+    "afterFresh": {
+      "fulfilled": true,
+      "released": true,
+      "unmaps": 2,
+      "arguments": [
+        1
+      ]
+    }
+  },
+  "cleanup": "OWN_VIEWER_CONTEXT_BROWSER_SERVER_CLOSED"
+}
