@@ -263,8 +263,8 @@ export function brepFromPrismatic(solid: PrismaticSolid, options: { readonly id?
         const e = curveOf(k, z, 'p');
         return hUse(k, forward, level, f, up ? 'upFace' : 'downFace', { ...e, id: 'pcurve', controlPoints: e.controlPoints.map(uv) });
       }) }));
-      // The cap's name: the authored top or bottom at this height that contains it.
-      const q = interiorPoint(region), source = (solid.caps ?? []).find(cp => Math.abs(cp.z - z) <= tol && cp.regions.some(r => inRegion(q, r)));
+      // Naming uses the authored stored height, not geometric proximity to another cap.
+      const q = interiorPoint(region), source = (solid.caps ?? []).find(cp => cp.z === z && cp.regions.some(r => inRegion(q, r)));
       faces.push({ id: fid, surface: capSurface({ min: [x0, y0], max: [x1, y1] }, z, fid, up), sense: 'forward', loops, volume: (up ? 1 : -1) * regionArea(region) * z, cap: { region, z },
         base: source?.tag ?? `${id}.${up ? 'top' : 'bottom'}`, key: [q[0], q[1], z] });
     });

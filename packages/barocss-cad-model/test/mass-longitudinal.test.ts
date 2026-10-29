@@ -59,13 +59,21 @@ function verify(doc: StudioDoc, lo: number, hi: number, expectedFootprint: numbe
     assert.ok(Math.abs(mass.volume / (Math.PI * 9 * (hi - lo)) - 1) < 1e-10, `${name}: rounded circle analytic volume guide`);
   }
   assert.equal(kernel.method, 'closed-form');
+  const faces = facade.body(facade.bodies()[0]).select().faces(), publicNames = faces.names().sort();
+  assert.equal(b.faces.length, 4, 'This native cylinder retains two physical side patches and two cap faces');
+  assert.equal(faces.count, 3, 'Public selection has two cap groups and one merged side group');
+  assert.equal(new Set(publicNames).size, 3, 'Distinct public groups must not alias the two physical cap levels');
+  const lower = faces.facing('-z'), upper = faces.facing('+z'); assert.equal(lower.count, 1); assert.equal(upper.count, 1);
+  const lowerName = lower.names()[0], upperName = upper.names()[0]; assert.notEqual(lowerName, upperName);
+  assert.equal(faces.where(face => face.name === lowerName).count, 1, 'Lower cap name selects exactly one public group');
+  assert.equal(faces.where(face => face.name === upperName).count, 1, 'Upper cap name selects exactly one public group');
   let nativeQuadrature: unknown;
   try { nativeQuadrature = brepMassProperties(b, 1); } catch (error) { nativeQuadrature = { error: error instanceof Error ? error.message : String(error) }; }
   assert.deepEqual(doc, before, 'Mass queries cannot change authored recipes or geometry');
-  return { nativeBrep: b, tangentFootprint: actualFootprint, kernelRepresentation: snapshot.outputs[0].representation, levels: stored, expectedNormalMidpoint: text(midpoint), normalTolerance: text(q(8 * 2 ** -54)), pipelines, nativeQuadrature, nativeQuadratureScope: 'Separate native B-rep provider observation; no tiny relative-volume or centroid accuracy claim from longitudinal formula repair' };
+  return { nativeBrep: b, nativePhysicalFaceCount: b.faces.length, publicFaceGroups: { names: publicNames, lowerName, upperName }, tangentFootprint: actualFootprint, kernelRepresentation: snapshot.outputs[0].representation, levels: stored, expectedNormalMidpoint: text(midpoint), normalTolerance: text(q(8 * 2 ** -54)), pipelines, nativeQuadrature, nativeQuadratureScope: 'Separate native B-rep provider observation; no tiny relative-volume or centroid accuracy claim from longitudinal formula repair' };
 }
 
-test('longitudinal mass: captured translated upright cylinder reaches actual Model/public mass without changing the Offset guard', async t => {
+test('longitudinal mass: captured translated upright cylinder reaches Model/public mass through preserved distance admission and actual result validation', async t => {
   const source = withNode(cylinderPart(3, 5.00009), { kind: 'translate', parent: { node: 1, side: 'solid' }, offset: [.1234567, -.2345678, .3456789] }), before = structuredClone(source), ctx = context(source), pick = structuredClone(ctx.selection);
   const originalBrep = native(source), expectedFootprint = footprint(originalBrep);
   const profile = resolveNativeOffsetFace(ctx), distance = -5.00009; assert.equal(profile.opposite, .3456789); assert.equal(profile.coordinate + distance, .34567890000000023); freeze(source);
@@ -73,5 +81,6 @@ test('longitudinal mass: captured translated upright cylinder reaches actual Mod
   const evidence = verify(result, .3456789, .34567890000000023, expectedFootprint); assert.deepEqual(source, before); assert.deepEqual(ctx.selection, pick);
   freeze(result); const encoded = encodeStudioFile(result), loaded = await readStudioFile(encoded); assert.ok(!('error' in loaded)); assert.deepEqual(loaded.doc, result);
   const reopened = verify(loaded.doc, .3456789, .34567890000000023, expectedFootprint); assert.deepEqual(result.nodes.slice(0, source.nodes.length), source.nodes);
+  assert.deepEqual(reopened.publicFaceGroups, evidence.publicFaceGroups, 'Fresh native file reopen preserves distinct unambiguous public cap names');
   t.diagnostic(JSON.stringify({ distance, expectedGap: text(sub(q(.34567890000000023), q(.3456789))), evidence, reopened, scope: 'Actual existing Offset composition; Z-upright repaired provider only, circle pi is a rounded guide' }));
 });
