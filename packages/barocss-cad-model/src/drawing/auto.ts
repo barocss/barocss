@@ -22,6 +22,7 @@ import { baseViewOf, isSectionRef, type DimPoint, type DimView, type DrawingDime
 import { placementOf, type SheetSection } from './sheet';
 import type { PartElement } from './elementCallouts';
 import { nextFreeId } from '../util/ids';
+import { sameLinearDependency, samePointDependency } from './measurement';
 
 export const AUTO_DIMENSIONS_VERSION = 'cad-studio-auto-dimensions-v1';
 
@@ -238,7 +239,7 @@ function pitchRuns(xs: readonly number[]): [number, number][] {
  * The dimensions Auto-dimension gives the part's views, with the hand-placed ones kept and its own earlier ones
  * replaced. `callout`: a hole's callout by an edge of it (null: not a hole feature).
  */
-export function autoDimensions(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, callout: (edge: string) => string | null, elements: readonly PartElement[] = [], sections: readonly SheetSection[] = []): { dimensions: DrawingDimension[]; report: AutoDimensionReport } {
+export function autoDimensions(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, callout: (edge: string) => string | null, elements: readonly PartElement[] = [], sections: readonly SheetSection[] = [], locationOwner?: (edge: string) => string | null): { dimensions: DrawingDimension[]; report: AutoDimensionReport } {
   const manual = settings.dimensions.filter(d => !d.auto);
   const report: AutoDimensionReport = { contract: AUTO_DIMENSIONS_VERSION, added: { overall: 0, levels: 0, holePositions: 0, pitches: 0, callouts: 0 }, keys: 0, kept: manual.length, skipped: [], crowded: [], needs: {} };
   const holes = holesOf(views, callout), planned: Partial<Record<DimView, Planned[]>> & Record<ViewId, Planned[]> = { front: [], top: [], right: [], iso: [] };
@@ -271,30 +272,33 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
       if (!okMin || (!wantLevels && !mine.length && !rings.length)) { if (mine.length && !okMin) report.skipped.push({ view: id, what: `${mine.length} hole position${mine.length > 1 ? 's' : ''} ${k === 0 ? 'across' : 'up'}`, why: 'no edge end at the view’s extreme to measure from' }); continue; }
       const marks: Mark[] = [...(wantLevels ? levels(pr, k) : []), ...mine.map(h => ({ x: h.at[k], ref: h.ref, hole: true })), ...rings.filter(r => r.centre).map(r => ({ x: r.at[k], ref: r.centre!, hole: true }))]
         .filter(m => m.x > pr.min[k] + SAME && m.x < pr.max[k] - SAME);
-      // One mark a position, a hole's centre before an edge.
+      // Keep each independent centre target, even when coordinates match. A hole's centre takes precedence over an edge level.
       marks.sort((a, b) => a.x - b.x || Number(b.hole) - Number(a.hole));
       const at: Mark[] = [];
-      for (const m of marks) if (!at.length || Math.abs(m.x - at[at.length - 1].x) > SAME) at.push(m); else if (m.hole && !at[at.length - 1].hole) at[at.length - 1] = m;
+      for (const m of marks) {
+        let same = -1;
+        for (let i = 0; i < at.length; i++) {
+          const previous = at[i];
+          if (Math.abs(m.x - previous.x) <= SAME && (!m.hole || !previous.hole || samePointDependency(m.ref, pr, previous.ref, pr, axisOf(id, k), locationOwner))) { same = i; break; }
+        }
+        if (same < 0) at.push(m); else if (m.hole && !at[same].hole) at[same] = m;
+      }
       // Rows: holes on one line across this axis (the same position along the other). Three or more at one pitch in a
-      // row: its first located, then one pitch for all; the same run in several rows (a grid) once.
+      // row: its first located, then one explicit counted pitch for that row.
       const rows = new Map<number, Hole[]>();
       for (const h of mine) if (h.at[k] > pr.min[k] + SAME && h.at[k] < pr.max[k] - SAME) { const key = r6(h.at[1 - k]), row = rows.get(key); if (row) row.push(h); else rows.set(key, [h]); }
-      const inRun = new Set<number>(), firstOf = new Map<number, DimPoint>(), runs = new Set<string>();
+      const inRun = new Set<DimPoint>();
       for (const row of [...rows.entries()].sort((a, b) => a[0] - b[0]).map(e => e[1])) {
         const line = row.sort((a, b) => a.at[k] - b.at[k]).filter((h, i, all) => !i || h.at[k] - all[i - 1].at[k] > SAME), xs = line.map(h => r6(h.at[k]));
         for (const [i, j] of pitchRuns(xs)) {
-          const key = xs.slice(i, j + 1).join(',');
-          if (runs.has(key)) continue; runs.add(key);
           list.push({ dim: { ...linear(id, line[i].ref, line[i + 1].ref, k), count: j - i }, row: 0, kind: 'pitches', along: k === 0 ? 'u' : 'v', span: [pointOf(line[i].at[k], k, pr), pointOf(line[i + 1].at[k], k, pr)] });
-          for (let t = i + 1; t <= j; t++) inRun.add(xs[t]);
-          if (!firstOf.has(xs[i])) firstOf.set(xs[i], line[i].ref);
+          for (let t = i + 1; t <= j; t++) inRun.add(line[t].ref);
         }
       }
       for (const m of at) {
-        const x = r6(m.x);
-        if (m.hole && inRun.has(x)) continue;
-        // (A run's first hole is measured to itself, where another feature shares its position.)
-        list.push({ dim: linear(id, atMin!.ref, firstOf.get(x) ?? m.ref, k), row: 1 + Math.abs(m.x - pr.min[k]), kind: m.hole ? 'holePositions' : 'levels', along: k === 0 ? 'u' : 'v', span: [atMin!.at, pointOf(m.x, k, pr)] });
+        if (m.hole && inRun.has(m.ref)) continue;
+        // A run's first hole and every independent target outside a run keep their own baseline.
+        list.push({ dim: linear(id, atMin!.ref, m.ref, k), row: 1 + Math.abs(m.x - pr.min[k]), kind: m.hole ? 'holePositions' : 'levels', along: k === 0 ? 'u' : 'v', span: [atMin!.at, pointOf(m.x, k, pr)] });
       }
     }
     // Callouts: one a kind of hole (concentric outer circles of a counterbore or countersink are in the callout).
@@ -318,7 +322,8 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
   }
   // Placement: rows outward from the view on its freer side, inner rows the shorter.
   const out: DrawingDimension[] = [...manual], used = new Set(manual.map(d => d.id));
-  const manualSpans = new Set(manual.map(m => spanKey(dimViews, m, base)).filter((k): k is string => !!k));
+  const manualSpans = new Map<string, DrawingDimension[]>();
+  for (const m of manual) { const key = spanKey(dimViews, m, base); if (key) { const bucket = manualSpans.get(key) ?? []; bucket.push(m); manualSpans.set(key, bucket); } }
   const nextId = () => { const id = nextFreeId('d', used); used.add(id); return id; };
   const onSections = sections.filter(x => layout.sections?.some(p => p.section === x.id)).map(x => `section:${x.id}` as SectionRef);
   for (const id of [...ORTHO.filter(o => !layout.views[o].hidden), ...onSections] as DimView[]) {
@@ -333,7 +338,7 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
       const placeAt = (p: Planned, k: number, at: Side) => {
         const off = (FIRST_ROW + ROW * k) / s, mid = (p.span[0][along === 'u' ? 0 : 1] + p.span[1][along === 'u' ? 0 : 1]) / 2;
         const place: XY = along === 'u' ? [mid, at === 'above' ? pr.max[1] + off : pr.min[1] - off] : [at === 'left' ? pr.min[0] - off : pr.max[0] + off, mid];
-        add(out, manual, { ...p.dim, place, auto: true } as DrawingDimension, nextId, report, p.kind, manualSpans, dimViews, base);
+        add(out, manual, { ...p.dim, place, auto: true } as DrawingDimension, nextId, report, p.kind, manualSpans, dimViews, base, locationOwner);
       };
       rows.slice(0, spill).forEach((p, k) => placeAt(p, k, opposite[side]));
       rows.slice(spill).forEach((p, k) => placeAt(p, k, side));
@@ -354,7 +359,7 @@ export function autoDimensions(views: DrawingViews, layout: SheetLayout, setting
     leaders.sort((a, b) => a.span[0][0] - b.span[0][0]).forEach((p, k) => {
       const [x] = p.span[0], r = p.radius!, off = (CALLOUT_ROW + ROW * (k + usedOpposite.u)) / s;
       const place: XY = [x + (toRight ? 1 : -1) * (r + CALLOUT_RUN / s), down ? pr.min[1] - off : pr.max[1] + off];
-      add(out, manual, { ...p.dim, place, auto: true } as DrawingDimension, nextId, report, p.kind, manualSpans, dimViews, base);
+      add(out, manual, { ...p.dim, place, auto: true } as DrawingDimension, nextId, report, p.kind, manualSpans, dimViews, base, locationOwner);
     });
   }
   return { dimensions: out, report };
@@ -370,7 +375,10 @@ function linear(view: DimView, a: DimPoint, b: DimPoint, k: 0 | 1): Omit<Extract
 function sameAs(d: DrawingDimension, m: DrawingDimension): boolean {
   if (d.view !== m.view || d.kind !== m.kind) return false;
   const ref = (p: DimPoint) => `${p.edge}|${p.at}|${p.near.map(r6).join(',')}`;
-  if (d.kind === 'linear' && m.kind === 'linear') return d.orient === m.orient && new Set([ref(d.a), ref(d.b)]).size === new Set([ref(d.a), ref(d.b), ref(m.a), ref(m.b)]).size;
+  if (d.kind === 'linear' && m.kind === 'linear') {
+    if (d.orient !== m.orient || (d.count ?? 1) !== (m.count ?? 1)) return false;
+    return (ref(d.a) === ref(m.a) && ref(d.b) === ref(m.b)) || (!d.count && !m.count && ref(d.a) === ref(m.b) && ref(d.b) === ref(m.a));
+  }
   if ((d.kind === 'diameter' || d.kind === 'radius') && (m.kind === 'diameter' || m.kind === 'radius')) return d.edge === m.edge;
   return false;
 }
@@ -392,11 +400,17 @@ function spanKey(views: Partial<Record<DimView, BrepProjection>>, d: DrawingDime
   return `${axisOf(base(d.view), k)}|${r6(lo)}|${r6(hi)}|${d.count ?? 1}`;
 }
 
-function add(out: DrawingDimension[], manual: readonly DrawingDimension[], d: DrawingDimension, nextId: () => string, report: AutoDimensionReport, kind: keyof AutoDimensionReport['added'] | 'keys', manualSpans: ReadonlySet<string>, views: Partial<Record<DimView, BrepProjection>>, base: (v: DimView) => ViewId): void {
+function add(out: DrawingDimension[], manual: readonly DrawingDimension[], d: DrawingDimension, nextId: () => string, report: AutoDimensionReport, kind: keyof AutoDimensionReport['added'] | 'keys', manualSpans: ReadonlyMap<string, readonly DrawingDimension[]>, views: Partial<Record<DimView, BrepProjection>>, base: (v: DimView) => ViewId, locationOwner?: (edge: string) => string | null): void {
   if (manual.some(m => sameAs(d, m))) return;
   // (One a hand-placed dimension gives already, in this view or one sharing the axis.)
   const key = spanKey(views, d, base);
-  if (key && manualSpans.has(key)) return;
+  if (key) {
+    const resolved = resolveDimension(views, d), projection = views[d.view];
+    if (resolved.ok && resolved.kind === 'linear' && projection) for (const m of manualSpans.get(key) ?? []) {
+      const other = resolveDimension(views, m), otherProjection = views[m.view];
+      if (other.ok && other.kind === 'linear' && otherProjection && sameLinearDependency(resolved, projection, other, otherProjection, axisOf(base(d.view), resolved.dim.orient === 'horizontal' ? 0 : 1), locationOwner)) return;
+    }
+  }
   out.push({ ...d, id: nextId() });
   if (kind === 'keys') report.keys++; else report.added[kind]++;
 }

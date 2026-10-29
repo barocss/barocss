@@ -56,3 +56,15 @@ JavaScript and `.d.ts` files.
 Call `dispose()` when that sender is retired. Disposal is idempotent, releases the subscription and
 retained tables, and leaves the shared blob store unchanged. A disposed sender rejects `pack()`;
 late `forget()` calls are harmless. Use a new sender for a new worker protocol session.
+
+### Drawing location ownership
+
+Equal dimension values do not identify the same measurement. Duplicate checks and automatic
+placement retain each independent hole target and both measurement endpoints. Counted pitches
+retain their extension direction. Explicit pattern, pitch-circle and compound-hole relationships
+are checked separately from displayed callout text.
+
+`SheetInputs.locationOwner` supplies an optional authored-hole identity for compound locations.
+Pass the same resolver to the trailing `autoDimensions` argument when using that function directly.
+The normal document/Studio pipelines supply it. A custom string formatter alone does not establish
+compound ownership; absent or unresolved ownership keeps independent locations conservative.

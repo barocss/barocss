@@ -26,7 +26,8 @@
 import type { FastenerSizes } from '../app/fasteners';
 import type { PartElement } from './elementCallouts';
 import type { BrepProjection } from '@barocss/cad';
-import { autoDimensions, axisOf, holesOf, levels } from './auto';
+import { autoDimensions, axisOf, holesOf, levels, type Hole } from './auto';
+import { sameLinearDependency, samePointDependency } from './measurement';
 import { datumTargetConflicts, resolveDatumTarget, type DatumTargetFailureCode } from './datumTargets';
 import { basicBox, buildSheet, datumMarks, dimensionMarks, frameMarks, placementOf, projectionOf, sectionExtents, tableRoom, type Mark, type MarkGroup, type Sheet, type SheetSection } from './sheet';
 import { textCorners } from './text';
@@ -202,6 +203,8 @@ function textOf(sheet: Sheet, id: string): string { const r = sheet.dimensions.f
 
 export interface IssueContext {
   views: DrawingViews; layout: SheetLayout; settings: DrawingSettings; sheet: Sheet; callout: (edge: string, diameter?: number) => string | null;
+  /** Authored identity for a combined hole callout; text equality cannot establish it. */
+  locationOwner?: (edge: string) => string | null;
   /** O7: the document's fastener sizes, which position tolerances read (none loaded: each an estimate). */
   fastenerSizes?: FastenerSizes;
   /** O148 X2: the sections cut for the sheet (for Auto-dimension's fix). */
@@ -594,7 +597,7 @@ const unit = (v: XY): XY => { const l = Math.hypot(v[0], v[1]) || 1; return [v[0
 
 
 function duplicates(ctx: IssueContext): DrawingIssue[] {
-  const out: DrawingIssue[] = [], seen = new Map<string, Extract<Resolved, { ok: true }>>();
+  const out: DrawingIssue[] = [], seen = new Map<string, Extract<Resolved, { ok: true }>[]>();
   for (const r of ctx.sheet.dimensions) {
     if (!r.ok) continue;
     let key: string;
@@ -604,26 +607,20 @@ function duplicates(ctx: IssueContext): DrawingIssue[] {
       key = `L|${axisOf(baseView(ctx.sheet, r.dim.view), k)}|${round(lo)}|${round(hi)}|${r.dim.count ?? 1}`;
     } else if (r.kind === 'diameter' || r.kind === 'radius') key = `C|${r.dim.view}|${round(r.center[0])}|${round(r.center[1])}|${round(r.radius)}`;
     else continue;
-    const had = seen.get(key);
-    if (!had) { seen.set(key, r); continue; }
-    // (O148 X2: the same span on features with nothing in common — a hub's keyway and its shaft's keyseat — is two measurements.)
-    if (had.kind === 'linear' && r.kind === 'linear' && disjoint(featuresOf(had.dim.a.edge, had.dim.b.edge), featuresOf(r.dim.a.edge, r.dim.b.edge))) continue;
+    const bucket = seen.get(key) ?? [];
+    let had: Extract<Resolved, { ok: true }> | undefined;
+    for (const previous of bucket) {
+      if (previous.kind !== 'linear' || r.kind !== 'linear') { had = previous; break; }
+      const pv = projectionOf(ctx.views, ctx.sheet, previous.dim.view), rv = projectionOf(ctx.views, ctx.sheet, r.dim.view);
+      if (pv && rv && sameLinearDependency(previous, pv, r, rv, axisOf(baseView(ctx.sheet, r.dim.view), r.dim.orient === 'horizontal' ? 0 : 1), ctx.locationOwner)) { had = previous; break; }
+    }
+    if (!had) { bucket.push(r); seen.set(key, bucket); continue; }
     const drop = r.dim.auto && !had.dim.auto ? r : had.dim.auto && !r.dim.auto ? had : r;
     out.push({ code: 'DUPLICATE', severity: 'warning', message: `${r.text} is given twice (${twice(had.dim.view, r.dim.view)}).`, dims: [had.dim.id, r.dim.id], view: r.dim.view, fix: { kind: 'remove', dim: drop.dim.id } });
   }
   return out;
 }
 const round = (v: number) => Math.round(v / SAME) * SAME;
-/**
- * O148 X2: the features two ends belong to (their faces' features, a placed part's prefix kept; a section's cut face left
- * out): the same span measured on a hub's keyway and on its shaft's keyseat is two measurements, not one given twice.
- */
-function featuresOf(...edges: string[]): string[] {
-  const out = new Set<string>();
-  for (const e of edges) for (const f of e.split('|')) { const n = f.replace(/~sil\d*$/, ''), slash = n.lastIndexOf('/', n.indexOf('.')), dot = n.indexOf('.', slash + 1), id = dot < 0 ? n : n.slice(0, dot); if (!/^(.*\/)?section(\d+|_[A-Za-z0-9_-]+)$/.test(id)) out.add(id); }
-  return [...out];
-}
-const disjoint = (a: readonly string[], b: readonly string[]) => a.length > 0 && b.length > 0 && !a.some(x => b.includes(x));
 /** O148 X2: the view a dimension's coordinates are of — a section's own view (it is projected as that view). */
 const baseView = (sheet: Pick<Sheet, 'sections' | 'details'>, v: DimView): ViewId => baseViewOf(v, sheet.sections ?? [], sheet.details ?? []);
 /** A view or section as the issue list names it: `the front view`, `section B–B`. */
@@ -647,6 +644,33 @@ const covers = (xs: readonly number[], x: number) => xs.some(y => Math.abs(y - x
 
 /** How near a view's extents must come to a circle's diameter for it to be the view's round outline (relative, O174). */
 const OUTLINE_REL = 1e-4;
+function targetLocated(ctx: IssueContext, target: DimPoint, view: ViewId, at: XY, k: 0 | 1): boolean {
+  const axis = axisOf(view, k), pr = ctx.views[view];
+  for (const r of ctx.sheet.dimensions) {
+    if (!r.ok || r.kind !== 'linear' || r.dim.orient === 'aligned') continue;
+    const rk = r.dim.orient === 'horizontal' ? 0 : 1;
+    if (axisOf(baseView(ctx.sheet, r.dim.view), rk) !== axis) continue;
+    const source = projectionOf(ctx.views, ctx.sheet, r.dim.view); if (!source) continue;
+    if (samePointDependency(r.dim.a, source, target, pr, axis, ctx.locationOwner) || samePointDependency(r.dim.b, source, target, pr, axis, ctx.locationOwner)) return true;
+    if (r.dim.count && r.dim.view === view && r.dim.a.at === 'center' && r.dim.b.at === 'center') {
+      const row = Math.abs(r.a[1 - k] - at[1 - k]) <= SAME && Math.abs(r.b[1 - k] - at[1 - k]) <= SAME;
+      const pattern = samePointDependency(r.dim.a, source, target, pr, axis, ctx.locationOwner, true) && samePointDependency(r.dim.b, source, target, pr, axis, ctx.locationOwner, true);
+      if (!row && !pattern) continue;
+      const step = r.b[k] - r.a[k];
+      for (let j = 2; j <= r.dim.count; j++) if (covers([r.a[k] + step * j], at[k])) return true;
+    }
+  }
+  return false;
+}
+function holeLocated(ctx: IssueContext, h: Hole, ring: Extract<Resolved, { ok: true; kind: 'pcd' }> | undefined, at: XY, k: 0 | 1, holes: readonly Hole[]): boolean {
+  if (!ring) return targetLocated(ctx, h.ref, h.view, at, k);
+  const first = ring.dim.ring[0];
+  if (first && targetLocated(ctx, { edge: first.edge, near: first.near, at: 'pcd', ring: ring.dim.ring }, h.view, at, k)) return true;
+  // A PCD's centre can be explicitly located by the bore drawn on that centre.
+  for (const other of holes) if (other.view === h.view && Math.abs(other.at[0] - at[0]) <= SAME && Math.abs(other.at[1] - at[1]) <= SAME && targetLocated(ctx, other.ref, h.view, at, k)) return true;
+  return false;
+}
+
 function coverage(ctx: IssueContext): DrawingIssue[] {
   const { views, sheet } = ctx, out: DrawingIssue[] = [], auto: DrawingFix = { kind: 'auto-dimension' };
   const along: Record<string, number[]> = {};
@@ -681,7 +705,7 @@ function coverage(ctx: IssueContext): DrawingIssue[] {
     if (round && Math.abs(round[0] - at[0]) <= SAME && Math.abs(round[1] - at[1]) <= SAME) continue;
     for (const k of [0, 1] as const) {
       if (Math.abs(at[k] - pr.min[k]) <= SAME || Math.abs(at[k] - pr.max[k]) <= SAME) continue;
-      if (!covers(given(axisOf(h.view, k)), at[k])) { unlocated++; where.push(h.view); break; }
+      if (!holeLocated(ctx, h, ring, at, k, holes)) { unlocated++; where.push(h.view); break; }
     }
   }
   for (const [view, n] of hiddenOwners) out.push({ code: 'VIEW_NEEDED', severity: 'warning', message: `${n} hole${n > 1 ? 's show' : ' shows'} round only in the ${view} view, which is not shown.`, view, fix: { kind: 'show-view', view } });
@@ -733,7 +757,7 @@ export function applyFix(ctx: IssueContext, fix: DrawingFix): DrawingSettings {
     case 'accept': return { ...s, dimensions: s.dimensions.map(d => d.id === fix.dim ? accepted(d) : d) };
     case 'scale': { const { scale: _drop, ...rest } = s; void _drop; return { ...rest, ...(fix.scale !== undefined && SCALES.includes(fix.scale) ? { scale: fix.scale } : {}), ...(fix.sheet ? { sheet: fix.sheet } : {}) }; }
     // (O172: with the part's elements, as Auto-dimension has them — the keyseats' plans, and the bought ones left out.)
-    case 'auto-dimension': return { ...s, dimensions: autoDimensions(ctx.views, ctx.layout, s, ctx.callout, ctx.elements ?? [], ctx.sections).dimensions };
+    case 'auto-dimension': return { ...s, dimensions: autoDimensions(ctx.views, ctx.layout, s, ctx.callout, ctx.elements ?? [], ctx.sections, ctx.locationOwner).dimensions };
     case 'show-view': { if (!s.views || s.views.includes(fix.view)) return s; const views = [...s.views, fix.view]; return { ...s, views: VIEW_IDS.filter(v => views.includes(v)) }; }
   }
 }
@@ -747,13 +771,13 @@ function accepted(d: DrawingDimension): DrawingDimension {
 }
 
 /** What a sheet is built from, to build it again after a fix. */
-export interface SheetInputs { views: DrawingViews; settings: DrawingSettings; /** O7: the document's fastener sizes. */ fastenerSizes?: FastenerSizes; /** The part's machine elements (O145): Auto layout's leader notes for keys and pins. */ elements?: readonly PartElement[]; callout: (edge: string, diameter?: number) => string | null; fitMiss?: (edge: string, diameter: number) => string | null; followedChanged?: readonly string[]; meta: Omit<Parameters<typeof buildSheet>[3], 'callout'>; /** O148 X1: the sections cut (each with its projection; those the settings list are drawn). */ sections?: readonly SheetSection[] }
+export interface SheetInputs { views: DrawingViews; settings: DrawingSettings; /** O7: the document's fastener sizes. */ fastenerSizes?: FastenerSizes; /** The part's machine elements (O145): Auto layout's leader notes for keys and pins. */ elements?: readonly PartElement[]; callout: (edge: string, diameter?: number) => string | null; locationOwner?: (edge: string) => string | null; fitMiss?: (edge: string, diameter: number) => string | null; followedChanged?: readonly string[]; meta: Omit<Parameters<typeof buildSheet>[3], 'callout'>; /** O148 X1: the sections cut (each with its projection; those the settings list are drawn). */ sections?: readonly SheetSection[] }
 
 /** The context of a sheet built from its inputs (its layout from the settings, the sections' extents with it). */
 export function issueContext(i: SheetInputs): IssueContext {
   const layout = layoutSheet(i.views, i.settings, sectionExtents(i.settings, i.sections));
   const sheet = buildSheet(i.views, layout, i.settings, { ...i.meta, callout: i.callout }, i.sections);
-  return { views: i.views, layout, settings: i.settings, sheet, callout: i.callout, ...(i.sections ? { sections: i.sections } : {}), ...(i.elements ? { elements: i.elements } : {}), ...(i.fitMiss ? { fitMiss: i.fitMiss } : {}), ...(i.followedChanged?.length ? { followedChanged: i.followedChanged } : {}), ...(i.fastenerSizes ? { fastenerSizes: i.fastenerSizes } : {}), rebuild: settings => issueContext({ ...i, settings }) };
+  return { views: i.views, layout, settings: i.settings, sheet, callout: i.callout, ...(i.locationOwner ? { locationOwner: i.locationOwner } : {}), ...(i.sections ? { sections: i.sections } : {}), ...(i.elements ? { elements: i.elements } : {}), ...(i.fitMiss ? { fitMiss: i.fitMiss } : {}), ...(i.followedChanged?.length ? { followedChanged: i.followedChanged } : {}), ...(i.fastenerSizes ? { fastenerSizes: i.fastenerSizes } : {}), rebuild: settings => issueContext({ ...i, settings }) };
 }
 
 /**

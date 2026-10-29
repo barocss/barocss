@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import { brepsFor } from '../src/engine/evaluate';
 import { rectanglePart, starterDoc, withNode, type StudioDoc } from '../src/engine/doc';
 import { projectViews } from '../src/drawing/project';
-import { holeCallout } from '../src/drawing/callout';
+import { holeCallout, holeCalloutOwner } from '../src/drawing/callout';
 import { snapPoints } from '../src/drawing/dimensions';
 import { drawingIssues, issueContext, type SheetInputs } from '../src/drawing/issues';
 import { MIN_HOLE_ON_PAPER_MM, autoLayout, chooseViews, rightAddsNothing } from '../src/drawing/layout';
@@ -19,7 +19,7 @@ import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } 
 const root = resolve(resolve(import.meta.dirname, '..'), '../../packages/barocss-cad/conformance/r14');
 const hole = (node: number, center: [number, number], radius: number, extra: object = {}) => ({ kind: 'hole' as const, parent: { node, side: 'solid' as const }, center, radius, ...extra });
 const viewsOf = (doc: StudioDoc): DrawingViews => { const b = brepsFor(doc); assert.ok('breps' in b); const r = projectViews(b.breps, b.prefixes); assert.ok(r.ok); return r.views; };
-const inputsOf = (doc: StudioDoc, settings: DrawingSettings): SheetInputs => ({ views: viewsOf(doc), settings, callout: e => holeCallout(doc.nodes, e), meta: { title: 't', date: 'd' } });
+const inputsOf = (doc: StudioDoc, settings: DrawingSettings): SheetInputs => ({ views: viewsOf(doc), settings, callout: e => holeCallout(doc.nodes, e), locationOwner: e => holeCalloutOwner(doc.nodes, e), meta: { title: 't', date: 'd' } });
 
 const CASES: Record<string, { about: string; doc: () => StudioDoc; settings?: (v: DrawingViews) => DrawingSettings }> = {
   'layout-plate': { about: 'the starter plate: the right view shows nothing the others do and is left out; A4 at 1:1, clean', doc: starterDoc },

@@ -274265,14 +274265,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, callout: (edge: string) => string | null, elements?: readonly PartElement[], sections?: readonly SheetSection[]) => { dimensions: DrawingDimension[]; report: AutoDimensionReport; }",
+            "type": "(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, callout: (edge: string) => string | null, elements?: readonly PartElement[], sections?: readonly SheetSection[], locationOwner?: ((edge: string) => string | null) | undefined) => { dimensions: DrawingDimension[]; report: AutoDimensionReport; }",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, callout: (edge: string) => string | null, elements?: readonly PartElement[], sections?: readonly SheetSection[]) => { dimensions: DrawingDimension[]; report: AutoDimensionReport; }"
+              "(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, callout: (edge: string) => string | null, elements?: readonly PartElement[], sections?: readonly SheetSection[], locationOwner?: ((edge: string) => string | null) | undefined) => { dimensions: DrawingDimension[]; report: AutoDimensionReport; }"
             ]
           }
         }
@@ -275261,6 +275261,68 @@
             ],
             "callSignatures": [
               "(nodes: readonly ModelNode[], edge: string, parameters?: Readonly<Record<string, number>>) => string | null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/callout",
+      "exportName": "holeCalloutOwner",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/callout.ts",
+            "name": "holeCalloutOwner",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(nodes: readonly ModelNode[], edge: string, parameters?: Readonly<Record<string, number>>) => string | null",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(nodes: readonly ModelNode[], edge: string, parameters?: Readonly<Record<string, number>>) => string | null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/callout",
+      "exportName": "holeCalloutOwnerOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/callout.ts",
+            "name": "holeCalloutOwnerOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, edge: string) => string | null",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, edge: string) => string | null"
             ]
           }
         }
@@ -280547,6 +280609,13 @@
                 "type": "SheetLayout"
               },
               {
+                "name": "locationOwner",
+                "kind": "callback",
+                "optional": true,
+                "readonly": false,
+                "type": "((edge: string) => string | null) | undefined"
+              },
+              {
                 "name": "rebuild",
                 "kind": "callback",
                 "optional": true,
@@ -280982,6 +281051,13 @@
                 "optional": true,
                 "readonly": false,
                 "type": "readonly string[] | undefined"
+              },
+              {
+                "name": "locationOwner",
+                "kind": "callback",
+                "optional": true,
+                "readonly": false,
+                "type": "((edge: string) => string | null) | undefined"
               },
               {
                 "name": "meta",
@@ -281751,6 +281827,68 @@
             ],
             "callSignatures": [
               "(views: DrawingViews) => boolean"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/measurement",
+      "exportName": "sameLinearDependency",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/measurement.ts",
+            "name": "sameLinearDependency",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(a: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; }, av: BrepProjection, b: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; }, bv: BrepProjection, axis: string, locationOwner?: LocationOwner | undefined) => boolean",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(a: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; }, av: BrepProjection, b: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; }, bv: BrepProjection, axis: string, locationOwner?: LocationOwner | undefined) => boolean"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/measurement",
+      "exportName": "samePointDependency",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/measurement.ts",
+            "name": "samePointDependency",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(a: DimPoint, av: BrepProjection, b: DimPoint, bv: BrepProjection, axis: string, locationOwner?: LocationOwner | undefined, countedPattern?: boolean) => boolean",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(a: DimPoint, av: BrepProjection, b: DimPoint, bv: BrepProjection, axis: string, locationOwner?: LocationOwner | undefined, countedPattern?: boolean) => boolean"
             ]
           }
         }

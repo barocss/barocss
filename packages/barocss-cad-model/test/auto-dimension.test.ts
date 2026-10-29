@@ -8,7 +8,7 @@ import { projectViews } from '../src/drawing/project';
 import { layoutSheet } from '../src/drawing/views';
 import { buildSheet } from '../src/drawing/sheet';
 import { autoDimensions } from '../src/drawing/auto';
-import { holeCallout } from '../src/drawing/callout';
+import { holeCallout, holeCalloutOwner } from '../src/drawing/callout';
 import { defaultDrawing, readDrawing, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
 import { snapPoints } from '../src/drawing/dimensions';
 
@@ -38,7 +38,7 @@ function viewsOf(doc: StudioDoc): DrawingViews {
 }
 function run(doc: StudioDoc, drawing: Partial<DrawingSettings> = {}) {
   const v = viewsOf(doc), settings: DrawingSettings = { ...defaultDrawing(), ...drawing }, layout = layoutSheet(v, settings), callout = (e: string) => holeCallout(doc.nodes, e);
-  const r = autoDimensions(v, layout, settings, callout), next = { ...settings, dimensions: r.dimensions };
+  const r = autoDimensions(v, layout, settings, callout, [], [], e => holeCalloutOwner(doc.nodes, e)), next = { ...settings, dimensions: r.dimensions };
   const sheet = buildSheet(v, layout, next, { title: 't', date: 'd', callout });
   return { v, layout, settings: next, report: r.report, sheet, read: sheet.dimensions.map(d => ({ view: d.dim.view, kind: d.dim.kind, ...(d.dim.kind === 'linear' ? { orient: d.dim.orient } : {}), text: d.ok ? d.text : `lost: ${d.reason}` })).sort((a, b) => JSON.stringify(a) < JSON.stringify(b) ? -1 : 1) };
 }
@@ -86,7 +86,7 @@ test('auto dimensions measure the design values and follow the part; hand-placed
   const f = snapPoints(first.v.front), at = (u: number, w: number) => f.find(p => Math.abs(p.at[0] - u) < 1e-6 && Math.abs(p.at[1] - w) < 1e-6)!.ref;
   const mine = { id: 'mine', view: 'front' as const, kind: 'linear' as const, a: at(0, 0), b: at(100, 0), orient: 'horizontal' as const, place: [50, -30] as [number, number] };
   const withMine: DrawingSettings = { ...first.settings, dimensions: [...first.settings.dimensions, mine] };
-  const again = autoDimensions(first.v, first.layout, withMine, e => holeCallout(doc.nodes, e));
+  const again = autoDimensions(first.v, first.layout, withMine, e => holeCallout(doc.nodes, e), [], [], e => holeCalloutOwner(doc.nodes, e));
   assert.equal(again.report.kept, 1); assert.equal(again.dimensions.filter(d => d.id === 'mine').length, 1);
   assert.equal(again.dimensions.length, first.settings.dimensions.length, 'one fewer auto: the overall width is yours');
   assert.equal(again.report.added.overall, first.report.added.overall - 1);
