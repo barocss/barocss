@@ -375,7 +375,7 @@
 | `[DXF_NESTED]` | `sketch` | a loop inside a hole (at (…, …) mm): an island in a hole is a sketch of its own |
 | `[DXF_OPEN]` | `sketch` | the profile is not closed at (…, …) mm: an edge ends there with nothing joining it… |
 | `[DXF_UNSUPPORTED]` | `sketch` | $INSUNITS …: only inches, feet, millimetres, centimetres and metres are read |
-| `[FACE_DISTANCE]` | `app` | Give the face a distance to move: out (+) or in (−). |
+| `[FACE_DISTANCE]` | `app` | The owned native cap has no loop profile. |
 | `[FACE_FILLET_PICK]` | `app` | … |
 | `[FASTENER_GRIP]` | `app` | Give the joint its grip: the thickness the bolt clamps (mm). |
 | `[FASTENER_LENGTH]` | `app` | … … come …–… mm long (…). |

@@ -7,6 +7,7 @@ import { toLocal, toWorld } from '../sketch/plane';
 import { framedLoftSections, loftSections, pickedSketches, planeOf, profileMiddle } from './profiles';
 import { copyLoftGuide } from './loftGuides';
 import { faceProfile } from './faceProfile';
+import { resolveNativeOffsetFace, validateNativeOffsetDistance } from './nativeOffsetFace';
 import { directNow } from '../engine/directModule';
 import type { Command, Ctx, Field, Values } from './commands';
 
@@ -92,22 +93,34 @@ export const extrudeCommand: Command = {
   },
 };
 
-/** Move a flat face along its normal: out joins material (its neighbours run on), in cuts it away. */
+/** Move an admitted native right-prism cap along its signed normal. */
 export const offsetFaceCommand: Command = {
   id: 'offset-face', label: 'Offset face', icon: 'cad-extrude', group: 'modify', keywords: 'move face push pull offset direct edit press',
-  hint: 'Move a flat face along its normal: out adds material (the faces round it run on), in takes it off — drag the arrow or type the distance',
-  available: ctx => { const p = extrudeProfile(ctx); return p?.fresh ? ok : no('Pick one flat face of a body to move.'); },
+  hint: 'Move a cap of a straight right prism or cylinder: out adds material, in removes it. Drag the arrow or type the distance.',
+  available: ctx => {
+    const selection = ctx.selection;
+    if (selection.faces.length !== 1 || selection.edges.length || selection.bodies.length || selection.sketches?.length || selection.vertices?.length || ctx.direct?.length) return no('Pick one flat cap of a straight right prism or cylinder.');
+    const picked = selection.faces[0], body = ctx.bodies[picked.body], face = body?.mesh.faces[picked.face];
+    if (!Number.isInteger(picked.body) || !Number.isInteger(picked.face) || !body || !face || face.kind !== 'plane' || face.facet || !face.name) return no('Pick one flat cap of a straight right prism or cylinder.');
+    let matches = 0;
+    for (const candidate of ctx.bodies) if (candidate.key === body.key) matches++;
+    return matches === 1 ? ok : no('Pick one flat cap of a straight right prism or cylinder.');
+  },
   fields: () => [{ key: 'd', label: 'Offset', kind: 'mm' }],
   defaults: () => ({ d: 2 }),
   steps: (_ctx, v) => [{ label: 'Move', text: Number(v.d) > 0 ? `${v.d} mm out (material added)` : Number(v.d) < 0 ? `${-Number(v.d)} mm in (material taken off)` : 'give it a distance (out +, in −)', done: Number(v.d) !== 0 }],
   build: (ctx, v) => {
-    const d = Number(v.d); if (!d) throw refusal('FACE_DISTANCE', 'Give the face a distance to move: out (+) or in (−).');
-    return extrudeCommand.build!(ctx, { h: Math.abs(d), draft: 0, op: d > 0 ? 'join' : 'cut', depth: 'distance' });
+    const d = Number(v.d), profile = resolveNativeOffsetFace(ctx);
+    validateNativeOffsetDistance(profile, d);
+    const doc = withNode(ctx.doc, structuredClone(profile.sketch)), index = doc.nodes.length - 1;
+    return extrudeCommand.build!({ ...ctx, doc, selection: { sketches: [index], faces: [], edges: [], bodies: [], vertices: [] }, direct: [] },
+      { h: Math.abs(d), draft: 0, op: d > 0 ? 'join' : 'cut', depth: 'distance' });
   },
   handles: ctx => {
-    const p = extrudeProfile(ctx); if (!p) return [];
-    const plane = planeOf(p.node), n = plane.normal, c = toWorld(plane, profileMiddle(p.node));
-    return [{ key: 'd', at: [...c] as [number, number, number], dir: [...n] as [number, number, number], step: 0.5 }];
+    try {
+      const profile = resolveNativeOffsetFace(ctx), plane = planeOf(profile.sketch), c = toWorld(plane, profileMiddle(profile.sketch));
+      return [{ key: 'd', at: [...c] as [number, number, number], dir: [...plane.normal] as [number, number, number], step: 0.5 }];
+    } catch { return []; }
   },
 };
 
