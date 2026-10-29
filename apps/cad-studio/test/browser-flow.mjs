@@ -6344,14 +6344,31 @@ try {
   await check('R14.1: Auto-dimension places overall sizes, the hole position and its callout; a hand-placed one is kept', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
     await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
-    await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => {
+      const nodes = window.__studioDoc?.nodes, sketch = nodes?.[0], extrude = nodes?.[1], state = window.__studioBodies?.(), body = state?.bodies[0];
+      return nodes?.length === 2 && sketch.kind === 'sketch' && sketch.profile === 'rectangle' &&
+        JSON.stringify(sketch.min) === '[0,0]' && JSON.stringify(sketch.max) === '[64,32]' &&
+        extrude.kind === 'extrude' && extrude.sketch === 0 && extrude.height === 8 && (extrude.from ?? 0) === 0 &&
+        window.__studioFresh === true && state.fresh && state.massReady === true && state.bodies.length === 1 &&
+        body.key === 'b1' && Math.abs(body.volume - 16384) < 1e-8 &&
+        body.centroid?.every((value, axis) => Math.abs(value - [32, 16, 4][axis]) < 1e-8);
+    }, null, { timeout: 15000 });
     const ext = (await doc()).nodes.length - 1;
     await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`));
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''));
     await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
-    await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => {
+      const nodes = window.__studioDoc?.nodes, hole = nodes?.at(-1), state = window.__studioBodies?.(), body = state?.bodies[0];
+      return nodes?.length === 3 && hole.kind === 'hole' && hole.parent.node === 1 && hole.parent.side === 'solid' &&
+        hole.radius === 4 && JSON.stringify(hole.center) === '[32,16]' && (hole.axis ?? 'z') === 'z' &&
+        hole.depth === undefined && hole.countersink === undefined && hole.pattern === undefined && hole.thread === undefined &&
+        window.__studioFresh === true && state?.fresh && state.massReady === true && state.bodies.length === 1 &&
+        // The exact through-hole design volume; the existing analytic-volume flow tolerance is 1e-7 mm³.
+        Math.abs(body.volume - (64 * 32 * 8 - Math.PI * 4 * 4 * 8)) < 1e-7 &&
+        body.centroid?.every((value, axis) => Math.abs(value - [32, 16, 4][axis]) < 1e-7);
+    }, null, { timeout: 15000 });
     try {
       await page.click('.mode button:text-is("Drawing")');
       await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
@@ -6381,14 +6398,31 @@ try {
   await check('R14.2: the issue list names what is missing and what repeats; Fix all and a single fix clear them', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
     await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
-    await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => {
+      const nodes = window.__studioDoc?.nodes, sketch = nodes?.[0], extrude = nodes?.[1], state = window.__studioBodies?.(), body = state?.bodies[0];
+      return nodes?.length === 2 && sketch.kind === 'sketch' && sketch.profile === 'rectangle' &&
+        JSON.stringify(sketch.min) === '[0,0]' && JSON.stringify(sketch.max) === '[64,32]' &&
+        extrude.kind === 'extrude' && extrude.sketch === 0 && extrude.height === 8 && (extrude.from ?? 0) === 0 &&
+        window.__studioFresh === true && state.fresh && state.massReady === true && state.bodies.length === 1 &&
+        body.key === 'b1' && Math.abs(body.volume - 16384) < 1e-8 &&
+        body.centroid?.every((value, axis) => Math.abs(value - [32, 16, 4][axis]) < 1e-8);
+    }, null, { timeout: 15000 });
     const ext = (await doc()).nodes.length - 1;
     await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`));
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''));
     await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
-    await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => {
+      const nodes = window.__studioDoc?.nodes, hole = nodes?.at(-1), state = window.__studioBodies?.(), body = state?.bodies[0];
+      return nodes?.length === 3 && hole.kind === 'hole' && hole.parent.node === 1 && hole.parent.side === 'solid' &&
+        hole.radius === 4 && JSON.stringify(hole.center) === '[32,16]' && (hole.axis ?? 'z') === 'z' &&
+        hole.depth === undefined && hole.countersink === undefined && hole.pattern === undefined && hole.thread === undefined &&
+        window.__studioFresh === true && state?.fresh && state.massReady === true && state.bodies.length === 1 &&
+        // The exact through-hole design volume; the existing analytic-volume flow tolerance is 1e-7 mm³.
+        Math.abs(body.volume - (64 * 32 * 8 - Math.PI * 4 * 4 * 8)) < 1e-7 &&
+        body.centroid?.every((value, axis) => Math.abs(value - [32, 16, 4][axis]) < 1e-7);
+    }, null, { timeout: 15000 });
     const issues = async () => (await page.evaluate(() => window.__studioDrawing())).issues.map(x => x.code).sort();
     try {
       await page.click('.mode button:text-is("Drawing")');
