@@ -1,0 +1,54 @@
+{
+  "status": "BOUNDED_KERNEL_CHECKS_PASS_PENDING_HIGH_REVIEW",
+  "base": "4ce1b35c753952010eb6961c62ccd6c6490bd01e",
+  "baseline": {
+    "productionUnchanged": true,
+    "fullBuild": "PASS",
+    "focused": {
+      "tests": 44,
+      "pass": 25,
+      "fail": 19,
+      "skip": 0
+    },
+    "firstFailure": "captured-positive centroid0.34375 outside[.3456789,.34567890000000023]",
+    "logs": [
+      "baseline-build.log",
+      "baseline-focused.log"
+    ]
+  },
+  "candidate": {
+    "fullBuild": "PASS",
+    "focused": {
+      "tests": 44,
+      "pass": 44,
+      "fail": 0,
+      "skip": 0
+    },
+    "related": {
+      "tests": 68,
+      "pass": 68,
+      "fail": 0,
+      "skip": 0,
+      "files": [
+        "prismatic-solid.test.mjs",
+        "part-model.test.mjs",
+        "mass-polyhedral.test.mjs",
+        "native-si-boundary.test.mjs"
+      ]
+    },
+    "types": "PASS",
+    "packageLintCodeShape": "PASS",
+    "testLint": "PASS",
+    "sharedVolumeMassBitsUnchanged": 43
+  },
+  "firstCandidateFailure": null,
+  "gate": "RELEASED_holder_none_slots_0",
+  "fullKernelSuite": "NOT_RUN by owner; root gate pending",
+  "ModelStudioBrowserFile": "NOT_RUN",
+  "limits": [
+    "No global central inertia accuracy claim",
+    "No 2D Green/overflow/subnormal/performance acceptance",
+    "No D342 guard or API/schema changes",
+    "No commit/push"
+  ]
+}

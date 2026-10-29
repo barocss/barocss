@@ -1,0 +1,7 @@
+{
+  "firstCheck": "FAIL",
+  "firstLog": "staged-diff-check-first.log",
+  "reason": "Raw unified-diff blank context lines contain one space and are flagged as trailing whitespace. Product source is unchanged.",
+  "repair": "Preserve the exact raw diff as deterministic gzip; never trim or regenerate immutable evidence.",
+  "decodedSHA256": "7e0d4291003e244cb7b8aaacadd8262f261fa58940acdb5437ba9efa54284052"
+}

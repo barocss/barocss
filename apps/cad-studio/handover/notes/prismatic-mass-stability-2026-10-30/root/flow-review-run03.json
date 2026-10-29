@@ -1,0 +1,120 @@
+{
+  "status": "SCOPED_VISUAL_AND_PRODUCT_FLOW_PASS",
+  "sourceCheckpoint": "e1ff873c4e0de4dca628c6486c5e99e7b8bcc591",
+  "run": "studio/run-03/receipt.json",
+  "viewedImages": [
+    {
+      "path": "studio/run-03/03-captured-inward-preview.png",
+      "sha256": "18eaf3b244a91c1c02e0f472fb751a061d0ab9e4cda2eb40bd2b9b424b0c7c38"
+    },
+    {
+      "path": "studio/run-03/04-thin-ui-presence-only.png",
+      "sha256": "5a9e79b13ca7ed6e9b2f48bbac232350d7ad1bff3e2b0b77b15285ed28774b4a"
+    },
+    {
+      "path": "studio/run-03/08-reopened-thin-ui-presence-only.png",
+      "sha256": "0d6ab1d4f339cb5f4bc6a3ccb5272e3f6e95c46c8d08a16fee553c1460fb8964"
+    },
+    {
+      "path": "studio/run-03/13-visible-control-iso.png",
+      "sha256": "79d542737542520ec3251cc4c0ea6c5b40772700692b9b6fd82fe43022bda82e"
+    }
+  ],
+  "visualObservations": [
+    "Offset HUD accepts the captured literal and shows preview.",
+    "After Apply and fresh Open the thin disc and witness are visible in Iso; source cylinder height is gone.",
+    "Ordinary +2 control remains a visible closed cylinder beside the unchanged witness.",
+    "Cleared geometry selection does not alias the reordered witness body."
+  ],
+  "visualBoundary": "Pixels/Float32 cannot resolve the four-ULP height, prove native cap identity, exact geometry or raw mass. Native coefficient checks and four independent scalar oracles are separate authority.",
+  "chromeProcesses": 1,
+  "serialContexts": 3,
+  "observationalStates": 14,
+  "nativeReads": 6,
+  "independentOracles": 4,
+  "actualStudioMassReads": 4,
+  "actualMousePicks": 2,
+  "acceptedSelectionChecks": 2,
+  "nativeFiles": 1,
+  "downloads": 1,
+  "sourceBeforeSubset": 13,
+  "sourceFrozenCount": 728,
+  "sourceAfterCount": 728,
+  "sourceAfterCleanupCount": 728,
+  "frozenAfterCleanupMatch": true,
+  "errors": 0,
+  "consoleErrors": 0,
+  "watchedChanges": 0,
+  "cleanup": [
+    "CONTEXT_CLOSED",
+    "CONTEXT_CLOSED",
+    "CONTEXT_CLOSED",
+    "BROWSER_CLOSED",
+    "SERVER_CLOSED"
+  ],
+  "notClaimed": [
+    "Clean first product run; run01 and run02 failed.",
+    "Whole served graph/source inventory before generation.",
+    "Native quadrature, tangent centroid/inertia or global mass accuracy.",
+    "Full Model/Studio suites, remote CI or release."
+  ],
+  "rootStableCapNameLevelComparison": [
+    {
+      "label": "04-captured-thin",
+      "body": "b7",
+      "publicNames": [
+        "n1.bottom",
+        "n1.side0",
+        "n6.bottom"
+      ],
+      "nativeCapLevelsAndNames": [
+        {
+          "name": "n1.bottom",
+          "level": 0.3456789
+        },
+        {
+          "name": "n6.bottom",
+          "level": 0.34567890000000023
+        }
+      ]
+    },
+    {
+      "label": "06-redone-thin",
+      "body": "b7",
+      "publicNames": [
+        "n1.bottom",
+        "n1.side0",
+        "n6.bottom"
+      ],
+      "nativeCapLevelsAndNames": [
+        {
+          "name": "n1.bottom",
+          "level": 0.3456789
+        },
+        {
+          "name": "n6.bottom",
+          "level": 0.34567890000000023
+        }
+      ]
+    },
+    {
+      "label": "07-reopened-thin",
+      "body": "b7",
+      "publicNames": [
+        "n1.bottom",
+        "n1.side0",
+        "n6.bottom"
+      ],
+      "nativeCapLevelsAndNames": [
+        {
+          "name": "n1.bottom",
+          "level": 0.3456789
+        },
+        {
+          "name": "n6.bottom",
+          "level": 0.34567890000000023
+        }
+      ]
+    }
+  ]
+}

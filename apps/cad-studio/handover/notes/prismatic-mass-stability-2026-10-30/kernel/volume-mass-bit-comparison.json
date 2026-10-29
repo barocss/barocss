@@ -1,0 +1,910 @@
+{
+  "status": "PASS",
+  "sharedRecordedCases": 43,
+  "source": "Exact stored binary64 result bits across original/candidate public mass calls; not a geometry checksum oracle",
+  "cases": [
+    {
+      "label": "captured-circle",
+      "volumeBefore": 6.278163296415538e-15,
+      "volumeAfter": 6.278163296415538e-15,
+      "volumeBeforeBits": "3cfc463abeccb2bc",
+      "volumeAfterBits": "3cfc463abeccb2bc",
+      "massBeforeBits": "3c5cf3f26d5cdffc",
+      "massAfterBits": "3c5cf3f26d5cdffc",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        6.871568756248338e-17,
+        -1.544893523156708e-17,
+        0.34375
+      ],
+      "centroidAfter": [
+        6.871568756248338e-17,
+        -1.544893523156708e-17,
+        0.3456789000000001
+      ]
+    },
+    {
+      "label": "captured-negative",
+      "volumeBefore": 8.881784197001252e-16,
+      "volumeAfter": 8.881784197001252e-16,
+      "volumeBeforeBits": "3cd0000000000000",
+      "volumeAfterBits": "3cd0000000000000",
+      "massBeforeBits": "3c6013a92a305532",
+      "massAfterBits": "3c6013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -0.34375
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -0.3456789000000001
+      ]
+    },
+    {
+      "label": "captured-positive",
+      "volumeBefore": 8.881784197001252e-16,
+      "volumeAfter": 8.881784197001252e-16,
+      "volumeBeforeBits": "3cd0000000000000",
+      "volumeAfterBits": "3cd0000000000000",
+      "massBeforeBits": "3c6013a92a305532",
+      "massAfterBits": "3c6013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        0.34375
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        0.3456789000000001
+      ]
+    },
+    {
+      "label": "ordinary--1-0",
+      "volumeBefore": 15.000000000000002,
+      "volumeAfter": 15.000000000000002,
+      "volumeBeforeBits": "402e000000000001",
+      "volumeAfterBits": "402e000000000001",
+      "massBeforeBits": "3fbe24dd2f1a9fc0",
+      "massAfterBits": "3fbe24dd2f1a9fc0",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        0.5000000000000002,
+        0.5,
+        -0.5
+      ],
+      "centroidAfter": [
+        0.5000000000000002,
+        0.5,
+        -0.5
+      ]
+    },
+    {
+      "label": "ordinary--1-1",
+      "volumeBefore": 30.000000000000004,
+      "volumeAfter": 30.000000000000004,
+      "volumeBeforeBits": "403e000000000001",
+      "volumeAfterBits": "403e000000000001",
+      "massBeforeBits": "3fce24dd2f1a9fc0",
+      "massAfterBits": "3fce24dd2f1a9fc0",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        0.5000000000000002,
+        0.5,
+        0
+      ],
+      "centroidAfter": [
+        0.5000000000000002,
+        0.5,
+        0
+      ]
+    },
+    {
+      "label": "ordinary--5--2",
+      "volumeBefore": 45.00000000000001,
+      "volumeAfter": 45.00000000000001,
+      "volumeBeforeBits": "4046800000000001",
+      "volumeAfterBits": "4046800000000001",
+      "massBeforeBits": "3fd69ba5e353f7d0",
+      "massAfterBits": "3fd69ba5e353f7d0",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        0.5000000000000001,
+        0.5,
+        -3.5
+      ],
+      "centroidAfter": [
+        0.5000000000000001,
+        0.5,
+        -3.5
+      ]
+    },
+    {
+      "label": "ordinary-0-1",
+      "volumeBefore": 15.000000000000002,
+      "volumeAfter": 15.000000000000002,
+      "volumeBeforeBits": "402e000000000001",
+      "volumeAfterBits": "402e000000000001",
+      "massBeforeBits": "3fbe24dd2f1a9fc0",
+      "massAfterBits": "3fbe24dd2f1a9fc0",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        0.5000000000000002,
+        0.5,
+        0.5
+      ],
+      "centroidAfter": [
+        0.5000000000000002,
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "label": "ordinary-1000-1000.25",
+      "volumeBefore": 3.7500000000000004,
+      "volumeAfter": 3.7500000000000004,
+      "volumeBeforeBits": "400e000000000001",
+      "volumeAfterBits": "400e000000000001",
+      "massBeforeBits": "3f9e24dd2f1a9fc0",
+      "massAfterBits": "3f9e24dd2f1a9fc0",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        0.5000000000000002,
+        0.5,
+        1000.125
+      ],
+      "centroidAfter": [
+        0.5000000000000002,
+        0.5,
+        1000.125
+      ]
+    },
+    {
+      "label": "ordinary-2-5",
+      "volumeBefore": 45.00000000000001,
+      "volumeAfter": 45.00000000000001,
+      "volumeBeforeBits": "4046800000000001",
+      "volumeAfterBits": "4046800000000001",
+      "massBeforeBits": "3fd69ba5e353f7d0",
+      "massAfterBits": "3fd69ba5e353f7d0",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        0.5000000000000001,
+        0.5,
+        3.5
+      ],
+      "centroidAfter": [
+        0.5000000000000001,
+        0.5,
+        3.5
+      ]
+    },
+    {
+      "label": "ulp--0.3456789-1",
+      "volumeBefore": 2.220446049250313e-16,
+      "volumeAfter": 2.220446049250313e-16,
+      "volumeBeforeBits": "3cb0000000000000",
+      "volumeAfterBits": "3cb0000000000000",
+      "massBeforeBits": "3c4013a92a305532",
+      "massAfterBits": "3c4013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -0.25
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -0.3456789
+      ]
+    },
+    {
+      "label": "ulp--0.3456789-16",
+      "volumeBefore": 3.552713678800501e-15,
+      "volumeAfter": 3.552713678800501e-15,
+      "volumeBeforeBits": "3cf0000000000000",
+      "volumeAfterBits": "3cf0000000000000",
+      "massBeforeBits": "3c8013a92a305532",
+      "massAfterBits": "3c8013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -0.34375
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -0.34567889999999957
+      ]
+    },
+    {
+      "label": "ulp--0.3456789-2",
+      "volumeBefore": 4.440892098500626e-16,
+      "volumeAfter": 4.440892098500626e-16,
+      "volumeBeforeBits": "3cc0000000000000",
+      "volumeAfterBits": "3cc0000000000000",
+      "massBeforeBits": "3c5013a92a305532",
+      "massAfterBits": "3c5013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -0.3125
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -0.34567889999999996
+      ]
+    },
+    {
+      "label": "ulp--0.3456789-4",
+      "volumeBefore": 8.881784197001252e-16,
+      "volumeAfter": 8.881784197001252e-16,
+      "volumeBeforeBits": "3cd0000000000000",
+      "volumeAfterBits": "3cd0000000000000",
+      "massBeforeBits": "3c6013a92a305532",
+      "massAfterBits": "3c6013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -0.34375
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -0.3456788999999999
+      ]
+    },
+    {
+      "label": "ulp--1-1",
+      "volumeBefore": 4.440892098500626e-16,
+      "volumeAfter": 4.440892098500626e-16,
+      "volumeBeforeBits": "3cc0000000000000",
+      "volumeAfterBits": "3cc0000000000000",
+      "massBeforeBits": "3c5013a92a305532",
+      "massAfterBits": "3c5013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -1
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -1
+      ]
+    },
+    {
+      "label": "ulp--1-16",
+      "volumeBefore": 7.105427357601002e-15,
+      "volumeAfter": 7.105427357601002e-15,
+      "volumeBeforeBits": "3d00000000000000",
+      "volumeAfterBits": "3d00000000000000",
+      "massBeforeBits": "3c9013a92a305532",
+      "massAfterBits": "3c9013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -1
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -0.9999999999999991
+      ]
+    },
+    {
+      "label": "ulp--1-2",
+      "volumeBefore": 8.881784197001252e-16,
+      "volumeAfter": 8.881784197001252e-16,
+      "volumeBeforeBits": "3cd0000000000000",
+      "volumeAfterBits": "3cd0000000000000",
+      "massBeforeBits": "3c6013a92a305532",
+      "massAfterBits": "3c6013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -1
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -0.9999999999999999
+      ]
+    },
+    {
+      "label": "ulp--1-4",
+      "volumeBefore": 1.7763568394002505e-15,
+      "volumeAfter": 1.7763568394002505e-15,
+      "volumeBeforeBits": "3ce0000000000000",
+      "volumeAfterBits": "3ce0000000000000",
+      "massBeforeBits": "3c7013a92a305532",
+      "massAfterBits": "3c7013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -1
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -0.9999999999999998
+      ]
+    },
+    {
+      "label": "ulp--1024-1",
+      "volumeBefore": 4.547473508864641e-13,
+      "volumeAfter": 4.547473508864641e-13,
+      "volumeBeforeBits": "3d60000000000000",
+      "volumeAfterBits": "3d60000000000000",
+      "massBeforeBits": "3cf013a92a305532",
+      "massAfterBits": "3cf013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -1024
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -1024
+      ]
+    },
+    {
+      "label": "ulp--1024-16",
+      "volumeBefore": 7.275957614183426e-12,
+      "volumeAfter": 7.275957614183426e-12,
+      "volumeBeforeBits": "3da0000000000000",
+      "volumeAfterBits": "3da0000000000000",
+      "massBeforeBits": "3d3013a92a305532",
+      "massAfterBits": "3d3013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -1024
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -1023.9999999999991
+      ]
+    },
+    {
+      "label": "ulp--1024-2",
+      "volumeBefore": 9.094947017729282e-13,
+      "volumeAfter": 9.094947017729282e-13,
+      "volumeBeforeBits": "3d70000000000000",
+      "volumeAfterBits": "3d70000000000000",
+      "massBeforeBits": "3d0013a92a305532",
+      "massAfterBits": "3d0013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -1024
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -1023.9999999999999
+      ]
+    },
+    {
+      "label": "ulp--1024-4",
+      "volumeBefore": 1.8189894035458565e-12,
+      "volumeAfter": 1.8189894035458565e-12,
+      "volumeBeforeBits": "3d80000000000000",
+      "volumeAfterBits": "3d80000000000000",
+      "massBeforeBits": "3d1013a92a305532",
+      "massAfterBits": "3d1013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -1024
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -1023.9999999999998
+      ]
+    },
+    {
+      "label": "ulp--9999-1",
+      "volumeBefore": 7.275957614183426e-12,
+      "volumeAfter": 7.275957614183426e-12,
+      "volumeBeforeBits": "3da0000000000000",
+      "volumeAfterBits": "3da0000000000000",
+      "massBeforeBits": "3d3013a92a305532",
+      "massAfterBits": "3d3013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -8192
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -9999
+      ]
+    },
+    {
+      "label": "ulp--9999-16",
+      "volumeBefore": 1.1641532182693481e-10,
+      "volumeAfter": 1.1641532182693481e-10,
+      "volumeBeforeBits": "3de0000000000000",
+      "volumeAfterBits": "3de0000000000000",
+      "massBeforeBits": "3d7013a92a305532",
+      "massAfterBits": "3d7013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -9984
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -9998.999999999985
+      ]
+    },
+    {
+      "label": "ulp--9999-2",
+      "volumeBefore": 1.4551915228366852e-11,
+      "volumeAfter": 1.4551915228366852e-11,
+      "volumeBeforeBits": "3db0000000000000",
+      "volumeAfterBits": "3db0000000000000",
+      "massBeforeBits": "3d4013a92a305532",
+      "massAfterBits": "3d4013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -10240
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -9998.999999999998
+      ]
+    },
+    {
+      "label": "ulp--9999-4",
+      "volumeBefore": 2.9103830456733704e-11,
+      "volumeAfter": 2.9103830456733704e-11,
+      "volumeBeforeBits": "3dc0000000000000",
+      "volumeAfterBits": "3dc0000000000000",
+      "massBeforeBits": "3d5013a92a305532",
+      "massAfterBits": "3d5013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -10240
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        -9998.999999999996
+      ]
+    },
+    {
+      "label": "ulp-0.3456789-1",
+      "volumeBefore": 2.220446049250313e-16,
+      "volumeAfter": 2.220446049250313e-16,
+      "volumeBeforeBits": "3cb0000000000000",
+      "volumeAfterBits": "3cb0000000000000",
+      "massBeforeBits": "3c4013a92a305532",
+      "massAfterBits": "3c4013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        0.375
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        0.3456789
+      ]
+    },
+    {
+      "label": "ulp-0.3456789-16",
+      "volumeBefore": 3.552713678800501e-15,
+      "volumeAfter": 3.552713678800501e-15,
+      "volumeBeforeBits": "3cf0000000000000",
+      "volumeAfterBits": "3cf0000000000000",
+      "massBeforeBits": "3c8013a92a305532",
+      "massAfterBits": "3c8013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        0.3515625
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        0.34567890000000046
+      ]
+    },
+    {
+      "label": "ulp-0.3456789-2",
+      "volumeBefore": 4.440892098500626e-16,
+      "volumeAfter": 4.440892098500626e-16,
+      "volumeBeforeBits": "3cc0000000000000",
+      "volumeAfterBits": "3cc0000000000000",
+      "massBeforeBits": "3c5013a92a305532",
+      "massAfterBits": "3c5013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        0.375
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        0.34567890000000007
+      ]
+    },
+    {
+      "label": "ulp-0.3456789-4",
+      "volumeBefore": 8.881784197001252e-16,
+      "volumeAfter": 8.881784197001252e-16,
+      "volumeBeforeBits": "3cd0000000000000",
+      "volumeAfterBits": "3cd0000000000000",
+      "massBeforeBits": "3c6013a92a305532",
+      "massAfterBits": "3c6013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        0.34375
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        0.3456789000000001
+      ]
+    },
+    {
+      "label": "ulp-1-1",
+      "volumeBefore": 8.881784197001252e-16,
+      "volumeAfter": 8.881784197001252e-16,
+      "volumeBeforeBits": "3cd0000000000000",
+      "volumeAfterBits": "3cd0000000000000",
+      "massBeforeBits": "3c6013a92a305532",
+      "massAfterBits": "3c6013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        1
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        1
+      ]
+    },
+    {
+      "label": "ulp-1-16",
+      "volumeBefore": 1.4210854715202004e-14,
+      "volumeAfter": 1.4210854715202004e-14,
+      "volumeBeforeBits": "3d10000000000000",
+      "volumeAfterBits": "3d10000000000000",
+      "massBeforeBits": "3ca013a92a305532",
+      "massAfterBits": "3ca013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        1
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        1.0000000000000018
+      ]
+    },
+    {
+      "label": "ulp-1-2",
+      "volumeBefore": 1.7763568394002505e-15,
+      "volumeAfter": 1.7763568394002505e-15,
+      "volumeBeforeBits": "3ce0000000000000",
+      "volumeAfterBits": "3ce0000000000000",
+      "massBeforeBits": "3c7013a92a305532",
+      "massAfterBits": "3c7013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        1
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        1.0000000000000002
+      ]
+    },
+    {
+      "label": "ulp-1-4",
+      "volumeBefore": 3.552713678800501e-15,
+      "volumeAfter": 3.552713678800501e-15,
+      "volumeBeforeBits": "3cf0000000000000",
+      "volumeAfterBits": "3cf0000000000000",
+      "massBeforeBits": "3c8013a92a305532",
+      "massAfterBits": "3c8013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        1
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        1.0000000000000004
+      ]
+    },
+    {
+      "label": "ulp-1024-1",
+      "volumeBefore": 9.094947017729282e-13,
+      "volumeAfter": 9.094947017729282e-13,
+      "volumeBeforeBits": "3d70000000000000",
+      "volumeAfterBits": "3d70000000000000",
+      "massBeforeBits": "3d0013a92a305532",
+      "massAfterBits": "3d0013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        1024
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        1024
+      ]
+    },
+    {
+      "label": "ulp-1024-16",
+      "volumeBefore": 1.4551915228366852e-11,
+      "volumeAfter": 1.4551915228366852e-11,
+      "volumeBeforeBits": "3db0000000000000",
+      "volumeAfterBits": "3db0000000000000",
+      "massBeforeBits": "3d4013a92a305532",
+      "massAfterBits": "3d4013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        1024
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        1024.0000000000018
+      ]
+    },
+    {
+      "label": "ulp-1024-2",
+      "volumeBefore": 1.8189894035458565e-12,
+      "volumeAfter": 1.8189894035458565e-12,
+      "volumeBeforeBits": "3d80000000000000",
+      "volumeAfterBits": "3d80000000000000",
+      "massBeforeBits": "3d1013a92a305532",
+      "massAfterBits": "3d1013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        1024
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        1024.0000000000002
+      ]
+    },
+    {
+      "label": "ulp-1024-4",
+      "volumeBefore": 3.637978807091713e-12,
+      "volumeAfter": 3.637978807091713e-12,
+      "volumeBeforeBits": "3d90000000000000",
+      "volumeAfterBits": "3d90000000000000",
+      "massBeforeBits": "3d2013a92a305532",
+      "massAfterBits": "3d2013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        1024
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        1024.0000000000005
+      ]
+    },
+    {
+      "label": "ulp-9999-1",
+      "volumeBefore": 7.275957614183426e-12,
+      "volumeAfter": 7.275957614183426e-12,
+      "volumeBeforeBits": "3da0000000000000",
+      "volumeAfterBits": "3da0000000000000",
+      "massBeforeBits": "3d3013a92a305532",
+      "massAfterBits": "3d3013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        8192
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        9999
+      ]
+    },
+    {
+      "label": "ulp-9999-16",
+      "volumeBefore": 1.1641532182693481e-10,
+      "volumeAfter": 1.1641532182693481e-10,
+      "volumeBeforeBits": "3de0000000000000",
+      "volumeAfterBits": "3de0000000000000",
+      "massBeforeBits": "3d7013a92a305532",
+      "massAfterBits": "3d7013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        9984
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        9999.000000000015
+      ]
+    },
+    {
+      "label": "ulp-9999-2",
+      "volumeBefore": 1.4551915228366852e-11,
+      "volumeAfter": 1.4551915228366852e-11,
+      "volumeBeforeBits": "3db0000000000000",
+      "volumeAfterBits": "3db0000000000000",
+      "massBeforeBits": "3d4013a92a305532",
+      "massAfterBits": "3d4013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        10240
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        9999.000000000002
+      ]
+    },
+    {
+      "label": "ulp-9999-4",
+      "volumeBefore": 2.9103830456733704e-11,
+      "volumeAfter": 2.9103830456733704e-11,
+      "volumeBeforeBits": "3dc0000000000000",
+      "volumeAfterBits": "3dc0000000000000",
+      "massBeforeBits": "3d5013a92a305532",
+      "massAfterBits": "3d5013a92a305532",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        10240
+      ],
+      "centroidAfter": [
+        -2.2551405187698492e-17,
+        2.2551405187698492e-17,
+        9999.000000000004
+      ]
+    },
+    {
+      "label": "weighted--1",
+      "volumeBefore": 52,
+      "volumeAfter": 52,
+      "volumeBeforeBits": "404a000000000000",
+      "volumeAfterBits": "404a000000000000",
+      "massBeforeBits": "3faa9fbe76c8b43a",
+      "massAfterBits": "3faa9fbe76c8b43a",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        3.6923076923076925,
+        1.3846153846153846,
+        0.8076923076923077
+      ],
+      "centroidAfter": [
+        3.6923076923076925,
+        1.3846153846153846,
+        0.8076923076923077
+      ]
+    },
+    {
+      "label": "weighted-1",
+      "volumeBefore": 28,
+      "volumeAfter": 28,
+      "volumeBeforeBits": "403c000000000000",
+      "volumeAfterBits": "403c000000000000",
+      "massBeforeBits": "3f9cac083126e979",
+      "massAfterBits": "3f9cac083126e979",
+      "volumeBitsEqual": true,
+      "massBitsEqual": true,
+      "centroidBefore": [
+        3.4285714285714284,
+        1.2857142857142858,
+        1.5
+      ],
+      "centroidAfter": [
+        3.4285714285714284,
+        1.2857142857142858,
+        1.5
+      ]
+    }
+  ]
+}

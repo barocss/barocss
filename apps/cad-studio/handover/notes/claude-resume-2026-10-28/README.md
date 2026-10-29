@@ -1,5 +1,13 @@
 # Hand-over (2026-10-28)
 
+## Latest D343 checkpoint — 2026-10-30
+
+- Bounded prismatic longitudinal mass and actual Offset result/cap identity qualification: source `e1ff873c4e0de4dca628c6486c5e99e7b8bcc591`; initial `f9c17c1461ad7814f89d6fefef0e358aac473596`, circle correction `3177950c40077de5b91c9965376636769417d830`. [Qualification](../prismatic-mass-stability-2026-10-30/qualification.json).14 distinct implementation paths; no schema/dependency/tolerance change.
+- The captured4ULP upright interval now has normal center.3456789000000001 inside its native bounds. Actual X/Y empty targets refuse atomically; ordinary retries remain valid. Chrome circular half-width rounding uses the existing full-curve certificate. Exact stored cap provenance prevents two public caps sharing one name. Native geometry/mass are unchanged by the name fix.
+- Preserve run01 preview VALUE FAIL and run02 public-name FAIL before clean run03. Final Kernel2325PASS/6existingSKIP; Model86PASS/types/lint; Studio build plus retained scoped API/generated/chat23/type proof. Actual one Chrome/3serialcontexts/14observations/6nativeReads/4oracles/4StudioMassReads/2mousepicks/1nativefile, Undo/Redo/fresh Open/control and four-image scoped visual review pass. Tiny height is not visually resolved.
+- Native quadrature remains UNREPAIRED; next existing16/CG10 [source-only plan](../prismatic-mass-stability-2026-10-30/next-plan/bounded-reproduction-plan.md) traces its raw STEP validation consumer. No runtime reproduction/fix/export proof yet. Continue remaining08 afterward, then09;07 is delivered and Electron15 queued. No full Model/Studio/performance/remoteCI/release acceptance. Documentation gate/publication status is in qualification.json.
+
+
 The owner asked: "지금까지 하던거 멈추고 인수인계 할 수 있도록 해줘". This note lets the next session continue the
 kernel and cad-model work of the session that ran on `local/cad-dev` from 2026-10-27 to 2026-10-28.
 

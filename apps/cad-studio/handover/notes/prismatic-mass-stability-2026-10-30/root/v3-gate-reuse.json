@@ -1,0 +1,18 @@
+{
+  "newModelAffected": {
+    "pass": 86,
+    "fail": 0,
+    "skip": 0
+  },
+  "newStudioVite": "PASS",
+  "ModelTypesAndHelperLint": "PASS by High on final v3 source",
+  "reusedFromInitialNineGate": [
+    "API addition/adoption and six scoped inventory rules",
+    "agent-tools and refusal generated checks",
+    "Studio chat23",
+    "Studio type-check",
+    "unchanged driver lint"
+  ],
+  "reason": "Private circle body predicate change only; public signatures, command wiring, App, generated strings/contracts and driver unchanged. No new export. Source changes have final Model type-check and a fresh Studio build. Core source/oracle unchanged, root full2317PASS/6existingSKIP reused.",
+  "browser": "NOT_RUN_ON_V3"
+}

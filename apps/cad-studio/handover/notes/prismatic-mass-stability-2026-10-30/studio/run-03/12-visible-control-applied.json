@@ -1,0 +1,216 @@
+{
+  "label": "12-visible-control-applied",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "circle",
+        "center": [
+          0,
+          0
+        ],
+        "radius": 3,
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 5.00009,
+        "id": "n1",
+        "made": {
+          "command": "cylinder",
+          "values": {
+            "r": 3,
+            "h": 5.00009,
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      },
+      {
+        "kind": "translate",
+        "parent": {
+          "node": 1,
+          "side": "solid"
+        },
+        "offset": [
+          0.1234567,
+          -0.2345678,
+          0.3456789
+        ],
+        "id": "n2"
+      },
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          80,
+          -3
+        ],
+        "max": [
+          92,
+          4
+        ],
+        "id": "n3"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 3,
+        "height": 5,
+        "from": 1,
+        "id": "n4",
+        "made": {
+          "command": "box",
+          "values": {
+            "w": 12,
+            "d": 7,
+            "h": 5,
+            "x": 80,
+            "y": -3,
+            "z": 1
+          }
+        }
+      },
+      {
+        "kind": "sketch",
+        "profile": "loop",
+        "segments": [
+          {
+            "kind": "arc",
+            "start": [
+              3.1234567,
+              -0.23456780000000022
+            ],
+            "center": [
+              0.1234567000000002,
+              -0.23456780000000022
+            ],
+            "direction": "ccw"
+          }
+        ],
+        "plane": {
+          "origin": [
+            0,
+            0,
+            5.3457689
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ]
+        },
+        "on": {
+          "node": 2,
+          "side": "solid"
+        },
+        "id": "n5"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 5,
+        "height": 2,
+        "id": "n6"
+      },
+      {
+        "kind": "union",
+        "left": {
+          "node": 2,
+          "side": "solid"
+        },
+        "right": {
+          "node": 6,
+          "side": "solid"
+        },
+        "id": "n7"
+      }
+    ],
+    "outputs": {
+      "b4": {
+        "node": 4,
+        "side": "solid"
+      },
+      "b7": {
+        "node": 7,
+        "side": "solid"
+      }
+    },
+    "nextId": 8
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b4",
+        "volume": 420.0000000000001,
+        "centroid": [
+          85.99999999999996,
+          0.4999999999999998,
+          3.5
+        ],
+        "massRef": null
+      },
+      {
+        "key": "b7",
+        "volume": 197.92288186620638,
+        "centroid": [
+          0.12345670000000003,
+          -0.23456779999999983,
+          3.8457239000000003
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "shown": {
+    "gpu": true,
+    "exact": false,
+    "clip": null,
+    "hatch": {
+      "spacing": 1,
+      "lines": null
+    },
+    "bodies": 2,
+    "mode": null,
+    "planes": null,
+    "volume": null,
+    "shownVolume": 616.6535753281385,
+    "shownKeys": [
+      "b4",
+      "b7"
+    ],
+    "sources": [
+      "b4",
+      "b7"
+    ],
+    "offsets": null
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 2,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "directSelection": [],
+  "hud": null,
+  "hudStatus": null,
+  "editor": null,
+  "feedback": []
+}

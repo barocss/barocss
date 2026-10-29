@@ -1,0 +1,13 @@
+{
+  "lowlevelSolidExactEqual": true,
+  "lowlevelMassExactEqual": true,
+  "lowlevelBrepExceptNamesExactEqual": true,
+  "actualRecipeExactEqual": true,
+  "actualBrepExceptNamesExactEqual": true,
+  "publicNames": [
+    "n1.side0",
+    "n1.bottom",
+    "n6.bottom"
+  ],
+  "publicNamesUnique": true
+}

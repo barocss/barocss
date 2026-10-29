@@ -1,0 +1,72 @@
+{
+  "status": "PUBLIC_FACE_IDENTITY_FAIL_AFTER_ACTUAL_APPLY",
+  "sourceCheckpoint": "3177950c40077de5b91c9965376636769417d830",
+  "failure": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n2 !== 3\n\n    at readNative (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/prismatic-mass-stability-browser.mjs:88:424)\n    at async file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/prismatic-mass-stability-browser.mjs:148:634",
+  "nativeNames": [
+    "n1.side0#2",
+    "n1.side0#1",
+    "n1.bottom#1",
+    "n1.bottom#2"
+  ],
+  "publicNames": [
+    "n1.bottom",
+    "n1.bottom",
+    "n1.side0"
+  ],
+  "nativeStrictValid": true,
+  "structure": {
+    "nativeSolidCount": 1,
+    "nativeShellCount": 1,
+    "nativeClosedShellCount": 1
+  },
+  "actualStudioBodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b4",
+        "volume": 420.0000000000001,
+        "centroid": [
+          85.99999999999996,
+          0.4999999999999998,
+          3.5
+        ],
+        "massRef": null
+      },
+      {
+        "key": "b7",
+        "volume": 6.278163296415537e-15,
+        "centroid": [
+          0.12345670000000004,
+          -0.23456779999999983,
+          0.3456789000000001
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "acceptedSelection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 2,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "imagesViewed": [
+    "studio/run-02/failure.png"
+  ],
+  "visualBoundary": "Visible disc/witness and cleared selection; pixels do not resolve tiny thickness. No full product PASS.",
+  "pageErrors": [],
+  "consoleErrors": [],
+  "changes": [],
+  "cleanup": [
+    "CONTEXT_CLOSED",
+    "BROWSER_CLOSED",
+    "SERVER_CLOSED"
+  ]
+}

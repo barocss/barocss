@@ -1,0 +1,2 @@
+RuntimeError: Unexpected existing evidence files: ['root/api-changed-records.diff']
+All raw diff artifacts now use gzip; the second existing raw copy must also be retired after byte verification.

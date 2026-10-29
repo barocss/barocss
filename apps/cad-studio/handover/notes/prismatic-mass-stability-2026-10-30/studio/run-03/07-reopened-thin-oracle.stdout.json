@@ -1,0 +1,175 @@
+{
+  "status": "PASS",
+  "expected": {
+    "lower": {
+      "numerator": "1556799365229843",
+      "denominator": "4503599627370496",
+      "value": 0.3456789
+    },
+    "oldCap": {
+      "numerator": "6018800706512197",
+      "denominator": "1125899906842624",
+      "value": 5.3457689
+    },
+    "intendedUpperBeforeRounding": {
+      "numerator": "389199841307461",
+      "denominator": "1125899906842624",
+      "value": 0.34567890000000023
+    },
+    "storedUpper": {
+      "numerator": "389199841307461",
+      "denominator": "1125899906842624",
+      "value": 0.34567890000000023
+    },
+    "gap": {
+      "numerator": "1",
+      "denominator": "4503599627370496",
+      "value": 2.220446049250313e-16
+    },
+    "normalMidpoint": {
+      "numerator": "3113598730459687",
+      "denominator": "9007199254740992",
+      "value": 0.3456789000000001
+    },
+    "normalToleranceEightMidpointUlps": {
+      "numerator": "1",
+      "denominator": "2251799813685248",
+      "value": 4.440892098500626e-16
+    },
+    "circleVolumeRoundedPiGuide": 6.278163296415537e-15
+  },
+  "pipelines": [
+    {
+      "name": "kernelMassPropertiesOf",
+      "volume": 6.278163296415536e-15,
+      "centroid": [
+        0.12345670000000006,
+        -0.23456779999999994,
+        0.3456789000000001
+      ],
+      "normalError": {
+        "numerator": "0",
+        "denominator": "1",
+        "value": 0.0
+      },
+      "withinExactStoredInterval": true
+    },
+    {
+      "name": "publicPart",
+      "volume": 6.278163296415536e-15,
+      "centroid": [
+        0.12345670000000006,
+        -0.23456779999999994,
+        0.3456789000000001
+      ],
+      "normalError": {
+        "numerator": "0",
+        "denominator": "1",
+        "value": 0.0
+      },
+      "withinExactStoredInterval": true
+    },
+    {
+      "name": "actualModelEvaluate",
+      "volume": 6.278163296415536e-15,
+      "centroid": [
+        0.12345670000000006,
+        -0.23456779999999994,
+        0.3456789000000001
+      ],
+      "normalError": {
+        "numerator": "0",
+        "denominator": "1",
+        "value": 0.0
+      },
+      "withinExactStoredInterval": true
+    },
+    {
+      "name": "actualStudioModel",
+      "volume": 6.278163296415537e-15,
+      "centroid": [
+        0.12345670000000004,
+        -0.23456779999999983,
+        0.3456789000000001
+      ],
+      "normalError": {
+        "numerator": "0",
+        "denominator": "1",
+        "value": 0.0
+      },
+      "withinExactStoredInterval": true
+    }
+  ],
+  "nativeCaps": [
+    {
+      "name": "n1.bottom",
+      "level": 0.3456789
+    },
+    {
+      "name": "n6.bottom",
+      "level": 0.34567890000000023
+    }
+  ],
+  "nativeStructure": {
+    "solidCount": 1,
+    "shellCount": 1
+  },
+  "tangentFootprint": [
+    [
+      {
+        "numerator": "-1619349916749387",
+        "denominator": "562949953421312",
+        "value": -2.8765433
+      },
+      {
+        "numerator": "1758349803778485",
+        "denominator": "562949953421312",
+        "value": 3.1234567
+      }
+    ],
+    [
+      {
+        "numerator": "-3641799584696151",
+        "denominator": "1125899906842624",
+        "value": -3.2345677999999998
+      },
+      {
+        "numerator": "3113599856359593",
+        "denominator": "1125899906842624",
+        "value": 2.7654322000000002
+      }
+    ]
+  ],
+  "nativeQuadrature": {
+    "observed": {
+      "volume": 6.180191251439208e-15,
+      "mass": 6.180191251439208e-18,
+      "centroid": [
+        0.10042170557247179,
+        -0.26839177431837347,
+        0.3456789000000001
+      ],
+      "method": "quadrature",
+      "inertia": [
+        [
+          1.3779584638173598e-17,
+          -2.984199179341948e-20,
+          7.395570986446986e-35
+        ],
+        [
+          -2.984199179341948e-20,
+          1.409014833576738e-17,
+          0
+        ],
+        [
+          7.395570986446986e-35,
+          0,
+          2.786973297394098e-17
+        ]
+      ]
+    },
+    "scope": "Separate B-rep quadrature provider; not repaired or certified by the two longitudinal formulas",
+    "relativeVolumeDifferenceToRoundedCircleGuide": -0.015605208139817806
+  },
+  "scope": "Z-upright closed-form mass only; no central inertia, generic transformed provider, exact pi, Float32 interval or global mass claim"
+}

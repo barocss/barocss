@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "checks": {
+    "api-generation-first": "0",
+    "api-adoption-first": "0",
+    "api-check-first": "0",
+    "agent-tools-check-first": "0",
+    "refusals-check-first": "0",
+    "studio-chat-first": "0",
+    "studio-types-first": "0",
+    "studio-vite-first": "0",
+    "studio-browser-lint-first": "0"
+  },
+  "node": "22.19.0",
+  "scope": "API expected adoption, inventory six scoped rules, generated checks, Studio chat23/types/Vite/browser-driver lint. Full Model/Studio suites NOT_RUN."
+}

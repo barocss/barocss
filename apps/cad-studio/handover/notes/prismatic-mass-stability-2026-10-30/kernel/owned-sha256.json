@@ -1,0 +1,21 @@
+{
+  "status": "SOURCE_TEST_FROZEN_PENDING_HIGH_REVIEW",
+  "base": "4ce1b35c753952010eb6961c62ccd6c6490bd01e",
+  "files": [
+    {
+      "path": "packages/barocss-cad/src/brep/solid-mass.ts",
+      "sha256": "19ec118c7f6096f738d246e5ca46095b42dd9bf7f67e341bcc6f735690141eac",
+      "bytes": 16730
+    },
+    {
+      "path": "packages/barocss-cad/test/prismatic-mass-stability.test.mjs",
+      "sha256": "e2a35eae04287ebcc639b27477e1c579a2380a7a4d16b272e0c92aca7e14022e",
+      "bytes": 8231
+    },
+    {
+      "path": "packages/barocss-cad/test/helpers/prismatic-mass-oracle.mjs",
+      "sha256": "f13d49a735e1c124adedb550c4bed4b3301eb81406dcc6de35d3865a70d8a07b",
+      "bytes": 4264
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "count": 13,
+  "hashes": {
+    "apps/cad-studio/src/App.tsx": "fe299d25d6fe83b7063b6a9399162cdfa79bba22d6bb038b6edcc8bdbf215a69",
+    "apps/cad-studio/src/ui/Hud.tsx": "777545d109ae7482f64128ccdec0f53ba8627f8a06f750a5d672f0704734c2a7",
+    "apps/cad-studio/src/ui/NodeEditor.tsx": "25d592886d4829b0d2140a842d8e19251b28f407059dd4d6d5370928c482d459",
+    "apps/cad-studio/test/prismatic-mass-stability-browser.mjs": "7facd870e00f61fe2f524f1111342cc5cf3a1aee192e9b67d61feeaf56f9c686",
+    "apps/cad-studio/vite.config.ts": "67b607e6374107bf07c232ad7ebe46a9f93e0d3bce887579c3d46ed363be5407",
+    "packages/barocss-cad-model/src/app/editFields.ts": "596e362c3a5965fa669f3083512f5b114ce9b4de9bc086774c812f06c7eb5739",
+    "packages/barocss-cad-model/src/app/faceProfile.ts": "9922c5c4073b6c8e7e2602e21b1ba9c0b4ff15b69e87b02bcc916265aab121e5",
+    "packages/barocss-cad-model/src/app/nativeOffsetFace.ts": "096d95ed4f0f2565b053d8568db9e981415f9bd7222ed2ab43c79be3c966eb0d",
+    "packages/barocss-cad-model/src/app/profileCommands.ts": "8a1fdc9adb080cae39edc1ed34c1c591e5e87095b79e79cc53e48df94be231fd",
+    "packages/barocss-cad-model/src/engine/evaluate.ts": "e19916805fca12e41bca23acba3bcf6878efcc636d600e372a3c2320c37b1c59",
+    "packages/barocss-cad-model/src/sketch/plane.ts": "a90b3d4a3398bbeae4c151a6beb64b532d6138a7349cef1b11061277aac7b4c9",
+    "packages/barocss-cad/dist/index.js": "4c7b1b07f5ed6f72cf5f1aff9c0dd43c84a09a79ee1b5c7194c68ccf1c96c17f",
+    "packages/barocss-cad/src/brep/solid-mass.ts": "19ec118c7f6096f738d246e5ca46095b42dd9bf7f67e341bcc6f735690141eac"
+  }
+}

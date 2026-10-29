@@ -1,0 +1,56 @@
+{
+  "label": "06-redone-thin",
+  "target": {
+    "key": "b7",
+    "volume": 6.278163296415537e-15,
+    "centroid": [
+      0.12345670000000004,
+      -0.23456779999999983,
+      0.3456789000000001
+    ],
+    "massRef": null
+  },
+  "witness": {
+    "key": "b4",
+    "volume": 420.0000000000001,
+    "centroid": [
+      85.99999999999996,
+      0.4999999999999998,
+      3.5
+    ],
+    "massRef": null
+  },
+  "targetNativeRef": {
+    "node": 7,
+    "side": "solid"
+  },
+  "sourceRecipeHash": "698f18a5bcc080c04d34e0cb98d0cf15ba9e78538924e048de9bb586121582e2",
+  "route": "Existing read-only __studioBodies accepted Model mass keyed to the actual native body; excludes preview mesh and rounded UI text",
+  "rawState": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b4",
+        "volume": 420.0000000000001,
+        "centroid": [
+          85.99999999999996,
+          0.4999999999999998,
+          3.5
+        ],
+        "massRef": null
+      },
+      {
+        "key": "b7",
+        "volume": 6.278163296415537e-15,
+        "centroid": [
+          0.12345670000000004,
+          -0.23456779999999983,
+          0.3456789000000001
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  }
+}

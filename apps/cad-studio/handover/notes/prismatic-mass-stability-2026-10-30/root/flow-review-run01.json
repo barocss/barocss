@@ -1,0 +1,26 @@
+{
+  "status": "PRODUCT_FLOW_FAIL",
+  "sourceCheckpoint": "f9c17c1461ad7814f89d6fefef0e358aac473596",
+  "viewedImage": "studio/run-01/failure.png",
+  "imageSHA256": "c26a274a716d76ddbc0c5158bbc467b844f12e70bcf7e783038486d754ba5501",
+  "observations": [
+    "Original circular cap is visibly selected cyan in Top view.",
+    "Offset HUD shows exact input -5.00009 and refused VALUE circular-bound message.",
+    "No Apply, tiny result, Undo/Redo or file qualification reached."
+  ],
+  "errorText": "[VALUE] Offset face: the native circular cap needs one finite circular bound.",
+  "harnessTimeout": "page.waitForFunction: Timeout 60000ms exceeded.\n    at acceptedPreview (/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/prismatic-mass-stability-browser.mjs:116:13)\n    at /Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/prismatic-mass-stability-browser.mjs:147:286",
+  "phaseCaveat": "Raw phase remained at pickTop, but stack and HUD establish failure while waiting for preview.",
+  "nativeReads": 1,
+  "states": 3,
+  "oracles": 0,
+  "pageErrors": [],
+  "consoleErrors": [],
+  "changes": [],
+  "cleanup": [
+    "CONTEXT_CLOSED",
+    "BROWSER_CLOSED",
+    "SERVER_CLOSED"
+  ],
+  "visualGeometryClaim": false
+}
