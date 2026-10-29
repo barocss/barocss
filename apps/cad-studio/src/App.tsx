@@ -30,7 +30,7 @@ import { SelectionInspector } from './ui/SelectionInspector';
 import { useMeshImport } from './files/useMeshImport';
 import { MeshFileDialogs } from './files/MeshFileDialogs';
 import { useRouteBundleEditor } from './state/useRouteBundleEditor';
-import { curvePatternDocumentProblem, insertedCurvePartProblem, prepareDirectCurveCandidate } from './app/directCurveCandidate';
+import { curvePatternInputKey, curvePatternDocumentProblem, directCommandDocument, insertedCurvePartProblem, prepareDirectCurveCandidate } from './app/directCurveCandidate';
 import { ReferenceDecisions } from './ui/ReferenceDecisions';
 import { useRobotExports } from './robot/useRobotExports';
 import { RobotInspector } from './robot/RobotInspector';
@@ -619,7 +619,7 @@ export function App() {
     };
   }, [bodies]);
 
-  // (Render settings do not change the model: only its nodes and parameters re-evaluate it.)
+  // (Render settings do not change the model: nodes, parameters and consumed direct paths re-evaluate it.)
   // (FRc, O117: the section library is model input too — a frame on a row is built from it.)
   // (FRf2, O125: and the placed parts, when a frame follows a part's sketch — not otherwise, so moving parts does not re-evaluate the base.)
   // (O11: what is evaluated and shown is the shown variant — the master itself unless a variant or edited values are
@@ -631,7 +631,13 @@ export function App() {
     // A missing/hidden housing must reach the evaluator's refusal, not throw from React render.
     catch { return shownDoc; }
   }, [shownDoc]);
-  const evaluated = useMemo(() => prefixDoc(shownDoc, marker ?? shownDoc.nodes.length), [shownDoc.nodes, shownDoc.parameters, shownDoc.frames?.sections, rootContextKey, followsParts ? shownDoc.instances : null, marker]);
+  const curvePathKey = useMemo(() => {
+    try { return curvePatternInputKey(shownDoc, marker ?? shownDoc.nodes.length); }
+    // Let the evaluator report an invalid live source without throwing from React render.
+    catch { return shownDoc; }
+  }, [shownDoc.nodes, shownDoc.direct, marker]);
+  const evaluated = useMemo(() => prefixDoc(shownDoc, marker ?? shownDoc.nodes.length), [shownDoc.nodes, shownDoc.parameters, shownDoc.frames?.sections, rootContextKey, curvePathKey, followsParts ? shownDoc.instances : null, marker]);
+  const commandDoc = useMemo(() => directCommandDocument(evaluated, shownDoc), [evaluated, shownDoc.direct]);
   // Labels outlive the Drawing view, but only for the exact accepted document and displayed model.
   // Do not bind to DrawingWorkspace's spread prop: that wrapper is new on every render.
   const referenceLabelOwner = useMemo<ReferenceLabelOwner>(() => ({ doc, model: evaluated }), [doc, evaluated]);
@@ -761,7 +767,7 @@ export function App() {
   const namesDoc = fresh || !bodiesFor ? doc : bodiesFor;
 
   const bodiesRef = useRef(bodies); bodiesRef.current = bodies;
-  const ctx: Ctx = { doc: evaluated, bodies, selection, pick: pick ?? undefined, direct: directSel, bearingAssembly: { root: doc, owner: 'base' } };
+  const ctx: Ctx = { doc: commandDoc, bodies, selection, pick: pick ?? undefined, direct: directSel, bearingAssembly: { root: doc, owner: 'base' } };
   const evaluatedRef = useRef(evaluated); evaluatedRef.current = evaluated;
   discardDirectCandidateRef.current = () => {
     const pending = parameterEditNow.current;
