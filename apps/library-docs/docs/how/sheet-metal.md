@@ -165,8 +165,8 @@ in millimetres:
 |---|---|
 | `packages/barocss-cad/src/frame-sheet/sheet-metal.ts` | `bendAllowance`, `outsideSetback`, `bendDeduction`; the contour flange's section (`contourFlangeSection`) and its self-contact test; the edge flange's section (`flangeSection`); bend tables (`bendTableProblem`, `rowKFactor`, `lookupBend`) |
 | `packages/barocss-cad/src/frame-sheet/sheet-flat.ts` | `flatPattern`: the fixed face, the skin's developments, the checks, the outline, the bends; `flatPatternDxf` |
-| `packages/barocss-cad/src/part/part-sheet.ts` | The four sheet features' inputs, their checks and the sheet's report |
-| `packages/barocss-cad/src/part/part-model.ts` | `sheetFlange` (trim, reliefs, union, collision test), `sheetCornerRelief`, `bendK`, `flatPatternOf` |
+| `packages/barocss-cad/src/part/part-sheet.ts` | The four sheet features' inputs, their checks and the sheet's report; `sheetFlange` (trim, reliefs, union, collision test), `sheetCornerRelief`, `bendK` |
+| `packages/barocss-cad/src/part/part-model.ts` | `flatPatternOf` |
 
 ## How it is checked
 

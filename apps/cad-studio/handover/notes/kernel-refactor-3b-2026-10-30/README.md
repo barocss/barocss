@@ -69,3 +69,48 @@ Limits:
   listed.
 - The library-docs `.vue` components ValidCube, ValidBroken and TessDensity keep comments naming `cad.model()` and
   `brepFromBody`. Those comments are provenance for numbers computed earlier and were left unchanged.
+
+## ② Split `part/part-model.ts` by feature family (D361)
+
+Moves only, one family per commit, each by a Sonnet sub-agent from a frozen brief, its verbatim proof (the moved text
+equals the base text after stripping an added `export`) and the diff outside the moved block audited on Opus.
+
+| Commit | Family → module | part-model.ts lines |
+|---|---|---|
+| `e439ea31c` (2a) | frame and weldment helpers (102 statements: members, corners, trims, notches, gussets, end caps, weld beads) → `part-frame.ts` | 4,583 → 3,281 |
+| `c2d4a3e7a` (2b) | edge finishing (`finishEdges`, `uprightCorner`, `cornerFinish`, `wedgeChamfer`, `endPlaneOf`, `prismBrep`, `buildBrepLocal`) → `part-finish.ts` | → 3,106 |
+| `de609d639` (2c) | shell (`shellOf`, `shellPart`, `varyingHollow`, `shellRevolved`, `shellSwept`, `hollowOf` and ring helpers) → `part-shell.ts` | → 2,818 |
+| `4ba070142` (2d) | sheet metal (`bendK`, `sheetFlange`, `edgeNamed`, `sheetCornerRelief`, `hasEdgeBelow`, `withSheet`) → `part-sheet.ts` | → 2,675 |
+| `60549e5a3` (2e) | the `face-fillet` case (verbatim into `faceFilletOperation`) and its 20 helpers → new `part-face-fillet.ts` | → 2,192 |
+| `f24c0a814` | API inventory and `_refusals.md` regenerated | — |
+
+Design. D221's family modules imported only types from part-model.ts and got its values through `HELPERS`. The moved
+helpers call part-model's stateful `boolean` (the `profiling` and `facetLimit` state of an evaluation; the
+`frk-6-ordered-trim.test` coverage trap observes it in `part-model.js`) and a dozen small values. So the family modules
+now import those values from part-model.ts: a function-level import cycle. Moving the Boolean and its state into a leaf
+module would have changed code (setters for the state) and the coverage trap; threading `k` through every helper would
+have changed signatures. The cycle is safe under one rule, checked for each module: no top-level statement of a family
+module reads a part-model value at evaluation time, and part-model's top-level `HELPERS` holds no `const` from a family
+module (only hoisted functions such as `brepBodies`). Moved names left `HELPERS`; `frameOperation` lost its unused `k`.
+Moved code was not restructured: nested closures inside it are as they were (no hoisting in a move-only step).
+
+### Checks (tip `60549e5a3`, after ①)
+
+| Check | Result |
+|---|---|
+| Build | PASS (2a and 2e) |
+| perf-bench fingerprints vs the base | 34/34 SAME after 2a and after 2e |
+| Kernel suite | after 2a and after 2e: 1848 tests, 1846 pass, 0 fail, 2 skip; passing names identical to ①'s final run |
+| Import cycle, each family module imported first in a fresh process, then a frame part evaluated | PASS for part-frame, part-finish, part-shell, part-sheet, part-face-fillet, part-model (same volume 84164.600329) |
+| Kernel type-check and lint | PASS at each of 2a–2e (code-shape counts unchanged: 119 / 32 / 269 / 69) |
+| cad-model, cad-studio `tsc --noEmit` | PASS at the tip |
+| API inventory | regenerated: 29 lines differ, each a permutation of the same characters (union member order) |
+| `_refusals.md` | regenerated: `RELIEF_REQUIRED`'s example message is now the first literal in source order; no message changed |
+| check-docs | PASS |
+| Conformance fixtures | unchanged |
+| 2b–2d built and suite-run on their own | NOT_RUN (type-check and lint only; the tip run covers them) |
+| RB / fuzz, browser flows, CI | NOT_RUN |
+
+Left in part-model.ts (2,192 lines): the document types, admission and evaluation, the operation() dispatcher with the
+cases not yet in a family (extrude, revolve, Booleans, rib, wrap, reliefs, full-round, face-thread, hole, transforms
+and patterns, sweep, loft, draft, split-face, sweep-curve, split), the Boolean dispatch with its state, sweep, outputs.

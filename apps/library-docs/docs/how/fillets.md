@@ -153,7 +153,8 @@ remain outside this bounded path. Existing typed solve/fit refusals still apply.
 | `packages/barocss-cad/src/blend/fillet-section.ts` | `filletSection`: the closed-form section (offsets, centre, contacts, arc, grown tool profile); `refuseFillet` and its typed codes |
 | `packages/barocss-cad/src/blend/rolling-ball.ts` | `solveStation` (the ball), `sectionOf`, `loftTool` (the lofted tool and its deviation), `ringFillet` (stations, breaks, refinement), `growSides` (R10.4a), `cornerFillet` and `solveCliff` (corners and sharp edges) |
 | `packages/barocss-cad/src/brep/analytic-boolean.ts` | The Boolean that trims the tool in; its `contactFaces` option |
-| `packages/barocss-cad/src/part/part-model.ts` | The `fillet` and `face-fillet` features: documents to these calls, typed part errors |
+| `packages/barocss-cad/src/part/part-model.ts` | The `fillet` feature (and the `face-fillet` dispatch): documents to these calls, typed part errors |
+| `packages/barocss-cad/src/part/part-face-fillet.ts` | The `face-fillet` feature (`faceFilletOperation`) and its helpers (`analyticOf`, `restoreCorner`, `revolvedFillet`, `parallelFillet`) |
 
 ## How it is checked
 
