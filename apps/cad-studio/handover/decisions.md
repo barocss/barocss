@@ -17015,3 +17015,39 @@ Retained:
 Checks: Model 20 new tests, affected 140/140; Studio 52/52; types, lint, check-docs, refusals and inventory PASS; mutants 21/21. Actual run04 PASS: finite values on reopen, unchanged Finish keeps the binding, W=70 gives volume 28000, a height change keeps W with volume 21000, Undo/Redo, Save, and fresh Open with W=50 gives volume 15000. Errors 0; 985 frozen files equal the commit.
 
 Limits: point-outline bindings drop (with a notice) when another point moves; the circle-first role swap drops bindings (with a notice); the feature-editor path drops silently (documented); previews still read bound sketches as NaN (next item). Full suites, CI and release NOT_RUN.
+
+## D357 — Previews and lofts read parameter-bound sketches; tenth bounded09 item (2026-10-30)
+
+Qualify source `9ba588d0c` (11 paths). [Evidence](notes/bound-sketch-previews-2026-10-30/qualification.json). Related: #551 and #2250 (context only; both stay open). This fixes the D356 audit side note. `profiles.ts` read bound sizes with `Number()`, which gave three failures:
+- free-sketch rings drew with NaN;
+- Extrude and Revolve handles sat at NaN;
+- Loft wrote null section copies that the kernel refused.
+
+Decision:
+- **Resolved sizes.** Rings, profile middles and Loft sections resolve bound sizes with the document parameters.
+- **Refusal.** A missing or non-finite parameter is refused with the sketch named. Handles are then omitted and Loft becomes unavailable. Studio skips that sketch's rings and catches only this refusal.
+- **Loft snapshot.** Loft section copies are a snapshot at today's values. The Loft steps say so ("Sizes — Copied at W = 60: later parameter changes do not update this loft."), and so do the docs.
+- **Bézier-guided path.** It used to keep the bindings in its copies, which made a later change fail loudly in the kernel. It now snapshots like the other paths.
+- **`loftTop`.** It refuses bound input.
+
+Retained:
+- no Studio baseline;
+- run01 driver failure (oracle Fraction type);
+- run02 PASS on the pre-audit source;
+- independent Opus audit CHANGES_REQUIRED (silent snapshot, unstated guided-path change, mutants M7–M10, code prefix), all fixed;
+- run03 automated PASS but root image FAIL ("Parameters" label overlapped its text), relabelled "Sizes".
+
+Checks:
+- Model: 16 new tests, affected 155/155.
+- Studio: 36/36.
+- Types, lint, check-docs, refusals and inventory: PASS.
+- Mutants: all killed except M4, which is equivalent.
+- Actual run04 PASS:
+  - finite rings;
+  - Extrude preview with a finite handle, volume 24000;
+  - Loft with the Sizes step, volume 50000 (exact oracle);
+  - W = 70 does not move the loft;
+  - Save and fresh Open keep the volume.
+- Errors 0; 985 frozen files equal the commit.
+
+Limits: Loft copies do not follow parameters (stated). `loopOf` still returns NaN for bound input (S1; no caller passes one). Revolve is checked by Model tests only. Full suites, CI and release NOT_RUN.

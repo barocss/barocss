@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "mode": "extrude",
+  "parameter": "60",
+  "nullScan": "clean",
+  "productImports": 0,
+  "width": "60",
+  "depth": "40",
+  "height": "10",
+  "analyticVolume": 24000.0,
+  "reportedVolume": 24000,
+  "delta": 0.0
+}

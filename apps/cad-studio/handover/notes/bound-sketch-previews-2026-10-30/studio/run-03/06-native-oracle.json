@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "mode": "loft",
+  "parameter": "70",
+  "nullScan": "clean",
+  "productImports": 0,
+  "sectionAreas": [
+    "2400",
+    "1650",
+    "1000"
+  ],
+  "height": "30",
+  "analyticVolume": 50000.0,
+  "reportedVolume": 49999.99999999998,
+  "delta": 2.1827872842550278e-11,
+  "relativeTolerance": 0.0001
+}

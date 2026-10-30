@@ -1,0 +1,105 @@
+{
+  "label": "04-loft-hud",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {
+      "W": 60
+    },
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          0,
+          0
+        ],
+        "max": [
+          {
+            "parameter": "W"
+          },
+          40
+        ],
+        "sideTags": {
+          "outer": [
+            "e1",
+            "e2",
+            "e3",
+            "e4"
+          ]
+        },
+        "id": "n0"
+      },
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          10,
+          10
+        ],
+        "max": [
+          {
+            "parameter": "W"
+          },
+          30
+        ],
+        "plane": {
+          "origin": [
+            0,
+            0,
+            30
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ]
+        },
+        "sideTags": {
+          "outer": [
+            "e1",
+            "e2",
+            "e3",
+            "e4"
+          ]
+        },
+        "id": "n1"
+      }
+    ],
+    "outputs": {},
+    "nextId": 2
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [],
+    "massReady": true,
+    "colored": [
+      "b4"
+    ]
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": [],
+      "sketches": [
+        0,
+        1
+      ]
+    },
+    "bodies": 0,
+    "active": "loft",
+    "sketch": false,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "parametersPanel": null,
+  "hud": "Loftpreviewcheck_circleParametersSizes copied at W = 60: later parameter changes do not update this loft.check_circleGuideNone. Use the existing section heights.Guide (copied)NoneSmooth (through the middle sections)RuledSmoothCancelApply"
+}
