@@ -4,6 +4,7 @@ import type { PlanarFaceOutlineInsetAssociation } from '../engine/doc';
 import type { PlaneKind, SketchPlane } from './plane';
 import type { SketchRule } from './terms';
 import type { SketchPick } from './rules';
+import type { SplineDef } from './spline';
 
 /** `select` picks outline points and edges for constraints; `dimension` adds and edits dimensions. */
 export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'carc' | 'slot' | 'spline' | 'trim' | 'extend' | 'split' | 'select' | 'dimension';
@@ -23,6 +24,8 @@ export type SketchShape = (
       fromRectangle?: true;
       /** Drawn with the Spline tool: closing infers only tangency at its joints, never equal radii or shared centres between its arcs. */
       fromSpline?: true;
+      /** A Spline-tool outline's fit points and handle directions (sketch/spline.ts): kept while the points still are what it makes; any other edit drops it. */
+      spline?: SplineDef;
       /** Circles attached to the outline: dimensioned from its points and solved with it (holes or bosses of the profile). */
       circles?: { c: [number, number]; r: number }[];
       /** The attached circles' side ids (R10a, D86), one a circle. */

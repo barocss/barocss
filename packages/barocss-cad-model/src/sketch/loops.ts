@@ -5,6 +5,7 @@ import type { LoopSegment as DocSegment, SketchNode, SketchOutline } from '../en
 import { outlineSegments, sampleOutline, sampleSlot, slotSegments, type P2 } from './profile';
 import { segmentDistance as segDist, insideRing as inside } from '../engine/geom2';
 import { sideTagsFor, withIds } from './entityIds';
+import { splineMatches } from './spline';
 
 export function isConvex(points: [number, number][]) {
   let sign = 0; const n = points.length;
@@ -50,17 +51,19 @@ export function rectangleNode(s: Extract<SketchShape, { kind: 'polygon' }>): Ske
   return { kind: 'sketch', profile: 'rectangle', min: [Math.min(...xs), Math.min(...ys)], max: [Math.max(...xs), Math.max(...ys)] };
 }
 
-/** A constrained outline as the sketch node keeps it (null when nothing constrains it). */
+/** A constrained outline as the sketch node keeps it (null when nothing constrains it and it is no spline); a spline's definition only while it still matches. */
 export function outlineOf(s: Extract<SketchShape, { kind: 'polygon' }>): SketchOutline | null {
   const { points, bulges, lengths, radii, tangents, equalRadii, concentric, hv, rules, circles } = s;
   const has = (v: unknown) => Array.isArray(v) ? v.length > 0 : !!v && Object.keys(v).length > 0;
-  if (![lengths, radii, tangents, equalRadii, concentric, rules, circles].some(has) && !(hv && (hv.h.length || hv.v.length))) return null;
+  const spline = s.spline && splineMatches(s) ? s.spline : undefined;
+  if (!spline && ![lengths, radii, tangents, equalRadii, concentric, rules, circles].some(has) && !(hv && (hv.h.length || hv.v.length))) return null;
   const out: SketchOutline = { points: points.map(p => [p[0], p[1]] as [number, number]) };
   if (bulges?.some(Boolean)) out.bulges = [...bulges];
   if (has(lengths)) out.lengths = { ...lengths }; if (has(radii)) out.radii = { ...radii }; if (has(tangents)) out.tangents = [...tangents!];
   if (has(equalRadii)) out.equalRadii = equalRadii!.map(p => [...p] as [number, number]); if (has(concentric)) out.concentric = concentric!.map(p => [...p] as [number, number]);
   if (hv) out.hv = { h: [...hv.h], v: [...hv.v] }; if (has(rules)) out.rules = rules!.map(r => ({ ...r }));
   if (has(circles)) out.circles = circles!.map(c => ({ c: [c.c[0], c.c[1]], r: c.r }));
+  if (spline) out.spline = { fit: spline.fit.map(p => [p[0], p[1]] as [number, number]), closed: spline.closed, ...(spline.handles ? { handles: [...spline.handles] } : {}) };
   return out;
 }
 

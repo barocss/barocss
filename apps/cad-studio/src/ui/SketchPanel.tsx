@@ -1,9 +1,10 @@
 import { planeLabel } from '@barocss/cad-model/sketch/plane';
 import { isConvex } from '@barocss/cad-model/sketch/loops';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { SketchAnchor, SketchShape, SketchState } from '../viewport/Viewport';
 import { arcOf, arcPairs, canBeTangent, inferredHV, radiusToBulge, samePair, type ArcPair, type P2, type SolveResult } from '@barocss/cad-model/sketch/profile';
 import { isSettled, redundancy, solveShape, type SketchPick } from '@barocss/cad-model/sketch/rules';
+import { respline, splineAutoHandles, splineEditError, splineMatches, type SplineDef } from '@barocss/cad-model/sketch/spline';
 import { ConstraintTools } from './ConstraintTools';
 import { CONTROL, FIELD, NUM } from './panelStyles';
 import { Button } from '@/components/ui/button';
@@ -31,7 +32,10 @@ export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, 
   /** The sketch's lines, arcs and circles made curves (direct geometry), the sketch left. */
   onToCurves?(): void }) {
   const [offsetBy, setOffsetBy] = useState(2);
+  const [splineError, setSplineError] = useState<string | null>(null);
   const s = sketch.shape;
+  // A refusal belongs to the shape it was made on.
+  useEffect(() => setSplineError(null), [s]);
   const num = (id: string, label: string, value: number, set: (v: number) => void, min?: number) => (
     <label className={FIELD} key={id}><span>{label}</span>
       <span className={NUM}><Input id={'sk-' + id} type="number" step="any" min={min} value={round(value)}
@@ -85,7 +89,7 @@ export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, 
       })()}
       {!s && <div className="empty">Snap 1 mm</div>}
       {s && <div className={'sk-status' + (status.warn ? ' open' : '')} role="status"><i />{status.text}</div>}
-      {error && <div className="sk-status open" role="alert"><i />{error}</div>}
+      {(error ?? splineError) && <div className="sk-status open" role="alert"><i />{error ?? splineError}</div>}
       {s?.kind === 'rectangle' && (() => {
         const x0 = Math.min(s.a[0], s.b[0]), y0 = Math.min(s.a[1], s.b[1]), w = Math.abs(s.b[0] - s.a[0]), h = Math.abs(s.b[1] - s.a[1]);
         const put = (nx: number, ny: number, nw: number, nh: number) => onShape({ kind: 'rectangle', a: [nx, ny], b: [nx + nw, ny + nh] });
@@ -137,6 +141,7 @@ export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, 
           ];
         })}
       </div>}
+      {s?.kind === 'polygon' && s.spline && sketch.tool !== 'spline' && !s.pending && splineMatches(s) && <SplineSection s={s} def={s.spline} onShape={onShape} onError={setSplineError} />}
       {s?.kind === 'polygon' && s.closed && !s.pending && s.points.some((_, j) => canBeTangent(s.points as P2[], s.bulges, j)) && <>
         <div className="card-title" style={{ marginTop: 10 }}>TANGENCY</div>
         <div className="tangents" role="group" aria-label="Tangent joints">
@@ -237,5 +242,46 @@ function movePoint(points: [number, number][], i: number, k: number, v: number, 
 }
 
 const round = (v: number) => Math.round(v * 1e4) / 1e4;
+
+/** A new definition for the spline outline: refused with its reason (the shape stays), else the regenerated outline. */
+function applySpline(s: Polygon, def: SplineDef, onShape: (shape: SketchShape | null) => void, onError: (e: string | null) => void) {
+  const why = splineEditError(def);
+  onError(why);
+  if (!why) onShape(respline(s, def));
+}
+/** A number box that keeps its own draft and applies it on Enter or blur (a refused value returns to the current one). */
+function DraftInput({ label, value, placeholder, onCommit }: { label: string; value: string; placeholder?: string; onCommit(text: string): void }) {
+  const [draft, setDraft] = useState<{ base: string; text: string } | null>(null);
+  const shown = draft && draft.base === value ? draft.text : value;
+  const commit = () => { if (draft && draft.base === value && draft.text !== value) onCommit(draft.text); setDraft(null); };
+  return <Input type="number" step="any" aria-label={label} placeholder={placeholder} value={shown} onChange={e => setDraft({ base: value, text: e.target.value })}
+    onBlur={commit} onKeyDown={e => {
+      // Enter applies the value instead of finishing the sketch (as the edge length fields do).
+      if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); commit(); }
+    }} />;
+}
+/** A spline outline's fit points (X, Y) and handle directions (degrees; empty is automatic), applied on Enter or blur. */
+function SplineSection({ s, def, onShape, onError }: { s: Polygon; def: SplineDef; onShape(shape: SketchShape | null): void; onError(e: string | null): void }) {
+  const auto = splineAutoHandles(def.fit, def.closed);
+  useEffect(() => () => onError(null), [onError]);
+  const setFit = (i: number, k: number, text: string) => { const v = Number(text); if (text === '' || !Number.isFinite(v)) return; applySpline(s, { ...def, fit: def.fit.map((p, j) => j === i ? (k === 0 ? [v, p[1]] : [p[0], v]) as [number, number] : p) }, onShape, onError); };
+  const setHandle = (i: number, text: string) => {
+    const v = text === '' ? null : Number(text); if (v !== null && !Number.isFinite(v)) return;
+    const handles = def.fit.map((_, j) => j === i ? v : def.handles?.[j] ?? null);
+    applySpline(s, { ...def, handles: handles.some(h => h !== null) ? handles : undefined }, onShape, onError);
+  };
+  return <>
+    <div className="card-title" style={{ marginTop: 10 }}>SPLINE</div>
+    <div className="pts pts-4" role="group" aria-label="Spline fit points" style={{ gridTemplateColumns: '18px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)' }}>
+      <span /><span>X</span><span>Y</span><span>Handle °</span>
+      {def.fit.map((p, i) => [
+        <span key={'n' + i}>{i + 1}</span>,
+        ...[0, 1].map(k => <DraftInput key={i + '_' + k} label={`Fit point ${i + 1} ${'XY'[k]}`} value={String(round(p[k]))} onCommit={t => setFit(i, k, t)} />),
+        <DraftInput key={'h' + i} label={`Fit point ${i + 1} handle`} placeholder={String(Math.round(auto[i] * 10) / 10)} value={def.handles?.[i] == null ? '' : String(def.handles[i])} onCommit={t => setHandle(i, t)} />,
+      ])}
+    </div>
+    <p className="muted small">Enter applies a value; empty handle: automatic. Dimensioning the curve or editing its outline points turns it into an ordinary outline.</p>
+  </>;
+}
 
 

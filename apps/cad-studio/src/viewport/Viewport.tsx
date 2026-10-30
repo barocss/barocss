@@ -31,7 +31,7 @@ import { CAGE_LINE_KEYS, CageMarks, cageLines, cagePoints } from './CageMarks';
 import { pickCage, type CageHit, type CageMode, type CageSelection, type StudioCage } from '@barocss/cad-model/subd/cageEdit';
 import type { CageValidation } from '@barocss/cad';
 import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } from '@barocss/cad-model/sketch/osnap';
-import { splineOutline } from '@barocss/cad-model/sketch/spline';
+import { splineAutoHandles, splineMatches, splineOutline, type SplineDef } from '@barocss/cad-model/sketch/spline';
 import type { Analysis } from './analysis';
 import { recordCanvas } from './recordVideo';
 import { renderFocusDistance } from './renderFocus';
@@ -1093,7 +1093,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       const s = liveShape.current; const c = sketchDraft.current.cursor;
       if (sk.tool !== 'carc') carc.current = null;
       if (sk.tool !== 'spline') splineFit.current = null;
-      else if (splineFit.current?.length && c) { const o = splineOutline([...splineFit.current, c], false); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: false, fromSpline: true }); }
+      else if (splineFit.current?.length && c) { const o = splineOutline([...splineFit.current, c], false); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: false, fromSpline: true, spline: { fit: [...splineFit.current, c], closed: false } }); }
       if (picking(sk)) sketchDraft.current.hover = isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y, sk.done) : null;
       else if (sk.tool === 'carc') {
         const d = carc.current;
@@ -1196,10 +1196,10 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       if (sk.tool === 'spline') {
         // Its points so far, the curve through them redrawn (closed when the first point is clicked again).
         const fit = splineFit.current ?? [], fresh = !fit.length;
-        if (fit.length >= 3 && c[0] === fit[0][0] && c[1] === fit[0][1]) { const o = splineOutline(fit, true); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: true, fromSpline: true }); splineFit.current = null; request(); return; }
+        if (fit.length >= 3 && c[0] === fit[0][0] && c[1] === fit[0][1]) { const o = splineOutline(fit, true); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: true, fromSpline: true, spline: { fit: [...fit], closed: true } }); splineFit.current = null; request(); return; }
         if (fit.length && c[0] === fit[fit.length - 1][0] && c[1] === fit[fit.length - 1][1]) return;
         splineFit.current = [...fit, c];
-        const o = splineOutline(splineFit.current, false); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: false, fromSpline: true }, fresh); request(); return;
+        const o = splineOutline(splineFit.current, false); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: false, fromSpline: true, spline: { fit: [...splineFit.current], closed: false } }, fresh); request(); return;
       }
       if (sk.tool === 'carc') {
         const d = carc.current;
@@ -1381,6 +1381,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
           : <polyline key="pl" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape open" />);
         if (marks) items.push(...marks.under);
         pts.forEach((p, i) => items.push(<circle key={'p' + i} cx={p[0]} cy={p[1]} r={3.5} className="sk-point" />));
+        if (s.spline && s.spline.fit.length >= 2 && splineMatches(s)) items.push(...splineHandleMarks(s.spline, P));
         (s.tangents ?? []).forEach(j => { const p = pts[j]; if (p) items.push(<g key={'tg' + j}><rect x={p[0] + 6} y={p[1] - 22} width={16} height={15} rx={3} className="cons-chip" /><text x={p[0] + 14} y={p[1] - 11} textAnchor="middle" className="cons-text">T</text></g>); });
         const n = s.points.length;
         for (let i = 0; i < (s.closed ? n : n - 1); i++) {
@@ -1583,3 +1584,14 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
 /** The drag-and-drop type of a command dragged from the rail (its id is the data). */
 export const DRAG_TYPE = 'application/x-cad-command';
 const fmtLen = (v: number) => String(Math.round(v * 10) / 10);
+/** A spline's handles: at each fit point a short line through it along its tangent (the handle, else the automatic one), a dot at each end. */
+function splineHandleMarks(def: SplineDef, P: (u: number, v: number) => readonly number[]): React.ReactNode[] {
+  const out: React.ReactNode[] = [], auto = splineAutoHandles(def.fit, def.closed);
+  def.fit.forEach((f, i) => {
+    const h = (def.handles?.[i] ?? auto[i]) * Math.PI / 180, c = P(f[0], f[1]), t = P(f[0] + Math.cos(h), f[1] + Math.sin(h));
+    const l = Math.hypot(t[0] - c[0], t[1] - c[1]) || 1, d = [(t[0] - c[0]) / l * 22, (t[1] - c[1]) / l * 22];
+    out.push(<line key={'sh' + i} x1={c[0] - d[0]} y1={c[1] - d[1]} x2={c[0] + d[0]} y2={c[1] + d[1]} className="sk-guide" />,
+      <circle key={'sha' + i} cx={c[0] - d[0]} cy={c[1] - d[1]} r={2} className="sk-point" />, <circle key={'shb' + i} cx={c[0] + d[0]} cy={c[1] + d[1]} r={2} className="sk-point" />);
+  });
+  return out;
+}

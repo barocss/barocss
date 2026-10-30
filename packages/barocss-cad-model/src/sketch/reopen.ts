@@ -5,14 +5,24 @@ import type { SketchShape } from './types';
 import type { P2 } from './profile';
 import type { Polygon } from './rules';
 import { loopOf } from './loops';
+import type { SplineDef } from './spline';
 
 const pt = (p: readonly unknown[]): P2 => [Number(p[0]), Number(p[1])];
 
+/** A stored spline definition only when well-formed (else ignored). */
+function wellFormedSpline(x: unknown): SplineDef | null {
+  const d = x as Partial<SplineDef> | null | undefined, num = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
+  if (!d || typeof d !== 'object' || !Array.isArray(d.fit) || d.fit.length < 2 || typeof d.closed !== 'boolean') return null;
+  if (!d.fit.every(p => Array.isArray(p) && p.length === 2 && num(p[0]) && num(p[1]))) return null;
+  if (d.handles !== undefined && !(Array.isArray(d.handles) && d.handles.length === d.fit.length && d.handles.every(h => h === null || num(h)))) return null;
+  return { fit: d.fit.map(p => [p[0], p[1]] as [number, number]), closed: d.closed, ...(d.handles ? { handles: [...d.handles] } : {}) };
+}
 /** A kept outline as the sketcher's closed polygon. */
 export const outlinePolygon = (o: SketchOutline): Polygon => ({
   kind: 'polygon', closed: true, points: o.points.map(p => [p[0], p[1]] as [number, number]), bulges: o.bulges ? [...o.bulges] : o.points.map(() => 0),
   ...(o.lengths ? { lengths: o.lengths } : {}), ...(o.radii ? { radii: o.radii } : {}), ...(o.tangents ? { tangents: o.tangents } : {}),
   ...(o.equalRadii ? { equalRadii: o.equalRadii } : {}), ...(o.concentric ? { concentric: o.concentric } : {}), ...(o.hv ? { hv: o.hv } : {}), ...(o.rules ? { rules: o.rules } : {}),
+  ...(wellFormedSpline(o.spline) ? { spline: wellFormedSpline(o.spline)!, fromSpline: true as const } : {}),
   ...(o.circles ? { circles: o.circles.map(c => ({ c: [c.c[0], c.c[1]] as [number, number], r: c.r })) } : {}),
 });
 

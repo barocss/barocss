@@ -25,7 +25,7 @@ Finish the sketch with <kbd>Enter</kbd> or **Finish sketch** in the top bar.
 | <kbd>A</kbd> | Arc | Click the arc's end, move to bend it, click to place. <kbd>L</kbd> goes back to lines |
 | <kbd>Q</kbd> | Centre arc | Click the centre, then the start (the radius), then turn to the end and click |
 | <kbd>O</kbd> | Slot | Click both centres, then the width |
-| <kbd>P</kbd> | Spline | Click points the curve runs smoothly through; it is kept as tangent arcs |
+| <kbd>P</kbd> | Spline | Click points the curve runs smoothly through; it is kept as tangent arcs and keeps its fit points |
 | <kbd>T</kbd> | Trim | Click a piece to cut it back to where it crosses others |
 | <kbd>E</kbd> | Extend | Click near an open end to run it on to the next piece it meets |
 | <kbd>K</kbd> | Split | Click a line, arc or circle to split it in two there |
@@ -37,6 +37,12 @@ A tool's key still works while a number box has focus; it leaves the box.
 
 A shape drawn inside another becomes a hole in it, so a rectangle with a circle inside extrudes as a plate with a
 bore. Shapes that overlap are refused.
+
+A spline keeps its fit points. After closing it (or reopening the sketch), the **SPLINE** section lists each fit point's
+X and Y and its handle: the curve's direction there, in degrees. Type a value and press <kbd>Enter</kbd> (or leave the box)
+to apply it; leave a handle empty for the automatic direction. A handle or point that leaves no arc pair the model can build
+to the next point is refused. A spline is driven only by its fit points and handles: a dimension or relation on it, or an
+edit of its outline points, turns it into an ordinary outline.
 
 A closed shape inside a hole is not supported in the same sketch. **Finish sketch** refuses it;
 draw that shape in a separate sketch.

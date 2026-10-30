@@ -270,6 +270,8 @@ export interface SketchOutline {
   equalRadii?: [number, number][]; concentric?: [number, number][]; hv?: { h: number[]; v: number[] }; rules?: SketchRule[];
   /** Circles dimensioned from the outline (they are also the profile's holes or regions). */
   circles?: { c: [number, number]; r: number }[];
+  /** A spline outline's fit points and handle directions (degrees; null = automatic), kept while the points still are what it makes. */
+  spline?: { fit: [number, number][]; closed: boolean; handles?: (number | null)[] };
 }
 /** `regions`: more loops of material; `holes`: loops cut from them (straight extrudes only); `outline`: the main loop as drawn and constrained. */
 /** `on`: the body the sketch was drawn on (a feature from it joins or cuts that body by default). */
