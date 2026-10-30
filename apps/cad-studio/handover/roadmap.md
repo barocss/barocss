@@ -42,6 +42,9 @@ Register messages from other chats in this roadmap before considering implementa
 switch tasks on message arrival. At each feature boundary, choose the most urgent
 registered work; prioritize confirmed data loss, wrong physical units and runtime failures over
 optional extensions. Keep existing holds and ownership boundaries.
+After each qualified roadmap step, check the GitHub issues it touches and close those whose every
+acceptance item is now present (owner, 2026-10-30), with reason `completed` and an evidence comment.
+Keep partial issues open with the remaining item named; closing as not planned needs a separate owner decision.
 
 Complete each feature through **Kernel/GPU/CAD → Model/API → actual Studio/Viewer consumer**,
 with its source, required checks and file flow recorded separately. Fix reproduced false success,
@@ -288,6 +291,76 @@ The source report records guard refusal after31 seconds, exit75, load49; it did 
 retry in that cycle. Neither probe is a reproduced data-loss/leak defect. Its proposed later
 order Model004 then GPU002 is a deferred investigation plan, not permission to preempt D316.
 Issues2235–2240 already have roadmap ownership and are not registered again.
+
+### GitHub issue intake after the 2026-10-29 reconciliation — 2026-10-30
+
+A 2026-10-30 check of all212 OPEN issues against this roadmap found14 CAD/AI research or
+plan issues created after the 2026-10-29 reconciliation and not yet referenced here. They are
+registered below under existing scopes. Every issue body states research/backlog or planned only:
+analysis was static (current source read, no reproduction), and proposed checks are NOT_RUN. Registration selects no task, changes no
+order, hold, owner decision or issue state, and adds no product PASS. The current09 order stays.
+Before code, reproduce a gap at the current head; old source pins (`a780578a2`, `970b39cb8`)
+are not current receipts.
+
+| Issue | Existing scope | Registered question and boundary |
+|---|---|---|
+| [#2232](https://github.com/barocss/barocss/issues/2232) SolidCraft associative offset | 09 CG3 | Derived-profile meaning when an inward offset removes and later restores an arc corner; side ids/rematch/serializer. The current refusal past the arc radius remains valid. Candidate only after the selected09 consumers. |
+| [#2250](https://github.com/barocss/barocss/issues/2250) Buerligons parameters | 09 CG3, R7.4d, 15 | Show expression source beside its computed value for existing parameters/derived dimensions. CG3 dimension expressions and R7.4d stay pending the owner; this issue does not decide them. |
+| [#2246](https://github.com/barocss/barocss/issues/2246) Forge dimension handles | 20 UI, 12 recovery, 16 | Separate partial handle preview from full-model regeneration approval and last-good recovery. First map its A–E cases to existing evidence; finish with the smallest remaining gap or "no change needed". |
+| [#2248](https://github.com/barocss/barocss/issues/2248) Fusion STEP named frames | 13 CG7, 16 CG10 | Optional STEP transfer of an authored datum frame's name/origin/axes with explicit loss reporting; keep placement, occurrence transform and UCS distinct. Separate from #2240 units. |
+| [#2230](https://github.com/barocss/barocss/issues/2230) sheet rigid Move/Mirror/Pattern | 14 CG8 | Keep SheetReport/flat pattern/follow-on flange editable after rigid transform, reflection and copy. P2 manufacturing hold and gates stay. |
+| [#2231](https://github.com/barocss/barocss/issues/2231) sheet DXF roles | 14 CG8, 13 | Cut/bend/note roles, options and bend vs included angle in the existing flat DXF. Output contract first; no new exporter, CAM or nesting. |
+| [#2233](https://github.com/barocss/barocss/issues/2233) SolidCraft v0.26.0 | 10 CG4, 12 CG6, 16 | Per-field provenance for linked-part inherited values vs local overrides on source update; truthful interrupted-check state; point clouds as reference only. Extends the #2205 ledger. |
+| [#2234](https://github.com/barocss/barocss/issues/2234) SolidCraft 33-page review | index only | Coverage index; its three leaves are #2230/#2231/#2232. No separate task. |
+| [#2229](https://github.com/barocss/barocss/issues/2229) robot sweep budget | 18, 16 | `sweepPath` may report an exhausted sample budget as contact, and `sweepTimed` turns that into TOI. Static-source candidate: reproduce first; if reproduced, it is a false-result defect in18 and takes correctness priority. |
+| [#2244](https://github.com/barocss/barocss/issues/2244) Airsup robot cell | 18, 19 | Workpiece transfer, grip failure and cycle KPIs from an event ledger on existing robot paths. Physics/Motion and CAE/FEA RD4–8 holds stay. |
+| [#2251](https://github.com/barocss/barocss/issues/2251) Gunpla step-by-step | 10 CG4, 15, 12 | Ordered assembly-instruction steps with part/view navigation over existing explode/visibility; presentation stays separate from CAD placement. |
+| [#2247](https://github.com/barocss/barocss/issues/2247) WebMCP adapter | 12/16 agent contracts, later AI | Read-first browser WebMCP adapter over existing tools; edits keep current approval, revision and Undo. Planned and not selected; no new tool protocol. |
+| [#2245](https://github.com/barocss/barocss/issues/2245) Idol Gaussian splat | later AI/capture (#2192/#2193) | Optional reference-asset contract; never CAD, manufacturing or robot authority. No install, weight download or inference. |
+| [#2252](https://github.com/barocss/barocss/issues/2252) Metropolix | outside CAD rows: World/Rendering plans (#2096/#2099), 05 V1/V2 reuse | Object → information page → return-state contract. Rendering/World holds stay; no CAD task. |
+
+Of the other198 OPEN issues, #2243, #2144 and #2107 were already referenced. Of the remaining195,
+56 are outside these packages by title (Physics GAS/SOFT/GRANULAR/FEM/CFD/VEHICLE/FRACTURE/RIGID/PHYS,
+World/Game/Virtual plans, kiosk/SSR/ui-compiler examples, manual, CI and ops trackers) and stay
+under their holds. The other139 (cad, cad-model, cad-interop, gpu, viewer, cad-studio) were triaged
+on 2026-10-30 against current source and this roadmap by static reading only (no build, test or
+flow). "Covered" means a row owns the topic or source exists, not that product acceptance passed.
+
+**Registered candidates.** Reproduce at the current head first; "no change needed" is a valid result.
+
+| Candidate | Existing scope | Sources | Registered question |
+|---|---|---|---|
+| T1 measured continuity | 08/16 | [#2043](https://github.com/barocss/barocss/issues/2043) §1, [#537](https://github.com/barocss/barocss/issues/537) SURF-06, #1053/#1070/#1074 | Report measured G0/G1/G2 deviation, with tolerance and refusal reason, at a selected curve/spline joint or shared surface boundary. Reuse Kernel `inspectCurveEndpointContinuity`, which has no Model/Studio consumer today. Never fall back to the display mesh. Zebra stays visual only. |
+| T2 sketch layers | 09 | [#2069](https://github.com/barocss/barocss/issues/2069) | Do sketches need named layers with visibility separate from the construction role, kept through Save/Open without changing region meaning? Record "construction hide is enough" if so. |
+| T3 exact two-plane band | 08 | [#2082](https://github.com/barocss/barocss/issues/2082) | Keep the exact band between two plane cuts on a direct surface instead of the current UV-window `surfaceRegion`, reproducible through Save/fresh Open. |
+| T4 curve×curve report (optional) | 08/16 | [#2059](https://github.com/barocss/barocss/issues/2059) §2 | Is a direct curve×curve intersection report (points / none / overlap interval) needed? The Kernel offers only coplanar curve×line segment. |
+| T5 dependency-scoped regeneration | 22/16 | [#1660](https://github.com/barocss/barocss/issues/1660), [#551](https://github.com/barocss/barocss/issues/551) | On a measured O10/#2188 edit workload, does reusing unchanged upstream outputs beat full rebuild while equalling a cold rebuild and keeping atomic rollback and Undo? Adopt only on a measured benefit; relates to 20① and #2246. |
+| T6 Viewer atomic appearance swap (low) | 05 V1 | [#1922](https://github.com/barocss/barocss/issues/1922) | `handoffQualifiedFaceToNativeSceneAppearance` refuses `'atomic'` ("use dispose-remount"), and dispose-remount has no rollback after drawing. Keep the documented refusal, or retain accepted Faces when the new frame fails? First find a consumer that needs it. |
+
+**Cross-references (no new task).**
+- Galleries #2029–#2093: [gallery-backlog.md](gallery-backlog.md) (survey `2b73f423`, 2026-10-17) turned their app-actionable targets into A1–A17/B1–B21/C1–C9, all marked done with commits. Boards that only state an engine contract (#2061–#2068, #2077) are robustness references under16. T1–T4 above are the remaining targets the backlog does not cover. #2058's migration section is superseded by the schema-tracks-latest decision.
+- Epics → rows: #528→12/13/16 · #529→15/20/21 (+05/06) · #530→12/O9 · #531/#532→09 · #533→16/R7.4d/K17/O21 · #534/#536→07/08 · #535→16/22 · #537→08/09 (+T1) · #538→10 · #539→13 · #540→01/02/11/16 · #541→15/16/22/Later publication · #542 obsolete (source-language compiler superseded by the JSON core and facade, R7.2; legacy `src/language` under R7.3d). Goals #503 (V3 tracker) and #660 (whole 3D family) are provenance only. Epic checklists are V3 bookkeeping; a mapped row does not complete every item.
+- Sketch/feature tasks #547, #548, #549 and #550 → 09; #551 → 12/16 (+T5). Contracts #1657 robust predicates, #1658 topology evolution, #1659 persistent face references → 16 and the #2205/#2210/#2215 ledger; #1660 → 12/16 (+T5).
+- Viewer consumers #1580 (native directional lights) and #1581 (native Surface UV01) exist in `packages/barocss-viewer` with examples → V4. Source also exists for #517 (native point query, V2; tangent UI not verified), #629 (DirectPanel pole/weight edits; viewport pole drag not verified), #1080, #1184 (G15 maps), #1512 (WebGPU with WebGL2 fallback), #1570 and #1995 (edge lines and pick; depth occlusion not verified).
+- Obsolete by removal: cad-editor and render-editor were removed in `1ec5ac316` (#1029, #1048, #1049, #1236, #1297, #1332, #1445, #1446, #1565, #1653, #1729, #2024). The GPU README "Removed renderers" section retires the renderers behind #1018, #1095, #1119, #1183, #1553, #1574, #1579 and #1584; draw through `createViewer`/`showScene`. #1087 and #1391 have no current example.
+- V3 loader/reader consumers #1033, #1038, #1053, #1067, #1070, #1074, #1408, #1411, #1415, #1436, #1440, #1463, #1487, #1496 and #1561 map to the R7.3d retire/keep audit; no new reader work. #1437's Split Body is superseded by the current Split command, whose volume-conservation check is not verified.
+- Holds: #2097, #2098, #2137, #2169 and #2174 stay under Rendering HOLD; #832, #835, #1073 and #1091 under Physics/Motion; #801 (packed consumer) stays Later with test:consumer.
+- Side note for R7.7: `directOps.editCurvePole`/`editSurfacePole` still take `xMM/yMM/zMM` (`packages/barocss-cad-model/src/engine/direct.ts`), against the no-unit-suffix rule.
+
+**Closure 2026-10-30 (owner: "이미 구현된 이슈들은 닫아주고").** Two independent Opus static checks
+read each candidate's acceptance items against current source at `b91f6169f` (nothing run).
+51 issues were closed as `completed`, each with an evidence comment, and a fresh GitHub GET confirmed
+51/51 CLOSED/COMPLETED: #548, #549, #629, #1080, #1184, #1512, #1570, #1580, #1581, #1995 and
+galleries #2030, #2031, #2040, #2041, #2045, #2046, #2048–#2050, #2052–#2055, #2057, #2058, #2060–#2062,
+#2064–#2068, #2071–#2073, #2075–#2081, #2083, #2085–#2088, #2090, #2091, #2093. Closure is a static
+source-presence judgment, not product, screen or file acceptance. Kept open with the missing item:
+#517 (oriented-boundary queries), #547 (open lines/polylines are not saved), #550 (general
+point-to-point coincident), #2039 (symmetric circles about a line), #2042 (fit to a given sample
+set with residuals), #2044 (export loss review), #2047 (parameter expressions with cycle refusal,
+owner-pending), #2051 (Bezier control-point placement), #2056 (inertia about a picked axis),
+#2063 (explicit broken-reference repair), #2070 (morph and skinning boards, Rendering hold),
+#2089 (exact six-face Thicken body; current Thicken is faceted), #2092 (slotted countersunk screw)
+and the T1–T4 sources #2043, #2059, #2069, #2082.
 
 ### 제품 완료와 인계의 공통 조건
 
