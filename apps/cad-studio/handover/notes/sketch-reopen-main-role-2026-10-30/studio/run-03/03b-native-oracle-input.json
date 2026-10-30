@@ -1,0 +1,87 @@
+{
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {
+      "R": 5
+    },
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "circle",
+        "center": [
+          0,
+          0
+        ],
+        "radius": {
+          "parameter": "R"
+        },
+        "regions": [
+          [
+            {
+              "kind": "line",
+              "start": [
+                20,
+                -5
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                40,
+                -5
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                40,
+                5
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                20,
+                5
+              ]
+            }
+          ]
+        ],
+        "sideTags": {
+          "outer": [
+            "e1"
+          ],
+          "regions": [
+            [
+              "e2",
+              "e3",
+              "e4",
+              "e5"
+            ]
+          ]
+        },
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 10,
+        "id": "n1"
+      }
+    ],
+    "outputs": {
+      "b1": {
+        "node": 1,
+        "side": "solid"
+      }
+    },
+    "nextId": 2
+  },
+  "volume": 2785.3981633974463,
+  "expect": {
+    "R": 5,
+    "volume": 2785.3981633974486
+  }
+}

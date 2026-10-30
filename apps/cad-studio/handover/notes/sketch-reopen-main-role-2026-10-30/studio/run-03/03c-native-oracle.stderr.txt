@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-heuristic-gould-b94e20/de70f387-aaec-4213-a427-f7006e5caab3/scratchpad/studio358/run-03/sketch-reopen-main-role-oracle.py", line 48, in <module>
+    assert set(xs) <= {20, 30, 40}, ('split point at x=30 only', [str(x) for x in xs])
+AssertionError: ('split point at x=30 only', ['20', '8444249019844703/281474976710656', '40'])
