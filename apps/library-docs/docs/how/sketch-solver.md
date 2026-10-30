@@ -96,6 +96,17 @@ The studio puts the constraint's label in front, as in `Length of edge 3 = 50: X
 did not meet fixed residual tolerances; this is not an inconsistency proof`. It does not say the constraints conflict:
 a local solve that does not converge has not proved that (CAD review 2215).
 
+One class of contradiction is proved instead (D350): horizontal and vertical edges, their lengths, axis distances (dx,
+dy) and fixed points, with no arcs or circles. The anchor (point 1 at its drawn position) is one of the fixed points;
+any other rule kind in the sketch puts it outside the class. There the X and Y equations never mix, and each is a
+difference of two coordinates (or its absolute value). The studio relaxes every equation to an interval of 4 × the
+kernel's linear tolerance and does the arithmetic exactly (binary64 inputs as BigInt dyadic rationals). For a choice
+of sign of every absolute value the system is feasible exactly when its constraint graph has no negative cycle
+(Bellman–Ford); a search over the signs, pruned as soon as a partial choice is infeasible and capped at 4096
+feasibility checks, shows that no choice is feasible. Only then does the studio refuse the edit as **Conflict: no
+shape meets all of these constraints**. If the class does not apply, a sign choice is feasible or the budget runs out,
+the nonconvergence message above stands.
+
 The loop stops as soon as every residual is within its tolerance, a few 10⁻⁸ mm from the exact answer (a width of 60
 can come back 59.999999964). The studio then tries the same solution on the 10⁻⁶ mm grid: it solves again from the
 snapped points and takes them only if that solve accepts them without a single step, that is, if the kernel's own

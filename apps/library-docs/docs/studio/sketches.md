@@ -72,13 +72,17 @@ Pick points or edges with **Select**, then add a constraint from the panel: **Ho
 **Parallel**, **Perpendicular**, **Equal**, **Coincident**, **Tangent**, **Symmetric** or **Fix**. The
 **Dimension** tool adds lengths, distances, radii and angles.
 
-The status line counts what is still free, for example `2 DOF`, until the sketch reads **Fully defined**. A
-constraint the others already imply is refused, and the message says why: for example, `Vertical edge 4 is already
-implied by the other constraints — adding it would over-define the sketch`. One that contradicts them is refused as a
-conflict. Typed lengths stay locked while the solver moves the rest.
+The status line counts what is still free, for example `2 DOF`, until the sketch reads **Fully defined**. A constraint
+the others already imply is refused, and the message says why: for example, `Vertical edge 4 is already implied by the
+other constraints — adding it would over-define the sketch`. A contradiction can be refused as a proven **Conflict**
+when the sketch has only horizontal and vertical straight edges, their lengths, axis distances (dx/dy) and fixed
+points (point 1 is fixed at its drawn position) — no arcs, circles or other rules anywhere in the sketch — the values
+are more than a few 10⁻⁷ mm from consistent, and the exact search finishes within its budget. Typed lengths stay
+locked while the solver moves the rest.
 
-Failure to converge does not prove a constraint conflict. A refused constraint edit keeps the previous outline.
-A successful solve keeps its accepted point coordinates without decimal rounding.
+Otherwise a refusal that does not converge says so without claiming a conflict: failure to converge does not prove
+one. A refused constraint edit keeps the previous outline. A successful solve keeps its accepted point coordinates
+without decimal rounding.
 
 Some constraints are inferred as you draw: an arc that meets a line smoothly is tangent to it, and a radius you lock
 keeps it so.
