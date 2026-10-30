@@ -427,6 +427,7 @@ index,lights,scene,path-trace,path-trace-scene}.ts`, `shaders/path-trace.ts`, gp
 boundary when no lane edits `packages/barocss-gpu/` or the Studio viewport; resolve against the current
 viewer core, then gpu build:library, gpu unit and local browser suites (Node 22), Studio types and one
 actual Studio run. Conflicts grow once row 20 changes `Viewport.tsx`.
+**Done 2026-10-31 (D378):** both branches merged before row 20; follow-up: 16 pre-existing gpu unit failures (Studio renderer test theme lacks `selection`/`selectionHover` colours from `d5c5d7a20`; 2 source-text assertions in `cad-instance-display-diagnostics`).
 
 **Kernel feature issues 2026-10-30** (owner: "커널 관련해서 어떤 기능들이 더 필요한지 기능별로 자세히 이슈로").
 Fourteen issues, each with current state (file:line at `302027519`), gap, increments, acceptance,

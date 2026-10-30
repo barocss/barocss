@@ -26,7 +26,7 @@
 | 03.1 | 소유 branch 완료 | `5d8b77579fe65fff331e878d657e78e0fcbe7519`에서 self-contained GLB 삼각형, 노드 변환과 불투명 기본 PBR factor를 viewer 입력으로 변환한다. | 수정 후 emit, 새 CPU 시험 18개, lint와 합성 샘플의 실제 브라우저 자동 로드·재로드를 확인했다. 외부 asset 인수와 animation·skin·morph 지원은 남는다. |
 | 03.2 | 소유 branch 완료 | `d4e2c3ec7bfc89e3ab32907299a040738dc156cd`에서 제한된 내장 PNG/JPEG, UV와 base color texture를 추가했다. | 수정 후 emit, 새 CPU 6개·WebGPU 1개·lint 4파일 및 합성 PNG→JPEG→PNG 공개 브라우저 확인을 통과했다. 외부 자산·전체 glTF·mipmap 축소 렌더·제품 통합은 미확인이다. |
 | 04 | 진행 중 | 실제 glTF 사용 사례에서 확인된 재질, 텍스처, 여러 메시와 확장 기능의 차이를 순서대로 줄인다. | 각 차이마다 입력 파일, 기대 결과, 실패 방식과 브라우저 이미지를 남긴다. |
-| 04.1 | 소스 후보; 검증 미실행 | 제한된 GLB 삼각형의 `UNSIGNED_INT` 인덱스와 미러 시 winding을 지원한다. 16비트 경로도 유지한다. | 정렬·범위·폭별 restart 거부와 높은 인덱스의 viewer 소비를 확인한다. 새 빌드·시험·실제 브라우저와 외부 자산은 아직 검증하지 않았다. 제품 통합은 별도다. |
+| 04.1 | local/cad-dev 병합 뒤 검증(D378: viewer-glb-u32 6/6, browser PASS) | 제한된 GLB 삼각형의 `UNSIGNED_INT` 인덱스와 미러 시 winding을 지원한다. 16비트 경로도 유지한다. | 정렬·범위·폭별 restart 거부와 높은 인덱스의 viewer 소비를 확인한다. 새 빌드·시험·실제 브라우저와 외부 자산은 아직 검증하지 않았다. 제품 통합은 별도다. |
 | 05 | 예정 | Morph position target과 weight를 추가한다. | weight 0의 원본 보존, 변형 수치, bounds, pick과 고정 PT snapshot을 확인한다. |
 | 06 | 예정 | 공개 cube texture 환경 입력을 추가한다. 기존 equirectangular 환경 입력을 유지한다. | 여섯 면의 순서와 방향, 색 공간, 수명 및 실제 반사 이미지를 확인한다. |
 | 07 | 예정 | 재질·텍스처 지원 범위를 실제 사용 사례와 비교하고 빠진 조각을 추가한다. | 지원 표와 입력별 기대 픽셀, 오류와 자원 해제를 기록한다. 기존 기능을 미구현으로 다시 만들지 않는다. |

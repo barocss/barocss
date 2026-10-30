@@ -17630,3 +17630,10 @@ The record keeps:
 - limits: not general glTF; 133d29e9b source only.
 
 No PNG is committed anywhere; the examples reproduce the images. Nothing was merged into the product, as the row requires. Product checks, CI and release: NOT_RUN.
+
+## D378 — Two local GPU branches merged into local/cad-dev (2026-10-31)
+
+Owner order "Merge before row 20". Merges `e4d0b5a66` (`gpu/readback-camera-20261026`) and `6dd94373a` (`gpu/gltf-03-20261027`), plus merge fixes `8a16b0546` (target sizes default to the canvas) and `119cb0708` (white-box fixtures gain `renderTargets`). Current viewer core and behaviour kept; RenderTarget, sized targets, `target.asTexture`, PT soft visibility and the GLB subset/textures/`UNSIGNED_INT` added; nothing dropped; no dependency change. [Note](notes/gpu-branch-merge-2026-10-31/README.md).
+
+Checks: gpu build/types/lint PASS; gpu browser 53/53; viewer 62/62 + 4/4; Studio types + 185/185 affected; GLB `UNSIGNED_INT` verified for the first time; actual Studio B2 flow PASS. 16 gpu unit failures are pre-existing on `0e67f8bc9` (Studio renderer test theme lacks `selection` colours from `d5c5d7a20`; 2 source-text assertions) — follow-up, not fixed here. NOT_RUN: `test:consumer`, full Studio suite, remote CI. Tier: full for the gpu core merge. Issues: none completed. The two local branches are now contained in `local/cad-dev`.
+
