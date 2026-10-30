@@ -42,6 +42,9 @@ Register messages from other chats in this roadmap before considering implementa
 switch tasks on message arrival. At each feature boundary, choose the most urgent
 registered work; prioritize confirmed data loss, wrong physical units and runtime failures over
 optional extensions. Keep existing holds and ownership boundaries.
+After each qualified roadmap step, check the GitHub issues it touches and close those whose every
+acceptance item is now present (owner, 2026-10-30), with reason `completed` and an evidence comment.
+Keep partial issues open with the remaining item named; closing as not planned needs a separate owner decision.
 
 Complete each feature through **Kernel/GPU/CAD → Model/API → actual Studio/Viewer consumer**,
 with its source, required checks and file flow recorded separately. Fix reproduced false success,
@@ -343,6 +346,21 @@ flow). "Covered" means a row owns the topic or source exists, not that product a
 - V3 loader/reader consumers #1033, #1038, #1053, #1067, #1070, #1074, #1408, #1411, #1415, #1436, #1440, #1463, #1487, #1496 and #1561 map to the R7.3d retire/keep audit; no new reader work. #1437's Split Body is superseded by the current Split command, whose volume-conservation check is not verified.
 - Holds: #2097, #2098, #2137, #2169 and #2174 stay under Rendering HOLD; #832, #835, #1073 and #1091 under Physics/Motion; #801 (packed consumer) stays Later with test:consumer.
 - Side note for R7.7: `directOps.editCurvePole`/`editSurfacePole` still take `xMM/yMM/zMM` (`packages/barocss-cad-model/src/engine/direct.ts`), against the no-unit-suffix rule.
+
+**Closure 2026-10-30 (owner: "이미 구현된 이슈들은 닫아주고").** Two independent Opus static checks
+read each candidate's acceptance items against current source at `b91f6169f` (nothing run).
+51 issues were closed as `completed`, each with an evidence comment, and a fresh GitHub GET confirmed
+51/51 CLOSED/COMPLETED: #548, #549, #629, #1080, #1184, #1512, #1570, #1580, #1581, #1995 and
+galleries #2030, #2031, #2040, #2041, #2045, #2046, #2048–#2050, #2052–#2055, #2057, #2058, #2060–#2062,
+#2064–#2068, #2071–#2073, #2075–#2081, #2083, #2085–#2088, #2090, #2091, #2093. Closure is a static
+source-presence judgment, not product, screen or file acceptance. Kept open with the missing item:
+#517 (oriented-boundary queries), #547 (open lines/polylines are not saved), #550 (general
+point-to-point coincident), #2039 (symmetric circles about a line), #2042 (fit to a given sample
+set with residuals), #2044 (export loss review), #2047 (parameter expressions with cycle refusal,
+owner-pending), #2051 (Bezier control-point placement), #2056 (inertia about a picked axis),
+#2063 (explicit broken-reference repair), #2070 (morph and skinning boards, Rendering hold),
+#2089 (exact six-face Thicken body; current Thicken is faceted), #2092 (slotted countersunk screw)
+and the T1–T4 sources #2043, #2059, #2069, #2082.
 
 ### 제품 완료와 인계의 공통 조건
 
