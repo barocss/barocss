@@ -1,0 +1,46 @@
+{
+  "status": "PASS",
+  "productImports": 0,
+  "segments": 24,
+  "arcs": 24,
+  "lines": 0,
+  "fitPoints": 12,
+  "worstRadiusGapRelative": 0.0,
+  "worstSquaredGapRelative": 6.220598928411436e-17,
+  "worstTangentAngle": 3.5245226858155858e-15,
+  "joints": 24,
+  "area": 3185.016345818136,
+  "shoelaceArea": 3145.6730981094993,
+  "outline": {
+    "tangents": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ],
+    "hv": {
+      "h": [],
+      "v": []
+    }
+  }
+}

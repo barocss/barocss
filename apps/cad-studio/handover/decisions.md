@@ -16884,3 +16884,17 @@ Retained:
 Checks: Model 15 new tests, affected 102/102; Studio 32/32 with no expectation changes; types/lint PASS. Actual run02 PASS, one Chrome and two contexts: Conflict ×3 (including after a fresh Open), redundant, accepted edit 18000→24000, triangle nonconvergence without a conflict claim, Undo/Redo and Save. Three product reads and three Python Fraction oracles passed; errors/console/watch 0; 761 frozen files equal the commit; root viewed the images.
 
 Limits: rectilinear class only; band and budget fall back; worst budget about 0.6 s synchronous at n=62; the panel shows the reason without the dimension label; a pre-existing throw remains for a fractional dx point; a reopened distant standalone sketch is framed off-screen (side note). Full suites, docs site, CI, perf-bench and release NOT_RUN.
+
+## D351 — Keep a closed spline through its clicked points; fourth bounded09 item (2026-10-30)
+
+Qualify source `20b706542` (10 paths). [Evidence](notes/spline-consumer-2026-10-30/qualification.json). The owner chose spline handles. Probing the existing Spline tool first showed it broke its advertised promise, so the consumer was repaired before handles.
+
+Two defects at base. First, closing inferred equal radii and shared centres between unrelated biarc arcs (within 3 % / 0.5 mm) and solved them, moving the clicked points: 0.19 mm for 12 points, 3.84 mm at 2.5 m. Actual run00 stored 12 equal-radius and 2 concentric pairs, and all 12 points were off the outline. Second, the biarc joints were rounded to 1e-6, leaving ~1e-7 rad kinks that were never repaired past the solver's size limit.
+
+Decision: keep joints exact, mark Spline-tool outlines `fromSpline`, and on closing infer only tangency for them. Other shapes keep their inference; the flag is not stored in the document. The repository docs check showed generated tables left stale by earlier qualifications: the API inventory since D350 (the conflict module and `SolveResult`) and the refusals table since D347 (`DIRECT_VALUE`). Both are regenerated in this commit, and `check-docs` passes.
+
+Retained: driver run00a failed because a new page opens a starter document (now New part). The independent Opus audit returned CHANGES_REQUIRED (low): the bitwise claim is false in about 2 of 1800 random closings, with a largest move of 2.37e-6 mm at 2.5 m, because the tangent solve must meet 1e-9 rad. The claim was narrowed, the case added and weak test names fixed. There were no regressions: 660 fuzz cases gave 0 moved points, relations or failures, and kernel admission was identical to base.
+
+Checks: Model 11 new tests, affected 97/97; Studio 32/32; types and lint PASS; check-docs PASS. Actual run01 PASS: a 12-point Spline closed and finished with every point bitwise kept, no relations, 24 tangents and worst tangent 3.5e-15 rad; then Extrude, Undo/Redo, Save, fresh Open and reopen. Four product reads and four Python Fraction oracles passed; errors 0; 982 frozen files equal the commit; root viewed the images.
+
+Limits: at metre scale, points move by solver-scale amounts; closed splines of 17+ points carry no tangent constraints; the biarc straight fallback can leave a corner for tiny dense point sets (pre-existing). Next 09 item: spline handles (stored fit points, editable tangents). Full suites, CI and release NOT_RUN.

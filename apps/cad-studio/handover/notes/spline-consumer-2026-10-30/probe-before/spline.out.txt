@@ -1,0 +1,16 @@
+eqR 3 conc 0 worstFit [5.7e-11,9.6e-8,9.6e-8]
+k 3 outlinePts 6 err null tangents 6 rawKinkDeg 7.49e-7 settledKinkRad 9.20e-10 fitMove 9.60e-8 profile loop
+eqR 6 conc 0 worstFit [4.2e-12,8.1e-9,1.5e-7,8.1e-9]
+k 4 outlinePts 8 err null tangents 8 rawKinkDeg 1.79e-6 settledKinkRad 9.82e-10 fitMove 1.46e-7 profile loop
+eqR 5 conc 0 worstFit [1.5e-12,9e-7,2.2e-7,2.2e-7,9e-7]
+k 5 outlinePts 10 err null tangents 10 rawKinkDeg 1.94e-6 settledKinkRad 1.23e-10 fitMove 8.98e-7 profile loop
+eqR 12 conc 0 worstFit [8.6e-13,5.2e-7,1.1e-7,5.2e-7,1.3e-7,5.2e-7,1.1e-7,5.2e-7]
+k 8 outlinePts 16 err null tangents 16 rawKinkDeg 1.72e-6 settledKinkRad 4.81e-10 fitMove 5.17e-7 profile loop
+eqR 12 conc 2 worstFit [7.1e-15,0.19,0.03,0.023,0.037,0.17,0.0055,0.033,0.055,0.053,0.048,0.047]
+k 12 outlinePts 24 err null tangents 24 rawKinkDeg 7.69e-6 settledKinkRad 4.37e-12 fitMove 1.91e-1 profile loop
+eqR 24 conc 0 worstFit [3.1e-13,1.8e-7,1.8e-7,0.0000024,1e-7,0.0000025,1.5e-7,1.1e-7,1.6e-7,1.1e-7,1.5e-7,0.0000025,1e-7,0.0000024,1.8e-7,1.8e-7]
+k 16 outlinePts 32 err null tangents 32 rawKinkDeg 8.29e-6 settledKinkRad 2.00e-10 fitMove 2.46e-6 profile loop
+eqR 0 conc 0 worstFit [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+k 17 outlinePts 34 err null tangents 0 rawKinkDeg 7.25e-6 settledKinkRad 1.27e-7 fitMove 0.00e+0 profile loop
+eqR 0 conc 0 worstFit [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+k 20 outlinePts 40 err null tangents 0 rawKinkDeg 6.56e-6 settledKinkRad 1.15e-7 fitMove 0.00e+0 profile loop

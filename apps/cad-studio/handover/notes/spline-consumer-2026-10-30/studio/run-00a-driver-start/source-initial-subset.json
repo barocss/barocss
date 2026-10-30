@@ -1,0 +1,20 @@
+{
+  "count": 15,
+  "hashes": {
+    "apps/cad-studio/src/App.tsx": "ff5557ec527a330c0e783fc5a51f4a17f6e915a6d179c15fb02a7c19522bfccc",
+    "apps/cad-studio/src/app/sketchControls.ts": "bb86d10fbd4093943c63e05e57b9a433bfdbbe0bdfcbf9ba7f1dfac8ede29cb1",
+    "apps/cad-studio/src/sketch/useSketchActions.ts": "1c3c224608078c7a2a94a17b78c97b2fb19df576a52492199a6a06f316a5f1e7",
+    "apps/cad-studio/src/ui/Hud.tsx": "777545d109ae7482f64128ccdec0f53ba8627f8a06f750a5d672f0704734c2a7",
+    "apps/cad-studio/src/ui/NodeEditor.tsx": "25d592886d4829b0d2140a842d8e19251b28f407059dd4d6d5370928c482d459",
+    "apps/cad-studio/src/ui/SketchPanel.tsx": "f34d280de50d1114a7c2caf595ea4c795e951a3b5590a81e513efb26109ec942",
+    "apps/cad-studio/src/viewport/Viewport.tsx": "a0a3ef62d916dc88a04666884577c0641cf5972335bbaeb0edfc8a1cae4e6408",
+    "apps/cad-studio/test/spline-closing-browser.mjs": "823cac2555c24e37369e887b01954885125ba66bceb7120e6bb1d4a73528df8f",
+    "packages/barocss-cad-model/src/sketch/loops.ts": "89ee4923fd4e3176ae785ed407c0507ac2a585025759ea62db90055ad0beb92e",
+    "packages/barocss-cad-model/src/sketch/osnap.ts": "8f114dadadab40d868319478f6a049918505d06ec7ba02b6126d098146c29351",
+    "packages/barocss-cad-model/src/sketch/outlineFields.ts": "ff5efa088588959f162abfb0d2b089b0ed2406fe10b31d57ce3b125af71859bb",
+    "packages/barocss-cad-model/src/sketch/profile.ts": "25c9b0ac1aa52470df3d25b82561c7be35133557f3d2f3f401be72d5cf4d0b21",
+    "packages/barocss-cad-model/src/sketch/reopen.ts": "27f5708610580e10723dc9ccbc847735d149f0c79a3a55f2da22e96feb5530b5",
+    "packages/barocss-cad-model/src/sketch/rules.ts": "396e50b31071792a3b0643d01b1bbe0f742a007e699dfca14e3c627cbbaa6720",
+    "packages/barocss-cad-model/src/sketch/spline.ts": "0f76fb8d3e315fe9800856c90bec40e5118e07579fecaf5b947054a11638e8d2"
+  }
+}
