@@ -112,7 +112,7 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
 2. 01–06 마감. 기능 작업과 파일이 겹치지 않으면 Docs/Viewer/GPU 쪽에서 병행한다. 33 CI 브라우저 검증도 여기서 먼저 한다.
    **01–06 마감 원장 (2026-10-31, 오너 "Go to 01–06", 한 번에 한 행·직렬):**
    - 01 [CLOSED D372] 독립 공차 프레임: reader/writer 필드 보존·SVG 경로는 이미 코드와 테스트(drawing-standalone*, 26/26)에 있음 → 남은 일: 현재 코드에서 Add/편집/숨김/Move/Save/New/Open/SVG/삭제 실제 Studio 흐름 1회(small)로 행을 닫는다.
-   - 02 도면 문서 연결: studio/drawings.md에 standalone frame·point datum target 설명이 있음 → 남은 일: 01 실제 결과와 문구 대조(뷰·위치·모호 선택·없는/숨긴 참조·저장/출력 경계), 04의 docs 빌드 묶음에서 함께 닫는다(small).
+   - 02 [문구 대조 완료 2026-10-31, 04 묶음에서 닫음] 도면 문서 연결: studio/drawings.md에 Frame details 편집·숨긴 뷰(VIEW_NEEDED, 위치 유지·이동 불가)·Save/SVG 위치 보존·TEXT_OVER_LINES를 D372 실제 결과대로 보충; 원래 메모: studio/drawings.md에 standalone frame·point datum target 설명이 있음 → 남은 일: 01 실제 결과와 문구 대조(뷰·위치·모호 선택·없는/숨긴 참조·저장/출력 경계), 04의 docs 빌드 묶음에서 함께 닫는다(small).
    - 03 선형 절삭 반복: 모델·API 테스트(17520 mm³) 있음, Studio 브라우저 드라이버 없음 → 남은 일: flow-helper로 실제 Studio 흐름 1회(적용·Undo/Redo·Save/New/Open·잘못된 입력 거부)(small).
    - 04 API 문서·그림·탐색: 남은 일: samples 전체 재실행(이전 164 중 159 PASS/2 FAIL/3 CANCELLED 원인 확인), 공개 목록 의미 검토, vitepress build + check-docs 한 묶음, 필요한 desktop 페이지 확인(small; 새 동작이 생기면 feature).
    - 05 Viewer 마감: 남은 일: viewer 패키지의 현재 정상 상태(build/type/관련 테스트)와 앱 UI 실제 흐름 1회로 제품 연결 범위를 확정하고, 미완(IGES 제한·파일 닫기·driver/OOM 복구)은 한계로 분리 기록(small, 범위 확인부터).

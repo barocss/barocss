@@ -254,9 +254,12 @@ symbol's position.
 Each datum has an `id` and a letter. A geometric control frame has its own `id` and names its datums by letter.
 An attached frame refers to a dimension by `dim`; there can be at most one frame per dimension. A standalone
 frame instead has a view and a position in that view's model mm. In **Standalone geometric controls**, choose
-a visible view, select **Add standalone frame**, then click where the frame goes. The controls also let you move
-or remove it. Authored inputs require unique datum ids, datum letters and frame ids. These symbols and modifiers
-are annotations; they do not solve or verify the part's geometric tolerances.
+a visible view, select **Add standalone frame**, then click where the frame goes. **Frame details** edits its
+characteristic, tolerance and datums; the controls also let you move or remove it. If its view is hidden, the
+frame is kept at its saved position, is not drawn and cannot be moved, and `VIEW_NEEDED` says which view to show.
+Saved files and the SVG export keep the frame at its position in the view. Authored inputs require unique datum
+ids, datum letters and frame ids. These symbols and modifiers are annotations; they do not solve or verify the
+part's geometric tolerances.
 
 ## Issues
 
@@ -267,7 +270,8 @@ applies them all, and **Issue count** shows how many are left.
 `DATUM_LOST` reports a datum with no current anchor in a visible view. `DATUM_TWICE` reports a repeated datum
 letter. `FRAME_LOST` reports a frame whose dimension is lost or missing, and `DATUM_UNDEFINED` reports a frame
 that names an undefined datum. `FRAME_VIEW_MISSING` reports a standalone frame whose view is missing;
-its saved position is kept. `DATUM_TARGET_UNVERIFIED` reports a point target that needs its endpoint selected
+its saved position is kept. `TEXT_OVER_LINES` reports annotation text, such as a dimension's, a table's or a
+standalone frame's, that lies over drawing lines. `DATUM_TARGET_UNVERIFIED` reports a point target that needs its endpoint selected
 again. `DATUM_UNDEFINED` has no automatic fix: define the datum or edit the frame.
 
 ## Tables and balloons
