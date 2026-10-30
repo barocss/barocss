@@ -418,6 +418,16 @@ recorded as a limit by owner decision). Follow-up candidates from D371, not done
 refusal instead of a hold — reproduce first, a correctness candidate for the next boundary; (b) the
 lost-edge message title is a generic "chamfer or fillet".
 
+**Owner request 2026-10-31: merge the two local GPU branches later** ("나중에 두개 브랜치 머지 해줘").
+`gpu/readback-camera-20261026` (37 commits ahead, 10 not in the other) and `gpu/gltf-03-20261027`
+(35 ahead, 8 not in the other) are local only, 593 commits behind `local/cad-dev` (D376 hand-over).
+A trial merge-tree (no checkout) conflicts in 8–10 files each: `packages/barocss-gpu/src/viewer/{viewer,
+index,lights,scene,path-trace,path-trace-scene}.ts`, `shaders/path-trace.ts`, gpu README/package.json and
+`apps/cad-studio/src/viewport/Viewport.tsx`. Merge (normal merges, no rebase) into `local/cad-dev` at a
+boundary when no lane edits `packages/barocss-gpu/` or the Studio viewport; resolve against the current
+viewer core, then gpu build:library, gpu unit and local browser suites (Node 22), Studio types and one
+actual Studio run. Conflicts grow once row 20 changes `Viewport.tsx`.
+
 **Kernel feature issues 2026-10-30** (owner: "커널 관련해서 어떤 기능들이 더 필요한지 기능별로 자세히 이슈로").
 Fourteen issues, each with current state (file:line at `302027519`), gap, increments, acceptance,
 dependencies and constraints; static reading only, nothing run: #2253 general SSI, #2254 Boolean
