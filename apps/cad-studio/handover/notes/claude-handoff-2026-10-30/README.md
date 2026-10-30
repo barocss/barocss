@@ -2,6 +2,8 @@
 
 사용자는 현재 작업을 마무리하고 커밋·develop 병합 뒤 Claude로 넘기라고 지시했다. 이 세션에서는 새 기능을 시작하지 않는다. 완료 범위는 D346이다. 다음 번호는 D347이며, Extend는 읽기 전용 조사만 했다.
 
+통합 PR은 [#2249](https://github.com/barocss/barocss/pull/2249)다. 최종 검사·병합 결과는 이 PR을 기준으로 확인한다. merge commit을 사용하고 source 브랜치는 삭제하지 않는다.
+
 ## 작업 위치와 Git
 
 작업 위치는 `/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b`다. 브랜치는 `local/cad-dev`다. 저장소 본체 `/Users/user/github/barocss/barocss`는 다른 브랜치에 있으므로 수정하거나 switch하지 않는다.
@@ -15,7 +17,7 @@ git fetch origin
 git status --short
 git branch --show-current
 git log -3 --oneline
-gh pr list --head local/cad-dev --base develop --state all --limit 1 --json number,url,state
+gh pr view 2249 --json state,mergedAt,mergeCommit,headRefOid,statusCheckRollup
 ```
 
 사용자 승인으로 이번 통합 PR 생성·push·merge commit 병합을 수행한다. 이후 새 PR·release 권한을 자동으로 추정하지 않는다. 일반 기능 마일스톤의 normal push 허용은 유지한다. merge 뒤 이 worktree를 origin/develop으로 fast-forward할 수 있다. stash/amend/rebase/reset/force push를 쓰지 않는다. `.claude/`는 원래 로컬 설정이므로 커밋하지 않는다. 본체 worktree와 다른 세션 파일·탭·프로세스를 건드리지 않는다.
