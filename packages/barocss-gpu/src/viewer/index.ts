@@ -17,3 +17,8 @@ export type { Mat3, Mat4, Vec3 } from '../core/geometry-types.js';
 export type { ViewerErrorCode } from './viewer-error.js';
 export type { PathTraceSession, PathTraceOptions, PathTraceImage } from './path-trace.js';
 export type { RenderTarget, RenderTargetOptions, RenderTargetTexture } from './render-target.js';
+export { prepareGlb, prepareTexturedGlb } from './glb-scene.js';
+export { materializeGlbTextures } from './glb-textures.js';
+export type { PreparedGlbTexture } from './glb-texture-data.js';
+export type { MaterializedGlbTextures } from './glb-textures.js';
+export type { PreparedGlbPrimitive, PreparedTexturedGlb, PreparedTexturedGlbPrimitive } from './glb-scene.js';

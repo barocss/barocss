@@ -92,6 +92,121 @@ is a quality bound on the approximation; a larger emitter radius cannot remove
 the search limit.
 Contact shadows retain the first casting directional light.
 
+### Self-contained GLB triangle scenes
+
+`prepareGlb` converts a bounded GLB 2.0 file into independent viewer inputs.
+It does not allocate GPU resources. Add the returned primitives to an active
+viewer and dispose their geometry when it is no longer needed:
+
+```js
+import { prepareGlb } from '@barocss/gpu/viewer';
+
+const primitives = prepareGlb(await file.arrayBuffer());
+const meshes = primitives.map(({ geometry, material, transform }) =>
+  viewer.add(geometry, { material, transform }));
+```
+
+This first subset accepts self-contained files up to 64 MiB, triangle primitives
+with FLOAT positions and normals, unsigned-short indices, optional FLOAT vertex
+colours, opaque base PBR factors and node transforms. Coordinates retain glTF
+metres and +Y up; no CAD unit or axis conversion is applied. Textures, external
+resources, animations, skins, morphs, sparse or strided data, and extensions are
+refused with `GEOMETRY_INVALID`. Conservative f32 range checks can also refuse
+some transforms whose final mathematical result would be finite. Vertex colours
+use the viewer's existing linear RGBA8 precision.
+
+#### 04.1 unsigned-int indices candidate
+
+The 04.1 source candidate adds `UNSIGNED_INT` (component type 5125) SCALAR
+indices to both `prepareGlb` and `prepareTexturedGlb`. It reads 32-bit values
+in little-endian order and returns a `Uint32Array`. The textured materializer
+keeps the index width while copying its input. Mirrored transforms reverse each
+triangle's winding without changing the index width.
+
+Index data must fit its buffer view, have the required component alignment and
+refer to existing vertices. The index count must be a multiple of three. The
+reserved maximum value for each index width is refused: 65535 for
+`UNSIGNED_SHORT` and 4294967295 for `UNSIGNED_INT`. A 32-bit index of 65535 is
+valid when the mesh contains that vertex. The viewer can choose a smaller
+internal index width for a small mesh while preserving valid values.
+
+This is a source candidate. Its new build, tests and browser validation have
+not run. Real external assets and product integration have not been verified.
+
+### Embedded base colour textures (03.2 candidate)
+
+The separate `prepareTexturedGlb` API accepts the same bounded scene subset
+with embedded PNG or JPEG base colour images and FLOAT VEC2 `TEXCOORD_0`.
+It returns `{ primitives, textures }` without creating GPU resources. Each
+primitive has a `baseColorTexture` index or `null`. Each texture holds copied
+image bytes, its MIME type and supported viewer sampling options. The original
+`prepareGlb` API continues to refuse textured files.
+
+Use `materializeGlbTextures` with an active viewer to decode the images and
+create the texture-backed materials. Then add the returned primitives:
+
+```js
+import { prepareTexturedGlb, materializeGlbTextures } from '@barocss/gpu/viewer';
+
+const prepared = prepareTexturedGlb(await file.arrayBuffer());
+const scene = await materializeGlbTextures(viewer, prepared);
+const meshes = [], geometries = [];
+try {
+  for (const row of scene.primitives) {
+    const geometry = viewer.createGeometry(row.geometry);
+    geometries.push(geometry);
+    meshes.push(viewer.add(geometry, { material: row.material, transform: row.transform }));
+  }
+} catch (error) {
+  for (const mesh of meshes) mesh.remove();
+  for (const geometry of geometries) geometry.dispose();
+  scene.dispose();
+  throw error;
+}
+
+// When the scene is no longer needed:
+for (const mesh of meshes) mesh.remove();
+for (const geometry of geometries) geometry.dispose();
+scene.dispose();
+```
+
+This candidate accepts opaque materials and images whose decoded alpha is 255
+for every pixel. Both texture axes must use the same wrap mode: repeat or clamp.
+Supported minification filters are 9728, 9729, 9984 and 9987. When both filters
+are specified, their nearest or linear modes must match. Other sampler choices,
+external resources, other texture roles, animation, skins, morphs, sparse or
+strided data, and extensions remain outside this subset. Each image is limited
+to 4096 pixels per axis and 16,777,216 pixels. The total is limited to
+33,554,432 decoded pixels and 64 MiB of compressed image bytes. Texture
+references count separately towards both totals, even when they share an image.
+The viewer device's texture dimension limit also applies.
+The candidate maps supported mipmap options to the viewer's sampler. Actual
+minified rendering with mipmaps has not yet been verified.
+
+`materializeGlbTextures` accepts the material and geometry fields produced by
+`prepareTexturedGlb`. It refuses added fields outside that parser subset, missing
+normals or indices, and invalid indices with `TEXTURE_INVALID`. Apply other
+viewer material options, such as `unlit`, when adding the materialized mesh.
+The function copies its inputs before asynchronous image decoding.
+
+Invalid or unsupported GLB data is refused with `GEOMETRY_INVALID`; image decode
+failure and non-opaque pixels are refused with `TEXTURE_INVALID`. A device change
+or recovery during decoding returns `DEVICE_LOST`; viewer disposal returns
+`DISPOSED`. If a device limit no longer permits an image, it returns
+`TEXTURE_INVALID`. A failed materialization attempts to dispose every texture it
+already created and preserves the original failure if a render callback throws
+during cleanup. Keep the returned scene
+and its pixel sources alive until it is no longer used: the viewer needs them
+to restore textures after device loss. `scene.dispose()` is safe to repeat.
+It disposes the texture resources, but the current viewer can retain their CPU
+pixel sources in its texture collection until `viewer.dispose()`. Replacing
+scenes does not guarantee immediate release of that CPU memory.
+
+The 03.2 owner branch passed a scoped emit, six CPU tests, one WebGPU
+regression, lint and the synthetic PNG/JPEG public example on the tested
+Chrome/Apple Metal adapter. Product integration, external-asset acceptance,
+general glTF compatibility and minified mipmap rendering remain separate.
+
 The CSS-shaped scene language shows on it with one call: `showScene(viewer, source)` compiles a scene
 source (version 0 or 1), adds a mesh per object with its placement and colour (`view.meshes` by id, picks
 name the object), and `view.update(source)` shows an edited source, or returns its diagnostics and keeps
