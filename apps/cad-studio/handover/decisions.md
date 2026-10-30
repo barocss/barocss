@@ -17180,3 +17180,36 @@ Limits:
 - `features/boolean-extrusion-feature-graph.ts` (live) lost its only kernel tests, the retired exact-proof tests.
 - `CAD_ERROR_CODES` may keep codes that only retired classes carried.
 - R7.3d's y-up tag rename and the old-version paths still reached through product imports remain.
+
+## D361 — Split part-model.ts into feature-family modules; refactor batch 3b step ② (2026-10-30)
+
+Qualify `e439ea31c`…`f24c0a814` (5 move commits and one regeneration). [Note](notes/kernel-refactor-3b-2026-10-30/README.md#-split-partpart-modelts-by-feature-family-d361).
+
+Decision:
+- **What moved.** Code moved verbatim, one family per commit. part-model.ts went from 4,583 to 2,192 lines.
+  - Frame and weldment helpers → `part-frame.ts`.
+  - Edge finishing → `part-finish.ts`.
+  - Shell → `part-shell.ts`.
+  - Sheet metal → `part-sheet.ts`.
+  - The `face-fillet` case and its helpers → the new `part-face-fillet.ts`.
+- **Import cycle.** The family modules import part-model's values directly; D221 had them receive the values through `HELPERS`. This is a function-level import cycle. The moved helpers call the stateful Boolean, which the `frk-6-ordered-trim.test` coverage trap pins in part-model.js. Keeping the Boolean there avoids both a code change (moving it and its state) and a signature change (threading `k`).
+  - Rule: a family module reads no part-model value at module evaluation time.
+  - Rule: `HELPERS` holds no `const` from a family module.
+  - Both rules are checked for each module, and each module was imported first in a fresh process.
+- **No restructuring.** Nested closures inside the moved code stay as they were. Hoisting them is a separate, measured change.
+
+Checks:
+- perf-bench: 34/34 SAME after the first and the last move.
+- Kernel suite: 1846/1848 pass, 0 fail, 2 skip. The passing names are identical to D360's final run.
+- Cycle import-first: PASS for 6 modules.
+- Kernel types and lint: PASS at every commit.
+- cad-model and studio types: PASS.
+- API inventory: regenerated. It differs only in union member order (all 29 lines are permutations).
+- `_refusals.md`: one example message changed to the first literal found in source order.
+- check-docs: PASS.
+- Conformance: unchanged.
+- NOT_RUN: a build and suite run of the three middle commits on their own, RB, browser flows, CI.
+
+Issues: none completed.
+
+Limits: operation() still holds 20 cases, among them extrude, revolve, Booleans, holes, patterns, sweep, loft, draft and split. They can follow the same pattern in a later window.
