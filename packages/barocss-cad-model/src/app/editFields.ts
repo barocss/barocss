@@ -55,7 +55,7 @@ const replace = (nodes: Nodes, i: number, node: ModelNode): ModelNode[] => nodes
 const axes = (list: string[]) => list.map(v => ({ value: v, label: v.toUpperCase() }));
 
 /** Width, depth and corner of a rectangle; diameter and centre of a circle; a drawn outline's driving dimensions. */
-function sketchFields(nodes: Nodes, s: number, prefix: string): EditField[] {
+function sketchFields(nodes: Nodes, s: number, prefix: string, params: Record<string, number> = {}): EditField[] {
   const sk = nodes[s] as SketchNode | undefined, out: EditField[] = [];
   if (!sk || sk.kind !== 'sketch') return out;
   const at = (n: Nodes) => n[s] as SketchNode;
@@ -73,7 +73,7 @@ function sketchFields(nodes: Nodes, s: number, prefix: string): EditField[] {
       ...[0, 1].map((k): EditField => ({ kind: 'number', key: prefix + 'cc' + k, label: prefix + 'Centre ' + 'XY'[k], unit: 'mm', get: n => num(circ(n).center[k]),
         set: (n, v) => { const c = [...circ(n).center] as [Dim, Dim]; c[k] = v; return replace(n, s, { ...circ(n), center: c }); } })));
   }
-  out.push(...outlineFields(nodes, s, prefix));
+  out.push(...outlineFields(nodes, s, prefix, params));
   return out;
 }
 
@@ -130,17 +130,17 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
     out.push({ kind: 'number', key, label, ...(unit ? { unit } : {}), get: n => get(self(n)), set: (n, v) => replace(n, i, set(self(n), v)) });
   switch (node.kind) {
     case 'extrude':
-      out.push(...sketchFields(nodes, node.sketch, ''));
+      out.push(...sketchFields(nodes, node.sketch, '', parameters));
       number('h', 'Distance', 'mm', n => num((n as typeof node).height), (n, v) => ({ ...(n as typeof node), height: v }));
       number('from', 'Start Z', 'mm', n => num((n as typeof node).from ?? 0), (n, v) => ({ ...(n as typeof node), from: v }));
       number('draft', 'Draft', '°', n => (n as typeof node).draft ?? 0, (n, v) => ({ ...(n as typeof node), draft: v }));
       break;
     case 'revolve':
-      out.push(...sketchFields(nodes, node.sketch, ''));
+      out.push(...sketchFields(nodes, node.sketch, '', parameters));
       number('deg', 'Angle', '°', n => (n as typeof node).angle, (n, v) => ({ ...(n as typeof node), angle: v }));
       break;
     case 'sweep':
-      out.push(...sketchFields(nodes, node.sketch, ''));
+      out.push(...sketchFields(nodes, node.sketch, '', parameters));
       node.path.forEach((st, k) => {
         const step = (n: ModelNode) => (n as typeof node).path[k], put = (n: ModelNode, s: typeof st) => ({ ...(n as typeof node), path: (n as typeof node).path.map((x, j) => j === k ? s : x) });
         if (st.kind === 'straight') number('run' + k, `Run ${k + 1}`, 'mm', n => num((step(n) as typeof st).length), (n, v) => put(n, { ...(step(n) as typeof st), length: v }));
@@ -154,7 +154,7 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       break;
     case 'loft':
       node.sections.forEach((sec, k) => {
-        out.push(...sketchFields(nodes, sec.sketch, `Section ${k + 1} · `));
+        out.push(...sketchFields(nodes, sec.sketch, `Section ${k + 1} · `, parameters));
         if (!Object.hasOwn(sec, 'frame')) number('z' + k, `Section ${k + 1} · height`, 'mm', n => num((n as typeof node).sections[k].z), (n, v) => ({ ...(n as typeof node), sections: (n as typeof node).sections.map((x, j) => j === k && !Object.hasOwn(x, 'frame') && x.frame === undefined ? { ...x, z: v } : x) }));
       });
       if (node.sections.length >= 3) out.push({ kind: 'toggle', key: 'smooth', label: 'Smooth', get: n => !!self<typeof node>(n).smooth, set: (n, v) => replace(n, i, { ...self<typeof node>(n), smooth: v }) });
@@ -401,7 +401,7 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
     case 'sheet-base': case 'sheet-contour': {
       // (R12.1, D116: the sheet's rules; a profile's width too.)
       type S = Extract<ModelNode, { kind: 'sheet-base' | 'sheet-contour' }>;
-      if (node.kind === 'sheet-base') out.push(...sketchFields(nodes, node.sketch, ''));
+      if (node.kind === 'sheet-base') out.push(...sketchFields(nodes, node.sketch, '', parameters));
       number('t', 'Thickness', 'mm', n => num((n as S).thickness), (n, v) => ({ ...(n as S), thickness: v }));
       number('r', 'Bend radius', 'mm', n => num((n as S).bendRadius), (n, v) => ({ ...(n as S), bendRadius: v }));
       // (A bend table instead of one K: no K field; R12.4.)

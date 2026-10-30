@@ -252350,14 +252350,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(index: number, nodes: readonly ModelNode[], rows?: Pick<StudioDoc, \"fastenerSizes\">) => Command | null",
+            "type": "(index: number, nodes: readonly ModelNode[], rows?: Pick<StudioDoc, \"fastenerSizes\"> & Partial<Pick<StudioDoc, \"parameters\">>) => Command | null",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(index: number, nodes: readonly ModelNode[], rows?: Pick<StudioDoc, \"fastenerSizes\">) => Command | null"
+              "(index: number, nodes: readonly ModelNode[], rows?: Pick<StudioDoc, \"fastenerSizes\"> & Partial<Pick<StudioDoc, \"parameters\">>) => Command | null"
             ]
           }
         }
@@ -386828,14 +386828,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(nodes: Nodes, s: number, prefix: string) => EditField[]",
+            "type": "(nodes: Nodes, s: number, prefix: string, params?: Readonly<Record<string, number>>) => EditField[]",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(nodes: Nodes, s: number, prefix: string) => EditField[]"
+              "(nodes: Nodes, s: number, prefix: string, params?: Readonly<Record<string, number>>) => EditField[]"
             ]
           }
         }
@@ -389233,6 +389233,68 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./sketch/reopen",
+      "exportName": "rebindDims",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/reopen.ts",
+            "name": "rebindDims",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(stored: SketchNode, next: SketchNode, params?: Readonly<Record<string, number>>) => { node: SketchNode; dropped: string[]; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(stored: SketchNode, next: SketchNode, params?: Readonly<Record<string, number>>) => { node: SketchNode; dropped: string[]; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./sketch/reopen",
+      "exportName": "resolveSketchDims",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/reopen.ts",
+            "name": "resolveSketchDims",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(node: SketchNode, params?: Readonly<Record<string, number>>) => SketchNode",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(node: SketchNode, params?: Readonly<Record<string, number>>) => SketchNode"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./sketch/reopen",
       "exportName": "sketchShapes",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -389248,14 +389310,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(node: SketchNode) => { shape: SketchShape | null; done: SketchShape[]; positional?: Record<string, string> | undefined; }",
+            "type": "(stored: SketchNode, params?: Readonly<Record<string, number>>) => { shape: SketchShape | null; done: SketchShape[]; positional?: Record<string, string> | undefined; }",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(node: SketchNode) => { shape: SketchShape | null; done: SketchShape[]; positional?: Record<string, string> | undefined; }"
+              "(stored: SketchNode, params?: Readonly<Record<string, number>>) => { shape: SketchShape | null; done: SketchShape[]; positional?: Record<string, string> | undefined; }"
             ]
           }
         }

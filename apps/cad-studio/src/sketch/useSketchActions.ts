@@ -9,7 +9,7 @@ import { type SketchAnchor } from '../viewport/Viewport';
 import { planeOf } from '@barocss/cad-model/app/profiles';
 import { offsetShape } from '@barocss/cad-model/sketch/offset';
 import { extendAt, joinOpen, splitAt, trimAt } from '@barocss/cad-model/sketch/trim';
-import { sketchShapes } from '@barocss/cad-model/sketch/reopen';
+import { rebindDims, sketchShapes } from '@barocss/cad-model/sketch/reopen';
 import { renameToTagged } from '@barocss/cad-model/sketch/entityIds';
 import { loadDirect } from '@barocss/cad-model/engine/directModule';
 import type { SketchShape } from '@barocss/cad-model/sketch/types';
@@ -35,6 +35,8 @@ interface SketchActionOptions {
   changes: { canChangeDocument(): boolean; commit(next: StudioDoc): boolean; commitDirect(next: DirectGeometry, select?: string[]): boolean; setSelection: Dispatch<SetStateAction<Selection>>; setEditNode(value: null): void; setActive(value: null): void; setPreviewBodies(value: null): void };
   onNotice(notice: FriendlyError): void;
 }
+/** Said after Finish when parameters' bindings did not survive: those values are plain numbers now. */
+const droppedBindingsToast = (names: string[]) => ({ title: 'Bindings became numbers', hint: `${names.join(', ')}: ${names.length > 1 ? 'these values changed or their shape changed form, so they are now plain numbers' : 'this value changed or its shape changed form, so it is now a plain number'}. Bind them again in the feature editor.`, detail: '' });
 /** What an in-place sketch edit keeps from the stored node: its node extras, and its body (`on`) unless the placed node names one. */
 function keptFields(stored: ModelNode, placed: ModelNode): Partial<ModelNode> {
   const kept: Record<string, unknown> = {}, from = stored as unknown as Record<string, unknown>;
@@ -113,7 +115,11 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     let node: SketchNode;
     try { node = stored.association !== undefined ? resolveAssociativeSketch(doc, index) : stored; }
     catch (error) { setToast({ title: 'Cannot open linked sketch', hint: error instanceof Error ? error.message : String(error), detail: '' }); return; }
-    const { shape, done, positional } = sketchShapes(node), plane: SketchPlane = node.plane ? { origin: [...node.plane.origin], normal: [...node.plane.normal], xAxis: [...node.plane.xAxis] } : xyPlane();
+    // Bound dimensions open as the parameters' current values; a missing parameter refuses the reopen.
+    let reopened: ReturnType<typeof sketchShapes>;
+    try { reopened = sketchShapes(node, doc.parameters); }
+    catch (error) { setToast({ title: 'Cannot open sketch', hint: error instanceof Error ? error.message.replace(/^\[[A-Z_]+\] /, '') : String(error), detail: '' }); return; }
+    const { shape, done, positional } = reopened, plane: SketchPlane = node.plane ? { origin: [...node.plane.origin], normal: [...node.plane.normal], xAxis: [...node.plane.xAxis] } : xyPlane();
     setEditNode(null); setActive(null); setPreviewBodies(null); setSelection(emptySel);
     setSketch(startPicking({ plane, tool: 'select', shape, done, base: node.association ? node.on ?? node.association.source : null, editNode: index, ...(node.association ? { association: node.association } : {}), ...(positional ? { positional } : {}) }, 'select'));
     const [min, max] = sketchRegion(bodies, plane); viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
@@ -148,11 +154,13 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     const placedNode: ModelNode = { ...node, ...(isDefaultPlane(sketch.plane) ? {} : { plane: { origin: [...sketch.plane.origin], normal: [...sketch.plane.normal], xAxis: [...sketch.plane.xAxis] } }), ...(sketch.association ? { association: sketch.association } : {}), ...((sketch.association || sketch.associationDetached) && sketch.base ? { on: sketch.base } : {}) } as SketchNode;
     if (sketch.editNode !== undefined) {
       const at = sketch.editNode;
-      const replacement = { ...placedNode, ...keptFields(doc.nodes[at], placedNode) } as ModelNode;
+      // Each bound value the person did not change keeps its parameter.
+      const stored = doc.nodes[at], rebound = stored.kind === 'sketch' && placedNode.kind === 'sketch' ? rebindDims(stored, placedNode, doc.parameters) : { node: placedNode, dropped: [] as string[] };
+      const replacement = { ...rebound.node, ...keptFields(stored, placedNode) } as ModelNode;
       const edited = { ...doc, nodes: dropStaleMade(doc.nodes, doc.nodes.map((n, k) => k === at ? replacement : n)) };
       // (A sketch from before R10a getting its side ids: the features on it keep their references, by the new names.)
       const tags = (placedNode as SketchNode).sideTags, next = sketch.positional && tags && !(doc.nodes[at] as SketchNode).sideTags ? renameToTagged(edited, at, sketch.positional, tags, featureId) : edited;
-      engine.evaluate(sketch.association || sketch.associationDetached ? next : prefixDoc(next, marker ?? next.nodes.length), nextRevision()).then(r => { if (!r || (linked && !requestCurrent())) return; if (r.ok) { if (!commit(next)) return; setSketch(null); } else setToast(r.error); });
+      engine.evaluate(sketch.association || sketch.associationDetached ? next : prefixDoc(next, marker ?? next.nodes.length), nextRevision()).then(r => { if (!r || (linked && !requestCurrent())) return; if (r.ok) { if (!commit(next)) return; setSketch(null); if (rebound.dropped.length) setToast(droppedBindingsToast(rebound.dropped)); } else setToast(r.error); });
       return;
     }
     // A finished sketch is a feature of its own (it remembers the body it was drawn on): picked, ready

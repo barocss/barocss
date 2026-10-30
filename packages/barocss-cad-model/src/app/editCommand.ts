@@ -20,9 +20,9 @@ const ok = { ok: true as const };
 const num = (v: unknown) => typeof v === 'number' ? v : NaN;
 
 /** The nodes with the edit's values written into them (only the fields whose value changed). */
-function edited(nodes: readonly ModelNode[], index: number, v: Values): ModelNode[] {
+function edited(nodes: readonly ModelNode[], index: number, v: Values, params?: Record<string, number>): ModelNode[] {
   let out = [...nodes];
-  for (const f of editFields(nodes, index)) {
+  for (const f of editFields(nodes, index, params)) {
     if (!(f.key in v) || f.kind === 'toggle') continue;
     if (f.kind === 'number') { const x = Number(v[f.key]); if (Number.isFinite(x) && x !== f.get(out)) out = f.set(out, x); }
     else if (String(v[f.key]) !== f.get(out)) out = f.set(out, String(v[f.key]));
@@ -115,7 +115,7 @@ function holeHandles(ctx: Ctx, nodes: readonly ModelNode[], index: number): Hand
  * those values, rebuilding its sketch and solid in place — with all its arrows and its puck. Null when the
  * nodes were changed since (by the feature editor), so its values no longer describe them.
  */
-function shapeEdit(index: number, nodes: readonly ModelNode[], rows: Pick<StudioDoc, 'fastenerSizes'>): Command | null {
+function shapeEdit(index: number, nodes: readonly ModelNode[], rows: Pick<StudioDoc, 'fastenerSizes'> & Partial<Pick<StudioDoc, 'parameters'>>): Command | null {
   const node = nodes[index], solid = node && (node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'union' || node.kind === 'rotate') ? node : null, made = solid?.made;
   const cmd = made && commands.find(c => c.id === made.command), n = made?.nodes ?? 2, start = index - n + 1;
   if (!solid || !made || !cmd?.build || start < 0) return null;
@@ -129,22 +129,22 @@ function shapeEdit(index: number, nodes: readonly ModelNode[], rows: Pick<Studio
 }
 
 /** The edit of feature `index`, or null when it has no dimension to drag; `rows`: the document's (a fastener's sizes, O7). */
-export function editCommand(index: number, nodes: readonly ModelNode[], rows: Pick<StudioDoc, 'fastenerSizes'> = {}): Command | null {
+export function editCommand(index: number, nodes: readonly ModelNode[], rows: Pick<StudioDoc, 'fastenerSizes'> & Partial<Pick<StudioDoc, 'parameters'>> = {}): Command | null {
   const node = nodes[index]; if (!node) return null;
   if (node.kind === 'text') return textEditCommand(index, node);
   if (node.kind === 'cylindrical-wrap') return cylindricalWrapEditCommand(index, node);
   if (node.kind === 'text-relief') return textReliefEditCommand(index, node);
   const shape = shapeEdit(index, nodes, rows); if (shape) return shape;
-  const fields = editFields(nodes, index).filter(f => f.kind !== 'toggle' && !(f.kind === 'number' && Number.isNaN(f.get(nodes))));
+  const fields = editFields(nodes, index, rows.parameters).filter(f => f.kind !== 'toggle' && !(f.kind === 'number' && Number.isNaN(f.get(nodes))));
   if (!fields.length) return null;
   return {
     id: 'edit', label: `Edit ${featureLabel(node, index, nodes)}`, icon: 'edit', group: 'modify', hint: 'Change this feature',
     available: () => ok,
     fields: (): Field[] => fields.map(f => f.kind === 'choice' ? { key: f.key, label: f.label, kind: 'choice' as const, options: f.options } : { key: f.key, label: f.label, kind: (f.kind === 'number' && f.unit === '°' ? 'deg' : 'mm') as 'deg' | 'mm' }),
     defaults: (ctx: Ctx) => Object.fromEntries(fields.map(f => [f.key, f.get(ctx.doc.nodes) as number | string])),
-    build: (ctx, v) => ({ ...ctx.doc, nodes: dropStaleMade(ctx.doc.nodes, edited(ctx.doc.nodes, index, v)) }),
+    build: (ctx, v) => ({ ...ctx.doc, nodes: dropStaleMade(ctx.doc.nodes, edited(ctx.doc.nodes, index, v, ctx.doc.parameters)) }),
     handles: (ctx, v) => {
-      const now = edited(ctx.doc.nodes, index, v), n = now[index];
+      const now = edited(ctx.doc.nodes, index, v, ctx.doc.parameters), n = now[index];
       if (n.kind === 'extrude') return extrudeHandles(now, index);
       if (n.kind === 'hole') return holeHandles(ctx, now, index);
       if (n.kind === 'split' || n.kind === 'linear-pattern') return placedHandles(ctx, now, index);

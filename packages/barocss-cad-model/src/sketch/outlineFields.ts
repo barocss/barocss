@@ -5,7 +5,7 @@ import { NODE_EXTRA_FIELDS, type ModelNode, type SketchNode, type SketchOutline 
 import type { EditField } from '../app/editFields';
 import { profileOf } from './loops';
 import { commitDimension, dimensionLabel, dimensionValue } from './rules';
-import { outlinePolygon, sketchShapes } from './reopen';
+import { outlinePolygon, rebindDims, sketchShapes } from './reopen';
 export { outlinePolygon };
 
 type Nodes = readonly ModelNode[];
@@ -50,7 +50,7 @@ function replaced(old: SketchNode, next: SketchNode): SketchNode {
   return out as unknown as SketchNode;
 }
 
-export function outlineFields(nodes: Nodes, s: number, prefix: string): EditField[] {
+export function outlineFields(nodes: Nodes, s: number, prefix: string, params: Readonly<Record<string, number>> = {}): EditField[] {
   const sk = nodes[s] as SketchNode | undefined;
   if (!sk || sk.kind !== 'sketch' || !sk.outline) return [];
   const outline = (n: Nodes) => (n[s] as SketchNode).outline!;
@@ -61,14 +61,18 @@ export function outlineFields(nodes: Nodes, s: number, prefix: string): EditFiel
       get: n => drivingValue(outline(n), key) ?? dimensionValue(outlinePolygon(outline(n)), key) ?? NaN,
       set: (n, v) => {
         // The reopened main shape: the outline with its side ids and attached circles' ids, so the edit renumbers nothing.
-        const old = n[s] as SketchNode, { shape, done } = sketchShapes(old);
+        const old = n[s] as SketchNode;
+        let reopened: ReturnType<typeof sketchShapes>;
+        try { reopened = sketchShapes(old, params); } catch { return n as ModelNode[]; }
+        // (A binding the re-solve cannot keep becomes a number; a field's `set` has no notice channel, so the Studio's Finish is where that is said.)
+        const { shape, done } = reopened;
         if (!shape || shape.kind !== 'polygon') return n as ModelNode[];
         const r = commitDimension(shape, key, v);
         if (!r.ok) return n as ModelNode[];
         // The whole profile again: the re-solved outline (its circles with it) and the sketch's other loops.
         const next = profileOf([r.shape, ...done]);
         if ('error' in next) return n as ModelNode[];
-        return n.map((x, k) => k === s ? replaced(old, next.node) : x);
+        return n.map((x, k) => k === s ? replaced(old, rebindDims(old, next.node, params).node) : x);
       },
     };
   });

@@ -135,3 +135,37 @@ test('D355: Edit sketch then Finish on a rectangle with a circle hole (and a Bez
   assert.equal(f.notices.length, 0); assert.equal(f.accepted.length, 1);
   assert.deepEqual((f.accepted[0].nodes[index] as unknown as { sideTags?: unknown }).sideTags, stored.sideTags);
 });
+
+test('D356: a rectangle bound to a parameter reopens, finishes unchanged with its binding, and evaluates', async () => {
+  const bound = { parameter: 'W' };
+  const base = part('D356').box({ w: 4, d: 4, h: 4 }).doc;
+  const doc = withNode({ ...base, parameters: { W: 60 } } as StudioDoc, { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [bound, 40] } as ModelNode), index = doc.nodes.length - 1;
+  const before = structuredClone(doc), f = actions(doc); f.api.editSketch(index);
+  const shape = f.sketch?.shape; assert.ok(shape?.kind === 'rectangle' || shape?.kind === 'polygon');
+  f.render(); f.api.finishSketch(); await setImmediate();
+  assert.equal(f.notices.length, 0); assert.equal(f.accepted.length, 1); assert.equal(f.evaluated.length, 1);
+  const node = f.accepted[0].nodes[index] as unknown as { max: unknown[]; min: unknown[] };
+  assert.deepEqual(node.max, [bound, 40]); assert.deepEqual(node.min, [0, 0]);
+  assert.deepEqual(f.evaluated[0].nodes[index], f.accepted[0].nodes[index], 'evaluation was requested with the binding');
+  assert.deepEqual(f.evaluated[0].parameters, { W: 60 }); assert.deepEqual(doc, before);
+});
+
+test('D356: a binding that cannot survive Finish becomes a number and the toast says which', async () => {
+  const R = { parameter: 'R' }, base = part('D356 drop').box({ w: 4, d: 4, h: 4 }).doc;
+  const square = [[20, -5], [40, -5], [40, 5], [20, 5]].map(start => ({ kind: 'line', start }));
+  const doc = withNode({ ...base, parameters: { R: 5 } } as StudioDoc, { kind: 'sketch', profile: 'circle', center: [0, 0], radius: R, regions: [square] } as unknown as ModelNode), index = doc.nodes.length - 1;
+  const f = actions(doc); f.api.editSketch(index); f.render(); f.api.finishSketch(); await setImmediate();
+  assert.equal(f.accepted.length, 1); assert.equal(f.evaluated.length, 1);
+  assert.ok(!JSON.stringify(f.accepted[0].nodes[index]).includes('"parameter"'), 'no reference is left');
+  assert.equal(f.notices.length, 1); const toast = f.notices[0] as { title: string; hint: string };
+  assert.equal(toast.title, 'Bindings became numbers'); assert.match(toast.hint, /^R: /); assert.ok(!/PARAMETER_UNKNOWN/.test(toast.hint));
+});
+
+test('D356: a missing parameter refuses the reopen with a toast that has no code prefix', async () => {
+  const base = part('D356 missing').box({ w: 4, d: 4, h: 4 }).doc;
+  const doc = withNode({ ...base, parameters: {} } as StudioDoc, { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [{ parameter: 'Gone' }, 40] } as ModelNode), index = doc.nodes.length - 1;
+  const f = actions(doc); f.api.editSketch(index);
+  assert.equal(f.sketch, null); assert.equal(f.notices.length, 1);
+  const toast = f.notices[0] as { title: string; hint: string }; assert.equal(toast.title, 'Cannot open sketch');
+  assert.match(toast.hint, /Gone/); assert.ok(!/^\[/.test(toast.hint), toast.hint);
+});

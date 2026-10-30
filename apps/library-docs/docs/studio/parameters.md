@@ -50,6 +50,7 @@ to the value, and **Apply**.
 
 - While bound, the value follows the parameter and can't be typed.
 - Pick **ƒ** again to unbind it. The value stays as it is.
+- A bound sketch value reopens in the sketcher at the parameter's current value. **Finish** keeps each binding whose value you left as it was. A rectangle's or circle's bound value stays bound when you change its other sizes; in an outline of points, a binding stays only while the outline's other points are unchanged (move a corner, add or remove points, swap the main shape and they become plain numbers). A value you change yourself becomes a plain number too, and Finish says so.
 
 ![A chamfer's Distance bound to the parameter C in the feature editor](/shots/studio/parameters/bind.png)
 

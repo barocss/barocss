@@ -1,0 +1,46 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": {
+    "W": 60
+  },
+  "nodes": [
+    {
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [
+        0,
+        0
+      ],
+      "max": [
+        {
+          "parameter": "W"
+        },
+        40
+      ],
+      "sideTags": {
+        "outer": [
+          "e1",
+          "e2",
+          "e3",
+          "e4"
+        ]
+      },
+      "id": "n0"
+    },
+    {
+      "kind": "extrude",
+      "sketch": 0,
+      "height": 10,
+      "id": "n1"
+    }
+  ],
+  "outputs": {
+    "b1": {
+      "node": 1,
+      "side": "solid"
+    }
+  },
+  "nextId": 2
+}

@@ -131,3 +131,11 @@ It must not cross the axis or touch it inside an arc; a full turn must not pinch
 
 A sketch you finished can be reopened from the feature editor, with its constraints. Changes are written back in
 place, and the features made from it update.
+
+Reopening a sketch whose values are bound shows each at its parameter's current value. Finishing keeps each binding whose value
+you left as it was. A rectangle's or circle's bound value stays bound when you change its other sizes (changing the height keeps a
+bound width), and becomes a plain number only when you change that value itself. In an outline of points, a binding stays only
+while the outline's other points are unchanged: move a corner, add or remove points or swap the main shape and the bindings in that
+outline become plain numbers. Finish says which. A driving dimension edited from the feature editor
+follows the same rule, without a notice. If the sketch uses a parameter the document no longer has, or one with no finite value,
+it won't reopen and says which one.
