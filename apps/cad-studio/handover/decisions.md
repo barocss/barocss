@@ -17466,3 +17466,19 @@ Limits:
 - a topology change renames repeated-piece tags (references to a removed tag are refused).
 
 Full kernel, CI and release NOT_RUN.
+
+## D370 — Shared Studio flow helper; small-change tier (2026-10-31)
+
+Qualify `085f7cbf7`. [Evidence](notes/studio-flow-helper-2026-10-31/qualification.json). Owner retro decision 2 (2026-10-31): before B2, extract the about 200 lines every actual-Studio driver re-implemented into `apps/cad-studio/test/flow-helper.mjs`.
+
+The helper covers:
+- server and browser;
+- the capsule, receipt and cleanup;
+- documents and files;
+- framing and clicks;
+- toasts, Undo/Redo, the feature editor, the Extrude HUD and Parameters;
+- the oracle and the inspector.
+
+The D369 band driver (428 → 290 lines) and the D366 ellipse driver (400 → 293 lines) were ported with identical steps, assertions and receipt fields. Both passed on their first run after the port: band with 9 oracles, ellipse with 6, all frozen files equal to the commit.
+
+Tier: small change (focused checks: `node --check`, eslint and a non-browser self-test; no independent audit). Older drivers stay as they are; new drivers use the helper.
