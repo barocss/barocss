@@ -17593,3 +17593,20 @@ Tier: small. Limits:
 Limits:
 - the 24-case gallery is not closed by this;
 - site deployment and release NOT_RUN.
+
+## D375 — Row 05 closed: Viewer product close-out; small (2026-10-31)
+
+[Evidence](notes/viewer-closeout-2026-10-31/qualification.json). Owner order "Go to 01–06".
+
+Viewer package:
+- types PASS; unit tests 62/62;
+- actual WebGPU browser tests 3/3, including D319 Geometry lifetime (the first try lacked its artifact-directory variable).
+
+cad-viewer app:
+- types PASS; unit tests 133/133; build check PASS;
+- one actual app flow in the built-in browser: assembly sample, select, saved view, native point inspection, close. No console errors.
+
+Limits:
+- PNG export is not run in the UI (a download; unit-tested);
+- limited IGES, driver/OOM and device-loss recovery stay outside this close-out;
+- CI and release NOT_RUN.
