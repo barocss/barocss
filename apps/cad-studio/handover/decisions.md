@@ -16898,3 +16898,29 @@ Retained: driver run00a failed because a new page opens a starter document (now 
 Checks: Model 11 new tests, affected 97/97; Studio 32/32; types and lint PASS; check-docs PASS. Actual run01 PASS: a 12-point Spline closed and finished with every point bitwise kept, no relations, 24 tangents and worst tangent 3.5e-15 rad; then Extrude, Undo/Redo, Save, fresh Open and reopen. Four product reads and four Python Fraction oracles passed; errors 0; 982 frozen files equal the commit; root viewed the images.
 
 Limits: at metre scale, points move by solver-scale amounts; closed splines of 17+ points carry no tangent constraints; the biarc straight fallback can leave a corner for tiny dense point sets (pre-existing). Next 09 item: spline handles (stored fit points, editable tangents). Full suites, CI and release NOT_RUN.
+
+## D352 — Keep spline fit points and editable tangent handles; fifth bounded09 item (2026-10-30)
+
+Qualify source `cfc78bd8c` (15 paths). [Evidence](notes/spline-handles-2026-10-30/qualification.json). Related issue #2051 (Bezier control-point authoring): related but not satisfied; it stays open, as does epic #532. The owner asked for spline handles. A Spline-tool outline used to lose its fit points once drawn.
+
+Decision: keep `spline: { fit, closed, handles? }` (handle = tangent direction in degrees, null = automatic) on the outline and in `SketchOutline`, only while it regenerates the outline. Make every span two pieces so side ids stay attached. Edit fit points and handles in the panel's SPLINE section (Enter/blur). Any other edit, dimension or relation turns the curve into an ordinary outline. Refuse edits that leave no buildable or kernel-admissible arc pair. Use a cancellation-free biarc. Ignore malformed stored definitions. Show handle marks in the viewport. Viewport dragging and handle magnitude are not included.
+
+Retained:
+- Independent Opus audit CHANGES_REQUIRED, F1–F9 all fixed: refusal too strict, accepted-then-kernel-fail, silent dimension loss, per-keystroke typing, stale error, edits lost while drawing, near-parallel cancellation, malformed-file throw, rare definition loss at close.
+- Actual run01: React crash after the first Spline click (automatic handles of one fit point); guard and test added.
+- Actual run02: Enter in a SPLINE field also finished the sketch; fixed with stopPropagation.
+- Driver changes before run03: handle 100 instead of the no-op 90, Select tool, Enter, refusal by a coordinate beyond ±10000.
+- No baseline browser run: the capability is new.
+
+Checks:
+- Model: 18 new tests, affected 138/138; one existing assertion changed (5 pieces for three collinear points).
+- Studio 32/32; types/lint PASS; check-docs PASS with a regenerated API inventory.
+- Actual run03 PASS:
+  - handle set, refusal, Finish storing `outline.spline`, Extrude;
+  - reopen, point and handle edits with the same side ids and the volume following;
+  - Undo/Redo and Save;
+  - conversion to an ordinary outline;
+  - fresh Open restoring the values.
+- Six product reads and six Python Fraction oracles passed (handle error 2.2e-16 rad). Errors 0; 984 frozen files equal the commit; root viewed the images.
+
+Limits: directions only (no Bezier, no magnitude); numeric editing only; a possible self-crossing from accepted handles is unverified; no tangent constraints at 17+ points; weak handle marks. Next 09: viewport handle dragging, Bezier control points (#2051), conics, text/blocks. Full suites, CI and release NOT_RUN.

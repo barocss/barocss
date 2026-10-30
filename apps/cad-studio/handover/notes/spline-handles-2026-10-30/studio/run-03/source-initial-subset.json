@@ -1,0 +1,24 @@
+{
+  "count": 19,
+  "hashes": {
+    "apps/cad-studio/src/App.tsx": "ff5557ec527a330c0e783fc5a51f4a17f6e915a6d179c15fb02a7c19522bfccc",
+    "apps/cad-studio/src/app/sketchControls.ts": "bb86d10fbd4093943c63e05e57b9a433bfdbbe0bdfcbf9ba7f1dfac8ede29cb1",
+    "apps/cad-studio/src/sketch/useSketchActions.ts": "1c3c224608078c7a2a94a17b78c97b2fb19df576a52492199a6a06f316a5f1e7",
+    "apps/cad-studio/src/ui/Hud.tsx": "777545d109ae7482f64128ccdec0f53ba8627f8a06f750a5d672f0704734c2a7",
+    "apps/cad-studio/src/ui/NodeEditor.tsx": "25d592886d4829b0d2140a842d8e19251b28f407059dd4d6d5370928c482d459",
+    "apps/cad-studio/src/ui/SketchPanel.tsx": "36923f96f6fec578a9a677a87e3e59c9810fb96aa0712c3660a63a6e783f3059",
+    "apps/cad-studio/src/viewport/Viewport.tsx": "1cae3992c2dc9a7a5394627305b7b851d6e880a5c4b4a0db428b05c397ffaf25",
+    "apps/cad-studio/test/spline-handles-browser.mjs": "dc1d43a35e052f8f5a28f65fa97825501ccc67d721c4100664dfe3a7c2eb721d",
+    "packages/barocss-cad-model/src/engine/doc.ts": "8d1b09702e1dea253f2c4973b7e57f2410e1f28d62eb4563d0c3766c4fa8db6a",
+    "packages/barocss-cad-model/src/sketch/entityIds.ts": "8b51a486fe6b2dd874fea2f96dca3edf218311f00a4f03197ed42c519ebcd32e",
+    "packages/barocss-cad-model/src/sketch/loops.ts": "3eafc27dc2f1847aae994b8829db9ecbc95c660ee61d5d5fb47e226c0cc604b0",
+    "packages/barocss-cad-model/src/sketch/osnap.ts": "8f114dadadab40d868319478f6a049918505d06ec7ba02b6126d098146c29351",
+    "packages/barocss-cad-model/src/sketch/outlineFields.ts": "ff5efa088588959f162abfb0d2b089b0ed2406fe10b31d57ce3b125af71859bb",
+    "packages/barocss-cad-model/src/sketch/profile.ts": "25c9b0ac1aa52470df3d25b82561c7be35133557f3d2f3f401be72d5cf4d0b21",
+    "packages/barocss-cad-model/src/sketch/reopen.ts": "8503e3b9f789b48126103ff182a16676858f6da3cfc27491ced4bc774d504346",
+    "packages/barocss-cad-model/src/sketch/rules.ts": "396e50b31071792a3b0643d01b1bbe0f742a007e699dfca14e3c627cbbaa6720",
+    "packages/barocss-cad-model/src/sketch/settle.ts": "c2c7c055535df50293c5375e8a548d8cae698470b2923591946d5fbc6034ead3",
+    "packages/barocss-cad-model/src/sketch/spline.ts": "590ff5852ae5bb9f49d7670512149ff200361868ab7d9018efee0052a343c696",
+    "packages/barocss-cad-model/src/sketch/types.ts": "87768efa7940bcf3ce6379f471854f32ea2025148011c79f244f786d769da6b3"
+  }
+}

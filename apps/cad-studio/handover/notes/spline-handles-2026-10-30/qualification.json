@@ -1,0 +1,59 @@
+{
+  "decision": "D352",
+  "roadmap": "09 Advanced sketch — CG3 (fifth bounded item: spline handles, first version)",
+  "status": "BOUNDED_QUALIFIED",
+  "scope": "Spline-tool outlines keep their definition (fit points, closed, optional tangent handle in degrees per fit point) through closing, Finish, reopen, Save/fresh Open; the sketch panel's SPLINE section edits fit point X/Y and handles (Enter/blur); two pieces per span keep side ids; any other edit, dimension or relation turns the curve into an ordinary outline; unbuildable/kernel-inadmissible edits are refused. Viewport handle dragging and handle magnitude are NOT part of D352.",
+  "relatedIssues": { "2051": "related (Bezier control-point authoring, non-interpolating); not satisfied by interpolating fit points with tangent handles; stays open", "532": "epic; stays open" },
+  "baseCommit": "4c78656bd",
+  "sourceCommit": "cfc78bd8c",
+  "sourcePaths": 15,
+  "models": {
+    "rootJudgmentAndVerification": "claude-opus-5-5 (main session)",
+    "independentAudit": "claude-opus-5-5 sub-agent",
+    "implementation": "Sonnet sub-agents from frozen briefs, in this worktree (feature; audit fixes; Studio driver)",
+    "rootEdits": "one-point splineAutoHandles guard (+test) after actual run01; SPLINE Enter stopPropagation after actual run02; driver: handle 100 instead of a no-op 90, Select tool, Enter, refusal case",
+    "sol": "NOT_USED"
+  },
+  "baseline": "NOT_RUN as a browser run: the SPLINE section and stored definition do not exist at base (new capability); the Model tests are new and cover the absent behaviour.",
+  "model": { "newTests": 18, "affected": "138/138 (sketch spline corner trim reopen outline loops editFields)", "changedExistingTests": "spline.test.ts: three collinear open points now give 5 pieces (two per span)", "types": "PASS", "lint": "PASS" },
+  "studioUnit": { "constraintsSketchIdsSketchEditIdentity": "32/32", "types": "PASS" },
+  "docs": { "checkDocs": "PASS (68 pages, 863 labels)", "apiInventory": "regenerated: 6 new spline exports; polygon/SketchOutline shapes gained spline" },
+  "kernel": { "sourceChanged": false },
+  "audit": {
+    "verdict": "CHANGES_REQUIRED (fixed)",
+    "findings": ["F1 dot-rule refusal refused valid handles incl. the automatic value", "F2 accepted edits then kernel/solver failures (centre beyond ±10000)", "F3 dimension at measured value kept the spline then was silently deleted", "F4 per-keystroke apply blocked typing some angles", "F5 stale error", "F6 edits while drawing lost", "F7 biarc cancellation near-parallel", "F8 malformed stored spline threw", "F9 1/500 closings lost the definition"],
+    "after": "all nine probes show the intended behaviour (typing accepted; near-straight/far-centre refused; dimension drops spline at commit; handle error <=4.8e-16; no drops; malformed ignored)"
+  },
+  "browser": {
+    "run01": "FAIL_PRODUCT: React crash in the SPLINE section after the first spline click (automatic handles of one fit point) -> guard + test",
+    "run02": "FAIL_PRODUCT: Enter in a SPLINE input also finished the sketch -> stopPropagation like the edge fields",
+    "status": "PASS_RUN_03",
+    "chromeProcesses": 1,
+    "serialContexts": 2,
+    "steps": ["6-point closed spline, Select tool, SPLINE lists fit points with automatic placeholders", "handle 100 at point 1 (12 outline points kept)", "point 2 Y 20000 refused with the panel reason, shape unchanged", "Finish: outline.spline stored, 12 segments/side ids", "Extrude 10", "reopen: handle shown; point 4 X -35 and handle 75; Finish: same side ids, volume follows", "Undo/Redo, Save", "Arc 1 radius edit turns it into an ordinary outline (section gone); Escape leaves the doc unchanged", "fresh Open, reopen shows -35 and 75"],
+    "productReads": 6,
+    "independentPythonFractionOracles": 6,
+    "worstTangentAngle": 4.496159927192332e-16,
+    "worstHandleError": 2.220446049250313e-16,
+    "nativeFiles": 1,
+    "frozenFiles": 984,
+    "frozenEqualsCommit": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "cleanup": ["CONTEXT_CLOSED", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "visual": { "status": "SCOPED_PASS", "rootImages": ["run03 07-edited", "run00/01/02 failure states via receipts"], "note": "Handle marks are short tangent lines along the curve and hard to distinguish from it" },
+  "limits": [
+    "Handles are directions only (biarc), no magnitude; Bezier control-point authoring (#2051) is not provided",
+    "Handles are edited numerically in the panel; viewport dragging is the next item",
+    "Accepted handles may add a self-crossing the automatic outline lacked (audit side note, unverified)",
+    "Closed splines with 17+ fit points carry no tangent constraints (solver size limit)",
+    "Handle marks are visually weak"
+  ],
+  "fullKernel": "NOT_RUN",
+  "fullModel": "NOT_RUN",
+  "fullStudio": "NOT_RUN",
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}
