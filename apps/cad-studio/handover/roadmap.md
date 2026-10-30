@@ -408,9 +408,11 @@ generality, #2260 freeform shell, #2261 draft generality, #2262 healing of impor
 #2263 STEP breadth (rows 13/28), #2264 B-rep direct editing (row 31), #2265 throughput and
 large-model benchmark (rows 22/23), #2266 NURBS degree/pole limits. Suggested order: #2255 → #2253 →
 #2254/#2256; #2265 benchmark and #2266 may start any time; then #2258, #2260/#2263 with #2257/#2259/#2261;
-#2262 after #2255/#2263; #2264 last. Owner decision before adoption: #2257, #2258 and #2259 replace
-existing faceted or mitre results, #2265 increment 3 (Newton closest point) and #2266 increment 2
-(import knot splitting) change existing outputs; until decided they are opt-in. Reading corrections:
+#2262 after #2255/#2263; #2264 last. Owner decision 2026-10-30 ("좋다 다"): #2257 exact sweep, #2258 exact thicken
+and #2259 spherical corners replace the faceted/mitre results once each passes independent oracles,
+with refusal instead of a silent fallback and fixtures re-baselined to the exact answers; #2265
+increment 3 only on equal shape/tests and a measured speedup; #2266 increment 2 (import knot
+splitting) is not the default: raise the limits first, splitting only as an explicit loss-reported option. Reading corrections:
 partial cylinder crossings are built in closed form (`analytic-boolean.ts` 1043; the header is stale);
 shell already admits surfaces of revolution; SSI skips near-parallel-normal seeds, so tangent contacts
 get no seed. Closure after D354: #2051 closed as completed (all three sections present).
