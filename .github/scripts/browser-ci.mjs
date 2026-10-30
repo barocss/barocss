@@ -42,13 +42,21 @@ export function assertRealRun(summary, label) {
 }
 
 const swiftshaderGl = '--enable-unsafe-webgpu --use-webgpu-adapter=swiftshader --ignore-gpu-blocklist';
+const swiftshaderAngle = `${swiftshaderGl} --use-angle=swiftshader --enable-unsafe-swiftshader`;
 const swiftshaderVulkan = `${swiftshaderGl} --enable-features=Vulkan --use-vulkan=swiftshader`;
-// Tried in order on the CI runner; the first set that presents a canvas wins. The last one failed remotely and stays for the comparison log.
+// Tried in order on the CI runner; the first set that presents a canvas wins. The first four all failed in remote run 2
+// and stay for the comparison log.
 export const chromeFlagSets = Object.freeze([
   { name: 'swiftshader-gl', flags: swiftshaderGl },
-  { name: 'swiftshader-angle', flags: `${swiftshaderGl} --use-angle=swiftshader --enable-unsafe-swiftshader` },
+  { name: 'swiftshader-angle', flags: swiftshaderAngle },
   { name: 'swiftshader-vulkan', flags: swiftshaderVulkan },
   { name: 'swiftshader-vulkan-nosurface', flags: `${swiftshaderVulkan} --disable-vulkan-surface` },
+  // GPU compositing forced through ANGLE's SwiftShader GL: without GPU compositing a WebGPU canvas present loses the device.
+  { name: 'swiftshader-angle-gl', flags: `${swiftshaderAngle} --use-gl=angle --enable-gpu-compositing` },
+  // Headed Chrome under Xvfb (chrome.sh drops --headless); skipped without DISPLAY.
+  { name: 'xvfb-headed', flags: swiftshaderGl, headed: true },
+  { name: 'xvfb-headed-angle', flags: `${swiftshaderAngle} --use-gl=angle`, headed: true },
+  { name: 'xvfb-headed-vulkan', flags: swiftshaderVulkan, headed: true },
 ]);
 
 // Runs in the page: present a canvas for 3 frames, map a buffer and read a canvas pixel back; a dropped instance shows up in any of these.
@@ -91,8 +99,9 @@ export async function probe(env) {
   const server = createServer((_, response) => response.end('<!doctype html>'));
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   let browser; let timer;
+  const verbose = String(env.DEBUG ?? '').includes('pw:browser');
   const run = async () => {
-    browser = await chromium.launch({ executablePath: env.CHROME, headless: true, args: env.VIEWER_ADAPTER === 'swiftshader' ? ['--enable-unsafe-webgpu', '--use-webgpu-adapter=swiftshader'] : ['--enable-unsafe-webgpu'] });
+    browser = await chromium.launch({ executablePath: env.CHROME, headless: true, args: [...(env.VIEWER_ADAPTER === 'swiftshader' ? ['--enable-unsafe-webgpu', '--use-webgpu-adapter=swiftshader'] : ['--enable-unsafe-webgpu']), ...(verbose ? ['--enable-logging=stderr', '--v=0'] : [])] });
     const page = await browser.newPage();
     await page.goto(`http://127.0.0.1:${server.address().port}/`);
     return { chrome: browser.version(), result: await page.evaluate(canvasProbe) };
@@ -101,10 +110,33 @@ export async function probe(env) {
   try {
     ({ chrome, result } = await Promise.race([run(), new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('probe timed out after 60 s')), 60000); })]));
   } catch (error) { result = { adapter: null, error: String(error?.message ?? error) }; }
-  finally { clearTimeout(timer); await browser?.close().catch(() => {}); server.close(); }
+  finally { clearTimeout(timer); }
   const [r, g, b] = result.pixel ?? [];
   const ok = Boolean(result.adapter && !result.lost && result.mapped && !result.error && r > 200 && g < 50 && b < 50);
-  console.log(JSON.stringify({ webgpuProbe: { flags: env.WEBGPU_CHROME_FLAGS ?? null, ok, chrome, result } }));
+  const headed = env.WEBGPU_CHROME_HEADED === '1';
+  // Failure diagnostics only (never change ok): chrome://gpu text, bounded to 15 s.
+  if (!ok && browser) {
+    let gpuTimer;
+    const collect = async () => {
+      const page = await browser.newPage();
+      await page.goto('chrome://gpu');
+      await page.waitForSelector('info-view', { timeout: 5000 }).catch(() => {});
+      // The shadow root opens with its stylesheet; drop styles so the GPU feature status and log fit the cap.
+      const text = await page.evaluate(() => {
+        const root = document.querySelector('info-view')?.shadowRoot;
+        if (!root) return document.body.innerText;
+        const copy = document.createElement('div'); copy.append(...[...root.childNodes].map((node) => node.cloneNode(true)));
+        copy.querySelectorAll('style, script').forEach((node) => node.remove());
+        return copy.textContent;
+      });
+      return String(text).replace(/\s+/g, ' ').slice(0, 8000);
+    };
+    try { console.log(JSON.stringify({ webgpuGpuPage: { flags: env.WEBGPU_CHROME_FLAGS ?? null, headed, text: await Promise.race([collect(), new Promise((_, reject) => { gpuTimer = setTimeout(() => reject(new Error('chrome://gpu timed out after 15 s')), 15000); })]) } })); }
+    catch (error) { console.log(JSON.stringify({ webgpuGpuPage: { error: String(error?.message ?? error) } })); }
+    finally { clearTimeout(gpuTimer); }
+  }
+  await browser?.close().catch(() => {}); server.close();
+  console.log(JSON.stringify({ webgpuProbe: { flags: env.WEBGPU_CHROME_FLAGS ?? null, headed, ok, chrome, result } }));
   return { ok, chrome, result };
 }
 
@@ -112,9 +144,11 @@ export async function probe(env) {
 export function selectChromeFlags(childEnv, { spawn = spawnSync, log = console.log } = {}) {
   const probeWith = (env) => spawn(process.execPath, [fileURLToPath(import.meta.url), 'probe'], { env, stdio: 'inherit', timeout: 90000 });
   if (childEnv.WEBGPU_REAL_CHROME && !childEnv.WEBGPU_CHROME_FLAGS) {
-    for (const { name, flags } of chromeFlagSets) {
-      if (probeWith({ ...childEnv, WEBGPU_CHROME_FLAGS: flags }).status !== 0) continue;
+    for (const { name, flags, headed } of chromeFlagSets) {
+      if (headed && !childEnv.DISPLAY) { log(JSON.stringify({ chromeFlags: name, skipped: 'no DISPLAY' })); continue; }
+      if (probeWith({ ...childEnv, WEBGPU_CHROME_FLAGS: flags, WEBGPU_CHROME_HEADED: headed ? '1' : '', DEBUG: 'pw:browser' }).status !== 0) continue;
       childEnv.WEBGPU_CHROME_FLAGS = flags;
+      if (headed) childEnv.WEBGPU_CHROME_HEADED = '1';
       log(JSON.stringify({ chromeFlags: name }));
       return name;
     }

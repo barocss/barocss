@@ -62,8 +62,9 @@ test('runBrowserSuites reports NOT_RUN locally and fails in CI before spawning',
 });
 
 test('chromeFlagSets are ordered and each later set extends the first', () => {
-  assert.deepEqual(chromeFlagSets.map(({ name }) => name), ['swiftshader-gl', 'swiftshader-angle', 'swiftshader-vulkan', 'swiftshader-vulkan-nosurface']);
-  for (const { flags } of chromeFlagSets.slice(1)) assert.ok(flags.startsWith(chromeFlagSets[0].flags + ' '));
+  assert.deepEqual(chromeFlagSets.map(({ name }) => name), ['swiftshader-gl', 'swiftshader-angle', 'swiftshader-vulkan', 'swiftshader-vulkan-nosurface', 'swiftshader-angle-gl', 'xvfb-headed', 'xvfb-headed-angle', 'xvfb-headed-vulkan']);
+  assert.deepEqual(chromeFlagSets.map(({ headed }) => headed === true), [false, false, false, false, false, true, true, true]);
+  for (const { flags } of chromeFlagSets) assert.ok(flags === chromeFlagSets[0].flags || flags.startsWith(chromeFlagSets[0].flags + ' '));
   assert.match(chromeFlagSets[3].flags, /--enable-features=Vulkan .*--disable-vulkan-surface$/);
 });
 
@@ -77,7 +78,26 @@ test('selectChromeFlags probes each set in order with the wrapper and keeps the 
   assert.match(lines.join(), /swiftshader-angle/);
   const all = [];
   assert.throws(() => selectChromeFlags({ WEBGPU_REAL_CHROME: '/chrome' }, { spawn: (_, __, o) => (all.push(o.env.WEBGPU_CHROME_FLAGS), { status: 1 }), log: () => {} }), /no Chrome flag set presents a WebGPU canvas/);
-  assert.equal(all.length, chromeFlagSets.length);
+  assert.equal(all.length, chromeFlagSets.filter(({ headed }) => !headed).length);
+});
+
+test('selectChromeFlags skips headed sets without DISPLAY and tries them with it', () => {
+  const run = (env) => { const seen = []; const lines = []; assert.throws(() => selectChromeFlags(env, { spawn: (_, __, o) => (seen.push(o.env), { status: 1 }), log: (line) => lines.push(line) })); return { seen, lines }; };
+  const bare = run({ WEBGPU_REAL_CHROME: '/chrome' });
+  assert.equal(bare.seen.length, 5);
+  assert.equal(bare.lines.filter((line) => line.includes('no DISPLAY')).length, 3);
+  const shown = run({ WEBGPU_REAL_CHROME: '/chrome', DISPLAY: ':99' });
+  assert.equal(shown.seen.length, 8);
+  assert.deepEqual(shown.seen.map((e) => e.WEBGPU_CHROME_HEADED), ['', '', '', '', '', '1', '1', '1']);
+  assert.ok(shown.seen.every((e) => e.DEBUG === 'pw:browser'));
+});
+
+test('selectChromeFlags records a headed pass on childEnv', () => {
+  let calls = 0;
+  const env = { WEBGPU_REAL_CHROME: '/chrome', DISPLAY: ':99' };
+  assert.equal(selectChromeFlags(env, { spawn: () => ({ status: ++calls === 6 ? 0 : 1 }), log: () => {} }), 'xvfb-headed');
+  assert.equal(env.WEBGPU_CHROME_HEADED, '1');
+  assert.equal(env.WEBGPU_CHROME_FLAGS, chromeFlagSets[5].flags);
 });
 
 test('selectChromeFlags runs one probe when flags are pinned or no wrapper is in use', () => {

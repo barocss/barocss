@@ -3,7 +3,7 @@ description: Install Playwright and a SwiftShader WebGPU Chrome wrapper and expo
 
 # Playwright is a CI-only tool installed outside the workspace (no lockfile entry);
 # chrome.sh applies WEBGPU_CHROME_FLAGS; the runner (browser-ci.mjs) probes the flag sets and uses the first that
-# presents a WebGPU canvas, so no flags are exported here.
+# presents a WebGPU canvas (headless sets first, then headed-under-Xvfb variants), so no flags are exported here.
 runs:
   using: composite
   steps:
@@ -20,10 +20,13 @@ runs:
         mkdir -p "$dir"
         npm install --prefix "$dir" --no-save --no-audit --no-fund --ignore-scripts "playwright@$PLAYWRIGHT_VERSION"
         chmod +x "$GITHUB_ACTION_PATH/chrome.sh"
+        if ! command -v Xvfb >/dev/null; then sudo apt-get update -qq && sudo apt-get install -y -qq xvfb; fi
+        Xvfb :99 -screen 0 1280x1024x24 -nolisten tcp >/dev/null 2>&1 &
         {
           echo "WEBGPU_REAL_CHROME=$real"
           echo "CHROME=$GITHUB_ACTION_PATH/chrome.sh"
           echo "PW_DIR=$dir/node_modules/playwright"
           echo "VIEWER_ADAPTER=swiftshader"
           echo "BAROCSS_BROWSER_REQUIRED=1"
+          echo "DISPLAY=:99"
         } >> "$GITHUB_ENV"
