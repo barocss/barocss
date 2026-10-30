@@ -316,9 +316,33 @@ are not current receipts.
 | [#2245](https://github.com/barocss/barocss/issues/2245) Idol Gaussian splat | later AI/capture (#2192/#2193) | Optional reference-asset contract; never CAD, manufacturing or robot authority. No install, weight download or inference. |
 | [#2252](https://github.com/barocss/barocss/issues/2252) Metropolix | outside CAD rows: World/Rendering plans (#2096/#2099), 05 V1/V2 reuse | Object → information page → return-state contract. Rendering/World holds stay; no CAD task. |
 
-Of the other198 OPEN issues, #2243, #2144 and #2107 were already referenced. The remaining195 are earlier Design Gallery targets (#2030–#2093), V3-era GPU/Viewer/loader/
-render-editor/Physics/World work, epics #503/#528–#542 and kiosk/SSR examples. They predate this
-roadmap's CAD scope or sit under existing holds and are not re-registered here.
+Of the other198 OPEN issues, #2243, #2144 and #2107 were already referenced. Of the remaining195,
+56 are outside these packages by title (Physics GAS/SOFT/GRANULAR/FEM/CFD/VEHICLE/FRACTURE/RIGID/PHYS,
+World/Game/Virtual plans, kiosk/SSR/ui-compiler examples, manual, CI and ops trackers) and stay
+under their holds. The other139 (cad, cad-model, cad-interop, gpu, viewer, cad-studio) were triaged
+on 2026-10-30 against current source and this roadmap by static reading only (no build, test or
+flow). "Covered" means a row owns the topic or source exists, not that product acceptance passed.
+
+**Registered candidates.** Reproduce at the current head first; "no change needed" is a valid result.
+
+| Candidate | Existing scope | Sources | Registered question |
+|---|---|---|---|
+| T1 measured continuity | 08/16 | [#2043](https://github.com/barocss/barocss/issues/2043) §1, [#537](https://github.com/barocss/barocss/issues/537) SURF-06, #1053/#1070/#1074 | Report measured G0/G1/G2 deviation, with tolerance and refusal reason, at a selected curve/spline joint or shared surface boundary. Reuse Kernel `inspectCurveEndpointContinuity`, which has no Model/Studio consumer today. Never fall back to the display mesh. Zebra stays visual only. |
+| T2 sketch layers | 09 | [#2069](https://github.com/barocss/barocss/issues/2069) | Do sketches need named layers with visibility separate from the construction role, kept through Save/Open without changing region meaning? Record "construction hide is enough" if so. |
+| T3 exact two-plane band | 08 | [#2082](https://github.com/barocss/barocss/issues/2082) | Keep the exact band between two plane cuts on a direct surface instead of the current UV-window `surfaceRegion`, reproducible through Save/fresh Open. |
+| T4 curve×curve report (optional) | 08/16 | [#2059](https://github.com/barocss/barocss/issues/2059) §2 | Is a direct curve×curve intersection report (points / none / overlap interval) needed? The Kernel offers only coplanar curve×line segment. |
+| T5 dependency-scoped regeneration | 22/16 | [#1660](https://github.com/barocss/barocss/issues/1660), [#551](https://github.com/barocss/barocss/issues/551) | On a measured O10/#2188 edit workload, does reusing unchanged upstream outputs beat full rebuild while equalling a cold rebuild and keeping atomic rollback and Undo? Adopt only on a measured benefit; relates to 20① and #2246. |
+| T6 Viewer atomic appearance swap (low) | 05 V1 | [#1922](https://github.com/barocss/barocss/issues/1922) | `handoffQualifiedFaceToNativeSceneAppearance` refuses `'atomic'` ("use dispose-remount"), and dispose-remount has no rollback after drawing. Keep the documented refusal, or retain accepted Faces when the new frame fails? First find a consumer that needs it. |
+
+**Cross-references (no new task).**
+- Galleries #2029–#2093: [gallery-backlog.md](gallery-backlog.md) (survey `2b73f423`, 2026-10-17) turned their app-actionable targets into A1–A17/B1–B21/C1–C9, all marked done with commits. Boards that only state an engine contract (#2061–#2068, #2077) are robustness references under16. T1–T4 above are the remaining targets the backlog does not cover. #2058's migration section is superseded by the schema-tracks-latest decision.
+- Epics → rows: #528→12/13/16 · #529→15/20/21 (+05/06) · #530→12/O9 · #531/#532→09 · #533→16/R7.4d/K17/O21 · #534/#536→07/08 · #535→16/22 · #537→08/09 (+T1) · #538→10 · #539→13 · #540→01/02/11/16 · #541→15/16/22/Later publication · #542 obsolete (source-language compiler superseded by the JSON core and facade, R7.2; legacy `src/language` under R7.3d). Goals #503 (V3 tracker) and #660 (whole 3D family) are provenance only. Epic checklists are V3 bookkeeping; a mapped row does not complete every item.
+- Sketch/feature tasks #547, #548, #549 and #550 → 09; #551 → 12/16 (+T5). Contracts #1657 robust predicates, #1658 topology evolution, #1659 persistent face references → 16 and the #2205/#2210/#2215 ledger; #1660 → 12/16 (+T5).
+- Viewer consumers #1580 (native directional lights) and #1581 (native Surface UV01) exist in `packages/barocss-viewer` with examples → V4. Source also exists for #517 (native point query, V2; tangent UI not verified), #629 (DirectPanel pole/weight edits; viewport pole drag not verified), #1080, #1184 (G15 maps), #1512 (WebGPU with WebGL2 fallback), #1570 and #1995 (edge lines and pick; depth occlusion not verified).
+- Obsolete by removal: cad-editor and render-editor were removed in `1ec5ac316` (#1029, #1048, #1049, #1236, #1297, #1332, #1445, #1446, #1565, #1653, #1729, #2024). The GPU README "Removed renderers" section retires the renderers behind #1018, #1095, #1119, #1183, #1553, #1574, #1579 and #1584; draw through `createViewer`/`showScene`. #1087 and #1391 have no current example.
+- V3 loader/reader consumers #1033, #1038, #1053, #1067, #1070, #1074, #1408, #1411, #1415, #1436, #1440, #1463, #1487, #1496 and #1561 map to the R7.3d retire/keep audit; no new reader work. #1437's Split Body is superseded by the current Split command, whose volume-conservation check is not verified.
+- Holds: #2097, #2098, #2137, #2169 and #2174 stay under Rendering HOLD; #832, #835, #1073 and #1091 under Physics/Motion; #801 (packed consumer) stays Later with test:consumer.
+- Side note for R7.7: `directOps.editCurvePole`/`editSurfacePole` still take `xMM/yMM/zMM` (`packages/barocss-cad-model/src/engine/direct.ts`), against the no-unit-suffix rule.
 
 ### 제품 완료와 인계의 공통 조건
 
