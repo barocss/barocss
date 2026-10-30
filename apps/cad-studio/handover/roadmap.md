@@ -362,6 +362,21 @@ owner-pending), #2051 (Bezier control-point placement), #2056 (inertia about a p
 #2089 (exact six-face Thicken body; current Thicken is faceted), #2092 (slotted countersunk screw)
 and the T1–T4 sources #2043, #2059, #2069, #2082.
 
+**Owner request 2026-10-30: associative bands, 2D and 3D** ("밴드 같은 건데 … 한쪽에 있던 도형이
+커지면 밴드도 같이 변하는", then "2d, 3d 모두"). Registered here before any implementation; the current
+09 order stays unless the owner reorders. Today only two narrow forms exist: `belt-drive` wraps two
+row-made pulleys/sprockets and re-evaluates from the referenced wheels, and the Loft feature
+re-evaluates from its section sketches. Free sketch circles cannot be constrained to each other, and
+direct `ruledSurface`/`loft` results are not linked to their sources.
+
+| Candidate | Scope | Required result |
+|---|---|---|
+| B1 associative 2D band | 09 CG3 | In one sketch, pick two or more closed shapes (circles, arcs, convex outlines). The band is their outer envelope: common tangent lines plus wrap arcs, stored as references to the picked shapes, not copied geometry. A source size or position edit regenerates it. Refuse with a reason when shapes overlap or contain each other or no tangent exists, and never keep a stale band silently. It is usable as a profile (extrude/cut) with an optional width/offset, and keeps its references through Save/fresh Open/re-edit and Undo. Reuse the existing two-wheel pitch-path math and sketch tangency. Crossed or inner bands are optional later. |
+| B2 associative 3D band surface | 08 CG2 (new item after the bounded08 close), 16 references | Pick an edge or edge loop on face A and one on face B. A ruled or loft band surface is built between them from qualified edge references and regenerated when an upstream feature changes them. A lost or ambiguous reference refuses or suppresses under the existing reference policy, with no silent retarget. Optional thicken to a solid. Save/fresh Open/re-edit and Undo. Reuse the existing ruled/loft producers and reference resolution; report the fit deviation honestly when the result is not exact. |
+
+Both need Kernel/Model/API → actual Studio edit, a source-change regeneration and file proof before
+any completion claim.
+
 ### 제품 완료와 인계의 공통 조건
 
 1. 기능의 입력·단위·좌표·참조·지원/거부 계약을 고정한다.
