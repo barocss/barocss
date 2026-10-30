@@ -536,9 +536,9 @@ try {
 
   // ===================================================================== merged at 2d9c79bc: constraints and mates
   const pinFile = join(out, 'pin.bcad');
-  writeFileSync(pinFile, JSON.stringify({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [{ kind: 'sketch', profile: 'circle', center: [0, 0], radius: 4 }, { kind: 'extrude', sketch: 0, height: 20 }], outputs: { b1: { node: 1, side: 'solid' } } }));
+  writeFileSync(pinFile, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [{ kind: 'sketch', profile: 'circle', center: [0, 0], radius: 4 }, { kind: 'extrude', sketch: 0, height: 20 }], outputs: { b1: { node: 1, side: 'solid' } } }));
   const blockFile = join(out, 'block.bcad');
-  writeFileSync(blockFile, JSON.stringify({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] }, { kind: 'extrude', sketch: 0, height: 4 }], outputs: { b1: { node: 1, side: 'solid' } } }));
+  writeFileSync(blockFile, JSON.stringify({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] }, { kind: 'extrude', sketch: 0, height: 4 }], outputs: { b1: { node: 1, side: 'solid' } } }));
   const insert = async (f) => { const n = ((await doc()).instances ?? []).length; await page.setInputFiles('input[aria-label="Part file"]', f); await page.waitForFunction(k => (window.__studioDoc.instances ?? []).length === k + 1, n); await page.waitForSelector('[aria-label="Instance"]'); await page.waitForTimeout(800); return (await doc()).instances.at(-1).id; };
   const addMate = async (picks, kind) => {
     await page.click('[aria-label="Mates"] button:text-is("Add mate")');

@@ -31,6 +31,7 @@ export function finishOperation(f: CadPartFeature & Record<string, unknown>, t: 
       if (sec?.kind === 'g2' && sec.tension !== undefined && !(typeof sec.tension === 'number' && sec.tension > 0 && sec.tension < 1)) fail('INPUT', 'a G2 section\'s tension lies between 0 and 1');
       const shape = sec?.kind === 'conic' ? { kind: 'conic' as const, rho: sec.rho } : sec?.kind === 'g2' ? { kind: 'g2' as const, tension: sec.tension ?? 0.5 } : undefined;
       const size = authored ? Math.max(...authored.map(p => p.radius)) : dim((f.kind === 'chamfer' ? f.distance : f.radius) as CadPartDim, f.kind === 'chamfer' ? 'distance' : 'radius', true);
+      if (Array.isArray(f.edges) && f.edges.length > CadPartLimits.edges && f.edges.every(e => typeof e === 'string')) fail('INPUT', `[FINISH_EDGES_LIMIT] a ${f.kind} takes at most ${CadPartLimits.edges} edges: this one lists ${f.edges.length}`);
       if (!Array.isArray(f.edges) || !f.edges.length || f.edges.length > CadPartLimits.edges || !f.edges.every(e => typeof e === 'string')) fail('INPUT', 'edges must list 1 to 64 edge names');
       if (target.length !== 1) fail('REFERENCE', 'finish one part at a time (name it as id/k)');
       return () => {

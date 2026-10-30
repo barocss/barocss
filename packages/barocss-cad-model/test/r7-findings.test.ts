@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateDoc, exportStudioStep } from '../src/engine/evaluate';
-import { friendly } from '../src/engine/errors';
+import { evaluateCadPart } from '@barocss/cad';
+import { friendly, friendlyCause } from '../src/engine/errors';
 import { rectanglePart, withNode, type ModelNode } from '../src/engine/doc';
 
 // R7's findings (api-facade-design.md): a refusal's kernel code reaches FriendlyError — its bracketed code as `code`
@@ -28,4 +29,17 @@ test('R7: exportStudioStep with a fixed timestamp writes the same bytes; without
   assert.equal(a.text, b.text);
   assert.ok(a.text.includes(`'${at}'`), 'the header names the time given');
   const now = exportStudioStep(doc, { name: 'plate' }); assert.ok(!now.text.includes(`'${at}'`));
+});
+
+test('R7: a fillet of more than 64 edges names its own limit, not "no edges"; an empty list keeps the old title', () => {
+  const edges = Array.from({ length: 65 }, (_, i) => `e1.side${i}|e1.top`);
+  const part = { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] }, { id: 'e1', kind: 'extrude', sketch: 's', height: 5 }, { id: 'f', kind: 'fillet', target: 'e1', edges, radius: 1 }] };
+  let cause: unknown;
+  try { evaluateCadPart(part as never); } catch (e) { cause = e; }
+  assert.ok(cause, 'the kernel refuses');
+  const fe = friendlyCause(cause);
+  assert.equal(fe.title, 'Too many edges in one finish');
+  assert.equal(fe.code, 'FINISH_EDGES_LIMIT');
+  assert.ok(fe.detail?.startsWith('[FINISH_EDGES_LIMIT] f: a fillet takes at most 64 edges'), fe.detail);
+  assert.equal(friendly('n2: edges must list 1 to 64 edge names').title, 'This chamfer has no edges');
 });

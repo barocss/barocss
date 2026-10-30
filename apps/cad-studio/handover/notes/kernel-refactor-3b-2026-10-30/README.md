@@ -140,3 +140,35 @@ messages without a code.
 | cad-model types, eslint (src, test), studio types | PASS |
 | `refusals.mjs --check` | PASS (no refusal text changed) |
 | Studio tests, browser flows | NOT_RUN (no studio file changed; studio types pass) |
+
+## Fillet over 64 edges (D364) and ④ latest schema only (D365)
+
+**D364** (`1b44bd515`). Found by the sketch lane: filleting a whole ellipse-extrude rim hit the kernel's 64-edge limit.
+The kernel refused it with the empty-list text `edges must list 1 to 64 edge names`, which friendly() maps to
+"This chamfer has no edges". Now `part-finish.ts` refuses a list over the limit with `[FINISH_EDGES_LIMIT] a <kind>
+takes at most 64 edges: this one lists <n>`. The code was added to `CAD_REFUSAL_CODES` and `CAD_ERROR_CODES`, and
+errors.ts maps it to "Too many edges in one finish". The empty-list refusal and its title are unchanged.
+
+**D365** (`50a3a1337`, `c445c84ad`). Owner (2026-10-30): unreleased, so documents always follow the latest schema.
+`readStudioDoc` reads schema 3 and 4 only. A missing schema or schema 0–2 is refused with "This model was saved in an
+older form (schema N); this cad-studio reads schemas 3 and 4." The schema-2 body-key migration, the schema-1 id note
+and the "saved before schema 3" note are removed. Old documents were brought to schema 3: conformance a1 delete/move,
+the studio's bracket fixtures and the inline studio test, bench and probe documents. `a1/schema1-read` (the removed
+path) was deleted. The print-preview and fields round trips read schema 3 only.
+
+### Checks (merged tree, after D363's drawing fix)
+
+| Check | Result |
+|---|---|
+| Golden (③'s errors.ts vs D364's) | 374 differences, all of them messages with `[FINISH_EDGES_LIMIT]`; 0 others |
+| Kernel build, perf-bench | PASS; 34/34 SAME |
+| Kernel suite | 1849 tests, 1847 pass, 0 fail, 2 skip; +1 name (the new limit test), 0 missing |
+| Kernel conformance (after merge) | 263/263 |
+| cad-model suite (after merge) | 2175/2175 pass. Missing vs ③: `a1-schema1-read` (deleted) and two renamed tests (`reading a model file …`, `route bundle admission …`). Added: their new names, the new R7 limit test, and 3 fixed by D363 |
+| cad-model types, eslint on edited files; studio types | PASS |
+| Studio `storage`, `instance-pose` | 15/15 |
+| check-docs, `refusals.mjs --check`, API inventory | PASS; inventory regenerated for the new code |
+| Studio browser flows (the `browser-flow.mjs` old-file step now expects the refusal), bench scripts, ui-probe | NOT_RUN |
+
+Follow-up: `engine/doc.ts` still types `schema: 1 | 2 | 3 | 4`. It can become `3 | 4`; doc.ts belongs to the sketch lane
+right now.

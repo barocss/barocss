@@ -66,3 +66,15 @@ test('R7.3a batch 2: a part-model refusal carries its message\'s specific code, 
   assert.throws(() => evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [{ id: 'a', kind: 'extrude', sketch: 'nope', height: 1 }] }),
     e => e.code === 'REFERENCE' && e.details.category === 'REFERENCE' && e.message === 'a: sketch: no earlier feature nope');
 });
+
+test('a fillet or chamfer listing more than 64 edges is refused by its own code; an empty list keeps the old message', () => {
+  const doc = features => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features });
+  const base = [{ id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] }, { id: 'e1', kind: 'extrude', sketch: 's', height: 5 }];
+  const edges = Array.from({ length: 65 }, (_, i) => `e1.side${i}|e1.top`);
+  for (const kind of ['fillet', 'chamfer']) {
+    assert.throws(() => evaluateCadPart(doc([...base, { id: 'f', kind, target: 'e1', edges, ...(kind === 'fillet' ? { radius: 1 } : { distance: 1 }) }])),
+      e => e.code === 'FINISH_EDGES_LIMIT' && e.details.category === 'INPUT' && e.message.includes(`a ${kind} takes at most 64 edges`) && e.message.includes('lists 65'));
+  }
+  assert.throws(() => evaluateCadPart(doc([...base, { id: 'f', kind: 'fillet', target: 'e1', edges: [], radius: 1 }])),
+    e => e.code === 'INPUT' && e.message.includes('edges must list 1 to 64 edge names'));
+});

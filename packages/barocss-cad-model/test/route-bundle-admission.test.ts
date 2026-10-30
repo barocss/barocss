@@ -65,22 +65,17 @@ test('route bundle admission: legacy export target stays 3 and plain JSON preser
   assert.deepEqual(doc, before);
 });
 
-test('route bundle admission: missing-schema legacy and schema-2 body-key migration keep existing notes', () => {
+test('route bundle admission: a missing or older schema is refused, not migrated', () => {
   const old = rectanglePart(10, 10, 5);
-  Reflect.deleteProperty(old, 'schema'); Reflect.deleteProperty(old, 'units'); Reflect.deleteProperty(old, 'parameters');
+  Reflect.deleteProperty(old, 'schema');
   const read = readStudioDoc(JSON.stringify(old));
-  assert.ok('doc' in read);
-  assert.equal(read.doc.schema, 3);
-  assert.ok(read.notes.includes('saved before schema 3: read as schema 3'));
-  assert.ok(read.notes.includes('no units given: read as millimetres'));
+  assert.ok('error' in read);
+  assert.match(read.error, /older form \(no schema\)/);
   const two = rectanglePart(10, 10, 5);
-  two.schema = 2; two.nodes = two.nodes.map((node, i) => ({ ...node, id: `n${i + 2}` })); two.nextId = 4;
-  two.bodies = { b1: { name: 'Legacy body' } };
-  const migrated = readStudioDoc(JSON.stringify(two));
-  assert.ok('doc' in migrated);
-  assert.equal(migrated.doc.schema, 3);
-  assert.equal(migrated.doc.bodies?.b3?.name, 'Legacy body');
-  assert.ok(migrated.notes.includes('body looks, appearances and animation tracks keyed by feature ids'));
+  two.schema = 2 as never;
+  const refused = readStudioDoc(JSON.stringify(two));
+  assert.ok('error' in refused);
+  assert.match(refused.error, /older form \(schema 2\)/);
 });
 
 test('route bundle admission: explicit schema-4 JSON roundtrip retains recipe, markers, source and copied paths', async () => {

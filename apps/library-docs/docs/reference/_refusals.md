@@ -104,6 +104,7 @@
 | `[FIELD]` | `core/error-codes.ts (declared)` | — |
 | `[FILE]` | `core/error-codes.ts (declared)` | — |
 | `[FILL_RANGE]` | `core/error-codes.ts (declared)` | — |
+| `[FINISH_EDGES_LIMIT]` | `core/error-codes.ts (declared)`, `part` | a … takes at most … edges: this one lists … |
 | `[FIT_FACE]` | `core/error-codes.ts (declared)` | — |
 | `[FIT_PAIR]` | `core/error-codes.ts (declared)` | — |
 | `[FIT_TABLE]` | `core/error-codes.ts (declared)` | — |
