@@ -1,0 +1,3 @@
+file:///Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/node_modules/rolldown/dist/shared/binding-BY0qR5iS.mjs:603
+			const error = /* @__PURE__ */ new Error("Cannot find native binding. npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828). Please try `npm i` again after removing both package-lock.json and node_modules directory.");
+			

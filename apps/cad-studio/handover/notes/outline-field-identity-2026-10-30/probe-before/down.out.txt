@@ -1,0 +1,9 @@
+nodes sketch:n0 extrude:n1 fillet:n2 fillet edges ["n1.side[e2]|n1.side[e3]"]
+sketch node {"id":"n0","profile":"loop","tags":{"outer":["e1","e2","e3","e4","e5","e6"],"holes":[["e7","e8","e9","e10"]]}}
+eval before ok true 
+fields olen0,olen1,h,from,draft
+edited sketch {"profile":"loop","tags":{"outer":["e11","e12","e13","e14","e15","e16"],"holes":[["e7","e8","e9","e10"]]}}
+eval after ok false {"title":"The selected edge no longer exists","hint":"An earlier edit changed the shape around it. Select the edge again and re-apply the chamfer or fillet.","detail":"no edge named n1.side[e2]|n1.side[e3]; edges: n1.bottom|n1.side[e11], n1.side[e11]|n1.side[e12], n1.side[e11]|n1.top, n1.side[e11]|n
+fillet node after {"kind":"fillet","parent":{"node":1,"side":"solid"},"edges":["n1.side[e2]|n1.side[e3]"],"radius":3,"id":"n2","sigs":{"n1.side[e2]|n1.side[e3]":{"k":"line","p":[60,20,5],"d":[0,0,1],"s":10}}}
+vol before 15480.685834705766
+after facade ERR SELECTION [SELECTION] no edge named n1.side[e2]|n1.side[e3]; edges: n1.bottom|n1.side[e11], n1.side[e11]|n1.side[e12], n1.side[e11]|n1.top, n1.side[e11]|n1.side[e16], n1.bottom|n1.side[e12], n1.side[e12]|n1.side[e13], n1.side[e12]|n1.top, n1.bottom|n1.side[e13], n1.side[e13]|n1.side[e14], n1.side[e13]|n1.top, n1.bottom|n1.side[e14], n1.side[e14]|n1.side[e15], …

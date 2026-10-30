@@ -1,0 +1,25 @@
+grid 60x40 r5 1 ok lin 0.00e+0 ang 4.44e-16 dof 0 rank 24 rows 24 
+grid 60x40 r5 2 ok lin 0.00e+0 ang 4.44e-16 dof 0 rank 24 rows 24 
+grid 60x40 r5 3 ok lin 0.00e+0 ang 4.44e-16 dof 0 rank 24 rows 24 
+grid 60x40 r0.5 1 ok lin 0.00e+0 ang 4.44e-16 dof 0 rank 24 rows 24 
+grid 60x40 r0.5 2 ok lin 0.00e+0 ang 4.44e-16 dof 0 rank 24 rows 24 
+grid 60x40 r0.5 3 ok lin 0.00e+0 ang 4.44e-16 dof 0 rank 24 rows 24 
+offgrid 60.0000004x40 r5 1 ok lin 0.00e+0 ang 4.44e-16 dof 0 rank 24 rows 24 
+offgrid 60.0000004x40 r5 2 ok lin 0.00e+0 ang 4.44e-16 dof 0 rank 24 rows 24 
+offgrid 60.0000004x40 r5 3 ok lin 0.00e+0 ang 4.44e-16 dof 0 rank 24 rows 24 
+offgrid 60x40 r2.3333333 1 ok lin 1.47e-14 ang 6.22e-15 dof 0 rank 24 rows 24 
+offgrid 60x40 r2.3333333 2 ok lin 1.47e-14 ang 6.22e-15 dof 0 rank 24 rows 24 
+offgrid 60x40 r2.3333333 3 ok lin 1.47e-14 ang 6.22e-15 dof 0 rank 24 rows 24 
+offgrid 61.7x33.3 r0.3 1 ok lin 7.11e-15 ang 7.11e-15 dof 0 rank 24 rows 24 
+offgrid 61.7x33.3 r0.3 2 ok lin 7.11e-15 ang 7.11e-15 dof 0 rank 24 rows 24 
+offgrid 61.7x33.3 r0.3 3 ok lin 7.11e-15 ang 7.11e-15 dof 0 rank 24 rows 24 
+jitter 60x40 r5 1 ok lin 0.00e+0 ang 4.44e-16 dof 0 rank 24 rows 24 
+jitter 60x40 r5 2 ok lin 0.00e+0 ang 4.44e-16 dof 0 rank 24 rows 24 
+jitter 60x40 r5 3 ok lin 0.00e+0 ang 4.44e-16 dof 0 rank 24 rows 24 
+jitter 100x7 r1.25 1 ok lin 0.00e+0 ang 4.44e-16 dof 0 rank 24 rows 24 
+jitter 100x7 r1.25 2 ok lin 0.00e+0 ang 4.44e-16 dof 0 rank 24 rows 24 
+jitter 100x7 r1.25 3 ok lin 0.00e+0 ang 4.44e-16 dof 0 rank 24 rows 24 
+offgrid 1234.5678x987.6543 r12.345678 1 ok lin 1.35e-13 ang 8.88e-15 dof 0 rank 24 rows 24 
+offgrid 1234.5678x987.6543 r12.345678 2 ok lin 1.35e-13 ang 8.88e-15 dof 0 rank 24 rows 24 
+offgrid 1234.5678x987.6543 r12.345678 3 ok lin 1.35e-13 ang 8.88e-15 dof 0 rank 24 rows 24 
+cases exceeding original limits: 0
