@@ -22,7 +22,9 @@ import { extendPreview, splitPreview, trimPreview } from '@barocss/cad-model/ske
 import { isDefaultPlane, rayOnPlane, toLocal, toWorld, type SketchPlane } from '@barocss/cad-model/sketch/plane';
 import { shapeOutline } from '@barocss/cad-model/sketch/loops';
 import { hvOf, isSettled, type SketchPick } from '@barocss/cad-model/sketch/rules';
-import { pickSketch } from '@barocss/cad-model/sketch/select';
+import { pickShapeAt, pickSketch } from '@barocss/cad-model/sketch/select';
+import { bandShapes, liveBand } from '@barocss/cad-model/sketch/band';
+import { sampleLoop } from '@barocss/cad-model/app/profiles';
 import { drivingKeys, sketchMarks } from '../ui/SketchMarks';
 import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoCancelReason, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
 import { gizmoMarks } from './GizmoMarks';
@@ -145,6 +147,8 @@ interface Props {
   /** Select / Dimension tool clicks on the outline (null: empty space); opening and committing the dimension editor. */
   onSketchPick?(hit: SketchPick | null, additive: boolean): void;
   /** Trim, Extend and Split tools: a click at `at` (plane mm), `tol` mm the pick reach. */
+  /** Band tool clicks: the index (in done, then the current shape) of the closed shape under the pointer, or null. */
+  onSketchBandPick?(index: number | null): void;
   onSketchTrim?(op: 'trim' | 'extend' | 'split', at: [number, number], tol: number): void;
   onDimEdit?(key: string | null): void;
   onDimCommit?(key: string, value: number): void;
@@ -450,7 +454,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     r.interacting = true; window.clearTimeout(settle.current);
     settle.current = window.setTimeout(() => { if (renderer.current) { renderer.current.interacting = false; requestRef.current(); } }, 180);
   });
-  const sketchDraft = useRef<{ cursor: [number, number] | null; hover?: SketchPick | null; snap?: SnapPoint | null; trim?: { kind: 'trim' | 'extend' | 'split'; points: [number, number][] } | null }>({ cursor: null });
+  const sketchDraft = useRef<{ cursor: [number, number] | null; hover?: SketchPick | null; bandHover?: number | null; snap?: SnapPoint | null; trim?: { kind: 'trim' | 'extend' | 'split'; points: [number, number][] } | null }>({ cursor: null });
   /** The model's snap points in the sketch plane (kept while the bodies and the plane stay). */
   const modelSnapCache = useRef<{ bodies: BodyResult[]; plane: string; points: SnapPoint[] } | null>(null);
   /** The sketch point for the pointer: an object snap within 8 px (ends, middles, centres, the origin), else the 1 mm grid. */
@@ -467,6 +471,10 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const picking = (sk: SketchState | null) => sk?.tool === 'select' || sk?.tool === 'dimension';
   /** Trim, Extend and Split: a click edits the piece under it (no snapping). */
   const cutting = (sk: SketchState | null) => sk?.tool === 'trim' || sk?.tool === 'extend' || sk?.tool === 'split';
+  /** Band tool: a click picks a whole closed shape (no snapping). */
+  const banding = (sk: SketchState | null) => sk?.tool === 'band';
+  /** The band's derived outline, recomputed only when the band or the shapes change. */
+  const bandCache = useRef<{ done: SketchState['done']; shape: SketchShape | null; band: SketchState['band']; res: ReturnType<typeof liveBand> } | null>(null);
   /** The trim tool's reach: 8 pixels on the sketch plane, in mm. */
   const trimReach = (x: number, y: number, w: number, h: number, sk: SketchState) => { const a = sketchPoint(x, y, w, h, sk.plane), b = sketchPoint(x + 8, y, w, h, sk.plane); return a && b ? Math.hypot(b[0] - a[0], b[1] - a[1]) : 1; };
   const sketchShapesOf = (sk: SketchState) => [...(sk.done ?? []), ...(sk.shape ? [sk.shape] : [])];
@@ -1148,13 +1156,14 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       d.mode = 'box'; d.x = x; d.y = y; d.moved = true; request(); return;
     }
     if (sk) {
-      const p = sketchPoint(x, y, w, h, sk.plane), at = p && !picking(sk) && !cutting(sk) ? sketchSnap(x, y, w, h, sk, p) : null;
+      const p = sketchPoint(x, y, w, h, sk.plane), at = p && !picking(sk) && !cutting(sk) && !banding(sk) ? sketchSnap(x, y, w, h, sk, p) : null;
       sketchDraft.current.cursor = at ? at.at : p ? [snap(p[0]), snap(p[1])] : null; sketchDraft.current.snap = at?.snap ?? null;
       propsRef.current.onCursor(sketchDraft.current.cursor ? toWorld(sk.plane, sketchDraft.current.cursor) : null);
       const s = liveShape.current; const c = sketchDraft.current.cursor;
       if (sk.tool !== 'carc') carc.current = null;
       if (sk.tool !== 'spline') splineFit.current = null;
       else if (splineFit.current?.length && c) { const o = splineOutline([...splineFit.current, c], false); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: false, fromSpline: true, spline: { fit: [...splineFit.current, c], closed: false } }); }
+      if (banding(sk)) sketchDraft.current.bandHover = pickShapeAt(bandShapes(sk), sketchProject(sk.plane), x, y);
       if (picking(sk)) sketchDraft.current.hover = isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y, sk.done) : null;
       else if (sk.tool === 'carc') {
         const d = carc.current;
@@ -1267,6 +1276,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       const c: [number, number] = picking(sk) ? [snap(p[0]), snap(p[1])] : sketchSnap(x, y, w, h, sk, p).at;
       const s = liveShape.current;
       if (picking(sk)) { propsRef.current.onSketchPick?.(isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y, sk.done) : null, e.shiftKey); return; }
+      if (banding(sk)) { propsRef.current.onSketchBandPick?.(pickShapeAt(bandShapes(sk), sketchProject(sk.plane), x, y)); return; }
       if (cutting(sk)) { propsRef.current.onSketchTrim?.(sk.tool as 'trim' | 'extend' | 'split', [p[0], p[1]], trimReach(x, y, w, h, sk)); sketchDraft.current.trim = null; return; }
       if (sk.tool === 'spline') {
         // Its points so far, the curve through them redrawn (closed when the first point is clicked again).
@@ -1446,6 +1456,20 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
           for (const [k, q] of [d.points[0], d.points[d.points.length - 1]].entries()) { const p = P(q[0], q[1]); items.push(<circle key={'de' + i + '.' + k} cx={p[0]} cy={p[1]} r={3} className="sk-end" />); }
         } else items.push(<polygon key={'done' + i} points={shapeOutline(d).map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join(' ')} className={cls} />);
       });
+      // B1: the band's derived outline (solid, no handles), then the shapes the Band tool has picked and the one under the pointer.
+      if (sk.band) {
+        if (!bandCache.current || bandCache.current.done !== sk.done || bandCache.current.shape !== sk.shape || bandCache.current.band !== sk.band) bandCache.current = { done: sk.done, shape: sk.shape, band: sk.band, res: liveBand(sk) };
+        const lb = bandCache.current.res;
+        if (lb && !('error' in lb)) {
+          const path = (loop: Parameters<typeof sampleLoop>[0]) => 'M' + sampleLoop(loop).map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join('L') + 'Z';
+          items.push(<path key="band" d={path(lb.outer) + (lb.hole ? path(lb.hole) : '')} className="sk-band" />);
+        }
+      }
+      if (banding(sk)) {
+        const outline = (d: SketchShape) => d.kind === 'bezier' || (d.kind === 'polygon' && !d.closed) ? '' : shapeOutline(d).map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join(' ');
+        const all = bandShapes(sk), hover = sketchDraft.current.bandHover;
+        all.forEach((d, i) => { const on = !!d.ids?.[0] && !!sk.bandPicks?.includes(d.ids[0]), pts = on || i === hover ? outline(d) : ''; if (pts) items.push(<polygon key={'bp' + i} points={pts} className={on ? 'sk-band-pick' : 'sk-band-hover'} />); });
+      }
       const s = drag.current.mode === 'spline' ? liveShape.current : sk.shape;
       if (s?.kind === 'rectangle') {
         const [x0, x1] = [Math.min(s.a[0], s.b[0]), Math.max(s.a[0], s.b[0])], [y0, y1] = [Math.min(s.a[1], s.b[1]), Math.max(s.a[1], s.b[1])];

@@ -3,7 +3,8 @@
 import type { SketchShape, SketchState } from './types';
 import { sampleSegment, type P2 } from './profile';
 import { angleKey, circlePairKeys, distanceKey, edgeCircleKey, isSettled, samePick, type Polygon, type SketchPick } from './rules';
-import { segmentDistance as toSegment } from '../engine/geom2';
+import { segmentDistance as toSegment, insideRing, signedArea } from '../engine/geom2';
+import { shapeNode, shapeOutline } from './loops';
 import { tagsOf } from './entityIds';
 
 /** Plane coordinates → screen pixels. */
@@ -35,6 +36,26 @@ export function pickSketch(s: Polygon, project: Project, x: number, y: number, d
   if (best) return best;
   done.forEach((c, i) => { if (c.kind !== 'circle') return; const d = circleDistance(c.c, c.r); if (d <= bestD) { bestD = d; best = { kind: 'circle', i, done: true }; } });
   return best;
+}
+
+/**
+ * The closed shape (an index of `shapes`) a click at (x, y) means: the one whose outline passes within `px` pixels, nearest first, else
+ * the smallest one the click lies inside; null when it is on none (open shapes, Bézier curves and shapes still being drawn never are).
+ */
+export function pickShapeAt(shapes: readonly SketchShape[], project: Project, x: number, y: number, px = 7): number | null {
+  const at: P2 = [x, y];
+  let edge: number | null = null, edgeD = px, inner: number | null = null, innerA = Infinity;
+  for (let i = 0; i < shapes.length; i++) {
+    if (!shapeNode(shapes[i])) continue;
+    const ring = shapeOutline(shapes[i]).map(p => project(p[0], p[1]) as P2);
+    if (ring.length < 3) continue;
+    let d = Infinity;
+    for (let k = 0; k < ring.length; k++) d = Math.min(d, toSegment(at, ring[k], ring[(k + 1) % ring.length]));
+    if (d <= edgeD) { edgeD = d; edge = i; }
+    const a = Math.abs(signedArea(ring));
+    if (insideRing(at, ring) && a < innerA) { innerA = a; inner = i; }
+  }
+  return edge ?? inner;
 }
 
 /** A finished circle of the sketch (`done` index) moved onto the outline, so its centre can be dimensioned from it. */

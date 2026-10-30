@@ -1,10 +1,11 @@
 // A finished sketch node back as sketcher shapes, to edit it in place: the main profile as the current
 // shape (its kept outline with all constraints when it has one), more regions and holes beside it.
-import type { LoopSegment, SketchNode, SketchOutline } from '../engine/doc';
+import type { LoopSegment, SketchBand, SketchNode, SketchOutline } from '../engine/doc';
 import type { SketchShape } from './types';
 import type { P2 } from './profile';
 import { rulesWithoutCircle, type Polygon } from './rules';
 import { loopOf } from './loops';
+import { nextIdOf } from './entityIds';
 import { wellFormedBezier } from './bezier';
 import type { SplineDef } from './spline';
 import { ellipseMatches, wellFormedEllipse } from './ellipse';
@@ -60,11 +61,25 @@ export function reopenedOrder(shape: SketchShape | null, done: readonly SketchSh
 
 const SAME = (a: number, b: number) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b));
 
-/** One closed loop of a sketch: its representation, its dimension values (numbers or references) in order, and how a rebound copy of `value` is written into a node. */
-interface Slot { slot: string; sig: string; value: unknown; leaves: unknown[]; put(out: Record<string, unknown>, v: unknown): void }
+/** One closed loop of a sketch: its representation, its dimension values (numbers or references) in order, and how a rebound copy of `value` is written into a node. `named`: each bound value is restored on its own (a band's offset and width, a construction shape's values). */
+interface Slot { slot: string; sig: string; value: unknown; leaves: unknown[]; named?: true; put(out: Record<string, unknown>, v: unknown): void }
 const segmentsSig = (l: readonly LoopSegment[]) => 'loop:' + l.map(s => s.kind === 'arc' ? 'a' + s.direction : 'l').join(',');
 const segmentLeaves = (l: readonly LoopSegment[]) => l.flatMap(s => s.kind === 'arc' ? [...s.start, ...s.center] : [...s.start]);
+/** A band sketch's slots (B1): its offset and width, and each construction shape under its first side id (by position when it has none). */
+function bandSlots(node: Extract<SketchNode, { profile: 'band' }>): Slot[] {
+  const band = node.band, value = { ...(band.offset === undefined ? {} : { offset: band.offset }), ...(band.width === undefined ? {} : { width: band.width }) };
+  const out: Slot[] = [{ slot: 'band', sig: 'band', value, leaves: Object.values(value), named: true, put: (o, v) => { o.band = { ...(o.band as object), ...(v as object) }; } }];
+  (node.construction ?? []).forEach((c, i) => {
+    const s = c as SketchShape;
+    if (!s || typeof s !== 'object') return;
+    const id = (s as { ids?: string[] }).ids?.[0] ?? `#${i}`;
+    out.push({ slot: 'c:' + id, sig: s.kind + (s.kind === 'polygon' ? ':' + s.points.length : ''), value: s, leaves: [], named: true,
+      put: (o, v) => { o.construction = (o.construction as unknown[]).map((x, k) => k === i ? v : x); } });
+  });
+  return out;
+}
 function slotsOf(node: SketchNode): Slot[] {
+  if (node.profile === 'band') return bandSlots(node);
   const into = (out: Record<string, unknown>, v: unknown) => Object.assign(out, v);
   const main: Slot = node.profile === 'rectangle' ? { slot: 'main', sig: 'rectangle', value: { min: node.min, max: node.max }, leaves: [...node.min, ...node.max], put: into }
     : node.profile === 'circle' ? { slot: 'main', sig: 'circle', value: { center: node.center, radius: node.radius }, leaves: [...node.center, node.radius], put: into }
@@ -75,7 +90,7 @@ function slotsOf(node: SketchNode): Slot[] {
   return [main, ...more(node.regions, 'regions'), ...more(node.holes, 'holes')];
 }
 /** The same loop with only its bound values possibly changed: every unbound value of `a` is the value of `b` at the same place. */
-const named = (s: Slot) => s.sig === 'rectangle' || s.sig === 'circle';
+const named = (s: Slot) => s.named === true || s.sig === 'rectangle' || s.sig === 'circle';
 const sameLoop = (a: Slot, b: Slot) => a.sig === b.sig && a.leaves.every((x, i) => isRef(x) || (typeof x === 'number' && typeof b.leaves[i] === 'number' && SAME(x, b.leaves[i] as number)));
 const hasRef = (v: unknown): boolean => isRef(v) || (Array.isArray(v) ? v.some(hasRef) : !!v && typeof v === 'object' && Object.values(v).some(hasRef));
 /** Every reference in `v`, deep (the stored node's, wherever it is kept). */
@@ -163,20 +178,26 @@ export function mainShape(node: SketchNode): SketchShape | null {
     case 'circle': return { kind: 'circle', c: pt(node.center), r: Number(node.radius) };
     case 'polygon': return { kind: 'polygon', points: node.points.map(pt), closed: true, bulges: node.points.map(() => 0) };
     case 'loop': return loopShape(node.segments);
+    case 'band': return null;
   }
 }
+
+/** A node's construction shapes as the sketcher keeps them (a Bézier curve only when well-formed). */
+const constructionOf = (node: SketchNode): SketchShape[] => ((node.construction ?? []) as SketchShape[]).filter(x => x?.kind !== 'bezier' || wellFormedBezier(x));
 
 /**
  * The shapes of a sketch node: the main profile, then its other regions and holes — each with its sides' ids (R10a,
  * D86): the node's `sideTags`, or, for a node from before them, new ones in the order its loops run, with `positional`
  * saying which positional wall name (`side<k>`, `region<r>.side<k>`, `hole<h>.side<k>`) each id takes over.
  */
-export function sketchShapes(stored: SketchNode, params: Params = {}): { shape: SketchShape | null; done: SketchShape[]; positional?: Record<string, string> } {
+export function sketchShapes(stored: SketchNode, params: Params = {}): { shape: SketchShape | null; done: SketchShape[]; positional?: Record<string, string>; band?: SketchBand } {
   const node = resolveSketchDims(stored, params);
+  // A band sketch (B1) holds only its construction sources; the band comes back resolved, its ids seed the fresh ones.
+  if (node.profile === 'band') return { shape: null, done: constructionOf(node), band: node.band };
   // Circles the outline keeps come back on it, not beside it.
   const attached = node.outline?.circles ?? [], sameCircle = (s: SketchShape | null, c: { c: [number, number]; r: number }) => !!s && s.kind === 'circle' && Math.hypot(c.c[0] - s.c[0], c.c[1] - s.c[1]) < 1e-6 && Math.abs(c.r - s.r) < 1e-6;
   const tags = node.sideTags, positional: Record<string, string> = {};
-  let k = 1;
+  let k = nextIdOf(constructionOf(node));
   for (const t of [...(tags?.outer ?? []), ...(tags?.regions ?? []).flat(), ...(tags?.holes ?? []).flat()]) { const m = /^e(\d+)$/.exec(t); if (m) k = Math.max(k, Number(m[1]) + 1); }
   const idsFor = (n: number, given: string[] | undefined, name: (i: number) => string) => {
     if (given?.length === n) return [...given];
@@ -191,5 +212,5 @@ export function sketchShapes(stored: SketchNode, params: Params = {}): { shape: 
   let shape: SketchShape | null = main && { ...main, ids: outer };
   if (shape?.kind === 'polygon' && attached.length) shape = { ...shape, circleIds: attached.map(c => loops.find(x => sameCircle(x.s, c))?.ids[0] ?? `e${k++}`) };
   const done = loops.filter(x => !!x.s && !attached.some(c => sameCircle(x.s, c))).map(x => ({ ...x.s!, ids: x.ids }) as SketchShape);
-  return { shape, done: [...done, ...((node.construction ?? []) as SketchShape[]).filter(x => x?.kind !== 'bezier' || wellFormedBezier(x))], ...(Object.keys(positional).length && !tags ? { positional } : {}) };
+  return { shape, done: [...done, ...constructionOf(node)], ...(Object.keys(positional).length && !tags ? { positional } : {}) };
 }

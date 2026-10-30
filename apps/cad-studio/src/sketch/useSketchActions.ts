@@ -10,7 +10,9 @@ import { planeOf } from '@barocss/cad-model/app/profiles';
 import { offsetShape } from '@barocss/cad-model/sketch/offset';
 import { extendAt, joinOpen, splitAt, trimAt } from '@barocss/cad-model/sketch/trim';
 import { rebindDims, reopenedOrder, sketchShapes } from '@barocss/cad-model/sketch/reopen';
-import { renameToTagged } from '@barocss/cad-model/sketch/entityIds';
+import { bandMake } from '../app/bandControls';
+import { bandSketchNode } from '@barocss/cad-model/sketch/band';
+import { renameToTagged, withIds } from '@barocss/cad-model/sketch/entityIds';
 import { loadDirect } from '@barocss/cad-model/engine/directModule';
 import type { SketchShape } from '@barocss/cad-model/sketch/types';
 import { bezierCurve, bezierError, wellFormedBezier } from '@barocss/cad-model/sketch/bezier';
@@ -111,6 +113,13 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     if ('error' in r) { setToast({ title: op === 'trim' ? 'Nothing to trim there' : op === 'extend' ? 'Nothing to extend there' : 'Nothing to split there', hint: r.error, detail: '' }); return; }
     setSketch(s => s && { ...detachSketchLink(s), shape: null, done: r.shapes, picked: [], editDim: null });
   };
+  /** B1: Make band from the Band tool's picks (they become construction); refused with the reason, the sketch left as it is. */
+  const makeSketchBand = (offset: number, width?: number) => {
+    if (!sketch) return;
+    const r = bandMake(sketch, offset, width);
+    if ('error' in r) { setToast({ title: 'Cannot make the band', hint: r.error, detail: '' }); return; }
+    setSketch(() => r.state);
+  };
   /** Reopens the sketch node `index` in the sketcher (Select tool, its kept constraints back); Finish writes it back in place. */
   const editSketch = (index: number) => {
     const stored = doc.nodes[index]; if (stored?.kind !== 'sketch') return;
@@ -123,7 +132,7 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     catch (error) { setToast({ title: 'Cannot open sketch', hint: error instanceof Error ? error.message.replace(/^\[[A-Z_]+\] /, '') : String(error), detail: '' }); return; }
     const { shape, done, positional } = reopened, plane: SketchPlane = node.plane ? { origin: [...node.plane.origin], normal: [...node.plane.normal], xAxis: [...node.plane.xAxis] } : xyPlane();
     setEditNode(null); setActive(null); setPreviewBodies(null); setSelection(emptySel);
-    setSketch(startPicking({ plane, tool: 'select', shape, done, base: node.association ? node.on ?? node.association.source : null, editNode: index, ...(shape?.ids?.length ? { mainIds: shape.ids } : {}), ...(node.association ? { association: node.association } : {}), ...(positional ? { positional } : {}) }, 'select'));
+    setSketch(startPicking({ plane, tool: 'select', shape, done, base: node.association ? node.on ?? node.association.source : null, editNode: index, ...(reopened.band ? { band: reopened.band } : {}), ...(shape?.ids?.length ? { mainIds: shape.ids } : {}), ...(node.association ? { association: node.association } : {}), ...(positional ? { positional } : {}) }, 'select'));
     const [min, max] = sketchRegion(bodies, plane); viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
   };
   const linkSketchInset = (insetMM: number) => {
@@ -147,11 +156,15 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     const requestCurrent = () => docNow.current === doc && sketchGeneration.current === requestedGeneration;
     // A reopened sketch keeps its main profile first (the first outer shape is the main one).
     // (Open lines and arcs meeting end to end are one outline.)
-    const shapes = joinOpen((sketch.editNode !== undefined ? reopenedOrder(sketch.shape, sketch.done ?? [], sketch.mainIds) : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])]).map(x => x.kind === 'polygon' && !x.closed ? { ...x, pending: false } : x));
-    const profile = profileOf(shapes);
+    // Every shape gets its side ids here (idempotent), so construction shapes are stored with theirs: a band refers to them.
+    const shapes = withIds(joinOpen((sketch.editNode !== undefined ? reopenedOrder(sketch.shape, sketch.done ?? [], sketch.mainIds) : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])]).map(x => x.kind === 'polygon' && !x.closed ? { ...x, pending: false } : x)));
+    // A band sketch holds the band and its construction sources only (the model refuses anything else, and a band that cannot be made).
+    const banded = sketch.band ? bandSketchNode(shapes, sketch.band) : null;
+    if (banded && 'error' in banded) { setToast({ title: 'Cannot finish the band', hint: banded.error, detail: '' }); return; }
+    const profile = banded ?? profileOf(shapes);
     if ('error' in profile) { setToast({ title: 'Finish the profile first', hint: profile.error, detail: '' }); return; }
     // Construction shapes and Bézier curves are kept with the sketch (they come back when it is reopened). A Bézier is stored without `construction`: it is no reference to hide or snap as one, and drawing and Make curves treat it as the curve it is.
-    const refs = shapes.filter(x => x.construction || x.kind === 'bezier').map(x => x.kind === 'bezier' && x.construction ? (({ construction: _c, ...rest }) => rest as SketchShape)(x) : x), node = refs.length ? { ...profile.node, construction: refs } as SketchNode : profile.node;
+    const refs = banded ? [] : shapes.filter(x => x.construction || x.kind === 'bezier').map(x => x.kind === 'bezier' && x.construction ? (({ construction: _c, ...rest }) => rest as SketchShape)(x) : x), node = refs.length ? { ...profile.node, construction: refs } as SketchNode : profile.node;
     // The sketch keeps its plane; everything below is in the plane's own coordinates (Z along its normal).
     const placedNode: ModelNode = { ...node, ...(isDefaultPlane(sketch.plane) ? {} : { plane: { origin: [...sketch.plane.origin], normal: [...sketch.plane.normal], xAxis: [...sketch.plane.xAxis] } }), ...(sketch.association ? { association: sketch.association } : {}), ...((sketch.association || sketch.associationDetached) && sketch.base ? { on: sketch.base } : {}) } as SketchNode;
     if (sketch.editNode !== undefined) {
@@ -176,5 +189,5 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     setSelection({ ...emptySel, sketches: [next.nodes.length - 1] });
   }, [sketch, doc, marker, commit, engine, setSketch, acceptanceScope]);
 
-  return { placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, editSketch, linkSketchInset, finishSketch };
+  return { makeSketchBand, placeSketch, sketchToCurves, edgesToCurves, offsetSketch, trimSketch, editSketch, linkSketchInset, finishSketch };
 }

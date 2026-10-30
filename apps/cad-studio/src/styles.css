@@ -619,3 +619,13 @@ button.chip.snap:hover { background: #3a3c41; }
 .skeleton-constraints li.over button { color: #f0c070; }
 .skeleton-constraints input { width: 80px; }
 }
+
+/* B1: a band's derived outline (solid, no handles) and its picked sources. */
+.vp-overlay .sk-band { fill: rgba(232, 194, 90, 0.10); fill-rule: evenodd; stroke: #f1f2f4; stroke-width: 2.4; pointer-events: none; }
+.vp-overlay .sk-band-pick { fill: rgba(79, 209, 197, 0.14); stroke: #4fd1c5; stroke-width: 2; pointer-events: none; }
+.vp-overlay .sk-band-hover { fill: rgba(79, 209, 197, 0.08); stroke: #4fd1c5; stroke-width: 1.4; stroke-dasharray: 3 3; pointer-events: none; }
+:root[data-theme='light'] .vp-overlay .sk-band { stroke: #1b232c; fill: rgba(176, 130, 20, 0.12); }
+:root[data-theme='light'] .vp-overlay .sk-band-pick { stroke: #0f8f86; fill: rgba(15, 143, 134, 0.14); }
+:root[data-theme='light'] .vp-overlay .sk-band-hover { stroke: #0f8f86; }
+.sk-band-err { color: #e5534b; font-size: 11px; margin: 6px 0 0; }
+:root[data-theme='light'] .sk-band-err { color: #c0392b; }

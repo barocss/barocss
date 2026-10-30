@@ -40,6 +40,11 @@ export function withIds(shapes: readonly SketchShape[], from = 1): SketchShape[]
   });
 }
 
+/** The construction shapes (and open Bézier curves) of `shapes` with their side ids, numbered as `withIds(shapes)` (and so Finish's profile) numbers them: what a sketch node stores as `construction`. */
+export function withConstructionIds(shapes: readonly SketchShape[]): SketchShape[] {
+  return withIds(shapes).filter(s => s.construction || s.kind === 'bezier');
+}
+
 /**
  * The polygon's constraints carried onto its edited form `next`, whose points came from the old one's by `from`
  * (`from[j]`: the old point new point j was, or −1 for a new one). A constraint on a point or segment no longer

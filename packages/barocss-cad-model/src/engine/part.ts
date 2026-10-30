@@ -31,6 +31,7 @@ import { faceProfile } from '../app/faceProfile';
 import { sketchShapes } from '../sketch/reopen';
 import { offsetShape } from '../sketch/offset';
 import { profileOf } from '../sketch/loops';
+import { bandProfile } from '../sketch/band';
 
 // (The nodes being converted: a feature's id and its references' ids are read from them.)
 let current: readonly ModelNode[] = [];
@@ -112,6 +113,7 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     // The drawn outline and its constraints are the studio's own (the kernel takes the solved profile).
     case 'sketch': {
       if (node.association !== undefined) throw associationError('linked sketches require document-prefix resolution before kernel conversion.');
+      if (node.profile === 'band') throw refusal('VALUE', 'A band sketch must be resolved first (bandProfile).');
       const profile = { ...node }; delete profile.outline; delete profile.on; delete profile.construction; delete profile.association;
       return { ...at, ...profile } as CadPartFeature;
     }
@@ -535,6 +537,8 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
     prefixEnds.set(i, features.length);
     if (node.kind === 'skeleton') return;
     if (node.kind === 'sketch') {
+      // (B1: a band sketch is regenerated from its construction sources, parameters resolved, wherever it is evaluated.)
+      if (node.profile === 'band') { features.push(...featuresOf(bandProfile(node, params, i), i, CadPartLimits.features - features.length)); return; }
       if (node.association !== undefined) {
         const source = associationSource(doc, i), end = prefixEnds.get(source + 1);
         if (gone.has(source) || end === undefined) throw associationError('the source solid is unavailable in the evaluated prefix.');

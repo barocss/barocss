@@ -126,6 +126,7 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
   let spec: Spec;
   if (kind === 'sketch') {
     const p = PROFILE[String(node.profile)];
+    if (node.profile === 'band' || 'band' in node || 'construction' in node) return 'A band sketch and construction shapes are made in the Studio sketcher, not written in chat (v1).';
     if (!p) return `A sketch's "profile" is one of ${Object.keys(PROFILE).join(', ')}.`;
     spec = { profile: 'any', ...p, ...ON_PLANE };
   } else {

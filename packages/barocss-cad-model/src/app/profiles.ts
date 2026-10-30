@@ -7,6 +7,7 @@ import { NODE_EXTRA_FIELDS, parentsOf, type LoopSegment, type ModelNode, type Sk
 import { toLocal, toWorld, xyPlane, yAxisOf, type SketchPlane } from '../sketch/plane';
 import { loopOf } from '../sketch/loops';
 import { resolveSketchDims } from '../sketch/reopen';
+import { bandProfile } from '../sketch/band';
 import { isRefusal, refusal } from '../engine/refusal';
 
 type XY = [number, number];
@@ -15,6 +16,8 @@ type Params = Readonly<Record<string, number>>;
 // A stored sketch with its `{ parameter }` sizes as numbers now; refuses a missing or non-finite parameter (as reopen does).
 // With the sketch's index, a refusal names that sketch ("Sketch 2 uses parameter W, …").
 const valued = (n: SketchNode, params: Params, index?: number): SketchNode => {
+  // (B1: a band sketch is the loop its sources make now; a band that cannot be made is refused, never kept as it was.)
+  if (n.profile === 'band') return bandProfile(n, params, index);
   try { return resolveSketchDims(n, params); } catch (e) {
     if (index === undefined || !isRefusal(e, 'PARAMETER_UNKNOWN')) throw e;
     throw refusal('PARAMETER_UNKNOWN', e.message.replace(/^\[\w+\] the sketch/, `Sketch ${index + 1}`));
@@ -112,9 +115,11 @@ export function framedLoftSections(nodes: readonly ModelNode[], picked: readonly
   for (const source of picked) {
     const node = nodes[source];
     if (!Number.isInteger(source) || node?.kind !== 'sketch') return { error: 'A picked loft section is not a finished sketch.' };
-    if (node.regions?.length || node.holes?.length) return { error: `Sketch ${source + 1} has holes or several shapes: a loft section is one closed shape.` };
+    const valuedNode = valued(node, params, source);
+    // (After `valued`, as loftSections does: a band sketch is the strip or loop its sources make, and a strip has a hole.)
+    if (valuedNode.regions?.length || valuedNode.holes?.length) return { error: `Sketch ${source + 1} has holes or several shapes: a loft section is one closed shape.` };
     const plane = planeOf(node);
-    const copy = structuredClone(valued(node, params, source)) as typeof node;
+    const copy = structuredClone(valuedNode) as typeof node;
     for (const key of NODE_EXTRA_FIELDS) delete copy[key];
     // Use the existing SketchPlane meaning, including yAxisOf's clean behavior. Do not carry or round profiles.
     sections.push({ node: copy, frame: { origin: [...plane.origin] as Vec3, xAxis: [...plane.xAxis] as Vec3, yAxis: yAxisOf(plane) }, source });

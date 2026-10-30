@@ -116,6 +116,21 @@ The original stays, and the region between the nested outlines forms the profile
 With no closed shape, the studio reports **Nothing to offset**. An offset that collapses a shape or reverses an
 outline edge is refused as **Cannot offset**; reduce the distance. A refusal leaves the sketch as it was.
 
+## Bands
+
+A **band** is the closed outline that wraps two or more convex shapes, such as a belt round pulleys. Draw the shapes
+(rectangles, circles, slots and convex outlines), pick them with the **Band** tool, set the optional **Offset** (mm, the
+band stands off the shapes by that much) and **Width** (mm, empty makes a filled band; a width makes a strip), and press
+**Make band**. The picked shapes become construction shapes, the band's sources. The outline is exact: arcs of the
+sources joined by common outer tangents.
+
+The band is regenerated from its sources wherever the sketch is used. Move a source, change a source's radius or centre
+(in the sketch or as a feature value of the Extrude), or bind a value to a parameter, and the body follows. Its walls keep their
+names while the shape of the outline stays the same (a source that wins twice names its second piece by the source before it, for example `b1_e1-e2`, so the names do not swap when the sources move round). A band sketch holds only the band and its construction sources: draw other
+shapes in their own sketch. A band that cannot be made is refused by name (for example **Sketch 1 band b1: sources e1 and
+e2 overlap**: sources that overlap, touch, lie inside one another or are not convex) and the sketch's body is not kept as it
+was. A band is not available to the agent, and not in a linked sketch.
+
 ## Constraints and dimensions
 
 Pick points or edges with **Select**, then add a constraint from the panel: **Horizontal**, **Vertical**,

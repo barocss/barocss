@@ -252736,6 +252736,13 @@
                 "type": "Axis"
               },
               {
+                "name": "band",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "SketchBand"
+              },
+              {
                 "name": "base",
                 "kind": "property",
                 "optional": false,
@@ -254518,6 +254525,13 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
+                "type": "\"band\""
+              },
+              {
+                "name": "profile",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
                 "type": "\"circle\""
               },
               {
@@ -256225,6 +256239,72 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./engine/doc",
+      "exportName": "SketchBand",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/doc.ts",
+            "name": "SketchBand",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "SketchBand",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "id",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "offset",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "Dim | undefined"
+              },
+              {
+                "name": "sources",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              },
+              {
+                "name": "version",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "1"
+              },
+              {
+                "name": "width",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "Dim | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/doc",
       "exportName": "SketchNode",
       "space": "type",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -256240,11 +256320,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "({ kind: \"sketch\"; profile: \"rectangle\"; min: [Dim, Dim]; max: [Dim, Dim]; } & OnPlane) | ({ kind: \"sketch\"; profile: \"circle\"; center: [Dim, Dim]; radius: Dim; } & OnPlane) | ({ kind: \"sketch\"; profile: \"polygon\"; points: [Dim, Dim][]; } & OnPlane) | ({ kind: \"sketch\"; profile: \"loop\"; segments: LoopSegment[]; } & OnPlane)",
+            "type": "({ kind: \"sketch\"; profile: \"rectangle\"; min: [Dim, Dim]; max: [Dim, Dim]; } & OnPlane) | ({ kind: \"sketch\"; profile: \"circle\"; center: [Dim, Dim]; radius: Dim; } & OnPlane) | ({ kind: \"sketch\"; profile: \"polygon\"; points: [Dim, Dim][]; } & OnPlane) | ({ kind: \"sketch\"; profile: \"loop\"; segments: LoopSegment[]; } & OnPlane) | ({ kind: \"sketch\"; profile: \"band\"; band: SketchBand; } & OnPlane)",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "({\n    kind: \"sketch\";\n    profile: \"rectangle\";\n    min: [\n        Dim,\n        Dim\n    ];\n    max: [\n        Dim,\n        Dim\n    ];\n} & OnPlane) | ({\n    kind: \"sketch\";\n    profile: \"circle\";\n    center: [\n        Dim,\n        Dim\n    ];\n    radius: Dim;\n} & OnPlane) | ({\n    kind: \"sketch\";\n    profile: \"polygon\";\n    points: [\n        Dim,\n        Dim\n    ][];\n} & OnPlane) | ({\n    kind: \"sketch\";\n    profile: \"loop\";\n    segments: LoopSegment[];\n} & OnPlane)"
+                "definition": "({\n    kind: \"sketch\";\n    profile: \"rectangle\";\n    min: [\n        Dim,\n        Dim\n    ];\n    max: [\n        Dim,\n        Dim\n    ];\n} & OnPlane) | ({\n    kind: \"sketch\";\n    profile: \"circle\";\n    center: [\n        Dim,\n        Dim\n    ];\n    radius: Dim;\n} & OnPlane) | ({\n    kind: \"sketch\";\n    profile: \"polygon\";\n    points: [\n        Dim,\n        Dim\n    ][];\n} & OnPlane) | ({\n    kind: \"sketch\";\n    profile: \"loop\";\n    segments: LoopSegment[];\n} & OnPlane) | ({\n    kind: \"sketch\";\n    profile: \"band\";\n    band: SketchBand;\n} & OnPlane)"
               }
             ],
             "members": [
@@ -256254,6 +256334,13 @@
                 "optional": true,
                 "readonly": false,
                 "type": "PlanarFaceOutlineInsetAssociation | undefined"
+              },
+              {
+                "name": "band",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "SketchBand"
               },
               {
                 "name": "center",
@@ -256324,6 +256411,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "[Dim, Dim][]"
+              },
+              {
+                "name": "profile",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"band\""
               },
               {
                 "name": "profile",
@@ -327486,6 +327580,275 @@
     },
     {
       "package": "@barocss/cad-model",
+      "subpath": "./sketch/band",
+      "exportName": "BandLoops",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/band.ts",
+            "name": "BandLoops",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "BandLoops",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "hole",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "Segs | undefined"
+              },
+              {
+                "name": "outer",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Segs"
+              },
+              {
+                "name": "tags",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ outer: string[]; holes?: string[][] | undefined; }"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./sketch/band",
+      "exportName": "bandLoops",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/band.ts",
+            "name": "bandLoops",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(shapes: readonly SketchShape[], band: SketchBand, params?: Readonly<Record<string, number>>, index?: number | undefined) => BandLoops | { error: string; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(shapes: readonly SketchShape[], band: SketchBand, params?: Readonly<Record<string, number>>, index?: number | undefined) => BandLoops | { error: string; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./sketch/band",
+      "exportName": "bandProfile",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/band.ts",
+            "name": "bandProfile",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(node: SketchNode, params?: Readonly<Record<string, number>>, index?: number | undefined) => SketchNode",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(node: SketchNode, params?: Readonly<Record<string, number>>, index?: number | undefined) => SketchNode"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./sketch/band",
+      "exportName": "bandShapes",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/band.ts",
+            "name": "bandShapes",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(s: SketchState) => SketchShape[]",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(s: SketchState) => SketchShape[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./sketch/band",
+      "exportName": "bandSketchNode",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/band.ts",
+            "name": "bandSketchNode",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(shapes: readonly SketchShape[], band: SketchBand) => { node: SketchNode; } | { error: string; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(shapes: readonly SketchShape[], band: SketchBand) => { node: SketchNode; } | { error: string; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./sketch/band",
+      "exportName": "liveBand",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/band.ts",
+            "name": "liveBand",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(s: SketchState) => { outer: Segs; hole?: Segs | undefined; } | { error: string; } | null",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(s: SketchState) => { outer: Segs; hole?: Segs | undefined; } | { error: string; } | null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./sketch/band",
+      "exportName": "makeBand",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/band.ts",
+            "name": "makeBand",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(s: SketchState, offset: number, width?: number | undefined) => { state: SketchState; } | { error: string; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(s: SketchState, offset: number, width?: number | undefined) => { state: SketchState; } | { error: string; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./sketch/band",
+      "exportName": "toggleBandPick",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/band.ts",
+            "name": "toggleBandPick",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(s: SketchState, index: number) => SketchState",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(s: SketchState, index: number) => SketchState"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
       "subpath": "./sketch/bezier",
       "exportName": "bezierCurve",
       "space": "value",
@@ -327862,14 +328225,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(node: SketchNode, parameters: Readonly<Record<string, number>>) => DxfDocument",
+            "type": "(sketch: SketchNode, parameters: Readonly<Record<string, number>>) => DxfDocument",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(node: SketchNode, parameters: Readonly<Record<string, number>>) => DxfDocument"
+              "(sketch: SketchNode, parameters: Readonly<Record<string, number>>) => DxfDocument"
             ]
           }
         }
@@ -329832,6 +330195,37 @@
             ],
             "callSignatures": [
               "(s: SketchShape, loop: readonly LoopSegment[]) => string[] | null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./sketch/entityIds",
+      "exportName": "withConstructionIds",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/entityIds.ts",
+            "name": "withConstructionIds",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(shapes: readonly SketchShape[]) => SketchShape[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(shapes: readonly SketchShape[]) => SketchShape[]"
             ]
           }
         }
@@ -333556,14 +333950,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(stored: SketchNode, params?: Readonly<Record<string, number>>) => { shape: SketchShape | null; done: SketchShape[]; positional?: Record<string, string> | undefined; }",
+            "type": "(stored: SketchNode, params?: Readonly<Record<string, number>>) => { shape: SketchShape | null; done: SketchShape[]; positional?: Record<string, string> | undefined; band?: SketchBand | undefined; }",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(stored: SketchNode, params?: Readonly<Record<string, number>>) => { shape: SketchShape | null; done: SketchShape[]; positional?: Record<string, string> | undefined; }"
+              "(stored: SketchNode, params?: Readonly<Record<string, number>>) => { shape: SketchShape | null; done: SketchShape[]; positional?: Record<string, string> | undefined; band?: SketchBand | undefined; }"
             ]
           }
         }
@@ -335126,6 +335520,37 @@
             ],
             "callSignatures": [
               "(picks: readonly SketchPick[], hit: SketchPick | null, additive: boolean) => SketchPick[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./sketch/select",
+      "exportName": "pickShapeAt",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/select.ts",
+            "name": "pickShapeAt",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(shapes: readonly SketchShape[], project: Project, x: number, y: number, px?: number) => number | null",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(shapes: readonly SketchShape[], project: Project, x: number, y: number, px?: number) => number | null"
             ]
           }
         }
@@ -337062,6 +337487,20 @@
                 "type": "boolean | undefined"
               },
               {
+                "name": "band",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "SketchBand | undefined"
+              },
+              {
+                "name": "bandPicks",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string[] | undefined"
+              },
+              {
                 "name": "base",
                 "kind": "property",
                 "optional": true,
@@ -337176,11 +337615,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"arc\" | \"polygon\" | \"split\" | \"trim\" | \"circle\" | \"rectangle\" | \"ellipse\" | \"spline\" | \"dimension\" | \"extend\" | \"slot\" | \"bezier\" | \"carc\" | \"select\"",
+            "type": "\"arc\" | \"polygon\" | \"split\" | \"trim\" | \"circle\" | \"rectangle\" | \"ellipse\" | \"spline\" | \"dimension\" | \"extend\" | \"slot\" | \"band\" | \"bezier\" | \"carc\" | \"select\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "\"rectangle\" | \"circle\" | \"polygon\" | \"arc\" | \"carc\" | \"slot\" | \"spline\" | \"bezier\" | \"ellipse\" | \"trim\" | \"extend\" | \"split\" | \"select\" | \"dimension\""
+                "definition": "\"rectangle\" | \"circle\" | \"polygon\" | \"arc\" | \"carc\" | \"slot\" | \"spline\" | \"bezier\" | \"ellipse\" | \"trim\" | \"extend\" | \"split\" | \"select\" | \"dimension\" | \"band\""
               }
             ],
             "members": [

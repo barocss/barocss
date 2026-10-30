@@ -8,6 +8,7 @@ import { isSettled, redundancy, solveShape, type SketchPick } from '@barocss/cad
 import { respline, splineAutoHandles, splineEditError, splineMatches, type SplineDef } from '@barocss/cad-model/sketch/spline';
 import { ellipseMatches, type EllipseDef } from '@barocss/cad-model/sketch/ellipse';
 import { applyEllipse, ellipseConstraintRows } from './ellipsePanel';
+import { liveBand } from '@barocss/cad-model/sketch/band';
 import { ConstraintTools } from './ConstraintTools';
 import { CONTROL, FIELD, NUM } from './panelStyles';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,7 @@ const NONE: SketchPick[] = [];
  * tangent joints stay tangent. The app settles every edit (see sketch/settle.ts) and reports `error`. O16: the contents
  * on shadcn (Input, NativeSelect, Button, FIELD); the shell (its title) and the chip toggles are the studio's.
  */
-export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, onOffset, onUseOutline, onLinkedInset, onToCurves }: { sketch: SketchState; toolLabel: string; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
+export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, onOffset, onUseOutline, onLinkedInset, onToCurves, onBand }: { sketch: SketchState; toolLabel: string; error: string | null; onShape(shape: SketchShape | null): void; onPlace?(kind: SketchAnchor['kind'], offset: number, angle?: number): void;
   /** Sets the picked outline entities or the dimension being edited in the viewport. */
   onUi?(patch: Pick<SketchState, 'picked' | 'editDim'>): void;
   /** Offsets the newest closed shape by `d` mm (out when positive) as a shape beside it. */
@@ -33,7 +34,9 @@ export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, 
   /** Replaces the empty sketch with the linked face outline and one inward inset. */
   onLinkedInset?(insetMM: number): void;
   /** The sketch's lines, arcs and circles made curves (direct geometry), the sketch left. */
-  onToCurves?(): void }) {
+  onToCurves?(): void;
+  /** B1: Make band from the picked shapes (offset, width mm; no width: filled), edit the band's offset / width (`width: null`: filled), remove it (the sources stay construction). */
+  onBand?: { make(offset: number, width?: number): void; edit(patch: { offset?: number; width?: number | null }): void; remove(): void } }) {
   const [offsetBy, setOffsetBy] = useState(2);
   const [splineError, setSplineError] = useState<string | null>(null);
   const s = sketch.shape;
@@ -176,6 +179,7 @@ export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, 
         {constraints.map((c, i) => <div className="kv" key={i}>{c.label}<b>{c.detail}</b></div>)}
       </>}
       {solved?.ok && <div className="kv solver">Solver<b>rank {solved.rank} · {solved.dof} DOF</b></div>}
+      {onBand && (sketch.tool === 'band' || sketch.band) && <BandSection sketch={sketch} {...onBand} />}
       {onUseOutline && <>
         <div className="card-title" style={{ marginTop: 10 }}>FACE</div>
         <div className="sk-offset">
@@ -331,5 +335,33 @@ function EllipseSection({ s, def, onShape, onError }: { s: Polygon; def: Ellipse
       ])}
     </div>
     <p className="muted small">Enter applies a value · Rx is the first axis, at the angle from +X · no narrower than 1 : 5. Dimensioning the curve or editing its outline points turns it into an ordinary outline.</p>
+  </>;
+}
+/** B1: the Band tool's picks and Make band (offset and width as typed), or the made band's Offset / Width (Enter or blur) with Remove band; a refusal in red. */
+function BandSection({ sketch, make, edit, remove }: { sketch: SketchState } & NonNullable<Parameters<typeof SketchPanel>[0]['onBand']>) {
+  const [offset, setOffset] = useState('0'), [width, setWidth] = useState('');
+  const band = sketch.band, picks = sketch.bandPicks?.length ?? 0;
+  const live = useMemo(() => band ? liveBand(sketch) : null, [sketch.done, sketch.shape, band]);
+  const why = live && 'error' in live ? live.error : null;
+  const num = (text: string) => { const v = Number(text); return Number.isFinite(v) ? v : null; };
+  if (!band) return <>
+    <div className="card-title" style={{ marginTop: 10 }}>BAND</div>
+    <div className="kv">{picks} shape{picks === 1 ? '' : 's'} picked<b>{picks < 2 ? 'pick at least 2' : 'ready'}</b></div>
+    <label className={FIELD}><span>Offset</span><span className={NUM}><Input aria-label="Band offset" type="number" step="any" min={0} value={offset}
+      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); } }} onChange={e => setOffset(e.target.value)} /><em>mm</em></span></label>
+    <label className={FIELD}><span>Width</span><span className={NUM}><Input aria-label="Band width" type="number" step="any" min={0} placeholder="filled" value={width}
+      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); } }} onChange={e => setWidth(e.target.value)} /><em>mm</em></span></label>
+    <Button type="button" variant="ghost" aria-label="Make band" disabled={picks < 2} data-tip="Make band" data-tip-desc="One outline wrapped round the picked shapes (they become construction); empty width: filled, else a strip of that width" onClick={() => make(num(offset) ?? 0, width.trim() === '' ? undefined : num(width) ?? undefined)}>Make band</Button>
+    <p className="muted small">Click closed shapes to pick them (click again to unpick) · they should be convex and apart</p>
+  </>;
+  return <>
+    <div className="card-title" style={{ marginTop: 10 }}>BAND · {band.sources.length} sources</div>
+    <div className="pts" role="group" aria-label="Band" style={{ gridTemplateColumns: '64px minmax(0, 1fr)' }}>
+      <span>Offset mm</span><DraftInput label="Band offset" value={String(typeof band.offset === 'number' ? round(band.offset) : band.offset === undefined ? 0 : '')} onCommit={t => { const v = num(t); if (v !== null && t.trim() !== '') edit({ offset: v }); }} />
+      <span>Width mm</span><DraftInput label="Band width" placeholder="filled" value={typeof band.width === 'number' ? String(round(band.width)) : ''} onCommit={t => edit({ width: t.trim() === '' ? null : num(t) })} />
+    </div>
+    {why && <p className="sk-band-err" role="alert">{why}</p>}
+    <Button type="button" variant="ghost" aria-label="Remove band" data-tip="Remove band" data-tip-desc="The band outline goes; its sources stay in the sketch as construction" onClick={remove}>Remove band</Button>
+    <p className="muted small">Enter applies a value · empty width: filled · a bound (ƒ) offset or width is edited in the feature editor</p>
   </>;
 }

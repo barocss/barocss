@@ -6,6 +6,7 @@ import type { Dim, LoopSegment, SketchNode } from '../engine/doc';
 import { slotSegments, type P2 } from './profile';
 import type { SketchShape } from './types';
 import { refusal } from '../engine/refusal';
+import { bandProfile } from './band';
 
 export const SKETCH_DXF_VERSION = 'cad-studio-sketch-dxf-v1';
 
@@ -64,7 +65,9 @@ function constructionEntities(shape: SketchShape, out: DxfEntity[]): void {
 }
 
 /** A sketch node as a DXF document in its plane's coordinates (mm). */
-export function sketchDxfDocument(node: SketchNode, parameters: Readonly<Record<string, number>>): DxfDocument {
+export function sketchDxfDocument(sketch: SketchNode, parameters: Readonly<Record<string, number>>): DxfDocument {
+  // (A band sketch is drawn as the loop it makes, its construction sources as reference shapes.)
+  const node = bandProfile(sketch, parameters) as Exclude<SketchNode, { profile: 'band' }>;
   const entities: DxfEntity[] = [];
   if (node.profile === 'rectangle') {
     const [x0, y0] = point(node.min, parameters), [x1, y1] = point(node.max, parameters);

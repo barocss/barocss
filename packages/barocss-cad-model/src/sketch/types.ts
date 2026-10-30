@@ -1,6 +1,6 @@
 // The sketch's state types (PKG-b, B1): the shapes a sketch is drawn with, the tool, the anchor and the state — the
 // model's (sketch/*), not the viewport's. viewport/Viewport.tsx re-exports them for the UI.
-import type { PlanarFaceOutlineInsetAssociation } from '../engine/doc';
+import type { PlanarFaceOutlineInsetAssociation, SketchBand } from '../engine/doc';
 import type { PlaneKind, SketchPlane } from './plane';
 import type { SketchRule } from './terms';
 import type { SketchPick } from './rules';
@@ -8,7 +8,7 @@ import type { SplineDef } from './spline';
 import type { EllipseDef } from './ellipse';
 
 /** `select` picks outline points and edges for constraints; `dimension` adds and edits dimensions. */
-export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'carc' | 'slot' | 'spline' | 'bezier' | 'ellipse' | 'trim' | 'extend' | 'split' | 'select' | 'dimension';
+export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'carc' | 'slot' | 'spline' | 'bezier' | 'ellipse' | 'trim' | 'extend' | 'split' | 'select' | 'dimension' | 'band';
 /** Polygon segment i runs from point i to i+1; bulges[i] ≠ 0 makes it an arc. `pending`: the newest arc follows the cursor. */
 /** `construction`: a reference drawn in the sketch (dashed): snapped to, but not part of the profile. */
 export type SketchShape = (
@@ -59,6 +59,10 @@ export interface SketchState { plane: SketchPlane; anchor?: SketchAnchor; /** Cl
   /** Explicit linked profile; manual geometry or plane edits detach it. */
   association?: PlanarFaceOutlineInsetAssociation;
   associationDetached?: boolean;
+  /** B1: the sketch's band (sketch/band.ts): its sources are construction shapes of `done`/`shape`; Finish stores it as the sketch's profile. */
+  band?: SketchBand;
+  /** B1: side ids (`ids[0]`) of the closed shapes picked with the Band tool, not yet made a band. */
+  bandPicks?: string[];
   /**
    * A reopened sketch from before R10a (no side ids): its walls' positional names to the ids its shapes took in that
    * order (`side2` → `side[e3]`), so Finish names the later features' references by them (D86).

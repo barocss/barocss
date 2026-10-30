@@ -22,6 +22,7 @@ export const TOOLS: { tool: SketchTool; key: string; label: string; icon: string
   { tool: 'slot', key: 'O', label: 'Slot', icon: 'cad-sk-slot', hint: 'Click both centres, then the width' },
   { tool: 'spline', key: 'P', label: 'Spline', icon: 'cad-sk-spline', hint: 'Click points the curve runs smoothly through · click the first point to close it · it is kept as tangent arcs' },
   { tool: 'bezier', key: 'B', label: 'Bézier', icon: 'cad-sk-spline', hint: 'Click control points: three make a quadratic, a fourth a cubic; the curve does not pass through the middle points' },
+  { tool: 'band', key: 'M', label: 'Band', icon: 'cad-sk-band', hint: 'Click closed shapes (construction circles, slots, polygons) to pick them, then Make band · one outline wraps them all; it follows when they move' },
   { tool: 'trim', key: 'T', label: 'Trim', icon: 'cad-sk-trim', hint: 'Click a piece to cut it back to where it crosses others · pieces meeting end to end join into one outline' },
   { tool: 'extend', key: 'E', label: 'Extend', icon: 'cad-sk-extend', hint: 'Click near the open end of a line or arc to run it on to the next piece it meets' },
   { tool: 'split', key: 'K', label: 'Split', icon: 'cad-sk-split', hint: 'Click a line, arc or circle to split it in two there (a new point to constrain or trim to)' },
@@ -46,6 +47,7 @@ export function sketchRegion(bodies: BodyResult[], plane: SketchPlane): [[number
 export const switchTool = (s: SketchState, tool: SketchTool): SketchState => {
   if (tool === 'select' || tool === 'dimension') return startPicking(s, tool);
   s = { ...s, picked: [], editDim: null };
+  if (tool !== 'band' && s.bandPicks) { s = { ...s }; delete s.bandPicks; } // (Picks belong to the Band tool.)
   const chain = s.shape?.kind === 'polygon' && !s.shape.closed && (tool === 'polygon' || tool === 'arc') && (s.tool === 'polygon' || s.tool === 'arc');
   if (chain && s.shape?.kind === 'polygon') return { ...s, tool, shape: { ...s.shape, pending: false } };
   // A closed shape stays in the sketch beside the next one; so does a construction line (open or not).

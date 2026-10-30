@@ -297,6 +297,8 @@ export const CAD_ICONS: Record<string, ReactNode> = {
   // Sketch tools: flat drawings with their defining points (the points you click) in the accent colour.
   'cad-sk-rect': <>{face('M4.5 7h15v10h-15z', 0.12)}{line('M4.5 7h15v10h-15z')}{dots([[4.5, 7], [19.5, 17]])}</>,
   'cad-sk-circle': <><circle cx="12" cy="12" r="7.5" style={tone(0.12)} /><circle cx="12" cy="12" r="7.5" />{ghost('M12 12l5.3-5.3')}{dots([[12, 12], [17.3, 6.7]])}</>,
+  // A belt band: two circles wrapped by one outline.
+  'cad-sk-band': <><path d="M7 6.5h9a5.5 5.5 0 0 1 0 11H7a5.5 5.5 0 0 1 0-11z" style={tone(0.12)} />{line('M7 6.5h9a5.5 5.5 0 0 1 0 11H7a5.5 5.5 0 0 1 0-11z')}{ghost('M7 12m-2.5 0a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0M16 12m-2.5 0a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0')}{dots([[7, 12], [16, 12]])}</>,
   'cad-sk-ellipse': <><ellipse cx="12" cy="12" rx="9" ry="5.5" style={tone(0.12)} /><ellipse cx="12" cy="12" rx="9" ry="5.5" />{ghost('M12 12h9M12 12v-5.5')}{dots([[12, 12], [21, 12], [12, 6.5]])}</>,
   'cad-sk-line': <>{line('M4 18L9 7l6 8 5-9')}{dots([[4, 18], [9, 7], [15, 15], [20, 6]])}</>,
   'cad-sk-arc': <>{ghost('M5 18L19 18')}{line('M5 18A8 8 0 0 1 19 18')}{dots([[5, 18], [19, 18], [12, 10.2]])}</>,

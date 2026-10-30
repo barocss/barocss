@@ -54,6 +54,26 @@ const setAt = (root: unknown, path: (string | number)[], value: unknown): unknow
 const replace = (nodes: Nodes, i: number, node: ModelNode): ModelNode[] => nodes.map((n, k) => k === i ? node : n);
 const axes = (list: string[]) => list.map(v => ({ value: v, label: v.toUpperCase() }));
 
+/** A band sketch's (B1) offset and width, and each circle source's radius and centre — the numbers a person edits, each bindable to a parameter. */
+function bandFields(nodes: Nodes, s: number, prefix: string): EditField[] {
+  const sk = nodes[s] as Extract<SketchNode, { profile: 'band' }>, out: EditField[] = [];
+  const band = (n: Nodes) => (n[s] as typeof sk).band;
+  const putBand = (n: Nodes, b: Partial<typeof sk.band>) => replace(n, s, { ...(n[s] as typeof sk), band: { ...band(n), ...b } });
+  out.push({ kind: 'number', key: prefix + 'bo', label: prefix + 'Band offset', unit: 'mm', get: n => num(band(n).offset ?? 0), set: (n, v) => putBand(n, { offset: v }) });
+  if (sk.band.width !== undefined) out.push({ kind: 'number', key: prefix + 'bw', label: prefix + 'Band width', unit: 'mm', get: n => num(band(n).width), set: (n, v) => putBand(n, { width: v }) });
+  type Circle = { kind: 'circle'; c: [Dim, Dim]; r: Dim };
+  sk.band.sources.forEach((ref, k) => {
+    const where = (n: Nodes) => ((n[s] as typeof sk).construction ?? []).findIndex(x => (x as { ids?: string[] })?.ids?.includes(ref));
+    const circle = (n: Nodes) => ((n[s] as typeof sk).construction as unknown[])[where(n)] as Circle;
+    const put = (n: Nodes, c: Circle) => replace(n, s, { ...(n[s] as typeof sk), construction: (n[s] as typeof sk).construction!.map((x, i) => i === where(n) ? c : x) });
+    if (circle(nodes)?.kind !== 'circle') return;
+    out.push({ kind: 'number', key: `${prefix}bs${k}r`, label: `${prefix}Band source ${k + 1} radius`, unit: 'mm', get: n => num(circle(n).r), set: (n, v) => put(n, { ...circle(n), r: v }) },
+      ...[0, 1].map((a): EditField => ({ kind: 'number', key: `${prefix}bs${k}c${a}`, label: `${prefix}Band source ${k + 1} centre ${'XY'[a]}`, unit: 'mm', get: n => num(circle(n).c[a]),
+        set: (n, v) => { const c = [...circle(n).c] as [Dim, Dim]; c[a] = v; return put(n, { ...circle(n), c }); } })));
+  });
+  return out;
+}
+
 /** Width, depth and corner of a rectangle; diameter and centre of a circle; a drawn outline's driving dimensions. */
 function sketchFields(nodes: Nodes, s: number, prefix: string, params: Record<string, number> = {}): EditField[] {
   const sk = nodes[s] as SketchNode | undefined, out: EditField[] = [];
@@ -73,6 +93,7 @@ function sketchFields(nodes: Nodes, s: number, prefix: string, params: Record<st
       ...[0, 1].map((k): EditField => ({ kind: 'number', key: prefix + 'cc' + k, label: prefix + 'Centre ' + 'XY'[k], unit: 'mm', get: n => num(circ(n).center[k]),
         set: (n, v) => { const c = [...circ(n).center] as [Dim, Dim]; c[k] = v; return replace(n, s, { ...circ(n), center: c }); } })));
   }
+  else if (sk.profile === 'band') out.push(...bandFields(nodes, s, prefix));
   out.push(...outlineFields(nodes, s, prefix, params));
   return out;
 }

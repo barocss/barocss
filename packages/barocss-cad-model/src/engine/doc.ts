@@ -295,12 +295,20 @@ export interface Made { command: string; values: Record<string, number | string>
 export interface PlanarFaceOutlineInsetAssociation {
   kind: 'planar-face-outline-inset'; version: 1; source: BodyRef; sourceFeature: string; face: string; insetMM: number;
 }
+/**
+ * B1: an associative 2D band — the closed hull (a belt, a pulley run) wrapped round ≥ 2 convex construction shapes of the sketch
+ * (`construction`), regenerated from them wherever the sketch is evaluated (sketch/band.ts). `sources`: one side id of each source
+ * shape (its `ids[0]`), resolved to the one construction shape holding it; `offset` ≥ 0 grows the hull by that much; `width` > 0
+ * makes a strip (the hull at `offset` as a hole in the hull at `offset + width`) instead of the filled hull.
+ */
+export interface SketchBand { version: 1; id: string; sources: string[]; offset?: Dim; width?: Dim }
 type OnPlane = { association?: PlanarFaceOutlineInsetAssociation; plane?: DocPlane; regions?: LoopSegment[][]; holes?: LoopSegment[][]; outline?: SketchOutline; on?: BodyRef; construction?: unknown[]; sideTags?: { outer: string[]; regions?: string[][]; holes?: string[][] } };
 export type SketchNode =
   | ({ kind: 'sketch'; profile: 'rectangle'; min: [Dim, Dim]; max: [Dim, Dim] } & OnPlane)
   | ({ kind: 'sketch'; profile: 'circle'; center: [Dim, Dim]; radius: Dim } & OnPlane)
   | ({ kind: 'sketch'; profile: 'polygon'; points: [Dim, Dim][] } & OnPlane)
-  | ({ kind: 'sketch'; profile: 'loop'; segments: LoopSegment[] } & OnPlane);
+  | ({ kind: 'sketch'; profile: 'loop'; segments: LoopSegment[] } & OnPlane)
+  | ({ kind: 'sketch'; profile: 'band'; band: SketchBand } & OnPlane);
 
 /**
  * A feature of the part; `suppressed`: left out of the model for now (see engine/part.ts), kept in its history.
@@ -942,6 +950,7 @@ export function withNode(doc: StudioDoc, node: ModelNode): StudioDoc {
  */
 export function loftTop(sketch: SketchNode, shape: 'scaled' | 'circle' | 'rectangle', scale: number): SketchNode {
   // A parameter-bound size has no number here: refused, not turned into NaN (resolve the sketch first).
+  if (sketch.profile === 'band') throw refusal('VALUE', 'A loft top needs a plain sketch: a band sketch must be resolved first.');
   if (/"parameter":/.test(JSON.stringify(sketch))) throw refusal('VALUE', 'A loft top needs a sketch with plain sizes: resolve its parameters first.');
   const pts: [number, number][] = sketch.profile === 'rectangle' ? [sketch.min, sketch.max].map(p => p.map(Number) as [number, number])
     : sketch.profile === 'circle' ? [[Number(sketch.center[0]) - Number(sketch.radius), Number(sketch.center[1]) - Number(sketch.radius)], [Number(sketch.center[0]) + Number(sketch.radius), Number(sketch.center[1]) + Number(sketch.radius)]]

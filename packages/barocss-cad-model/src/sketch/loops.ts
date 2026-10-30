@@ -129,6 +129,7 @@ export function loopOf(n: SketchNode): DocSegment[] {
     case 'circle': { const c = num(n.center), r = Number(n.radius); return [{ kind: 'arc', start: [c[0] + r, c[1]], center: c, direction: 'ccw' }]; }
     case 'polygon': return n.points.map(p => ({ kind: 'line', start: num(p) }));
     case 'loop': return n.segments;
+    case 'band': throw new Error('a band sketch must be resolved first (bandProfile)');
   }
 }
 
