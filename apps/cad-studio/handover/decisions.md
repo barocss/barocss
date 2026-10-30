@@ -17230,3 +17230,27 @@ Checks:
 Issues: none completed.
 
 Limits: operation() still holds 20 cases, among them extrude, revolve, Booleans, holes, patterns, sweep, loft, draft and split. They can follow the same pattern in a later window.
+
+## D362 — cad-model refusals mapped by their code; refactor batch 3b step ③ (2026-10-30)
+
+Qualify `ee3149bae` (one path, `packages/barocss-cad-model/src/engine/errors.ts`). [Note](notes/kernel-refactor-3b-2026-10-30/README.md#-cad-model-refusals-mapped-by-code-d362).
+
+Decision:
+- **Rule shape.** `friendly()`'s 70 rules become `{ code?, text?, title, hint }`. The function gathers the message's bracketed codes once and keeps the same first-match order.
+- **Code rows (30).** Every rule that matched one bracketed code now matches by code; one row takes two codes.
+- **Text rows (40).**
+  - 33 have no code.
+  - 7 name a code that kernel messages also write without brackets: `FRAME_SECTION_UNKNOWN`, `VERTEX_BLEND_UNSUPPORTED`, `RADIUS_EXCEEDS_FACE`, `CONTACT_LEAVES_FACE`, `APPROX_TOLERANCE_NOT_MET`, `RADIUS_EXCEEDS_CURVATURE`, `NOT_ANALYTIC_PAIR`. A code row would miss those messages.
+  - These convert once the kernel brackets these codes, which changes messages and so is a separate change.
+- **New refusals.** Give the message a bracketed code (`[MY_CODE] …`). Add `{ code: 'MY_CODE', title, hint }` at its place in errors.ts; the first match wins. `text` rows are only for messages without a code.
+- **Unchanged.** Titles, hints, `detail` and `code` stay byte-identical. The thrown error's own code (`kind`) is still not matched.
+
+Checks:
+- Golden: 2,087,617 comparisons (122,801 messages × 8 kinds, with and without a feature prefix), 0 differences; all 70 rules are hit.
+- cad-model suite with base and new errors.ts: both 2172/2175 pass, and the passing names are identical.
+- The 3 failures were already there at `fa79c9969`: `o7-legacy` and `tolerance`, `HOLE_NOT_LOCATED`. The coordinator owns that fix.
+- cad-model types and eslint: PASS. Studio types: PASS.
+- `refusals.mjs --check`: PASS.
+- NOT_RUN: studio tests and browser flows (no studio file changed).
+
+Issues: none completed.

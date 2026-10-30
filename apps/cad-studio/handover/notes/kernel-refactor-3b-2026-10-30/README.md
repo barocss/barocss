@@ -114,3 +114,29 @@ Moved code was not restructured: nested closures inside it are as they were (no 
 Left in part-model.ts (2,192 lines): the document types, admission and evaluation, the operation() dispatcher with the
 cases not yet in a family (extrude, revolve, Booleans, rib, wrap, reliefs, full-round, face-thread, hole, transforms
 and patterns, sweep, loft, draft, split-face, sweep-curve, split), the Boolean dispatch with its state, sweep, outputs.
+
+## ③ cad-model refusals mapped by code (D362)
+
+`packages/barocss-cad-model/src/engine/errors.ts` (`ee3149bae`, Sonnet from a frozen brief, audited on Opus). A rule is
+now `{ code?: string | string[]; text?: RegExp; title; hint }`. `friendly()` collects the message's bracketed codes into
+a Set once and walks the same ordered list; a rule matches by code membership or by its `text` regex. 30 rules became
+`code` rows (one with two codes); 40 stay `text`. 33 of those have no code at all. The other 7 name a code
+(`FRAME_SECTION_UNKNOWN`, `VERTEX_BLEND_UNSUPPORTED`, `RADIUS_EXCEEDS_FACE`, `CONTACT_LEAVES_FACE`,
+`APPROX_TOLERANCE_NOT_MET`, `RADIUS_EXCEEDS_CURVATURE`, `NOT_ANALYTIC_PAIR`) that kernel messages also carry without
+brackets, so a code row would miss them. `kind` (the thrown error's code) is still not matched, as before.
+
+How a new refusal gets mapped (for the lanes adding refusals): the kernel or model message carries a bracketed code
+(`[MY_CODE] …`, through the kernel's refusal helpers or cad-model's `refusal()`), and errors.ts gets a row
+`{ code: 'MY_CODE', title, hint }` at the right place. The first row that matches wins. `text` rows are only for
+messages without a code.
+
+### Checks
+
+| Check | Result |
+|---|---|
+| Golden: base vs new `friendly()` / `friendlyCause()` over 122,801 messages (every string and template literal in the kernel, cad-model and studio sources and tests; every code-like literal bracketed, trailing and bare, crossed with one sample per rule) × 8 kinds, with and without an `n3:` prefix | PASS: 2,087,617 comparisons, 0 differences; all 70 rules are hit |
+| cad-model suite, base errors.ts vs new on the same tree | both 2175 tests, 2172 pass, 3 fail; passing names identical |
+| The 3 failures | pre-existing: `o7-legacy` and `tolerance` (a new `HOLE_NOT_LOCATED` drawing issue) fail the same way at `fa79c9969`, before 3b; the coordinator owns the fix (drawing/) |
+| cad-model types, eslint (src, test), studio types | PASS |
+| `refusals.mjs --check` | PASS (no refusal text changed) |
+| Studio tests, browser flows | NOT_RUN (no studio file changed; studio types pass) |

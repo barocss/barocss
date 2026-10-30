@@ -113,7 +113,7 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
 3. 20 기즈모·드래그 + 21 사이드바. 드래그 지연은 T5 측정과 함께 본다.
 3b. 정리 묶음 (오너 2026-10-30 "그렇게 해줘", 이어서 "잘 분배해서 진행해줘": 지금 시작, lane 분리 — 리팩토링 lane이 ①→② kernel만, 09와 겹치지 않는 시점에 ③→④; CI lane이 33을 병행): ① R7.3d — kernel 밖에서 아무도 쓰지 않는 137파일·28,681줄
 (측정: [kernel reachability](notes/kernel-reachability-2026-10-30/README.md))을 모듈별 retire/keep 판단 뒤 제거, test/example 전용 19파일 결정 (**① 완료, D360**: 100파일 retire, 37파일 keep, E 19파일 keep — [노트](notes/kernel-refactor-3b-2026-10-30/README.md));
-② `part/part-model.ts`(4,583줄)를 피처별 모듈로 분리 (**② 완료, D361**: 2,192줄 — frame·finish·shell·sheet·face-fillet을 각 모듈로 이동, 남은 20개 case는 다음 창); ③ cad-model 오류를 메시지 정규식(`engine/errors.ts`) 대신 코드 기반으로;
+② `part/part-model.ts`(4,583줄)를 피처별 모듈로 분리 (**② 완료, D361**: 2,192줄 — frame·finish·shell·sheet·face-fillet을 각 모듈로 이동, 남은 20개 case는 다음 창); ③ cad-model 오류를 메시지 정규식(`engine/errors.ts`) 대신 코드 기반으로 (**③ 완료, D362**: 70개 규칙 중 30개 코드 행, 40개는 코드 없는/괄호 없는 메시지라 text 행 유지, golden 0차이);
 ④ schema 1·2 migration 제거(최신 schema만). 각 단계는 perf-bench 기준 bit-identical 또는 형상·테스트 동일로 받는다. 33 CI 브라우저 검증이 먼저 있어야 한다.
 4. 10 조립 → 11 도면 확장 → 13 교환 → 14 생산. 12 파일·버전과 16 정확도는 각 단계에서 함께 검사한다. 30 커널 일반성은 16과 함께 이 단계 내내 진행하고, 31 직접 편집은 30 뒤에 붙인다.
 5. 15 사용성으로 릴리스 전 마감. 32 Viewer SDK는 05·23과 함께, 34 이름 정리는 B2 뒤 진행 lane이 적은 경계에서 한다. 23–29 상용 공백은 선행 행이 끝나는 대로 붙이고, 26·27·28·29의 외부 의존은 오너 결정 뒤에 시작한다.
