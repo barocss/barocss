@@ -416,6 +416,8 @@ splitting) is not the default: raise the limits first, splitting only as an expl
 partial cylinder crossings are built in closed form (`analytic-boolean.ts` 1043; the header is stale);
 shell already admits surfaces of revolution; SSI skips near-parallel-normal seeds, so tangent contacts
 get no seed. Closure after D354: #2051 closed as completed (all three sections present).
+Each of #2253–#2266 now shows a schematic current-versus-target figure from
+`docs/design/kernel-issues-2026-10-30/` (`ca57e5eaa`); figures are illustrations, not kernel outputs.
 
 ### 제품 완료와 인계의 공통 조건
 
