@@ -40,7 +40,7 @@ export function setup(api) {
   const core = Object.create(api.CoreViewer.prototype);
   Object.assign(core, { disposed: false, geometries: new Set(), meshes: [], costRecords: new Map(), freeSlots: [], nextSlot: 0, nextId: 1,
     objectCapacity: 1024, scene: null, canvas: { width: 320, height: 240 }, camera: {}, lights: [], environment: {},
-    requests: 0, options: {}, scheduled: 0, pathTraces: new Set(), textures: new Set(), shadowFrameBuffers: [], waiters: [] });
+    requests: 0, options: {}, scheduled: 0, pathTraces: new Set(), renderTargets: new Set(), textures: new Set(), shadowFrameBuffers: [], waiters: [] });
   core.requestRender = () => { core.requests++; };
   core.setBackground = value => { core.background = value; };
   const all = [], create = core.createGeometry.bind(core);
