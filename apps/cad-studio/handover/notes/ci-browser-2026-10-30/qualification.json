@@ -1,7 +1,7 @@
 {
   "decision": "D359",
   "roadmap": "33 CI browser verification (2026-10-30 engine review)",
-  "status": "LOCAL_QUALIFIED; REMOTE_RUN1_FAIL; REMOTE_RUN2_PENDING",
+  "status": "LOCAL_QUALIFIED; REMOTE_RUN1_FAIL; REMOTE_RUN2_FAIL",
   "scope": "CI provisions Chrome (runner google-chrome) with SwiftShader WebGPU and Playwright 1.62.1, and runs every *-browser.test.mjs in packages/barocss-gpu (25 files) and packages/barocss-viewer (3 files) when either package is affected or the plan is full. A run passes only with fail/cancelled/skipped/todo 0, pass == tests > 0 and no file without a test; a missing CHROME/PW_DIR fails in CI and is NOT_RUN locally.",
   "sourceCommit": "14dfe667c",
   "sourcePaths": [
@@ -61,7 +61,16 @@
       "diagnosis": "flag set: GPU process drops the WebGPU instance on first canvas present (25x mapAsync 'Instance reference no longer exists', 21x DEVICE_LOST replacing, 5x 'Instance dropped' getCompilationInfo, 3x NO_ADAPTER on recovery); passes are compute-only tests",
       "fix": "canvas present+map+pixel probe over four flag sets, first that presents is used; no test excluded"
     },
-    "run2": "PENDING"
+    "run2": {
+      "url": "https://github.com/barocss/barocss/actions/runs/41042337412",
+      "head": "1c9594189",
+      "conclusion": "failure",
+      "jobs": { "plan": "success", "full": "success", "browser": "failure", "verify (Test and Build)": "failure" },
+      "probe": "all four flag sets ok=false on Chrome 156.0.8078.47: adapter google swiftshader, device lost 'destroyed', mapAsync 'A valid external Instance reference no longer exists', pixel [0,0,0,0]",
+      "gpu": "NOT_RUN (no flag set presented a canvas)",
+      "viewer": "NOT_RUN",
+      "diagnosis": "Linux headless canvas presentation on the runner destroys the device regardless of these flags; the same probe presents red on the Mac (Metal and SwiftShader)"
+    }
   },
   "notRun": [
     "Linux SwiftShader (only the remote run covers it)",

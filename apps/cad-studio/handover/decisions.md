@@ -17121,6 +17121,14 @@ Fix in a later commit, without excluding any test:
 - The probe now presents a canvas for 3 frames, maps a buffer and reads a pixel.
 - On the runner it tries `swiftshader-gl`, `-angle`, `-vulkan` and `-vulkan-nosurface` in that order. It logs every outcome and runs the suites with the first set that presents.
 
+Remote run 2 ([41042337412](https://github.com/barocss/barocss/actions/runs/41042337412), at `1c9594189`, full mode): **FAIL**.
+- Plan, and Full lint types and builds: success.
+- Browser job: failure. The aggregate Test and Build check failed with it.
+- All four flag sets fail the canvas probe the same way on Chrome 156.0.8078.47. The adapter is SwiftShader, the device is lost ("destroyed"), the map fails with "Instance reference no longer exists", and the pixel is 0.
+- The suites did not start: gpu and viewer NOT_RUN, with 0 pass and 0 skip.
+- The same probe passes on the Mac, natively and on SwiftShader (red pixel). Linux headless canvas presentation on the runner is therefore the open cause; a flag set alone does not fix it.
+- Row 33 is not closed.
+
 ## D360 — Retire 100 unused legacy kernel files, keep 37; refactor batch 3b step ① (R7.3d) (2026-10-30)
 
 Qualify `dca18afab` (702 paths; base `fa79c9969`). [Note](notes/kernel-refactor-3b-2026-10-30/README.md), with the two lists [retired.txt](notes/kernel-refactor-3b-2026-10-30/retired.txt) and [kept.txt](notes/kernel-refactor-3b-2026-10-30/kept.txt). Input: the reachability set D, 137 kernel files that nothing outside the kernel uses.
