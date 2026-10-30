@@ -390,9 +390,9 @@ Package pages need runnable samples. So the first packages commit adds `apps/lib
   - measuring;
   - mass properties;
   - tessellation and its tolerances.
-- **Example:** `samples/cad-modeling.test.mjs`, which mirrors what `modeling-mass.test.mjs` and
-  `modeling-stl.test.mjs` exercise.
-- **Sources:** `src/part-*.ts`; `test/modeling-*.test.mjs`.
+- **Example:** `samples/cad-modeling.test.mjs` mirrored what `modeling-mass.test.mjs` and
+  `modeling-stl.test.mjs` exercised; those tests were retired in R7.3d with the legacy `cad.model()` surface.
+- **Sources:** `src/part-*.ts`; the `test/modeling-*.test.mjs` tests were retired in R7.3d.
 
 #### B-rep, robustness and refusals (`/packages/cad/robustness`): to write, about 110 lines
 
