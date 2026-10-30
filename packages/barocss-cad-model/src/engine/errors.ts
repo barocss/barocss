@@ -205,6 +205,8 @@ const rules: { code?: string | readonly string[]; text?: RegExp; title: string; 
   { text: /within ±10000|at most 10000/i,
     title: 'The value is out of range',
     hint: 'Lengths are limited to ±10000 mm.' },
+  { code: 'FINISH_EDGES_LIMIT', title: 'Too many edges in one finish',
+    hint: 'A fillet or chamfer takes up to 64 edges at once. Split the edges between two fillets (or two chamfers).' },
   { text: /edges must list/i,
     title: 'This chamfer has no edges',
     hint: 'Select the edges again and re-apply it (files saved before edges had names keep the chamfer without its selection).' },
