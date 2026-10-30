@@ -80,7 +80,8 @@ export function edgeCurve(mesh: DisplayMesh, edge: number): NurbsCurve | null {
   return { degree: 1, knots: [0, ...poly.map((_, k) => k), poly.length - 1], points: poly, weights: poly.map(() => 1) };
 }
 
-const num = (v: number) => { const r = Math.round(v * 1e9) / 1e9; return Object.is(r, -0) ? '0' : String(r); };
+// (Plain decimals only: the source language reads no exponents, and String gives one below 1e-6.)
+const num = (v: number) => { const r = Math.round(v * 1e9) / 1e9; if (r === 0) return '0'; const s = String(r); return s.includes('e') ? r.toFixed(9).replace(/0+$/, '') : s; };
 /** Curves as one CAD source model `name` (curve ids c1, c2 …). */
 export function curvesSource(name: string, curves: NurbsCurve[]): string {
   const id = name.replace(/[^A-Za-z0-9_]/g, '_').replace(/^[^A-Za-z_]/, '_') || 'curves';

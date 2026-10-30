@@ -3,7 +3,7 @@
 // sources and objects; an operation that makes new objects hides the ones it was made from (so they
 // can be shown again), one that refines an object's own source (poles, knots, degree, interval) moves the
 // object to the refined source.
-import { approximateCurvePlain, buildAlignedRationalRuledSurface, buildBezierCoonsSurface, buildMultiSectionLoftSurface, buildTranslationalSweepSurface, type CadAffineMatrix3x4, compileCadModel, type Curve, curveDomain, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide, elevateSourceCurveDegree, elevateSourceSurfaceAxisDegree, evaluateCurve, evaluateCurveCurvature, evaluateSurface, evaluateSurfaceCurvature, exportIGES, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, extractTrimmedSurfaceRegion, IGESImportError, importIGES, insertSourceCurveKnot, insertSourceSurfaceKnot, interpolateSurfacePlain, intersectPatches, joinCurves, type Model, removeCurveKnotPlain, reverseCurveWide, reverseSurfaceAxis, reverseTrimmedSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter, splitTrimmedSurfaceAtParameter, type Surface, surfaceDomain, surfaceEvaluator, SurfaceIntersectionError, transformNativeGeometryAffine, TrimmedSurfaceAxisReversalError, TrimmedSurfaceParameterSplitError, TrimmedSurfaceRegionError } from '@barocss/cad';
+import { approximateCurvePlain, buildAlignedRationalRuledSurface, buildBezierCoonsSurface, buildMultiSectionLoftSurface, buildTranslationalSweepSurface, type CadAffineMatrix3x4, CadNumericPolicy, chordParameters, compileCadModel, type Curve, curveDomain, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide, elevateSourceCurveDegree, elevateSourceSurfaceAxisDegree, evaluateCurve, evaluateCurveCurvature, evaluateCurveD1, evaluateSurface, evaluateSurfaceCurvature, exportIGES, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, extractTrimmedSurfaceRegion, IGESImportError, importIGES, insertSourceCurveKnot, insertSourceSurfaceKnot, interpolateSurfacePlain, intersectPatches, joinCurves, type Model, plainBasis, plainFindSpan, type PlainPoint, removeCurveKnotPlain, reverseCurveWide, reverseSurfaceAxis, reverseTrimmedSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter, splitTrimmedSurfaceAtParameter, type Surface, surfaceD1Evaluator, type SurfaceD1Result, surfaceDomain, surfaceEvaluator, SurfaceIntersectionError, transformNativeGeometryAffine, TrimmedSurfaceAxisReversalError, TrimmedSurfaceParameterSplitError, TrimmedSurfaceRegionError } from '@barocss/cad';
 import { curvesSource, surfacesSource } from './curveSource';
 import { keptAt, projectLoop, trimmedMesh, type TrimLoop } from './trim';
 import { nextFreeId } from '../util/ids';
@@ -120,6 +120,128 @@ function refine(d: DirectGeometry, id: string, text: string): DirectGeometry {
   return { sources: { ...d.sources, [key]: text }, objects: d.objects.map(o => o.id === id ? { ...o, source: key } : o) };
 }
 const nameOf = (d: DirectGeometry, id: string) => object(d, id).name;
+const EXTEND_EDGES: readonly string[] = ['u-min', 'u-max', 'v-min', 'v-max'];
+/** The mean, position by position, of equally long lists (in the order interpolateSurfacePlain averages them). */
+function meanLists(lists: readonly number[][]): number[] {
+  const out: number[] = [];
+  for (let k = 0; k < lists[0].length; k++) { let s = 0; for (const l of lists) s += l[k]; out.push(s / lists.length); }
+  return out;
+}
+/** ‖A⁻¹‖∞ of the collocation matrix of degree p at the parameters (Infinity when it is singular). */
+function inverseRowSum(params: readonly number[], p: number, knots: readonly number[]): number {
+  const m = params.length, n = m - 1, W: number[][] = [];
+  for (let i = 0; i < m; i++) {
+    const row = Array(2 * m).fill(0), s = plainFindSpan(n, p, params[i], knots), N = plainBasis(s, params[i], p, knots);
+    for (let k = 0; k <= p; k++) row[s - p + k] = N[k];
+    row[m + i] = 1; W.push(row);
+  }
+  for (let c = 0; c < m; c++) {
+    let piv = c; for (let r = c + 1; r < m; r++) if (Math.abs(W[r][c]) > Math.abs(W[piv][c])) piv = r;
+    if (!(Math.abs(W[piv][c]) > 0)) return Infinity;
+    [W[c], W[piv]] = [W[piv], W[c]];
+    for (let r = 0; r < m; r++) { if (r === c) continue; const f = W[r][c] / W[c][c]; if (f) for (let k = c; k < 2 * m; k++) W[r][k] -= f * W[c][k]; }
+  }
+  let worst = 0;
+  for (let i = 0; i < m; i++) { let s = 0; for (let k = m; k < 2 * m; k++) s += Math.abs(W[i][k] / W[i][i]); if (!(s <= worst)) worst = s; }
+  return worst;
+}
+/** The largest |coordinate| of a grid of points. */
+function largestCoordinate(grid: readonly (readonly (readonly number[])[])[]): number {
+  let worst = 0;
+  for (const row of grid) for (const p of row) for (const x of p) { const a = Math.abs(x); if (!(a <= worst)) worst = a; }
+  return worst;
+}
+/** The largest distance from the stored surface, at the fit's parameters, to the points it was fitted through. */
+function gridResidual(s: Surface, grid: readonly (readonly PlainPoint[])[], u: readonly number[], v: readonly number[]): number {
+  let worst = 0;
+  // (Parameters are held to the stored domain: its end knots are rounded to 9 decimals, so the scaled 1 may lie a hair outside.)
+  const dom = surfaceDomain(s), within = (x: number, [lo, hi]: readonly [number, number]) => Math.min(Math.max(x, lo), hi);
+  for (let i = 0; i < grid.length; i++) for (let j = 0; j < grid[i].length; j++) {
+    const q = evaluateSurface(s, within(u[i], dom.u), within(v[j], dom.v)), g = grid[i][j], gap = Math.hypot(q[0] - g[0], q[1] - g[1], q[2] - g[2]);
+    if (!(gap <= worst)) worst = gap;
+  }
+  return worst;
+}
+/** The k-th of n equal steps from lo to hi (the last exactly hi, so no sample leaves the domain). */
+function sampleAt(lo: number, hi: number, k: number, n: number): number { return k === n ? hi : lo + (hi - lo) * k / n; }
+/** The surface's first partials, or null where they are not defined (on a knot of low continuity). */
+function tryD1(d1: (u: number, v: number) => SurfaceD1Result, u: number, v: number): SurfaceD1Result | null {
+  try { return d1(u, v); } catch { return null; }
+}
+/** The unit direction of the surface's exact partial along the extended parameter, outward (null when it has no direction). */
+function edgeTangent(s: Surface, d1: (u: number, v: number) => SurfaceD1Result, alongU: boolean, atMax: boolean, a: number, b: number): [number, number, number] | null {
+  let t: readonly number[];
+  try { const r = d1(alongU ? a : b, alongU ? b : a); t = alongU ? r.du : r.dv; } catch (e) {
+    // (A crease across the run has no surface derivative, but the partial along the run is the exact iso-curve's.)
+    if (!(e instanceof Error && e.message.includes('First derivative is not defined at an exact C0 interior knot'))) return null;
+    try { t = evaluateCurveD1(extractSurfaceIsoCurve(s, { fixedAxis: alongU ? 'v' : 'u', parameter: b, curveId: `${s.id}-iso` }).curve, a).derivative; } catch { return null; }
+  }
+  const sign = atMax ? 1 : -1, l = Math.hypot(t[0], t[1], t[2]);
+  return Number.isFinite(l) && l > 0 ? [sign * t[0] / l, sign * t[1] / l, sign * t[2] / l] : null;
+}
+/** What extendDeviation needs to know about one extension. */
+interface ExtendRun {
+  s: Surface; stored: Surface; d1: (u: number, v: number) => SurfaceD1Result; alongU: boolean; atMax: boolean; eA: number; distance: number;
+  a0: number; a1: number; b0: number; b1: number; n: number; across: number; extra: number;
+  /** The fit's scaled parameters of each row (along the extended direction) and each column (across it). */
+  rowParam: readonly number[]; colParam: readonly number[];
+}
+const clampTo = (x: number, [lo, hi]: readonly [number, number]) => Math.min(Math.max(x, lo), hi);
+/** The stored surface at the midpoint of the fit parameters of rows r0, r1 and columns c0, c1 (clamped to its domain). */
+function storedAt(run: ExtendRun, r0: number, r1: number, c0: number, c1: number): [number, number, number] {
+  const dom = surfaceDomain(run.stored), rp = (run.rowParam[r0] + run.rowParam[r1]) / 2, cp = (run.colParam[c0] + run.colParam[c1]) / 2;
+  const p = run.alongU ? evaluateSurface(run.stored, clampTo(rp, dom.u), clampTo(cp, dom.v)) : evaluateSurface(run.stored, clampTo(cp, dom.u), clampTo(rp, dom.v));
+  return [p[0], p[1], p[2]];
+}
+/** The original surface at (a, b), a along the extended direction. */
+function originalAt(run: ExtendRun, a: number, b: number): [number, number, number] {
+  const p = run.alongU ? evaluateSurface(run.s, a, b) : evaluateSurface(run.s, b, a);
+  return [p[0], p[1], p[2]];
+}
+/**
+ * The largest distance, measured between the fit's sample rows, of the stored extension from what it should be: in the original
+ * region the first-order distance off the original surface (sliding along it is not counted), in the extension the distance off the straight run.
+ */
+function extendDeviation(run: ExtendRun): number {
+  let worst = 0;
+  // Row r of the fit for original row i: the extension rows come first on a min edge.
+  const first = run.atMax ? 0 : run.extra;
+  for (let i = 0; i <= run.n; i++) for (let j = 0; j <= run.across; j++) for (let kind = 0; kind < 3; kind++) {
+    const di = kind === 1 ? 0 : 1, dj = kind === 0 ? 0 : 1;
+    if (i + di > run.n || j + dj > run.across) continue;
+    const a = (sampleAt(run.a0, run.a1, i, run.n) + sampleAt(run.a0, run.a1, i + di, run.n)) / 2, b = (sampleAt(run.b0, run.b1, j, run.across) + sampleAt(run.b0, run.b1, j + dj, run.across)) / 2;
+    const r = storedAt(run, first + i, first + i + di, j, j + dj), o = originalAt(run, a, b), g = tryD1(run.d1, run.alongU ? a : b, run.alongU ? b : a);
+    // (A crease has no normal, so a midpoint on one is skipped.)
+    if (g === null) continue;
+    const nx = g.du[1] * g.dv[2] - g.du[2] * g.dv[1], ny = g.du[2] * g.dv[0] - g.du[0] * g.dv[2], nz = g.du[0] * g.dv[1] - g.du[1] * g.dv[0], l = Math.hypot(nx, ny, nz);
+    if (!(l > 0)) continue;
+    const gap = Math.abs(((r[0] - o[0]) * nx + (r[1] - o[1]) * ny + (r[2] - o[2]) * nz) / l);
+    if (!(gap <= worst)) worst = gap;
+  }
+  // Extension levels 0 (the edge row) to extra: level m is row 11 + m on a max edge, row extra - m on a min edge.
+  for (let m = 0; m < run.extra; m++) for (let j = 0; j <= run.across; j++) for (let half = 0; half < 2; half++) {
+    if (half === 1 && j === run.across) continue;
+    const b = (sampleAt(run.b0, run.b1, j, run.across) + sampleAt(run.b0, run.b1, j + half, run.across)) / 2, t = edgeTangent(run.s, run.d1, run.alongU, run.atMax, run.eA, b);
+    if (t === null) continue;
+    const r0 = run.atMax ? run.n + m : run.extra - m, r1 = run.atMax ? r0 + 1 : r0 - 1;
+    const r = storedAt(run, r0, r1, j, j + half), o = originalAt(run, run.eA, b), k = run.distance * (m + 0.5) / run.extra;
+    const dx = r[0] - o[0] - t[0] * k, dy = r[1] - o[1] - t[1] * k, dz = r[2] - o[2] - t[2] * k, along = dx * t[0] + dy * t[1] + dz * t[2];
+    const gap = Math.hypot(dx - along * t[0], dy - along * t[1], dz - along * t[2]);
+    if (!(gap <= worst)) worst = gap;
+  }
+  return worst;
+}
+/** The result's name: the extended surface, with its measured deviation (mm) when that is over the numeric tolerance. */
+function extendedName(name: string, off: number): string {
+  return off <= CadNumericPolicy.linearTolerance ? `${name} · extended` : `${name} · extended (±${off >= 0.001 ? Math.round(off * 1000) / 1000 : off.toPrecision(1)})`;
+}
+/** The mean total chord length of the grid's lines along the first index (or, transposed, the second). */
+function meanChordLength(grid: readonly (readonly PlainPoint[])[], alongFirst: boolean): number {
+  const lines = alongFirst ? grid[0].length : grid.length, count = alongFirst ? grid.length : grid[0].length;
+  let sum = 0;
+  for (let l = 0; l < lines; l++) for (let k = 1; k < count; k++) { const a = alongFirst ? grid[k][l] : grid[l][k], b = alongFirst ? grid[k - 1][l] : grid[l][k - 1]; sum += Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]); }
+  return sum / lines;
+}
 
 export const directOps = {
   /** The surface trimmed by a closed curve projected onto it: the region inside the loop cut away (or kept alone). */
@@ -300,23 +422,49 @@ export const directOps = {
     const fit = interpolateSurfacePlain(grid);
     return add(d, [], surfacesSource('fill', [fit]), [{ geometry: 's1', name: 'Filled surface' }]);
   },
-  /** The surface run on past one of its edges along its tangent there by `distance` mm (re-fitted as a bicubic B-spline). */
+  /**
+   * The surface run on past one of its edges along its tangent there by `distance` mm (re-fitted as a bicubic B-spline).
+   * A flat parallelogram support comes back exact to the numeric tolerance; a curved support is re-fitted, so only its sample points are held to it;
+   * a curved support's measured off-sample deviation is shown in the result's name (±mm).
+   */
   extendSurface(d: DirectGeometry, id: string, edge: 'u-min' | 'u-max' | 'v-min' | 'v-max', distance: number) {
-    if (!(distance > 0)) throw refusal('DIRECT_VALUE', 'Extend by a positive distance.');
+    if (typeof edge !== 'string' || !EXTEND_EDGES.includes(edge)) throw refusal('DIRECT_VALUE', 'Extend at u-min, u-max, v-min or v-max.');
+    if (!(typeof distance === 'number' && Number.isFinite(distance) && distance > 0)) throw refusal('DIRECT_VALUE', 'Extend by a positive distance.');
     // (12 rows of the surface and 4 beyond it, 16 across: the most poles a surface takes each way.)
     const s = wholeSurfaceOf(d, id, 'Extend surface'), dom = surfaceDomain(s), n = 11, across = 15, extra = 4, alongU = edge.startsWith('u'), atMax = edge.endsWith('max');
     const [a0, a1] = alongU ? dom.u : dom.v, [b0, b1] = alongU ? dom.v : dom.u;
     const S = (a: number, b: number) => alongU ? evaluateSurface(s, a, b) : evaluateSurface(s, b, a);
     // Rows across the extended direction: the surface's own, then straight on along the unit tangent at the edge.
     const rows: [number, number, number][][] = [];
-    for (let i = 0; i <= n; i++) { const a = a0 + (a1 - a0) * i / n; rows.push(Array.from({ length: across + 1 }, (_, j) => S(a, b0 + (b1 - b0) * j / across) as [number, number, number])); }
-    const eA = atMax ? a1 : a0, h = (a1 - a0) * 1e-3, tangent = (b: number) => { const p = S(eA, b), q = S(atMax ? eA - h : eA + h, b), t = [0, 1, 2].map(k => (p[k] - q[k])), l = Math.hypot(...t) || 1; return t.map(x => x / l); };
-    const edgeRow = atMax ? rows[n] : rows[0], tans = Array.from({ length: across + 1 }, (_, j) => tangent(b0 + (b1 - b0) * j / across));
-    const more = Array.from({ length: extra }, (_, k) => edgeRow.map((p, j) => p.map((x, c) => x + tans[j][c] * distance * (k + 1) / extra) as [number, number, number]));
+    for (let i = 0; i <= n; i++) { const a = sampleAt(a0, a1, i, n); rows.push(Array.from({ length: across + 1 }, (_, j) => S(a, sampleAt(b0, b1, j, across)) as [number, number, number])); }
+    const eA = atMax ? a1 : a0, d1 = surfaceD1Evaluator(s), edgeRow = atMax ? rows[n] : rows[0];
+    const tans = Array.from({ length: across + 1 }, (_, j) => edgeTangent(s, d1, alongU, atMax, eA, sampleAt(b0, b1, j, across)));
+    if (tans.some(x => x === null)) throw refusal('DIRECT_VALUE', 'The surface has no direction to run on at that edge.');
+    const more = Array.from({ length: extra }, (_, k) => edgeRow.map((p, j) => p.map((x, c) => x + tans[j]![c] * distance * (k + 1) / extra) as [number, number, number]));
     const all = atMax ? [...rows, ...more] : [...more.reverse(), ...rows];
     // (Back to u along the first index when the run was across v.)
     const grid = alongU ? all : all[0].map((_, j) => all.map(r => r[j]));
-    return add(d, [id], surfacesSource('extended', [interpolateSurfacePlain(grid)]), [{ geometry: 's1', name: `${nameOf(d, id)} · extended` }]);
+    // The fit's own parameters (as interpolateSurfacePlain averages them over the columns and the rows).
+    const ub = meanLists(Array.from({ length: grid[0].length }, (_, j) => chordParameters(grid.map(r => r[j])))), vb = meanLists(grid.map(r => chordParameters(r)));
+    let fit;
+    try { fit = interpolateSurfacePlain(grid); } catch (e) { if (e instanceof RangeError) throw refusal('DIRECT_VALUE', 'This surface cannot be re-fitted past that edge; try another distance.'); throw e; }
+    // First-order forward error of the two collocation solves (B-spline collocation matrices are totally positive, so elimination has no growth: de Boor–Pinkus); an estimate, not a certificate.
+    const ku = inverseRowSum(ub, fit.degreeU, fit.knotsU), kv = inverseRowSum(vb, fit.degreeV, fit.knotsV), gamma = 16 * Number.EPSILON / (1 - 16 * Number.EPSILON);
+    const scale = Math.max(largestCoordinate(grid), largestCoordinate(fit.points));
+    // (Plus the grid's own evaluation and tangent rounding, carried through both solves.)
+    const estimate = (ku + kv + ku * kv) * gamma * scale + ku * kv * gamma * (largestCoordinate(grid) + distance);
+    // Knots in mm along each axis, so 9-decimal rounding of them costs ~1e-9 mm, not 1e-9 of the whole length.
+    const lu = meanChordLength(grid, true) || 1, lv = meanChordLength(grid, false) || 1;
+    const scaledFit = { ...fit, knotsU: fit.knotsU.map(k => k * lu), knotsV: fit.knotsV.map(k => k * lv) };
+    const text = surfacesSource('extended', [scaledFit]), next = add(d, [id], text, [{ geometry: 's1', name: extendedName(nameOf(d, id), 0) }]);
+    let stored: Surface;
+    try { stored = geometryOf(next, next.objects[next.objects.length - 1]) as Surface; } catch { throw refusal('DIRECT_VALUE', 'The extended surface could not be stored; try another distance.'); }
+    const residual = gridResidual(stored, grid, ub.map(x => x * lu), vb.map(x => x * lv));
+    if (!(residual + estimate <= CadNumericPolicy.linearTolerance)) throw refusal('DIRECT_VALUE', `The extended surface cannot keep its sample points within ${CadNumericPolicy.linearTolerance} mm (error bound about ${(residual + estimate).toPrecision(2)} mm); try a distance nearer the surface's size.`);
+    // The loss between the sample rows, which the sample check does not see, goes into the name (as refitCurve's does).
+    const rowParam = (alongU ? ub.map(x => x * lu) : vb.map(x => x * lv)), colParam = (alongU ? vb.map(x => x * lv) : ub.map(x => x * lu));
+    const off = extendDeviation({ s, stored, d1, alongU, atMax, eA, distance, a0, a1, b0, b1, n, across, extra, rowParam, colParam });
+    return off <= CadNumericPolicy.linearTolerance ? next : add(d, [id], text, [{ geometry: 's1', name: extendedName(nameOf(d, id), off) }]);
   },
   /**
    * The curve fitted again with `count` poles (least squares through 64 samples of it, cubic, its ends

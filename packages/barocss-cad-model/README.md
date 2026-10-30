@@ -141,7 +141,7 @@ with `DIRECT_VALUE`; it does not hide the original or publish a whole support.
 The Kernel certifies the actual final support and stored boundary under one joint
 1e-7 mm world bound. Full-domain copies keep explicit masks and existing guards.
 
-`extendSurface` still refuses surfaces with trims.
+`extendSurface` keeps a flat parallelogram support exact to the numeric tolerance; a curved support is re-fitted, with the measured deviation in the result's name (±mm). It still refuses surfaces with trims.
 `surfaceIntersection` refuses either trimmed operand. These operations do not yet
 map or clip trim boundaries.
 
