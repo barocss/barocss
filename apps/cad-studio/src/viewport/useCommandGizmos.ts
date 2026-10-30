@@ -10,7 +10,7 @@ import { alignMove, previewMatrix } from '@barocss/cad-model/assembly/drag';
 type BodyDrag = { matrix: Float64Array; settling: boolean } | null;
 interface CommandGizmoOptions {
   model: { doc: StudioDoc; evaluated: StudioDoc; bodies: BodyResult[]; selection: Selection; marker: number | null; editNode: number | null };
-  command: { active: Active | null; ctx: Ctx; setActive: Dispatch<SetStateAction<Active | null>>; handleDrag: RefObject<{ key: string; lastOk: number; wall: number; dragging: boolean } | null>; previewFor: RefObject<string | null> };
+  command: { active: Active | null; ctx: Ctx; setActive: Dispatch<SetStateAction<Active | null>>; handleDrag: RefObject<{ key: string; lastOk: number; wall: number; bad: number | null; want: number; step: number; dragging: boolean } | null>; previewFor: RefObject<string | null> };
   context: { sketch: object | null; rendering: boolean; drawing: boolean; measure: readonly unknown[] | null; assemblyDraft: object | null; instanceCount: number; snapStep: number };
   drag: { bodyDrag: BodyDrag; setBodyDrag: Dispatch<SetStateAction<BodyDrag>> };
 }
@@ -92,9 +92,14 @@ export function useCommandGizmos({ model, command, context, drag }: CommandGizmo
           return;
         }
         let hd = handleDrag.current;
-        if (!hd || hd.key !== h.key || !hd.dragging) hd = handleDrag.current = { key: h.key, lastOk: value, wall: 0, dragging: true };
-        // Past the side where a value failed: held at the last good one.
-        if (hd.wall && Math.sign(v - hd.lastOk) === hd.wall) v = hd.lastOk;
+        if (!hd || hd.key !== h.key || !hd.dragging) hd = handleDrag.current = { key: h.key, lastOk: value, wall: 0, bad: null, want: v, step, dragging: true };
+        hd.want = v;
+        // At or past the nearest value that failed: held at the last good one (those between are still tried).
+        // A value strictly between them is a bisect step in flight: it stays shown until its answer arrives.
+        if (hd.bad !== null && (v - hd.bad) * hd.wall >= 0) {
+          const cur = Number(active?.values[h.key]);
+          v = Number.isFinite(cur) && (cur - hd.lastOk) * hd.wall > 0 && (hd.bad - cur) * hd.wall > 0 ? cur : hd.lastOk;
+        }
         if (done) hd.dragging = false;
         // An idle handle opens its feature's edit as the drag starts.
         setActive(a => a ? (a.values[h.key] !== v ? { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [h.key]: v }), preview: 'busy' } : a)

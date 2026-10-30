@@ -11,6 +11,16 @@ interface CommandPreviewOptions {
   worker: { engine: EngineClient; nextRevision(): number; currentBearingDoc(): StudioDoc };
   result: { setPreviewBodies: Dispatch<SetStateAction<BodyResult[] | null>>; previewFor: { current: string | null } };
 }
+/** The step-snapped value halfway between the last good value and the bound, or null when they are one step apart (or the pointer is not past the bound). */
+function bisectValue(hd: { lastOk: number; bad: number | null; want: number; wall: number; step: number }): number | null {
+  // (Only while the pointer asks for a value at or past the bound: a pointer between them is evaluated as it is.)
+  if (hd.bad === null || (hd.want - hd.bad) * hd.wall < 0) return null;
+  const gap = hd.bad - hd.lastOk, step = hd.step;
+  if (!(Math.abs(gap) > step * (1 + 1e-9))) return null;
+  let half = Math.round(gap / 2 / step) * step;
+  if (!half) half = step * Math.sign(gap);
+  return Math.abs(half) < Math.abs(gap) ? Math.round((hd.lastOk + half) * 1e6) / 1e6 : null;
+}
 /** The HUD preview queue and drag limits retain their original per-command subscription. */
 export function useCommandPreview({ command, worker, result }: CommandPreviewOptions) {
   const { activeStore, bearingRootCurrent } = command, setActive = activeStore.set;
@@ -22,10 +32,11 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
   const previewRun = useRef<{ busy: boolean; next: (() => Promise<void>) | null }>({ busy: false, next: null });
   /**
    * A dimension handle being dragged: its last value the kernel accepted, and once a value fails, the side
-   * it failed on. The value goes back to the last good one and the drag stops there (no flicking between
-   * a broken and a good preview).
+   * it failed on (`wall`) and the nearest failing value on that side (`bad`). The value at or past `bad` is
+   * held at the last good one (no flicking between a broken and a good preview); the values between the two
+   * are still tried, and the preview bisects toward the real limit (`step` apart at the end).
    */
-  const handleDrag = useRef<{ key: string; lastOk: number; wall: number; dragging: boolean } | null>(null);
+  const handleDrag = useRef<{ key: string; lastOk: number; wall: number; bad: number | null; want: number; step: number; dragging: boolean } | null>(null);
   const lastTyped = useRef(0);
   /**
    * While a handle is dragged on a feature that later ones build on (a box under fillets), the preview
@@ -78,17 +89,32 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
         if (current?.upload || current?.values.font !== values.font) return;
         if (!live && (!previewRun.current.next || !current || current.cmd !== cmd || current.ctx !== ctx || current.preview === 'error')) return;
         const hd = handleDrag.current, hv = hd ? Number(values[hd.key]) : NaN;
+        let bisect = false;
         if (hd && Number.isFinite(hv)) {
-          // (Only the whole part decides the wall: the part up to the feature may take what its later features refuse.)
-          if (result.ok) { if (!rolled && (hd.wall === 0 || Math.sign(hv - hd.lastOk) !== hd.wall)) hd.lastOk = hv; }
-          else if (hv !== hd.lastOk) {
-            hd.wall = Math.sign(hv - hd.lastOk);
-            setActive(a => a && a.cmd === cmd ? { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [hd.key]: hd.lastOk }), preview: 'busy' } : a);
+          // (Only the whole part decides the bound: the part up to the feature may take what its later features refuse.)
+          if (result.ok) {
+            if (!rolled) {
+              // (A stale success never moves the last good value back from the bound.)
+              if (live || hd.bad === null || (hv - hd.lastOk) * hd.wall > 0) hd.lastOk = hv;
+              if (hd.bad !== null && (hv - hd.bad) * hd.wall >= 0) { hd.bad = null; hd.wall = 0; }
+              bisect = live;
+            }
+          } else if (hv !== hd.lastOk) {
+            // The failing value closest to the last good one is the bound; a stale failure never resets the current value.
+            const side = Math.sign(hv - hd.lastOk);
+            if (hd.bad === null || side !== hd.wall || Math.abs(hv - hd.lastOk) < Math.abs(hd.bad - hd.lastOk)) { hd.bad = hv; hd.wall = side; }
+            if (!live) return;
+            const to = bisectValue(hd) ?? hd.lastOk;
+            setActive(a => a && a.cmd === cmd ? { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [hd.key]: to }), preview: 'busy' } : a);
             return;
           }
         }
         if (result.ok) { previewFor.current = rolled ? '' : JSON.stringify(values); setPreviewBodies(result.bodies); setActive(a => a && a.cmd === cmd ? { ...a, preview: !rolled && JSON.stringify(a.values) === JSON.stringify(values) ? 'ok' : 'busy', error: undefined } : a); }
         else if (live) { setPreviewBodies(null); setActive(a => a && { ...a, preview: 'error', error: result.error }); }
+        // Still a gap between the last good value and the bound: try the step-snapped middle of it next.
+        // (Release does not stop this: it goes on from the value the pointer left, and Enter waits for the preview to settle on the converged value.)
+        const mid = bisect && hd?.bad != null ? bisectValue(hd) : null;
+        if (mid !== null) setActive(a => a && a.cmd === cmd && a.values === values ? { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [hd!.key]: mid }), preview: 'busy' } : a);
       };
       const run = previewRun.current;
       const pump = async () => { while (run.next) { const j = run.next; run.next = null; run.busy = true; try { await j(); } finally { run.busy = false; } } };
