@@ -93,6 +93,28 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
 | 20 | 기즈모·핸들 드래그 UI/UX·렌더링 (2026-10-27 사용자 관찰) | ① 치수 화살표(w·h 등)를 끄는 동안 뒤 기능(구멍)이 사라졌다가 멈추면 돌아온다: 드래그 중 미리보기를 끌린 기능까지만 계산하는 `rolled` 경로 때문. 제안: 전체 미리보기 시간을 재서 느릴 때(예: 120 ms 초과)만 줄인다. ② 필렛 화살표를 끄는 중 값이 다른 숫자로 튄다: 실패 값을 마지막 성공 값으로 되돌리는 wall/lastOk가 늦게 도착한 이전 프레임 결과로 갱신되는 것으로 의심, 재현·확정 필요. ③ 구멍·기즈모 드래그가 끊긴다: 매 프레임 Kernel 미리보기를 기다려야 화면이 바뀐다. 먼저 드래그 중 미리보기 1회 시간과 화면 갱신 간격을 측정하고, 즉시 화면 변환과 Kernel 결과 반영을 분리한다. ④ 화살표 드래그 결과는 Apply 전까지 미리보기일 뿐이라는 점이 화면에서 잘 드러나지 않고, 매번 Apply를 눌러야 해서 불편하다(사용자, 같은 날). 함께 검토할 안: 화살표·기즈모를 놓으면 바로 적용(한 번의 Undo로 되돌림), Enter로 적용·Esc로 취소, 다른 곳을 누르면 적용, 값 입력 명령만 Apply 유지. 명령마다 어느 방식이 맞는지 정하고 실제 Studio에서 확인한다. ⑤ (해결) 복구 Restore가 진행 중 명령·미리보기를 남겨 옛 몸체가 보이고 기즈모가 새 몸체 위치에 뜨던 문제는 `7174b010f`에서 고쳤다. ⑥ 사용자가 보여준 다른 CAD 화면을 참고(2026-10-27): 핸들을 끈 뒤 Enter를 누르면 바로 적용된다(④의 방향). 끄는 동안과 놓은 뒤 핸들 바로 옆에 이름이 붙은 숫자 입력칸(예: "Distance 8 mm")이 즉시 떠서 값을 고쳐 쓰고 Enter로 적용한다. 명령 패널은 선택을 "2 selected" 칩(× 지우기)으로 보이고, 종류 선택·값·접는 Options(예: Tangent chain, Preview 켜기)·Cancel/OK 순서다. ⑦ (2026-10-27 확인 중 관찰) 복구 알림과 "can't run here" 알림이 뷰포트 왼쪽 위에 떠서 그 아래 면을 가리고, 그 위를 누르면 면 선택이 되지 않는다. 알림을 뷰포트 밖(오른쪽 도크·하단)으로 옮기거나 클릭을 통과시키는 안을 함께 본다. | Outer/Studio + GPU(렌더 성능). 기존 handle·gizmo·preview 경로 재사용. | 실제 Studio에서 각 현상을 재현한 원 증거를 남기고, 수정 후 같은 조작으로 확인한다. 측정값(미리보기 ms, 프레임 간격)을 기록하고 체감 개선을 수치로 남긴다. 새 엔진·solver 없음. |
 | 21 | Studio 도구 사이드바 배치 (2026-10-27 사용자 요청) | 왼쪽 도구 막대가 약 76개 명령(생성 42·수정 24·패턴 5·검사 4·결합 등)을 세로 한 줄로 늘어놓아 스크롤해야 찾는다. 권장안: 카테고리별 구분 라벨이 있는 2~3열 아이콘 격자로 넓혀 보통 화면 높이에서 스크롤 없이 보이게 한다. 대안: 카테고리 아이콘 + 펼침 패널, 상단 리본. 함께: 하단 History 막대가 아이콘만 있는 40px 띠이고 명령·스케치 중에는 숨겨져 "없어진 것처럼" 보인다(사용자 관찰). 이름 기본 표시, 편집 중에도 흐리게 유지 등을 검토한다. 사용자가 보여준 다른 CAD 화면을 참고(2026-10-27): 상단 리본에 작업 탭(Model·Surface·Assemble·Insert·Inspect·Manage·View·Sheet Metal·Weldments)과 이름 붙은 도구 묶음(Sketch·Create·Modify·Arrange·Configure·Construct, 아이콘 + 글자), 오른쪽 위 명령 검색칸; 왼쪽 Browser 트리(문서 설정·이름 있는 뷰·Origin·Bodies·Sketches·Features, 접기·보이기 토글); 하단 History 타임라인(처음·이전·다음·끝 버튼, 기능 아이콘 줄, 되감기 표시); 뷰포트 하단 가운데 시점 도구(회전·이동·확대·맞춤·홈·뷰), 오른쪽 위 축 표시. 명령 패널은 기존 규칙대로 오른쪽 한 도크에 둔다(겹치는 떠 있는 패널 없음). 20번과 함께 UI 묶음으로 처리한다. | Outer/Studio. 기존 TOOL_GROUPS·명령 정의 재사용, 새 UI 라이브러리 없음. | 보통 화면(예: 1440×900)에서 모든 카테고리가 스크롤 없이 보이고, 뷰포트 폭 감소와 단축키·툴팁 동작을 실제 Studio에서 확인한다. |
 | 22 | Kernel JavaScript performance and code shape | D314 runtime`bb92da70b`: strict component pruning preserves all actual geometry/mass bits; paired median7 longshaft2060→2005/2134→2044ms, longhole1295→1259/1305→1270ms, fresh construction+firstmass272→254/273→261ms. Short cases have no consistent benefit. Basis caching was measured and rejected. [Measured selection and proof scope](notes/thread-basis-performance-2026-10-29/README.md). Earlier D281–D290 studies and [performance report](notes/report-kernel-performance-2026-10-28.md) remain historical evidence. Remaining own-data consolidation, hot-loop closures and code-shape reductions require current-source measurements. | Kernel; reuse existing no-loop-func/code-shape lint gates. #2188/#2213 provide measurement contracts, not another engine or speculative acceleration. | Original inputs/tolerances/work caps; before/after actual output equivalence or explicitly accepted shape evidence; affected/full checks. Preserve error/order/signed-zero/omission/ownership contracts and reject an ineffective optimization. |
+| 23 | 대형 조립 성능 (2026-10-30 상용 공백) | 부품 수천 개 조립의 가벼운 표시, LOD, 부분 로드와 메모리·시간 기준. 10행의 "대형 조립"을 구체화한다. | Model/Outer + GPU/Viewer. 10 조립 기반 뒤 | 같은 입력의 측정 작업량에서 열기·회전·선택·편집 시간과 메모리를 기록하고, 가벼운 표시가 원본 측정 권위를 대신하지 않음을 확인 |
+| 24 | 곡면 품질·Class-A (2026-10-30) | 곡률 comb, highlight line, G2/G3 블렌드, 연속성 수치 검사. T1을 포함한다. | Kernel/Model + GPU. B2와 08 곡면 뒤 | 수치 편차가 독립 계산과 일치하고, 표시 전용 shading을 측정값으로 쓰지 않음 |
+| 25 | 공차 누적 해석 (2026-10-30) | GD&T 공차를 기반으로 한 1D/조립 stack-up 계산과 보고. | Model + Drawings. 11 도면 확장·10 조립 뒤 | 손 계산 기준 예제와 일치, 단위·누락 공차를 명시적으로 거절 |
+| 26 | 실제 고객 파일 회귀 (2026-10-30) | 실제 STEP/IGES 파일 묶음을 매일 열어 보는 검사와 결함 재현 데이터. 기존 RB5–RB8을 다시 활성화한다. | Kernel + Integration. 다운로드는 오너 승인 필요 | 파일마다 PASS/FAIL/거절/미지원을 기록하고 이전 결과와 비교, 라이선스·출처 기록 |
+| 27 | 릴리스·운영 (2026-10-30) | 설치·자동 업데이트, crash 보고, 라이선스, 보안 sandbox, 데이터 보존 정책. CG9 desktop 빌드를 포함한다. | Release + Studio. 기존 릴리스 권한 유지, 외부 서비스는 오너 결정 | 실제 설치·업데이트·복구 흐름과 개인정보·보안 검토 기록 |
+| 28 | 교환 형식 범위·표준 부품 카탈로그 (2026-10-30) | Parasolid·JT·DWG 등 형식별 지원 범위 결정과 출처가 분명한 표준 부품 카탈로그. | Interop + Model. 외부 SDK·WASM·새 의존성 금지와 충돌하므로 오너 결정 필요; 부품 row는 사람이 가져온 파일 규칙 유지 | 형식별 지원/손실/거절 표와 독립 read-back, 카탈로그 출처·라이선스 기록 |
+| 29 | 협업·PDM (2026-10-30) | 여러 사람 편집, check-in/out, 승인 흐름, 권한. 12행 버전 위에 쌓는다. | Studio + Model. 12 파일·버전 뒤, 서버는 오너 결정 | 동시 편집 충돌·거절·복구를 실제 두 클라이언트로 확인 |
+| 30 | 커널 일반성 (2026-10-30 엔진 리뷰) | 접선·graze 접촉과 작은 loop를 놓치지 않는 일반 SSI, 정확한 sweep/thicken(현재 faceted), 꼭짓점·setback 블렌드, 일반 곡면 offset. | Kernel. 16 강건성(fuzz38)과 함께, 24 곡면 품질 앞 | 독립 oracle·fuzz로 놓친 loop와 잘못된 성공 0, 기존 한정 profile 결과 bit/형상 유지 |
+| 31 | B-rep 직접 편집 (2026-10-30 엔진 리뷰) | solid 면의 이동·삭제·교체·push/pull과 주변 면 재연장. | Kernel + Model + Studio. 30 뒤 | 실제 Studio 편집·Undo·파일, 실패 시 원본 유지와 거절 이유 |
+| 32 | Viewer SDK 상용 기준 (2026-10-30 엔진 리뷰) | 크기 제한(정점4096·객체64) 해제, STEP/glTF 입력(기존 interop 재사용), Safari·Firefox·모바일·pinch, 각도·반경·최소 거리 측정, SDK 단면. | Viewer + GPU. 05·23·28과 함께 | 측정 작업량의 frame·메모리, 브라우저별 실제 확인, 측정값의 독립 계산 일치 |
+| 33 | CI 브라우저 검증 (2026-10-30 엔진 리뷰) | gpu·viewer·Studio 브라우저 테스트를 CI에서 실제로 실행(지금은 CHROME/PW_DIR 없이 건너뜀). device loss 복구 화면, 장시간 메모리. | Integration(공용 CI 경로 소유) | CI 기록에 건너뜀 0과 실제 WebGPU 결과, 실패가 CI를 막음 |
+| 34 | 단위 접미사 이름 정리 R7.7 (2026-10-30 엔진 리뷰) | cad-model 약 351곳(문서 필드 `insetMM`·`offsetMM`, `editCurvePole` `xMM/yMM/zMM`, 재료 JSON, agent 출력 `axisLengthMM`)과 kernel에서 넘어오는 이름. | Model + Kernel + Docs. 진행 중 lane과 파일 충돌을 피해 조용한 경계에서 | 문서는 최신 schema만 따르므로 fixture 갱신, 생성 docs 표 재생성, 남은 접미사 0 |
+
+**권장 진행 순서 (오너 수락 2026-10-30).** 각 단계 경계마다 재현된 정확도 결함을 먼저 처리한다
+(현재 후보: #2229 sweep 예산/접촉 구분, 20② 필렛 드래그 값 튐 — 재현되면 즉시).
+1. 09 마감 → B1 2D 밴드 → B2 3D 밴드. T2는 09 안에서, T1/T3/T4는 B2와 함께 판단한다.
+2. 01–06 마감. 기능 작업과 파일이 겹치지 않으면 Docs/Viewer/GPU 쪽에서 병행한다. 33 CI 브라우저 검증도 여기서 먼저 한다.
+3. 20 기즈모·드래그 + 21 사이드바. 드래그 지연은 T5 측정과 함께 본다.
+4. 10 조립 → 11 도면 확장 → 13 교환 → 14 생산. 12 파일·버전과 16 정확도는 각 단계에서 함께 검사한다. 30 커널 일반성은 16과 함께 이 단계 내내 진행하고, 31 직접 편집은 30 뒤에 붙인다.
+5. 15 사용성으로 릴리스 전 마감. 32 Viewer SDK는 05·23과 함께, 34 이름 정리는 B2 뒤 진행 lane이 적은 경계에서 한다. 23–29 상용 공백은 선행 행이 끝나는 대로 붙이고, 26·27·28·29의 외부 의존은 오너 결정 뒤에 시작한다.
+6. 17 경로 묶음, 18 로봇, 19 가상 실험은 기존 Physics/Motion·CAE 보류를 유지한 채 마지막. 22 성능은 측정 작업량이 생길 때 붙인다.
+오너 결정 대기: FEA 기본 정적 해석의 로드맵 복귀 여부, 28행의 외부 형식 SDK 정책.
 
 사용자 정정: 아직 릴리스가 없으므로 최신 reader/writer만 기준으로 삼는다. 구 미출시 바이너리 호환과 장기 migration을 위해 schema5를 강제하지 않는다. 현재 일반 schema3과 route schema4를 유지하고 standalone/composite의 raw 입력 검사와 필드 보존을 구현한다. 실제 사용자 파일과 snapshot key/id/parent/bytes는 보존한다. 기존 Model448→3b8 및 Drawing 후보 정상 commit은 이력으로 남기고 필요한 정확 delta만 새 계약에 맞춰 연결한다. Outer 저장·복구, 합동 실행·파일 흐름·제품은 아직 미완료다.
 
@@ -361,6 +383,21 @@ owner-pending), #2051 (Bezier control-point placement), #2056 (inertia about a p
 #2063 (explicit broken-reference repair), #2070 (morph and skinning boards, Rendering hold),
 #2089 (exact six-face Thicken body; current Thicken is faceted), #2092 (slotted countersunk screw)
 and the T1–T4 sources #2043, #2059, #2069, #2082.
+
+**Owner request 2026-10-30: associative bands, 2D and 3D** ("밴드 같은 건데 … 한쪽에 있던 도형이
+커지면 밴드도 같이 변하는", then "2d, 3d 모두"). Registered here before any implementation. Owner order
+(2026-10-30, "After 09"): start B1 and B2 after the bounded09 items close, before other new work. Today only two narrow forms exist: `belt-drive` wraps two
+row-made pulleys/sprockets and re-evaluates from the referenced wheels, and the Loft feature
+re-evaluates from its section sketches. Free sketch circles cannot be constrained to each other, and
+direct `ruledSurface`/`loft` results are not linked to their sources.
+
+| Candidate | Scope | Required result |
+|---|---|---|
+| B1 associative 2D band | 09 CG3 | In one sketch, pick two or more closed shapes (circles, arcs, convex outlines). The band is their outer envelope: common tangent lines plus wrap arcs, stored as references to the picked shapes, not copied geometry. A source size or position edit regenerates it. Refuse with a reason when shapes overlap or contain each other or no tangent exists, and never keep a stale band silently. It is usable as a profile (extrude/cut) with an optional width/offset, and keeps its references through Save/fresh Open/re-edit and Undo. Reuse the existing two-wheel pitch-path math and sketch tangency. Crossed or inner bands are optional later. |
+| B2 associative 3D band surface | 08 CG2 (new item after the bounded08 close), 16 references | Pick an edge or edge loop on face A and one on face B. A ruled or loft band surface is built between them from qualified edge references and regenerated when an upstream feature changes them. A lost or ambiguous reference refuses or suppresses under the existing reference policy, with no silent retarget. Optional thicken to a solid. Save/fresh Open/re-edit and Undo. Reuse the existing ruled/loft producers and reference resolution; report the fit deviation honestly when the result is not exact. |
+
+Both need Kernel/Model/API → actual Studio edit, a source-change regeneration and file proof before
+any completion claim.
 
 ### 제품 완료와 인계의 공통 조건
 
