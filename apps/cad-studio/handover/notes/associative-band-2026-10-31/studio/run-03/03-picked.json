@@ -1,0 +1,52 @@
+{
+  "label": "03-picked",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [],
+    "outputs": {},
+    "nextId": 0
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 0,
+    "active": null,
+    "sketch": true,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": "SKETCH · Band · Z 0PlaneXY (top)XZ (front)YZ (right)OffsetmmAngle°Snap 1 mmBAND2 shapes pickedreadyOffsetmmWidthmmMake bandClick closed shapes to pick them (click again to unpick) · they should be convex and apartOFFSETmmOutInCURVESMake curves of the sketch",
+  "hud": null,
+  "sketchAlert": null,
+  "sketchStatus": null,
+  "bandInputs": [
+    {
+      "label": "Band offset",
+      "value": "0"
+    },
+    {
+      "label": "Band width",
+      "value": ""
+    }
+  ],
+  "bandOverlay": {
+    "outline": 0,
+    "picked": 2,
+    "construction": 2
+  },
+  "editorFields": [],
+  "history": []
+}

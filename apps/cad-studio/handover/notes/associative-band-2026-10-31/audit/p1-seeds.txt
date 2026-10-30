@@ -1,0 +1,31 @@
+{
+ "ok": 1875,
+ "kernel ok": 54,
+ "refused: sources eK and eK overlap": 165,
+ "refused: source eK does not reach the band's outline (no tangent): re": 722,
+ "refused: source eK lies inside eK": 119,
+ "refused: source eK is not a closed shape": 118,
+ "refused: an arc of radius N mm is smaller than N mm: use an offset of": 1
+}
+FAILS 118
+{
+ "refused: source eK lies inside eK": 129,
+ "ok": 1867,
+ "refused: source eK does not reach the band's outline (no tangent): re": 706,
+ "refused: source eK is not a closed shape": 120,
+ "kernel ok": 73,
+ "refused: sources eK and eK overlap": 177,
+ "refused: its outline goes beyond ±N mm": 1
+}
+FAILS 120
+{
+ "ok": 1892,
+ "kernel ok": 59,
+ "refused: source eK is not a closed shape": 107,
+ "refused: source eK does not reach the band's outline (no tangent): re": 714,
+ "refused: sources eK and eK overlap": 135,
+ "refused: source eK lies inside eK": 149,
+ "refused: its outline goes beyond ±N mm": 2,
+ "refused: an arc of radius N mm is smaller than N mm: use an offset of": 1
+}
+FAILS 107

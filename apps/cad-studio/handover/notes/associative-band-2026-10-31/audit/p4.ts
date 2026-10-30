@@ -1,0 +1,52 @@
+// Associativity across evaluation paths, parameter edits, rename/remove parameter, DXF, previews, loft sections, malformed input.
+const W = '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src';
+import { withIds } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/sketch/entityIds';
+import { evaluateDoc } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/engine/evaluate';
+import { toPartDocument, partSnapshot } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/engine/part';
+import { withParameters, renameParameter, removeParameter, parameterUses } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/engine/parameters';
+import { profileRings, profileMiddle, loftSections, framedLoftSections } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/app/profiles';
+import { sketchDxfDocument } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/sketch/dxf';
+import { editFields } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/app/editFields';
+import { sketchShapes, rebindDims } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/sketch/reopen';
+import { bandSketchNode } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/sketch/band';
+import { part } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/api';
+import { encodeStudioFile, readStudioFile } from '/Users/user/github/barocss/barocss/.claude/worktrees/heuristic-gould-b94e20/packages/barocss-cad-model/src/engine/container';
+void W;
+const all = withIds([{ kind: 'circle', c: [0, 0], r: 20, construction: true }, { kind: 'circle', c: [70, 10], r: 12, construction: true }] as never);
+(all[0] as { r: unknown }).r = { parameter: 'R' };
+const node = { kind: 'sketch', profile: 'band', band: { version: 1, id: 'b1', sources: ['e1', 'e2'], offset: { parameter: 'G' }, width: { parameter: 'W' } }, construction: all, id: 'n0' };
+const doc = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: { R: 20, G: 1, W: 3 }, configurations: { big: { R: 25 } }, nodes: [node, { kind: 'extrude', sketch: 0, height: 10, id: 'n1' }], outputs: { b1: { node: 1, side: 'solid' } }, nextId: 2 } as never as Parameters<typeof toPartDocument>[0];
+const vol = (d: typeof doc) => part('x', d).mass({ density: 1 }).volume;
+const show = (k: string, f: () => unknown) => { try { console.log(k.padEnd(40), JSON.stringify(f())?.slice(0, 220)); } catch (e) { console.log(k.padEnd(40), 'THROWS', (e as Error).message.slice(0, 220)); } };
+show('volume R=20', () => vol(doc));
+show('volume R=25 (withParameters)', () => vol(withParameters(doc, { R: 25 })));
+show('volume via config values', () => vol({ ...doc, parameters: { ...doc.parameters, ...doc.configurations!.big } }));
+show('evaluateDoc ok', async () => (await evaluateDoc(doc, 1)).ok);
+show('toPartDocument feature kinds', () => toPartDocument(doc).features.map((f: { kind: string }) => f.kind));
+show('rename R->RAD then volume', () => vol(renameParameter(doc, 'R', 'RAD')));
+show('rename leaves no R ref', () => JSON.stringify(renameParameter(doc, 'G', 'GAP').nodes[0]).match(/"parameter":"\w+"/g));
+show('parameterUses G', () => parameterUses(doc.nodes, 'G'));
+show('remove G keeps value', () => JSON.stringify((removeParameter(doc, 'G').nodes[0] as { band: unknown }).band));
+show('missing parameter refusal', () => partSnapshot({ ...doc, parameters: { R: 20, W: 3 } }));
+show('profileRings count/len', () => profileRings(node as never, doc.parameters).map(r => r.length));
+show('profileMiddle', () => profileMiddle(node as never, doc.parameters));
+show('profileRings refused params', () => profileRings(node as never, { R: 60, G: 1, W: 3 }));
+show('loftSections w/ strip', () => loftSections([node, { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 5, plane: { origin: [0, 0, 20], normal: [0, 0, 1], xAxis: [1, 0, 0] } }] as never, [0, 1], doc.parameters));
+show('framedLoftSections w/ strip (holes?)', () => { const r = framedLoftSections([node, { kind: 'sketch', profile: 'circle', center: [0, 0], radius: 5, plane: { origin: [0, 0, 20], normal: [0, 0, 1], xAxis: [1, 0, 0] } }] as never, [0, 1], doc.parameters); return 'error' in r ? r : r.sections.map(s => ({ profile: s.node.profile, holes: s.node.holes?.length ?? 0 })); });
+show('DXF entity count', () => { const d = sketchDxfDocument(node as never, doc.parameters); return { n: d.entities.length, types: [...new Set(d.entities.map((e: { type?: string; kind?: string }) => e.type ?? e.kind))] }; });
+show('DXF refused band (index-less name)', () => sketchDxfDocument(node as never, { R: 60, G: 1, W: 3 }));
+show('editFields keys', () => editFields(doc.nodes, 1, doc.parameters).map(f => f.key + (('bind' in f) ? '(ƒ)' : '')).join(' '));
+show('editFields bo get with bound', () => { const f = editFields(doc.nodes, 1, doc.parameters).find(x => x.key === 'bo') as { get(n: unknown): number }; return f.get(doc.nodes); });
+// Save/Open
+show('save/open volume equal', async () => { const r = await readStudioFile(encodeStudioFile(doc)); return 'error' in r ? r : vol(r.doc) === vol(doc); });
+// reopen with params: band resolved, finish, rebind keeps all bindings
+show('reopen-finish-rebind JSON same', () => { const s = sketchShapes(node as never, doc.parameters); const f = bandSketchNode(s.done, s.band!); if ('error' in f) return f; const r = rebindDims(node as never, f.node, doc.parameters); return { same: JSON.stringify({ ...r.node, id: 0 }) === JSON.stringify({ ...node, id: 0 }), dropped: r.dropped }; });
+// malformed inputs: do they refuse or crash with TypeError?
+const bad = (k: string, n: unknown) => show('malformed ' + k, () => partSnapshot({ ...doc, nodes: [n, doc.nodes[1]] } as never));
+bad('band missing', { kind: 'sketch', profile: 'band', construction: all, id: 'n0' });
+bad('sources not array', { ...node, band: { version: 1, id: 'b1', sources: 'e1' } });
+bad('circle without c', { ...node, construction: [{ kind: 'circle', r: 5, construction: true, ids: ['e1'] }, all[1]] });
+bad('polygon without points', { ...node, construction: [{ kind: 'polygon', closed: true, construction: true, ids: ['e1'] }, all[1]] });
+bad('construction missing', { kind: 'sketch', profile: 'band', band: node.band, id: 'n0' });
+bad('band id long', { ...node, band: { ...node.band, id: 'b'.repeat(40) } });
+bad('band id with space', { ...node, band: { ...node.band, id: 'b 1' } });

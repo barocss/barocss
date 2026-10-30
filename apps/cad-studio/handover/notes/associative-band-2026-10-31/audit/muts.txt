@@ -1,0 +1,33 @@
+killed   crossing sign                              geo:3 id:0 studio:0 p1:149
+killed   skip pairwise check                        geo:1 id:2 studio:1 p1:0
+killed   drop not-reached refusal (silent drop)     geo:1 id:0 studio:0 p1:0
+killed   drop a winner piece (skip first item)      geo:7 id:6 studio:4 p1:164
+killed   crossing active check off                  geo:0 id:0 studio:0 p1:2
+killed   no cone endpoints                          geo:2 id:0 studio:0 p1:154
+killed   only + crossing                            geo:5 id:0 studio:0 p1:153
+killed   no CW flip                                 geo:0 id:0 studio:0 p1:156
+SURVIVED convexity off                              geo:0 id:0 studio:0 p1:0
+SURVIVED tie check off                              geo:0 id:0 studio:0 p1:0
+killed   hole at d+w                                geo:1 id:0 studio:0 p1:43
+killed   no _n suffix                               geo:1 id:0 studio:0 p1:32
+killed   MIN_ARC off                                geo:1 id:0 studio:0 p1:0
+killed   COORD off                                  geo:1 id:0 studio:0 p1:0
+killed   touch threshold 0                          geo:1 id:0 studio:0 p1:0
+killed   containment off                            geo:1 id:0 studio:0 p1:0
+SURVIVED collapse tiny arcs off                     geo:0 id:0 studio:0 p1:0
+SURVIVED ambiguous-holder check off                 geo:0 id:0 studio:0 p1:0
+killed   non-construction accepted                  geo:1 id:0 studio:0 p1:0
+killed   bandSketchNode allows other shapes         geo:0 id:1 studio:1 p1:0
+killed   bandProfile ignores params                 geo:1 id:1 studio:0 p1:0
+killed   reopen returns stored band                 geo:0 id:1 studio:0 p1:0
+killed   id seed ignores construction               geo:0 id:1 studio:0 p1:0
+SURVIVED band slots not named                       geo:0 id:0 studio:0 p1:0
+killed   no construction slots                      geo:0 id:1 studio:0 p1:0
+killed   stale band (no branch)                     geo:2 id:2 studio:0 p1:7
+killed   band without params                        geo:0 id:1 studio:0 p1:0
+killed   construction ids skipped at Finish         geo:0 id:0 studio:1 p1:0
+killed   reopen without band                        geo:0 id:0 studio:1 p1:0
+SURVIVED reopen with node.band                      geo:0 id:0 studio:0 p1:0
+SURVIVED band refusal ignored at Finish             geo:0 id:0 studio:0 p1:0
+SURVIVED valued skips band                          geo:0 id:0 studio:0 p1:0
+SURVIVED dxf skips band                             geo:0 id:0 studio:0 p1:0

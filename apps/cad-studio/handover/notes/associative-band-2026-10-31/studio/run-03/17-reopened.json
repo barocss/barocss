@@ -1,0 +1,119 @@
+{
+  "label": "17-reopened",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {
+      "R": 28
+    },
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "band",
+        "band": {
+          "version": 1,
+          "id": "b1",
+          "sources": [
+            "e1",
+            "e2"
+          ],
+          "width": 3
+        },
+        "construction": [
+          {
+            "kind": "circle",
+            "c": [
+              0,
+              0
+            ],
+            "r": {
+              "parameter": "R"
+            },
+            "construction": true,
+            "ids": [
+              "e1"
+            ]
+          },
+          {
+            "kind": "circle",
+            "c": [
+              60,
+              0
+            ],
+            "r": 10,
+            "construction": true,
+            "ids": [
+              "e2"
+            ]
+          }
+        ],
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 10,
+        "id": "n1"
+      }
+    ],
+    "outputs": {
+      "b1": {
+        "node": 1,
+        "side": "solid"
+      }
+    },
+    "nextId": 2
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b1",
+        "volume": 7627.408155353086,
+        "centroid": [
+          17.610426654886716,
+          1.6833517808722491e-15,
+          4.999999999999999
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 1,
+    "active": null,
+    "sketch": true,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": "SKETCH · Select · Z 0Snap 1 mmBAND · 2 sourcesOffset mmWidth mmRemove bandEnter applies a value · empty width: filled · a bound (ƒ) offset or width is edited in the feature editorOFFSETmmOutInCURVESMake curves of the sketch",
+  "hud": null,
+  "sketchAlert": null,
+  "sketchStatus": null,
+  "bandInputs": [
+    {
+      "label": "Band offset",
+      "value": "0"
+    },
+    {
+      "label": "Band width",
+      "value": "3"
+    }
+  ],
+  "bandOverlay": {
+    "outline": 1,
+    "picked": 0,
+    "construction": 2
+  },
+  "editorFields": [],
+  "history": []
+}

@@ -1,0 +1,111 @@
+{
+  "label": "06-extruded",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "band",
+        "band": {
+          "version": 1,
+          "id": "b1",
+          "sources": [
+            "e1",
+            "e2"
+          ],
+          "width": 3
+        },
+        "construction": [
+          {
+            "kind": "circle",
+            "c": [
+              0,
+              0
+            ],
+            "r": 20,
+            "construction": true,
+            "ids": [
+              "e1"
+            ]
+          },
+          {
+            "kind": "circle",
+            "c": [
+              60,
+              0
+            ],
+            "r": 10,
+            "construction": true,
+            "ids": [
+              "e2"
+            ]
+          }
+        ],
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 10,
+        "id": "n1"
+      }
+    ],
+    "outputs": {
+      "b1": {
+        "node": 1,
+        "side": "solid"
+      }
+    },
+    "nextId": 2
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b1",
+        "volume": 6760.293444445497,
+        "centroid": [
+          22.902337476267984,
+          5.884505354444189e-15,
+          5
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": [],
+      "sketches": [
+        0
+      ]
+    },
+    "bodies": 1,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": null,
+  "hud": null,
+  "sketchAlert": null,
+  "sketchStatus": null,
+  "bandInputs": [],
+  "bandOverlay": {
+    "outline": 0,
+    "picked": 0,
+    "construction": 0
+  },
+  "editorFields": [],
+  "history": [
+    "Extrude 10"
+  ]
+}

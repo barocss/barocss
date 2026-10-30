@@ -17423,3 +17423,46 @@ Limits:
 - a limit rising within one drag is followed only through an in-flight success;
 - the edit-fillet handle has no max;
 - an off-grid start snaps on the first move.
+
+## D369 — Associative 2D band; B1 (2026-10-31)
+
+Qualify source `4a135b1cb` (28 paths). [Evidence](notes/associative-band-2026-10-31/qualification.json). This fulfils the owner's request of 2026-10-30: a band that follows its shapes, in 2D.
+
+Decision:
+- **Storage.** The Band tool (M) picks two or more closed shapes; Make band turns them into construction sources. The sketch stores `{version, id, sources: side ids, offset?, width?}`, with no copied geometry.
+- **Regeneration.** Every evaluation path regenerates the exact outer envelope: part, previews, rings, middle, loft sections and DXF. It is the upper envelope of support functions over each generator's normal cone, with closed-form crossings. Offset grows it, and width makes a strip.
+- **Refusals.** Overlap, touching, containment, a source that never reaches the outline, a non-convex source and kernel limits are refused with the band named.
+- **v1 rule.** A band sketch holds only the band and its construction sources.
+- **Identity.** Construction shapes get side ids at Finish. Bindings on sources, offset and width survive reopen. The Extrude editor lists bindable band fields.
+- **Agent.** There is no agent action in v1.
+
+Retained:
+- the Opus Plan design brief and parallel model/Studio implementation against a frozen API, with the root's integration fix (reopen uses the resolved band);
+- the run01 PRODUCT failure: picks were not highlighted because ids were not stored; fixed by the root with a test;
+- the independent Opus audit, CHANGES_REQUIRED:
+  - F1: repeated-piece tags swapped under rotation; now named by the preceding source;
+  - F2: the tie check refused valid noisy inputs; removed;
+  - F4: guided-loft order;
+  - F5: malformed files;
+
+  fixed in one round with no re-audit.
+
+Checks:
+- Model full suite 2233/2233; Studio 556/556; types, lint and docs tables PASS.
+- The audit oracle covered 5,634 random bands and 186 kernel volumes.
+- Actual run03 PASS:
+  - make, extrude and an independent closed-form volume;
+  - a source radius edit and a parameter-bound edit follow;
+  - an overlap refused by name with the document unchanged;
+  - reopen/Finish unchanged;
+  - Undo/Redo, Save and fresh Open equal.
+- Errors 0; 901 frozen files equal the commit.
+
+Limits:
+- convex sources only;
+- no crossed or inner bands;
+- no agent action;
+- in-sketch Ctrl+Z does not undo Make/Remove band;
+- a topology change renames repeated-piece tags (references to a removed tag are refused).
+
+Full kernel, CI and release NOT_RUN.
