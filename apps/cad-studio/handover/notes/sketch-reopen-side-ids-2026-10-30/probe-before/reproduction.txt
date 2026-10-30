@@ -1,0 +1,7 @@
+Root reproduction on HEAD b37a3c5f7 (before the D355 fix), audit354 probes run with node run.mjs <abs path>:
+rect + circle hole, no Bezier: Finish {"outer":["e1","e2","e3","e4"],"holes":[["e5"]]} -> reopen+Finish {"outer":["e6","e7","e8","e9"],"holes":[["e5"]]}
+bezier first: Finish sideTags {"outer":["e2","e3","e4","e5"]} -> reopen+Finish {"outer":["e1","e2","e3","e4"]}
+construction line first: Finish {"outer":["e3","e4","e5","e6"]} -> reopen+Finish {"outer":["e1","e2","e3","e4"]}
+(faces n1.side[e5]/[e6] vanish and n1.side[e2..] name other walls: silent retarget of downstream references)
+Note: the Studio hook's plain rectangle+hole reopen did not reproduce (fixer's hook test); the Bezier-first order did.
+A Studio baseline browser run on the unfixed source was not made: the temporary revert of select.ts was refused by the permission classifier.

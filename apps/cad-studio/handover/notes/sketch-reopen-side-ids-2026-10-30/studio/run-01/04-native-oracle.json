@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "width": "70",
+  "depth": "40",
+  "height": "10",
+  "holeRadius": 5.0,
+  "filletRadius": "3",
+  "sideTags": {
+    "outer": [
+      "e1",
+      "e2",
+      "e3",
+      "e4"
+    ],
+    "holes": [
+      [
+        "e5"
+      ]
+    ]
+  },
+  "analyticVolume": 27195.287671308324,
+  "reportedVolume": 27195.287671308324,
+  "delta": 0.0,
+  "productImports": 0
+}

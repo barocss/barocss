@@ -16989,3 +16989,13 @@ The kernel extrude takes only lines and arcs, so a Bézier is not a profile edge
 - Not a trim/extend boundary; no DXF export.
 
 **Side note (next item, D355).** Reopen renames a rectangle's side ids, silently retargeting downstream references (pre-existing). Full suites, CI and release NOT_RUN.
+
+## D355 — Keep a rectangle's side ids when a sketch is reopened; eighth bounded09 item (2026-10-30)
+
+Qualify source `9c97ec8b9` (5 paths). [Evidence](notes/sketch-reopen-side-ids-2026-10-30/qualification.json). The D354 audit found this as a pre-existing, reproduced correctness defect. Reopen turned a rectangle into an outline without its ids (`rectangleOutline`), so an unchanged Finish renumbered the walls: a rectangle with a hole went from e1–e4 to e6–e9, and with a Bézier or construction line drawn first the ids became e1–e4. A rectangle drawn from its upper-right corner had its fillet silently moved to another corner with an unchanged volume. A construction rectangle became real geometry.
+
+Decision: carry the ids side by side (`tagsOf`) and the construction flag. Retained: a Studio baseline run on the unfixed source was not made, because the temporary revert was refused by the permission classifier; the reproduction is the Model probes plus the real-hook negative control. The plain hole case did not reproduce in the hook, so the driver drives the Bézier-first order through the UI.
+
+Checks: Model 9 new tests (6/9 fail without the fix), affected 115/115; Studio 49/49 including a real-hook case that fails without the fix; types, lint and check-docs PASS. Independent Opus audit PASS: 48/48 kept (base renamed 43), mutants 8/8 killed. Actual run01 PASS across three contexts: an unchanged reopen of the fixture, a width-70 edit, Undo/Redo, Save, fresh Open, and the Bézier-first order keeping e2–e5. Errors 0; 985 frozen files equal the commit.
+
+Side notes: S1 circle/region role swap; S2 slot centre drift; S3 a parameter-bound rectangle reopened writes null coordinates, which is the next item. Full suites, CI and release NOT_RUN.
