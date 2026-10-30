@@ -1,0 +1,416 @@
+[
+  {
+    "window": [
+      1440,
+      900
+    ],
+    "bar": {
+      "left": 56,
+      "top": 50,
+      "width": 44,
+      "height": 790,
+      "bottom": 840
+    },
+    "scrollHeight": 2434,
+    "clientHeight": 788,
+    "scrolls": true,
+    "buttons": 75,
+    "hidden": 51,
+    "hiddenNames": [
+      "Spring",
+      "Cam",
+      "Meshing gear",
+      "Gear rack",
+      "Mount",
+      "Hole",
+      "Offset face",
+      "Flange",
+      "Corner relief",
+      "Keyway",
+      "O-ring gland",
+      "Connector opening",
+      "Gusset",
+      "End cap",
+      "Text relief",
+      "Cylindrical wrap",
+      "Draft",
+      "Face fillet",
+      "Thread",
+      "Full round",
+      "Chamfer",
+      "Fillet",
+      "Simplify mesh",
+      "Shell",
+      "Move",
+      "Rotate",
+      "Scale",
+      "Align",
+      "Split",
+      "Hollow for printing",
+      "Fill with a lattice",
+      "Split to fit the bed",
+      "Edit cage",
+      "Mirror",
+      "Duplicate",
+      "Linear cut pattern",
+      "Fill cut pattern",
+      "Path cut pattern",
+      "Rectangular cut pattern",
+      "Linear pattern",
+      "Circular pattern",
+      "Union",
+      "Subtract",
+      "Intersect",
+      "Fit class",
+      "Fit pair",
+      "Interference",
+      "Measure",
+      "BOM",
+      "Rebuild",
+      "Variants"
+    ],
+    "groups": [
+      {
+        "label": null,
+        "buttons": 30,
+        "columns": 1
+      },
+      {
+        "label": null,
+        "buttons": 27,
+        "columns": 1
+      },
+      {
+        "label": null,
+        "buttons": 8,
+        "columns": 1
+      },
+      {
+        "label": null,
+        "buttons": 3,
+        "columns": 1
+      },
+      {
+        "label": null,
+        "buttons": 7,
+        "columns": 1
+      }
+    ],
+    "viewport": {
+      "left": 0,
+      "width": 1140
+    },
+    "insideWindow": true
+  },
+  {
+    "window": [
+      1280,
+      800
+    ],
+    "bar": {
+      "left": 56,
+      "top": 50,
+      "width": 44,
+      "height": 690,
+      "bottom": 740
+    },
+    "scrollHeight": 2134,
+    "clientHeight": 688,
+    "scrolls": true,
+    "buttons": 75,
+    "hidden": 51,
+    "hiddenNames": [
+      "Spring",
+      "Cam",
+      "Meshing gear",
+      "Gear rack",
+      "Mount",
+      "Hole",
+      "Offset face",
+      "Flange",
+      "Corner relief",
+      "Keyway",
+      "O-ring gland",
+      "Connector opening",
+      "Gusset",
+      "End cap",
+      "Text relief",
+      "Cylindrical wrap",
+      "Draft",
+      "Face fillet",
+      "Thread",
+      "Full round",
+      "Chamfer",
+      "Fillet",
+      "Simplify mesh",
+      "Shell",
+      "Move",
+      "Rotate",
+      "Scale",
+      "Align",
+      "Split",
+      "Hollow for printing",
+      "Fill with a lattice",
+      "Split to fit the bed",
+      "Edit cage",
+      "Mirror",
+      "Duplicate",
+      "Linear cut pattern",
+      "Fill cut pattern",
+      "Path cut pattern",
+      "Rectangular cut pattern",
+      "Linear pattern",
+      "Circular pattern",
+      "Union",
+      "Subtract",
+      "Intersect",
+      "Fit class",
+      "Fit pair",
+      "Interference",
+      "Measure",
+      "BOM",
+      "Rebuild",
+      "Variants"
+    ],
+    "groups": [
+      {
+        "label": null,
+        "buttons": 30,
+        "columns": 1
+      },
+      {
+        "label": null,
+        "buttons": 27,
+        "columns": 1
+      },
+      {
+        "label": null,
+        "buttons": 8,
+        "columns": 1
+      },
+      {
+        "label": null,
+        "buttons": 3,
+        "columns": 1
+      },
+      {
+        "label": null,
+        "buttons": 7,
+        "columns": 1
+      }
+    ],
+    "viewport": {
+      "left": 0,
+      "width": 980
+    },
+    "insideWindow": true
+  },
+  {
+    "window": [
+      1920,
+      1080
+    ],
+    "bar": {
+      "left": 56,
+      "top": 50,
+      "width": 44,
+      "height": 970,
+      "bottom": 1020
+    },
+    "scrollHeight": 2750,
+    "clientHeight": 968,
+    "scrolls": true,
+    "buttons": 75,
+    "hidden": 49,
+    "hiddenNames": [
+      "Meshing gear",
+      "Gear rack",
+      "Mount",
+      "Hole",
+      "Offset face",
+      "Flange",
+      "Corner relief",
+      "Keyway",
+      "O-ring gland",
+      "Connector opening",
+      "Gusset",
+      "End cap",
+      "Text relief",
+      "Cylindrical wrap",
+      "Draft",
+      "Face fillet",
+      "Thread",
+      "Full round",
+      "Chamfer",
+      "Fillet",
+      "Simplify mesh",
+      "Shell",
+      "Move",
+      "Rotate",
+      "Scale",
+      "Align",
+      "Split",
+      "Hollow for printing",
+      "Fill with a lattice",
+      "Split to fit the bed",
+      "Edit cage",
+      "Mirror",
+      "Duplicate",
+      "Linear cut pattern",
+      "Fill cut pattern",
+      "Path cut pattern",
+      "Rectangular cut pattern",
+      "Linear pattern",
+      "Circular pattern",
+      "Union",
+      "Subtract",
+      "Intersect",
+      "Fit class",
+      "Fit pair",
+      "Interference",
+      "Measure",
+      "BOM",
+      "Rebuild",
+      "Variants"
+    ],
+    "groups": [
+      {
+        "label": null,
+        "buttons": 30,
+        "columns": 1
+      },
+      {
+        "label": null,
+        "buttons": 27,
+        "columns": 1
+      },
+      {
+        "label": null,
+        "buttons": 8,
+        "columns": 1
+      },
+      {
+        "label": null,
+        "buttons": 3,
+        "columns": 1
+      },
+      {
+        "label": null,
+        "buttons": 7,
+        "columns": 1
+      }
+    ],
+    "viewport": {
+      "left": 0,
+      "width": 1620
+    },
+    "insideWindow": true
+  },
+  {
+    "window": [
+      1024,
+      700
+    ],
+    "bar": {
+      "left": 56,
+      "top": 50,
+      "width": 44,
+      "height": 590,
+      "bottom": 640
+    },
+    "scrollHeight": 2134,
+    "clientHeight": 588,
+    "scrolls": true,
+    "buttons": 75,
+    "hidden": 55,
+    "hiddenNames": [
+      "Thicken",
+      "Sew",
+      "Band surface",
+      "Worm gear pair",
+      "Spring",
+      "Cam",
+      "Meshing gear",
+      "Gear rack",
+      "Mount",
+      "Hole",
+      "Offset face",
+      "Flange",
+      "Corner relief",
+      "Keyway",
+      "O-ring gland",
+      "Connector opening",
+      "Gusset",
+      "End cap",
+      "Text relief",
+      "Cylindrical wrap",
+      "Draft",
+      "Face fillet",
+      "Thread",
+      "Full round",
+      "Chamfer",
+      "Fillet",
+      "Simplify mesh",
+      "Shell",
+      "Move",
+      "Rotate",
+      "Scale",
+      "Align",
+      "Split",
+      "Hollow for printing",
+      "Fill with a lattice",
+      "Split to fit the bed",
+      "Edit cage",
+      "Mirror",
+      "Duplicate",
+      "Linear cut pattern",
+      "Fill cut pattern",
+      "Path cut pattern",
+      "Rectangular cut pattern",
+      "Linear pattern",
+      "Circular pattern",
+      "Union",
+      "Subtract",
+      "Intersect",
+      "Fit class",
+      "Fit pair",
+      "Interference",
+      "Measure",
+      "BOM",
+      "Rebuild",
+      "Variants"
+    ],
+    "groups": [
+      {
+        "label": null,
+        "buttons": 30,
+        "columns": 1
+      },
+      {
+        "label": null,
+        "buttons": 27,
+        "columns": 1
+      },
+      {
+        "label": null,
+        "buttons": 8,
+        "columns": 1
+      },
+      {
+        "label": null,
+        "buttons": 3,
+        "columns": 1
+      },
+      {
+        "label": null,
+        "buttons": 7,
+        "columns": 1
+      }
+    ],
+    "viewport": {
+      "left": 0,
+      "width": 744
+    },
+    "insideWindow": true
+  }
+]

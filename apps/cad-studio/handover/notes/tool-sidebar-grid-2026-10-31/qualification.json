@@ -1,0 +1,37 @@
+{
+  "decision": "D378",
+  "roadmap": "21 Studio tool sidebar (owner order 'Go to 20/21')",
+  "tier": "small (layout only: clicks, shortcuts and tooltips unchanged; tests + one actual run, no audit)",
+  "status": "QUALIFIED (sidebar); History bar sub-item open",
+  "before": {
+    "1440x900": "75 buttons in one 44 px column, scrollHeight 2434 vs 788: 51 buttons below the visible height",
+    "1920x1080": "49 hidden",
+    "1280x800": "51 hidden",
+    "1024x700": "55 hidden"
+  },
+  "change": [
+    "ModelTools: each group (Create 30, Modify 27, Pattern 8, Combine 3, Inspect 7 incl. BOM/Rebuild/Variants) is a grid under its label; the column count is the fewest that fits the window height above the view controls (app/toolColumns.ts)",
+    "styles.css: grid with fixed button-width columns (--tool-w follows the existing short-window button sizes), labels, rail min-width; sketch-mode rail unchanged (one column)"
+  ],
+  "checks": {
+    "toolColumnsUnit": "3/3",
+    "studioUnit": "566/566",
+    "tsc": "PASS",
+    "eslint": "PASS on the changed files"
+  },
+  "actualRun": {
+    "run05": "PASS at 1440x900 (4 columns, 136 px wide), 1280x800 (5, 158 px), 1920x1080 (4, 152 px), 1024x700 (6, 188 px): no scrolling, 0 hidden buttons, 0 overlap with the view controls, inside the window; hover shows the tooltip (Sketch S); click starts it (sketch) and Escape leaves it; no page or console errors; root reviewed 1440x900, 1024x700 and the sketch-mode screens",
+    "failedRuns": [
+      "run02: driver expected an active command but the first Create button (Sketch) starts sketch mode -> driver fixed",
+      "run03/run04: PASS but the root image review found Combine (3 buttons) centred off the other groups' columns (fixed: fixed-width columns) and at 1024x700 the rail covering the view controls (fixed: columns chosen above them; driver now asserts no overlap)"
+    ]
+  },
+  "limits": [
+    "The rail still floats over the viewport: 136-188 px of its left edge at the measured sizes",
+    "No ribbon, command search or Browser/History timeline redesign (reference-CAD notes stay future work)",
+    "History bar visibility (row 21 sub-item) is not changed here",
+    "Screenshots are not committed (repo guard)"
+  ],
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

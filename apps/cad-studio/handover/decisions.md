@@ -17651,3 +17651,21 @@ Verification:
 - actual run03 after the fixes: 0 box-only previews, whole part median 17.5 ms, no frame gap over 50 ms, holes visible while dragging, Escape leaves the document unchanged.
 
 Limits: one part measured; the threshold is not tuned; ③ needs a slower part. CI and release NOT_RUN.
+
+## D378 — Row 21: the tool sidebar fits without scrolling; small (2026-10-31)
+
+[Evidence](notes/tool-sidebar-grid-2026-10-31/qualification.json). Owner order "Go to 20/21".
+
+**Before.** The rail showed 75 buttons in one column. At 1440 × 900, 51 of them were below the visible height (49–55 at the other sizes).
+
+**Change.** Each group is a grid under its label, using the fewest columns that fit the window height above the view controls (`app/toolColumns.ts`).
+
+**Verification.**
+- toolColumns 3/3; Studio 566/566; tsc and eslint PASS.
+- Actual run05 at 1440 × 900, 1280 × 800, 1920 × 1080 and 1024 × 700:
+  - 4–6 columns, 136–188 px wide;
+  - no scrolling, 0 hidden buttons, no overlap with the view controls;
+  - tooltip on hover; a click starts the tool.
+- The root image review caught a column misalignment and an overlap at 1024 × 700. Both were fixed.
+
+**Not covered.** The History bar sub-item, the ribbon and command search. CI and release NOT_RUN.

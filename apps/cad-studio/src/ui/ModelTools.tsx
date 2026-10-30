@@ -1,8 +1,9 @@
-import type { Dispatch, SetStateAction, DragEvent } from 'react';
+import { useEffect, useState, type CSSProperties, type Dispatch, type SetStateAction, type DragEvent } from 'react';
 import type { Command } from '@barocss/cad-model/app/commands';
 import type { SketchState } from '../viewport/Viewport';
 import { TOOLS, switchTool, detachSketchLink } from '../app/sketchControls';
 import { TOOL_GROUPS, GROUP_COMMANDS } from '../app/studioConstants';
+import { TOOL_GROUP_LABELS, toolColumns, toolRailPx, toolRowPx } from '../app/toolColumns';
 import { CommandButtons, type commandStates } from './ToolButton';
 import { ToolIconButton } from '@/components/ui/tool-button';
 import { Icon } from './atoms';
@@ -12,9 +13,19 @@ interface ModelToolsProps {
   command: { groupStates: ReturnType<typeof commandStates>[]; activeId: string | null; startTool(command: Command): void; toolDragStart(command: Command, event: DragEvent): void; toolDragEnd(command: Command, event: DragEvent): void };
   panels: { bomOpen: boolean; setBomOpen: Dispatch<SetStateAction<boolean>>; rebuildOpen: boolean; setRebuildOpen: Dispatch<SetStateAction<boolean>>; variantsOpen: boolean; setVariantsOpen: Dispatch<SetStateAction<boolean>> };
 }
+// (The inspect group also holds BOM, Rebuild and Variants.)
+const GROUP_SIZES = GROUP_COMMANDS.map((list, gi) => list.length + (TOOL_GROUPS[gi] === 'inspect' ? 3 : 0));
+function windowHeight() { return typeof window === 'undefined' ? 900 : window.innerHeight; }
+/** The rail's column count for the current window height (roadmap 21). */
+function useToolColumns(): number {
+  const [height, setHeight] = useState(windowHeight);
+  useEffect(() => { const update = () => setHeight(windowHeight()); window.addEventListener('resize', update); return () => window.removeEventListener('resize', update); }, []);
+  return toolColumns(GROUP_SIZES, toolRailPx(height), toolRowPx(height));
+}
 export function ModelTools({ sketch, setSketch, command, panels }: ModelToolsProps) {
   const { groupStates, activeId, startTool, toolDragStart, toolDragEnd } = command;
   const { bomOpen, setBomOpen, rebuildOpen, setRebuildOpen, variantsOpen, setVariantsOpen } = panels;
+  const columns = useToolColumns(), gridStyle = { '--tool-cols': columns } as CSSProperties;
   return <>
         {sketch ? (<>
           {TOOLS.map(t => (
@@ -27,8 +38,8 @@ export function ModelTools({ sketch, setSketch, command, panels }: ModelToolsPro
             onClick={() => setSketch(s => s && { ...s, hideConstruction: !s.hideConstruction })}><Icon name={sketch.hideConstruction ? 'visibility_off' : 'visibility'} /></ToolIconButton>}
           <ToolIconButton data-tip="Clear profile" data-tip-desc="Remove every shape drawn in this sketch" aria-label="Clear profile" onClick={() => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [] })}><Icon name="ink_eraser" /></ToolIconButton>
         </>) : TOOL_GROUPS.map((g, gi) => (
-          <div key={g} className="tool-group">
-            {gi > 0 && <div className="sep" />}
+          <div key={g} className="tool-group" role="group" aria-label={TOOL_GROUP_LABELS[g]} style={gridStyle}>
+            <div className="tool-group-label" aria-hidden="true">{TOOL_GROUP_LABELS[g]}</div>
             <CommandButtons list={GROUP_COMMANDS[gi]} {...groupStates[gi]} activeId={activeId} onStart={startTool} onDragStart={toolDragStart} onDragEnd={toolDragEnd} />
             {/* (O147: the BOM with the inspect tools, not on the top bar — O90's shapes strip keeps its room.) */}
             {g === 'inspect' && <ToolIconButton state={bomOpen ? 'on' : 'idle'} aria-label="BOM" data-tip="Bill of materials" data-tip-desc="The parts and bought elements, bought or made, and the purchase list" onClick={() => setBomOpen(v => !v)}><Icon name="cad-bom" /></ToolIconButton>}
