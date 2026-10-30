@@ -7,7 +7,7 @@ import type { SketchPick } from './rules';
 import type { SplineDef } from './spline';
 
 /** `select` picks outline points and edges for constraints; `dimension` adds and edits dimensions. */
-export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'carc' | 'slot' | 'spline' | 'trim' | 'extend' | 'split' | 'select' | 'dimension';
+export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'carc' | 'slot' | 'spline' | 'bezier' | 'trim' | 'extend' | 'split' | 'select' | 'dimension';
 /** Polygon segment i runs from point i to i+1; bulges[i] ≠ 0 makes it an arc. `pending`: the newest arc follows the cursor. */
 /** `construction`: a reference drawn in the sketch (dashed): snapped to, but not part of the profile. */
 export type SketchShape = (
@@ -31,6 +31,8 @@ export type SketchShape = (
       /** The attached circles' side ids (R10a, D86), one a circle. */
       circleIds?: string[] }
   | { kind: 'slot'; a: [number, number]; b: [number, number]; r: number }
+  /** A Bézier curve from its control points (3 = quadratic, 4 = cubic): open, never part of a profile (sketch/bezier.ts). */
+  | { kind: 'bezier'; poles: [number, number][] }
 ) & {
   construction?: true;
   /**

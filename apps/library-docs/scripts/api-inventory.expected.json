@@ -383721,6 +383721,192 @@
     },
     {
       "package": "@barocss/cad-model",
+      "subpath": "./sketch/bezier",
+      "exportName": "bezierCurve",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/bezier.ts",
+            "name": "bezierCurve",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(plane: SketchPlane, poles: readonly P2[]) => NurbsCurve",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(plane: SketchPlane, poles: readonly P2[]) => NurbsCurve"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./sketch/bezier",
+      "exportName": "bezierError",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/bezier.ts",
+            "name": "bezierError",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(poles: unknown) => string | null",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(poles: unknown) => string | null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./sketch/bezier",
+      "exportName": "bezierPoint",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/bezier.ts",
+            "name": "bezierPoint",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(poles: readonly P2[], t: number) => P2",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(poles: readonly P2[], t: number) => P2"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./sketch/bezier",
+      "exportName": "bezierSamples",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/bezier.ts",
+            "name": "bezierSamples",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(poles: readonly P2[], n?: number) => P2[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(poles: readonly P2[], n?: number) => P2[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./sketch/bezier",
+      "exportName": "bezierTangent",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/bezier.ts",
+            "name": "bezierTangent",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(poles: readonly P2[], t: number) => P2",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(poles: readonly P2[], t: number) => P2"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./sketch/bezier",
+      "exportName": "wellFormedBezier",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/bezier.ts",
+            "name": "wellFormedBezier",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(x: unknown) => x is { kind: \"bezier\"; poles: P2[]; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(x: unknown) => x is { kind: \"bezier\"; poles: P2[]; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
       "subpath": "./sketch/conflict",
       "exportName": "ConflictProof",
       "space": "type",
@@ -386364,11 +386550,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "{ kind: \"rectangle\"; a: XY; b: XY; } | { kind: \"circle\"; c: XY; r: number; } | { kind: \"polygon\"; points: XY[]; closed: boolean; bulges?: number[] | undefined; } | { kind: \"slot\"; a: XY; b: XY; r: number; }",
+            "type": "{ kind: \"rectangle\"; a: XY; b: XY; } | { kind: \"circle\"; c: XY; r: number; } | { kind: \"polygon\"; points: XY[]; closed: boolean; bulges?: number[] | undefined; } | { kind: \"slot\"; a: XY; b: XY; r: number; } | { kind: \"bezier\"; poles: XY[]; }",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "{\n    kind: \"rectangle\";\n    a: XY;\n    b: XY;\n} | {\n    kind: \"circle\";\n    c: XY;\n    r: number;\n} | {\n    kind: \"polygon\";\n    points: XY[];\n    closed: boolean;\n    bulges?: number[];\n} | {\n    kind: \"slot\";\n    a: XY;\n    b: XY;\n    r: number;\n}"
+                "definition": "{\n    kind: \"rectangle\";\n    a: XY;\n    b: XY;\n} | {\n    kind: \"circle\";\n    c: XY;\n    r: number;\n} | {\n    kind: \"polygon\";\n    points: XY[];\n    closed: boolean;\n    bulges?: number[];\n} | {\n    kind: \"slot\";\n    a: XY;\n    b: XY;\n    r: number;\n} | {\n    kind: \"bezier\";\n    poles: XY[];\n}"
               }
             ],
             "members": [
@@ -386412,6 +386598,13 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
+                "type": "\"bezier\""
+              },
+              {
+                "name": "kind",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
                 "type": "\"circle\""
               },
               {
@@ -386437,6 +386630,13 @@
               },
               {
                 "name": "points",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "XY[]"
+              },
+              {
+                "name": "poles",
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
@@ -392207,11 +392407,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "({ kind: \"rectangle\"; a: [number, number]; b: [number, number]; } | { kind: \"circle\"; c: [number, number]; r: number; } | { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; spline?: SplineDef | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } | { kind: \"slot\"; a: [number, number]; b: [number, number]; r: number; }) & { construction?: true | undefined; ids?: string[] | undefined; }",
+            "type": "({ kind: \"rectangle\"; a: [number, number]; b: [number, number]; } | { kind: \"circle\"; c: [number, number]; r: number; } | { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; spline?: SplineDef | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } | { kind: \"slot\"; a: [number, number]; b: [number, number]; r: number; } | { kind: \"bezier\"; poles: [number, number][]; }) & { construction?: true | undefined; ids?: string[] | undefined; }",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "({\n    kind: \"rectangle\";\n    a: [\n        number,\n        number\n    ];\n    b: [\n        number,\n        number\n    ];\n} | {\n    kind: \"circle\";\n    c: [\n        number,\n        number\n    ];\n    r: number;\n} | {\n    kind: \"polygon\";\n    points: [\n        number,\n        number\n    ][];\n    closed: boolean;\n    bulges?: number[];\n    pending?: boolean;\n    lengths?: Record<number, number>;\n    radii?: Record<number, number>;\n    tangents?: number[];\n    equalRadii?: [\n        number,\n        number\n    ][];\n    concentric?: [\n        number,\n        number\n    ][];\n    hv?: {\n        h: number[];\n        v: number[];\n    };\n    rules?: SketchRule[];\n    fromRectangle?: true;\n    fromSpline?: true;\n    spline?: SplineDef;\n    circles?: {\n        c: [\n            number,\n            number\n        ];\n        r: number;\n    }[];\n    circleIds?: string[];\n} | {\n    kind: \"slot\";\n    a: [\n        number,\n        number\n    ];\n    b: [\n        number,\n        number\n    ];\n    r: number;\n}) & {\n    construction?: true;\n    ids?: string[];\n}"
+                "definition": "({\n    kind: \"rectangle\";\n    a: [\n        number,\n        number\n    ];\n    b: [\n        number,\n        number\n    ];\n} | {\n    kind: \"circle\";\n    c: [\n        number,\n        number\n    ];\n    r: number;\n} | {\n    kind: \"polygon\";\n    points: [\n        number,\n        number\n    ][];\n    closed: boolean;\n    bulges?: number[];\n    pending?: boolean;\n    lengths?: Record<number, number>;\n    radii?: Record<number, number>;\n    tangents?: number[];\n    equalRadii?: [\n        number,\n        number\n    ][];\n    concentric?: [\n        number,\n        number\n    ][];\n    hv?: {\n        h: number[];\n        v: number[];\n    };\n    rules?: SketchRule[];\n    fromRectangle?: true;\n    fromSpline?: true;\n    spline?: SplineDef;\n    circles?: {\n        c: [\n            number,\n            number\n        ];\n        r: number;\n    }[];\n    circleIds?: string[];\n} | {\n    kind: \"slot\";\n    a: [\n        number,\n        number\n    ];\n    b: [\n        number,\n        number\n    ];\n    r: number;\n} | {\n    kind: \"bezier\";\n    poles: [\n        number,\n        number\n    ][];\n}) & {\n    construction?: true;\n    ids?: string[];\n}"
               }
             ],
             "members": [
@@ -392318,6 +392518,13 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
+                "type": "\"bezier\""
+              },
+              {
+                "name": "kind",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
                 "type": "\"circle\""
               },
               {
@@ -392357,6 +392564,13 @@
               },
               {
                 "name": "points",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "[number, number][]"
+              },
+              {
+                "name": "poles",
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
@@ -392557,11 +392771,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"arc\" | \"polygon\" | \"split\" | \"trim\" | \"circle\" | \"rectangle\" | \"spline\" | \"dimension\" | \"extend\" | \"slot\" | \"carc\" | \"select\"",
+            "type": "\"arc\" | \"polygon\" | \"split\" | \"trim\" | \"circle\" | \"rectangle\" | \"spline\" | \"dimension\" | \"extend\" | \"slot\" | \"bezier\" | \"carc\" | \"select\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "\"rectangle\" | \"circle\" | \"polygon\" | \"arc\" | \"carc\" | \"slot\" | \"spline\" | \"trim\" | \"extend\" | \"split\" | \"select\" | \"dimension\""
+                "definition": "\"rectangle\" | \"circle\" | \"polygon\" | \"arc\" | \"carc\" | \"slot\" | \"spline\" | \"bezier\" | \"trim\" | \"extend\" | \"split\" | \"select\" | \"dimension\""
               }
             ],
             "members": [

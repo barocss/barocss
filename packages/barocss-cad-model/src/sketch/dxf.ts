@@ -54,6 +54,8 @@ function constructionEntities(shape: SketchShape, out: DxfEntity[]): void {
     out.push({ type: 'lwpolyline', points: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]], closed: true, layer });
   } else if (shape.kind === 'circle') out.push({ type: 'circle', center: shape.c, radius: shape.r, layer });
   else if (shape.kind === 'slot') out.push(loopEntity(slotSegments(shape.a as P2, shape.b as P2, shape.r).map(s => s.kind === 'line' ? { kind: 'line' as const, start: s.start } : { kind: 'arc' as const, start: s.start, center: s.center, direction: s.direction }), layer));
+  // (A Bézier curve is left out of the DXF: there is no spline entity here; Make curves keeps it exact.)
+  else if (shape.kind === 'bezier') return;
   else if (shape.points.length >= 2) {
     const n = shape.points.length, bulges = shape.bulges?.slice(0, n);
     out.push({ type: 'lwpolyline', points: shape.points, ...(bulges?.some(b => b) ? { bulges: Array.from({ length: n }, (_, i) => bulges[i] ?? 0) } : {}), closed: shape.closed, layer });

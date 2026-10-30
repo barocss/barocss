@@ -1,4 +1,5 @@
 import { planeLabel } from '@barocss/cad-model/sketch/plane';
+import { bezierError, wellFormedBezier } from '@barocss/cad-model/sketch/bezier';
 import { isConvex } from '@barocss/cad-model/sketch/loops';
 import { useEffect, useMemo, useState } from 'react';
 import type { SketchAnchor, SketchShape, SketchState } from '../viewport/Viewport';
@@ -41,7 +42,7 @@ export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, 
       <span className={NUM}><Input id={'sk-' + id} type="number" step="any" min={min} value={round(value)}
         onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v)) set(v); }} /><em>mm</em></span></label>);
   const solved = useMemo(() => isSettled(s) ? solveShape(s) : null, [s]);
-  const status = statusOf(s, solved);
+  const status = statusOf(s, solved, sketch.tool);
   const constraints = s && !isSettled(s) ? inferred(s) : [];
 
   const lock = (poly: Polygon, key: 'lengths' | 'radii', i: number, value: number | null) => {
@@ -141,6 +142,7 @@ export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, 
           ];
         })}
       </div>}
+      {s?.kind === 'bezier' && wellFormedBezier(s) && <BezierSection s={s} onShape={onShape} onError={setSplineError} />}
       {s?.kind === 'polygon' && s.spline && sketch.tool !== 'spline' && !s.pending && splineMatches(s) && <SplineSection s={s} def={s.spline} onShape={onShape} onError={setSplineError} />}
       {s?.kind === 'polygon' && s.closed && !s.pending && s.points.some((_, j) => canBeTangent(s.points as P2[], s.bulges, j)) && <>
         <div className="card-title" style={{ marginTop: 10 }}>TANGENCY</div>
@@ -193,9 +195,11 @@ export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, 
   );
 }
 
-function statusOf(s: SketchShape | null, solved: SolveResult | null): { text: string; warn: boolean } {
+function statusOf(s: SketchShape | null, solved: SolveResult | null, tool?: string): { text: string; warn: boolean } {
   if (!s) return { text: '', warn: false };
   if (s.kind === 'slot') return s.r > 0 ? { text: 'Slot · extrudes as a line + arc solid', warn: false } : { text: 'Click the second centre, then the width', warn: true };
+  if (s.kind === 'bezier') return !wellFormedBezier(s) ? { text: 'Bézier curve with unusable control points', warn: true }
+    : s.poles.length === 3 ? { text: tool === 'bezier' ? 'Quadratic Bézier · click a fourth point to make it cubic' : 'Quadratic Bézier', warn: tool === 'bezier' } : { text: 'Cubic Bézier', warn: false };
   if (s.kind !== 'polygon') return { text: 'Fully defined · every value is dimensioned', warn: false };
   if (!s.closed) return { text: s.pending ? 'Move to bend the arc, click to place it' : 'Open profile · click the first point to close', warn: true };
   if (s.pending) return { text: 'Move to bend the closing arc, click to place it', warn: true };
@@ -210,6 +214,7 @@ function statusOf(s: SketchShape | null, solved: SolveResult | null): { text: st
 }
 
 function inferred(s: SketchShape) {
+  if (s.kind === 'bezier') return [];
   if (s.kind === 'rectangle') return [{ label: 'Horizontal', detail: '2 edges' }, { label: 'Vertical', detail: '2 edges' }, { label: 'Perpendicular', detail: '4 corners' }];
   if (s.kind === 'circle') return [{ label: 'Diameter', detail: 'Ø' + s.r * 2 }];
   if (s.kind === 'slot') return [{ label: 'Tangent', detail: '4 joints' }, { label: 'Equal radius', detail: 'both ends' }];
@@ -259,6 +264,26 @@ function DraftInput({ label, value, placeholder, onCommit }: { label: string; va
       // Enter applies the value instead of finishing the sketch (as the edge length fields do).
       if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); commit(); }
     }} />;
+}
+/** A Bézier curve's control points (X, Y), applied on Enter or blur (D354). */
+function BezierSection({ s, onShape, onError }: { s: Extract<SketchShape, { kind: 'bezier' }>; onShape(shape: SketchShape | null): void; onError(e: string | null): void }) {
+  const set = (i: number, k: number, text: string) => {
+    const v = Number(text); if (text === '' || !Number.isFinite(v)) return;
+    const poles = s.poles.map((p, j) => j === i ? (k === 0 ? [v, p[1]] : [p[0], v]) as [number, number] : p);
+    // (An edit that leaves no curve is refused with the reason and the shape stays.)
+    const why = bezierError(poles); onError(why); if (!why) onShape({ ...s, poles });
+  };
+  return <>
+    <div className="card-title" style={{ marginTop: 10 }}>BÉZIER</div>
+    <div className="pts" role="group" aria-label="Bézier control points" style={{ gridTemplateColumns: '18px minmax(0, 1fr) minmax(0, 1fr)' }}>
+      <span /><span>X</span><span>Y</span>
+      {s.poles.map((p, i) => [
+        <span key={'n' + i}>{i + 1}</span>,
+        ...[0, 1].map(k => <DraftInput key={i + '_' + k} label={`Control point ${i + 1} ${'XY'[k]}`} value={String(round(p[k]))} onCommit={t => set(i, k, t)} />),
+      ])}
+    </div>
+    <p className="muted small">Not part of the profile · Make curves turns it into a curve for lofts and sweeps</p>
+  </>;
 }
 /** A spline outline's fit points (X, Y) and handle directions (degrees; empty is automatic), applied on Enter or blur. */
 function SplineSection({ s, def, onShape, onError }: { s: Polygon; def: SplineDef; onShape(shape: SketchShape | null): void; onError(e: string | null): void }) {

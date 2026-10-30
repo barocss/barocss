@@ -26,6 +26,7 @@ Finish the sketch with <kbd>Enter</kbd> or **Finish sketch** in the top bar.
 | <kbd>Q</kbd> | Centre arc | Click the centre, then the start (the radius), then turn to the end and click |
 | <kbd>O</kbd> | Slot | Click both centres, then the width |
 | <kbd>P</kbd> | Spline | Click points the curve runs smoothly through; it is kept as tangent arcs and keeps its fit points |
+| <kbd>B</kbd> | Bézier | Click control points: three make a quadratic, a fourth a cubic; the curve does not pass through the middle points |
 | <kbd>T</kbd> | Trim | Click a piece to cut it back to where it crosses others |
 | <kbd>E</kbd> | Extend | Click near an open end to run it on to the next piece it meets |
 | <kbd>K</kbd> | Split | Click a line, arc or circle to split it in two there |
@@ -47,6 +48,25 @@ starts after the pointer moves 3 px, so a plain click still picks. Releasing app
 <kbd>Escape</kbd> cancels, and a position with no buildable arc pair keeps the last valid one. The arc radius chips are hidden
 on a closed spline so they do not cover its handles; lock a radius in the panel grid instead. A spline is driven only by its fit points and handles: a dimension or relation on it, or an
 edit of its outline points, turns it into an ordinary outline.
+
+A Bézier curve is drawn from its control points: the dashed control polygon joins them and the solid curve runs from the
+first to the last, leaving along the first leg and arriving along the last. It does not pass through the middle points. The
+third click makes a quadratic; a fourth makes it cubic and ends it. A click on the previous point is ignored, and poles that
+make no curve (all on one point, or both ends on one point with every pole on a line) are refused with the reason. While it is
+the current shape the **BÉZIER** section lists each **Control point** X and Y; type a value and press <kbd>Enter</kbd> (or
+leave the box) to apply it. An edit that would leave no curve shows the reason and changes nothing.
+
+What holds for a Bézier curve:
+
+- It is kept with the sketch and comes back when an ordinary (non-linked) sketch is reopened. Once another shape is drawn, or
+  after a reopen, it is shown but is no longer the editable current shape: its control points are not listed in the panel.
+- It is never part of the profile, so it never needs to close; **Finish sketch** still needs a closed profile.
+- It is not a trim, split or extend boundary, and is not offset or constrained.
+- It is always a Bézier curve: the Construction mode does not make it a construction line.
+- It is not written to a DXF export.
+- **Make curves of the sketch** turns it into one polynomial curve, exact up to the 1e-9 mm decimal form of the curve source,
+  which a Loft can copy as its **Guide** (a single quadratic or cubic span keeps the two-frame path). Degenerate curves, and
+  coordinates beyond 1e6 mm, are refused with a message.
 
 A closed shape inside a hole is not supported in the same sketch. **Finish sketch** refuses it;
 draw that shape in a separate sketch.

@@ -20,6 +20,7 @@ export function offsetShape(s: SketchShape, d: number): { shape: SketchShape } |
     }
     case 'circle': return s.r + d > 0.01 ? { shape: { kind: 'circle', c: s.c, r: r6(s.r + d) } } : { error: 'That offset closes the circle up.' };
     case 'slot': return s.r + d > 0.01 ? { shape: { kind: 'slot', a: s.a, b: s.b, r: r6(s.r + d) } } : { error: 'That offset closes the slot up.' };
+    case 'bezier': return { error: 'A Bézier curve is not offset.' };
     case 'polygon': {
       if (!s.closed) return { error: 'Close the outline first: only closed shapes are offset.' };
       const pts = s.points, n = pts.length;

@@ -12,6 +12,8 @@ import { extendAt, joinOpen, splitAt, trimAt } from '@barocss/cad-model/sketch/t
 import { sketchShapes } from '@barocss/cad-model/sketch/reopen';
 import { renameToTagged } from '@barocss/cad-model/sketch/entityIds';
 import { loadDirect } from '@barocss/cad-model/engine/directModule';
+import type { SketchShape } from '@barocss/cad-model/sketch/types';
+import { bezierCurve, bezierError, wellFormedBezier } from '@barocss/cad-model/sketch/bezier';
 import { circleCurve, curvesSource, edgeCurve, outlineCurve } from '@barocss/cad-model/engine/curveSource';
 import { isDefaultPlane, offsetPlane, standardPlane, tiltPlane, xyPlane, type SketchPlane } from '@barocss/cad-model/sketch/plane';
 import { profileOf, shapeNode } from '@barocss/cad-model/sketch/loops';
@@ -61,14 +63,22 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   const sketchToCurves = async () => {
     if (!sketch) return;
     const shapes = [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])], P = sketch.plane;
+    // (A Bézier that makes no curve is refused here, not handed on to the direct geometry.)
+    const refused = shapes.map(s => s.kind === 'bezier' ? bezierError(s.poles) : null).find(Boolean);
+    if (refused) { setToast({ title: 'Cannot make curves', hint: refused, detail: '' }); return; }
     const curves = shapes.flatMap(s => s.kind === 'circle' ? [circleCurve(P, s.c, s.r)]
       : s.kind === 'rectangle' ? [outlineCurve(P, [s.a, [s.b[0], s.a[1]], s.b, [s.a[0], s.b[1]]], undefined, true)]
+        : s.kind === 'bezier' ? (wellFormedBezier(s) ? [bezierCurve(P, s.poles)] : [])
         : s.kind === 'slot' ? (() => { const l = Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1]) || 1, n: [number, number] = [-(s.b[1] - s.a[1]) / l * s.r, (s.b[0] - s.a[0]) / l * s.r]; return [outlineCurve(P, [[s.a[0] - n[0], s.a[1] - n[1]], [s.b[0] - n[0], s.b[1] - n[1]], [s.b[0] + n[0], s.b[1] + n[1]], [s.a[0] + n[0], s.a[1] + n[1]]], [0, 1, 0, 1], true)]; })()
           : s.points.length >= 2 ? [outlineCurve(P, s.points, s.bulges, s.closed)] : []);
-    if (!curves.length) { setToast({ title: 'Nothing to make curves of', hint: 'Draw lines, arcs or circles in the sketch first.', detail: '' }); return; }
+    if (!curves.length) { setToast({ title: 'Nothing to make curves of', hint: 'Draw lines, arcs, circles or Bézier curves in the sketch first.', detail: '' }); return; }
     if (curves.length > 16) { setToast({ title: 'Too many shapes', hint: 'Make curves of at most 16 shapes at a time.', detail: '' }); return; }
     const { importSource } = await loadDirect();
-    const made = (doc.direct?.objects ?? []).filter(o => o.name.startsWith('Sketch curve')).length, next = importSource(doc.direct ?? emptyDirect(), curvesSource('sketch', curves), `Sketch curve ${made + 1}`);
+    const made = (doc.direct?.objects ?? []).filter(o => o.name.startsWith('Sketch curve')).length;
+    // (The source refuses what it cannot hold, e.g. coordinates beyond 1e6 mm: a message, not an unhandled rejection.)
+    let next: DirectGeometry;
+    try { next = importSource(doc.direct ?? emptyDirect(), curvesSource('sketch', curves), `Sketch curve ${made + 1}`); }
+    catch (error) { setToast({ title: 'Cannot make curves', hint: error instanceof Error ? error.message : String(error), detail: '' }); return; }
     if (!commitDirect(next, next.objects.slice(doc.direct?.objects.length ?? 0).map(o => o.id))) return;
     setSketch(null);
   };
@@ -132,8 +142,8 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     const shapes = joinOpen((sketch.editNode !== undefined && sketch.shape ? [sketch.shape, ...(sketch.done ?? [])] : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])]).map(x => x.kind === 'polygon' && !x.closed ? { ...x, pending: false } : x));
     const profile = profileOf(shapes);
     if ('error' in profile) { setToast({ title: 'Finish the profile first', hint: profile.error, detail: '' }); return; }
-    // Construction shapes are kept with the sketch (they come back when it is reopened).
-    const refs = shapes.filter(x => x.construction), node = refs.length ? { ...profile.node, construction: refs } as SketchNode : profile.node;
+    // Construction shapes and Bézier curves are kept with the sketch (they come back when it is reopened). A Bézier is stored without `construction`: it is no reference to hide or snap as one, and drawing and Make curves treat it as the curve it is.
+    const refs = shapes.filter(x => x.construction || x.kind === 'bezier').map(x => x.kind === 'bezier' && x.construction ? (({ construction: _c, ...rest }) => rest as SketchShape)(x) : x), node = refs.length ? { ...profile.node, construction: refs } as SketchNode : profile.node;
     // The sketch keeps its plane; everything below is in the plane's own coordinates (Z along its normal).
     const placedNode: ModelNode = { ...node, ...(isDefaultPlane(sketch.plane) ? {} : { plane: { origin: [...sketch.plane.origin], normal: [...sketch.plane.normal], xAxis: [...sketch.plane.xAxis] } }), ...(sketch.association ? { association: sketch.association } : {}), ...((sketch.association || sketch.associationDetached) && sketch.base ? { on: sketch.base } : {}) } as SketchNode;
     if (sketch.editNode !== undefined) {

@@ -6,6 +6,7 @@ import { outlineSegments, sampleOutline, sampleSlot, slotSegments, type P2 } fro
 import { segmentDistance as segDist, insideRing as inside } from '../engine/geom2';
 import { sideTagsFor, withIds } from './entityIds';
 import { splineMatches } from './spline';
+import { bezierSamples, wellFormedBezier } from './bezier';
 
 export function isConvex(points: [number, number][]) {
   let sign = 0; const n = points.length;
@@ -22,6 +23,7 @@ export function shapeNode(s: SketchShape): SketchNode | null {
   if (s.kind === 'rectangle') return Math.abs(s.a[0] - s.b[0]) < 1 || Math.abs(s.a[1] - s.b[1]) < 1 ? null
     : { kind: 'sketch', profile: 'rectangle', min: [Math.min(s.a[0], s.b[0]), Math.min(s.a[1], s.b[1])], max: [Math.max(s.a[0], s.b[0]), Math.max(s.a[1], s.b[1])] };
   if (s.kind === 'circle') return { kind: 'sketch', profile: 'circle', center: s.c, radius: s.r };
+  if (s.kind === 'bezier') return null;
   if (s.kind === 'slot') return s.r > 0 && (s.a[0] !== s.b[0] || s.a[1] !== s.b[1]) ? { kind: 'sketch', profile: 'loop', segments: slotSegments(s.a, s.b, s.r) } : null;
   if (!s.closed || s.pending) return null;
   const rect = rectangleNode(s); if (rect) return rect;
@@ -113,6 +115,7 @@ export function shapeOutline(s: SketchShape): P2[] {
   if (s.kind === 'rectangle') return [s.a, [s.b[0], s.a[1]], s.b, [s.a[0], s.b[1]]];
   if (s.kind === 'circle') return Array.from({ length: 48 }, (_, i) => [s.c[0] + s.r * Math.cos(i * Math.PI / 24), s.c[1] + s.r * Math.sin(i * Math.PI / 24)] as P2);
   if (s.kind === 'slot') return sampleSlot(s.a, s.b, s.r);
+  if (s.kind === 'bezier') return wellFormedBezier(s) ? bezierSamples(s.poles) : [];
   return sampleOutline(s.points as P2[], s.bulges, true);
 }
 
@@ -134,7 +137,7 @@ export function loopOf(n: SketchNode): DocSegment[] {
  */
 export function profileOf(all: SketchShape[]): { node: SketchNode } | { error: string } {
   // (Construction shapes are references: they make no part of the profile. Every side has its id, R10a.)
-  let shapes = withIds(all).filter(s => !s.construction);
+  let shapes = withIds(all).filter(s => !s.construction && s.kind !== 'bezier');
   // An outline's attached circles are shapes of the profile beside it (holes inside it, regions outside).
   shapes = shapes.flatMap(s => s.kind === 'polygon' && s.closed && s.circles?.length ? [s, ...s.circles.map((c, i): SketchShape => ({ kind: 'circle', c: c.c, r: c.r, ...(s.circleIds?.[i] ? { ids: [s.circleIds[i]] } : {}) }))] : [s]);
   const closed = shapes.map(s => ({ s, node: shapeNode(s) })).filter((x): x is { s: SketchShape; node: SketchNode } => !!x.node);

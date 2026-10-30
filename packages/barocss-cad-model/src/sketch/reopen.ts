@@ -5,6 +5,7 @@ import type { SketchShape } from './types';
 import type { P2 } from './profile';
 import type { Polygon } from './rules';
 import { loopOf } from './loops';
+import { wellFormedBezier } from './bezier';
 import type { SplineDef } from './spline';
 
 const pt = (p: readonly unknown[]): P2 => [Number(p[0]), Number(p[1])];
@@ -83,5 +84,5 @@ export function sketchShapes(node: SketchNode): { shape: SketchShape | null; don
   let shape: SketchShape | null = main && { ...main, ids: outer };
   if (shape?.kind === 'polygon' && attached.length) shape = { ...shape, circleIds: attached.map(c => loops.find(x => sameCircle(x.s, c))?.ids[0] ?? `e${k++}`) };
   const done = loops.filter(x => !!x.s && !attached.some(c => sameCircle(x.s, c))).map(x => ({ ...x.s!, ids: x.ids }) as SketchShape);
-  return { shape, done: [...done, ...((node.construction ?? []) as SketchShape[])], ...(Object.keys(positional).length && !tags ? { positional } : {}) };
+  return { shape, done: [...done, ...((node.construction ?? []) as SketchShape[]).filter(x => x?.kind !== 'bezier' || wellFormedBezier(x))], ...(Object.keys(positional).length && !tags ? { positional } : {}) };
 }

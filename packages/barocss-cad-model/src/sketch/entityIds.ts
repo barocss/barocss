@@ -12,9 +12,9 @@ import type { SketchRule } from './terms';
 export interface SideTags { outer: string[]; regions?: string[][]; holes?: string[][] }
 
 const ID = /^e(\d+)$/;
-/** How many sides (ids) a shape has: a rectangle's four, a circle's one, a slot's four, a polygon's points. */
+/** How many sides (ids) a shape has: a rectangle's four, a circle's one, a slot's four, a Bézier curve's one, a polygon's points. */
 export function sidesOf(s: SketchShape): number {
-  return s.kind === 'rectangle' ? 4 : s.kind === 'circle' ? 1 : s.kind === 'slot' ? 4 : s.points.length;
+  return s.kind === 'rectangle' ? 4 : s.kind === 'circle' ? 1 : s.kind === 'slot' ? 4 : s.kind === 'bezier' ? 1 : s.points.length;
 }
 /** The next id number after every id in the shapes. */
 export function nextIdOf(shapes: readonly SketchShape[]): number {
@@ -109,12 +109,12 @@ export function tagsOf(s: SketchShape, loop: readonly LoopSegment[]): string[] |
 
 /**
  * A shape's corners in the order its ids run (a rectangle from `a` round by `(b.x, a.y)`, a slot as its loop, a
- * polygon's points); null for a circle (one side, no corners).
+ * polygon's points); null for a circle or a Bézier curve (one side, no corners).
  */
 export function cornersOf(s: SketchShape): [number, number][] | null {
   switch (s.kind) {
     case 'rectangle': return [s.a, [s.b[0], s.a[1]], s.b, [s.a[0], s.b[1]]];
-    case 'circle': return null;
+    case 'circle': case 'bezier': return null;
     case 'slot': {
       const l = Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1]) || 1, n: [number, number] = [-(s.b[1] - s.a[1]) / l * s.r, (s.b[0] - s.a[0]) / l * s.r];
       return [[s.a[0] - n[0], s.a[1] - n[1]], [s.b[0] - n[0], s.b[1] - n[1]], [s.b[0] + n[0], s.b[1] + n[1]], [s.a[0] + n[0], s.a[1] + n[1]]];

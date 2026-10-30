@@ -40,7 +40,7 @@ import { ModelExportDialogs } from './files/ModelExportDialogs';
 import { readDocumentFile, verifyDocumentFile, writeDocumentFile } from './files/documentFile';
 import { changesBeyondVariability } from './app/documentChanges';
 import { sameMeshes, withMasses, samePlacement, meshVolume } from './app/bodyResults';
-import { TOOLS, SKETCH_INSETS, sketchRegion, switchTool, detachSketchLink } from './app/sketchControls';
+import { TOOLS, SKETCH_INSETS, sketchRegion, switchTool, detachSketchLink, bezierEdit } from './app/sketchControls';
 import { activeKey, type Active } from './app/commandState';
 import { emptySel, NO_INSTANCES, GROUP_COMMANDS, PLACE_COMMANDS, BROWSER_PLACEMENT, PALETTE_EXTRA } from './app/studioConstants';
 import { routeMessage } from './app/routeSession';
@@ -358,9 +358,11 @@ export function App() {
   const constructRef = useRef(false); constructRef.current = !!sketch?.construct;
   const updateShape = useCallback((shape: SketchShape | null, fresh = false) => {
     // (An open line or arc stays too: pieces meeting end to end join, and close into an outline.)
-    const prev = liveShape.current, keep = fresh && prev && (shapeNode(prev) || prev.construction || (prev.kind === 'polygon' && !prev.closed && !prev.pending && prev.points.length >= 2)) ? prev : null;
+    const prev = liveShape.current, keep = fresh && prev && (shapeNode(prev) || prev.construction || prev.kind === 'bezier' || (prev.kind === 'polygon' && !prev.closed && !prev.pending && prev.points.length >= 2)) ? prev : null;
     // A new shape is construction while the mode is on; the one being drawn stays what it began as.
-    if (shape) { const c = !prev || fresh ? constructRef.current : !!prev.construction; shape = c ? { ...shape, construction: true } : shape.construction ? (({ construction: _c, ...rest }) => rest as SketchShape)(shape) : shape; }
+    // A Bézier curve with no usable curve is refused (the reason shows in the panel), and is never construction: it stays the curve it is (D354).
+    if (shape?.kind === 'bezier') { const b = bezierEdit(shape); if ('error' in b) { setSketchError(b.error); return; } shape = b.shape; }
+    else if (shape) { const c = !prev || fresh ? constructRef.current : !!prev.construction; shape = c ? { ...shape, construction: true } : shape.construction ? (({ construction: _c, ...rest }) => rest as SketchShape)(shape) : shape; }
     const r = settleShape(shape, keep ? null : prev); liveShape.current = r.shape;
     if (!keep && isSettled(prev) && isSettled(r.shape)) sketchHistory.current.push(prev, r.shape);
     setSketchError(r.error); setSketch(s => s && { ...(JSON.stringify(s.shape) === JSON.stringify(r.shape) && !keep ? s : detachSketchLink(s)), shape: r.shape, ...(keep ? { done: joinOpen([...(s.done ?? []), keep]) } : {}) });

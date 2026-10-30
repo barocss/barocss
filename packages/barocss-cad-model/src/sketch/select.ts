@@ -99,13 +99,17 @@ export function rectangleOutline(r: Extract<NonNullable<SketchState['shape']>, {
 export function startPicking(s: SketchState, tool: 'select' | 'dimension'): SketchState {
   let shape = s.shape, done = s.done ?? [];
   if (shape?.kind === 'polygon' && shape.pending) shape = { ...shape, pending: false };
+  // A Bézier curve drawn last goes aside like a circle; the profile is then picked as it would be without it.
+  if (shape?.kind === 'bezier') { done = [...done, shape]; shape = null; }
   // A circle or slot drawn last goes beside the outline; the last finished outline or rectangle is edited.
-  if (shape && (shape.kind === 'circle' || shape.kind === 'slot')) {
+  else if (shape && (shape.kind === 'circle' || shape.kind === 'slot')) {
     const k = done.map(d => d.kind === 'rectangle' || isSettled(d)).lastIndexOf(true);
     if (k >= 0) { done = [...done.slice(0, k), ...done.slice(k + 1), shape]; shape = s.done![k]; }
   }
-  const last = done[done.length - 1];
-  if (!shape && (last?.kind === 'rectangle' || isSettled(last))) { shape = last; done = done.slice(0, -1); }
+  // (Béziers at the end of `done` are no profile and do not hide the outline before them.)
+  let end = done.length; while (end > 0 && done[end - 1].kind === 'bezier') end--;
+  const last = done[end - 1];
+  if (!shape && (last?.kind === 'rectangle' || isSettled(last))) { shape = last; done = [...done.slice(0, end - 1), ...done.slice(end)]; }
   if (shape?.kind === 'rectangle') shape = rectangleOutline(shape) ?? shape;
   return { ...s, tool, picked: [], editDim: null, shape, done };
 }

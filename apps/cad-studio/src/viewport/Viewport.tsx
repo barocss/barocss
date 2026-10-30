@@ -31,6 +31,7 @@ import { CAGE_LINE_KEYS, CageMarks, cageLines, cagePoints } from './CageMarks';
 import { pickCage, type CageHit, type CageMode, type CageSelection, type StudioCage } from '@barocss/cad-model/subd/cageEdit';
 import type { CageValidation } from '@barocss/cad';
 import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } from '@barocss/cad-model/sketch/osnap';
+import { bezierError, bezierSamples, wellFormedBezier } from '@barocss/cad-model/sketch/bezier';
 import { respline, splineEditError, splineMatches, splineOutline } from '@barocss/cad-model/sketch/spline';
 import { draggedSpline, sameSplineDef, splineDragStarted, splineHandleGeometry, splineHandleHit, type SplineHandleHit } from './splineHandles';
 import type { SplineDef } from '@barocss/cad-model/sketch/spline';
@@ -1076,7 +1077,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const splineCancelOf = (pointerId: number) => { const d = drag.current; if ((d.splineArm?.pointerId ?? (d.mode === 'spline' ? d.pointerId : undefined)) === pointerId) splineDragCancel(); };
   // A tool change or the end of the sketch cancels a pending spline drag and drops the grab cursor.
   const sketchTool = props.sketch?.tool;
-  useEffect(() => { splineCancelRef.current(); if (canvas.current) canvas.current.style.cursor = ''; }, [sketchTool, !!props.sketch]);
+  useEffect(() => { splineCancelRef.current(); if (canvas.current) canvas.current.style.cursor = ''; bezierDraft.current = { poles: [], open: false }; }, [sketchTool, !!props.sketch]);
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (drag.current.mode === 'gizmo') return;
@@ -1202,6 +1203,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   /** The centre arc being drawn: its centre, then its start and how far it has turned (signed, radians). */
   /** The Spline tool's points so far (the curve through them is drawn as tangent arcs). */
   const splineFit = useRef<[number, number][] | null>(null);
+  /** The Bézier tool's control points before they make a shape (fewer than three); `open`: the current shape is a quadratic a fourth click makes cubic (D354). */
+  const bezierDraft = useRef<{ poles: [number, number][]; open: boolean }>({ poles: [], open: false });
   const carc = useRef<{ c: [number, number]; a?: [number, number]; last?: number; sweep: number; cursor?: [number, number] } | null>(null);
   const carcEnd = (d: NonNullable<typeof carc.current>): [number, number] => {
     const r = Math.hypot(d.a![0] - d.c[0], d.a![1] - d.c[1]), t = Math.atan2(d.a![1] - d.c[1], d.a![0] - d.c[0]) + d.sweep, r6 = (v: number) => Math.round(v * 1e6) / 1e6;
@@ -1265,6 +1268,23 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
         if (fit.length && c[0] === fit[fit.length - 1][0] && c[1] === fit[fit.length - 1][1]) return;
         splineFit.current = [...fit, c];
         const o = splineOutline(splineFit.current, false); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: false, fromSpline: true, spline: { fit: [...splineFit.current], closed: false } }, fresh); request(); return;
+      }
+      if (sk.tool === 'bezier') {
+        // Control points: the third makes a quadratic (a shape), a fourth a cubic and ends it (the next click starts another curve).
+        // (A click on the previous point is ignored; poles that make no curve are refused with the reason, and the draft stays.)
+        const bd = bezierDraft.current, same = (q: [number, number] | undefined) => !!q && q[0] === c[0] && q[1] === c[1];
+        if (bd.open && wellFormedBezier(s) && s.poles.length === 3) {
+          if (same(s.poles[2])) return;
+          const next: SketchShape = { ...s, poles: [...s.poles, c] };
+          if (bezierError(next.poles)) { propsRef.current.onSketchShape(next); return; }
+          bezierDraft.current = { poles: [], open: false }; emit(next); request(); return;
+        }
+        if (same(bd.poles[bd.poles.length - 1])) return;
+        const poles = [...bd.poles, c];
+        if (poles.length < 3) { bezierDraft.current = { poles, open: false }; request(); return; }
+        const made: SketchShape = { kind: 'bezier', poles };
+        if (bezierError(poles)) { propsRef.current.onSketchShape(made, true); return; }
+        bezierDraft.current = { poles: [], open: true }; emit(made, true); request(); return;
       }
       if (sk.tool === 'carc') {
         const d = carc.current;
@@ -1407,6 +1427,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       (sk.done ?? []).forEach((d, i) => {
         if (sk.hideConstruction && d.construction) return;
         const cls = 'sk-shape done' + (d.construction ? ' construction' : '');
+        if (d.kind === 'bezier') { items.push(...bezierMarks('done' + i, d.poles, P, true)); return; }
         if (d.kind === 'polygon' && !d.closed) {
           items.push(<polyline key={'done' + i} points={sampleOutline(d.points, d.bulges, false).map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join(' ')} className={cls + ' open'} />);
           for (const [k, q] of [d.points[0], d.points[d.points.length - 1]].entries()) { const p = P(q[0], q[1]); items.push(<circle key={'de' + i + '.' + k} cx={p[0]} cy={p[1]} r={3} className="sk-end" />); }
@@ -1436,6 +1457,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
         const l = Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1]);
         if (l > 0) items.push(label((a[0] + b[0]) / 2, (a[1] + b[1]) / 2 - 18, fmtLen(l), 'slot-length'));
         if (s.r > 0) { const e = P(s.b[0], s.b[1] + s.r); items.push(label(e[0] + 34, e[1], 'W ' + fmtLen(s.r * 2), 'slot-width')); }
+      } else if (s?.kind === 'bezier') {
+        items.push(...bezierMarks('bz', s.poles, P, false));
       } else if (s?.kind === 'polygon') {
         const pts = s.points.map(p => P(p[0], p[1])); const cur = sketchDraft.current.cursor;
         const marks = isSettled(s) ? sketchMarks({ shape: s, done: sk.done, project: (u, v) => P(u, v), picked: sk.picked ?? [], hover: picking(sk) ? sketchDraft.current.hover ?? null : null, editDim: sk.editDim,
@@ -1470,6 +1493,11 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
           if (len > 0) items.push(label(m[0], m[1] + 20, (Math.round(len * 10) / 10).toString(), 'live-len'));
         }
         if (marks) { items.push(...marks.svg); editor = marks.html; }
+      }
+      // The Bézier tool's control points so far, and (from the second) the curve they make with the cursor as the next one.
+      if (sk.tool === 'bezier' && bezierDraft.current.poles.length) {
+        const cur = sketchDraft.current.cursor, bp = bezierDraft.current.poles;
+        items.push(...bezierMarks('bzd', cur ? [...bp, cur] : bp, P, false));
       }
       // The trim tool's target: the piece a click removes.
       // The centre arc being drawn: its circle while the start is chosen, then the arc so far and its radii.
@@ -1650,6 +1678,17 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
 /** The drag-and-drop type of a command dragged from the rail (its id is the data). */
 export const DRAG_TYPE = 'application/x-cad-command';
 const fmtLen = (v: number) => String(Math.round(v * 10) / 10);
+/** A Bézier curve's marks (D354): the control polygon dashed, the curve solid (display samples), the control points as dots; `light`: a finished one. */
+function bezierMarks(key: string, poles: readonly [number, number][], P: (u: number, v: number) => readonly number[], light: boolean): React.ReactNode[] {
+  // (A malformed stored shape draws nothing.)
+  if (!Array.isArray(poles) || poles.length > 4 || !poles.every(q => Array.isArray(q) && Number.isFinite(q[0]) && Number.isFinite(q[1]))) return [];
+  const pts = poles.map(q => P(q[0], q[1])), str = (a: readonly (readonly number[])[]) => a.map(p => p[0] + ',' + p[1]).join(' ');
+  const out: React.ReactNode[] = [];
+  if (pts.length >= 2) out.push(<polyline key={key + 'g'} points={str(pts)} className="sk-guide" fill="none" />);
+  if (poles.length >= 3) out.push(<polyline key={key + 'c'} points={str(bezierSamples(poles).map(q => P(q[0], q[1])))} className={'sk-shape' + (light ? ' done' : '') + ' open'} style={{ fill: 'none' }} />);
+  pts.forEach((p, i) => out.push(<circle key={key + 'p' + i} cx={p[0]} cy={p[1]} r={light ? 3 : 3.5} className={light ? 'sk-end' : 'sk-point'} />));
+  return out;
+}
 /** The definition of a settled, closed polygon that is a spline still matching it (D353), else null. */
 function closedSplineOf(s: SketchShape | null): SplineDef | null {
   return s && s.kind === 'polygon' && s.closed && isSettled(s) && s.spline && s.spline.closed && s.spline.fit.length >= 2 && splineMatches(s) ? s.spline : null;
