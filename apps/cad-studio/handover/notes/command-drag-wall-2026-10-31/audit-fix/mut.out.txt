@@ -1,0 +1,33 @@
+BASELINE:  pass 19 fail 0 
+M1_drop_live_check:  pass 17 fail 2 => a value past the old bound that becomes valid is reached (a  | a stale failure arriving after the pointer moved to a valid 
+M2_sign_only_wall BUILD-FAIL ✘ [ERROR] mutation anchor not found: if (hd.bad !== null && (v - hd.bad) * hd.wall >= 0) v = hd.lastOk; [plugin mut]
+
+    ../../node_modules/esbuild/lib/main.js:1267:27:
+      1267 │         let resul
+M3a_bisect_toward_pointer:  pass 11 fail 8 => drag A past the limit settles within one step of it (kernel  | drag A past the limit settles within one step of it (kernel  | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | after release the committed value is one the kernel accepted
+M3b_bisect_no_pointer_guard:  pass 12 fail 7 => drag B back to a valid value while a failing preview runs ke | drag C out again after a refusal reaches the valid value, wi | drag B back to a valid value while a failing preview runs ke | drag C out again after a refusal reaches the valid value, wi | drag C out again after a refusal reaches the valid value, wi | a stale failure never changes the current value | a stale failure arriving after the pointer moved to a valid 
+M3c_bisect_overshoot:  pass 11 fail 8 => drag A past the limit settles within one step of it (kernel  | drag A past the limit settles within one step of it (kernel  | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | after release the committed value is one the kernel accepted
+M4_never_clear_bad:  pass 18 fail 1 => a value past the old bound that becomes valid is reached (a 
+M5_unbounded_bisect:  pass 10 fail 9 => drag A past the limit settles within one step of it (kernel  | drag A past the limit settles within one step of it (kernel  | drag A past the limit settles within one step of it (kernel  | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | after release the committed value is one the kernel accepted
+M6_stale_failure_ignored:  pass 17 fail 2 => a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin
+M7_bad_always_latest:  pass 19 fail 0 
+M8_no_bisect_after_success:  pass 16 fail 3 => a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin
+M9_failure_resets_to_lastOk:  pass 19 fail 0 
+M10_old_lastOk_rule:  pass 11 fail 8 => drag A past the limit settles within one step of it (kernel  | drag A past the limit settles within one step of it (kernel  | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | after release the committed value is one the kernel accepted
+M11_clamp_strict BUILD-FAIL ✘ [ERROR] mutation anchor not found: (v - hd.bad) * hd.wall >= 0) v = hd.lastOk [plugin mut]
+
+    ../../node_modules/esbuild/lib/main.js:1267:27:
+      1267 │         let result = await callback({
+   
+M12_clear_strict:  pass 18 fail 1 => a value past the old bound that becomes valid is reached (a 
+M13_no_clamp BUILD-FAIL ✘ [ERROR] mutation anchor not found: if (hd.bad !== null && (v - hd.bad) * hd.wall >= 0) v = hd.lastOk; [plugin mut]
+
+    ../../node_modules/esbuild/lib/main.js:1267:27:
+      1267 │         let resul
+M14_bisect_ignores_stale_check:  pass 19 fail 0 
+M15_rolled_updates_lastOk:  pass 17 fail 2 => a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin
+F1a_stale_success_moves_lastOk_back:  pass 19 fail 0 
+F1b_pointer_resets_bisect_step:  pass 14 fail 5 => a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin
+F1c_guard_ignores_bad_side:  pass 19 fail 0 
+F1d_cur_not_strict_bad:  pass 19 fail 0 
+done

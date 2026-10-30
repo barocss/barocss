@@ -1,0 +1,1873 @@
+TAP version 13
+# Subtest: joints and setJoints keep mixed turn/slide public settings in the latest document and project once
+ok 1 - joints and setJoints keep mixed turn/slide public settings in the latest document and project once
+  ---
+  duration_ms: 254.998916
+  type: 'test'
+  ...
+# Subtest: the shared public tree scales mixed mimic multipliers and offsets in both directions
+ok 2 - the shared public tree scales mixed mimic multipliers and offsets in both directions
+  ---
+  duration_ms: 0.19775
+  type: 'test'
+  ...
+# Subtest: a coupled gear facade keeps its dimensionless ratio and degree pose values
+ok 3 - a coupled gear facade keeps its dimensionless ratio and degree pose values
+  ---
+  duration_ms: 1205.171708
+  type: 'test'
+  ...
+# Subtest: sweep contact at the initial mixed pose returns exact degrees and mm before rounding
+ok 4 - sweep contact at the initial mixed pose returns exact degrees and mm before rounding
+  ---
+  duration_ms: 75.73375
+  type: 'test'
+  ...
+# Subtest: open-chain motion rejects nonfinite waypoints before timing or interpolation
+ok 5 - open-chain motion rejects nonfinite waypoints before timing or interpolation
+  ---
+  duration_ms: 1397.543375
+  type: 'test'
+  ...
+# Subtest: finite open-chain motion keeps degree/mm and zero-distance timing
+ok 6 - finite open-chain motion keeps degree/mm and zero-distance timing
+  ---
+  duration_ms: 158.856166
+  type: 'test'
+  ...
+# Subtest: supplied nonfinite motion rates are typed refusals before playback or saving
+ok 7 - supplied nonfinite motion rates are typed refusals before playback or saving
+  ---
+  duration_ms: 1896.392542
+  type: 'test'
+  ...
+# Subtest: zero and negative rates retain the existing core refusal for a moving joint
+ok 8 - zero and negative rates retain the existing core refusal for a moving joint
+  ---
+  duration_ms: 205.221792
+  type: 'test'
+  ...
+# Subtest: malformed path containers have the same typed boundary for reading and saving
+ok 9 - malformed path containers have the same typed boundary for reading and saving
+  ---
+  duration_ms: 1204.845
+  type: 'test'
+  ...
+# Subtest: Robot.path rejects malformed waypoints before spreading can erase their shape
+ok 10 - Robot.path rejects malformed waypoints before spreading can erase their shape
+  ---
+  duration_ms: 24.243583
+  type: 'test'
+  ...
+# Subtest: direct RobotPath snapshots nested waypoints, limits and profile at construction
+ok 11 - direct RobotPath snapshots nested waypoints, limits and profile at construction
+  ---
+  duration_ms: 153.548084
+  type: 'test'
+  ...
+# Subtest: motion and waypoints getters return independent copies of the constructor snapshot
+ok 12 - motion and waypoints getters return independent copies of the constructor snapshot
+  ---
+  duration_ms: 41.128459
+  type: 'test'
+  ...
+# Subtest: duration and poseAt refuse unknown joints with the same first problem and details
+ok 13 - duration and poseAt refuse unknown joints with the same first problem and details
+  ---
+  duration_ms: 98.414667
+  type: 'test'
+  ...
+# Subtest: duration refuses a gear follower rather than timing an independent follower move
+ok 14 - duration refuses a gear follower rather than timing an independent follower move
+  ---
+  duration_ms: 345.935792
+  type: 'test'
+  ...
+# Subtest: duration enforces public degree bounds and missing timing limits like poseAt
+ok 15 - duration enforces public degree bounds and missing timing limits like poseAt
+  ---
+  duration_ms: 812.819583
+  type: 'test'
+  ...
+# Subtest: withMotion validates the destination robot even when a path came from another robot
+ok 16 - withMotion validates the destination robot even when a path came from another robot
+  ---
+  duration_ms: 101.327834
+  type: 'test'
+  ...
+# Subtest: withMotion checks a single recorded waypoint for unknown, mimic, range and finite inputs
+ok 17 - withMotion checks a single recorded waypoint for unknown, mimic, range and finite inputs
+  ---
+  duration_ms: 390.21775
+  type: 'test'
+  ...
+# Subtest: withMotion preserves empty, single-waypoint and untimed recording drafts
+ok 18 - withMotion preserves empty, single-waypoint and untimed recording drafts
+  ---
+  duration_ms: 172.33425
+  type: 'test'
+  ...
+# Subtest: withMotion snapshots the saved path and replaces only the named motion
+ok 19 - withMotion snapshots the saved path and replaces only the named motion
+  ---
+  duration_ms: 167.577334
+  type: 'test'
+  ...
+# Subtest: saving loop drivers retains passive-driver refusal and sweep/finite-passive-bound boundaries
+ok 20 - saving loop drivers retains passive-driver refusal and sweep/finite-passive-bound boundaries
+  ---
+  duration_ms: 222.307
+  type: 'test'
+  ...
+# Subtest: public robot inertia of a 10 mm cube is 2.7 g and 45 g mm2, without SI aliases
+ok 21 - public robot inertia of a 10 mm cube is 2.7 g and 45 g mm2, without SI aliases
+  ---
+  duration_ms: 20.753
+  type: 'test'
+  ...
+# {"link":"base","part":"base","mass":2.7,"centroid":[5,5,5],"inertia":[[45,-1.964508556e-14,0],[-1.964508556e-14,45,0],[0,0,45]],"principal":{"moments":[45,45,45],"axes":[[1,0,0],[0,1,0],[0,0,1]]},"frame":{"origin":[0,0,0],"axes":[[1,0,0],[0,1,0],[0,0,1]]},"bodies":[{"key":"b1","material":"Aluminium 6061","assumed":false,"materialSnapshot":{"bodyMaterialId":"al6061","inputMaterialId":"al6061","resolvedMaterialId":"al6061","fallback":"none","densityGPerCm3":2.7,"catalogueDensityGPerCm3":2.7,"libraryVersion":"0.7.0","densitySourceId":"S-DENS","densitySourceText":"BaroCSS typical density for the family, written for this table (the studio's earlier density list, kept)","rowEstimate":true,"basis":"builtin-catalogue-not-measured"},"inertiaSource":"mmgs-density-scaled","mass":2.7}],"issues":[]}
+# Subtest: public default gravity is 9806.65 mm/s2; explicit 9810 stays distinct; invalid vectors remain refused
+ok 22 - public default gravity is 9806.65 mm/s2; explicit 9810 stays distinct; invalid vectors remain refused
+  ---
+  duration_ms: 6.937458
+  type: 'test'
+  ...
+# {"standard":{"torques":{},"generalized":{},"units":{},"gravity":9806.65},"explicit":{"torques":{},"generalized":{},"units":{},"gravity":9810}}
+# Subtest: a 90 degree arm reports the independent holding moment in N mm, including explicit gravity
+ok 23 - a 90 degree arm reports the independent holding moment in N mm, including explicit gravity
+  ---
+  duration_ms: 160.748542
+  type: 'test'
+  ...
+# {"gravity":9806.65,"result":{"torques":{"base~arm":-15.4552527555},"generalized":{"base~arm":-15.4552527555},"units":{"base~arm":"N·mm"},"gravity":9806.65}}
+# {"gravity":9810,"result":{"torques":{"base~arm":-15.4605323461},"generalized":{"base~arm":-15.4605323461},"units":{"base~arm":"N·mm"},"gravity":9810}}
+# Subtest: a vertical 10 mm cube slide reports force in N, without the turning moment factor
+ok 24 - a vertical 10 mm cube slide reports force in N, without the turning moment factor
+  ---
+  duration_ms: 5.87375
+  type: 'test'
+  ...
+# {"gravity":9806.65,"result":{"torques":{"base~slide":0.026477955},"generalized":{"base~slide":0.026477955},"units":{"base~slide":"N"},"gravity":9806.65}}
+# {"gravity":9810,"result":{"torques":{"base~slide":0.026487},"generalized":{"base~slide":0.026487},"units":{"base~slide":"N"},"gravity":9810}}
+# Subtest: pose accepts and returns degrees for turns and mm for slides; the core still returns radians
+ok 25 - pose accepts and returns degrees for turns and mm for slides; the core still returns radians
+  ---
+  duration_ms: 196.07425
+  type: 'test'
+  ...
+# Subtest: gripper: pose returns the coupled follower in degrees
+ok 26 - gripper: pose returns the coupled follower in degrees
+  ---
+  duration_ms: 377.409208
+  type: 'test'
+  ...
+# {"input":25,"leader":25,"follower":-25,"expected":-25}
+# Subtest: gear-joint: pose returns the coupled follower in degrees
+ok 27 - gear-joint: pose returns the coupled follower in degrees
+  ---
+  duration_ms: 729.861041
+  type: 'test'
+  ...
+# {"input":30,"leader":30,"follower":-20,"expected":-20}
+# Subtest: a timed path returns degrees and mm that pose accepts without another conversion
+ok 28 - a timed path returns degrees and mm that pose accepts without another conversion
+  ---
+  duration_ms: 157.0475
+  type: 'test'
+  ...
+# Subtest: pose reports an 80 degree tilt past the public 60 degree stop; the internal limit stays in radians
+ok 29 - pose reports an 80 degree tilt past the public 60 degree stop; the internal limit stays in radians
+  ---
+  duration_ms: 554.135583
+  type: 'test'
+  ...
+# Subtest: joints, pose, inertia and gravity: the tools' replies in the same public contract
+ok 30 - joints, pose, inertia and gravity: the tools' replies in the same public contract
+  ---
+  duration_ms: 541.079458
+  type: 'test'
+  ...
+# Subtest: a path's check: sweep_path's reply for each segment between waypoints
+ok 31 - a path's check: sweep_path's reply for each segment between waypoints
+  ---
+  duration_ms: 194.163333
+  type: 'test'
+  ...
+# Subtest: URDF and MJCF: the tools' replies, each file's data besides; SDF and USD: the core exports the studio's menu makes
+ok 32 - URDF and MJCF: the tools' replies, each file's data besides; SDF and USD: the core exports the studio's menu makes
+  ---
+  duration_ms: 182.660875
+  type: 'test'
+  ...
+# Subtest: setJoints: what set_joints writes; a new robot, the old one as it was
+ok 33 - setJoints: what set_joints writes; a new robot, the old one as it was
+  ---
+  duration_ms: 83.893583
+  type: 'test'
+  ...
+# Subtest: the robot from an assembly, and the refusals: the tools' own, and how it was called
+ok 34 - the robot from an assembly, and the refusals: the tools' own, and how it was called
+  ---
+  duration_ms: 152.414416
+  type: 'test'
+  ...
+# Subtest: poseAt and duration: the core's, in degrees; the path's ends at its first and last waypoints
+ok 35 - poseAt and duration: the core's, in degrees; the path's ends at its first and last waypoints
+  ---
+  duration_ms: 322.440791
+  type: 'test'
+  ...
+# Subtest: motions: saved under a name in the robot settings, read back, replaced by name; problems typed
+ok 36 - motions: saved under a name in the robot settings, read back, replaced by name; problems typed
+  ---
+  duration_ms: 168.9365
+  type: 'test'
+  ...
+# Subtest: a looped robot plays in degrees on its assembled branch; its path check still refuses LOOP_OPEN
+ok 37 - a looped robot plays in degrees on its assembled branch; its path check still refuses LOOP_OPEN
+  ---
+  duration_ms: 434.152917
+  type: 'test'
+  ...
+# Subtest: RS6 four-bar: driver timing, closed geometry, saved round trip and seam continuity in degrees
+ok 38 - RS6 four-bar: driver timing, closed geometry, saved round trip and seam continuity in degrees
+  ---
+  duration_ms: 2077.287792
+  type: 'test'
+  ...
+# Subtest: RS6 slider-crank: 720 unwrapped degrees, a passive slide in mm and the closed-form wrist point
+ok 39 - RS6 slider-crank: 720 unwrapped degrees, a passive slide in mm and the closed-form wrist point
+  ---
+  duration_ms: 4381.89925
+  type: 'test'
+  ...
+# Subtest: RS6 refuses missing motion limits, unknown joints, extra loop drivers and unsupported passive bounds
+ok 40 - RS6 refuses missing motion limits, unknown joints, extra loop drivers and unsupported passive bounds
+  ---
+  duration_ms: 953.349292
+  type: 'test'
+  ...
+# Subtest: RS6 cannot skip an unreachable excursion by seeking its home endpoint; toggle refusal stays typed
+ok 41 - RS6 cannot skip an unreachable excursion by seeking its home endpoint; toggle refusal stays typed
+  ---
+  duration_ms: 248.207375
+  type: 'test'
+  ...
+# Subtest: open-chain motion keeps degrees for turns, mm for slides and the original synchronized timing
+ok 42 - open-chain motion keeps degrees for turns, mm for slides and the original synchronized timing
+  ---
+  duration_ms: 178.926334
+  type: 'test'
+  ...
+# Subtest: plate: the facade writes what the agent's run_command and add_features write, byte for byte
+ok 43 - plate: the facade writes what the agent's run_command and add_features write, byte for byte
+  ---
+  duration_ms: 199.333166
+  type: 'test'
+  ...
+# Subtest: plate: its bodies, mass and STEP are the core functions' on that document
+ok 44 - plate: its bodies, mass and STEP are the core functions' on that document
+  ---
+  duration_ms: 108.258208
+  type: 'test'
+  ...
+# Subtest: cup: the facade writes what the agent's run_command and add_features write, byte for byte
+ok 45 - cup: the facade writes what the agent's run_command and add_features write, byte for byte
+  ---
+  duration_ms: 209.887333
+  type: 'test'
+  ...
+# Subtest: cup: its bodies, mass and STEP are the core functions' on that document
+ok 46 - cup: its bodies, mass and STEP are the core functions' on that document
+  ---
+  duration_ms: 166.749166
+  type: 'test'
+  ...
+# Subtest: ring: the facade writes what the agent's run_command and add_features write, byte for byte
+ok 47 - ring: the facade writes what the agent's run_command and add_features write, byte for byte
+  ---
+  duration_ms: 111.289167
+  type: 'test'
+  ...
+# Subtest: ring: its bodies, mass and STEP are the core functions' on that document
+ok 48 - ring: its bodies, mass and STEP are the core functions' on that document
+  ---
+  duration_ms: 65.583084
+  type: 'test'
+  ...
+# Subtest: pegged: the facade writes what the agent's run_command and add_features write, byte for byte
+ok 49 - pegged: the facade writes what the agent's run_command and add_features write, byte for byte
+  ---
+  duration_ms: 246.556583
+  type: 'test'
+  ...
+# Subtest: pegged: its bodies, mass and STEP are the core functions' on that document
+ok 50 - pegged: its bodies, mass and STEP are the core functions' on that document
+  ---
+  duration_ms: 190.372
+  type: 'test'
+  ...
+# Subtest: tabs: the facade writes what the agent's run_command and add_features write, byte for byte
+ok 51 - tabs: the facade writes what the agent's run_command and add_features write, byte for byte
+  ---
+  duration_ms: 24.373958
+  type: 'test'
+  ...
+# Subtest: tabs: its bodies, mass and STEP are the core functions' on that document
+ok 52 - tabs: its bodies, mass and STEP are the core functions' on that document
+  ---
+  duration_ms: 16.99625
+  type: 'test'
+  ...
+# Subtest: mirrored: the facade writes what the agent's run_command and add_features write, byte for byte
+ok 53 - mirrored: the facade writes what the agent's run_command and add_features write, byte for byte
+  ---
+  duration_ms: 16.188875
+  type: 'test'
+  ...
+# Subtest: mirrored: its bodies, mass and STEP are the core functions' on that document
+ok 54 - mirrored: its bodies, mass and STEP are the core functions' on that document
+  ---
+  duration_ms: 16.974417
+  type: 'test'
+  ...
+# Subtest: a body chooser leaves the document as it was, and follows its body through the verbs that replace it
+ok 55 - a body chooser leaves the document as it was, and follows its body through the verbs that replace it
+  ---
+  duration_ms: 37.046
+  type: 'test'
+  ...
+# Subtest: the growth's refusals are typed: the facade's own, and the studio command's
+ok 56 - the growth's refusals are typed: the facade's own, and the studio command's
+  ---
+  duration_ms: 24.864708
+  type: 'test'
+  ...
+# Subtest: stability: a dimension edit upstream — the stored names pick the same edges, moved with it
+ok 57 - stability: a dimension edit upstream — the stored names pick the same edges, moved with it
+  ---
+  duration_ms: 78.392083
+  type: 'test'
+  ...
+# Subtest: stability: a vertex inserted upstream (the studio sketcher's edit, keeping the side tags) — the same named edge
+ok 58 - stability: a vertex inserted upstream (the studio sketcher's edit, keeping the side tags) — the same named edge
+  ---
+  duration_ms: 15.606625
+  type: 'test'
+  ...
+# Subtest: stability: an edit that takes the named edges away — a typed refusal, never another edge
+ok 59 - stability: an edit that takes the named edges away — a typed refusal, never another edge
+  ---
+  duration_ms: 26.292875
+  type: 'test'
+  ...
+# Subtest: material(id): what set_material writes; the meshes carry the id and the display lines; mass() reads it
+ok 60 - material(id): what set_material writes; the meshes carry the id and the display lines; mass() reads it
+  ---
+  duration_ms: 10.272
+  type: 'test'
+  ...
+# Subtest: mirror and split keep the `at` they are given (the studio commands' derive would move it to the face or the middle)
+ok 61 - mirror and split keep the `at` they are given (the studio commands' derive would move it to the face or the middle)
+  ---
+  duration_ms: 8.305959
+  type: 'test'
+  ...
+# Subtest: O22 gears: two bare meshing gears are no contact (left out, said so); an arm on one finger swung into the other gear is
+ok 62 - O22 gears: two bare meshing gears are no contact (left out, said so); an arm on one finger swung into the other gear is
+  ---
+  duration_ms: 852.218583
+  type: 'test'
+  ...
+# Subtest: O22 loop pin: the four-bar's stacked coupler and rocker are no contact (left out, said so); a post on the rocker the coupler swings into is
+ok 63 - O22 loop pin: the four-bar's stacked coupler and rocker are no contact (left out, said so); a post on the rocker the coupler swings into is
+  ---
+  duration_ms: 206.816625
+  type: 'test'
+  ...
+# Subtest: O22 → RS6: check_path and play_motion close a robot's loop along its motion (the four-bar; LOOP_OPEN retired)
+ok 64 - O22 → RS6: check_path and play_motion close a robot's loop along its motion (the four-bar; LOOP_OPEN retired)
+  ---
+  duration_ms: 200.288333
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-5: the follower's lift is the lobe's support — max(r_b, c cos θ + r_n) − h(0) — at 72 cam angles, to 1e-9 mm; the valve pushed with it
+ok 65 - O24 (a) PG-5: the follower's lift is the lobe's support — max(r_b, c cos θ + r_n) − h(0) — at 72 cam angles, to 1e-9 mm; the valve pushed with it
+  ---
+  duration_ms: 113.511875
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-5: the cam as the agent sees it — get_joints' couplings, pose closes the lift, a sweep stays certified with its bound, exports refuse it (leave_out writes it free)
+ok 66 - O24 (a) PG-5: the cam as the agent sees it — get_joints' couplings, pose closes the lift, a sweep stays certified with its bound, exports refuse it (leave_out writes it free)
+  ---
+  duration_ms: 179.90625
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-5: a follower off the lobe is not coupled (CAM_NOT_SEATED), said so
+ok 67 - O24 (a) PG-5: a follower off the lobe is not coupled (CAM_NOT_SEATED), said so
+  ---
+  duration_ms: 19.543458
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-5: the sweep still reports a real crash between cam and follower — a skirt under the follower's face, beside the lobe, hit by the nose swinging toward it and clear of it swinging away
+ok 68 - O24 (a) PG-5: the sweep still reports a real crash between cam and follower — a skirt under the follower's face, beside the lobe, hit by the nose swinging toward it and clear of it swinging away
+  ---
+  duration_ms: 47.402333
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-5: couplings that lead round to themselves are refused (COUPLING_CYCLE), a joint coupled twice (COUPLED_TWICE)
+ok 69 - O24 (a) PG-5: couplings that lead round to themselves are refused (COUPLING_CYCLE), a joint coupled twice (COUPLED_TWICE)
+  ---
+  duration_ms: 42.225959
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-7: the slider-crank (e 0; the bore left out as the loop) closes on its mates at every 5° through 720°, the piston where the closed form puts it, to 1e-9 mm
+ok 70 - O24 (a) PG-7: the slider-crank (e 0; the bore left out as the loop) closes on its mates at every 5° through 720°, the piston where the closed form puts it, to 1e-9 mm
+  ---
+  duration_ms: 377.195791
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-7: the slider-crank (e 5; the bore left out as the loop) closes on its mates at every 5° through 720°, the piston where the closed form puts it, to 1e-9 mm
+ok 71 - O24 (a) PG-7: the slider-crank (e 5; the bore left out as the loop) closes on its mates at every 5° through 720°, the piston where the closed form puts it, to 1e-9 mm
+  ---
+  duration_ms: 129.018875
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-7: the slider-crank (e 5; the wrist pin left out as the loop) closes on its mates at every 5° through 720°, the piston where the closed form puts it, to 1e-9 mm
+ok 72 - O24 (a) PG-7: the slider-crank (e 5; the wrist pin left out as the loop) closes on its mates at every 5° through 720°, the piston where the closed form puts it, to 1e-9 mm
+  ---
+  duration_ms: 130.6735
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-7: the four-bar through the general closer equals the pin closer (RM8) to 1e-9; LOOP_PASSIVE, LOOP_MATE_UNSUPPORTED and a dead point refused
+ok 73 - O24 (a) PG-7: the four-bar through the general closer equals the pin closer (RM8) to 1e-9; LOOP_PASSIVE, LOOP_MATE_UNSUPPORTED and a dead point refused
+  ---
+  duration_ms: 165.882
+  type: 'test'
+  ...
+# Subtest: O24 (a) PG-7, the agent: forward_kinematics and set_pose close the slider-crank from its crank (the piston where the closed form puts it); a passive joint given is refused
+ok 74 - O24 (a) PG-7, the agent: forward_kinematics and set_pose close the slider-crank from its crank (the piston where the closed form puts it); a passive joint given is refused
+  ---
+  duration_ms: 615.374791
+  type: 'test'
+  ...
+# Subtest: RS6: play_motion closes the slider-crank's loop at every sample — the piston where the closed form puts it; check_path sweeps the closed path in 1° chords, clear
+ok 75 - RS6: play_motion closes the slider-crank's loop at every sample — the piston where the closed form puts it; check_path sweeps the closed path in 1° chords, clear
+  ---
+  duration_ms: 26364.23225
+  type: 'test'
+  ...
+# Subtest: RS6: check_path finds the piston meeting a block behind its stroke where the closed form puts it, to the chord's error
+ok 76 - RS6: check_path finds the piston meeting a block behind its stroke where the closed form puts it, to the chord's error
+  ---
+  duration_ms: 10923.627041
+  type: 'test'
+  ...
+# Subtest: O24 b: plane, origin/datum planes, sphere and line points have deterministic orthonormal frames
+ok 77 - O24 b: plane, origin/datum planes, sphere and line points have deterministic orthonormal frames
+  ---
+  duration_ms: 1.0585
+  type: 'test'
+  ...
+# Subtest: O24 b: cylinder/cone spans and apex, circular arc endpoints and major-arc midpoint match closed forms
+ok 78 - O24 b: cylinder/cone spans and apex, circular arc endpoints and major-arc midpoint match closed forms
+  ---
+  duration_ms: 0.2335
+  type: 'test'
+  ...
+# Subtest: O24 b: flip, turn then offset use the resulting local frame without mutating inputs
+ok 79 - O24 b: flip, turn then offset use the resulting local frame without mutating inputs
+  ---
+  duration_ms: 0.799916
+  type: 'test'
+  ...
+# Subtest: O24 b: malformed options and unavailable geometry are typed refusals, including nested saved documents
+ok 80 - O24 b: malformed options and unavailable geometry are typed refusals, including nested saved documents
+  ---
+  duration_ms: 2.536833
+  type: 'test'
+  ...
+# Subtest: O24 b: connectors solve classic plane/axis mates; edits are atomic, removable and drift-free
+ok 81 - O24 b: connectors solve classic plane/axis mates; edits are atomic, removable and drift-free
+  ---
+  duration_ms: 26.748958
+  type: 'test'
+  ...
+# Subtest: O24 b: v2 add/edit, signature preservation, Save/Open, joint rows, FK and loop terms use connectors
+ok 82 - O24 b: v2 add/edit, signature preservation, Save/Open, joint rows, FK and loop terms use connectors
+  ---
+  duration_ms: 19.324208
+  type: 'test'
+  ...
+# Subtest: O24 b: offset connector axes drive the hinge FK and are never treated as physical running fits
+ok 83 - O24 b: offset connector axes drive the hinge FK and are never treated as physical running fits
+  ---
+  duration_ms: 23.874667
+  type: 'test'
+  ...
+# Subtest: O24 b: the planar pin closer resolves the connector anchor and agrees with general loop closure
+ok 84 - O24 b: the planar pin closer resolves the connector anchor and agrees with general loop closure
+  ---
+  duration_ms: 88.312791
+  type: 'test'
+  ...
+# Subtest: O24 c: revolved sphere and cone, box edges, circular rims and face centres match closed forms
+ok 85 - O24 c: revolved sphere and cone, box edges, circular rims and face centres match closed forms
+  ---
+  duration_ms: 30.997292
+  type: 'test'
+  ...
+# Subtest: O24 c: edge merging preserves open arcs and refuses gaps between straight pieces
+ok 86 - O24 c: edge merging preserves open arcs and refuses gaps between straight pieces
+  ---
+  duration_ms: 0.555125
+  type: 'test'
+  ...
+# Subtest: O24 c: edge classification is invariant under translation and does not flatten a distant arc
+ok 87 - O24 c: edge classification is invariant under translation and does not flatten a distant arc
+  ---
+  duration_ms: 0.084666
+  type: 'test'
+  ...
+# Subtest: O24 c: a flat face with an off-centre circular hole has its analytic area centroid
+ok 88 - O24 c: a flat face with an off-centre circular hole has its analytic area centroid
+  ---
+  duration_ms: 4.47325
+  type: 'test'
+  ...
+# Subtest: O24 c: sphere and cone classification survives a large translation; a torus stays unmateable
+ok 89 - O24 c: sphere and cone classification survives a large translation; a torus stays unmateable
+  ---
+  duration_ms: 10.032916
+  type: 'test'
+  ...
+# Subtest: O24 c: cone/circle concentric, edge/plane coincident and sphere tangency solve without drift
+ok 90 - O24 c: cone/circle concentric, edge/plane coincident and sphere tangency solve without drift
+  ---
+  duration_ms: 8.8815
+  type: 'test'
+  ...
+# Subtest: O24 c: v2 assembly reads new references, adds a mate, saves, reopens and builds its joint tree
+ok 91 - O24 c: v2 assembly reads new references, adds a mate, saves, reopens and builds its joint tree
+  ---
+  duration_ms: 59.765875
+  type: 'test'
+  ...
+# Subtest: O24 d ball: omitted connectors align origins, retain the initial rotation and leave three turns
+ok 92 - O24 d ball: omitted connectors align origins, retain the initial rotation and leave three turns
+  ---
+  duration_ms: 19.066667
+  type: 'test'
+  ...
+# Subtest: O24 d ball: different connector Z/X directions do not become angular constraints
+ok 93 - O24 d ball: different connector Z/X directions do not become angular constraints
+  ---
+  duration_ms: 2.817666
+  type: 'test'
+  ...
+# Subtest: O24 d ball: offset anchors coincide in mm while rotations about all three axes remain available
+ok 94 - O24 d ball: offset anchors coincide in mm while rotations about all three axes remain available
+  ---
+  duration_ms: 1.089208
+  type: 'test'
+  ...
+# Subtest: O24 d ball: the existing free-twist consumer makes three rotational joints about one anchor, never a fixed joint
+ok 95 - O24 d ball: the existing free-twist consumer makes three rotational joints about one anchor, never a fixed joint
+  ---
+  duration_ms: 1.8775
+  type: 'test'
+  ...
+# Subtest: O24 d ball: unsupported two-turn robot combinations and ball loop terms stay explicit refusals
+ok 96 - O24 d ball: unsupported two-turn robot combinations and ball loop terms stay explicit refusals
+  ---
+  duration_ms: 1.308792
+  type: 'test'
+  ...
+# Subtest: O24 d ball: edits, fixed-side normalization and signatures keep owned input and persistent references
+ok 97 - O24 d ball: edits, fixed-side normalization and signatures keep owned input and persistent references
+  ---
+  duration_ms: 1.054625
+  type: 'test'
+  ...
+# Subtest: O24 d ball: Save/Open retains the latest schema and validates nested/pending raw options without geometry
+ok 98 - O24 d ball: Save/Open retains the latest schema and validates nested/pending raw options without geometry
+  ---
+  duration_ms: 2.402583
+  type: 'test'
+  ...
+# Subtest: O24 d ball: raw scalar/direction fields are VALUE refusals, even zero, empty, false or explicit undefined
+ok 99 - O24 d ball: raw scalar/direction fields are VALUE refusals, even zero, empty, false or explicit undefined
+  ---
+  duration_ms: 0.5495
+  type: 'test'
+  ...
+# Subtest: O24 d ball: missing/bad references and constraints refuse atomically; pending tables remain pending
+ok 100 - O24 d ball: missing/bad references and constraints refuse atomically; pending tables remain pending
+  ---
+  duration_ms: 1.1065
+  type: 'test'
+  ...
+# Subtest: O24 d ball: old discovery, Lock and Fastened retain their original meanings; compatible constraints still combine
+ok 101 - O24 d ball: old discovery, Lock and Fastened retain their original meanings; compatible constraints still combine
+  ---
+  duration_ms: 1.157
+  type: 'test'
+  ...
+# Subtest: O24 d ball: v2 add/edit, captured physical signatures and saved references preserve the three-turn joint
+ok 102 - O24 d ball: v2 add/edit, captured physical signatures and saved references preserve the three-turn joint
+  ---
+  duration_ms: 11.845
+  type: 'test'
+  ...
+# Subtest: O24 d ball: raw v2 refusal happens before geometry and preserves state/transaction/arguments; old kinds keep UNKNOWN_ARGUMENT
+ok 103 - O24 d ball: raw v2 refusal happens before geometry and preserves state/transaction/arguments; old kinds keep UNKNOWN_ARGUMENT
+  ---
+  duration_ms: 1.167333
+  type: 'test'
+  ...
+# Subtest: Cylindrical robot: real connectors yield one slide and one turn with a bodyless intermediate
+ok 104 - Cylindrical robot: real connectors yield one slide and one turn with a bodyless intermediate
+  ---
+  duration_ms: 24.424583
+  type: 'test'
+  ...
+# Subtest: Cylindrical robot: independent finite rotation and translation retain the initial axial gap and twist
+ok 105 - Cylindrical robot: independent finite rotation and translation retain the initial axial gap and twist
+  ---
+  duration_ms: 1.973583
+  type: 'test'
+  ...
+# Subtest: Cylindrical robot: selected X-axis connectors preserve offset geometry and an initial 45 degree twist
+ok 106 - Cylindrical robot: selected X-axis connectors preserve offset geometry and an initial 45 degree twist
+  ---
+  duration_ms: 2.49
+  type: 'test'
+  ...
+# Subtest: Cylindrical robot: reverse parent preserves semantic keys and exactly inverts both finite coordinates
+ok 107 - Cylindrical robot: reverse parent preserves semantic keys and exactly inverts both finite coordinates
+  ---
+  duration_ms: 1.749166
+  type: 'test'
+  ...
+# Subtest: Cylindrical robot: connector flips retain the actual signed common axis
+ok 108 - Cylindrical robot: connector flips retain the actual signed common axis
+  ---
+  duration_ms: 1.179083
+  type: 'test'
+  ...
+# Subtest: Cylindrical robot: public degrees/mm and per-axis units become native radians/mm exactly once
+ok 109 - Cylindrical robot: public degrees/mm and per-axis units become native radians/mm exactly once
+  ---
+  duration_ms: 41.981125
+  type: 'test'
+  ...
+# Subtest: Cylindrical robot: Save/Open retains both per-axis settings, reversed base, home gap and finite poses
+ok 110 - Cylindrical robot: Save/Open retains both per-axis settings, reversed base, home gap and finite poses
+  ---
+  duration_ms: 1.596
+  type: 'test'
+  ...
+# Subtest: Cylindrical robot: raw mate scalars, flip and mate limits still refuse before mutation
+ok 111 - Cylindrical robot: raw mate scalars, flip and mate limits still refuse before mutation
+  ---
+  duration_ms: 0.885584
+  type: 'test'
+  ...
+# Subtest: Cylindrical robot: coupled mates, grounded motion and ambiguous pair-key settings refuse explicitly
+ok 112 - Cylindrical robot: coupled mates, grounded motion and ambiguous pair-key settings refuse explicitly
+  ---
+  duration_ms: 2.114334
+  type: 'test'
+  ...
+# Subtest: Cylindrical robot: a stored same-pair cam refuses the chain with or without cam faces
+ok 113 - Cylindrical robot: a stored same-pair cam refuses the chain with or without cam faces
+  ---
+  duration_ms: 2.692708
+  type: 'test'
+  ...
+# Subtest: Cylindrical robot: noncoaxial, opposite, tilted and nonfinite solved axes cannot create a chain
+ok 114 - Cylindrical robot: noncoaxial, opposite, tilted and nonfinite solved axes cannot create a chain
+  ---
+  duration_ms: 0.559042
+  type: 'test'
+  ...
+# Subtest: Cylindrical robot: an actual cyclic graph remains unsupported and keeps its closure record
+ok 115 - Cylindrical robot: an actual cyclic graph remains unsupported and keeps its closure record
+  ---
+  duration_ms: 1.352375
+  type: 'test'
+  ...
+# Subtest: Cylindrical robot: invalid per-axis limits and missing generic export ratings remain typed
+ok 116 - Cylindrical robot: invalid per-axis limits and missing generic export ratings remain typed
+  ---
+  duration_ms: 0.92325
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical: default connectors retain the initial axial position and twist with one turn and slide
+ok 117 - O24 d cylindrical: default connectors retain the initial axial position and twist with one turn and slide
+  ---
+  duration_ms: 18.102
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical: independent axial slides and twists preserve the common line while lateral requests are removed
+ok 118 - O24 d cylindrical: independent axial slides and twists preserve the common line while lateral requests are removed
+  ---
+  duration_ms: 2.835333
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical: forbidden tilt is corrected while an allowed starting twist and axial position remain
+ok 119 - O24 d cylindrical: forbidden tilt is corrected while an allowed starting twist and axial position remain
+  ---
+  duration_ms: 0.595792
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical: a connector flip selects axis sense without adding a mate flip or fixing axial travel
+ok 120 - O24 d cylindrical: a connector flip selects axis sense without adding a mate flip or fixing axial travel
+  ---
+  duration_ms: 0.58625
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical: original flip then turn then local offset changes the axis line, not the free axial coordinate
+ok 121 - O24 d cylindrical: original flip then turn then local offset changes the axis line, not the free axial coordinate
+  ---
+  duration_ms: 0.384875
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical: the free direction is the selected common connector axis, including a part X axis
+ok 122 - O24 d cylindrical: the free direction is the selected common connector axis, including a part X axis
+  ---
+  duration_ms: 2.488
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical: connector edits, removal, persistent signatures and fixed-side swapping retain owned input
+ok 123 - O24 d cylindrical: connector edits, removal, persistent signatures and fixed-side swapping retain owned input
+  ---
+  duration_ms: 5.630167
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical: raw distances, angles, limits and direction fields refuse as VALUE before mutation
+ok 124 - O24 d cylindrical: raw distances, angles, limits and direction fields refuse as VALUE before mutation
+  ---
+  duration_ms: 1.18825
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical: invalid geometry/fixed parts refuse atomically and pending tables stay pending
+ok 125 - O24 d cylindrical: invalid geometry/fixed parts refuse atomically and pending tables stay pending
+  ---
+  duration_ms: 0.774459
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical: unsupported combinations refuse atomically while a compatible captured lock can hold a pose
+ok 126 - O24 d cylindrical: unsupported combinations refuse atomically while a compatible captured lock can hold a pose
+  ---
+  duration_ms: 1.947625
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical: pair-level robot limits and loop terms remain unsupported without a fake joint chain
+ok 127 - O24 d cylindrical: pair-level robot limits and loop terms remain unsupported without a fake joint chain
+  ---
+  duration_ms: 1.191667
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical: classic discovery, Lock, Universal, Ball and Fastened keep distinct semantics
+ok 128 - O24 d cylindrical: classic discovery, Lock, Universal, Ball and Fastened keep distinct semantics
+  ---
+  duration_ms: 0.493125
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical: Save/Open preserves the schema, axial position and raw nested/pending refusals
+ok 129 - O24 d cylindrical: Save/Open preserves the schema, axial position and raw nested/pending refusals
+  ---
+  duration_ms: 1.440583
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical: v2 physical face references, connector edit and Save/Open retain a free axial coordinate
+ok 130 - O24 d cylindrical: v2 physical face references, connector edit and Save/Open retain a free axial coordinate
+  ---
+  duration_ms: 13.527875
+  type: 'test'
+  ...
+# Subtest: O24 d cylindrical: raw v2 VALUE precedes generic argument checks and preserves state, transaction and args
+ok 131 - O24 d cylindrical: raw v2 VALUE precedes generic argument checks and preserves state, transaction and args
+  ---
+  duration_ms: 1.067375
+  type: 'test'
+  ...
+# Subtest: O24 d: F0 default frames fixes all six motions and makes one fixed joint
+ok 132 - O24 d: F0 default frames fixes all six motions and makes one fixed joint
+  ---
+  duration_ms: 19.346334
+  type: 'test'
+  ...
+# Subtest: O24 d: F1 offset in mm fixes all six motions and makes one fixed joint
+ok 133 - O24 d: F1 offset in mm fixes all six motions and makes one fixed joint
+  ---
+  duration_ms: 3.190333
+  type: 'test'
+  ...
+# Subtest: O24 d: F2 positive quarter-turn fixes all six motions and makes one fixed joint
+ok 134 - O24 d: F2 positive quarter-turn fixes all six motions and makes one fixed joint
+  ---
+  duration_ms: 0.683459
+  type: 'test'
+  ...
+# Subtest: O24 d: F3 connector half-turn fixes all six motions and makes one fixed joint
+ok 135 - O24 d: F3 connector half-turn fixes all six motions and makes one fixed joint
+  ---
+  duration_ms: 0.513417
+  type: 'test'
+  ...
+# Subtest: O24 d: F4 mate half-turn fixes all six motions and makes one fixed joint
+ok 136 - O24 d: F4 mate half-turn fixes all six motions and makes one fixed joint
+  ---
+  duration_ms: 1.062334
+  type: 'test'
+  ...
+# Subtest: O24 d: both local connector frames, their flip→turn→offset order and a placed fixed parent retain X
+ok 137 - O24 d: both local connector frames, their flip→turn→offset order and a placed fixed parent retain X
+  ---
+  duration_ms: 3.208084
+  type: 'test'
+  ...
+# Subtest: O24 d: F5 lock captures the original placement; classic discovery/Auto still starts with coincident
+ok 138 - O24 d: F5 lock captures the original placement; classic discovery/Auto still starts with coincident
+  ---
+  duration_ms: 0.768167
+  type: 'test'
+  ...
+# Subtest: O24 d: F6 fixed-side swap, repeat solve and connector edits retain stored signatures and input ownership
+ok 139 - O24 d: F6 fixed-side swap, repeat solve and connector edits retain stored signatures and input ownership
+  ---
+  duration_ms: 0.888875
+  type: 'test'
+  ...
+# Subtest: O24 d: Save/Open keeps the existing schema and exact loader {error} envelope, including nested/pending documents
+ok 140 - O24 d: Save/Open keeps the existing schema and exact loader {error} envelope, including nested/pending documents
+  ---
+  duration_ms: 1.958416
+  type: 'test'
+  ...
+# Subtest: O24 d: F7 URDF fixed and MJCF welded read-back convert the 10 mm offset exactly once
+ok 141 - O24 d: F7 URDF fixed and MJCF welded read-back convert the 10 mm offset exactly once
+  ---
+  duration_ms: 19.370333
+  type: 'test'
+  ...
+# Subtest: O24 d: F8 core raw fixed-joint options are VALUE refusals, even zero/empty/explicit undefined; edits are atomic
+ok 142 - O24 d: F8 core raw fixed-joint options are VALUE refusals, even zero/empty/explicit undefined; edits are atomic
+  ---
+  duration_ms: 0.979417
+  type: 'test'
+  ...
+# Subtest: O24 d: F8 extra fastened/classic/lock constraints are checked in either order; conflicts never commit
+ok 143 - O24 d: F8 extra fastened/classic/lock constraints are checked in either order; conflicts never commit
+  ---
+  duration_ms: 1.10875
+  type: 'test'
+  ...
+# Subtest: O24 d: missing tables stay pending, missing frame geometry never becomes a fixed joint, loop term is typed unsupported
+ok 144 - O24 d: missing tables stay pending, missing frame geometry never becomes a fixed joint, loop term is typed unsupported
+  ---
+  duration_ms: 0.631458
+  type: 'test'
+  ...
+# Subtest: O24 d: v2 existing add/edit handlers retain typed refusal, signatures, Save/Open and the fixed joint
+ok 145 - O24 d: v2 existing add/edit handlers retain typed refusal, signatures, Save/Open and the fixed joint
+  ---
+  duration_ms: 9.993917
+  type: 'test'
+  ...
+# Subtest: O24 d: old connector and cam/lock refusals retain their original branches
+ok 146 - O24 d: old connector and cam/lock refusals retain their original branches
+  ---
+  duration_ms: 0.414
+  type: 'test'
+  ...
+# Subtest: O24 d: dispatcher VALUE precheck is geometry-free and preserves document, args, bodies and transaction checkpoints
+ok 147 - O24 d: dispatcher VALUE precheck is geometry-free and preserves document, args, bodies and transaction checkpoints
+  ---
+  duration_ms: 0.85025
+  type: 'test'
+  ...
+# Subtest: O24 d: every old kind and unrelated tool retains the generic unknown-argument refusal before geometry
+ok 148 - O24 d: every old kind and unrelated tool retains the generic unknown-argument refusal before geometry
+  ---
+  duration_ms: 0.966125
+  type: 'test'
+  ...
+# Subtest: Universal robot: an actual connector pair yields exactly two turns and one bodyless logical intermediate
+ok 149 - Universal robot: an actual connector pair yields exactly two turns and one bodyless logical intermediate
+  ---
+  duration_ms: 22.228875
+  type: 'test'
+  ...
+# Subtest: Universal robot: finite FK equals independent R(a.Z) R(b.X), with a common anchor and no slide
+ok 150 - Universal robot: finite FK equals independent R(a.Z) R(b.X), with a common anchor and no slide
+  ---
+  duration_ms: 1.799292
+  type: 'test'
+  ...
+# Subtest: Universal robot: local connector turn and offset use the selected tilted axes, not world-axis substitutes
+ok 151 - Universal robot: local connector turn and offset use the selected tilted axes, not world-axis substitutes
+  ---
+  duration_ms: 0.845125
+  type: 'test'
+  ...
+# Subtest: Universal robot: reversing the base keeps semantic keys and gives the exact inverse finite transform
+ok 152 - Universal robot: reversing the base keeps semantic keys and gives the exact inverse finite transform
+  ---
+  duration_ms: 1.606917
+  type: 'test'
+  ...
+# Subtest: Universal robot: an opposite initial branch keeps b.X sign and finite motion
+ok 153 - Universal robot: an opposite initial branch keeps b.X sign and finite motion
+  ---
+  duration_ms: 0.872875
+  type: 'test'
+  ...
+# Subtest: Universal robot: the public degree/mm contract and native radians stay separate for both keys
+ok 154 - Universal robot: the public degree/mm contract and native radians stay separate for both keys
+  ---
+  duration_ms: 37.32425
+  type: 'test'
+  ...
+# Subtest: Universal robot: Save/Open round trip preserves the connector contract, semantic keys and both finite poses
+ok 155 - Universal robot: Save/Open round trip preserves the connector contract, semantic keys and both finite poses
+  ---
+  duration_ms: 1.478333
+  type: 'test'
+  ...
+# Subtest: Universal robot: extra coupled mates and grounded motion refuse without a fake fixed chain
+ok 156 - Universal robot: extra coupled mates and grounded motion refuse without a fake fixed chain
+  ---
+  duration_ms: 0.530667
+  type: 'test'
+  ...
+# Subtest: Universal robot: stale solved anchors, impossible and singular axes, and missing geometry never create a chain
+ok 157 - Universal robot: stale solved anchors, impossible and singular axes, and missing geometry never create a chain
+  ---
+  duration_ms: 1.362875
+  type: 'test'
+  ...
+# Subtest: Universal robot: cyclic mates retain a typed unsupported boundary and the loop solver stays unsupported
+ok 158 - Universal robot: cyclic mates retain a typed unsupported boundary and the loop solver stays unsupported
+  ---
+  duration_ms: 1.930125
+  type: 'test'
+  ...
+# Subtest: Universal robot: bad per-axis limits remain typed, missing export ratings are not an export PASS
+ok 159 - Universal robot: bad per-axis limits remain typed, missing export ratings are not an export PASS
+  ---
+  duration_ms: 0.894791
+  type: 'test'
+  ...
+# Subtest: Universal robot: a saved same-pair cam refuses both directions without inventing a free 2R chain
+ok 160 - Universal robot: a saved same-pair cam refuses both directions without inventing a free 2R chain
+  ---
+  duration_ms: 3.659167
+  type: 'test'
+  ...
+# Subtest: O24 d universal: default frames hold origins and perpendicular a.Z/b.X, leaving two turns and no slide
+ok 161 - O24 d universal: default frames hold origins and perpendicular a.Z/b.X, leaving two turns and no slide
+  ---
+  duration_ms: 20.419
+  type: 'test'
+  ...
+# Subtest: O24 d universal: independent finite turns about fixed Z and moving X retain the anchor
+ok 162 - O24 d universal: independent finite turns about fixed Z and moving X retain the anchor
+  ---
+  duration_ms: 2.456167
+  type: 'test'
+  ...
+# Subtest: O24 d universal: the forbidden turn is corrected toward the nearest initial branch
+ok 163 - O24 d universal: the forbidden turn is corrected toward the nearest initial branch
+  ---
+  duration_ms: 0.655167
+  type: 'test'
+  ...
+# Subtest: O24 d universal: parallel and antiparallel starting axes take the existing deterministic perpendicular branch
+ok 164 - O24 d universal: parallel and antiparallel starting axes take the existing deterministic perpendicular branch
+  ---
+  duration_ms: 0.6755
+  type: 'test'
+  ...
+# Subtest: O24 d universal: connector local flip, turn and offset keep the original frame contract
+ok 165 - O24 d universal: connector local flip, turn and offset keep the original frame contract
+  ---
+  duration_ms: 0.814958
+  type: 'test'
+  ...
+# Subtest: O24 d universal: axes come from the selected sides rather than aligning complete frames
+ok 166 - O24 d universal: axes come from the selected sides rather than aligning complete frames
+  ---
+  duration_ms: 0.649167
+  type: 'test'
+  ...
+# Subtest: O24 d universal: connector edits/removal and fixed-side normalization preserve signatures and owned input
+ok 167 - O24 d universal: connector edits/removal and fixed-side normalization preserve signatures and owned input
+  ---
+  duration_ms: 1.095375
+  type: 'test'
+  ...
+# Subtest: O24 d universal: raw mate scalars/flip/limits are VALUE refusals before mutation, including explicit undefined
+ok 168 - O24 d universal: raw mate scalars/flip/limits are VALUE refusals before mutation, including explicit undefined
+  ---
+  duration_ms: 0.722958
+  type: 'test'
+  ...
+# Subtest: O24 d universal: missing geometry, invalid connector and fixed/pending parts keep explicit refusals
+ok 169 - O24 d universal: missing geometry, invalid connector and fixed/pending parts keep explicit refusals
+  ---
+  duration_ms: 0.614708
+  type: 'test'
+  ...
+# Subtest: O24 d universal: coupled mate combinations refuse atomically while a compatible captured lock can hold the pose
+ok 170 - O24 d universal: coupled mate combinations refuse atomically while a compatible captured lock can hold the pose
+  ---
+  duration_ms: 1.6605
+  type: 'test'
+  ...
+# Subtest: O24 d universal: pair-level robot limits and loop terms remain unsupported without a fake joint chain
+ok 171 - O24 d universal: pair-level robot limits and loop terms remain unsupported without a fake joint chain
+  ---
+  duration_ms: 1.137542
+  type: 'test'
+  ...
+# Subtest: O24 d universal: existing discovery/Ball/Fastened/Lock semantics stay separate
+ok 172 - O24 d universal: existing discovery/Ball/Fastened/Lock semantics stay separate
+  ---
+  duration_ms: 0.674958
+  type: 'test'
+  ...
+# Subtest: O24 d universal: Save/Open preserves schema/mm and raw validation reaches nested/pending documents
+ok 173 - O24 d universal: Save/Open preserves schema/mm and raw validation reaches nested/pending documents
+  ---
+  duration_ms: 1.418167
+  type: 'test'
+  ...
+# Subtest: O24 d universal: v2 physical face signatures, edit and Save/Open retain the two-axis relation
+ok 174 - O24 d universal: v2 physical face signatures, edit and Save/Open retain the two-axis relation
+  ---
+  duration_ms: 14.361292
+  type: 'test'
+  ...
+# Subtest: O24 d universal: raw v2 VALUE precedes generic unknown arguments and preserves state/transaction/input
+ok 175 - O24 d universal: raw v2 VALUE precedes generic unknown arguments and preserves state/transaction/input
+  ---
+  duration_ms: 1.273458
+  type: 'test'
+  ...
+# Subtest: PG-6: a piston 0.05 mm inside its bore, facets out of phase, strokes 20 mm clear — the fit's round faces its own
+ok 176 - PG-6: a piston 0.05 mm inside its bore, facets out of phase, strokes 20 mm clear — the fit's round faces its own
+  ---
+  duration_ms: 102.975459
+  type: 'test'
+  ...
+# Subtest: PG-6: without the fit's seat the meshes touch at once (the gap P1 met); a boss past the bore's radius is contact with it
+ok 177 - PG-6: without the fit's seat the meshes touch at once (the gap P1 met); a boss past the bore's radius is contact with it
+  ---
+  duration_ms: 47.955042
+  type: 'test'
+  ...
+# RB9.1: 1 5/5 (12/12 mutants) · 2 5/5 (12/12 mutants) · 3 5/5 (12/12 mutants) · 4 5/5 (18/18 mutants) · 5 5/5 (14/14 mutants) · 6 5/5 (14/14 mutants) · 7 5/5 (12/12 mutants) · 8 5/5 (20/20 mutants) · 9 5/5 (14/14 mutants) · 10 5/5 (16/16 mutants) · 11 5/5 (10/10 mutants) · 12 5/5 (12/12 mutants) · 13 5/5 (10/10 mutants) · 14 5/5 (12/12 mutants)
+# Subtest: the sampler: trial 0 at every low end, 1 at every high end, 2 and 3 alternating; the same seed the same values; on the step grid
+ok 178 - the sampler: trial 0 at every low end, 1 at every high end, 2 and 3 alternating; the same seed the same values; on the step grid
+  ---
+  duration_ms: 0.984459
+  type: 'test'
+  ...
+# Subtest: the ladder (scripted): every built rung 5/5, RS 1; every mutant killed; no hard predicate without a mutant that kills it
+ok 179 - the ladder (scripted): every built rung 5/5, RS 1; every mutant killed; no hard predicate without a mutant that kills it
+  ---
+  duration_ms: 46110.325333
+  type: 'test'
+  ...
+# Subtest: trial timing: public seconds and JSON keep the original rounded interval; Markdown keeps integer ms and metrics
+ok 180 - trial timing: public seconds and JSON keep the original rounded interval; Markdown keeps integer ms and metrics
+  ---
+  duration_ms: 5.867833
+  type: 'test'
+  ...
+# Subtest: the checks against their closed forms: a joint with no gravity load on a trapezoid, out and back with dwells (to 1e-9)
+ok 181 - the checks against their closed forms: a joint with no gravity load on a trapezoid, out and back with dwells (to 1e-9)
+  ---
+  duration_ms: 966.518917
+  type: 'test'
+  ...
+# Subtest: the dwell's share of the RMS is exact: RMS² T_c grows by dwell × (τ_hold(q1)² + τ_hold(q0)²)/(N η)² on a gravity-loaded joint
+ok 182 - the dwell's share of the RMS is exact: RMS² T_c grows by dwell × (τ_hold(q1)² + τ_hold(q0)²)/(N η)² on a gravity-loaded joint
+  ---
+  duration_ms: 85.723791
+  type: 'test'
+  ...
+# Subtest: the choice is the lightest pair that passes: every lighter pair fails a check of its own, by an enumeration one pair at a time
+ok 183 - the choice is the lightest pair that passes: every lighter pair fails a check of its own, by an enumeration one pair at a time
+  ---
+  duration_ms: 167.236042
+  type: 'test'
+  ...
+# Subtest: every catalogue value has its source: a product page (URL, the date read, its label) or a flagged estimate with why
+ok 184 - every catalogue value has its source: a product page (URL, the date read, its label) or a flagged estimate with why
+  ---
+  duration_ms: 0.908209
+  type: 'test'
+  ...
+# Subtest: the size_actuators tool; refusals (a value with no source, an unknown unit, a slide); the conformance case (rm/size-1r: the closed forms)
+ok 185 - the size_actuators tool; refusals (a value with no source, an unknown unit, a slide); the conformance case (rm/size-1r: the closed forms)
+  ---
+  duration_ms: 81.225958
+  type: 'test'
+  ...
+# Subtest: O75: a stated stop — the reducer's momentary peak torque checked against J·a on the one-joint case (to 1e-9); absent, no such check; a stop past every pair's limit leaves none feasible
+ok 186 - O75: a stated stop — the reducer's momentary peak torque checked against J·a on the one-joint case (to 1e-9); absent, no such check; a stop past every pair's limit leaves none feasible
+  ---
+  duration_ms: 48.4505
+  type: 'test'
+  ...
+# Subtest: O75: sizing coupled — each chosen pair a point mass at its joint on the parent link; the shoulder's load inertia grows by M·d² of the elbow's; the choices settled and a fixed point
+ok 187 - O75: sizing coupled — each chosen pair a point mass at its joint on the parent link; the shoulder's load inertia grows by M·d² of the elbow's; the choices settled and a fixed point
+  ---
+  duration_ms: 99.991041
+  type: 'test'
+  ...
+# RM9a post: toi 1.131635311870 s vs 1.131635311896 s (|Δ| 2.55e-11), q* 0.881635311896, 53 samples
+# RM9a two segments: toi 4.773227965 s (oracle 4.773227965); segment 1 least clearance 5.000000 mm vs dense 5.000000 mm (± 0.353)
+# RM9a 6R: toi 2.221024879 s, base–l4, 45 samples; 17 ms vs RM6 9 ms (45 samples)
+# RM9a MuJoCo: first contact 1.131635321 s vs ours 1.131635312 s (|Δ| 9.29e-9), post_collision–a_collision
+# Subtest: the normalised profile: every joint within its limits, all starting and stopping together; u⁻¹ exact
+ok 188 - the normalised profile: every joint within its limits, all starting and stopping together; u⁻¹ exact
+  ---
+  duration_ms: 0.771458
+  type: 'test'
+  ...
+# Subtest: the 2R arm swung into the post on a trapezoid: the time of impact where the plane's separating axes put it, to 1e-9 s
+ok 189 - the 2R arm swung into the post on a trapezoid: the time of impact where the plane's separating axes put it, to 1e-9 s
+  ---
+  duration_ms: 119.295834
+  type: 'test'
+  ...
+# Subtest: two segments: out clear, then back into the post — the contact on the second at its oracle time; the first's least clearance against a dense exact sampling
+ok 190 - two segments: out clear, then back into the post — the contact on the second at its oracle time; the first's least clearance against a dense exact sampling
+  ---
+  duration_ms: 946.413542
+  type: 'test'
+  ...
+# Subtest: the 6R arm folding on an S-curve: no earlier contact in 2000 exact samples; in contact to the tolerance at the time of impact; within the S0's budget (twice RM6's 225 ms)
+ok 191 - the 6R arm folding on an S-curve: no earlier contact in 2000 exact samples; in contact to the tolerance at the time of impact; within the S0's budget (twice RM6's 225 ms)
+  ---
+  duration_ms: 61765.1325
+  type: 'test'
+  ...
+# Subtest: MuJoCo's first contact (kinematic replay, its hulls these boxes) equals ours within 1e-6 s; the case written for it
+ok 192 - MuJoCo's first contact (kinematic replay, its hulls these boxes) equals ours within 1e-6 s; the case written for it
+  ---
+  duration_ms: 33.828167
+  type: 'test'
+  ...
+# Subtest: the planar 2R and 3R closed forms, to 1e-9: τ_j = −g Σ_{i≥j} m_i (x_ci − x_Jj), each link 40 mm joint to joint, its centre 20 mm up
+ok 193 - the planar 2R and 3R closed forms, to 1e-9: τ_j = −g Σ_{i≥j} m_i (x_ci − x_Jj), each link 40 mm joint to joint, its centre 20 mm up
+  ---
+  duration_ms: 207.245208
+  type: 'test'
+  ...
+# Subtest: G = ∂V/∂q on random 3D trees of turns and slides: central differences of the potential energy, to 1e-6
+ok 194 - G = ∂V/∂q on random 3D trees of turns and slides: central differences of the potential energy, to 1e-6
+  ---
+  duration_ms: 5.586834
+  type: 'test'
+  ...
+# Subtest: a follower's share is its leader's by virtual work: the generalized value equals dV/dq along the coupling
+ok 195 - a follower's share is its leader's by virtual work: the generalized value equals dV/dq along the coupling
+  ---
+  duration_ms: 0.261917
+  type: 'test'
+  ...
+# Subtest: the gravity_torques tool on the planar 3R; the conformance case (rm/gravity-3r: the closed form's values)
+ok 196 - the gravity_torques tool on the planar 3R; the conformance case (rm/gravity-3r: the closed form's values)
+  ---
+  duration_ms: 101.058875
+  type: 'test'
+  ...
+# Subtest: gravityTorques with a link the base does not reach yet (a part added, not yet mated; a joint mid-edit) — no throw: the reached joint's torque by closed form (1 kg at 100 mm, about y: −0.980665 N·m), the rest said ROBOT_NOT_READY
+ok 197 - gravityTorques with a link the base does not reach yet (a part added, not yet mated; a joint mid-edit) — no throw: the reached joint's torque by closed form (1 kg at 100 mm, about y: −0.980665 N·m), the rest said ROBOT_NOT_READY
+  ---
+  duration_ms: 0.280792
+  type: 'test'
+  ...
+# Subtest: direct canonical gravity reply uses degree inputs and the planar 3R closed form in Nmm
+ok 198 - direct canonical gravity reply uses degree inputs and the planar 3R closed form in Nmm
+  ---
+  duration_ms: 56.114666
+  type: 'test'
+  ...
+# Subtest: direct canonical gravity reply throws BAD_VALUES with the existing full values, joint and gravity messages
+ok 199 - direct canonical gravity reply throws BAD_VALUES with the existing full values, joint and gravity messages
+  ---
+  duration_ms: 54.863
+  type: 'test'
+  ...
+# Subtest: public two-link gravity: explicit aluminium mass binds the CAD static-moment oracle through the existing degree/MMGS boundary
+ok 200 - public two-link gravity: explicit aluminium mass binds the CAD static-moment oracle through the existing degree/MMGS boundary
+  ---
+  duration_ms: 38.921
+  type: 'test'
+  ...
+# Subtest: a real gear incompatibility stays visible in all four successful exports without changing their payloads
+ok 201 - a real gear incompatibility stays visible in all four successful exports without changing their payloads
+  ---
+  duration_ms: 386.689917
+  type: 'test'
+  ...
+# Subtest: tree notes do not turn an existing typed export refusal into success
+ok 202 - tree notes do not turn an existing typed export refusal into success
+  ---
+  duration_ms: 0.173625
+  type: 'test'
+  ...
+# Subtest: planar 2R: the tip of the second arm where the closed form puts it, to 1e-9, over 200 random poses
+ok 203 - planar 2R: the tip of the second arm where the closed form puts it, to 1e-9, over 200 random poses
+  ---
+  duration_ms: 30.302875
+  type: 'test'
+  ...
+# Subtest: the product of exponentials equals the moving-axis form on a random 3D tree of turning and sliding joints
+ok 204 - the product of exponentials equals the moving-axis form on a random 3D tree of turning and sliding joints
+  ---
+  duration_ms: 1.455666
+  type: 'test'
+  ...
+# Subtest: a gear pair turns together: the follower from its leader whatever it was given, the tooth phase held at every pose
+ok 205 - a gear pair turns together: the follower from its leader whatever it was given, the tooth phase held at every pose
+  ---
+  duration_ms: 315.50625
+  type: 'test'
+  ...
+# Subtest: limits: values outside are reported, not clamped; slider ranges; unknown joints
+ok 206 - limits: values outside are reported, not clamped; slider ranges; unknown joints
+  ---
+  duration_ms: 5.695375
+  type: 'test'
+  ...
+# Subtest: the forward_kinematics tool: placements as place_part takes them, the gear phase held, refusals
+ok 207 - the forward_kinematics tool: placements as place_part takes them, the gear phase held, refusals
+  ---
+  duration_ms: 242.617042
+  type: 'test'
+  ...
+# Subtest: the preview: instances moved on copies, the evaluated bodies untouched; nothing moved at home
+ok 208 - the preview: instances moved on copies, the evaluated bodies untouched; nothing moved at home
+  ---
+  duration_ms: 15.070667
+  type: 'test'
+  ...
+# Subtest: the RM2 conformance cases: the 2R tip by its closed form, the gear follower and its held phase
+ok 209 - the RM2 conformance cases: the 2R tip by its closed form, the gear follower and its held phase
+  ---
+  duration_ms: 233.201791
+  type: 'test'
+  ...
+# Subtest: O12: each frame is its part's placement and its local pose; FK moves it with its link
+ok 210 - O12: each frame is its part's placement and its local pose; FK moves it with its link
+  ---
+  duration_ms: 136.469458
+  type: 'test'
+  ...
+# Subtest: O12: URDF, SDF and MJCF write each frame as a fixed child link; read back, each is where FK puts it at 21 poses
+ok 211 - O12: URDF, SDF and MJCF write each frame as a fixed child link; read back, each is where FK puts it at 21 poses
+  ---
+  duration_ms: 73.349375
+  type: 'test'
+  ...
+# Subtest: O12: a frame adds no mass; with no frames URDF, SDF, MJCF and USD are byte for byte as before
+ok 212 - O12: a frame adds no mass; with no frames URDF, SDF, MJCF and USD are byte for byte as before
+  ---
+  duration_ms: 116.0745
+  type: 'test'
+  ...
+# Subtest: O12: IK to a frame's pose reaches it, in pose and in position mode; the workspace map of a frame is its link's at its origin
+ok 213 - O12: IK to a frame's pose reaches it, in pose and in position mode; the workspace map of a frame is its link's at its origin
+  ---
+  duration_ms: 46.129583
+  type: 'test'
+  ...
+# Subtest: O12: set_frames — refusals typed and named, the state the same; always proposed (the robot's settings); set_joints keeps the frames
+ok 214 - O12: set_frames — refusals typed and named, the state the same; always proposed (the robot's settings); set_joints keeps the frames
+  ---
+  duration_ms: 91.645
+  type: 'test'
+  ...
+# Subtest: O12: the frames read back by MuJoCo 3.3.0 (sites), usd-core (prims beneath their links) and check_urdf, as committed
+ok 215 - O12: the frames read back by MuJoCo 3.3.0 (sites), usd-core (prims beneath their links) and check_urdf, as committed
+  ---
+  duration_ms: 48.745625
+  type: 'test'
+  ...
+# Subtest: D168 URDF gears: exactly eight approved scalars; every unapproved byte retains its prior hash
+ok 216 - D168 URDF gears: exactly eight approved scalars; every unapproved byte retains its prior hash
+  ---
+  duration_ms: 2.118084
+  type: 'test'
+  ...
+# Subtest: D168 gear area, mass, centroid and all nine moments agree with independent 2D boundary integration at existing 1e-12 scale
+ok 217 - D168 gear area, mass, centroid and all nine moments agree with independent 2D boundary integration at existing 1e-12 scale
+  ---
+  duration_ms: 349.680542
+  type: 'test'
+  ...
+# Subtest: D168 frozen refresh changes only mass/inertia scalars: all geometry, mesh, units, joint and pose bytes stay equal
+ok 218 - D168 frozen refresh changes only mass/inertia scalars: all geometry, mesh, units, joint and pose bytes stay equal
+  ---
+  duration_ms: 3.373875
+  type: 'test'
+  ...
+# Subtest: D168 arm base and six links agree with independent disjoint-cylinder mass/centroid/inertia at 1e-12 scale
+ok 219 - D168 arm base and six links agree with independent disjoint-cylinder mass/centroid/inertia at 1e-12 scale
+  ---
+  duration_ms: 110.038792
+  type: 'test'
+  ...
+# RM7: 999/1000 reached; worst 9.63e-8 m, 7.79e-7 rad; 79.4 iterations a target; 4 flagged singular; misses 405: 2.12e-3 m 3.18e-4 rad
+# Subtest: 1000 reachable targets on the 6R arm: at least 990 reached within 1e-4 m and 1e-3 rad by the oracle FK
+ok 220 - 1000 reachable targets on the 6R arm: at least 990 reached within 1e-4 m and 1e-3 rad by the oracle FK
+  ---
+  duration_ms: 749.90525
+  type: 'test'
+  ...
+# Subtest: the singularity flag: the arm straight up (q = 0) reached and flagged — nothing moves the tip along the arm; a 2R stretched flagged; an unreachable target never a success
+ok 221 - the singularity flag: the arm straight up (q = 0) reached and flagged — nothing moves the tip along the arm; a 2R stretched flagged; an unreachable target never a success
+  ---
+  duration_ms: 51.789959
+  type: 'test'
+  ...
+# Subtest: an analytic rotated, off-origin cuboid: mass, the moved centre, I = R·diag·Rᵀ, to 1e-12
+ok 222 - an analytic rotated, off-origin cuboid: mass, the moved centre, I = R·diag·Rᵀ, to 1e-12
+  ---
+  duration_ms: 29.4375
+  type: 'test'
+  ...
+# Subtest: the same cuboid in any link frame: I_L = Rᵀ I R, the centre Rᵀ (c − o); principal moments unchanged
+ok 223 - the same cuboid in any link frame: I_L = Rᵀ I R, the centre Rᵀ (c − o); principal moments unchanged
+  ---
+  duration_ms: 7.134708
+  type: 'test'
+  ...
+# Subtest: a cylinder's analytic inertia; another material scales mass and inertia by its density
+ok 224 - a cylinder's analytic inertia; another material scales mass and inertia by its density
+  ---
+  duration_ms: 18.728125
+  type: 'test'
+  ...
+# Subtest: two bodies combined by the parallel-axis theorem: the pair of cuboids' closed form
+ok 225 - two bodies combined by the parallel-axis theorem: the pair of cuboids' closed form
+  ---
+  duration_ms: 5.798333
+  type: 'test'
+  ...
+# Subtest: the checks, typed: not positive definite, the triangle inequality, no volume, a massless dummy
+ok 226 - the checks, typed: not positive definite, the triangle inequality, no volume, a massless dummy
+  ---
+  duration_ms: 0.255291
+  type: 'test'
+  ...
+# Subtest: the eigen-solver: random symmetric matrices rebuilt from their eigenpairs, the vectors orthonormal; I_L = Rᵀ I R
+ok 227 - the eigen-solver: random symmetric matrices rebuilt from their eigenpairs, the vectors orthonormal; I_L = Rᵀ I R
+  ---
+  duration_ms: 2.9355
+  type: 'test'
+  ...
+# Subtest: link frames: at the joint's point, Z along its axis, in the part's coordinates — checked through world coordinates on a turned instance
+ok 228 - link frames: at the joint's point, Z along its axis, in the part's coordinates — checked through world coordinates on a turned instance
+  ---
+  duration_ms: 13.164792
+  type: 'test'
+  ...
+# Subtest: the link_inertia tool on the 2R arm; the conformance case (rm/inertia-cuboid)
+ok 229 - the link_inertia tool on the 2R arm; the conformance case (rm/inertia-cuboid)
+  ---
+  duration_ms: 41.825416
+  type: 'test'
+  ...
+# Subtest: the cases (conformance/rm): every assembly's joint tree as frozen
+ok 230 - the cases (conformance/rm): every assembly's joint tree as frozen
+  ---
+  duration_ms: 1079.540208
+  type: 'test'
+  ...
+# Subtest: revolute and prismatic: the axis, a point on it at the child, continuous without limits, the limits kept
+ok 231 - revolute and prismatic: the axis, a point on it at the child, continuous without limits, the limits kept
+  ---
+  duration_ms: 0.691
+  type: 'test'
+  ...
+# Subtest: chains through dummy links: cylindrical (a slide and a turn on one axis), planar (two slides and a turn)
+ok 232 - chains through dummy links: cylindrical (a slide and a turn on one axis), planar (two slides and a turn)
+  ---
+  duration_ms: 0.316083
+  type: 'test'
+  ...
+# Subtest: fixed: mates leaving nothing free, a lock, a grounded part; a loose part is not in the robot
+ok 233 - fixed: mates leaving nothing free, a lock, a grounded part; a loose part is not in the robot
+  ---
+  duration_ms: 0.392667
+  type: 'test'
+  ...
+# Subtest: a 2R chain from either end; a loop kept and reported, never dropped
+ok 234 - a 2R chain from either end; a loop kept and reported, never dropped
+  ---
+  duration_ms: 0.749416
+  type: 'test'
+  ...
+# Subtest: motion classes from free twists: a ball is three turns about one point; a screw and two turns on different axes are refused
+ok 235 - motion classes from free twists: a ball is three turns about one point; a screw and two turns on different axes are refused
+  ---
+  duration_ms: 1.642709
+  type: 'test'
+  ...
+# Subtest: two meshing spur gears on one carrier: the second follows the first, −z1/z2, from the kernel's pair check
+ok 236 - two meshing spur gears on one carrier: the second follows the first, −z1/z2, from the kernel's pair check
+  ---
+  duration_ms: 617.500125
+  type: 'test'
+  ...
+# Subtest: the settings: read leniently, versioned; the tools — get_joints reads, set_joints is proposed (the assembly's)
+ok 237 - the settings: read leniently, versioned; the tools — get_joints reads, set_joints is proposed (the assembly's)
+  ---
+  duration_ms: 27.034833
+  type: 'test'
+  ...
+# RM8: 360 steps; rocker vs Freudenstein worst 3.02e-14 rad; pin apart worst 9.92e-13 mm
+# Subtest: the four-bar from mates: three turns in the tree, the fourth pin its loop; closed through a full crank turn on its branch, against Freudenstein to 1e-9 rad
+ok 238 - the four-bar from mates: three turns in the tree, the fourth pin its loop; closed through a full crank turn on its branch, against Freudenstein to 1e-9 rad
+  ---
+  duration_ms: 214.729958
+  type: 'test'
+  ...
+# Subtest: the other branch refused (BRANCH_FLIP); a non-Grashof linkage has no closure at its dead points (NO_CLOSURE), where Freudenstein has no root
+ok 239 - the other branch refused (BRANCH_FLIP); a non-Grashof linkage has no closure at its dead points (NO_CLOSURE), where Freudenstein has no root
+  ---
+  duration_ms: 115.386667
+  type: 'test'
+  ...
+# Subtest: the loop in MJCF: an equality <connect> at its pin (our reader: closed at the solver's poses to 1e-9 m); the frozen four-bar case and what the MuJoCo oracle runs
+ok 240 - the loop in MJCF: an equality <connect> at its pin (our reader: closed at the solver's poses to 1e-9 m); the frozen four-bar case and what the MuJoCo oracle runs
+  ---
+  duration_ms: 166.679791
+  type: 'test'
+  ...
+# Subtest: MuJoCo 3.3.0's reading of the frozen four-bar (O45): closed at our poses to 1e-9 m and on Freudenstein to 1e-9 rad; held through a passive run within 1e-4 m and 1e-3 rad, the branch kept
+ok 241 - MuJoCo 3.3.0's reading of the frozen four-bar (O45): closed at our poses to 1e-9 m and on Freudenstein to 1e-9 rad; held through a passive run within 1e-4 m and 1e-3 rad, the branch kept
+  ---
+  duration_ms: 1.075375
+  type: 'test'
+  ...
+# Subtest: native target provenance: arm-6r, four-bar and urdf-2r use raw SI for every massive body, with zero fallbacks
+ok 242 - native target provenance: arm-6r, four-bar and urdf-2r use raw SI for every massive body, with zero fallbacks
+  ---
+  duration_ms: 225.797125
+  type: 'test'
+  ...
+# Subtest: native lookup keeps the exact cached result through ordinary copies; material density is applied once
+ok 243 - native lookup keeps the exact cached result through ordinary copies; material density is applied once
+  ---
+  duration_ms: 2.184542
+  type: 'test'
+  ...
+# Subtest: source-less worker clones keep existing export support and expose unavailable provenance without changing default inertia
+ok 244 - source-less worker clones keep existing export support and expose unavailable provenance without changing default inertia
+  ---
+  duration_ms: 0.631
+  type: 'test'
+  ...
+# Subtest: latest storage: a newly configured cylindrical joint resolves turn/slide types, saves public values and restores solver units once
+ok 245 - latest storage: a newly configured cylindrical joint resolves turn/slide types, saves public values and restores solver units once
+  ---
+  duration_ms: 80.319667
+  type: 'test'
+  ...
+# Subtest: mixed coupling projections scale follower/leader ratios and offsets without changing solver values
+ok 246 - mixed coupling projections scale follower/leader ratios and offsets without changing solver values
+  ---
+  duration_ms: 0.204916
+  type: 'test'
+  ...
+# Subtest: sweep keeps raw mixed-joint contact values until the public boundary: initial contact is exactly 45 degrees and 5 mm
+ok 247 - sweep keeps raw mixed-joint contact values until the public boundary: initial contact is exactly 45 degrees and 5 mm
+  ---
+  duration_ms: 4.27325
+  type: 'test'
+  ...
+# Subtest: public nested gear placements use degrees once; phase and backlash metadata keep existing values with canonical names
+ok 248 - public nested gear placements use degrees once; phase and backlash metadata keep existing values with canonical names
+  ---
+  duration_ms: 517.728917
+  type: 'test'
+  ...
+# Subtest: direct gear phase keeps the analytic 3 degree phase in the 12 degree follower period
+ok 249 - direct gear phase keeps the analytic 3 degree phase in the 12 degree follower period
+  ---
+  duration_ms: 8.959667
+  type: 'test'
+  ...
+# Subtest: public clearance separates a 0.25 path fraction from 0.5 elapsed seconds, with unchanged mm and precision
+ok 250 - public clearance separates a 0.25 path fraction from 0.5 elapsed seconds, with unchanged mm and precision
+  ---
+  duration_ms: 0.896583
+  type: 'test'
+  ...
+# Subtest: fixed public schemas require canonical clearance fields and reject old mm/s aliases or a time/fraction substitution
+ok 251 - fixed public schemas require canonical clearance fields and reject old mm/s aliases or a time/fraction substitution
+  ---
+  duration_ms: 0.382292
+  type: 'test'
+  ...
+# Subtest: public duty converts mixed degree/mm limits, seconds and gravity once and serializes only canonical unit names
+ok 252 - public duty converts mixed degree/mm limits, seconds and gravity once and serializes only canonical unit names
+  ---
+  duration_ms: 1.27475
+  type: 'test'
+  ...
+# Subtest: public duty refuses old unit aliases and non-finite inputs; original gravity default stays physical
+ok 253 - public duty refuses old unit aliases and non-finite inputs; original gravity default stays physical
+  ---
+  duration_ms: 0.544542
+  type: 'test'
+  ...
+# Subtest: range, atMost and actuator raw quantities convert before r9; the full core report and catalogue are unchanged
+ok 254 - range, atMost and actuator raw quantities convert before r9; the full core report and catalogue are unchanged
+  ---
+  duration_ms: 43.619166
+  type: 'test'
+  ...
+# Subtest: sweep stores the independent unrounded clearance limit and keeps mm unchanged
+ok 255 - sweep stores the independent unrounded clearance limit and keeps mm unchanged
+  ---
+  duration_ms: 30.324375
+  type: 'test'
+  ...
+# Subtest: consistency ratios preserve original decisions and explicitly handle zero limits, non-finite values and overflow
+ok 256 - consistency ratios preserve original decisions and explicitly handle zero limits, non-finite values and overflow
+  ---
+  duration_ms: 12.169541
+  type: 'test'
+  ...
+# Subtest: cloned, serialized or edited margins refuse with a typed provenance boundary; sized uses the same projector
+ok 257 - cloned, serialized or edited margins refuse with a typed provenance boundary; sized uses the same projector
+  ---
+  duration_ms: 22.984375
+  type: 'test'
+  ...
+# Subtest: default core check and size accept only canonical Duty and project native results once
+ok 258 - default core check and size accept only canonical Duty and project native results once
+  ---
+  duration_ms: 34.059208
+  type: 'test'
+  ...
+# Subtest: public inertia: a 10 mm cube at 2.7 g/cm³ has 2.7 g, centre [5,5,5] mm and diagonal 45 g·mm²
+ok 259 - public inertia: a 10 mm cube at 2.7 g/cm³ has 2.7 g, centre [5,5,5] mm and diagonal 45 g·mm²
+  ---
+  duration_ms: 20.015958
+  type: 'test'
+  ...
+# Subtest: gravity preserves the physical default and mixed force units; explicit 9810 mm/s² is 9.81 m/s²
+ok 260 - gravity preserves the physical default and mixed force units; explicit 9810 mm/s² is 9.81 m/s²
+  ---
+  duration_ms: 2.15
+  type: 'test'
+  ...
+# Subtest: motion converts unrounded kinematics first, then formats public degree/mm/N·mm/N and seconds
+ok 261 - motion converts unrounded kinematics first, then formats public degree/mm/N·mm/N and seconds
+  ---
+  duration_ms: 0.274166
+  type: 'test'
+  ...
+# Subtest: sizing projects seconds and torque/speed checks while preserving catalogue source values and decisions
+ok 262 - sizing projects seconds and torque/speed checks while preserving catalogue source values and decisions
+  ---
+  duration_ms: 1.608917
+  type: 'test'
+  ...
+# Subtest: M from the Jacobians equals the RNEA's columns (RNEA(q, 0, e_k) − G), and RNEA = M q̈ + C + G with C = RNEA(q, q̇, 0) − G
+ok 263 - M from the Jacobians equals the RNEA's columns (RNEA(q, 0, e_k) − G), and RNEA = M q̈ + C + G with C = RNEA(q, q̇, 0) − G
+  ---
+  duration_ms: 19.249916
+  type: 'test'
+  ...
+# Subtest: M is symmetric positive definite; ½ q̇ᵀ M q̇ is the kinetic energy Σ ½ m v² + ½ ωᵀ I ω from FK velocities (central differences)
+ok 264 - M is symmetric positive definite; ½ q̇ᵀ M q̇ is the kinetic energy Σ ½ m v² + ½ ωᵀ I ω from FK velocities (central differences)
+  ---
+  duration_ms: 5.59775
+  type: 'test'
+  ...
+# Subtest: the planar 2R Lagrangian closed form, to 1e-9: M11, M12, M22 with I + m lc² terms, the Coriolis h = m2 l1 lc sin q2, gravity
+ok 265 - the planar 2R Lagrangian closed form, to 1e-9: M11, M12, M22 with I + m lc² terms, the Coriolis h = m2 l1 lc sin q2, gravity
+  ---
+  duration_ms: 143.149167
+  type: 'test'
+  ...
+# Subtest: the energy balance along a move from rest to rest: ∫ q̇ᵀτ dt = V(end) − V(start), the RNEA's τ along an S-curve
+ok 266 - the energy balance along a move from rest to rest: ∫ q̇ᵀτ dt = V(end) − V(start), the RNEA's τ along an S-curve
+  ---
+  duration_ms: 348.055042
+  type: 'test'
+  ...
+# Subtest: the profiles: durations against their closed forms, rest to rest, the distance exact, the limits never exceeded
+ok 267 - the profiles: durations against their closed forms, rest to rest, the distance exact, the limits never exceeded
+  ---
+  duration_ms: 2.919833
+  type: 'test'
+  ...
+# Subtest: peak and RMS torque of a joint with no gravity load, against the closed form: |τ| = J a on the ramps, RMS = J a √(2 t_a / T)
+ok 268 - peak and RMS torque of a joint with no gravity load, against the closed form: |τ| = J a on the ramps, RMS = J a √(2 t_a / T)
+  ---
+  duration_ms: 33.934
+  type: 'test'
+  ...
+# Subtest: the motion_torques tool on the planar 2R; the conformance case (rm/move-2r: closed-form profile, the Lagrangian's peak)
+ok 269 - the motion_torques tool on the planar 2R; the conformance case (rm/move-2r: closed-form profile, the Lagrangian's peak)
+  ---
+  duration_ms: 128.166375
+  type: 'test'
+  ...
+# Subtest: direct canonical motion reply uses degree, mm, Nmm, N and seconds on real planar and cylindrical robots
+ok 270 - direct canonical motion reply uses degree, mm, Nmm, N and seconds on real planar and cylindrical robots
+  ---
+  duration_ms: 151.079666
+  type: 'test'
+  ...
+# Subtest: direct canonical motion reply throws BAD_VALUES with the original move parser and gravity messages
+ok 271 - direct canonical motion reply throws BAD_VALUES with the original move parser and gravity messages
+  ---
+  duration_ms: 51.701917
+  type: 'test'
+  ...
+# RM9c arm-6r: the four formats' masses, centres and inertia agree to 1.93e-16
+# RM9c FK arm-6r: SDF 2.22e-13 mm, USD 1.42e-13 mm
+# RM9c FK gears: SDF 2.84e-14 mm, USD 2.84e-14 mm
+# RM9c FK cylindrical: SDF 7.11e-15 mm, USD 7.11e-15 mm
+# RM9c external validation: comparing prior stored usd-core receipts; usd-core/MuJoCo runtime not run
+# RM9c usd-core 0.26.8 arm-6r: 7 bodies, 6 joints, articulation 7/6; frames to 8.34e-9, mass properties to 4.02e-8
+# RM9c usd-core 0.26.8 four-bar: 4 bodies, 4 joints, articulation 4/4; frames to 3.74e-8, mass properties to 3.90e-8
+# Subtest: arm-6r: SDF and USD read back to the same tree, and URDF, MJCF, SDF and USD agree on every link's mass, centre and inertia, every joint's axis and limits
+ok 272 - arm-6r: SDF and USD read back to the same tree, and URDF, MJCF, SDF and USD agree on every link's mass, centre and inertia, every joint's axis and limits
+  ---
+  duration_ms: 160.819125
+  type: 'test'
+  ...
+# Subtest: FK from the SDF's and the USD's own frames equals RM2's at 100 poses to 1e-9 mm: the 6R arm, a gear pair (SDF's mimic), a slide
+ok 273 - FK from the SDF's and the USD's own frames equals RM2's at 100 poses to 1e-9 mm: the 6R arm, a gear pair (SDF's mimic), a slide
+  ---
+  duration_ms: 347.047958
+  type: 'test'
+  ...
+# Subtest: the four-bar (RM8): its loop pin a ball joint in SDF and a spherical joint outside the articulation in USD, at the pin; the tree's FK unchanged
+ok 274 - the four-bar (RM8): its loop pin a ball joint in SDF and a spherical joint outside the articulation in USD, at the pin; the tree's FK unchanged
+  ---
+  duration_ms: 40.992167
+  type: 'test'
+  ...
+# Subtest: the frozen arm-6r and four-bar USD stages; usd-core 26.8's UsdPhysics reading of them equals our numbers
+ok 275 - the frozen arm-6r and four-bar USD stages; usd-core 26.8's UsdPhysics reading of them equals our numbers
+  ---
+  duration_ms: 71.491834
+  type: 'test'
+  ...
+# Subtest: a gap of 1e-5 mm, default budget: never a contact or a TOI (the swing never touches); the least clearance met is the gap
+ok 276 - a gap of 1e-5 mm, default budget: never a contact or a TOI (the swing never touches); the least clearance met is the gap
+  ---
+  duration_ms: 1315.657625
+  type: 'test'
+  ...
+# Subtest: a gap of 1e-2 mm over 30 turns of a continuous joint, default budget: not a contact
+ok 277 - a gap of 1e-2 mm over 30 turns of a continuous joint, default budget: not a contact
+  ---
+  duration_ms: 375.065708
+  type: 'test'
+  ...
+# Subtest: a 5 mm gap with maxSamples 1, 2, 3, 5, 10: exhausted, never a contact, no TOI
+ok 278 - a 5 mm gap with maxSamples 1, 2, 3, 5, 10: exhausted, never a contact, no TOI
+  ---
+  duration_ms: 62.21775
+  type: 'test'
+  ...
+# Subtest: a first segment completed, the second out of budget: the exhausted segment index and time are on the second; no TOI
+ok 279 - a first segment completed, the second out of budget: the exhausted segment index and time are on the second; no TOI
+  ---
+  duration_ms: 59.787667
+  type: 'test'
+  ...
+# Subtest: a real collision still gives the same contact (s, links, TOI) as before the fix
+ok 280 - a real collision still gives the same contact (s, links, TOI) as before the fix
+  ---
+  duration_ms: 67.545833
+  type: 'test'
+  ...
+# Subtest: callers: sweep_path, check_path (open and closed), RM6 duty and the captive rung say "not certified" for an exhausted sweep; contact and clear are unchanged
+ok 281 - callers: sweep_path, check_path (open and closed), RM6 duty and the captive rung say "not certified" for an exhausted sweep; contact and clear are unchanged
+  ---
+  duration_ms: 1358.109125
+  type: 'test'
+  ...
+# 6R sweep: contact base–l4 at s 0.738856, 45 samples, least clearance 0.0000 mm
+# Subtest: GJK: the distance between convex sets equals the polytopes' brute-force distance; boxes in closed form; 0 when they overlap
+ok 282 - GJK: the distance between convex sets equals the polytopes' brute-force distance; boxes in closed form; 0 when they overlap
+  ---
+  duration_ms: 30.316166
+  type: 'test'
+  ...
+# Subtest: the motion bound holds: no point of a link moves more than Σ|Δq_i|·r_i, over random trees and steps (dense FK)
+ok 283 - the motion bound holds: no point of a link moves more than Σ|Δq_i|·r_i, over random trees and steps (dense FK)
+  ---
+  duration_ms: 24.30075
+  type: 'test'
+  ...
+# Subtest: a 2R arm swung into a grounded post: the first contact where the plane's separating axes put it; the way back clear, its least clearance
+ok 284 - a 2R arm swung into a grounded post: the first contact where the plane's separating axes put it; the way back clear, its least clearance
+  ---
+  duration_ms: 119.1125
+  type: 'test'
+  ...
+# Subtest: the 6R arm against a dense sweep with the exact mesh test: no contact the bound let through
+ok 285 - the 6R arm against a dense sweep with the exact mesh test: no contact the bound let through
+  ---
+  duration_ms: 6249.99075
+  type: 'test'
+  ...
+# Subtest: the sweep_path tool; the conformance case (rm/sweep-post: the first contact from the plane's closed form)
+ok 286 - the sweep_path tool; the conformance case (rm/sweep-post: the first contact from the plane's closed form)
+  ---
+  duration_ms: 73.375875
+  type: 'test'
+  ...
+# RM9b 2R: 2123 voxels; inside 1884 ≤ occupied 2123 ≤ meeting 2140; area 53075 mm² vs π(130² − 30²) 50265.5 (band 6400 mm²); least expected per cell 31.7; reach 130.000000
+# RM9b limited 2R: inside 832 ≤ occupied 1168 ≤ meeting 1192
+# RM9b 6R: reach 285.047 mm vs straight 286.356 mm; 5185 voxels; w at straight 1.34e-34; best w 2.469e-3
+# RM9b filter: 143 of 300 poses left out; the mesh test finds 143
+# Subtest: the planar 2R (80, 50): occupied voxels meet the annulus 30 ≤ r ≤ 130, every voxel wholly inside is occupied, the area within the boundary band; w = l₁ l₂ |sin θ₂|
+ok 287 - the planar 2R (80, 50): occupied voxels meet the annulus 30 ≤ r ≤ 130, every voxel wholly inside is occupied, the area within the boundary band; w = l₁ l₂ |sin θ₂|
+  ---
+  duration_ms: 192.487958
+  type: 'test'
+  ...
+# Subtest: the elbow limited to [0, π/2]: its annulus √(80² + 50²) ≤ r ≤ 130, by the same occupancy tests; a slide without limits refused
+ok 288 - the elbow limited to [0, π/2]: its annulus √(80² + 50²) ≤ r ≤ 130, by the same occupancy tests; a slide without limits refused
+  ---
+  duration_ms: 161.437625
+  type: 'test'
+  ...
+# Subtest: the 6R arm: its reach the straight arm's length within h, no voxel past it, w 0 at the straight pose; the same map twice
+ok 289 - the 6R arm: its reach the straight arm's length within h, no voxel past it, w 0 at the straight pose; the same map twice
+  ---
+  duration_ms: 302.195542
+  type: 'test'
+  ...
+# Subtest: the self-contact filter on the 6R: the poses left out are those RM6's mesh test finds in contact
+ok 290 - the self-contact filter on the 6R: the poses left out are those RM6's mesh test finds in contact
+  ---
+  duration_ms: 6122.647166
+  type: 'test'
+  ...
+# Subtest: RS1: the samples on disk are what the script writes, listed in index.json, each a robot with one demo motion
+ok 291 - RS1: the samples on disk are what the script writes, listed in index.json, each a robot with one demo motion
+  ---
+  duration_ms: 5.71825
+  type: 'test'
+  ...
+# Subtest: RS1: each sample's joint tree (types, the gear followers) and its demo motion valid on it
+ok 292 - RS1: each sample's joint tree (types, the gear followers) and its demo motion valid on it
+  ---
+  duration_ms: 1470.426333
+  type: 'test'
+  ...
+# Subtest: RS1: FK at 20 poses each against the closed form (the chain's product of exponentials), to 1e-9 mm
+ok 293 - RS1: FK at 20 poses each against the closed form (the chain's product of exponentials), to 1e-9 mm
+  ---
+  duration_ms: 551.076417
+  type: 'test'
+  ...
+# Subtest: RS1: the demo motions' durations in degrees (arm-2r's wave against the trapezoid's closed form); the arms carry real joint limits
+ok 294 - RS1: the demo motions' durations in degrees (arm-2r's wave against the trapezoid's closed form); the arms carry real joint limits
+  ---
+  duration_ms: 601.017917
+  type: 'test'
+  ...
+# Subtest: RS1 (O22, RS6): every sample's demo motion passes check_path clear along its timing — the four-bar's with its loop closed
+ok 295 - RS1 (O22, RS6): every sample's demo motion passes check_path clear along its timing — the four-bar's with its loop closed
+  ---
+  duration_ms: 1107.264041
+  type: 'test'
+  ...
+# Subtest: RS1: the four-bar closes its loop through its demo motion (the pins meet to 1e-9 mm)
+ok 296 - RS1: the four-bar closes its loop through its demo motion (the pins meet to 1e-9 mm)
+  ---
+  duration_ms: 33.514833
+  type: 'test'
+  ...
+# Subtest: RS1: URDF and MJCF exported and read back by our readers: FK through the files equals ours, to 1e-12 m
+ok 297 - RS1: URDF and MJCF exported and read back by our readers: FK through the files equals ours, to 1e-12 m
+  ---
+  duration_ms: 1247.970833
+  type: 'test'
+  ...
+# Subtest: RS1: check_urdf reads every open-chain sample's URDF; MuJoCo's kinematics of each MJCF equals our reader's (where installed)
+ok 298 - RS1: check_urdf reads every open-chain sample's URDF; MuJoCo's kinematics of each MJCF equals our reader's (where installed)
+  ---
+  duration_ms: 2640.92325
+  type: 'test'
+  ...
+# Subtest: RS3 set_pose: degrees in and out, the links where FK puts them in radians; past a limit, an unknown key or a gear follower refused, typed; nothing stored
+ok 299 - RS3 set_pose: degrees in and out, the links where FK puts them in radians; past a limit, an unknown key or a gear follower refused, typed; nothing stored
+  ---
+  duration_ms: 341.427167
+  type: 'test'
+  ...
+# Subtest: RS3 set_waypoint: a motion recorded (made, inserted, removed, its limits), checked as it will play; the robot's, so proposed
+ok 300 - RS3 set_waypoint: a motion recorded (made, inserted, removed, its limits), checked as it will play; the robot's, so proposed
+  ---
+  duration_ms: 63.760667
+  type: 'test'
+  ...
+# Subtest: RS3 check_path: the SCARA's pick clear along its timing, its duration the trapezoid's closed form; a motion that cannot play refused
+ok 301 - RS3 check_path: the SCARA's pick clear along its timing, its duration the trapezoid's closed form; a motion that cannot play refused
+  ---
+  duration_ms: 141.907791
+  type: 'test'
+  ...
+# Subtest: RS3 play_motion: the stored motion's poses at even times, each poseAt's in degrees, its links FK's
+ok 302 - RS3 play_motion: the stored motion's poses at even times, each poseAt's in degrees, its links FK's
+  ---
+  duration_ms: 584.662208
+  type: 'test'
+  ...
+# Subtest: every handler is classified, nothing reaches outside the document, read handlers change nothing
+ok 303 - every handler is classified, nothing reaches outside the document, read handlers change nothing
+  ---
+  duration_ms: 1.209917
+  type: 'test'
+  ...
+# Subtest: the breaking-change rules: removals and narrowing break, additions do not
+ok 304 - the breaking-change rules: removals and narrowing break, additions do not
+  ---
+  duration_ms: 0.467542
+  type: 'test'
+  ...
+# Subtest: every read tool’s result matches its output schema and changes nothing
+ok 305 - every read tool’s result matches its output schema and changes nothing
+  ---
+  duration_ms: 700.705916
+  type: 'test'
+  ...
+# Subtest: O7 refusals, typed: [FASTENER_SIZE_ROW] for a tapped hole or a fastener with no size row loaded
+ok 306 - O7 refusals, typed: [FASTENER_SIZE_ROW] for a tapped hole or a fastener with no size row loaded
+  ---
+  duration_ms: 39.027916
+  type: 'test'
+  ...
+1..306
+# tests 306
+# suites 0
+# pass 306
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 70843.363208

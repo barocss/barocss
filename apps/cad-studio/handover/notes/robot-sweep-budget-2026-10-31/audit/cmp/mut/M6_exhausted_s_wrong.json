@@ -1,0 +1,1 @@
+{"src/robot/ccd.ts": [["t: g.t0 + timeAt(g.profile, r.exhausted.s), s: r.exhausted.s", "t: g.t0, s: r.exhausted.s"]]}

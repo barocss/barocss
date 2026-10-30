@@ -1,0 +1,1 @@
+{"src/robot/verbs.ts": [["reply: { clear: r.clear, ...(r.contact", "reply: { clear: r.clear || !!r.exhausted, ...(r.contact"]]}

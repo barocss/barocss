@@ -1,0 +1,117 @@
+{
+  "label": "07-applied",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          0,
+          0
+        ],
+        "max": [
+          40,
+          30
+        ],
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 20,
+        "id": "n1"
+      },
+      {
+        "kind": "fillet",
+        "parent": {
+          "node": 1,
+          "side": "solid"
+        },
+        "edges": [
+          "n1.side1|n1.top"
+        ],
+        "radius": 8,
+        "id": "n2"
+      },
+      {
+        "kind": "fillet",
+        "parent": {
+          "node": 2,
+          "side": "solid"
+        },
+        "edges": [
+          "n1.side0|n1.top"
+        ],
+        "radius": 4,
+        "id": "n3",
+        "sigs": {
+          "n1.side0|n1.top": {
+            "k": "line",
+            "p": [
+              16,
+              0,
+              20
+            ],
+            "d": [
+              -1,
+              0,
+              0
+            ],
+            "s": 32
+          }
+        }
+      }
+    ],
+    "outputs": {
+      "b3": {
+        "node": 3,
+        "side": "solid"
+      }
+    },
+    "nextId": 4
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b3",
+        "volume": 23398.55549022955,
+        "centroid": [
+          19.637265243137282,
+          15.11411466312989,
+          9.808883721274299
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [
+        {
+          "body": 0,
+          "edge": 9
+        }
+      ],
+      "bodies": []
+    },
+    "bodies": 1,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "notices": [],
+  "hud": null,
+  "history": [
+    "Extrude 20",
+    "Fillet R8",
+    "Fillet R4"
+  ]
+}

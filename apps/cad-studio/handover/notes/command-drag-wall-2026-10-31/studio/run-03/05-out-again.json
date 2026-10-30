@@ -1,0 +1,85 @@
+{
+  "label": "05-out-again",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          0,
+          0
+        ],
+        "max": [
+          40,
+          30
+        ],
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 20,
+        "id": "n1"
+      },
+      {
+        "kind": "fillet",
+        "parent": {
+          "node": 1,
+          "side": "solid"
+        },
+        "edges": [
+          "n1.side1|n1.top"
+        ],
+        "radius": 8,
+        "id": "n2"
+      }
+    ],
+    "outputs": {
+      "b2": {
+        "node": 2,
+        "side": "solid"
+      }
+    },
+    "nextId": 3
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b2",
+        "volume": 23587.964473723074,
+        "centroid": [
+          19.681853585811407,
+          14.999999999999995,
+          9.85653399400683
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [
+        {
+          "body": 0,
+          "edge": 9
+        }
+      ],
+      "bodies": []
+    },
+    "bodies": 1,
+    "active": "fillet",
+    "sketch": false,
+    "measure": false
+  },
+  "notices": [],
+  "hud": "Filletpreviewcheck_circleEdges1 edgeRadiusmmEnd radius (0: same)mmSectionCircularConicCurvature (G2)CancelApply",
+  "history": []
+}

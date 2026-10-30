@@ -1,0 +1,105 @@
+{
+  "decision": "D367",
+  "roadmap": "Boundary correctness defect before B1 (owner rule: reproduced false results first); roadmap 18 robot motion",
+  "status": "BOUNDED_QUALIFIED",
+  "scope": "Robot sweep sample-budget exhaustion is an inconclusive 'exhausted' outcome, never a contact or time of impact; every consumer reports 'not certified'; maxSamples validated (1..10,000,000); crossing-seat exhaustion is exhausted, not clear.",
+  "relatedIssues": {
+    "#2229": {
+      "met": [
+        "maxSamples:1 on a clear fixture: no contact, no TOI",
+        "enough budget: identical contacts and TOI (1165 recorded calls in 19 test files identical before/after)",
+        "clear only when finished, with minClearance and skipped pairs kept",
+        "a real contact at the first position stays distinct from exhaustion (probe_first)",
+        "consumers and agent descriptions share one meaning (sweep_path, check_path open/closed, sweepClosed, RM6 duty, rb9 captive, chat contract, Studio)",
+        "exhausted results carry s/t, segment, samples and the least clearance",
+        "per-segment budget documented and tested (segment === 1)",
+        "budget policy defined: whole number 1..10,000,000, else refused"
+      ],
+      "notMet": [
+        "per-chord budget in closed loops is not documented",
+        "the step-branch contact keeps its absolute 1e-12·rate bound (pre-existing, nanometre scale)"
+      ],
+      "closure": "for the coordinator to judge"
+    }
+  },
+  "baseCommit": "5179126c1",
+  "sourceCommit": "da54e1d41",
+  "sourcePaths": 20,
+  "models": {
+    "rootJudgmentAndVerification": "claude-opus-5-5 (main session)",
+    "reproduction": "claude-opus-5-5 sub-agent",
+    "independentAudit": "claude-opus-5-5 sub-agent (one round)",
+    "implementation": "Sonnet sub-agents (fix; audit fixes + driver)",
+    "rootEdits": "driver locator and playback order",
+    "sol": "NOT_USED"
+  },
+  "baselineDefect": "chain-2r arm + post at g = 1e-5 mm: sweepTimed clear:false, toi 0.76089 s with min clearance 1.21e-5 mm in the same result; g = 1e-2 mm over 30 turns: toi 144.63 s; maxSamples 1..10 with a 5 mm gap: contact (probe-before/out.txt, out_c.txt)",
+  "model": {
+    "newTests": "robot-sweep-budget (+policy, +dispatchTool end-to-end), o24a-cam crossing case",
+    "full": "2208/2208 (cad-model, TEST_CONCURRENCY=4)",
+    "targeted": "309/309",
+    "types": "PASS",
+    "lint": "PASS",
+    "mutants": "audit 15/16 killed; the surviving check_path-summary mutant is now killed by the end-to-end test; the crossing-cap branch has no killing test (not reachable from public inputs)"
+  },
+  "studioUnit": {
+    "robot": "33/33",
+    "types": "PASS"
+  },
+  "docs": {
+    "checkDocs": "PASS",
+    "refusals": "PASS",
+    "agentTools": "PASS",
+    "apiInventory": "PASS (regenerated: exhausted fields, checkMaxSamples, DEFAULT_MAX_SAMPLES, MAX_SAMPLES_CEILING)"
+  },
+  "audit": {
+    "verdict": "CHANGES_REQUIRED (small), fixed without another round per owner time concern",
+    "findings": [
+      "maxSamples policy undefined (0/negative/NaN/Infinity: inconsistent, Infinity hangs) -> whole number 1..10,000,000",
+      "no end-to-end exhausted check_path summary test -> added",
+      "weak two-segment assertion -> segment === 1",
+      "low: docs path.check(), RM6 margin value 0 -> least clearance, crossing-cap break -> exhausted"
+    ],
+    "notFixed": [
+      "step-branch contact absolute bound (d <= tol + 1e-12*rate) — pre-existing, documented",
+      "no persistent Studio marker after playback (toast only)"
+    ]
+  },
+  "browser": {
+    "run01": "FAIL_DRIVER at 'Clear waypoints' locator (graze 'Not certified' step passed)",
+    "run02": "FAIL_DRIVER: waited for the motion toast before pressing Play (App sweeps the motion when it plays)",
+    "run03": "PASS",
+    "status": "PASS_RUN_03",
+    "chromeProcesses": 1,
+    "serialContexts": 2,
+    "steps": [
+      "open the chain-2r fixture with a post at 1e-5 mm and a wall",
+      "graze path: Check path -> 'Not certified: the sweep ran out of its sample budget at t 1.655 s (segment 2 of 2)…', no contact tint",
+      "collision path: 'Contact wall – b at 69.1 % of the move, t 1.452 s' (unchanged meaning)",
+      "play the saved graze motion: toast 'Motion contact check not certified', no tint, no motion contact",
+      "Save, fresh Open: graze check reads the same"
+    ],
+    "frozenFiles": 290,
+    "frozenEqualsCommit": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ]
+  },
+  "limits": [
+    "The Studio text rounds the least clearance to 0.00 mm for a 1e-5 mm graze",
+    "A contact at the step branch may be reported with clearance up to tol + 1e-12·rate (nanometres; pre-existing)",
+    "The crossing-seat exhaustion branch is implemented but no test reaches it",
+    "Closed-loop budget is per chord (undocumented)",
+    "Superseded runs keep only their receipt"
+  ],
+  "fullKernel": "NOT_RUN",
+  "fullStudio": "NOT_RUN",
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

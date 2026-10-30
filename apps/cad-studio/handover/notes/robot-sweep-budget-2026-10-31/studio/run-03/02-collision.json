@@ -1,0 +1,14 @@
+{
+  "label": "02-collision",
+  "nodes": 4,
+  "instances": [
+    "a",
+    "b",
+    "post",
+    "wall"
+  ],
+  "notices": [],
+  "pathCheck": "Contact wall – b at 69.1 % of the move, t 1.452 s (12335 steps; no velocity limit on base~a, a~b: 1 rad/s (100 mm/s) taken)",
+  "contactLinks": [],
+  "motionContact": null
+}

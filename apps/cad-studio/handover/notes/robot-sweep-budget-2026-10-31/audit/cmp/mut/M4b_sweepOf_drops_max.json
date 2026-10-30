@@ -1,0 +1,1 @@
+{"src/robot/verbs.ts": [["sweepPath(t, sweepLinksOf(view, t), from, to, o.maxSamples ? { maxSamples: o.maxSamples } : {})", "sweepPath(t, sweepLinksOf(view, t), from, to, {})"]]}

@@ -1,0 +1,14 @@
+{
+  "label": "00-opened",
+  "nodes": 4,
+  "instances": [
+    "a",
+    "b",
+    "post",
+    "wall"
+  ],
+  "notices": [],
+  "pathCheck": null,
+  "contactLinks": [],
+  "motionContact": null
+}

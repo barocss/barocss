@@ -1,0 +1,5 @@
+BASELINE:  pass 20 fail 0 
+M2_sign_only_wall:  pass 18 fail 2 => drag C out again after a refusal reaches the valid value, wi | drag C out again after a refusal reaches the valid value, wi
+M11_clamp_strict:  pass 16 fail 4 => a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | a refusal arriving late for a farther value does not widen t
+M13_no_clamp:  pass 16 fail 4 => a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | a pointer held past the limit settles toward it without swin | a refusal arriving late for a farther value does not widen t
+done

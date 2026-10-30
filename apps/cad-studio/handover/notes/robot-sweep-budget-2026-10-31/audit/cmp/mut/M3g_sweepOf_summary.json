@@ -1,0 +1,1 @@
+{"src/robot/verbs.ts": [["r.exhausted ? `not certified: ${notCertified(r.exhausted.s, r.minClearance?.mm, 'path')}`", "r.exhausted ? `clear (${r.samples} steps)`"]]}

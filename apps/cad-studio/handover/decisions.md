@@ -17356,3 +17356,70 @@ Limits:
 - about 250 ms evaluation and 79 KB per ellipse sketch.
 
 Full suites, CI and release NOT_RUN.
+
+## D367 — A robot sweep that runs out of budget is not a contact; boundary defect #2229 (2026-10-31)
+
+Qualify source `da54e1d41` (20 paths). [Evidence](notes/robot-sweep-budget-2026-10-31/qualification.json). Related: #2229. Its acceptance items met and not met are listed in the evidence for the coordinator's closure check.
+
+This is a reproduced false result: `sweepPath` treated a spent sample budget as contact, and `sweepTimed` turned it into a TOI. Examples: a 1e-5 mm graze gave `toi` 0.76 s next to a positive least clearance, and a 1e-2 mm gap over 30 turns gave `toi` 144.6 s.
+
+Decision:
+- **Outcome.** Exhaustion is an inconclusive `exhausted` result (s, values, samples; segment and t) with no contact and no toi. True contacts and clear results are unchanged: 1165 recorded calls are identical.
+- **Consumers.** Every consumer says "not certified": check_path, sweep_path, sweepClosed, RM6 duty, the rb9 captive rung, the chat contract and summaries, and Studio.
+- **Budget.** `maxSamples` must be a whole number from 1 to 10,000,000; anything else is refused.
+- **Crossing seats.** A crossing seat that runs out of budget is exhausted, not clear.
+
+Retained:
+- the Opus reproduction;
+- the independent Opus audit, CHANGES_REQUIRED (small): no budget policy (Infinity hung), no end-to-end summary test, a weak segment assertion, low items. Fixed in one round with no re-audit, per the owner's time concern;
+- run01 and run02 driver failures (a locator; waiting for the toast before Play).
+
+Checks: cad-model full suite 2208/2208; Studio robot 33/33; types, lint and docs tables PASS. Actual run03 PASS:
+- the graze reads "Not certified … segment 2 of 2", with no tint;
+- the collision reads "Contact wall – b" as before;
+- playing the saved graze motion shows the "not certified" toast;
+- after Save and a fresh Open, the same.
+
+Errors 0; 290 frozen files equal the commit.
+
+Limits:
+- the step-branch contact keeps its absolute bound tol + 1e-12·rate (pre-existing, nanometres);
+- the crossing-cap branch has no reaching test;
+- the closed-loop per-chord budget is undocumented.
+
+## D368 — A command handle drag no longer jumps on late refusals; row 20 ② (2026-10-31)
+
+Qualify source `58f9e045f` (5 paths). [Evidence](notes/command-drag-wall-2026-10-31/qualification.json). This is the user-observed "fillet arrow value jumps while dragging", reproduced at model level with the real hooks and a fake kernel:
+- a late refusal reset the current value;
+- the sign-only wall clamped valid values for the rest of the drag;
+- only the newest value was evaluated, so the value settled far below the limit;
+- the value stuck at 3, or jumped to 6.5 while the pointer was at 4.
+
+Decision:
+- A refusal resets only its own values. A stale refusal records a bound (the nearest refused value), and values short of it are still tried.
+- A bisect step converges on the limit. It continues after release, and Apply waits for it.
+- A stale success never moves the last good value back, and a pointer held past the bound keeps the step in flight. The value moves one way and settles.
+
+Retained:
+- **Audit.** The independent Opus audit was CHANGES_REQUIRED: F1, the first fix added back-and-forth while held past the bound (4 ↔ 5.5; 10 ↔ 6 rolled), where HEAD was steady; F2, tests checked only final values; F3, the bisect after release stated. Fixed in one round with no re-audit.
+- **Run01** (first-fix source): D showed 7.5 → 9 → 7.5 while moving back, a probe at the pointer's own value shown as evaluating. Root decision: one evaluating probe at or below the pointer is allowed; oscillation is not.
+- **Run02** driver failure: the field lags the pointer by one frame (6.5 at pointer 6.20; also in run01's B).
+  - The driver's one-frame-lag bound loosens only "shown ≤ pointer"; the oscillation bound is unchanged.
+  - A replay on run01's samples is recorded.
+  - A browser negative control on HEAD is NOT_RUN; the unit tests catch the regressions (7/11 fail on HEAD).
+
+Checks: Studio full suite 546/546, including `command-drag-wall` (20); types and lint PASS. Actual run03 PASS on a box with an R8 round (second fillet refused at r ≥ 8):
+- A: hold settles at 7.5;
+- B: back to 4;
+- C: out to 6.5;
+- D: fast out and back settles at 4;
+- Apply: radius = shown 4.0; closed-form volume oracle;
+- Undo/Redo, Save and fresh Open equal.
+
+Errors 0; 674 frozen files equal the commit.
+
+Limits:
+- one evaluating probe may show a value that is then refused;
+- a limit rising within one drag is followed only through an in-flight success;
+- the edit-fillet handle has no max;
+- an off-grid start snaps on the first move.
