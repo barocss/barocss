@@ -110,6 +110,13 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
 (현재 후보: #2229 sweep 예산/접촉 구분, 20② 필렛 드래그 값 튐 — 재현되면 즉시). **09→B1 경계(2026-10-31): 둘 다 재현되어 D367(#2229, [qualification](notes/robot-sweep-budget-2026-10-31/qualification.json))과 D368(20②, [qualification](notes/command-drag-wall-2026-10-31/qualification.json))로 고침.**
 1. 09 마감 → B1 2D 밴드 → B2 3D 밴드. **회고 완료 2026-10-31 (B1/D369 뒤).** 측정: 작은 수정 20–60분, 타원 약 3시간, 항목당 실제 흐름 3–7회(재실행 중 driver·oracle 원인 12건, 실제 제품 결함 4건), 감사는 매번 실제 결함을 찾음, 증거 항목당 1.4–14 MB(notes 516 MB). 오너 채택: ① **검증 단계 차등** — 작은 수정은 관련 테스트+실제 흐름 1회(독립 감사 없음), 기능 추가는 감사 1회+실제 흐름, 커널 형상·공차·공개 API만 감사 반복·mutation; ② **공통 Studio 흐름 도구**(`apps/cad-studio/test/`의 열기·저장·새로 열기·클릭·toast·정답 비교 공용화)를 B2 전에 만든다. 기록 축소와 주제 묶음은 이번에 채택하지 않음. T2는 09 안에서, T1/T3/T4는 B2와 함께 판단한다.
 2. 01–06 마감. 기능 작업과 파일이 겹치지 않으면 Docs/Viewer/GPU 쪽에서 병행한다. 33 CI 브라우저 검증도 여기서 먼저 한다.
+   **01–06 마감 원장 (2026-10-31, 오너 "Go to 01–06", 한 번에 한 행·직렬):**
+   - 01 독립 공차 프레임: reader/writer 필드 보존·SVG 경로는 이미 코드와 테스트(drawing-standalone*, 26/26)에 있음 → 남은 일: 현재 코드에서 Add/편집/숨김/Move/Save/New/Open/SVG/삭제 실제 Studio 흐름 1회(small)로 행을 닫는다.
+   - 02 도면 문서 연결: studio/drawings.md에 standalone frame·point datum target 설명이 있음 → 남은 일: 01 실제 결과와 문구 대조(뷰·위치·모호 선택·없는/숨긴 참조·저장/출력 경계), 04의 docs 빌드 묶음에서 함께 닫는다(small).
+   - 03 선형 절삭 반복: 모델·API 테스트(17520 mm³) 있음, Studio 브라우저 드라이버 없음 → 남은 일: flow-helper로 실제 Studio 흐름 1회(적용·Undo/Redo·Save/New/Open·잘못된 입력 거부)(small).
+   - 04 API 문서·그림·탐색: 남은 일: samples 전체 재실행(이전 164 중 159 PASS/2 FAIL/3 CANCELLED 원인 확인), 공개 목록 의미 검토, vitepress build + check-docs 한 묶음, 필요한 desktop 페이지 확인(small; 새 동작이 생기면 feature).
+   - 05 Viewer 마감: 남은 일: viewer 패키지의 현재 정상 상태(build/type/관련 테스트)와 앱 UI 실제 흐름 1회로 제품 연결 범위를 확정하고, 미완(IGES 제한·파일 닫기·driver/OOM 복구)은 한계로 분리 기록(small, 범위 확인부터).
+   - 06 GPU 인계: 남은 일: 기록된 GPU commit들(fe2637f4, 607f7d0, 8de2f6ac, 5d8b7757, 2a35e9b6, 29fd0191/d4e2c3ec)이 현재 이력에 있는지 확인하고 인계 기록(정상 commit·원 실패·PNG·한계)을 한 문서로 정리; 이 제품에 자동 병합하지 않음(docs only).
 3. 20 기즈모·드래그 + 21 사이드바. 드래그 지연은 T5 측정과 함께 본다.
 3b. 정리 묶음 (오너 2026-10-30 "그렇게 해줘", 이어서 "잘 분배해서 진행해줘": 지금 시작, lane 분리 — 리팩토링 lane이 ①→② kernel만, 09와 겹치지 않는 시점에 ③→④; CI lane이 33을 병행): ① R7.3d — kernel 밖에서 아무도 쓰지 않는 137파일·28,681줄
 (측정: [kernel reachability](notes/kernel-reachability-2026-10-30/README.md))을 모듈별 retire/keep 판단 뒤 제거, test/example 전용 19파일 결정 (**① 완료, D360**: 100파일 retire, 37파일 keep, E 19파일 keep — [노트](notes/kernel-refactor-3b-2026-10-30/README.md));
