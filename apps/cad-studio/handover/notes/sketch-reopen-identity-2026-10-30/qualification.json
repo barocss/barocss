@@ -1,0 +1,58 @@
+{
+  "decision": "D349",
+  "roadmap": "09 Advanced sketch — CG3 (second bounded item; D348 audit side note S1)",
+  "status": "BOUNDED_QUALIFIED",
+  "scope": "Existing Studio sketch reopen (Edit sketch) -> Finish in place: keep the stored node's `on` (the body it was drawn on) and NODE_EXTRA_FIELDS, so Extrude/Revolve/Sweep still offer Operation Join/Cut; through point edit, a downstream Cut, Undo/Redo and native Save/fresh Open",
+  "baseCommit": "94d9b1f70",
+  "sourceCommit": "e8befb6cc",
+  "sourcePaths": ["apps/cad-studio/src/sketch/useSketchActions.ts", "apps/cad-studio/test/sketch-edit-identity.test.ts", "apps/cad-studio/test/sketch-reopen-identity-browser.mjs", "apps/cad-studio/test/fixtures/d349.bcad"],
+  "models": {
+    "rootJudgmentAndVerification": "claude-opus-5-5 (main session)",
+    "independentAudit": "claude-opus-5-5 sub-agent",
+    "implementation": "Sonnet sub-agents from frozen briefs (fix+tests in an isolated worktree; Studio driver)",
+    "rootEdits": "one evaluated==accepted test assertion after the audit; driver sketch-editor route and context-3 step after run01",
+    "sol": "NOT_USED"
+  },
+  "baselineDefects": [
+    "unchanged reopen->Finish drops `on` and every node extra except id (hook probe: keys bought,held,on lost)",
+    "Extrude Operation (Join/New/Cut) no longer offered for that sketch (Model ctx probe and audit P1)",
+    "actual Studio run00: Finish without a change left node 2 with `on` as its only differing key; errors 0, resources closed"
+  ],
+  "studioUnit": { "newTests": 2, "negativeControl": "2 pass / 2 fail on the unfixed hook (fix agent and audit R1)", "affected": "37/37 (sketch-edit-identity sketchIds constraints fill-pattern-candidate)", "types": "PASS", "lint": "PASS", "driverLint": "0 errors, 1 console warning" },
+  "model": { "sourceChanged": false },
+  "kernel": { "sourceChanged": false },
+  "audit": { "verdict": "PASS", "findings": ["stale implementation base (only D349 hunks; root re-applied on 94d9b1f70)", "evaluated==committed untested (added)", "JSON key order changes on a no-op Finish (info)"] },
+  "browser": {
+    "run00": "BASELINE_FAIL_AS_EXPECTED at 02: `on` dropped by unchanged Finish",
+    "run01": "FAIL_DRIVER_LOCATOR at 07: a sketch consumed by an Extrude has no standalone history button; steps 01-06 passed (unchanged Finish, edit, Operation join/new/cut, Cut 22125, Undo/Redo, Save, fresh Open)",
+    "status": "PASS_RUN_02",
+    "chromeProcesses": 1,
+    "serialContexts": 3,
+    "productReads": 6,
+    "independentPythonFractionOracles": 6,
+    "worstVolumeDelta": 1.4551915228366852e-11,
+    "steps": ["unchanged reopen->Finish (deep-equal, differingKeys [])", "Point 2 X 30->35 (on/id/plane/sideTags kept)", "Extrude HUD Operation join/new/cut", "Cut depth 5 -> volume 22125", "Undo/Redo", "Save, fresh Open", "reopen via Extrude editor and Finish unchanged (doc equal)", "Save, fresh Open, reopen and Escape (doc equal)"],
+    "nativeFiles": 2,
+    "frozenFiles": 980,
+    "frozenEqualsCommit": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "cleanup": ["CONTEXT_CLOSED", "CONTEXT_CLOSED", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "visual": { "status": "PASS", "rootImages": ["run02 04-extrude-hud", "run02 05-cut", "run02 09-reopened-final"] },
+  "limits": [
+    "One box and one rectangle face sketch in the actual flow; suppressed/held/bought are unit scope only",
+    "A no-op Finish rewrites JSON key order (deep-equal document)",
+    "Associative/detached precedence is audit-probe scope, not a committed test",
+    "Chat edit_feature whole-feature replacement keeps only id (side note, unchanged)",
+    "Hashes are provenance only"
+  ],
+  "fullKernel": "NOT_RUN",
+  "fullModel": "NOT_RUN",
+  "fullStudio": "NOT_RUN",
+  "studioViteBuild": "NOT_RUN (dev server used by the actual run)",
+  "perfBench": "NOT_RUN_NOT_A_PERFORMANCE_CHANGE",
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

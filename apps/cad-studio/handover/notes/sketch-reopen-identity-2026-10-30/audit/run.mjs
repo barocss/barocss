@@ -1,0 +1,5 @@
+import { build } from '/Users/user/github/barocss/barocss/.claude/worktrees/agent-af4bb57e31a4db612/node_modules/esbuild/lib/main.js';
+import { spawnSync } from 'node:child_process';
+const out = '/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-heuristic-gould-b94e20/de70f387-aaec-4213-a427-f7006e5caab3/scratchpad/audit349/out';
+await build({ entryPoints: ['/private/tmp/claude-501/-Users-user-github-barocss-barocss--claude-worktrees-heuristic-gould-b94e20/de70f387-aaec-4213-a427-f7006e5caab3/scratchpad/audit349/audit349.test.ts'], outdir: out, bundle: true, platform: 'node', format: 'esm', target: 'node22', outExtension: { '.js': '.mjs' }, logLevel: 'warning', nodePaths: ['/Users/user/github/barocss/barocss/.claude/worktrees/agent-af4bb57e31a4db612/apps/cad-studio/node_modules', '/Users/user/github/barocss/barocss/.claude/worktrees/agent-af4bb57e31a4db612/node_modules'] });
+const r = spawnSync(process.execPath, ['--test', out + '/audit349.test.mjs'], { stdio: 'inherit' }); process.exit(r.status ?? 1);

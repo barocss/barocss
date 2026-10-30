@@ -1,0 +1,162 @@
+{
+  "label": "02-finish-unchanged",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          0,
+          0
+        ],
+        "max": [
+          60,
+          40
+        ],
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 10,
+        "id": "n1",
+        "made": {
+          "command": "box",
+          "values": {
+            "w": 60,
+            "d": 40,
+            "h": 10,
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      },
+      {
+        "kind": "sketch",
+        "profile": "polygon",
+        "points": [
+          [
+            10,
+            10
+          ],
+          [
+            30,
+            10
+          ],
+          [
+            30,
+            25
+          ],
+          [
+            10,
+            25
+          ]
+        ],
+        "outline": {
+          "points": [
+            [
+              10,
+              10
+            ],
+            [
+              30,
+              10
+            ],
+            [
+              30,
+              25
+            ],
+            [
+              10,
+              25
+            ]
+          ],
+          "hv": {
+            "h": [
+              0,
+              2
+            ],
+            "v": [
+              1,
+              3
+            ]
+          }
+        },
+        "sideTags": {
+          "outer": [
+            "e1",
+            "e2",
+            "e3",
+            "e4"
+          ]
+        },
+        "plane": {
+          "origin": [
+            0,
+            0,
+            10
+          ],
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "xAxis": [
+            1,
+            0,
+            0
+          ]
+        },
+        "id": "n2",
+        "on": {
+          "node": 1,
+          "side": "solid"
+        }
+      }
+    ],
+    "outputs": {
+      "b1": {
+        "node": 1,
+        "side": "solid"
+      }
+    },
+    "nextId": 3
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b1",
+        "volume": 24000,
+        "centroid": [
+          30.000000000000004,
+          20.000000000000004,
+          5
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 1,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": null,
+  "hud": null
+}
