@@ -111,7 +111,7 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
 1. 09 마감 → B1 2D 밴드 → B2 3D 밴드. T2는 09 안에서, T1/T3/T4는 B2와 함께 판단한다.
 2. 01–06 마감. 기능 작업과 파일이 겹치지 않으면 Docs/Viewer/GPU 쪽에서 병행한다. 33 CI 브라우저 검증도 여기서 먼저 한다.
 3. 20 기즈모·드래그 + 21 사이드바. 드래그 지연은 T5 측정과 함께 본다.
-3b. 30 커널 일반성 직전 정리 묶음 (오너 2026-10-30, "그렇게 해줘"): ① R7.3d — kernel 밖에서 아무도 쓰지 않는 137파일·28,681줄
+3b. 정리 묶음 (오너 2026-10-30 "그렇게 해줘", 이어서 "잘 분배해서 진행해줘": 지금 시작, lane 분리 — 리팩토링 lane이 ①→② kernel만, 09와 겹치지 않는 시점에 ③→④; CI lane이 33을 병행): ① R7.3d — kernel 밖에서 아무도 쓰지 않는 137파일·28,681줄
 (측정: [kernel reachability](notes/kernel-reachability-2026-10-30/README.md))을 모듈별 retire/keep 판단 뒤 제거, test/example 전용 19파일 결정;
 ② `part/part-model.ts`(4,583줄)를 피처별 모듈로 분리; ③ cad-model 오류를 메시지 정규식(`engine/errors.ts`) 대신 코드 기반으로;
 ④ schema 1·2 migration 제거(최신 schema만). 각 단계는 perf-bench 기준 bit-identical 또는 형상·테스트 동일로 받는다. 33 CI 브라우저 검증이 먼저 있어야 한다.
