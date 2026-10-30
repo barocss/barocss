@@ -17129,6 +17129,23 @@ Remote run 2 ([41042337412](https://github.com/barocss/barocss/actions/runs/4104
 - The same probe passes on the Mac, natively and on SwiftShader (red pixel). Linux headless canvas presentation on the runner is therefore the open cause; a flag set alone does not fix it.
 - Row 33 is not closed.
 
+Remote run 3 ([41052973862](https://github.com/barocss/barocss/actions/runs/41052973862), at `f74f8b060`, full mode; source `f74f8b060` adds the `chrome://gpu` dump, Chrome stderr, the headed-under-Xvfb sets and an ANGLE set): **FAIL**, but the suites ran for real.
+
+Cause confirmed:
+- Headless Chrome on the runner reports "Compositing: Software only … WebGPU interop: Disabled".
+- All five headless sets lose the device at present, ANGLE with GPU compositing forced included. On the Mac, `--disable-gpu` reproduces the same symptom.
+- `xvfb-headed` (headed Chrome on Xvfb :99, SwiftShader adapter) presents red and was selected.
+
+Suites (job about 24 min):
+- viewer 4/4 PASS.
+- gpu 52/55, with 0 skip, 2 fail and 1 cancelled:
+  - **G20 pick readback** (`viewer-pose-clip-browser`). The same SwiftShader point error as on the Mac: about 1.1e-4 against the 1e-4 bound.
+  - **G9 capFrontSamples at 1440p and 4K** (`viewer-cap-aa-browser`). It hit its 240 s timeout on the 2-core runner; it passed on Mac SwiftShader.
+  - **Point disk soft shadows** (`viewer-shadow-point-soft-browser`). "increasing world radius from 0.35 to 0.8 widens the same far edge" is false on the runner; it passed on Mac SwiftShader.
+- Test and Build: failure.
+
+Not changed here: no test was excluded or edited. The owner chooses how CI treats these three before the batch PR to develop.
+
 ## D360 — Retire 100 unused legacy kernel files, keep 37; refactor batch 3b step ① (R7.3d) (2026-10-30)
 
 Qualify `dca18afab` (702 paths; base `fa79c9969`). [Note](notes/kernel-refactor-3b-2026-10-30/README.md), with the two lists [retired.txt](notes/kernel-refactor-3b-2026-10-30/retired.txt) and [kept.txt](notes/kernel-refactor-3b-2026-10-30/kept.txt). Input: the reachability set D, 137 kernel files that nothing outside the kernel uses.
