@@ -19,4 +19,6 @@ The gpu and viewer WebGPU tests used to skip in CI because `CHROME` and `PW_DIR`
 Results are in `qualification.json`.
 - **Native Metal:** 59/59 pass, 0 skips.
 - **SwiftShader on the Mac:** 58/59. The G20 pick-readback point misses the CPU point by about 1.1e-4 against a 1e-4 bound, which is left for the GPU owner.
-- **Remote CI:** pending.
+- **Remote CI:**
+  - Runs 1 and 2 failed: headless Chrome on the runner composites in software, and a WebGPU canvas present loses the device.
+  - Run 3 selected headed Chrome under Xvfb. Viewer passed 4/4; gpu passed 52/55 with 0 skips and 3 SwiftShader findings (G20 pick bound, G9 4K timeout, point soft-shadow edge). The CI policy for those three is the owner's choice.

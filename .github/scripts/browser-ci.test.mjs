@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { browserTestFiles, checkBrowserEnvironment, parseTapSummary, assertRealRun, runBrowserSuites, chromeFlagSets, selectChromeFlags } from './browser-ci.mjs';
+import { readFileSync } from 'node:fs';
+import { browserTestFiles, checkBrowserEnvironment, parseTapSummary, assertRealRun, loadKnownFailures, runBrowserSuites, chromeFlagSets, selectChromeFlags } from './browser-ci.mjs';
 
 const clean = { tests: 3, pass: 3, fail: 0, cancelled: 0, skipped: 0, todo: 0, skips: [] };
 const tap = `TAP version 13
@@ -38,7 +39,7 @@ test('checkBrowserEnvironment runs, fails in CI and reports not-run locally', ()
 
 test('parseTapSummary reads the last totals and collects skipped names', () => {
   const summary = parseTapSummary(tap);
-  assert.deepEqual(summary, { tests: 3, pass: 2, empty: [], fail: 0, cancelled: 0, skipped: 1, todo: 0, skips: [{ name: 'reads back pixels', reason: 'no adapter' }] });
+  assert.deepEqual(summary, { tests: 3, pass: 2, empty: [], fail: 0, cancelled: 0, skipped: 1, todo: 0, skips: [{ name: 'reads back pixels', reason: 'no adapter' }], failed: [], passed: ['suite'] });
   assert.equal(parseTapSummary('# tests 1\n# pass 1\n# skip 0\n# tests 2\n# pass 2\n').tests, 2);
   assert.throws(() => parseTapSummary('ok 1 - x\n'), /missing TAP summary/);
   // A file that registers no test is one top-level result named after the file; its counts still balance.
@@ -48,7 +49,7 @@ test('parseTapSummary reads the last totals and collects skipped names', () => {
 });
 
 test('assertRealRun rejects skip, todo, fail, cancel, zero pass and mismatched counts', () => {
-  assert.equal(assertRealRun(clean, 'gpu'), clean);
+  assert.deepEqual(assertRealRun(clean, 'gpu'), { ...clean, known: [] });
   for (const bad of [{ skipped: 1, skips: [{ name: 'a', reason: '' }] }, { todo: 1 }, { fail: 1 }, { cancelled: 1 }, { tests: 0, pass: 0 }, { tests: 4 }]) {
     assert.throws(() => assertRealRun({ ...clean, ...bad }, 'gpu'), /gpu: browser suite not a real pass/);
   }
@@ -107,4 +108,40 @@ test('selectChromeFlags runs one probe when flags are pinned or no wrapper is in
     assert.equal(calls, 1);
     assert.throws(() => selectChromeFlags(env, { spawn: () => ({ status: 1 }), log: () => {} }), /WebGPU probe failed/);
   }
+});
+
+test('parseTapSummary names top-level failed and passed tests', () => {
+  const text = 'ok 1 - plain\nnot ok 2 - broken # time out\nok 3 - skipped one # SKIP why\nnot ok 4 - a \\# b \\\\ c\n    not ok 1 - nested\n    ok 2 - nested ok\nok 5 - todo # TODO later\n# tests 5\n# pass 2\n# fail 2\n';
+  const { failed, passed } = parseTapSummary(text);
+  assert.deepEqual(failed, ['broken', 'a # b \\ c']);
+  assert.deepEqual(passed, ['plain']);
+});
+
+test('loadKnownFailures validates the file and the profile', () => {
+  const entry = { suite: 's', file: 'f', name: 'n', mode: 'fails', reason: 'r', owner: 'o' };
+  const file = (list) => JSON.stringify({ version: 1, profiles: { p: list } });
+  assert.deepEqual(loadKnownFailures('', file([entry])), []);
+  assert.deepEqual(loadKnownFailures('p', file([entry])), [entry]);
+  assert.throws(() => loadKnownFailures('q', file([entry])), /unknown known-failures profile: q/);
+  assert.throws(() => loadKnownFailures('p', file([{ ...entry, mode: 'maybe' }])), /mode/);
+  assert.throws(() => loadKnownFailures('p', file([{ ...entry, reason: '' }])), /reason/);
+  assert.throws(() => loadKnownFailures('p', file([entry, entry])), /duplicate/);
+  assert.throws(() => loadKnownFailures('p', JSON.stringify({ version: 2, profiles: {} })), /version/);
+  const real = loadKnownFailures('linux-swiftshader', readFileSync(new URL('../browser-known-failures.json', import.meta.url), 'utf8'));
+  assert.equal(real.length, 3);
+});
+
+test('assertRealRun accepts listed failures, reports them and blocks everything else', () => {
+  const entry = (name, mode) => ({ suite: 'gpu', file: 'f', name, mode, reason: 'r', owner: 'GPU' });
+  const run = { tests: 3, pass: 2, fail: 1, cancelled: 0, skipped: 0, todo: 0, skips: [], empty: [], failed: ['a'], passed: ['b', 'c'] };
+  const result = assertRealRun(run, 'gpu', [entry('a', 'fails'), entry('b', 'may-fail')]);
+  assert.deepEqual(result.known, [{ name: 'a', mode: 'fails', owner: 'GPU', outcome: 'failed' }, { name: 'b', mode: 'may-fail', owner: 'GPU', outcome: 'passed' }]);
+  assert.throws(() => assertRealRun(run, 'gpu'), /gpu: browser suite not a real pass.*unexpected failures: a/);
+  assert.throws(() => assertRealRun(run, 'gpu', [entry('x', 'may-fail'), entry('a', 'fails')]), /known failure not found/);
+  assert.throws(() => assertRealRun({ ...run, tests: 3, pass: 3, fail: 0, failed: [], passed: ['a', 'b', 'c'] }, 'gpu', [entry('a', 'fails')]), /known failure now passes; remove it/);
+  assert.equal(assertRealRun({ ...run, pass: 3, fail: 0, failed: [], passed: ['a', 'b', 'c'] }, 'gpu', [entry('a', 'may-fail')]).known[0].outcome, 'passed');
+  // A timed-out test counts as cancelled and is still named; one we cannot name blocks.
+  assert.equal(assertRealRun({ ...run, fail: 0, cancelled: 1 }, 'gpu', [entry('a', 'fails')]).known[0].outcome, 'failed');
+  assert.throws(() => assertRealRun({ ...run, fail: 2 }, 'gpu', [entry('a', 'fails')]), /not a real pass/);
+  assert.throws(() => assertRealRun({ ...run, tests: 4 }, 'gpu', [entry('a', 'fails')]), /not a real pass/);
 });

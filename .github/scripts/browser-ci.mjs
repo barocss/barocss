@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { readFileSync, readdirSync, mkdirSync, mkdtempSync } from 'node:fs';
+import { appendFileSync, readFileSync, readdirSync, mkdirSync, mkdtempSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
@@ -24,6 +24,17 @@ export function checkBrowserEnvironment(env) {
   return 'not-run';
 }
 
+// TAP escapes `\` and `#` in names; a directive is the first unescaped ` #`.
+const untap = (value) => value.replace(/\\([\\#])/g, '$1');
+function tapResults(text) {
+  const failed = []; const passed = [];
+  for (const match of text.matchAll(/^(not )?ok \d+ - (.*)$/gm)) {
+    const cut = match[2].indexOf(' #'); const name = cut < 0 ? match[2] : match[2].slice(0, cut); const directive = cut < 0 ? '' : match[2].slice(cut + 2);
+    if (match[1]) failed.push(untap(name));
+    else if (!/^\s*(SKIP|TODO)\b/i.test(directive)) passed.push(untap(name));
+  }
+  return { failed, passed };
+}
 export function parseTapSummary(text) {
   const last = (key) => { const found = [...text.matchAll(new RegExp(`^# ${key} (\\d+)\\s*$`, 'gm'))]; return found.length ? Number(found.at(-1)[1]) : undefined; };
   const tests = last('tests'); const pass = last('pass');
@@ -31,14 +42,40 @@ export function parseTapSummary(text) {
   const skips = [...text.matchAll(/^\s*ok \d+ - (.*?) # SKIP\b(.*)$/gm)].map((match) => ({ name: match[1], reason: match[2].trim() }));
   // A file that registers no test shows up as one top-level result named after the file.
   const empty = [...text.matchAll(/^(?:not )?ok \d+ - (\S+\.test\.mjs)\b/gm)].map((match) => match[1]);
-  return { tests, pass, empty, fail: last('fail') ?? 0, cancelled: last('cancelled') ?? 0, skipped: last('skipped') ?? last('skip') ?? 0, todo: last('todo') ?? 0, skips };
+  return { tests, pass, empty, fail: last('fail') ?? 0, cancelled: last('cancelled') ?? 0, skipped: last('skipped') ?? last('skip') ?? 0, todo: last('todo') ?? 0, skips, ...tapResults(text) };
 }
-export function assertRealRun(summary, label) {
-  const { tests, pass, fail, cancelled, skipped, todo, skips, empty = [] } = summary;
-  if (fail || cancelled || skipped || todo || !pass || pass !== tests || empty.length) {
-    throw new Error(`${label}: browser suite not a real pass (tests ${tests}, pass ${pass}, fail ${fail}, cancelled ${cancelled}, skipped ${skipped}, todo ${todo}; skipped: ${skips.map(({ name }) => name).join(', ') || 'none'}; files without tests: ${empty.join(', ') || 'none'})`);
+
+export function loadKnownFailures(profile, text) {
+  const data = JSON.parse(text);
+  if (data?.version !== 1) throw new Error('known-failures file: version must be 1');
+  if (!profile) return [];
+  const list = data.profiles?.[profile];
+  if (!Array.isArray(list)) throw new Error(`unknown known-failures profile: ${profile}`);
+  const seen = new Set();
+  for (const entry of list) {
+    for (const key of ['suite', 'file', 'name', 'reason', 'owner']) if (typeof entry?.[key] !== 'string' || !entry[key]) throw new Error(`known-failures ${profile}: entry needs a non-empty ${key}`);
+    if (!['fails', 'may-fail'].includes(entry.mode)) throw new Error(`known-failures ${profile}: mode must be fails or may-fail (${entry.name})`);
+    const id = `${entry.suite}\0${entry.name}`;
+    if (seen.has(id)) throw new Error(`known-failures ${profile}: duplicate entry ${entry.suite} - ${entry.name}`);
+    seen.add(id);
   }
-  return summary;
+  return list;
+}
+
+export function assertRealRun(summary, label, known = []) {
+  const { tests, pass, fail, cancelled, skipped, todo, skips, empty = [], failed = [], passed = [] } = summary;
+  const listed = new Set(known.map((entry) => entry.name));
+  const unexpected = failed.filter((name) => !listed.has(name));
+  const stale = [];
+  for (const entry of known) {
+    if (entry.mode === 'fails' && passed.includes(entry.name)) stale.push(`${entry.name}: known failure now passes; remove it from .github/browser-known-failures.json`);
+    else if (!failed.includes(entry.name) && !passed.includes(entry.name)) stale.push(`${entry.name}: known failure not found; the test was renamed or removed`);
+  }
+  const unnamed = fail + cancelled !== failed.length;
+  if (skipped || todo || empty.length || !pass || unexpected.length || unnamed || pass + failed.length !== tests || stale.length) {
+    throw new Error(`${label}: browser suite not a real pass (tests ${tests}, pass ${pass}, fail ${fail}, cancelled ${cancelled}, skipped ${skipped}, todo ${todo}; unexpected failures: ${unexpected.join(' | ') || (unnamed ? 'unnamed failures' : 'none')}; skipped: ${skips.map(({ name }) => name).join(', ') || 'none'}; files without tests: ${empty.join(', ') || 'none'}; stale known failures: ${stale.join(' | ') || 'none'})`);
+  }
+  return { ...summary, known: known.map((entry) => ({ name: entry.name, mode: entry.mode, owner: entry.owner, outcome: failed.includes(entry.name) ? 'failed' : 'passed' })) };
 }
 
 const swiftshaderGl = '--enable-unsafe-webgpu --use-webgpu-adapter=swiftshader --ignore-gpu-blocklist';
@@ -165,6 +202,9 @@ export function runBrowserSuites(names, { env = process.env, root = process.cwd(
   const childEnv = { ...env };
   for (const name of browserEvidenceVariables) if (!childEnv[name]) childEnv[name] = join(evidenceRoot, name.toLowerCase());
   selectChromeFlags(childEnv, { log });
+  // Unset profile = strict; a profile names a list in .github/browser-known-failures.json.
+  const profile = env.BROWSER_KNOWN_FAILURES_PROFILE;
+  const knownAll = profile ? loadKnownFailures(profile, readFileSync(join(root, '.github/browser-known-failures.json'), 'utf8')) : [];
   const results = []; const failures = [];
   for (const name of names) {
     const suite = browserSuites[name];
@@ -183,7 +223,32 @@ export function runBrowserSuites(names, { env = process.env, root = process.cwd(
     log(JSON.stringify({ suite: name, ...summary }));
     results.push({ name, summary });
   }
-  for (const { name, summary } of results) { try { assertRealRun(summary, name); } catch (error) { failures.unshift(error); } }
+  const reports = [];
+  for (const { name, summary } of results) {
+    const known = knownAll.filter((entry) => entry.suite === name);
+    try {
+      const checked = assertRealRun(summary, name, known);
+      reports.push({ name, summary: checked, known: known.map((entry, index) => ({ ...entry, outcome: checked.known[index].outcome })) });
+    } catch (error) { failures.unshift(error); reports.push({ name, summary, known: known.map((entry) => ({ ...entry, outcome: summary.failed?.includes(entry.name) ? 'failed' : summary.passed?.includes(entry.name) ? 'passed' : 'missing' })) }); }
+  }
+  for (const { name, known } of reports) {
+    if (!known.length) continue;
+    log(JSON.stringify({ suite: name, knownFailures: known.map(({ name: test, mode, owner, outcome }) => ({ name: test, mode, owner, outcome })) }));
+    for (const entry of known) log(`KNOWN FAILURE (not counted, owner ${entry.owner}): ${name} \u2014 ${entry.name} \u2014 ${entry.reason}`);
+  }
+  if (env.GITHUB_STEP_SUMMARY) {
+    const cell = (value) => String(value).replace(/\|/g, '\\|').replace(/\n/g, ' ');
+    const lines = ['## WebGPU browser suites', ''];
+    if (childEnv.WEBGPU_CHROME_FLAGS) lines.push(`Chrome flags: \`${childEnv.WEBGPU_CHROME_FLAGS}\`${childEnv.WEBGPU_CHROME_HEADED === '1' ? ' (headed)' : ''}`, '');
+    lines.push('| suite | tests | pass | fail | cancelled | skipped |', '| --- | --- | --- | --- | --- | --- |');
+    for (const { name, summary } of reports) lines.push(`| ${cell(name)} | ${summary.tests} | ${summary.pass} | ${summary.fail} | ${summary.cancelled} | ${summary.skipped} |`);
+    const listedAll = reports.flatMap(({ name, known }) => known.map((entry) => ({ suite: name, ...entry })));
+    if (listedAll.length) {
+      lines.push('', '### Known failures (not counted)', '');
+      for (const entry of listedAll) lines.push(`- ${cell(entry.suite)}: ${cell(entry.name)} \u2014 outcome ${entry.outcome}, mode ${entry.mode}, owner ${entry.owner}. ${cell(entry.reason)}`);
+    }
+    try { appendFileSync(env.GITHUB_STEP_SUMMARY, `${lines.join('\n')}\n`); } catch (error) { log(`step summary not written: ${error.message}`); }
+  }
   if (failures.length) throw failures[0];
   return { status: 'PASS', evidenceRoot, results };
 }
