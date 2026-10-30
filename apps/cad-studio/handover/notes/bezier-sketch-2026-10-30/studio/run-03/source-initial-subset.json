@@ -1,0 +1,24 @@
+{
+  "count": 19,
+  "hashes": {
+    "apps/cad-studio/src/App.tsx": "70d0df2c3bbb4fe4a93571fc8c20bec3b90ee65d37d3b31311961ae01c00ad9a",
+    "apps/cad-studio/src/app/sketchControls.ts": "fa5343db482bdce8227f9c56ae7e6abbfb9d45b460e259a5555ba02fda902cb3",
+    "apps/cad-studio/src/sketch/useSketchActions.ts": "4daa7531cbe26c993429eb9244d87d38e250e23cf66f11193db59edcebd85dda",
+    "apps/cad-studio/src/styles.css": "b3ee603bb27707157f24aab262cb24298f8d128dbb4808b58b9a989aa69c4c7c",
+    "apps/cad-studio/src/ui/SketchPanel.tsx": "2b007fdb4b3d0cfd425a0f81a3dd7b5f0b286f673297e3290d003a9c00b0bfe0",
+    "apps/cad-studio/src/viewport/Viewport.tsx": "660013eb07a4aa2cf474825d42de7e9dc041b1a77169fa8470aa0a2a58faf232",
+    "apps/cad-studio/test/bezier-sketch-browser.mjs": "8ca16a5995ab925cade9dfb50bfc2a80fea505fb8cc0ed6aac2c9a4cd0697f2f",
+    "packages/barocss-cad-model/src/engine/curveSource.ts": "416771feffc1409fb847dc4324eb0a129397edfb875e7dfd87993a81f85dffb5",
+    "packages/barocss-cad-model/src/engine/direct.ts": "a0c19c96a444d091f5b5542510d10cf5a7f40624589969975e162ed8825c8ec6",
+    "packages/barocss-cad-model/src/engine/doc.ts": "8d1b09702e1dea253f2c4973b7e57f2410e1f28d62eb4563d0c3766c4fa8db6a",
+    "packages/barocss-cad-model/src/sketch/bezier.ts": "4fa81c9bfa6745a0a490aaea1425a06a7e19f4d9772626991312a01d62c817bc",
+    "packages/barocss-cad-model/src/sketch/dxf.ts": "70f3c8b25c041018a5cd2cdf21e73378ba8084f3a0487bebe162566ba584782c",
+    "packages/barocss-cad-model/src/sketch/entityIds.ts": "03261acd6895226e3256bef46d7db193663d096ab5196ba6f8f5ba95172a4569",
+    "packages/barocss-cad-model/src/sketch/loops.ts": "7abe92c6909f67d541d60f7040d0ddbd87ff3838e7e754cc947779bc54c91a2b",
+    "packages/barocss-cad-model/src/sketch/offset.ts": "3c6cee8d885fd649ebb8bec8ec8cbe819d276b509f125a13a4318078fe507cad",
+    "packages/barocss-cad-model/src/sketch/osnap.ts": "e83a1fcd5aaba292f8614111e92eaeb0865b1185a52307d82fbd7b8640cf1c6e",
+    "packages/barocss-cad-model/src/sketch/trim.ts": "7ab94abab56152976d9b057c56090852f04b67d6c54082ad0101768d0bd1d6ea",
+    "packages/barocss-cad-model/src/sketch/types.ts": "fb3977d5d291680bb7bd681e0c16d39e52b69e15ca29a47e66621f319939f14f",
+    "packages/barocss-cad-model/test/sketch-bezier.test.ts": "c7d4088f186ddc3808b7bc56809bfd6566744191cca71236a829d02b227d3f4d"
+  }
+}

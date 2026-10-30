@@ -1,0 +1,46 @@
+OK   profileOf([rect]).sideTags => {"outer":["e1","e2","e3","e4"]}
+OK   profileOf([bezier, rect]).sideTags => {"outer":["e2","e3","e4","e5"]}
+OK   profileOf([constrLine, rect]).sideTags (pre-existing construction analogue) => {"outer":["e3","e4","e5","e6"]}
+OK   joinOpen([l1, bz, l2]) kinds => ["polygon:2","bezier","polygon:2"]
+OK   trimAt on bezier curve (10,30) => {"error":"Click on a line, arc or circle of the sketch to trim it."}
+OK   splitAt on bezier curve => {"error":"Click on a line, arc or circle of the sketch to split it there."}
+OK   extendAt line toward bezier => {"error":"Nothing lies ahead of that end to extend it to."}
+OK   trimPreview on bezier => null
+OK   trimAt line crossing bezier (line x=10 from 0..50 crosses curve at y=30) => {"shapes":[{"kind":"bezier","poles":[[0,20],[10,40],[20,20]],"ids":["e1"]}]}
+OK   offsetShape(bz) => {"error":"A Bézier curve is not offset."}
+OK   sketchDxf with bezier => {"ents":2,"keys":["text","bytes","report"]}
+OK   shapeSnaps(bz) => [{"at":[0,20],"kind":"end"},{"at":[20,20],"kind":"end"}]
+OK   shapeSnaps(bz, moving) => [{"at":[0,20],"kind":"end"},{"at":[20,20],"kind":"end"}]
+THROW nearestSnap with malformed bezier (poles []) => TypeError Cannot read properties of undefined (reading '0')
+THROW shapeSnaps malformed bezier no poles => TypeError Cannot read properties of undefined (reading '0')
+OK   startPicking(shape=bezier, done=[rect]) -> current kind => ["bezier",["rectangle"]]
+OK   startPicking(shape=circle, done=[rect]) -> current kind (existing analogue) => ["polygon",["circle"]]
+OK   switchTool(bezier current -> rectangle) => [null,["rectangle","bezier"]]
+OK   switchTool(2-pole bezier current -> rectangle) => [null,[{"kind":"bezier","poles":[[0,0],[1,1]]}]]
+OK   settleShape(bz, rect) => {"shape":{"kind":"bezier","poles":[[0,20],[10,40],[20,20]]},"error":null}
+OK   shapeNode(bz), shapeOutline(bz).length => [null,33]
+OK   reopen+withIds+profileOf with {"kind":"bezier"} => {"doneKinds":["bezier"],"profileOk":true}
+THROW   snaps of it => TypeError Cannot read properties of undefined (reading '0')
+THROW   make curves of it => TypeError Cannot read properties of undefined (reading 'length')
+OK     dxf of it => undefined
+OK   reopen+withIds+profileOf with {"kind":"bezier","poles":[[0,0],[1,1]]} => {"doneKinds":["bezier"],"profileOk":true}
+OK     snaps of it => [{"at":[0,0],"kind":"end"},{"at":[1,1],"kind":"end"}]
+OK     make curves of it => "skipped"
+OK     dxf of it => undefined
+OK   reopen+withIds+profileOf with {"kind":"bezier","poles":[[0,0],[1,1],[2,0],[3,3],[4,0]]} => {"doneKinds":["bezier"],"profileOk":true}
+OK     snaps of it => [{"at":[0,0],"kind":"end"},{"at":[4,0],"kind":"end"}]
+OK     make curves of it => "nurbs"
+OK     dxf of it => undefined
+OK   reopen+withIds+profileOf with {"kind":"bezier","poles":[[null,0],[1,1],[2,0]]} => {"doneKinds":["bezier"],"profileOk":true}
+OK     snaps of it => [{"at":[null,0],"kind":"end"},{"at":[2,0],"kind":"end"}]
+THROW   make curves of it => BarocssError [DIRECT_SOURCE] Coordinates must be finite and within 1e6 mm
+OK     dxf of it => undefined
+OK   reopen+withIds+profileOf with {"kind":"bezier","poles":"x"} => {"doneKinds":["bezier"],"profileOk":true}
+OK     snaps of it => [{"at":"x","kind":"end"},{"at":"x","kind":"end"}]
+OK     make curves of it => "skipped"
+OK     dxf of it => undefined
+OK   degenerate [[0,0],[0,0],[0,0]] => "quadratic-bezier"
+OK   degenerate [[0,0],[0,0],[5,5]] => "quadratic-bezier"
+OK   degenerate [[0,0],[5,5],[0,0]] => "quadratic-bezier"
+OK   degenerate [[0,0],[1,1],[2,2],[2,2]] => "cubic-bezier"
+OK   degenerate [[0,0],[1,1],[2,2]] => "quadratic-bezier"

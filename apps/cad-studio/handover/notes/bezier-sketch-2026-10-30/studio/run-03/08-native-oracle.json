@@ -1,0 +1,57 @@
+{
+  "status": "PASS",
+  "productImports": 0,
+  "curveCount": 3,
+  "names": [
+    "Sketch curve 1 \u00b7 c1",
+    "Sketch curve 1 \u00b7 c2",
+    "Sketch curve 1 \u00b7 c3"
+  ],
+  "checks": {
+    "quadratic": {
+      "name": "Sketch curve 1 \u00b7 c1",
+      "halfExact": [
+        10.0,
+        45.0,
+        0.0
+      ],
+      "startTangent": [
+        20.0,
+        20.0,
+        0.0
+      ],
+      "endTangent": [
+        20.0,
+        -20.0,
+        0.0
+      ],
+      "half": [
+        10.0,
+        45.0,
+        0.0
+      ]
+    },
+    "cubic": {
+      "name": "Sketch curve 1 \u00b7 c3",
+      "values": {
+        "1/4": [
+          34.53125,
+          48.4375,
+          0.0
+        ],
+        "1/2": [
+          40.0,
+          51.25,
+          0.0
+        ],
+        "3/4": [
+          45.46875,
+          48.4375,
+          0.0
+        ]
+      }
+    }
+  },
+  "worstProductPointDifference": 0.0,
+  "worstProductTangentDifference": 0.0
+}

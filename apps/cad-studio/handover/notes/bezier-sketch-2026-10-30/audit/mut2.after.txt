@@ -1,0 +1,11 @@
+killed   osnap: snap to all poles pass 14 fail 1
+killed   osnap: unguarded malformed pass 14 fail 1
+killed   shapeOutline: bezier as poles pass 14 fail 1
+killed   reopen: keep malformed pass 14 fail 1
+killed   select: no bezier aside pass 14 fail 1
+killed   select: trailing bezier blocks pass 14 fail 1
+killed   bezierError: no coincident check pass 13 fail 2
+killed   bezierError: no doubles-back check pass 13 fail 2
+killed   bezierError: collinear ignored pass 14 fail 1
+killed   wellFormed: allow 5 poles pass 13 fail 2
+killed   bezierCurve: no refusal pass 14 fail 1

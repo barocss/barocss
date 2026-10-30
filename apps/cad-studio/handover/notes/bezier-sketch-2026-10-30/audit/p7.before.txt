@@ -1,0 +1,2 @@
+save/open construction [{"kind":"bezier","poles":[[0,20],[10.123456789012,40],[20,20],[1e-12,3]]}] -> [{"kind":"bezier","poles":[[0,20],[10.123456789012,40],[20,20],[1e-12,3]]}] same true
+save/open construction [{"kind":"bezier"}] -> [{"kind":"bezier"}] same true

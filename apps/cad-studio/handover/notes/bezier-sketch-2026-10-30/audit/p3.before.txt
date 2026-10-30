@@ -1,0 +1,12 @@
+bezier drawn first | n1==n2 false | n2==n3 true
+   n1 {"kind":"sketch","profile":"rectangle","min":[0,0],"max":[10,6],"sideTags":{"outer":["e2","e3","e4","e5"]},"construction":[{"kind":"bezier","poles":[[0,20],[10,40],[20,20]]}]} 
+   n2 {"kind":"sketch","profile":"rectangle","min":[0,0],"max":[10,6],"sideTags":{"outer":["e1","e2","e3","e4"]},"construction":[{"kind":"bezier","poles":[[0,20],[10,40],[20,20]]}]}
+bezier after | n1==n2 true | n2==n3 true
+polygon+2 beziers | n1==n2 true | n2==n3 true
+startPicking(shape null, done [rect, bezier]) -> shape null
+startPicking(shape null, done [rect]) -> shape polygon
+associative stored construction [{"kind":"bezier","poles":[[0,20],[10,40],[20,20]]}] -> resolved construction undefined
+evaluatePart construction=undefined -> ok true bodies 1 vol 300.0000000000001
+evaluatePart construction=[{"kind":"bezier","poles":[[0,20],[10,40],[20,20]]}] -> ok true bodies 1 vol 300.0000000000001
+evaluatePart construction=[{"kind":"bezier"},{"kind":"bezier","poles":"x"},{"kind":"be -> ok true bodies 1 vol 300.0000000000001
+de Casteljau vs float Bernstein, worst |diff| in units of eps*max|pole|: 2.27

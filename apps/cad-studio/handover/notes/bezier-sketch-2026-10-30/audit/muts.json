@@ -1,0 +1,16 @@
+[
+ {"name":"baseline (no change)","file":"src/sketch/bezier.ts","from":"export","to":"export"},
+ {"name":"profileOf: drop bezier filter","file":"src/sketch/loops.ts","from":"!s.construction && s.kind !== 'bezier'","to":"!s.construction"},
+ {"name":"osnap: snap to all poles","file":"src/sketch/osnap.ts","from":"case 'bezier': return [{ at: s.poles[0], kind: 'end' }, { at: s.poles[s.poles.length - 1], kind: 'end' }];","to":"case 'bezier': return s.poles.map(at => ({ at, kind: 'end' as const }));"},
+ {"name":"trim: bezier pieces via polyOf (crash)","file":"src/sketch/trim.ts","from":"if (s.kind === 'bezier') return [];","to":""},
+ {"name":"dxf: drop bezier skip","file":"src/sketch/dxf.ts","from":"else if (shape.kind === 'bezier') return;","to":""},
+ {"name":"offset: bezier offsets like nothing","file":"src/sketch/offset.ts","from":"case 'bezier': return { error: 'A Bézier curve is not offset.' };","to":"case 'bezier': return { shape: s };"},
+ {"name":"shapeNode: bezier as closed loop","file":"src/sketch/loops.ts","from":"if (s.kind === 'bezier') return null;","to":"if (s.kind === 'bezier') return { kind: 'sketch', profile: 'circle', center: s.poles[0], radius: 1 };"},
+ {"name":"bezierCurve: weights 2","file":"src/sketch/bezier.ts","from":"weights: poles.map(() => 1)","to":"weights: poles.map(() => 2)"},
+ {"name":"bezierCurve: knots 0..2","file":"src/sketch/bezier.ts","from":"...Array(d + 1).fill(1)]","to":"...Array(d + 1).fill(2)]"},
+ {"name":"bezierCurve: reverse poles","file":"src/sketch/bezier.ts","from":"points: poles.map(p => toWorld(plane, p) as Vec3)","to":"points: [...poles].reverse().map(p => toWorld(plane, p) as Vec3)"},
+ {"name":"bezierPoint: lerp from b toward a","file":"src/sketch/bezier.ts","from":"[q[i][0] + (b[0] - q[i][0]) * t, q[i][1] + (b[1] - q[i][1]) * t]","to":"[b[0] + (q[i][0] - b[0]) * (1 - t), b[1] + (q[i][1] - b[1]) * (1 - t)]"},
+ {"name":"bezierSamples: n=16 default","file":"src/sketch/bezier.ts","from":"n = 32","to":"n = 16"},
+ {"name":"cornersOf: bezier gets corners of poles","file":"src/sketch/entityIds.ts","from":"case 'circle': case 'bezier': return null;","to":"case 'circle': return null; case 'bezier': return s.poles;"},
+ {"name":"shapeOutline: bezier as poles","file":"src/sketch/loops.ts","from":"if (s.kind === 'bezier') return bezierSamples(s.poles);","to":"if (s.kind === 'bezier') return s.poles;"}
+]

@@ -16954,3 +16954,38 @@ Checks:
 - Four Python Fraction oracles passed; errors 0; 986 frozen files equal the commit; root viewed the images.
 
 Limits: closed splines only; directions only; a refused drag can stop near a neighbour; edge-on views collapse targets; pointer-cancel and second-pointer paths verified by reading only. Full suites, CI and release NOT_RUN.
+
+## D354 — Author quadratic and cubic Bézier curves from control points; seventh bounded09 item (2026-10-30)
+
+Qualify source `8c396c876` (20 paths). [Evidence](notes/bezier-sketch-2026-10-30/qualification.json).
+
+**Related issues.** #2051 §2 (Bézier control-point authoring) is delivered. §1 (circle/arc) and §3 (extend vs split) are other scope, so the coordinator should check closure per section. Epic #532 stays open.
+
+**Decision.** Add a sketch Bézier tool (B).
+- Drawing: 3 control points make a quadratic; a 4th makes a cubic.
+- Display: the dashed control polygon and the solid curve are drawn separately, and the curve does not interpolate the middle poles.
+- Editing: the panel's BÉZIER control-point fields.
+- Profile and storage: a Bézier is never part of a profile. It is kept in the node's `construction` array without the construction flag and restored on reopen of ordinary sketches.
+- Make curves: produces an exact degree-2/3 NURBS direct curve (1e-9 decimal form) that the Loft guide admits.
+
+The kernel extrude takes only lines and arcs, so a Bézier is not a profile edge.
+
+**Retained.**
+- Driver run01: history locator failure.
+- run02: PASS on the pre-audit source.
+- Independent Opus audit: CHANGES_REQUIRED. Required: malformed stored curves crashed snaps and Make curves; 10 of 13 mutants survived the tests. Lower: Select was blocked, construction mode was not stripped, degenerate curves were accepted, Make curves errors were silent, the docs overstated behaviour. All fixed, with probes and mutants before/after kept.
+
+**Checks.**
+- Model: 15 new tests; affected 271/271.
+- Studio: 5 new tests using the real hook; 48/48.
+- types, lint and check-docs PASS; the regenerated inventory was verified equal to a fresh regeneration.
+- Actual run03 PASS: quadratic, edit, Finish with storage, Save, fresh Open and reopen, cubic, Make curves with 3 direct curves, Undo/Redo, Save and fresh Open.
+- Two Python Fraction oracles passed: B(1/2) = (10, 45, 0), end tangents (20, ±20, 0), cubic Bernstein exact, product difference 0.
+- Errors 0; 713 frozen files equal the commit; root viewed the images.
+
+**Limits.**
+- Not editable as the current shape after reopen.
+- Linked sketches drop construction shapes (pre-existing).
+- Not a trim/extend boundary; no DXF export.
+
+**Side note (next item, D355).** Reopen renames a rectangle's side ids, silently retargeting downstream references (pre-existing). Full suites, CI and release NOT_RUN.

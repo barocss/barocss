@@ -1,0 +1,111 @@
+{
+  "label": "06-cubic",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          0,
+          0
+        ],
+        "max": [
+          40,
+          30
+        ],
+        "sideTags": {
+          "outer": [
+            "e1",
+            "e2",
+            "e3",
+            "e4"
+          ]
+        },
+        "construction": [
+          {
+            "kind": "bezier",
+            "poles": [
+              [
+                0,
+                40
+              ],
+              [
+                10,
+                50
+              ],
+              [
+                20,
+                40
+              ]
+            ]
+          }
+        ],
+        "id": "n0"
+      }
+    ],
+    "outputs": {},
+    "nextId": 1
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 0,
+    "active": null,
+    "sketch": true,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": "SKETCH · Bézier · Z 0Cubic BézierBÉZIERXY1234Not part of the profile · Make curves turns it into a curve for lofts and sweepsOFFSETmmOutInCURVESMake curves of the sketch",
+  "hud": null,
+  "sketchAlert": null,
+  "sketchStatus": "Cubic Bézier",
+  "bezierInputs": [
+    {
+      "label": "Control point 1 X",
+      "value": "30"
+    },
+    {
+      "label": "Control point 1 Y",
+      "value": "40"
+    },
+    {
+      "label": "Control point 2 X",
+      "value": "35"
+    },
+    {
+      "label": "Control point 2 Y",
+      "value": "55"
+    },
+    {
+      "label": "Control point 3 X",
+      "value": "45"
+    },
+    {
+      "label": "Control point 3 Y",
+      "value": "55"
+    },
+    {
+      "label": "Control point 4 X",
+      "value": "50"
+    },
+    {
+      "label": "Control point 4 Y",
+      "value": "40"
+    }
+  ],
+  "history": []
+}
