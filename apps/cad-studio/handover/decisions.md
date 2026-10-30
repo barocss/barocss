@@ -17308,3 +17308,51 @@ Issues: none completed.
 Follow-up: doc.ts's `schema: 1 | 2 | 3 | 4` type, held by the sketch lane.
 
 3b is complete with ①–④ (D360, D361, D362, D365).
+
+## D366 — Ellipse sketch tool; owner-ordered bounded09 conic item (2026-10-30)
+
+Qualify source `d07c5be59` (27 paths). [Evidence](notes/ellipse-sketch-2026-10-30/qualification.json). Owner order relayed 2026-10-30: "Ellipse first". Related: #2265 and #2259 (kernel fillet throughput and its 64-edge limit; the coordinator attaches [the repro](notes/ellipse-sketch-2026-10-30/audit/fillet-scaling.md)).
+
+Decision:
+- **Tool.** Ellipse (key I) stores `{center, rx, ry, angle}` while the outline matches.
+- **Profile.** Kernel loops are lines and arcs, so the profile is 192 tangent arcs through 96 exact points with exact tangents. It stays within 1e-5 of the longer semi-axis for ratios ≥ 1 : 5. N = 96 is the smallest count that meets this (measured); it is fixed, so side ids stay stable.
+- **Panel.**
+  - Centre/Rx/Ry/Angle fields; angles are stored in [0, 360).
+  - One constraint summary row.
+  - No dimensions, because 192 segments exceed the solver's 64.
+- **Make curves.** It gives the exact ellipse: a rational quadratic NURBS, the affine image of the circle.
+- **Fillets and chamfers.** They are refused on ellipse side edges (extrude, revolve, sweep and pattern copies; the feature is found by id), with the reason, in the commands and in chat `add_features`/`edit_feature`.
+  - One edge took about 112 s on 192 faces, against 0.2 s on a circle.
+  - The kernel caps a rim at 64 edges.
+  - Older documents with such a fillet still open and evaluate, slowly.
+
+Retained:
+- the measured N choice (the brief's 16–48 could not reach 1e-5);
+- audit round 1 CHANGES_REQUIRED: the slow fillet and refused rim, the definition only on the main shape, a comment, angle normalisation;
+- round 2 CHANGES_REQUIRED: the id read as an index (missed and wrong refusals), the chat bypass, sweep names, older documents; fixed with negative tests;
+- round 3 PASS (47/50 mutants), then the `@k` pattern-copy suffix added with a test;
+- run02 and run04 driver failures (toast text, dismiss);
+- the run03 PRODUCT failure: after a reopen, `ConstraintTools` still listed 192 arc rows; fixed.
+
+Checks:
+- Model affected 325/325, Studio 64/64.
+- Types, lint, check-docs, refusals and inventory: PASS. The same pass again after merging D364/D365.
+- Actual run07 PASS:
+  - draw, then panel edits;
+  - Finish: 192 points and ids; the oracle checks the fit points, the 1e-5 bound and the area;
+  - Extrude: volume = area × height;
+  - the rim fillet is refused;
+  - one summary row; Rx 60 keeps the ids and the volume follows;
+  - the 1:5 refusal;
+  - Undo/Redo, Save, fresh Open;
+  - Make curves: 801 NURBS evaluations, each on the ellipse to 1e-9.
+- 6/6 oracles; errors 0; 897 frozen files equal the commit.
+
+Limits:
+- an arc-approximated profile;
+- no dimensions or snaps on the ellipse;
+- the definition only on the main shape;
+- sheet-base and sweep-curve sides are not covered by the refusal;
+- about 250 ms evaluation and 79 KB per ellipse sketch.
+
+Full suites, CI and release NOT_RUN.

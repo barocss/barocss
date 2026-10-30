@@ -1,0 +1,64 @@
+err ratio 0.2 exact                          ok
+err ratio 0.2-5e-10                          ok
+err ratio 0.2-2e-9                           A narrower ellipse than 1 : 5 is not supported; draw a slot or a spline instead.
+err rx=ry                                    ok
+err curv radius ry2/rx=0.0101                ok
+err ry2/rx=0.0099 (r .25)                    The ellipse is too large, too small or too far out for the model: its points and arc centres must stay within ±10000 mm and its arcs have at least 0.01 mm radius.
+err tiny circle r=0.0101                     ok
+err tiny circle r=0.0099                     The ellipse is too large, too small or too far out for the model: its points and arc centres must stay within ±10000 mm and its arcs have at least 0.01 mm radius.
+err 0.06x0.02 (ratio<.2? no .333)            The ellipse is too large, too small or too far out for the model: its points and arc centres must stay within ±10000 mm and its arcs have at least 0.01 mm radius.
+err circle 9999 at 0                         ok
+err circle 10000.0001                        The ellipse is too large, too small or too far out for the model: its points and arc centres must stay within ±10000 mm and its arcs have at least 0.01 mm radius.
+err 9000x8000 at 0                           ok
+err 9000x8000 ang 45                         ok
+err 5000x2000                                The ellipse is too large, too small or too far out for the model: its points and arc centres must stay within ±10000 mm and its arcs have at least 0.01 mm radius.
+err 3000x600                                 The ellipse is too large, too small or too far out for the model: its points and arc centres must stay within ±10000 mm and its arcs have at least 0.01 mm radius.
+err 2000x400                                 ok
+err angle -30                                ok
+err angle 390                                ok
+err angle 1e20                               The ellipse is too large, too small or too far out for the model: its points and arc centres must stay within ±10000 mm and its arcs have at least 0.01 mm radius.
+err angle NaN                                The ellipse needs a centre, two semi-axes and an angle that are numbers.
+err angle -Inf                               The ellipse needs a centre, two semi-axes and an angle that are numbers.
+err rx Inf                                   The ellipse needs a centre, two semi-axes and an angle that are numbers.
+err center 1e308                             The ellipse is too large, too small or too far out for the model: its points and arc centres must stay within ±10000 mm and its arcs have at least 0.01 mm radius.
+err rx 1e-300                                The ellipse is too large, too small or too far out for the model: its points and arc centres must stay within ±10000 mm and its arcs have at least 0.01 mm radius.
+err rx 5e-324 ry 5e-324                      The ellipse is too large, too small or too far out for the model: its points and arc centres must stay within ±10000 mm and its arcs have at least 0.01 mm radius.
+angle 390 vs 30 max pt diff                  0
+angle 1e20 matches                           true
+profile ok                                   true
+node kind/profile                            ["loop",192,192]
+sideTags stable across 5 panel edits         true
+reopen+select+finish same node               true
+  ellipse kept after startPicking            true
+fillet node template                         {"kind":"fillet","parent":{"node":1,"side":"solid"},"edges":["n1.side[e2]|n1.top"],"radius":1,"id":"n2","sigs":{"n1.side[e2]|n1.top":{"k":"line","p":[10,5,8],"d":[0,1,0],"s":10}}}
+edges named with side tag e(7)               ["n1.bottom|n1.side[e17]","n1.side[e17]|n1.top","n1.bottom|n1.side[e170]","n1.side[e170]|n1.top"]
+picked top edge name                         n1.side[e17]|n1.top
+fillet top edge ok/ms                        [true,113958,false]
+fillet after Rx 30->36 ok                    [true,false]
+volumes before/after                         [9018.458575,10823.232243]
+stale: error/def/pts                         [null,false,192]
+stale finish ok, outline.ellipse             [true,null]
+stale sideTags kept                          true
+outlineOf(unsettled stale) ellipse           null
+doc JSON roundtrip eq                        true
+roundtrip evaluates                          true
+offset +2                                    ["polygon",192,false,false]
+offset -2                                    ["polygon",192,false,false]
+offset -2 profile+evaluates                  [true,1,null]
+offset fromEllipse leaks?                    ["kind","points","closed","bulges"]
+trimAt on ellipse (alone)                    [["polygon",false,192,false,false]]
+trimAt ellipse crossed by a line             Click on a line, arc or circle of the sketch to trim it.
+splitAt on ellipse                           That is already a point of the outline: split a piece away from its ends.
+splitAt then joinOpen -> def?                That is already a point of the outline: split a piece away from its ends.
+roundCorner(0, 1)                            Round corners between two straight edges (this one has an arc).
+snaps on ellipse (count, kinds)              {"end":192}
+attachCircle to ellipse                      [null,true,1,true]
+attached circle survives reellipse+profile   [1,"[{\"c\":[0,0],\"r\":3}]",true]
+ellipse + circle hole (separate shape)       ["loop",1,true]
+ellipse as hole in rectangle                 ["rectangle",1,false,true]
+ellipse beside rectangle (region)            ["loop",1,true,true]
+rectangle main, ellipse region: def kept?    ["rectangle",1,null]
+reopen rect+ellipse-hole: ellipse back?      ["rectangle",[["polygon",192,false]]]
+reopenedOrder ellipse main + circle          [true,false,["polygon","circle"]]
+profileRings (loft/revolve preview)          [1,384]
+DXF export                                   [["text","bytes","report"],0,1,0,19199]

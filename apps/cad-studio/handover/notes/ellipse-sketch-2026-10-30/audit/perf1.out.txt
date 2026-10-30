@@ -1,0 +1,7 @@
+circle ok true ms 19 tris 124 bodyKeys key,ref,innerShells,family,mesh,volume,mass,centroid,inertia,area,areaBasis faces undefined jsonKB 26
+ellipse ok true ms 254 tris 764 bodyKeys key,ref,innerShells,family,mesh,volume,mass,centroid,inertia,area,areaBasis faces undefined jsonKB 352
+ellipse-round ok true ms 241 tris 764 bodyKeys key,ref,innerShells,family,mesh,volume,mass,centroid,inertia,area,areaBasis faces undefined jsonKB 353
+three ok true ms 941 tris 2308 bodyKeys key,ref,innerShells,family,mesh,volume,mass,centroid,inertia,area,areaBasis faces undefined jsonKB 1074
+]
+edges picked 1
+circle-fillet ok true ms 233 tris 6572 bodyKeys key,ref,innerShells,family,mesh,volume,mass,centroid,inertia,area,areaBasis faces undefined jsonKB 785

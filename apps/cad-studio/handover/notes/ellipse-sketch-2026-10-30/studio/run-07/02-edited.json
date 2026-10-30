@@ -1,0 +1,58 @@
+{
+  "label": "02-edited",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [],
+    "outputs": {},
+    "nextId": 0
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 0,
+    "active": null,
+    "sketch": true,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": "SKETCH · Ellipse · Z 0PlaneXY (top)XZ (front)YZ (right)OffsetmmAngle°Ellipse · tangent arcs within 1e-5 of the exact curve · Make curves keeps it exactELLIPSECentre XCentre YRxRyAngle °Enter applies a value · Rx is the first axis, at the angle from +X · no narrower than 1 : 5. Dimensioning the curve or editing its outline points turns it into an ordinary outline.ADD CONSTRAINTPick points and edges with Select (S) · Shift addsHHorizVVert∥Parallel⊥Perp=Equal◎Centre⌒Tangent⟷Sym⚓Fix↔DimensionCONSTRAINTS · 2Ellipse192 tangent arcsAnchorpoint 1×OFFSETmmOutInCURVESMake curves of the sketch",
+  "hud": null,
+  "sketchAlert": null,
+  "sketchStatus": "Ellipse · tangent arcs within 1e-5 of the exact curve · Make curves keeps it exact",
+  "ellipseInputs": [
+    {
+      "label": "Centre X",
+      "value": "10"
+    },
+    {
+      "label": "Centre Y",
+      "value": "5"
+    },
+    {
+      "label": "Rx",
+      "value": "50"
+    },
+    {
+      "label": "Ry",
+      "value": "20"
+    },
+    {
+      "label": "Angle",
+      "value": "30"
+    }
+  ],
+  "history": []
+}

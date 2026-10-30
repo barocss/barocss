@@ -1,0 +1,9 @@
+N=12
+ellipse-fillet1 ok true ms 2540 tris 5148 bodyKeys key,ref,innerShells,family,mesh,volume,mass,centroid,inertia,area,areaBasis faces undefined jsonKB 670
+ellipse ok true ms 52 tris 180 bodyKeys key,ref,innerShells,family,mesh,volume,mass,centroid,inertia,area,areaBasis faces undefined jsonKB 60
+N=24
+ellipse-fillet1 ok true ms 8312 tris 6298 bodyKeys key,ref,innerShells,family,mesh,volume,mass,centroid,inertia,area,areaBasis faces undefined jsonKB 880
+ellipse ok true ms 81 tris 228 bodyKeys key,ref,innerShells,family,mesh,volume,mass,centroid,inertia,area,areaBasis faces undefined jsonKB 93
+N=48
+ellipse-fillet1 ok true ms 30634 tris 12336 bodyKeys key,ref,innerShells,family,mesh,volume,mass,centroid,inertia,area,areaBasis faces undefined jsonKB 1796
+ellipse ok true ms 143 tris 388 bodyKeys key,ref,innerShells,family,mesh,volume,mass,centroid,inertia,area,areaBasis faces undefined jsonKB 174

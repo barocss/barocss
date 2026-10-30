@@ -1,0 +1,9 @@
+ellipse first node.profile loop outline.ellipse true keys kind,profile,segments,outline,regions,sideTags
+  reopen shape polygon 192 ellipse true done circle:false
+  refinish sideTags same true ellipse true node same true
+circle first node.profile circle outline.ellipse false keys kind,profile,center,radius,regions,sideTags
+  reopen shape circle undefined ellipse false done polygon:false
+  refinish sideTags same true ellipse false node same false
+ellipse + inner circle node.profile loop outline.ellipse true keys kind,profile,segments,outline,holes,sideTags
+  reopen shape polygon 192 ellipse true done circle:false
+  refinish sideTags same true ellipse true node same true

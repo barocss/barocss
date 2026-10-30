@@ -1,0 +1,50 @@
+0 tangent sign KILLED {"model": "fail=5", "side": "fail=6", "studio": "fail=0"}
+1 N 96->80 KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=1"}
+2 N 96->64 KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=1"}
+3 fit angle radians KILLED {"model": "fail=5", "side": "fail=0", "studio": "fail=0"}
+4 handles drop +angle KILLED {"model": "fail=5", "side": "fail=0", "studio": "fail=0"}
+5 curve rx/ry swapped KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=0"}
+6 curve angle radians KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=0"}
+7 curve angle sign KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=0"}
+8 curve no centre KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=0"}
+9 matches tol x1e4 KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=0"}
+10 matches always true KILLED {"model": "fail=3", "side": "fail=0", "studio": "fail=1"}
+11 settle keeps stale def KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=0"}
+12 settle keeps driven def SURVIVED {"model": "fail=0", "side": "fail=0", "studio": "fail=0"}
+13 settle infers tangents SURVIVED {"model": "fail=0", "side": "fail=0", "studio": "fail=0"}
+14 ratio refusal removed KILLED {"model": "fail=2", "side": "fail=0", "studio": "fail=1"}
+15 ratio 0.2->0.1 KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=1"}
+16 kernel refusal removed KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=0"}
+17 axes>0 refusal removed KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=0"}
+18 reopen skips match KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=0"}
+19 reopen drops def KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=1"}
+20 wellFormed skips ellipseError KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=0"}
+21 outlineOf no match check KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=0"}
+22 outlineOf drops def KILLED {"model": "fail=3", "side": "fail=6", "studio": "fail=1"}
+23 reellipse keeps constraints KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=0"}
+24 reellipse drops ids KILLED {"model": "fail=2", "side": "fail=0", "studio": "fail=0"}
+25 reellipse drops circles KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=0"}
+26 shape no fromEllipse KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=1"}
+27 corner keeps def KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=0"}
+28 carryPolygon keeps def KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=0"}
+29 MakeCurves no match check KILLED {"model": "fail=0", "side": "fail=0", "studio": "fail=1"}
+30 MakeCurves no ellipse branch KILLED {"model": "fail=0", "side": "fail=0", "studio": "fail=1"}
+31 draft ry from centre KILLED {"model": "fail=0", "side": "fail=0", "studio": "fail=1"}
+32 draft angle sign KILLED {"model": "fail=0", "side": "fail=0", "studio": "fail=2"}
+33 tool key I->E KILLED {"model": "fail=0", "side": "fail=0", "studio": "fail=1"}
+34 side: any side refused KILLED {"model": "fail=0", "side": "fail=1", "studio": "fail=0"}
+35 side: no ellipse check KILLED {"model": "fail=1", "side": "fail=3", "studio": "fail=0"}
+36 side: tag not checked KILLED {"model": "fail=0", "side": "fail=1", "studio": "fail=0"}
+37 cmd: refusal helper null KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=0"}
+38 ALL cmd: available unchecked KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=0"}
+39 ALL cmd: build unchecked KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=0"}
+40 normalAngle identity KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=2"}
+41 angle 1e6 refusal removed KILLED {"model": "fail=1", "side": "fail=0", "studio": "fail=1"}
+42 panel apply no refusal KILLED {"model": "fail=0", "side": "fail=0", "studio": "fail=1"}
+43 panel rows unfiltered KILLED {"model": "fail=0", "side": "fail=0", "studio": "fail=1"}
+44 id lookup by index KILLED {"model": "fail=0", "side": "fail=2", "studio": "fail=0"}
+45 id lookup ignores id KILLED {"model": "fail=0", "side": "fail=2", "studio": "fail=0"}
+46 #k suffix dropped SURVIVED {"model": "fail=0", "side": "fail=0", "studio": "fail=0"}
+47 .s infix dropped KILLED {"model": "fail=0", "side": "fail=1", "studio": "fail=0"}
+48 chat check removed KILLED {"model": "fail=0", "side": "fail=1", "studio": "fail=0"}
+49 sketch index via id KILLED {"model": "fail=0", "side": "fail=2", "studio": "fail=0"}
