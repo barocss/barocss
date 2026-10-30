@@ -108,7 +108,7 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
 
 **권장 진행 순서 (오너 수락 2026-10-30).** 각 단계 경계마다 재현된 정확도 결함을 먼저 처리한다
 (현재 후보: #2229 sweep 예산/접촉 구분, 20② 필렛 드래그 값 튐 — 재현되면 즉시). **09→B1 경계(2026-10-31): 둘 다 재현되어 D367(#2229, [qualification](notes/robot-sweep-budget-2026-10-31/qualification.json))과 D368(20②, [qualification](notes/command-drag-wall-2026-10-31/qualification.json))로 고침.**
-1. 09 마감 → B1 2D 밴드 → B2 3D 밴드. T2는 09 안에서, T1/T3/T4는 B2와 함께 판단한다.
+1. 09 마감 → B1 2D 밴드 → B2 3D 밴드. **B1이 끝나면 B2 전에 회고(오너 2026-10-31 "Retro after B1")**: 항목당 시간·실제 흐름 재실행 횟수·기록량을 보고, 검증 단계 차등·공통 흐름 도구·기록 축소·주제 묶음·실행용 worktree를 정한다. T2는 09 안에서, T1/T3/T4는 B2와 함께 판단한다.
 2. 01–06 마감. 기능 작업과 파일이 겹치지 않으면 Docs/Viewer/GPU 쪽에서 병행한다. 33 CI 브라우저 검증도 여기서 먼저 한다.
 3. 20 기즈모·드래그 + 21 사이드바. 드래그 지연은 T5 측정과 함께 본다.
 3b. 정리 묶음 (오너 2026-10-30 "그렇게 해줘", 이어서 "잘 분배해서 진행해줘": 지금 시작, lane 분리 — 리팩토링 lane이 ①→② kernel만, 09와 겹치지 않는 시점에 ③→④; CI lane이 33을 병행): ① R7.3d — kernel 밖에서 아무도 쓰지 않는 137파일·28,681줄
