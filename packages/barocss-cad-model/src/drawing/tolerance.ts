@@ -14,12 +14,13 @@
 // its screw); a tapped hole gives T = (H − F) / 2 with H the screw's medium clearance hole in the mating part (an
 // assumption, said so). A ± tolerance with the same effect on each of two axes is T / (2√2) (the square inside the
 // round zone). Values are rounded down to 0.01 mm (tighter, never looser). Holes the data does not place: an estimate.
-import { holesOf } from './auto';
+import { axisOf, holesOf } from './auto';
 import { sizeForHole, type FastenerSizes } from '../app/fasteners';
 import { datumMarks, projectionOf } from './sheet';
 import { fixAll, issueContext, marksClear, type IssueContext, type SheetInputs } from './issues';
 import { inView, resolveLine, type Resolved } from './dimensions';
-import type { DrawingDatum, DrawingDimension, DrawingFrame, DrawingSettings, EdgeRef, ViewId, XY } from './types';
+import { samePointDependency } from './measurement';
+import { baseViewOf, type DimPoint, type DrawingDatum, type DrawingDimension, type DrawingFrame, type DrawingSettings, type EdgeRef, type ViewId, type XY } from './types';
 import { nextFreeId } from '../util/ids';
 
 export const TOLERANCE_SUGGESTIONS_VERSION = 'cad-studio-tolerance-suggestions-v1';
@@ -71,7 +72,8 @@ export function holePosition(callout: string | null, diameter: number, sizes: Fa
 
 interface HoleKind { dim: Extract<Resolved, { ok: true; kind: 'diameter' | 'radius' }>; callout: string | null; diameter: number; centres: Centre[] }
 /** A hole's centre (3D) and its axis. */
-interface Centre { c: readonly number[]; n: readonly number[] }
+/** `ref` and `view` name the hole's own feature (D331); a centre without them (a pitch circle's) is placed by coordinate. */
+interface Centre { c: readonly number[]; n: readonly number[]; ref?: DimPoint; view?: ViewId }
 
 /** The drawing's kinds of hole: each diameter dimension on a hole with the holes it stands for (its count, or itself). */
 function holeKinds(ctx: IssueContext): HoleKind[] {
@@ -83,14 +85,16 @@ function holeKinds(ctx: IssueContext): HoleKind[] {
     const own = holes.find(h => h.view === r.dim.view && Math.abs(h.at[0] - r.center[0]) <= SAME && Math.abs(h.at[1] - r.center[1]) <= SAME && Math.abs(h.radius - r.radius) <= SAME);
     if (!own) continue;
     const members = r.dim.count ? holes.filter(h => Math.abs(h.radius - r.radius) <= SAME && kindOf(h.callout, h.radius) === key) : [own];
-    out.push({ dim: r, callout, diameter: Math.round(2 * r.radius * 1e6) / 1e6, centres: members.map(h => ({ c: h.ref.near, n: h.edge.circle!.normal })) });
+    out.push({ dim: r, callout, diameter: Math.round(2 * r.radius * 1e6) / 1e6, centres: members.map(h => ({ c: h.ref.near, n: h.edge.circle!.normal, ref: h.ref, view: h.view })) });
   }
   return out;
 }
 
 /**
- * The linear dimensions locating holes: horizontal or vertical ones along an axis square to the holes' with an end (or a
- * counted pitch's reach) at a hole's position, in their own view — so a dimension shared by holes that line up locates all.
+ * The linear dimensions locating holes (D331): horizontal or vertical ones along an axis square to the holes' that depend
+ * on a hole's own feature (its centre, its opposite rim, its combined callout or an authored pattern copy), as the issue
+ * check reads them — a dimension that merely ends at the same coordinate does not locate the hole. A counted pitch locates
+ * the holes it reaches. (A pitch circle's own centre is still placed by coordinate.)
  */
 function locating(ctx: IssueContext, given: readonly Centre[]): string[] {
   const out: string[] = [];
@@ -104,9 +108,24 @@ function locating(ctx: IssueContext, given: readonly Centre[]): string[] {
     const ends = r.dim.count ? [r.b[k], ...Array.from({ length: r.dim.count - 1 }, (_, j) => r.a[k] + step * (j + 2))] : [r.a[k], r.b[k]];
     // (Along an axis square to the hole's: a position along its own axis is not where the hole is.)
     const axis = k === 0 ? pr.right : pr.up;
-    if (centres.some(({ c, n }) => Math.abs(axis[0] * n[0] + axis[1] * n[1] + axis[2] * n[2]) < 1e-6 && ends.some(e => Math.abs(e - inView(pr, c)[k]) <= SAME))) out.push(r.dim.id);
+    if (centres.some(centre => Math.abs(axis[0] * centre.n[0] + axis[1] * centre.n[1] + axis[2] * centre.n[2]) < 1e-6 && locatesCentre(ctx, r, k, centre, ends))) out.push(r.dim.id);
   }
   return out;
+}
+/** Whether a linear dimension (along view axis `k`) depends on a hole's own feature; a centre without one: by coordinate. */
+function locatesCentre(ctx: IssueContext, r: Extract<Resolved, { ok: true; kind: 'linear' }>, k: 0 | 1, centre: Centre, ends: readonly number[]): boolean {
+  const pr = projectionOf(ctx.views, ctx.sheet, r.dim.view)!;
+  if (!centre.ref || !centre.view) return ends.some(e => Math.abs(e - inView(pr, centre.c)[k]) <= SAME);
+  const target = ctx.views[centre.view], axis = axisOf(baseViewOf(r.dim.view, ctx.sheet.sections ?? [], ctx.sheet.details ?? []), k);
+  if (samePointDependency(r.dim.a, pr, centre.ref, target, axis, ctx.locationOwner) || samePointDependency(r.dim.b, pr, centre.ref, target, axis, ctx.locationOwner)) return true;
+  if (!r.dim.count || r.dim.a.at !== 'center' || r.dim.b.at !== 'center') return false;
+  // (A counted pitch: the holes it reaches past its two ends, on its row or as an authored pattern.)
+  const at = inView(target, centre.c), step = r.b[k] - r.a[k];
+  const row = Math.abs(r.a[1 - k] - at[1 - k]) <= SAME && Math.abs(r.b[1 - k] - at[1 - k]) <= SAME && r.dim.view === centre.view;
+  const pattern = samePointDependency(r.dim.a, pr, centre.ref, target, axis, ctx.locationOwner, true) && samePointDependency(r.dim.b, pr, centre.ref, target, axis, ctx.locationOwner, true);
+  if (!row && !pattern) return false;
+  for (let j = 2; j <= r.dim.count; j++) if (Math.abs(r.a[k] + step * j - at[k]) <= SAME) return true;
+  return false;
 }
 
 /** A straight edge of a view lying along one of its extremes (the longest), as a reference. */

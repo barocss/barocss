@@ -17146,6 +17146,9 @@ Suites (job about 24 min):
 
 Not changed here: no test was excluded or edited. The owner chooses how CI treats these three before the batch PR to develop.
 
+
+**Closure 2026-10-30 (owner: "github actions 에서는 못하니깐 로컬에서만 테스트 되면 돼", then "Clean up here").** GitHub Actions runners cannot present a WebGPU canvas headless (software compositing; WebGPU interop disabled), and under Xvfb three SwiftShader cases still differ, so the owner chose local-only browser testing. The CI browser job is reverted as one new commit (reverts of `14dfe667c`, `065f2df1f`, `f74f8b060`, `e4351b0d9`; no amend): `.github` equals its pre-row-33 state, `.github/scripts/*.test.mjs` 73/73 PASS. The gpu and viewer WebGPU browser suites run locally with `CHROME` and `PW_DIR` set (Mac Metal 59/59 PASS earlier in this entry). Remote runs 1–3 and the cancelled run 4 stay recorded above. Row 33 closes as local-only; a GPU runner is a separate owner decision.
+
 ## D360 — Retire 100 unused legacy kernel files, keep 37; refactor batch 3b step ① (R7.3d) (2026-10-30)
 
 Qualify `dca18afab` (702 paths; base `fa79c9969`). [Note](notes/kernel-refactor-3b-2026-10-30/README.md), with the two lists [retired.txt](notes/kernel-refactor-3b-2026-10-30/retired.txt) and [kept.txt](notes/kernel-refactor-3b-2026-10-30/kept.txt). Input: the reachability set D, 137 kernel files that nothing outside the kernel uses.
@@ -17254,3 +17257,14 @@ Checks:
 - NOT_RUN: studio tests and browser flows (no studio file changed).
 
 Issues: none completed.
+
+## D363 — Drawing fixtures and tolerance locating follow D331's own-feature rule (2026-10-30)
+
+Source and fixtures: `packages/barocss-cad-model/src/drawing/tolerance.ts`, `test/fixtures/o7-legacy/expected.json`, `packages/barocss-cad/conformance/r14/tol-row-plus-minus/case.json`, `tol-row-geometric/case.json`. [Note](notes/drawing-location-fixtures-2026-10-30/README.md).
+
+**Defect.** Since `ccbdf285e` (D331), `o7-legacy` test 3 and `tolerance` r14-tol-row-geometric/plus-minus failed with a new `HOLE_NOT_LOCATED`; D331's checks did not run those files. The fixtures held pre-D331 drawings, and tolerance `locating` still matched by coordinate (Ø6.6 own X location got ±0.1 instead of ±0.21).
+
+**Decision.** Keep D331's rule (a dimension locates a hole only through that hole's own feature) everywhere: tolerance `locating` now uses `samePointDependency` with the same counted-pitch rule; regenerate the two row fixtures and hand-edit `o7-legacy/expected.json`; no `.bcad` change.
+
+**Checks.** cad-model affected 63/63, tsc and eslint PASS after merging `168c72a0b`; actual Studio D331 driver rerun PASS (errors 0). NOT_RUN: full suites, remote CI. Model split: diagnosis Opus sub-agent, fix Sonnet sub-agent, review and verification coordinator (Opus). Issues: none completed.
+
