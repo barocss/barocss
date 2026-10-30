@@ -202,7 +202,7 @@
 | `[REFERENCE_MOVED]` | `core/error-codes.ts (declared)`, `part` | … … … is no longer the … it named (was at …, now at ……) |
 | `[REGION]` | `core/error-codes.ts (declared)` | — |
 | `[REGULARITY]` | `core/error-codes.ts (declared)` | — |
-| `[RELIEF_REQUIRED]` | `core/error-codes.ts (declared)`, `part` | the flange on … ends inside the edge: give its relief — { kind: 'rectangular' \| 'obround', width, depth } or { kind: 'none' } |
+| `[RELIEF_REQUIRED]` | `core/error-codes.ts (declared)`, `part` | a … relief needs its … (mm): the kernel takes no default |
 | `[REPRESENTABILITY]` | `core/error-codes.ts (declared)` | — |
 | `[REQUEST]` | `core/error-codes.ts (declared)` | — |
 | `[REVISION]` | `core/error-codes.ts (declared)` | — |
