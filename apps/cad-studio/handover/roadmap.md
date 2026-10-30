@@ -404,6 +404,13 @@ direct `ruledSurface`/`loft` results are not linked to their sources.
 Both need Kernel/Model/API → actual Studio edit, a source-change regeneration and file proof before
 any completion claim.
 
+**B1/B2 delivered 2026-10-31:** B1 = D369 (associative 2D band), B2 = D371 (associative 3D ruled band
+surface; strict references, held on Open; no thicken until #2258; a seam inside a span leaves 3.6e-5,
+recorded as a limit by owner decision). Follow-up candidates from D371, not done: (a) Studio Open runs
+`verifyReferences` only after `REFERENCE_MOVED`, so a lost reference name on any feature opens with a
+refusal instead of a hold — reproduce first, a correctness candidate for the next boundary; (b) the
+lost-edge message title is a generic "chamfer or fillet".
+
 **Kernel feature issues 2026-10-30** (owner: "커널 관련해서 어떤 기능들이 더 필요한지 기능별로 자세히 이슈로").
 Fourteen issues, each with current state (file:line at `302027519`), gap, increments, acceptance,
 dependencies and constraints; static reading only, nothing run: #2253 general SSI, #2254 Boolean
