@@ -1,0 +1,91 @@
+{
+  "decision": "D358",
+  "roadmap": "09 Advanced sketch — CG3 (eleventh bounded item; D355 audit side note S1: circle/region role swap on reopen)",
+  "status": "BOUNDED_QUALIFIED",
+  "scope": "A reopened sketch keeps its stored main profile through Finish and Trim/Split/Extend: unchanged Finish, tool switch, offset, split/trim, and a Select/Dimension click on the main circle (attachCircle) no longer make a rectangle region the main; the main circle keeps its side id and a {parameter} radius binding; the rest keeps the stored order; an attached circle carries its id; pulling a circle out of an outline drops or renumbers the rules that name it.",
+  "relatedIssues": {
+    "#551": "context: editable feature tree / reopen edits (stays open)"
+  },
+  "baseCommit": "14df7cb18",
+  "sourceCommit": "2ad782f0e",
+  "sourcePaths": 12,
+  "models": {
+    "rootJudgmentAndVerification": "claude-opus-5-5 (main session)",
+    "independentAudit": "claude-opus-5-5 sub-agent (three rounds)",
+    "implementation": "Sonnet sub-agents from frozen briefs in this worktree (fix, F1-F4, N1/N2, driver+fixture)",
+    "rootEdits": "driver pick signal (run02), split-point oracle tolerance (run03), trimSketch editDim clear",
+    "sol": "NOT_USED"
+  },
+  "baselineDefect": "circle main + rectangle region, reopen -> unchanged Finish: profile polygon, circle as one-arc region; extrude fields dia/cc0/cc1 gone (probe-before/repro.out.txt); audit: bound radius dropped with toast; clicking the circle renumbered e1->e6 and a fillet on it failed",
+  "baselineBrowserRun": "NOT_RUN: model probe and hook negative controls recorded",
+  "model": {
+    "newTests": 21,
+    "affected": "183/183 (sketch-reopen sketch loops select profiles editFields entityIds rules constraints)",
+    "types": "PASS",
+    "lint": "PASS",
+    "mutants": "round 3: 14/15 killed (survivor W6: trimSketch editDim clear has no test)"
+  },
+  "studioUnit": {
+    "newCases": 3,
+    "changedCases": [
+      "D356 drop case now resizes the circle (relied on the bug)"
+    ],
+    "affected": "39/39",
+    "types": "PASS"
+  },
+  "docs": {
+    "checkDocs": "PASS",
+    "apiInventory": "SCOPED_PASS (regenerated: reopenedOrder, rulesWithoutCircle, SketchState.mainIds)"
+  },
+  "audit": {
+    "round1": "CHANGES_REQUIRED: F1 Finish/trim with no edited shape still swapped; F2 clicking the main circle lost role and id (fillet failed); F3 stale test asserted the bug; F4 region order alternated; F5 slot claim not a bug",
+    "round2": "F1-F5 resolved; N1 new regression: pulling the main circle out left circle-indexed rules pointing at another circle (Finish refused 'Shapes 3 and 4 overlap'); N2 test gaps",
+    "round3": "PASS; N1/N2 resolved; remaining low: W6 untested editDim clear, N3 one-time order flip when circle regions are stored after a polygon region"
+  },
+  "browser": {
+    "run01": "PASS (steps 01-05, before the audit fixes)",
+    "run02": "FAIL_DRIVER at 03b: pick assertion expected 'Diameter'; the panel says 'Picked circle 1' (the click did pick)",
+    "run03": "FAIL_DRIVER at oracle 03c: split point from a screen click at x=29.99999999999997, oracle required exactly 30; product steps 03b/03c passed",
+    "status": "PASS_RUN_04",
+    "chromeProcesses": 1,
+    "serialContexts": 2,
+    "steps": [
+      "open fixture (circle R-bound + rectangle region, extrude 10): volume 10(25pi+200)",
+      "extrude editor shows Diameter/Centre X/Y",
+      "reopen + unchanged Finish: n0 equal, no toast, fields kept",
+      "reopen, click the circle (Picked circle 1), Finish: n0 equal, no toast",
+      "reopen, Split the bottom edge, Finish: circle main, R bound, e1, region 5 lines area 200, no toast; Undo",
+      "R=6: volume 10(36pi+200)",
+      "Undo/Redo, Save; fresh Open equal"
+    ],
+    "oracles": "6/6 PASS (null scan, exact region area, sideTags shape, volume)",
+    "frozenFiles": 986,
+    "frozenEqualsCommit": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ],
+    "rootImages": [
+      "03b-circle-picked: circle highlighted, ⌀10, Picked circle 1",
+      "03c-split-clicked: split marker at (30,-5)",
+      "04-param-6: bounds 46 x 12 x 10"
+    ]
+  },
+  "limits": [
+    "Region order flips once when circle regions are stored after a polygon region (geometry, ids, references unchanged; startPicking picks the last settled outline)",
+    "A dimension from the rectangle to the main circle is dropped on Finish (regions keep no constraints; existing limit)",
+    "trimSketch editDim clear has no test",
+    "The slot part of the original side note was never a bug",
+    "Gate script prints 'integer expression expected' when waiting with a label argument (tooling side note)"
+  ],
+  "fullKernel": "NOT_RUN",
+  "fullModel": "NOT_RUN",
+  "fullStudio": "NOT_RUN",
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

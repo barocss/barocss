@@ -42,7 +42,9 @@ export function attachCircle(s: SketchState, doneIndex: number): { state: Sketch
   const shape = s.shape, c = s.done?.[doneIndex];
   if (!isSettled(shape) || c?.kind !== 'circle') return null;
   const circles = [...(shape.circles ?? []), { c: [c.c[0], c.c[1]] as [number, number], r: c.r }];
-  return { state: { ...s, shape: { ...shape, circles }, done: s.done!.filter((_, k) => k !== doneIndex) }, circle: circles.length - 1 };
+  // (Its id goes along, so Finish gives the circle the same side id; ids that were already out of step are left to be renewed.)
+  const id = c.ids?.[0], ids = (shape.circleIds ?? []).length === (shape.circles ?? []).length && id ? { circleIds: [...(shape.circleIds ?? []), id] } : {};
+  return { state: { ...s, shape: { ...shape, circles, ...ids }, done: s.done!.filter((_, k) => k !== doneIndex) }, circle: circles.length - 1 };
 }
 
 /** The selection after a click: replace, or toggle with Shift; empty space clears it. */

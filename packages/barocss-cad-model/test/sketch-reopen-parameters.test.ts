@@ -5,7 +5,7 @@ import { evaluateDoc } from '../src/engine/evaluate';
 import { editFields } from '../src/app/editFields';
 import { editCommand } from '../src/app/editCommand';
 import { withNode, type ModelNode } from '../src/engine/doc';
-import { rebindDims, sketchShapes } from '../src/sketch/reopen';
+import { rebindDims, reopenedOrder, sketchShapes } from '../src/sketch/reopen';
 import { profileOf } from '../src/sketch/loops';
 import { joinOpen } from '../src/sketch/trim';
 import { startPicking } from '../src/sketch/select';
@@ -20,8 +20,10 @@ const docOf = (sketch: Record<string, unknown>): StudioDoc => ({ format: 'barocs
 /** Reopen as the studio does, optionally edit the shape, finish: the profile node. */
 function finish(node: SketchNode, edit?: (s: SketchShape) => SketchShape, doneEdit?: (d: SketchShape[]) => SketchShape[], ps: Record<string, number> = params) {
   const { shape, done } = sketchShapes(node, ps);
-  const s = startPicking({ plane: xyPlane(), tool: 'select', shape: shape && edit ? edit(shape) : shape, done, editNode: 0 } as never, 'select') as { shape: SketchShape; done: SketchShape[] };
-  const p = profileOf(joinOpen([s.shape, ...(doneEdit ? doneEdit(s.done) : s.done)]));
+  const mainIds = shape?.ids?.length ? shape.ids : undefined;
+  const s = startPicking({ plane: xyPlane(), tool: 'select', shape: shape && edit ? edit(shape) : shape, done, editNode: 0, ...(mainIds ? { mainIds } : {}) } as never, 'select') as { shape: SketchShape; done: SketchShape[] };
+  // (Finish order as Studio keeps it: the stored main profile first, whatever Select moved.)
+  const p = profileOf(joinOpen(reopenedOrder(s.shape, doneEdit ? doneEdit(s.done) : s.done, mainIds)));
   assert.ok('node' in p); return rebindDims(node, p.node, ps);
 }
 const refinish = (node: SketchNode, edit?: (s: SketchShape) => SketchShape): SketchNode => finish(node, edit).node;
@@ -106,10 +108,10 @@ test('region and hole bindings are kept; a region the person deleted is dropped 
   assert.deepEqual(gone.dropped, ['X']); assert.deepEqual(refsOf(gone.node), ['S']);
 });
 
-test('F1: circle first with a rectangle region, reopened and finished unchanged: the circle moved slot and form, so its binding is dropped and said', async () => {
+test('F1 (D358): circle first with a rectangle region, reopened and finished unchanged: the circle stays the main profile and keeps its binding', async () => {
   const stored = sketchNode({ profile: 'circle', center: [0, 0], radius: R, regions: [[{ kind: 'line', start: [20, -5] }, { kind: 'line', start: [40, -5] }, { kind: 'line', start: [40, 5] }, { kind: 'line', start: [20, 5] }]] });
   const out = finish(stored, undefined, undefined, { R: 5 });
-  assert.deepEqual(out.dropped, ['R']); assert.deepEqual(refsOf(out.node), []); assert.ok(await evaluates(out.node));
+  assert.deepEqual(out.dropped, []); assert.deepEqual(refsOf(out.node), ['R']); assert.equal(out.node.profile, 'circle'); assert.ok(await evaluates(out.node));
 });
 
 test('loops swapping slots keep their binding when the form matches, and nothing is bound across forms', () => {

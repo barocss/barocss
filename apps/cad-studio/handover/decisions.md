@@ -17051,3 +17051,61 @@ Checks:
 - Errors 0; 985 frozen files equal the commit.
 
 Limits: Loft copies do not follow parameters (stated). `loopOf` still returns NaN for bound input (S1; no caller passes one). Revolve is checked by Model tests only. Full suites, CI and release NOT_RUN.
+
+## D358 — A reopened sketch keeps its main circle; eleventh bounded09 item (2026-10-30)
+
+Qualify source `2ad782f0e` (12 paths). [Evidence](notes/sketch-reopen-main-role-2026-10-30/qualification.json). Related: #551 (context only; it stays open). This fixes D355 audit S1. A circle-main sketch with a rectangle region, reopened and finished unchanged, stored the rectangle as main and the circle as a one-arc region. The extrude lost its Diameter/Centre fields, and a bound radius was dropped. The audit found the same swap after Split/Trim/Offset, after a tool switch, and after a click on the circle. The click also renumbered the circle id (`e1` → `e6`), so a fillet on it failed.
+
+Decision:
+- Reopen records the main profile's side ids.
+- `reopenedOrder` puts that shape first in Finish and Trim, whether or not a shape is being edited. The rest keep their stored order, and an attached main circle comes back as its own shape.
+- `attachCircle` carries the circle's id.
+- Pulling a circle out of an outline drops or renumbers the rules that name it (`rulesWithoutCircle`).
+
+Retained:
+- no Studio baseline;
+- audit round 1 CHANGES_REQUIRED (F1 no-edited-shape paths, F2 circle click, F3 stale test, F4 order alternation, F5 slot never affected), fixed;
+- round 2 found the regression N1 (dimensions moved to the wrong circle; Finish refused "Shapes 3 and 4 overlap") and test gaps N2, fixed;
+- round 3 PASS, with 14/15 mutants killed;
+- run02 failed in the driver (pick signal);
+- run03 failed in the oracle (screen-click split at x=29.99999999999997).
+
+Checks: Model 21 new tests, affected 183/183; Studio 39/39; types, lint, check-docs and inventory PASS. Actual run04 PASS covered:
+- unchanged Finish;
+- circle click then Finish;
+- Split then Finish;
+- R=6;
+- Undo/Redo, Save and fresh Open.
+
+All of them keep the circle main, `e1` and the R binding, with no toast. 6/6 oracles; errors 0; 986 frozen files equal the commit.
+
+Limits: circle regions stored after a polygon region flip order once (ids and geometry unchanged); a rectangle-to-main-circle dimension drops on Finish (existing region limit); the `trimSketch` editDim clear is untested. Full suites, CI and release NOT_RUN.
+
+## D359 — CI runs the gpu and viewer WebGPU browser suites for real; roadmap 33 (2026-10-30)
+
+Qualify source `14dfe667c` (9 `.github` paths). [Evidence](notes/ci-browser-2026-10-30/qualification.json). The 2026-10-30 engine review found that the gpu and viewer browser tests skip in CI: `CHROME` and `PW_DIR` were never set, and gpu's browser files were never wired in.
+
+Decision:
+- **Job.** A new `browser` job in `ci.yml` runs every `*-browser.test.mjs` in `packages/barocss-gpu` (25) and `packages/barocss-viewer` (3). It runs when either package is affected, or when the plan is full. The aggregate "Test and Build" check requires it in exactly those cases. The affected-package logic is unchanged.
+- **Environment.** `.github/actions/webgpu-chrome` uses the runner's Google Chrome through `chrome.sh` with SwiftShader WebGPU. `chrome.sh` merges Vulkan into Playwright's `--enable-features`. The action installs Playwright 1.62.1 into `$RUNNER_TEMP`: a CI-only tool, with no package or lockfile change.
+- **Pass rule.** A run passes only with fail, cancelled, skipped and todo all 0, pass == tests > 0, and no test file that registers no test. A WebGPU probe names the adapter first.
+- **Missing browser.** In CI (`CI=true` or `BAROCSS_BROWSER_REQUIRED=1`), a missing `CHROME`/`PW_DIR` fails before any test runs. Locally it reports NOT_RUN.
+- **Regression.** The manual/pre-release regression runs both suites strictly after its build. Before, it ran the skipping viewer pair ahead of the build.
+
+Checks (local, Node 22.19.0):
+- Build: PASS.
+- CI-script tests: 79/79.
+- CI-shape native Metal run: gpu 55/55 and viewer 4/4, 0 skips (59 real passes).
+- SwiftShader run with the CI flags: viewer 4/4, gpu 54/55. The one FAIL is the G20 pick readback in `viewer-pose-clip-browser`. Its GPU point is about 1.1e-4 from the CPU point, against a 1e-4 bound that was set on Metal. The runner reports it; it is not loosened here.
+- Missing browser in CI mode: exit 1 with the message. Locally: NOT_RUN, exit 0.
+- Independent Opus audit: 1 medium and 2 low findings (Vulkan switch dropped, empty test file counted as a pass, `always()` on cancel). All three are fixed.
+
+Limits:
+- Remote CI is PENDING: a `workflow_dispatch` run on `local/cad-dev` is recorded separately. Linux SwiftShader is covered only by that run.
+- Not run: `regression.yml` and the cad-studio browser flows.
+
+Follow-ups:
+- The GPU owner decides the SwiftShader bound for the G20 pick point.
+- Device-loss recovered pixels and long-session memory (row 33) are not built.
+- Studio browser flows in CI are not built.
+- gpu's `test:browser` script still lists 16 of the 25 files.

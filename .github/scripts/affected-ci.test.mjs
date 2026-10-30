@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { classifyMarkdown, createAffectedPlan, validatePlan, validateAggregate, resolveComparison, buildOutputDirectory } from './affected-ci-plan.mjs';
+import { classifyMarkdown, createAffectedPlan, validatePlan, validateAggregate, browserSuitesRequired, resolveComparison, buildOutputDirectory } from './affected-ci-plan.mjs';
 import { validateArtifactManifest, packageCheckCommands, fullCheckCommands, docsValidationScripts, selectAppLintFiles, allAppLintRequired } from './affected-ci-run.mjs';
 
 const head = 'a'.repeat(40);
@@ -61,8 +61,8 @@ function docsInput(overrides = {}) {
 }
 
 function successfulNeeds(plan) {
-  return Object.fromEntries(['plan', 'full', 'build', 'checks', 'docs', 'root'].map((name) => {
-    const required = name === 'plan'
+  return Object.fromEntries(['plan', 'full', 'build', 'checks', 'docs', 'root', 'browser'].map((name) => {
+    const required = name === 'browser' ? browserSuitesRequired(plan).length > 0 : name === 'plan'
       || (plan.mode === 'full' ? name === 'full' : name === 'build' || name === 'root'
         || (name === 'checks' && plan.mode === 'packages') || (name === 'docs' && plan.docsNeeded));
     return [name, { result: required ? 'success' : 'skipped' }];
@@ -289,6 +289,23 @@ test('aggregate rejects every required job failure, cancellation, skip or missin
       assert.throws(() => validateAggregate(plan, missing), `${plan.mode}/${name}/missing`);
     }
   }
+});
+
+test('browser job is required exactly when gpu or viewer is affected or the plan is full', () => {
+  const withGpu = [...fixtures(), pkg('@barocss/gpu', 'packages/barocss-gpu', { dependencies: { '@barocss/feature': 'workspace:*' } })];
+  const plan = createAffectedPlan(input({ packages: withGpu, basePackages: structuredClone(withGpu) }));
+  assert.deepEqual(browserSuitesRequired(plan), ['@barocss/gpu']);
+  const needs = successfulNeeds(plan);
+  assert.equal(needs.browser.result, 'success');
+  assert.doesNotThrow(() => validateAggregate(plan, needs));
+  for (const result of ['skipped', 'failure', 'cancelled']) assert.throws(() => validateAggregate(plan, { ...needs, browser: { result } }), result);
+  const { browser, ...missing } = needs;
+  assert.throws(() => validateAggregate(plan, missing));
+  const plain = createAffectedPlan(input());
+  assert.deepEqual(browserSuitesRequired(plain), []);
+  assert.doesNotThrow(() => validateAggregate(plain, successfulNeeds(plain)));
+  assert.throws(() => validateAggregate(plain, { ...successfulNeeds(plain), browser: { result: 'failure' } }));
+  assert.deepEqual(browserSuitesRequired(createAffectedPlan(input({ fullReason: 'manual-full' }))), ['@barocss/gpu', '@barocss/viewer']);
 });
 
 test('aggregate rejects invalid or empty plans and failed supposedly unselected jobs', () => {

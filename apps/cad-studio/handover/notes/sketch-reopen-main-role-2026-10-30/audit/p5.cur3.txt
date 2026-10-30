@@ -1,0 +1,9 @@
+   editDim cdist0_1 circleIds ["e1","e6"]
+   circles after cdist [{"c":[-1.419737774258139e-20,-7.020215628130671e-21],"r":5},{"c":[64.65250444851551,0.5815630560644391],"r":3}] rules [{"kind":"cdist","a":0,"circle":1,"value":45}]
+   after split: shape=polygon circles=1 circleIds=["e6"] rules=[{"kind":"cdist","a":0,"circle":0,"value":45}] done=[circle["e1"] circle["e7"]]
+   after attaching r2: [{"c":[64.65250444851551,0.5815630560644391],"r":3},{"c":[80,0],"r":2}] ["e6","e7"] rules [{"kind":"cdist","a":0,"circle":0,"value":45}]
+   len1 edit ok circles=[{"c":[64.65250444954421,0.5815630561930253],"r":3},{"c":[80,1.2655298983852595e-26],"r":2}]
+== R10 attach main(idx0), cdist point0->circle r3 (idx1)=45, Split rect edge, attach circle r2, then edit len0 
+  before finish shape=polygon circles=2 circleIds=["e6","e7"] rules=[{"kind":"cdist","a":0,"circle":0,"value":45}] done=[circle["e1"]]
+  node profile=circle r={"parameter":"R"} tags={"outer":["e1"],"regions":[["e2","e8","e3","e4","e5"],["e6"],["e7"]]} regions=[5,1,1] holes=[] outline=- toasts []
+   reopens ok (circle) 2nd finish same=false  eval ok

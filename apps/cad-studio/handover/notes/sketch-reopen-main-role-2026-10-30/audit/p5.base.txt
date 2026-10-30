@@ -1,0 +1,7 @@
+   editDim cdist0_1 circleIds undefined
+   circles after cdist [{"c":[-1.419737774258139e-20,-7.020215628130671e-21],"r":5},{"c":[64.65250444851551,0.5815630560644391],"r":3}] rules [{"kind":"cdist","a":0,"circle":1,"value":45}]
+   after split: shape=null done=[polygon["e2","e10","e3","e4","e5"]+c2["e8","e9"]rules[{"kind":"cdist","a":0,"circle":1,"value":45}] circle["e7"]]
+== R10 attach main(idx0), cdist point0->circle r3 (idx1)=45, Split rect edge, attach circle r2, then edit len0 STEP THREW Cannot read properties of null (reading 'circles')
+  before finish shape=null done=[polygon["e2","e10","e3","e4","e5"]+c2["e8","e9"]rules[{"kind":"cdist","a":0,"circle":1,"value":45}] circle["e7"]]
+  node profile=loop r=undefined tags={"outer":["e2","e10","e3","e4","e5"],"regions":[["e8"],["e9"],["e7"]]} regions=[1,1,1] holes=[] outline={"c":2,"rules":[{"kind":"cdist","a":0,"circle":1,"value":45}]} toasts ["Bindings became numbers: R: this value changed or its shape changed form, so it is now a plain number. Bind them again in the feature editor."]
+   reopens ok (polygon) 2nd finish same=true  eval ok

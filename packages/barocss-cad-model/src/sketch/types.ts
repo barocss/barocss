@@ -49,6 +49,8 @@ export interface SketchState { plane: SketchPlane; anchor?: SketchAnchor; /** Cl
   picked?: SketchPick[]; editDim?: string | null;
   /** Set when a finished sketch is reopened: Finish replaces this node instead of adding a feature. */
   editNode?: number;
+  /** A reopened sketch: the side ids of its stored main profile, so Finish keeps that shape first even when Select edits another one. */
+  mainIds?: string[];
   /** Explicit linked profile; manual geometry or plane edits detach it. */
   association?: PlanarFaceOutlineInsetAssociation;
   associationDetached?: boolean;

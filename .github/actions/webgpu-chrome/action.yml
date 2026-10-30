@@ -1,0 +1,28 @@
+name: WebGPU Chrome
+description: Install Playwright and a SwiftShader WebGPU Chrome wrapper and export CHROME and PW_DIR for the browser suites.
+
+# Playwright is a CI-only tool installed outside the workspace (no lockfile entry);
+# chrome.sh gives every browser test the same SwiftShader WebGPU flags.
+runs:
+  using: composite
+  steps:
+    - name: Provision Chrome and Playwright
+      shell: bash
+      env:
+        PLAYWRIGHT_VERSION: '1.62.1'
+        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      run: |
+        set -euo pipefail
+        real="$(command -v google-chrome-stable || command -v google-chrome)"
+        "$real" --version
+        dir="$RUNNER_TEMP/webgpu-chrome"
+        mkdir -p "$dir"
+        npm install --prefix "$dir" --no-save --no-audit --no-fund --ignore-scripts "playwright@$PLAYWRIGHT_VERSION"
+        chmod +x "$GITHUB_ACTION_PATH/chrome.sh"
+        {
+          echo "WEBGPU_REAL_CHROME=$real"
+          echo "CHROME=$GITHUB_ACTION_PATH/chrome.sh"
+          echo "PW_DIR=$dir/node_modules/playwright"
+          echo "VIEWER_ADAPTER=swiftshader"
+          echo "BAROCSS_BROWSER_REQUIRED=1"
+        } >> "$GITHUB_ENV"

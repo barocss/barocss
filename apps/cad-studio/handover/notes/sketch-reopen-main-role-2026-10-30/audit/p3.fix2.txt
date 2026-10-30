@@ -1,0 +1,52 @@
+== no change (control)
+  state  shape=polygon done=[circle["e1"]] mainIds=["e1"]
+  node   profile=circle radius={"parameter":"R"} tags={"outer":["e1"],"regions":[["e2","e3","e4","e5"]]} outlineCircles=0
+  toasts []  extrude fields dia,cc0,cc1  eval ok
+== Select: click the circle (no value change)
+  state  shape=polygon+circles1 circleIds=undefined done=[] mainIds=["e1"]
+  node   profile=polygon radius=undefined tags={"outer":["e2","e3","e4","e5"],"regions":[["e6"]]} outlineCircles=1
+  toasts ["Bindings became numbers"]  extrude fields ocdia0  eval FAIL The selected edge no longer exists / no edge named n2.side[e1]#2|n2.top#1; edges: n2.bottom#2|n2.side[e2], n2.side[e2]|n2.side[e3], n2.side[e2]|n2.top#2, n2.
+== Dimension: click the circle, keep its diameter
+  state  shape=polygon+circles1 circleIds=undefined done=[] mainIds=["e1"]
+  node   profile=polygon radius=undefined tags={"outer":["e2","e3","e4","e5"],"regions":[["e6"]]} outlineCircles=1
+  toasts ["Bindings became numbers"]  extrude fields ocdia0  eval FAIL The selected edge no longer exists / no edge named n2.side[e1]#2|n2.top#1; edges: n2.bottom#2|n2.side[e2], n2.side[e2]|n2.side[e3], n2.side[e2]|n2.top#2, n2.
+== Split an edge of the rectangle region
+  state  shape=null done=[circle["e1"] polygon["e2","e6","e3","e4","e5"]] mainIds=["e1"]
+  node   profile=circle radius={"parameter":"R"} tags={"outer":["e1"],"regions":[["e2","e6","e3","e4","e5"]]} outlineCircles=0
+  toasts []  extrude fields dia,cc0,cc1  eval ok
+== Extend (nothing to extend: toast) control
+  state  shape=polygon done=[circle["e1"]] mainIds=["e1"]
+  node   profile=circle radius={"parameter":"R"} tags={"outer":["e1"],"regions":[["e2","e3","e4","e5"]]} outlineCircles=0
+  toasts ["Nothing to extend there"]  extrude fields dia,cc0,cc1  eval ok
+== Split the circle itself
+  state  shape=null done=[polygon["e1","e6"] polygon["e2","e3","e4","e5"]] mainIds=["e1"]
+  node   profile=loop radius=undefined tags={"outer":["e1","e6"],"regions":[["e2","e3","e4","e5"]]} outlineCircles=0
+  toasts ["Bindings became numbers"]  extrude fields   eval FAIL The selected edge no longer exists / no edge named n2.side[e1]#2|n2.top#1; edges: n2.bottom#1|n2.side[e1], n2.side[e1]|n2.side[e6]#1, n2.side[e1]|n2.top#1, n
+== Switch to Circle tool, draw nothing (1 region)
+  state  shape=null done=[circle["e1"] polygon["e2","e3","e4","e5"]] mainIds=["e1"]
+  node   profile=circle radius={"parameter":"R"} tags={"outer":["e1"],"regions":[["e2","e3","e4","e5"]]} outlineCircles=0
+  toasts []  extrude fields dia,cc0,cc1  eval ok
+== Switch to Circle tool, draw nothing (2 regions)
+  state  shape=null done=[polygon["e2","e3","e4","e5"] circle["e1"] polygon["e6","e7","e8","e9"]] mainIds=["e1"]
+  node   profile=circle radius={"parameter":"R"} tags={"outer":["e1"],"regions":[["e2","e3","e4","e5"],["e6","e7","e8","e9"]]} outlineCircles=0
+  toasts []  extrude fields dia,cc0,cc1  eval ok
+== Switch to Line tool then back to Select (2 regions)
+  state  shape=polygon done=[polygon["e2","e3","e4","e5"] circle["e1"]] mainIds=["e1"]
+  node   profile=circle radius={"parameter":"R"} tags={"outer":["e1"],"regions":[["e6","e7","e8","e9"],["e2","e3","e4","e5"]]} outlineCircles=0
+  toasts []  extrude fields dia,cc0,cc1  eval ok
+== Offset the rectangle inward (hole of the region), 1 region
+  state  shape=null done=[circle["e1"] polygon["e2","e3","e4","e5"] polygonnull] mainIds=["e1"]
+  node   profile=circle radius={"parameter":"R"} tags={"outer":["e1"],"regions":[["e2","e3","e4","e5"]],"holes":[["e6","e7","e8","e9"]]} outlineCircles=0
+  toasts []  extrude fields dia,cc0,cc1  eval ok
+== Offset (2 regions)
+  state  shape=null done=[polygon["e2","e3","e4","e5"] circle["e1"] polygon["e6","e7","e8","e9"] polygonnull] mainIds=["e1"]
+  node   profile=circle radius={"parameter":"R"} tags={"outer":["e1"],"regions":[["e2","e3","e4","e5"],["e6","e7","e8","e9"]],"holes":[["e10","e11","e12","e13"]]} outlineCircles=0
+  toasts []  extrude fields dia,cc0,cc1  eval ok
+== F polygon main + circle region e5: Select click the circle
+  state  shape=polygon+circles1 circleIds=undefined done=[] mainIds=["e1","e2","e3","e4"]
+  node   profile=polygon radius=undefined tags={"outer":["e1","e2","e3","e4"],"regions":[["e5"]]} outlineCircles=1
+  toasts []  extrude fields ocdia0  eval ok
+== Construction toggle on the rectangle and back
+  state  shape=polygon done=[circle["e1"]] mainIds=["e1"]
+  node   profile=circle radius={"parameter":"R"} tags={"outer":["e1"],"regions":[["e2","e3","e4","e5"]]} outlineCircles=0
+  toasts []  extrude fields dia,cc0,cc1  eval ok

@@ -9,7 +9,7 @@ import { type SketchAnchor } from '../viewport/Viewport';
 import { planeOf } from '@barocss/cad-model/app/profiles';
 import { offsetShape } from '@barocss/cad-model/sketch/offset';
 import { extendAt, joinOpen, splitAt, trimAt } from '@barocss/cad-model/sketch/trim';
-import { rebindDims, sketchShapes } from '@barocss/cad-model/sketch/reopen';
+import { rebindDims, reopenedOrder, sketchShapes } from '@barocss/cad-model/sketch/reopen';
 import { renameToTagged } from '@barocss/cad-model/sketch/entityIds';
 import { loadDirect } from '@barocss/cad-model/engine/directModule';
 import type { SketchShape } from '@barocss/cad-model/sketch/types';
@@ -104,10 +104,10 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
   /** Trims, extends or splits the piece of the sketch at `at` (plane mm); open pieces meeting end to end join. */
   const trimSketch = (op: 'trim' | 'extend' | 'split', at: [number, number], tol: number) => {
     if (!sketch) return;
-    const shapes = sketch.editNode !== undefined && sketch.shape ? [sketch.shape, ...(sketch.done ?? [])] : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])];
+    const shapes = sketch.editNode !== undefined ? reopenedOrder(sketch.shape, sketch.done ?? [], sketch.mainIds) : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])];
     const r = (op === 'trim' ? trimAt : op === 'extend' ? extendAt : splitAt)(shapes.map(x => x.kind === 'polygon' ? { ...x, pending: false } : x), at, tol);
     if ('error' in r) { setToast({ title: op === 'trim' ? 'Nothing to trim there' : op === 'extend' ? 'Nothing to extend there' : 'Nothing to split there', hint: r.error, detail: '' }); return; }
-    setSketch(s => s && { ...detachSketchLink(s), shape: null, done: r.shapes, picked: [] });
+    setSketch(s => s && { ...detachSketchLink(s), shape: null, done: r.shapes, picked: [], editDim: null });
   };
   /** Reopens the sketch node `index` in the sketcher (Select tool, its kept constraints back); Finish writes it back in place. */
   const editSketch = (index: number) => {
@@ -121,7 +121,7 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     catch (error) { setToast({ title: 'Cannot open sketch', hint: error instanceof Error ? error.message.replace(/^\[[A-Z_]+\] /, '') : String(error), detail: '' }); return; }
     const { shape, done, positional } = reopened, plane: SketchPlane = node.plane ? { origin: [...node.plane.origin], normal: [...node.plane.normal], xAxis: [...node.plane.xAxis] } : xyPlane();
     setEditNode(null); setActive(null); setPreviewBodies(null); setSelection(emptySel);
-    setSketch(startPicking({ plane, tool: 'select', shape, done, base: node.association ? node.on ?? node.association.source : null, editNode: index, ...(node.association ? { association: node.association } : {}), ...(positional ? { positional } : {}) }, 'select'));
+    setSketch(startPicking({ plane, tool: 'select', shape, done, base: node.association ? node.on ?? node.association.source : null, editNode: index, ...(shape?.ids?.length ? { mainIds: shape.ids } : {}), ...(node.association ? { association: node.association } : {}), ...(positional ? { positional } : {}) }, 'select'));
     const [min, max] = sketchRegion(bodies, plane); viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS);
   };
   const linkSketchInset = (insetMM: number) => {
@@ -145,7 +145,7 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     const requestCurrent = () => docNow.current === doc && sketchGeneration.current === requestedGeneration;
     // A reopened sketch keeps its main profile first (the first outer shape is the main one).
     // (Open lines and arcs meeting end to end are one outline.)
-    const shapes = joinOpen((sketch.editNode !== undefined && sketch.shape ? [sketch.shape, ...(sketch.done ?? [])] : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])]).map(x => x.kind === 'polygon' && !x.closed ? { ...x, pending: false } : x));
+    const shapes = joinOpen((sketch.editNode !== undefined ? reopenedOrder(sketch.shape, sketch.done ?? [], sketch.mainIds) : [...(sketch.done ?? []), ...(sketch.shape ? [sketch.shape] : [])]).map(x => x.kind === 'polygon' && !x.closed ? { ...x, pending: false } : x));
     const profile = profileOf(shapes);
     if ('error' in profile) { setToast({ title: 'Finish the profile first', hint: profile.error, detail: '' }); return; }
     // Construction shapes and Bézier curves are kept with the sketch (they come back when it is reopened). A Bézier is stored without `construction`: it is no reference to hide or snap as one, and drawing and Make curves treat it as the curve it is.

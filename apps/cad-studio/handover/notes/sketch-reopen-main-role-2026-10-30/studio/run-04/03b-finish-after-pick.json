@@ -1,0 +1,116 @@
+{
+  "label": "03b-finish-after-pick",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {
+      "R": 5
+    },
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "circle",
+        "center": [
+          0,
+          0
+        ],
+        "radius": {
+          "parameter": "R"
+        },
+        "regions": [
+          [
+            {
+              "kind": "line",
+              "start": [
+                20,
+                -5
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                40,
+                -5
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                40,
+                5
+              ]
+            },
+            {
+              "kind": "line",
+              "start": [
+                20,
+                5
+              ]
+            }
+          ]
+        ],
+        "sideTags": {
+          "outer": [
+            "e1"
+          ],
+          "regions": [
+            [
+              "e2",
+              "e3",
+              "e4",
+              "e5"
+            ]
+          ]
+        },
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 10,
+        "id": "n1"
+      }
+    ],
+    "outputs": {
+      "b1": {
+        "node": 1,
+        "side": "solid"
+      }
+    },
+    "nextId": 2
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b1",
+        "volume": 2785.3981633974463,
+        "centroid": [
+          21.540905996296026,
+          1.3404720664022744e-16,
+          5
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 1,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": null,
+  "parametersPanel": null,
+  "hud": null
+}
