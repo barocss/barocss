@@ -363,8 +363,8 @@ owner-pending), #2051 (Bezier control-point placement), #2056 (inertia about a p
 and the T1–T4 sources #2043, #2059, #2069, #2082.
 
 **Owner request 2026-10-30: associative bands, 2D and 3D** ("밴드 같은 건데 … 한쪽에 있던 도형이
-커지면 밴드도 같이 변하는", then "2d, 3d 모두"). Registered here before any implementation; the current
-09 order stays unless the owner reorders. Today only two narrow forms exist: `belt-drive` wraps two
+커지면 밴드도 같이 변하는", then "2d, 3d 모두"). Registered here before any implementation. Owner order
+(2026-10-30, "After 09"): start B1 and B2 after the bounded09 items close, before other new work. Today only two narrow forms exist: `belt-drive` wraps two
 row-made pulleys/sprockets and re-evaluates from the referenced wheels, and the Loft feature
 re-evaluates from its section sketches. Free sketch circles cannot be constrained to each other, and
 direct `ruledSurface`/`loft` results are not linked to their sources.
