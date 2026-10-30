@@ -1,0 +1,74 @@
+TAP version 13
+# profile {"kind":"sketch","profile":"circle","center":[0,0],"radius":5,"regions":[[{"kind":"line","start":[20,-5]},{"kind":"line","start":[40,-5]},{"kind":"line","start":[40,5]},{"kind":"line","start":[20,5]}]],"sideTags":{"outer":["e1"],"regions":[["e2","e3","e4","e5"]]}}
+# fields dia,cc0,cc1,h,from,draft
+# bound sketch {"kind":"sketch","profile":"circle","center":[{"parameter":"X"},0],"radius":5,"regions":[[{"kind":"line","start":[20,-5]},{"kind":"line","start":[40,-5]},{"kind":"line","start":[40,5]},{"kind":"line","start":[20,5]}]],"sideTags":{"outer":["e1"],"regions":[["e2","e3","e4","e5"]]},"id":"n2"} eval true
+# after Finish {"notices":[{"title":"Bindings became numbers","hint":"X: this value changed or its shape changed form, so it is now a plain number. Bind them again in the feature editor.","detail":""}],"node":{"kind":"sketch","profile":"polygon","points":[[20,-5],[40,-5],[40,5],[20,5]],"regions":[[{"kind":"arc","start":[5,0],"center":[0,0],"direction":"ccw"}]],"id":"n2"},"real":true}
+# Subtest: probe D: circle + rectangle side by side, circle centre bound via the feature editor ƒ, Edit + Finish unchanged
+ok 1 - probe D: circle + rectangle side by side, circle centre bound via the feature editor ƒ, Edit + Finish unchanged
+  ---
+  duration_ms: 64.812458
+  type: 'test'
+  ...
+# A after Finish {"notices":[{"title":"Bindings became numbers","hint":"W: this value changed or its shape changed form, so it is now a plain number. Bind them again in the feature editor.","detail":""}],"node":{"kind":"sketch","profile":"polygon","points":[[-5,-5],[40,0],[40,40],[0,40]],"id":"n2"},"real":true}
+# M sketch null notices [{"title":"Cannot open sketch","hint":"the sketch uses parameter Gone, which this document does not have","detail":""}]
+# W bound {"kind":"sketch","profile":"circle","center":[{"parameter":"X"},0],"radius":10,"holes":[[{"kind":"arc","start":[14,0],"center":[10,0],"direction":"ccw"}]],"sideTags":{"outer":["e1"],"holes":[["e2"]]},"id":"n2"}
+# Subtest: probe A: rectangle W bound via ƒ, round the far-side corner is not possible here; move min corner only
+ok 2 - probe A: rectangle W bound via ƒ, round the far-side corner is not possible here; move min corner only
+  ---
+  duration_ms: 2.689375
+  type: 'test'
+  ...
+# Subtest: probe M: missing parameter toast; NaN parameter
+ok 3 - probe M: missing parameter toast; NaN parameter
+  ---
+  duration_ms: 1.264542
+  type: 'test'
+  ...
+# W after {"notices":[],"node":{"kind":"sketch","profile":"circle","center":[{"parameter":"X"},0],"radius":10,"holes":[[{"kind":"arc","start":[14,0],"center":[10,0],"direction":"ccw"}]],"id":"n2"},"real":true}
+# RH bound {"kind":"sketch","profile":"circle","center":[0,{"parameter":"Y"}],"radius":20,"holes":[[{"kind":"line","start":[-5,-5]},{"kind":"line","start":[5,-5]},{"kind":"line","start":[5,5]},{"kind":"line","start":[-5,5]}]],"sideTags":{"outer":["e1"],"holes":[["e2","e3","e4","e5"]]},"id":"n2"}
+# Subtest: probe W: washer (circle + circle hole), centre X bound, unchanged Finish
+ok 4 - probe W: washer (circle + circle hole), centre X bound, unchanged Finish
+  ---
+  duration_ms: 18.575708
+  type: 'test'
+  ...
+# RH after {"notices":[],"node":{"kind":"sketch","profile":"circle","center":[0,{"parameter":"Y"}],"radius":20,"holes":[[{"kind":"line","start":[-5,-5]},{"kind":"line","start":[5,-5]},{"kind":"line","start":[5,5]},{"kind":"line","start":[-5,5]}]],"id":"n2"},"real":true}
+# RR bound {"kind":"sketch","profile":"rectangle","min":[0,0],"max":[{"parameter":"W"},20],"regions":[[{"kind":"arc","start":[65,10],"center":[60,10],"direction":"ccw"}]],"sideTags":{"outer":["e1","e2","e3","e4"],"regions":[["e5"]]},"id":"n2"}
+# Subtest: probe RH: circle with a rectangle hole, centre bound
+ok 5 - probe RH: circle with a rectangle hole, centre bound
+  ---
+  duration_ms: 11.781792
+  type: 'test'
+  ...
+# RR after {"notices":[],"node":{"kind":"sketch","profile":"rectangle","min":[0,0],"max":[{"parameter":"W"},20],"regions":[[{"kind":"arc","start":[65,10],"center":[60,10],"direction":"ccw"}]],"id":"n2"},"real":true}
+# Subtest: probe RR: rectangle + circle beside it (circle drawn second), width bound
+ok 6 - probe RR: rectangle + circle beside it (circle drawn second), width bound
+  ---
+  duration_ms: 8.78925
+  type: 'test'
+  ...
+# CR2 after {"notices":[{"title":"Bindings became numbers","hint":"Y: this value changed or its shape changed form, so it is now a plain number. Bind them again in the feature editor.","detail":""}],"node":{"kind":"sketch","profile":"polygon","points":[[20,-5],[40,-5],[40,5],[20,5]],"regions":[[{"kind":"arc","start":[5,0],"center":[0,0],"direction":"ccw"}]],"id":"n2"},"real":true}
+# CR3 sketch shape kind polygon done [ 'circle' ]
+# Subtest: probe CR2: circle drawn first + rectangle beside, Edit then Finish twice
+ok 7 - probe CR2: circle drawn first + rectangle beside, Edit then Finish twice
+  ---
+  duration_ms: 7.64325
+  type: 'test'
+  ...
+# CR3 stored {"kind":"sketch","profile":"circle","center":[0,0],"radius":5,"regions":[[{"kind":"line","start":[20,-5]},{"kind":"line","start":[40,-5]},{"kind":"line","start":[40,5]},{"kind":"line","start":[20,5]}]],"sideTags":{"outer":["e1"],"regions":[["e2","e3","e4","e5"]]},"id":"n2"}
+# CR3 after {"kind":"sketch","profile":"polygon","points":[[20,-5],[40,-5],[40,5],[20,5]],"regions":[[{"kind":"arc","start":[5,0],"center":[0,0],"direction":"ccw"}]],"sideTags":{"outer":["e2","e3","e4","e5"],"regions":[["e1"]]},"id":"n2"}
+# Subtest: probe CR3: circle first + rectangle beside, unbound: side tags and kind after unchanged Finish
+ok 8 - probe CR3: circle first + rectangle beside, unbound: side tags and kind after unchanged Finish
+  ---
+  duration_ms: 1.191916
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 267.307583

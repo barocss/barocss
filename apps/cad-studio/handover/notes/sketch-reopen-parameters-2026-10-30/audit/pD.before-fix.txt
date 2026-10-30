@@ -1,0 +1,10 @@
+# profile {"kind":"sketch","profile":"circle","center":[0,0],"radius":5,"regions":[[{"kind":"line","start":[20,-5]},{"kind":"line","start":[40,-5]},{"kind":"line","start":[40,5]},{"kind":"line","start":[20,5]}]],"sideTags":{"outer":["e1"],"regions":[["e2","e3","e4","e5"]]}}
+# fields dia,cc0,cc1,h,from,draft
+# bound sketch {"kind":"sketch","profile":"circle","center":[{"parameter":"X"},0],"radius":5,"regions":[[{"kind":"line","start":[20,-5]},{"kind":"line","start":[40,-5]},{"kind":"line","start":[40,5]},{"kind":"line","start":[20,5]}]],"sideTags":{"outer":["e1"],"regions":[["e2","e3","e4","e5"]]},"id":"n2"} eval true
+# after Finish {"notices":[],"node":{"kind":"sketch","profile":"polygon","points":[[20,-5],[40,-5],[40,5],[20,5]],"regions":[[{"kind":"arc","start":[5,0],"center":[0,0],"direction":"ccw"}]],"id":"n2"},"real":true}
+# Subtest: probe D: circle + rectangle side by side, circle centre bound via the feature editor ƒ, Edit + Finish unchanged
+ok 1 - probe D: circle + rectangle side by side, circle centre bound via the feature editor ƒ, Edit + Finish unchanged
+# A after Finish {"notices":[],"node":{"kind":"sketch","profile":"polygon","points":[[-5,-5],[40,0],[40,40],[0,40]],"id":"n2"},"real":true}
+# M sketch null notices [{"title":"Cannot open sketch","hint":"[PARAMETER_UNKNOWN] the sketch uses parameter Gone, which this document does not have","detail":""}]
+# Subtest: probe A: rectangle W bound via ƒ, round the far-side corner is not possible here; move min corner only
+ok 2 - probe A: rectangle W bound via ƒ, round the far-side corner is not possible here; move min corner only

@@ -1,0 +1,10 @@
+import { rebindDims, sketchShapes } from './cur/packages/barocss-cad-model/src/sketch/reopen';
+import { profileOf } from './cur/packages/barocss-cad-model/src/sketch/loops';
+import { startPicking } from './cur/packages/barocss-cad-model/src/sketch/select';
+import { xyPlane } from './cur/packages/barocss-cad-model/src/sketch/plane';
+const X = { parameter: 'X' }, P = { X: 80 };
+const st: any = { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 40], regions: [[{ kind: 'line', start: [60, 0] }, { kind: 'line', start: [X, 0] }, { kind: 'line', start: [X, 40] }, { kind: 'line', start: [60, 40] }]] };
+const { shape, done } = sketchShapes(st, P); const s: any = startPicking({ plane: xyPlane(), tool: 'select', shape, done, editNode: 0 } as never, 'select');
+const moved = { ...s.shape, points: s.shape.points.map((p: any, i: number) => i === 0 ? [-5, -5] : p), hv: { h: [], v: [] }, fromRectangle: false };
+const p: any = profileOf([moved, ...s.done]); const out: any = rebindDims(st, p.node, P); delete out.sideTags;
+console.log('main corner moved; untouched region:', JSON.stringify(out));

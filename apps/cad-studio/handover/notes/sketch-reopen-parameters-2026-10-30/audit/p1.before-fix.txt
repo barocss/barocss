@@ -1,0 +1,34 @@
+A1 rect, move min corner (W edge unchanged)  {"kind":"sketch","profile":"polygon","points":[[-5,-5],[40,0],[40,40],[0,40]]}
+A2 rect, bulge on far side (curve)           {"kind":"sketch","profile":"loop","segments":[{"kind":"line","start":[0,0]},{"kind":"arc","start":[40,0],"center":[-7.999999999999993,20],"direction":"ccw"},{"kind":"line","start":[40,40]},{"kind":"line","start":[0,40]}],"outline":{"points":[[0,0],[40,0],[40,40],[0,40]],"bulges":[0,0.2,0,0],"hv":{"h":[0,2],"v":[1,3]}}}
+A3 rect, chamfer far corner (x=W edge kept)  {"kind":"sketch","profile":"polygon","points":[[0,0],[40,0],[40,35],[35,40],[0,40]]}
+A4 rect, add a length lock                   {"kind":"sketch","profile":"rectangle","min":[0,0],"max":[{"parameter":"W"},40]}
+B0 polygon stored                            {"kind":"sketch","profile":"polygon","points":[[0,0],[{"parameter":"X"},0],[30,20],[0,20]]}
+B1 delete vertex 1 ([X,0])                   {"kind":"sketch","profile":"polygon","points":[[0,0],[{"parameter":"X"},20],[0,20]]}
+B2 insert vertex before [X,0]                {"kind":"sketch","profile":"polygon","points":[[0,0],[15,-5],[30,0],[30,20],[0,20]]}
+B3 stored [X,20] at idx2; delete idx1 -> [30,20] at idx1 {"kind":"sketch","profile":"polygon","points":[[0,0],[30,20],[0,20]]}
+B4 same polygon, start rotated               {"kind":"sketch","profile":"polygon","points":[[30,0],[{"parameter":"X"},20],[0,20],[0,0]]}
+B5 (=B1) then evaluate with X=50             {"kind":"sketch","profile":"polygon","points":[[0,0],[{"parameter":"X"},20],[0,20]]}
+    eval X=50: ok [[0,0],[50,20],[0,20]]
+C0 unchanged finish                          {"kind":"sketch","profile":"rectangle","min":[0,0],"max":[{"parameter":"W"},40],"regions":[[{"kind":"line","start":[60,0]},{"kind":"line","start":[{"parameter":"X"},0]},{"kind":"line","start":[{"parameter":"X"},40]},{"kind":"line","start":[60,40]}],[{"kind":"line","start":[120,0]},{"kind":"line","start":[140,0]},{"kind":"line","start":[140,40]},{"kind":"line","start":[120,40]}]]}
+C1 delete region 0 (X-bound)                 {"kind":"sketch","profile":"rectangle","min":[0,0],"max":[{"parameter":"W"},40],"regions":[[{"kind":"line","start":[120,0]},{"kind":"line","start":[140,0]},{"kind":"line","start":[140,40]},{"kind":"line","start":[120,40]}]]}
+D eval stored: ok
+D circle(R) + region, unchanged finish       {"kind":"sketch","profile":"polygon","points":[[20,-5],[40,-5],[40,5],[20,5]],"regions":[[{"kind":"arc","start":[5,0],"center":[0,0],"direction":"ccw"}]]}
+E eval stored: ok
+E line-only loop, unchanged finish           {"kind":"sketch","profile":"polygon","points":[[0,0],[40,0],[40,40],[0,40]]}
+E2 eval stored concave polygon: ok
+E2 concave polygon, unchanged finish         {"kind":"sketch","profile":"loop","segments":[{"kind":"line","start":[0,0]},{"kind":"line","start":[40,0]},{"kind":"line","start":[20,10]},{"kind":"line","start":[40,40]},{"kind":"line","start":[0,40]}]}
+F eval stored: ok
+F hole arc start at 90deg bound, unchanged   {"kind":"sketch","profile":"rectangle","min":[0,0],"max":[60,40],"holes":[[{"kind":"arc","start":[30,10],"center":[25,10],"direction":"ccw"}]]}
+G eval stored: ok
+G reopened construction                      [{"kind":"circle","c":[40,10],"r":3,"construction":true}]
+G unchanged finish (construction)            [{"kind":"circle","c":[40,10],"r":3,"construction":true}]
+H eval stored: REFUSED rectangle min must be below max on both axes
+H min=[W,0] max=[0,40] unchanged finish      {"kind":"sketch","profile":"rectangle","min":[0,0],"max":[40,40]}
+I negative/zero, unchanged                   {"kind":"sketch","profile":"rectangle","min":[{"parameter":"N"},{"parameter":"Z"}],"max":[30,40]}
+I2 user changes min y 0 -> 1e-10             {"kind":"sketch","profile":"rectangle","min":[{"parameter":"N"},{"parameter":"Z"}],"max":[30,40]}
+J {} throws PARAMETER_UNKNOWN [PARAMETER_UNKNOWN] the sketch uses parameter W, which this document does not have
+J {"W":null} throws PARAMETER_UNKNOWN [PARAMETER_UNKNOWN] the sketch uses parameter W, which this document does not have
+J {"W":null} throws PARAMETER_UNKNOWN [PARAMETER_UNKNOWN] the sketch uses parameter W, which this document does not have
+J {"W":"40"} throws PARAMETER_UNKNOWN [PARAMETER_UNKNOWN] the sketch uses parameter W, which this document does not have
+K W 40->50 while open, finish                {"kind":"sketch","profile":"rectangle","min":[0,0],"max":[40,40]}
+K2 W deleted while open, finish              {"kind":"sketch","profile":"rectangle","min":[0,0],"max":[40,40]}

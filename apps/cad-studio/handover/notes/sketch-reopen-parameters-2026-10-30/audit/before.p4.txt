@@ -1,0 +1,1 @@
+main corner moved; untouched region: {"kind":"sketch","profile":"polygon","points":[[-5,-5],[40,0],[40,40],[0,40]],"regions":[[{"kind":"line","start":[60,0]},{"kind":"line","start":[80,0]},{"kind":"line","start":[80,40]},{"kind":"line","start":[60,40]}]]}

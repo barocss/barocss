@@ -16999,3 +16999,19 @@ Decision: carry the ids side by side (`tagsOf`) and the construction flag. Retai
 Checks: Model 9 new tests (6/9 fail without the fix), affected 115/115; Studio 49/49 including a real-hook case that fails without the fix; types, lint and check-docs PASS. Independent Opus audit PASS: 48/48 kept (base renamed 43), mutants 8/8 killed. Actual run01 PASS across three contexts: an unchanged reopen of the fixture, a width-70 edit, Undo/Redo, Save, fresh Open, and the Bézier-first order keeping e2–e5. Errors 0; 985 frozen files equal the commit.
 
 Side notes: S1 circle/region role swap; S2 slot centre drift; S3 a parameter-bound rectangle reopened writes null coordinates, which is the next item. Full suites, CI and release NOT_RUN.
+
+## D356 — Reopen parameter-bound sketches and keep their bindings; ninth bounded09 item (2026-10-30)
+
+Qualify source `4dec42f83` (13 paths). [Evidence](notes/sketch-reopen-parameters-2026-10-30/qualification.json). This fixes the data loss in D355 audit S3: a sketch with a size bound to a parameter (ƒ) reopened with NaN, and Finish wrote null coordinates that the kernel refused, so the sketch could not be finished and its bindings were lost.
+
+Decision: reopen resolves bound sizes with the document parameters; a missing or non-finite parameter refuses the reopen with a message. Finish restores bindings where the value is unchanged: per named size for rectangles and circles, and for point outlines only while the outline's other points are unchanged, so a binding never lands on another vertex. A binding that cannot be kept becomes a number, with a "Bindings became numbers" notice. Feature-editor sketch fields and command edits receive the parameters.
+
+Retained:
+- no Studio baseline (sources were being edited in parallel);
+- driver failures in run01/run02 (`configurations: undefined` in the in-page document);
+- independent Opus audit CHANGES_REQUIRED: silent loss on a circle-first role swap (now reported), wrong-vertex rebinding by index (fixed by structural matching), silent kind changes (now reported), messages;
+- root refinement: rectangles and circles rebind per size after the strict rule had dropped a width binding when only the height changed.
+
+Checks: Model 20 new tests, affected 140/140; Studio 52/52; types, lint, check-docs, refusals and inventory PASS; mutants 21/21. Actual run04 PASS: finite values on reopen, unchanged Finish keeps the binding, W=70 gives volume 28000, a height change keeps W with volume 21000, Undo/Redo, Save, and fresh Open with W=50 gives volume 15000. Errors 0; 985 frozen files equal the commit.
+
+Limits: point-outline bindings drop (with a notice) when another point moves; the circle-first role swap drops bindings (with a notice); the feature-editor path drops silently (documented); previews still read bound sketches as NaN (next item). Full suites, CI and release NOT_RUN.

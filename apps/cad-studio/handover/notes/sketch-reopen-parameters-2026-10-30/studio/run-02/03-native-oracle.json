@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "parameter": "60",
+  "width": "60",
+  "depth": "40",
+  "height": "10",
+  "boundCoordinates": 1,
+  "analyticVolume": 24000.0,
+  "reportedVolume": 24000,
+  "delta": 0.0,
+  "productImports": 0
+}

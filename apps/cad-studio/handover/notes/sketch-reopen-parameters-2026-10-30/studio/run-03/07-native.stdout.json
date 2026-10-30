@@ -1,0 +1,1 @@
+{"ok":true,"error":null,"bodyCount":1,"bodyKey":"b1","evalVolume":15000.000000000002,"massVolume":15000.000000000002,"sketch":{"kind":"sketch","profile":"rectangle","min":[0,0],"max":[{"parameter":"W"},30],"sideTags":{"outer":["e1","e2","e3","e4"]},"id":"n0"},"extrude":{"kind":"extrude","sketch":0,"height":10,"id":"n1"},"parameters":{"W":50},"hasNull":false}
