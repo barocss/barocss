@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { cad, brepFromBody, buildBrep, lineCurve, checkBrep, assertValidBrep, extrudeProfileWithHoles, booleanPolyhedra, tessellateBrep, BrepError } from '../dist/index.js';
+import { readFileSync } from 'node:fs';
+import { buildBrep, lineCurve, checkBrep, assertValidBrep, extrudeProfileWithHoles, booleanPolyhedra, tessellateBrep, BrepError } from '../dist/index.js';
+const load = name => JSON.parse(readFileSync(new URL(`./fixtures/legacy-inputs/${name}.json`, import.meta.url), 'utf8'));
 
 const box = (x0, y0, z0, x1, y1, z1, id = 'b') => extrudeProfileWithHoles({ id, outer: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]].map(p => ({ kind: 'line', start: p })), height: z1 - z0, from: z0 });
 /** Watertight mesh volume and triangles of a B-rep (empty B-reps measure 0). */
@@ -100,7 +102,7 @@ test('non-convex and holed inputs: an L-prism minus a tilted tetrahedron, a plat
 });
 
 test('curved inputs are refused (planar polyhedra only for now)', () => {
-  const m = cad.model(), cyl = brepFromBody(m.build({ b: m.sketch.circle({ center: [0, 0], radius: 5 }).extrude(10) }).bodies.b);
+  const cyl = load('brep-cylinder');
   assert.throws(() => booleanPolyhedra(box(0, 0, 0, 10, 10, 10), cyl, 'union'), e => e instanceof BrepError && /not straight/.test(e.message));
 });
 
@@ -114,12 +116,9 @@ test('solids touching only along an edge or at a vertex are refused as non-manif
 });
 
 test('the general path reproduces the special-purpose families: orthogonal-cell union, convex intersection', () => {
-  // The model graph cannot hold a union and an intersection together (one more reason for the general path).
-  const pair = op => { const m = cad.model(), a = m.sketch.rectangle({ width: 16, height: 16 }).extrude(16), b = m.sketch.rectangle({ min: [8, 8], max: [24, 24] }).extrude(16);
-    return m.build({ a, b, r: op === 'union' ? a.union(b) : a.intersect(b) }); };
-  for (const [op, family] of [['union', 'orthogonal-cell'], ['intersection', 'convex-planar']]) {
-    const snap = pair(op); assert.equal(snap.bodies.r.family, family);
-    const special = measure(brepFromBody(snap.bodies.r)).vol, general = measure(booleanPolyhedra(brepFromBody(snap.bodies.a), brepFromBody(snap.bodies.b), op)).vol;
+  // The special-purpose results (createCadModel's orthogonal-cell union and convex intersection of two 16 × 16 × 16 blocks), recorded from the build at fa79c9969 before its retirement (R7.3d).
+  for (const op of ['union', 'intersection']) {
+    const special = measure(load('pair-' + op)).vol, general = measure(booleanPolyhedra(load('pair-a'), load('pair-b'), op)).vol;
     assert.ok(Math.abs(special - general) < 1e-9, `${op}: ${special} vs ${general}`);
   }
 });

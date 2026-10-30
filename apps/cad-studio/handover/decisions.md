@@ -17109,3 +17109,162 @@ Follow-ups:
 - Device-loss recovered pixels and long-session memory (row 33) are not built.
 - Studio browser flows in CI are not built.
 - gpu's `test:browser` script still lists 16 of the 25 files.
+
+Remote run 1 ([41040669187](https://github.com/barocss/barocss/actions/runs/41040669187), `workflow_dispatch` on `local/cad-dev` at `57adee015`, full mode): **FAIL**.
+- Plan, and Full lint types and builds: success.
+- WebGPU browser suites: failure. The aggregate Test and Build check failed with it, so the blocking works.
+- The probe saw a SwiftShader adapter (Chrome 156.0.8078.47), yet gpu passed 4/55 (51 fail, 0 skip) and viewer 0/4.
+- Cause: the Chrome flag set, not heavy cases. Every test that presents a canvas failed within about 4 s with `mapAsync … Instance reference no longer exists` / `Instance dropped`, then `[NO_ADAPTER]` on recovery. The GPU process dropped the instance and Chrome disabled the GPU. The four passes are compute-only (G25a/b, O10 costs, the recovery-failure test).
+- The adapter-only probe could not see this.
+
+Fix in a later commit, without excluding any test:
+- The probe now presents a canvas for 3 frames, maps a buffer and reads a pixel.
+- On the runner it tries `swiftshader-gl`, `-angle`, `-vulkan` and `-vulkan-nosurface` in that order. It logs every outcome and runs the suites with the first set that presents.
+
+Remote run 2 ([41042337412](https://github.com/barocss/barocss/actions/runs/41042337412), at `1c9594189`, full mode): **FAIL**.
+- Plan, and Full lint types and builds: success.
+- Browser job: failure. The aggregate Test and Build check failed with it.
+- All four flag sets fail the canvas probe the same way on Chrome 156.0.8078.47. The adapter is SwiftShader, the device is lost ("destroyed"), the map fails with "Instance reference no longer exists", and the pixel is 0.
+- The suites did not start: gpu and viewer NOT_RUN, with 0 pass and 0 skip.
+- The same probe passes on the Mac, natively and on SwiftShader (red pixel). Linux headless canvas presentation on the runner is therefore the open cause; a flag set alone does not fix it.
+- Row 33 is not closed.
+
+Remote run 3 ([41052973862](https://github.com/barocss/barocss/actions/runs/41052973862), at `f74f8b060`, full mode; source `f74f8b060` adds the `chrome://gpu` dump, Chrome stderr, the headed-under-Xvfb sets and an ANGLE set): **FAIL**, but the suites ran for real.
+
+Cause confirmed:
+- Headless Chrome on the runner reports "Compositing: Software only … WebGPU interop: Disabled".
+- All five headless sets lose the device at present, ANGLE with GPU compositing forced included. On the Mac, `--disable-gpu` reproduces the same symptom.
+- `xvfb-headed` (headed Chrome on Xvfb :99, SwiftShader adapter) presents red and was selected.
+
+Suites (job about 24 min):
+- viewer 4/4 PASS.
+- gpu 52/55, with 0 skip, 2 fail and 1 cancelled:
+  - **G20 pick readback** (`viewer-pose-clip-browser`). The same SwiftShader point error as on the Mac: about 1.1e-4 against the 1e-4 bound.
+  - **G9 capFrontSamples at 1440p and 4K** (`viewer-cap-aa-browser`). It hit its 240 s timeout on the 2-core runner; it passed on Mac SwiftShader.
+  - **Point disk soft shadows** (`viewer-shadow-point-soft-browser`). "increasing world radius from 0.35 to 0.8 widens the same far edge" is false on the runner; it passed on Mac SwiftShader.
+- Test and Build: failure.
+
+Not changed here: no test was excluded or edited. The owner chooses how CI treats these three before the batch PR to develop.
+
+
+**Closure 2026-10-30 (owner: "github actions 에서는 못하니깐 로컬에서만 테스트 되면 돼", then "Clean up here").** GitHub Actions runners cannot present a WebGPU canvas headless (software compositing; WebGPU interop disabled), and under Xvfb three SwiftShader cases still differ, so the owner chose local-only browser testing. The CI browser job is reverted as one new commit (reverts of `14dfe667c`, `065f2df1f`, `f74f8b060`, `e4351b0d9`; no amend): `.github` equals its pre-row-33 state, `.github/scripts/*.test.mjs` 73/73 PASS. The gpu and viewer WebGPU browser suites run locally with `CHROME` and `PW_DIR` set (Mac Metal 59/59 PASS earlier in this entry). Remote runs 1–3 and the cancelled run 4 stay recorded above. Row 33 closes as local-only; a GPU runner is a separate owner decision.
+
+## D360 — Retire 100 unused legacy kernel files, keep 37; refactor batch 3b step ① (R7.3d) (2026-10-30)
+
+Qualify `dca18afab` (702 paths; base `fa79c9969`). [Note](notes/kernel-refactor-3b-2026-10-30/README.md), with the two lists [retired.txt](notes/kernel-refactor-3b-2026-10-30/retired.txt) and [kept.txt](notes/kernel-refactor-3b-2026-10-30/kept.txt). Input: the reachability set D, 137 kernel files that nothing outside the kernel uses.
+
+Decision:
+- **Rule.** A file is kept when it is one of these:
+  - a generic geometry primitive that a row-30 issue names or plainly needs: exact planar predicates for #2255, NURBS curve and surface tools and root isolation for #2253 and #2266, Euler operators for #2256 and #2264;
+  - a kernel API the library docs describe;
+  - a tested helper of a live family;
+  - a file another package's tests import.
+  Everything else is retired: the legacy object API and the bounded solvers only it used, the old document versions, and the V3 preview, proof, graph and document experiments.
+- **Retired (100).** `createCadModel` with `modeling.ts`, its 11 internals and the `cad` namespace (`core/public-api.ts`). R7.3d's condition is met: `api-legacy-coverage` covers the modelling 11/11. Also retired:
+  - 11 root bounded solvers;
+  - planar-solids 31, sketch 10, document 4, paired 7, translated-strip 1;
+  - the source-wide graphs 3, quintic Hermite and endpoint continuity;
+  - exact-proof 7 (preview acceptance/session/leaf, impact plan, rebuild candidate, persistent face reference, boundary-face adjacency);
+  - intersect 3 (convex planar face, holes, ray);
+  - features 6;
+  - `brep-adapters` and `closed-exact-patch-shell`.
+- **Kept (37).** The groups are listed in the note's table:
+  - `robust-orientation-v1` and its six arrangement siblings;
+  - the curve-wide intersections and adaptive sampling;
+  - Bézier spans, subdivision and degree elevation;
+  - the Z-axis revolved surface;
+  - Bernstein roots and the curve–plane, curve–line, coincident-plane, convex-loop and plane–cylinder clips;
+  - `brep-euler`, `brep-sweep` and `axis-inertia`;
+  - `subd-report` and the two wrap helpers;
+  - the circular numerical sketch solver (4 files);
+  - `own-plate-circular-hole` with its preview and `axis-rectangle-extrusion` (cad-interop's test imports them through `dist/index.js`).
+- **Set E (19 test- or example-only files): all kept.** Their consumers are cad-interop examples, which are the GPU lane's (a cross-lane change), and several are generic tools. Revisit with that owner.
+- **What went with them.** Their tests, helpers, fixtures and evidence folders; 26 scripts; 85 cad-nurbs demos; `CONCISE_API.md` and `FEATURE_CACHE_CONTRACT.md`; 140 index.ts exports; README sections (11,657 → 6,883 lines). The API inventory was regenerated: 696 names removed, 0 added, 15 exposures changed only in union print order.
+- **Live tests that used the old API.** They now read 12 JSON fixtures recorded from the pre-retirement build, each checked lossless. `api-legacy-coverage` compares the facade with the old API's recorded results. Deleted cases in kept files: extruded-profile-solid's old-codec case and numeric-policy's three chart-lift cases. Two error-class count guards were lowered to the new counts (100 and 106 classes).
+
+Checks:
+- Build: PASS.
+- perf-bench fingerprints: 34/34 SAME.
+- Kernel suite on the merged tree: 1848 tests, 1846 pass, 0 fail, 2 skip (base 2363 / 2357 / 6 skip). 515 names are missing and 0 added; every missing name is from a deleted file or a deleted case.
+  - The first run had 5 failures. 3 came from a retired-API test the classifier missed, now deleted. 2 came from the count guards, now lowered.
+- Conformance: unchanged.
+- Kernel types and lint: PASS.
+- cad-model, studio and interop types: PASS.
+- check-docs (refusals, agent tools, inventory): PASS.
+- Merged inventory: equal to a fresh regeneration.
+- NOT_RUN: cad-model and studio tests (no file imports a retired name), interop's integration test (needs the gpu build), RB, browser flows, CI.
+
+Issues: none completed. No open issue tracks R7.3d. #1710 was already closed; its proposal document is now retired.
+
+Limits:
+- `features/boolean-extrusion-feature-graph.ts` (live) lost its only kernel tests, the retired exact-proof tests.
+- `CAD_ERROR_CODES` may keep codes that only retired classes carried.
+- R7.3d's y-up tag rename and the old-version paths still reached through product imports remain.
+
+## D361 — Split part-model.ts into feature-family modules; refactor batch 3b step ② (2026-10-30)
+
+Qualify `e439ea31c`…`f24c0a814` (5 move commits and one regeneration). [Note](notes/kernel-refactor-3b-2026-10-30/README.md#-split-partpart-modelts-by-feature-family-d361).
+
+Decision:
+- **What moved.** Code moved verbatim, one family per commit. part-model.ts went from 4,583 to 2,192 lines.
+  - Frame and weldment helpers → `part-frame.ts`.
+  - Edge finishing → `part-finish.ts`.
+  - Shell → `part-shell.ts`.
+  - Sheet metal → `part-sheet.ts`.
+  - The `face-fillet` case and its helpers → the new `part-face-fillet.ts`.
+- **Import cycle.** The family modules import part-model's values directly; D221 had them receive the values through `HELPERS`. This is a function-level import cycle. The moved helpers call the stateful Boolean, which the `frk-6-ordered-trim.test` coverage trap pins in part-model.js. Keeping the Boolean there avoids both a code change (moving it and its state) and a signature change (threading `k`).
+  - Rule: a family module reads no part-model value at module evaluation time.
+  - Rule: `HELPERS` holds no `const` from a family module.
+  - Both rules are checked for each module, and each module was imported first in a fresh process.
+- **No restructuring.** Nested closures inside the moved code stay as they were. Hoisting them is a separate, measured change.
+
+Checks:
+- perf-bench: 34/34 SAME after the first and the last move.
+- Kernel suite: 1846/1848 pass, 0 fail, 2 skip. The passing names are identical to D360's final run.
+- Cycle import-first: PASS for 6 modules.
+- Kernel types and lint: PASS at every commit.
+- cad-model and studio types: PASS.
+- API inventory: regenerated. It differs only in union member order (all 29 lines are permutations).
+- `_refusals.md`: one example message changed to the first literal found in source order.
+- check-docs: PASS.
+- Conformance: unchanged.
+- NOT_RUN: a build and suite run of the three middle commits on their own, RB, browser flows, CI.
+
+Issues: none completed.
+
+Limits: operation() still holds 20 cases, among them extrude, revolve, Booleans, holes, patterns, sweep, loft, draft and split. They can follow the same pattern in a later window.
+
+## D362 — cad-model refusals mapped by their code; refactor batch 3b step ③ (2026-10-30)
+
+Qualify `ee3149bae` (one path, `packages/barocss-cad-model/src/engine/errors.ts`). [Note](notes/kernel-refactor-3b-2026-10-30/README.md#-cad-model-refusals-mapped-by-code-d362).
+
+Decision:
+- **Rule shape.** `friendly()`'s 70 rules become `{ code?, text?, title, hint }`. The function gathers the message's bracketed codes once and keeps the same first-match order.
+- **Code rows (30).** Every rule that matched one bracketed code now matches by code; one row takes two codes.
+- **Text rows (40).**
+  - 33 have no code.
+  - 7 name a code that kernel messages also write without brackets: `FRAME_SECTION_UNKNOWN`, `VERTEX_BLEND_UNSUPPORTED`, `RADIUS_EXCEEDS_FACE`, `CONTACT_LEAVES_FACE`, `APPROX_TOLERANCE_NOT_MET`, `RADIUS_EXCEEDS_CURVATURE`, `NOT_ANALYTIC_PAIR`. A code row would miss those messages.
+  - These convert once the kernel brackets these codes, which changes messages and so is a separate change.
+- **New refusals.** Give the message a bracketed code (`[MY_CODE] …`). Add `{ code: 'MY_CODE', title, hint }` at its place in errors.ts; the first match wins. `text` rows are only for messages without a code.
+- **Unchanged.** Titles, hints, `detail` and `code` stay byte-identical. The thrown error's own code (`kind`) is still not matched.
+
+Checks:
+- Golden: 2,087,617 comparisons (122,801 messages × 8 kinds, with and without a feature prefix), 0 differences; all 70 rules are hit.
+- cad-model suite with base and new errors.ts: both 2172/2175 pass, and the passing names are identical.
+- The 3 failures were already there at `fa79c9969`: `o7-legacy` and `tolerance`, `HOLE_NOT_LOCATED`. The coordinator owns that fix.
+- cad-model types and eslint: PASS. Studio types: PASS.
+- `refusals.mjs --check`: PASS.
+- NOT_RUN: studio tests and browser flows (no studio file changed).
+
+Issues: none completed.
+
+## D363 — Drawing fixtures and tolerance locating follow D331's own-feature rule (2026-10-30)
+
+Source and fixtures: `packages/barocss-cad-model/src/drawing/tolerance.ts`, `test/fixtures/o7-legacy/expected.json`, `packages/barocss-cad/conformance/r14/tol-row-plus-minus/case.json`, `tol-row-geometric/case.json`. [Note](notes/drawing-location-fixtures-2026-10-30/README.md).
+
+**Defect.** Since `ccbdf285e` (D331), `o7-legacy` test 3 and `tolerance` r14-tol-row-geometric/plus-minus failed with a new `HOLE_NOT_LOCATED`; D331's checks did not run those files. The fixtures held pre-D331 drawings, and tolerance `locating` still matched by coordinate (Ø6.6 own X location got ±0.1 instead of ±0.21).
+
+**Decision.** Keep D331's rule (a dimension locates a hole only through that hole's own feature) everywhere: tolerance `locating` now uses `samePointDependency` with the same counted-pitch rule; regenerate the two row fixtures and hand-edit `o7-legacy/expected.json`; no `.bcad` change.
+
+**Checks.** cad-model affected 63/63, tsc and eslint PASS after merging `168c72a0b`; actual Studio D331 driver rerun PASS (errors 0). NOT_RUN: full suites, remote CI. Model split: diagnosis Opus sub-agent, fix Sonnet sub-agent, review and verification coordinator (Opus). Issues: none completed.
+

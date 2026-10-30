@@ -1,8 +1,0 @@
-{
-  "code": "NATIVE",
-  "operation": "intersect",
-  "message": "CAD model intersect: Convex planar solid intersection: Convex planar solid: A derived weight is not exactly represented in binary64",
-  "causeName": "ConvexPlanarSolidIntersectionError",
-  "causeCode": "REPRESENTABILITY",
-  "causeStage": "final-representability"
-}

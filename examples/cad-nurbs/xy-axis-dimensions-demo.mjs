@@ -1,7 +1,0 @@
-import {readFileSync,mkdirSync,writeFileSync} from 'node:fs';
-import {resolve} from 'node:path';
-import {solveXYLinearSketch,exportIGES} from '../../packages/barocss-cad/dist/index.js';
-const [filename,directory,target]=process.argv.slice(2);if(!filename||!directory)throw new Error('Usage: node xy-axis-dimensions-demo.mjs document.json output-directory [signed-widthMM]');
-const document=JSON.parse(readFileSync(resolve(filename),'utf8'));if(target!==undefined){const dimension=document.constraints.find(c=>c.id==='width');if(!dimension)throw new Error('The example width dimension is missing');dimension.distanceMM=Number(target);}
-const result=solveXYLinearSketch(document),output=resolve(directory),json=value=>JSON.stringify(value,(_,v)=>typeof v==='number'&&Object.is(v,-0)?JSON.rawJSON('-0'):v,2)+'\n';mkdirSync(output,{recursive:true});writeFileSync(resolve(output,'document.json'),json(document));writeFileSync(resolve(output,'result.json'),json(result));
-if(!result.ok){console.log('Axis dimension solve failed; no partial geometry was returned.');process.exitCode=1;}else{const exported=exportIGES(result.solution.model,result.solution.model.objects.map(o=>o.id));writeFileSync(resolve(output,'source.css'),result.solution.source);writeFileSync(resolve(output,'geometry.iges'),exported.iges);writeFileSync(resolve(output,'export-report.json'),json(exported.report));console.log('Original solved lines exported; signed axis distance is not Euclidean length or a region/solid certificate.');}

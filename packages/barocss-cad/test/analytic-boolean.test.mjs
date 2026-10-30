@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { booleanAnalytic, brepFromBody, cad, brepFromPrismatic, prismaticFromProfile, transformBrep, quarterTurn, checkBrep, tessellateBrep, brepMassProperties } from '../dist/index.js';
+import { readFileSync } from 'node:fs';
+import { booleanAnalytic, brepFromPrismatic, prismaticFromProfile, transformBrep, quarterTurn, checkBrep, tessellateBrep, brepMassProperties } from '../dist/index.js';
+const load = name => JSON.parse(readFileSync(new URL(`./fixtures/legacy-inputs/${name}.json`, import.meta.url), 'utf8'));
 
 const mulberry = seed => () => { seed = (seed + 0x6D2B79F5) >>> 0; let t = seed; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 const rect = (x0, y0, x1, y1) => [{ kind: 'line', start: [x0, y0] }, { kind: 'line', start: [x1, y0] }, { kind: 'line', start: [x1, y1] }, { kind: 'line', start: [x0, y1] }];
@@ -146,7 +148,7 @@ test('random boxes and cylinders along x, y and z: valid watertight results, vol
 });
 
 test('mass: a whole B-spline patch is integrated over its spans, a wall whose surface stops short of its loop is not', () => {
-  const m = cad.model(), c = m.sketch.circle({ center: [0, 0], radius: 5 }).extrude(10), seamed = brepFromBody(m.build({ c }).bodies.c);
+  const seamed = load('brep-cylinder');
   // The seamed wall is its whole patch: tensor Gauss on the exact surface, no tessellation.
   const whole = brepMassProperties(seamed, 1);
   assert.ok(Math.abs(whole.volume - 250 * pi) < 1e-11 * 250 * pi, `${whole.volume}`);
@@ -157,7 +159,7 @@ test('mass: a whole B-spline patch is integrated over its spans, a wall whose su
 });
 
 test('full-turn walls with a seam (schema-1 cylinders) are accepted', () => {
-  const m = cad.model(), c = m.sketch.circle({ center: [0, 0], radius: 5 }).extrude(10), seamed = brepFromBody(m.build({ c }).bodies.c);
+  const seamed = load('brep-cylinder');
   const vol = b => brepMassProperties(b, 1, { segmentsPerQuarter: 64 }).volume;
   const strip = 2 * (Math.sqrt(24) + 25 * Math.asin(0.2));
   for (const [name, b, op, expected] of [['through a slot', box([-10, -1, 3], [10, 1, 6]), 'difference', 250 * pi - strip * 3], ['a block on top', box([-2, -2, 8], [2, 2, 14]), 'union', 250 * pi + 64], ['a slice', box([-10, -10, 2], [10, 10, 5]), 'intersection', 75 * pi]]) {

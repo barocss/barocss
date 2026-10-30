@@ -50,7 +50,8 @@ test('R7.3a: CAD_ERROR_CODES holds every code a kernel error class can carry', (
       ts.forEachChild(n, visit);
     });
   }
-  assert.ok(classes > 140 && factories >= 21, `${classes} classes, ${factories} module refusals`);
+  assert.ok(classes > 100 && factories >= 21, // (106 classes after R7.3d)
+    `${classes} classes, ${factories} module refusals`);
   assert.deepEqual(missing, []);
 });
 

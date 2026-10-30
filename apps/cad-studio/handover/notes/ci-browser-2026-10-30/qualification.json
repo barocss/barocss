@@ -1,7 +1,7 @@
 {
   "decision": "D359",
   "roadmap": "33 CI browser verification (2026-10-30 engine review)",
-  "status": "LOCAL_QUALIFIED; REMOTE_PENDING",
+  "status": "LOCAL_QUALIFIED; REMOTE_RUN1_FAIL; REMOTE_RUN2_FAIL; REMOTE_RUN3_FAIL_SUITES_RAN (59 tests: 56 pass, 2 fail, 1 cancelled, 0 skip)",
   "scope": "CI provisions Chrome (runner google-chrome) with SwiftShader WebGPU and Playwright 1.62.1, and runs every *-browser.test.mjs in packages/barocss-gpu (25 files) and packages/barocss-viewer (3 files) when either package is affected or the plan is full. A run passes only with fail/cancelled/skipped/todo 0, pass == tests > 0 and no file without a test; a missing CHROME/PW_DIR fails in CI and is NOT_RUN locally.",
   "sourceCommit": "14dfe667c",
   "sourcePaths": [
@@ -48,7 +48,46 @@
     "lint": "eslint on the changed scripts: 0 errors; no-console warnings only, as in the existing scripts",
     "yaml": "ci.yml, regression.yml, action.yml parse"
   },
-  "remoteCi": "PENDING: workflow_dispatch of ci.yml on local/cad-dev after the push (full mode, so the browser job runs both suites on ubuntu-latest SwiftShader). No PR and no develop change needed.",
+  "remoteCi": {
+    "run1": {
+      "url": "https://github.com/barocss/barocss/actions/runs/41040669187",
+      "head": "57adee015",
+      "event": "workflow_dispatch on local/cad-dev (full mode; no PR, no develop change)",
+      "conclusion": "failure",
+      "jobs": { "plan": "success", "full": "success", "browser": "failure", "verify (Test and Build)": "failure" },
+      "probe": "google swiftshader adapter, Chrome 156.0.8078.47 (adapter request only)",
+      "gpu": { "files": 25, "tests": 55, "pass": 4, "fail": 51, "skipped": 0 },
+      "viewer": { "files": 3, "tests": 4, "pass": 0, "fail": 4, "skipped": 0 },
+      "diagnosis": "flag set: GPU process drops the WebGPU instance on first canvas present (25x mapAsync 'Instance reference no longer exists', 21x DEVICE_LOST replacing, 5x 'Instance dropped' getCompilationInfo, 3x NO_ADAPTER on recovery); passes are compute-only tests",
+      "fix": "canvas present+map+pixel probe over four flag sets, first that presents is used; no test excluded"
+    },
+    "run2": {
+      "url": "https://github.com/barocss/barocss/actions/runs/41042337412",
+      "head": "1c9594189",
+      "conclusion": "failure",
+      "jobs": { "plan": "success", "full": "success", "browser": "failure", "verify (Test and Build)": "failure" },
+      "probe": "all four flag sets ok=false on Chrome 156.0.8078.47: adapter google swiftshader, device lost 'destroyed', mapAsync 'A valid external Instance reference no longer exists', pixel [0,0,0,0]",
+      "gpu": "NOT_RUN (no flag set presented a canvas)",
+      "viewer": "NOT_RUN",
+      "diagnosis": "Linux headless canvas presentation on the runner destroys the device regardless of these flags; the same probe presents red on the Mac (Metal and SwiftShader)"
+    },
+    "run3": {
+      "url": "https://github.com/barocss/barocss/actions/runs/41052973862",
+      "head": "f74f8b060",
+      "conclusion": "failure",
+      "jobs": { "plan": "success", "full": "success", "browser": "failure (about 24 min)", "verify (Test and Build)": "failure" },
+      "probe": "headless sets swiftshader-gl, -angle, -vulkan, -vulkan-nosurface, -angle-gl all ok=false (device destroyed at present); xvfb-headed ok=true, pixel [255,0,0,255], selected",
+      "chromeGpuHeadless": "Compositing: Software only. Hardware acceleration disabled; WebGPU: Software only; WebGPU interop: Disabled; Chrome/156.0.8078.47; Linux 7.0.0-1017-azure",
+      "gpu": { "files": 25, "tests": 55, "pass": 52, "fail": 2, "cancelled": 1, "skipped": 0, "seconds": 1223 },
+      "viewer": { "files": 3, "tests": 4, "pass": 4, "fail": 0, "skipped": 0, "seconds": 114 },
+      "failures": [
+        "viewer-pose-clip-browser.test.mjs:1157 G20 pick readback: SwiftShader GPU point ~1.1e-4 from CPU, bound 1e-4 (same as Mac SwiftShader)",
+        "viewer-cap-aa-browser.test.mjs:130 G9 capFrontSamples at 1440p and 4K: timed out after 240000 ms on the 2-core runner (passed on Mac SwiftShader)",
+        "viewer-shadow-point-soft-browser.test.mjs:14 point disk soft shadows: 'increasing world radius from 0.35 to 0.8 widens the same far edge' false on the runner (passed on Mac SwiftShader)"
+      ],
+      "notChanged": "no test excluded or edited; owner chooses the CI policy for these three"
+    }
+  },
   "notRun": [
     "Linux SwiftShader (only the remote run covers it)",
     "regression.yml (manual/release caller)",
