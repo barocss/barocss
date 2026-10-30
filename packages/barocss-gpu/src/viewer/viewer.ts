@@ -1129,7 +1129,7 @@ export class Viewer {
     if (waiters.length) this.device.queue.onSubmittedWorkDone().then(() => waiters.forEach(w => w.resolve()), () => waiters.forEach(w => w.resolve()));
   }
 
-  private ensureTargets(w: number, h: number): NonNullable<Viewer['targets']> {
+  private ensureTargets(w = this.canvas.width, h = this.canvas.height): NonNullable<Viewer['targets']> {
     const t = this.targets;
     if (t && t.width === w && t.height === h) return t;
     t?.msaa?.destroy(); t?.scene.destroy(); t?.depth.destroy(); t?.mask.destroy(); t?.maskDepth.destroy(); t?.capFront.destroy(); t?.capFrontSamples?.destroy();
@@ -1269,7 +1269,7 @@ export class Viewer {
   private oitDrawing = false;
   /** G11's targets: the accumulation and revealage (multisampled when the scene is) and their resolved copies, and the composite's bind group. */
   private oit: { width: number; height: number; accumMs: Texture | null; revealMs: Texture | null; accum: Texture; reveal: Texture; group: BindGroup; views: { accumMs: View | null; revealMs: View | null; accum: View; reveal: View } } | null = null;
-  private ensureOit(w: number, h: number): NonNullable<Viewer['oit']> {
+  private ensureOit(w = this.canvas.width, h = this.canvas.height): NonNullable<Viewer['oit']> {
     const o = this.oit;
     if (o && o.width === w && o.height === h) return o;
     o?.accumMs?.destroy(); o?.revealMs?.destroy(); o?.accum.destroy(); o?.reveal.destroy();
