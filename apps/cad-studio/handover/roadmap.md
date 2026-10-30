@@ -289,6 +289,37 @@ retry in that cycle. Neither probe is a reproduced data-loss/leak defect. Its pr
 order Model004 then GPU002 is a deferred investigation plan, not permission to preempt D316.
 Issues2235–2240 already have roadmap ownership and are not registered again.
 
+### GitHub issue intake after the 2026-10-29 reconciliation — 2026-10-30
+
+A 2026-10-30 check of all212 OPEN issues against this roadmap found14 CAD/AI research or
+plan issues created after the 2026-10-29 reconciliation and not yet referenced here. They are
+registered below under existing scopes. Every issue body states research/backlog or planned only:
+analysis was static (current source read, no reproduction), and proposed checks are NOT_RUN. Registration selects no task, changes no
+order, hold, owner decision or issue state, and adds no product PASS. The current09 order stays.
+Before code, reproduce a gap at the current head; old source pins (`a780578a2`, `970b39cb8`)
+are not current receipts.
+
+| Issue | Existing scope | Registered question and boundary |
+|---|---|---|
+| [#2232](https://github.com/barocss/barocss/issues/2232) SolidCraft associative offset | 09 CG3 | Derived-profile meaning when an inward offset removes and later restores an arc corner; side ids/rematch/serializer. The current refusal past the arc radius remains valid. Candidate only after the selected09 consumers. |
+| [#2250](https://github.com/barocss/barocss/issues/2250) Buerligons parameters | 09 CG3, R7.4d, 15 | Show expression source beside its computed value for existing parameters/derived dimensions. CG3 dimension expressions and R7.4d stay pending the owner; this issue does not decide them. |
+| [#2246](https://github.com/barocss/barocss/issues/2246) Forge dimension handles | 20 UI, 12 recovery, 16 | Separate partial handle preview from full-model regeneration approval and last-good recovery. First map its A–E cases to existing evidence; finish with the smallest remaining gap or "no change needed". |
+| [#2248](https://github.com/barocss/barocss/issues/2248) Fusion STEP named frames | 13 CG7, 16 CG10 | Optional STEP transfer of an authored datum frame's name/origin/axes with explicit loss reporting; keep placement, occurrence transform and UCS distinct. Separate from #2240 units. |
+| [#2230](https://github.com/barocss/barocss/issues/2230) sheet rigid Move/Mirror/Pattern | 14 CG8 | Keep SheetReport/flat pattern/follow-on flange editable after rigid transform, reflection and copy. P2 manufacturing hold and gates stay. |
+| [#2231](https://github.com/barocss/barocss/issues/2231) sheet DXF roles | 14 CG8, 13 | Cut/bend/note roles, options and bend vs included angle in the existing flat DXF. Output contract first; no new exporter, CAM or nesting. |
+| [#2233](https://github.com/barocss/barocss/issues/2233) SolidCraft v0.26.0 | 10 CG4, 12 CG6, 16 | Per-field provenance for linked-part inherited values vs local overrides on source update; truthful interrupted-check state; point clouds as reference only. Extends the #2205 ledger. |
+| [#2234](https://github.com/barocss/barocss/issues/2234) SolidCraft 33-page review | index only | Coverage index; its three leaves are #2230/#2231/#2232. No separate task. |
+| [#2229](https://github.com/barocss/barocss/issues/2229) robot sweep budget | 18, 16 | `sweepPath` may report an exhausted sample budget as contact, and `sweepTimed` turns that into TOI. Static-source candidate: reproduce first; if reproduced, it is a false-result defect in18 and takes correctness priority. |
+| [#2244](https://github.com/barocss/barocss/issues/2244) Airsup robot cell | 18, 19 | Workpiece transfer, grip failure and cycle KPIs from an event ledger on existing robot paths. Physics/Motion and CAE/FEA RD4–8 holds stay. |
+| [#2251](https://github.com/barocss/barocss/issues/2251) Gunpla step-by-step | 10 CG4, 15, 12 | Ordered assembly-instruction steps with part/view navigation over existing explode/visibility; presentation stays separate from CAD placement. |
+| [#2247](https://github.com/barocss/barocss/issues/2247) WebMCP adapter | 12/16 agent contracts, later AI | Read-first browser WebMCP adapter over existing tools; edits keep current approval, revision and Undo. Planned and not selected; no new tool protocol. |
+| [#2245](https://github.com/barocss/barocss/issues/2245) Idol Gaussian splat | later AI/capture (#2192/#2193) | Optional reference-asset contract; never CAD, manufacturing or robot authority. No install, weight download or inference. |
+| [#2252](https://github.com/barocss/barocss/issues/2252) Metropolix | outside CAD rows: World/Rendering plans (#2096/#2099), 05 V1/V2 reuse | Object → information page → return-state contract. Rendering/World holds stay; no CAD task. |
+
+Of the other198 OPEN issues, #2243, #2144 and #2107 were already referenced. The remaining195 are earlier Design Gallery targets (#2030–#2093), V3-era GPU/Viewer/loader/
+render-editor/Physics/World work, epics #503/#528–#542 and kiosk/SSR examples. They predate this
+roadmap's CAD scope or sit under existing holds and are not re-registered here.
+
 ### 제품 완료와 인계의 공통 조건
 
 1. 기능의 입력·단위·좌표·참조·지원/거부 계약을 고정한다.
