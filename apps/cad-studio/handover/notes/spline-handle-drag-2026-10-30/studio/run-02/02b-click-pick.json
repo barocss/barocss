@@ -1,0 +1,127 @@
+{
+  "label": "02b-click-pick",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [],
+    "outputs": {},
+    "nextId": 0
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 0,
+    "active": null,
+    "sketch": true,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": "SKETCH · Select · Z 0PlaneXY (top)XZ (front)YZ (right)OffsetmmAngle°Under-defined · 22 DOF left — add dimensions or constraints · line + arc outlineXYEdge1R2R3R4R5R6R7R8R9R10R11R12RSPLINEXYHandle °123456Enter applies a value; empty handle: automatic. Dimensioning the curve or editing its outline points turns it into an ordinary outline.TANGENCYT · 1T · 2T · 3T · 4T · 5T · 6T · 7T · 8T · 9T · 10T · 11T · 12ARC PAIRSArc 1 · Arc 2= R◎Arc 1 · Arc 3= R◎Arc 1 · Arc 4= R◎Arc 1 · Arc 5= R◎Arc 1 · Arc 6= R◎Arc 1 · Arc 7= R◎Arc 1 · Arc 8= R◎Arc 1 · Arc 9= R◎Arc 1 · Arc 10= R◎Arc 1 · Arc 11= R◎Arc 1 · Arc 12= R◎Arc 2 · Arc 3= R◎Arc 2 · Arc 4= R◎Arc 2 · Arc 5= R◎Arc 2 · Arc 6= R◎Arc 2 · Arc 7= R◎Arc 2 · Arc 8= R◎Arc 2 · Arc 9= R◎Arc 2 · Arc 10= R◎Arc 2 · Arc 11= R◎Arc 2 · Arc 12= R◎Arc 3 · Arc 4= R◎Arc 3 · Arc 5= R◎Arc 3 · Arc 6= R◎Arc 3 · Arc 7= R◎Arc 3 · Arc 8= R◎Arc 3 · Arc 9= R◎Arc 3 · Arc 10= R◎Arc 3 · Arc 11= R◎Arc 3 · Arc 12= R◎Arc 4 · Arc 5= R◎Arc 4 · Arc 6= R◎Arc 4 · Arc 7= R◎Arc 4 · Arc 8= R◎Arc 4 · Arc 9= R◎Arc 4 · Arc 10= R◎Arc 4 · Arc 11= R◎Arc 4 · Arc 12= R◎Arc 5 · Arc 6= R◎Arc 5 · Arc 7= R◎Arc 5 · Arc 8= R◎Arc 5 · Arc 9= R◎Arc 5 · Arc 10= R◎Arc 5 · Arc 11= R◎Arc 5 · Arc 12= R◎Arc 6 · Arc 7= R◎Arc 6 · Arc 8= R◎Arc 6 · Arc 9= R◎Arc 6 · Arc 10= R◎Arc 6 · Arc 11= R◎Arc 6 · Arc 12= R◎Arc 7 · Arc 8= R◎Arc 7 · Arc 9= R◎Arc 7 · Arc 10= R◎Arc 7 · Arc 11= R◎Arc 7 · Arc 12= R◎Arc 8 · Arc 9= R◎Arc 8 · Arc 10= R◎Arc 8 · Arc 11= R◎Arc 8 · Arc 12= R◎Arc 9 · Arc 10= R◎Arc 9 · Arc 11= R◎Arc 9 · Arc 12= R◎Arc 10 · Arc 11= R◎Arc 10 · Arc 12= R◎Arc 11 · Arc 12= R◎ADD CONSTRAINTPicked point 1HHorizVVert∥Parallel⊥Perp=Equal◎Centre⌒Tangent⟷Sym⚓Fix↔DimensionRound cornermmRoundCONSTRAINTS · 25Anchorpoint 1×Tangentpoint 1×Tangentpoint 2×Tangentpoint 3×Tangentpoint 4×Tangentpoint 5×Tangentpoint 6×Tangentpoint 7×Tangentpoint 8×Tangentpoint 9×Tangentpoint 10×Tangentpoint 11×Tangentpoint 12×Arcedge 1 ccw×Arcedge 2 ccw×Arcedge 3 ccw×Arcedge 4 ccw×Arcedge 5 ccw×Arcedge 6 ccw×Arcedge 7 ccw×Arcedge 8 ccw×Arcedge 9 ccw×Arcedge 10 ccw×Arcedge 11 ccw×Arcedge 12 ccw×Solverrank 26 · 22 DOFOFFSETmmOutInCURVESMake curves of the sketch",
+  "hud": null,
+  "sketchAlert": null,
+  "sketchStatus": "Under-defined · 22 DOF left — add dimensions or constraints · line + arc outline",
+  "splineInputs": [
+    {
+      "label": "Fit point 1 X",
+      "value": "30",
+      "placeholder": ""
+    },
+    {
+      "label": "Fit point 1 Y",
+      "value": "0",
+      "placeholder": ""
+    },
+    {
+      "label": "Fit point 1 handle",
+      "value": "",
+      "placeholder": "90"
+    },
+    {
+      "label": "Fit point 2 X",
+      "value": "15",
+      "placeholder": ""
+    },
+    {
+      "label": "Fit point 2 Y",
+      "value": "20",
+      "placeholder": ""
+    },
+    {
+      "label": "Fit point 2 handle",
+      "value": "",
+      "placeholder": "156"
+    },
+    {
+      "label": "Fit point 3 X",
+      "value": "-15",
+      "placeholder": ""
+    },
+    {
+      "label": "Fit point 3 Y",
+      "value": "20",
+      "placeholder": ""
+    },
+    {
+      "label": "Fit point 3 handle",
+      "value": "",
+      "placeholder": "-156"
+    },
+    {
+      "label": "Fit point 4 X",
+      "value": "-30",
+      "placeholder": ""
+    },
+    {
+      "label": "Fit point 4 Y",
+      "value": "0",
+      "placeholder": ""
+    },
+    {
+      "label": "Fit point 4 handle",
+      "value": "",
+      "placeholder": "-90"
+    },
+    {
+      "label": "Fit point 5 X",
+      "value": "-15",
+      "placeholder": ""
+    },
+    {
+      "label": "Fit point 5 Y",
+      "value": "-20",
+      "placeholder": ""
+    },
+    {
+      "label": "Fit point 5 handle",
+      "value": "",
+      "placeholder": "-24"
+    },
+    {
+      "label": "Fit point 6 X",
+      "value": "15",
+      "placeholder": ""
+    },
+    {
+      "label": "Fit point 6 Y",
+      "value": "-20",
+      "placeholder": ""
+    },
+    {
+      "label": "Fit point 6 handle",
+      "value": "",
+      "placeholder": "24"
+    }
+  ]
+}

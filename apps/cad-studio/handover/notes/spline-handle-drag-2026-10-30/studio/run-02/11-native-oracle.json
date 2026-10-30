@@ -1,0 +1,41 @@
+{
+  "status": "PASS",
+  "productImports": 0,
+  "segments": 12,
+  "arcs": 12,
+  "lines": 0,
+  "fitPoints": 6,
+  "worstRadiusGapRelative": 4.38497721372939e-15,
+  "worstSquaredGapRelative": 9.188643837780465e-15,
+  "worstTangentAngle": 1.678623910081509e-14,
+  "joints": 12,
+  "handlesChecked": 1,
+  "worstHandleAngle": 0.0,
+  "automaticOutgoing": [
+    {
+      "fit": 1,
+      "outgoingDegrees": 156.03751102542185
+    },
+    {
+      "fit": 2,
+      "outgoingDegrees": -160.55996517182382
+    },
+    {
+      "fit": 3,
+      "outgoingDegrees": -136.4688007143867
+    },
+    {
+      "fit": 4,
+      "outgoingDegrees": -23.334041276709776
+    },
+    {
+      "fit": 5,
+      "outgoingDegrees": -0.8814039965821332
+    }
+  ],
+  "area": 1929.4046184985402,
+  "shoelaceArea": 1850.5471310099056,
+  "oracleVolume": 19294.046184985404,
+  "studioVolume": 19294.046184985382,
+  "volumeRelativeDifference": 1.1313268680540797e-15
+}

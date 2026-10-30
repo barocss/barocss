@@ -16924,3 +16924,33 @@ Checks:
 - Six product reads and six Python Fraction oracles passed (handle error 2.2e-16 rad). Errors 0; 984 frozen files equal the commit; root viewed the images.
 
 Limits: directions only (no Bezier, no magnitude); numeric editing only; a possible self-crossing from accepted handles is unverified; no tangent constraints at 17+ points; weak handle marks. Next 09: viewport handle dragging, Bezier control points (#2051), conics, text/blocks. Full suites, CI and release NOT_RUN.
+
+## D353 — Drag spline handles and fit points in the viewport; sixth bounded09 item (2026-10-30)
+
+Qualify source `47e8617ea` (6 paths). [Evidence](notes/spline-handle-drag-2026-10-30/qualification.json). Related issue: #2051 (Bezier control points), related but not satisfied; it stays open, as does epic #532.
+
+Decision: with Select on a closed, matching spline, a press on a handle end or fit point arms a drag that activates past 3 px. A handle turns in whole degrees (Shift 0.1°); a fit point moves on the grid step (Shift fine). The preview uses the live shape without history. Release applies one undo step, only when the definition changed; an earlier release stays an ordinary pick. Escape, pointer cancel, lost capture and tool changes cancel; keys are swallowed while dragging; a shape changed underneath is not overwritten. Unbuildable positions keep the last valid preview. Handle marks are distinct, and radius chips are hidden on a closed spline. No Model or Kernel change.
+
+Retained:
+- Actual run01 passed on the pre-audit source.
+- Independent Opus audit CHANGES_REQUIRED, all fixed:
+  - F1 (high): clicks on fit points no longer picked (26–28 % of outline samples);
+  - F2: stale start shape;
+  - F3: pointer leaks;
+  - F4: empty-step emits;
+  - F5: chips covering handles;
+  - F6–F8: open splines, the Dimension tool and the cursor;
+  - F9: weak tests.
+- The audit found 0 kernel or settle failures in 39,858 grid drags and 1,200 chained drags; performance was negligible.
+
+Checks:
+- Studio: 11 new tests, affected 43/43; types, lint and check-docs PASS.
+- Actual run02 PASS:
+  - click-pick preserved;
+  - a handle drag to 60° that is one undo step;
+  - a fit drag to (−36, 2);
+  - Escape cancel and a refused drag held at the last valid position;
+  - Finish, Extrude, Save, then fresh Open restoring the values.
+- Four Python Fraction oracles passed; errors 0; 986 frozen files equal the commit; root viewed the images.
+
+Limits: closed splines only; directions only; a refused drag can stop near a neighbour; edge-on views collapse targets; pointer-cancel and second-pointer paths verified by reading only. Full suites, CI and release NOT_RUN.
