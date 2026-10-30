@@ -1,7 +1,7 @@
 {
   "decision": "D359",
   "roadmap": "33 CI browser verification (2026-10-30 engine review)",
-  "status": "LOCAL_QUALIFIED; REMOTE_PENDING",
+  "status": "LOCAL_QUALIFIED; REMOTE_RUN1_FAIL; REMOTE_RUN2_PENDING",
   "scope": "CI provisions Chrome (runner google-chrome) with SwiftShader WebGPU and Playwright 1.62.1, and runs every *-browser.test.mjs in packages/barocss-gpu (25 files) and packages/barocss-viewer (3 files) when either package is affected or the plan is full. A run passes only with fail/cancelled/skipped/todo 0, pass == tests > 0 and no file without a test; a missing CHROME/PW_DIR fails in CI and is NOT_RUN locally.",
   "sourceCommit": "14dfe667c",
   "sourcePaths": [
@@ -48,7 +48,21 @@
     "lint": "eslint on the changed scripts: 0 errors; no-console warnings only, as in the existing scripts",
     "yaml": "ci.yml, regression.yml, action.yml parse"
   },
-  "remoteCi": "PENDING: workflow_dispatch of ci.yml on local/cad-dev after the push (full mode, so the browser job runs both suites on ubuntu-latest SwiftShader). No PR and no develop change needed.",
+  "remoteCi": {
+    "run1": {
+      "url": "https://github.com/barocss/barocss/actions/runs/41040669187",
+      "head": "57adee015",
+      "event": "workflow_dispatch on local/cad-dev (full mode; no PR, no develop change)",
+      "conclusion": "failure",
+      "jobs": { "plan": "success", "full": "success", "browser": "failure", "verify (Test and Build)": "failure" },
+      "probe": "google swiftshader adapter, Chrome 156.0.8078.47 (adapter request only)",
+      "gpu": { "files": 25, "tests": 55, "pass": 4, "fail": 51, "skipped": 0 },
+      "viewer": { "files": 3, "tests": 4, "pass": 0, "fail": 4, "skipped": 0 },
+      "diagnosis": "flag set: GPU process drops the WebGPU instance on first canvas present (25x mapAsync 'Instance reference no longer exists', 21x DEVICE_LOST replacing, 5x 'Instance dropped' getCompilationInfo, 3x NO_ADAPTER on recovery); passes are compute-only tests",
+      "fix": "canvas present+map+pixel probe over four flag sets, first that presents is used; no test excluded"
+    },
+    "run2": "PENDING"
+  },
   "notRun": [
     "Linux SwiftShader (only the remote run covers it)",
     "regression.yml (manual/release caller)",

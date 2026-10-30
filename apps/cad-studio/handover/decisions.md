@@ -17109,3 +17109,14 @@ Follow-ups:
 - Device-loss recovered pixels and long-session memory (row 33) are not built.
 - Studio browser flows in CI are not built.
 - gpu's `test:browser` script still lists 16 of the 25 files.
+
+Remote run 1 ([41040669187](https://github.com/barocss/barocss/actions/runs/41040669187), `workflow_dispatch` on `local/cad-dev` at `57adee015`, full mode): **FAIL**.
+- Plan, and Full lint types and builds: success.
+- WebGPU browser suites: failure. The aggregate Test and Build check failed with it, so the blocking works.
+- The probe saw a SwiftShader adapter (Chrome 156.0.8078.47), yet gpu passed 4/55 (51 fail, 0 skip) and viewer 0/4.
+- Cause: the Chrome flag set, not heavy cases. Every test that presents a canvas failed within about 4 s with `mapAsync … Instance reference no longer exists` / `Instance dropped`, then `[NO_ADAPTER]` on recovery. The GPU process dropped the instance and Chrome disabled the GPU. The four passes are compute-only (G25a/b, O10 costs, the recovery-failure test).
+- The adapter-only probe could not see this.
+
+Fix in a later commit, without excluding any test:
+- The probe now presents a canvas for 3 frames, maps a buffer and reads a pixel.
+- On the runner it tries `swiftshader-gl`, `-angle`, `-vulkan` and `-vulkan-nosurface` in that order. It logs every outcome and runs the suites with the first set that presents.
