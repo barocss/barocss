@@ -1,0 +1,12 @@
+{
+  "count": 7,
+  "hashes": {
+    "apps/cad-studio/src/App.tsx": "ff5557ec527a330c0e783fc5a51f4a17f6e915a6d179c15fb02a7c19522bfccc",
+    "apps/cad-studio/src/ui/DirectInspector.tsx": "00b5e04f82b5e008992da73847763f1f9a14e8313ab795da8eb78f895549c9cd",
+    "apps/cad-studio/src/ui/DirectPanel.tsx": "705eb1397edfa07e294ba6d91d4da275dbca66ea8f6e848f3d69a5e4b0707adc",
+    "apps/cad-studio/test/fixtures/d347.barocad": "932643042591cc9818c8f58044e29bf58c5a721cb1ff84ad729224fe881b6e5b",
+    "apps/cad-studio/test/untrimmed-extend-browser.mjs": "b0ff8ee97c6a23a3aa95ef06b85e67eaa6e4a790d7c2c8df554b4c625d07de36",
+    "packages/barocss-cad-model/src/engine/curveSource.ts": "416771feffc1409fb847dc4324eb0a129397edfb875e7dfd87993a81f85dffb5",
+    "packages/barocss-cad-model/src/engine/direct.ts": "a0c19c96a444d091f5b5542510d10cf5a7f40624589969975e162ed8825c8ec6"
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "label": "01b-selected",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          0,
+          0
+        ],
+        "max": [
+          64,
+          32
+        ],
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 8,
+        "id": "n1"
+      },
+      {
+        "kind": "hole",
+        "parent": {
+          "node": 1,
+          "side": "solid"
+        },
+        "center": [
+          32,
+          16
+        ],
+        "radius": 4,
+        "id": "n2"
+      }
+    ],
+    "outputs": {
+      "b2": {
+        "node": 2,
+        "side": "solid"
+      }
+    },
+    "nextId": 3,
+    "direct": {
+      "sources": {
+        "src_1": "@model d347 { version:0; length-unit:mm;\n @surface #panel { type:nurbs; degree-u:1; degree-v:1;\n  knots-u:[2,2,5,5]; knots-v:[-1,-1,3,3];\n  control-points:[[[7,-11,13],[7,-11,21]],[[16,1,13],[16,1,21]]];\n  weights:[[1,1],[1,1]]; }\n}\n"
+      },
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "d347 · panel",
+          "source": "src_1",
+          "geometry": "panel"
+        }
+      ]
+    }
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b2",
+        "volume": 15981.876140340513,
+        "centroid": [
+          32,
+          16.000000000000004,
+          4
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 1,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "directRows": [
+    {
+      "text": "gestured347 · panel",
+      "className": "ol direct sel",
+      "title": "d347 · panel"
+    }
+  ],
+  "direct": "SURFACEHideNameTRANSFORMΔXΔYΔZMoveAxisXYZAngle °RotateFactorScaleDuplicate× X× Y× ZStretchShear movesXYZbyXYZShear factorShearDegree 1 × 1Domain u 2…5 · v -1…3DirectionUVAt uSplitIso-curveInsert knotRaise degreeReverseAT (U, V)uvPoint 11.5, -5, 17Normal 0.8, -0.6, 0Mean curvature 0 /mmGaussian 0 /mm²EXTENDEdgeu endu startv endv startExtend byExtendTHICKENThicknessSideAlong the normalAgainst itHalf each wayThicken into a bodyREGIONu fromu tov fromv toExtract regionCONTROL POINTPointP0,0P0,1P1,0P1,1XYZWeight",
+  "notices": [],
+  "selectedDirectIds": [
+    "obj_1"
+  ]
+}

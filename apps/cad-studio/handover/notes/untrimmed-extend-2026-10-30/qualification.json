@@ -1,0 +1,74 @@
+{
+  "decision": "D347",
+  "status": "BOUNDED_QUALIFIED",
+  "scope": "Existing untrimmed direct-surface Extend (directOps.extendSurface / DirectPanel) on flat parallelogram supports; curved supports keep an uncertified re-fit with a measured deviation label",
+  "baseCommit": "970b39cb8b6dc156a2e723f2cbc43ba7b5a334bd",
+  "sourceCommit": "1dd5eba04",
+  "sourcePaths": 6,
+  "models": {
+    "rootJudgmentAndVerification": "claude-opus-5-5 (main session)",
+    "independentAudit": "claude-opus-5-5 sub-agent",
+    "implementation": "Sonnet sub-agents from frozen briefs",
+    "sol": "NOT_USED"
+  },
+  "baselineDefects": [
+    "tiny reach wrong success (ill-conditioned collocation; 1e-6 -> 2.8e-2 mm dense)",
+    "large reach wrong success (9-decimal [0,1] knots; 1000 -> 2.8e-7 mm, 1e5 -> 5e-4 mm)",
+    "unknown edge string acted as v-min",
+    "exponent numbers produced unreadable stored source returned as success",
+    "Infinity mis-coded DIRECT_SOURCE; fit failure leaked uncoded RangeError"
+  ],
+  "model": {
+    "affectedFiles": 18,
+    "affectedPASS": "196/196 (after crease fix)",
+    "afterWordingOnly": "46/46 (direct-extend-plane, direct-trim-guards, fit)",
+    "newTests": 12,
+    "types": "PASS",
+    "lint": "PASS"
+  },
+  "auditProbesAfter": {
+    "randomParallelograms": { "accepts": 1182, "refusals": 738, "uncoded": 0, "worstAcceptedDeviation": 5.609e-9 },
+    "atomic": "all coded DIRECT_VALUE or success; collapsed zero-length edge still succeeds"
+  },
+  "studio": { "types": "PASS", "viteBuild": "PASS_AFTER_WRONG_BINARY_PATH_RC127" },
+  "kernel": { "build": "PASS_SESSION_START", "sourceChanged": false },
+  "browser": {
+    "status": "PASS_RUN_02",
+    "run01": "PASS_FUNCTIONAL_ROOT_VISUAL_FAIL_WORDING",
+    "chromeProcesses": 1,
+    "serialContexts": 3,
+    "nativeReads": 5,
+    "independentPythonFractionOracles": 5,
+    "worstPosition": 1.4666667732162372e-9,
+    "picks": 5,
+    "nativeFiles": 2,
+    "refusals": ["nonpositive", "tiny-reach"],
+    "frozenFiles": 702,
+    "frozenEqualsCommit": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "cleanup": ["CONTEXT_CLOSED", "CONTEXT_CLOSED", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "visual": { "status": "SCOPED_PASS", "rootImages": ["04", "08", "09", "10", "run01-03/04"], "note": "Earlier refusal toast stays visible after a later success (existing behavior)" },
+  "heldFailures": [
+    "Impl round1: 12 outside-knot-domain failures, then 2 test-only mistakes",
+    "Independent audit CHANGES_REQUIRED: 16 accepted >1e-7 (worst 4.216e-7), curved truncation 7.07e-4*D, uncoded domain overshoot, zero tangent success",
+    "Round3: 112 uncoded first-derivative errors at midpoints",
+    "Root-found regression: C0-crease panel refused as no direction",
+    "Studio vite wrong binary path rc127",
+    "Actual run01 misleading refusal wording ('mm off' for a bound)"
+  ],
+  "limits": [
+    "Curved supports not exact (quarter cylinder R1000 D10: 0.485 mm in original region, labelled)",
+    "Conditioning bound is a first-order estimate, conservative, not a certificate",
+    "Trimmed refusal reuses D336; Model test only",
+    "surfaceIntersection local num still writes exponents (side note)"
+  ],
+  "fullKernel": "NOT_RUN",
+  "fullModel": "NOT_RUN",
+  "fullStudio": "NOT_RUN",
+  "perfBench": "NOT_RUN_NOT_A_PERFORMANCE_CHANGE",
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

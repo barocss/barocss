@@ -1,0 +1,92 @@
+
+// No wrong success: whatever the reach, the answer is a coded refusal (input untouched) or a plane within 1e-7 mm of the true one.
+test('no wrong success over a range of reaches', () => {
+  const reaches = ['0.000001', '0.0001', '0.001', '0.01', '0.5', '2.5', '10', '100', '700', '1000', '100000'];
+  const outcomes: string[] = [];
+  for (const edge of EDGES) for (const reach of reaches) {
+    const before = JSON.stringify(imported), label = `${edge} ${reach}`;
+    let next: DirectGeometry | undefined;
+    try { next = directOps.extendSurface(imported, panel, edge, Number(reach)); } catch (e) { assert.ok(isRefusal(e, 'DIRECT_VALUE'), `${label}: uncoded ${(e as Error).message}`); }
+    assert.equal(JSON.stringify(imported), before, `${label}: input changed`);
+    if (next) {
+      const b = affineBound(surfaceOfLast(next), expected(edge, reach));
+      assert.ok(b.knotsOk && le(b.position, dec('0.0000001')), `${label}: accepted with pole residual ${toNum(b.position)}`);
+    }
+    outcomes.push(`${label}:${next ? 'ok' : 'refused'}`);
+    if (['0.5', '2.5', '10'].includes(reach)) assert.ok(next, `${label}: must succeed`);
+  }
+  console.log(`# reach outcomes: ${outcomes.join(' ')}`);
+});
+
+/** The fixture source, translated by an offset and with a chosen v knot vector. */
+function shifted(off: number[], kv = '-1,-1,3,3'): string {
+  const P = (x: number, y: number, z: number) => `[${x + off[0]},${y + off[1]},${z + off[2]}]`;
+  return `@model d347 { version:0; length-unit:mm;
+ @surface #panel { type:nurbs; degree-u:1; degree-v:1; knots-u:[2,2,5,5]; knots-v:[${kv}];
+  control-points:[[${P(7, -11, 13)},${P(7, -11, 21)}],[${P(16, 1, 13)},${P(16, 1, 21)}]]; weights:[[1,1],[1,1]]; }
+}`;
+}
+function succeedsExactly(d: DirectGeometry, id: string, edge: Edge, reach: string, off: V3, label: string) {
+  const next = directOps.extendSurface(d, id, edge, Number(reach)), T = expected(edge, reach);
+  const b = affineBound(surfaceOfLast(next), { ...T, origin: vadd(T.origin, off) });
+  assert.ok(b.knotsOk, `${label} ${edge} ${reach}: knots invalid`);
+  assert.ok(le(b.position, dec('0.0000001')), `${label} ${edge} ${reach}: pole residual ${toNum(b.position)}`);
+}
+test('a plane 1e5 mm from the origin extends exactly', () => {
+  const d = importSource(emptyDirect(), shifted([1e5, -1e5, 1e5]), 'd347'), id = d.objects[0].id, off: V3 = [q(100000n), q(-100000n), q(100000n)];
+  for (const edge of EDGES) for (const reach of ['2.5', '18']) succeedsExactly(d, id, edge, reach, off, 'offset');
+});
+test('odd domains (end knots that overshoot when sampled) extend without uncoded errors', () => {
+  const zero: V3 = [q(0n), q(0n), q(0n)];
+  for (const kv of ['121.53304674241028,121.53304674241028,194.9592330046747,194.9592330046747', '-0.00047245177520403137,-0.00047245177520403137,0.0003746328395716221,0.0003746328395716221']) {
+    const d = importSource(emptyDirect(), shifted([0, 0, 0], kv), 'd347'), id = d.objects[0].id;
+    for (const edge of EDGES) succeedsExactly(d, id, edge, '2.5', zero, `kv ${kv.slice(0, 8)}`);
+  }
+  // The same ends in u.
+  const a = -0.00047245177520403137, b = 0.0003746328395716221;
+  const du = importSource(emptyDirect(), shifted([0, 0, 0]).replace('knots-u:[2,2,5,5]', `knots-u:[${a},${a},${b},${b}]`), 'd347');
+  for (const edge of EDGES) succeedsExactly(du, du.objects[0].id, edge, '2.5', zero, 'odd u');
+});
+test('a surface whose poles all coincide has no direction to extend in', () => {
+  const src = `@model t { version:0; length-unit:mm; @surface #p { type:nurbs; degree-u:1; degree-v:1; knots-u:[0,0,1,1]; knots-v:[0,0,1,1]; control-points:[[[1,1,1],[1,1,1]],[[1,1,1],[1,1,1]]]; weights:[[1,1],[1,1]]; } }`;
+  const d = importSource(emptyDirect(), src, 'T');
+  for (const edge of EDGES) refuses(`degenerate ${edge}`, d, () => directOps.extendSurface(d, d.objects[0].id, edge, 3));
+});
+
+// Audit regression: affine parallelogram supports (rational, offset 1e5) that once passed with a plane error above 1e-7 mm.
+type N3 = number[];
+const dot3 = (a: N3, b: N3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2], sub3 = (a: N3, b: N3) => a.map((x, k) => x - b[k]);
+const cross3 = (a: N3, b: N3) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]], len3 = (a: N3) => Math.hypot(a[0], a[1], a[2]);
+/** The largest deviation of a dense sample (61 x 61, boundary included) of the extended surface from the exact extended parallelogram. */
+function parallelogramDeviation(g0: Surface, g: Surface, edge: Edge, D: number): number {
+  const dm0 = surfaceDomain(g0), dm = surfaceDomain(g), o = evaluateSurface(g0, dm0.u[0], dm0.v[0]);
+  const eu = sub3(evaluateSurface(g0, dm0.u[1], dm0.v[0]), o), ev = sub3(evaluateSurface(g0, dm0.u[0], dm0.v[1]), o), nn = cross3(eu, ev).map(x => x / len3(cross3(eu, ev)));
+  const g11 = dot3(eu, eu), g12 = dot3(eu, ev), g22 = dot3(ev, ev), det = g11 * g22 - g12 * g12, Lu = len3(eu), Lv = len3(ev);
+  const s0 = edge === 'u-min' ? -D / Lu : 0, s1 = edge === 'u-max' ? 1 + D / Lu : 1, t0 = edge === 'v-min' ? -D / Lv : 0, t1 = edge === 'v-max' ? 1 + D / Lv : 1;
+  let worst = 0; const N = 60;
+  for (let i = 0; i <= N; i++) for (let j = 0; j <= N; j++) {
+    const p = evaluateSurface(g, i === N ? dm.u[1] : dm.u[0] + (dm.u[1] - dm.u[0]) * i / N, j === N ? dm.v[1] : dm.v[0] + (dm.v[1] - dm.v[0]) * j / N), r = sub3(p, o), x = dot3(r, eu), y = dot3(r, ev);
+    const s = (g22 * x - g12 * y) / det, t = (g11 * y - g12 * x) / det;
+    worst = Math.max(worst, Math.abs(dot3(r, nn)), (s0 - s) * Lu, (s - s1) * Lu, (t0 - t) * Lv, (t - t1) * Lv);
+    if (i === 0) worst = Math.max(worst, Math.abs(s - s0) * Lu);
+    if (i === N) worst = Math.max(worst, Math.abs(s - s1) * Lu);
+    if (j === 0) worst = Math.max(worst, Math.abs(t - t0) * Lv);
+    if (j === N) worst = Math.max(worst, Math.abs(t - t1) * Lv);
+  }
+  return worst;
+}
+const AUDIT: { label: string; edge: Edge; reach: number; source: string }[] = [
+@@CASES@@
+];
+test('audit regressions: refuse, or stay on the exact extended parallelogram', () => {
+  const seen: string[] = [];
+  for (const c of AUDIT) {
+    const d = importSource(emptyDirect(), c.source, 'P'), id = d.objects[0].id, before = JSON.stringify(d);
+    let next: DirectGeometry | undefined;
+    try { next = directOps.extendSurface(d, id, c.edge, c.reach); } catch (e) { assert.ok(isRefusal(e, 'DIRECT_VALUE'), `${c.label}: uncoded ${(e as Error).message}`); }
+    assert.equal(JSON.stringify(d), before, `${c.label}: input changed`);
+    if (next) { const dev = parallelogramDeviation(geometryOf(d, d.objects[0]) as Surface, surfaceOfLast(next), c.edge, c.reach); assert.ok(dev <= 1e-7, `${c.label}: accepted with deviation ${dev}`); }
+    seen.push(`${c.label}:${next ? 'ok' : 'refused'}`);
+  }
+  console.log(`# audit outcomes: ${seen.join(' ')}`);
+});
