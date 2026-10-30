@@ -57,3 +57,9 @@ Node22.19.0을 쓴다. Kernel은 packages/barocss-cad에서 node scripts/tool.mj
 무거운 실행은 한 번에 하나이며 gate.sh acquire heavy / release로 감싼다. 실제 Studio 흐름 중 소스를 수정하지 않는다. 브라우저는 하나로 사례를 순차 실행한다. 종료는 자신의 PID/소유 객체만 사용한다. 이 세션이 띄운 Chrome/Vite는 모두 닫혔다. 과거 pending D340 child도 중지했다.
 
 다른 채팅 메시지는 즉시 실행하지 말고 로드맵에 기록한 뒤 우선순위를 따른다. GitHub 조사 intake/이슈 정리는 이미 기록·종료한 범위를 다시 수행하지 않는다. 사용자는 일반 구현·검사를 Sol Medium, 복잡한 기하·공차 판단을 Sol High 하위 에이전트에 맡기도록 지정했다. 사용할 수 없는 모델을 사용했다고 주장하지 않는다.
+
+## 통합 CI 보완
+
+PR2249 첫 full CI는 handover/notes의 보존 소스까지 앱으로 lint해13오류로 실패했다. 원본 [실패 로그](integration/ci-lint-failed-first.log.gz)와 [범위 확인](integration/lint-boundary-fix.json)을 보존했다. eslint.config.mjs는 이 증거 보관 폴더만 제외한다. src와 test는 제외하지 않는다. 실제 앱516파일 lint0오류와 기존 CI정책42검사가 통과했다. D346 형상·테스트·원본 증거는 수정하지 않았다.
+
+이 저장소의 필수 CI는 lint/types/build를 검사하며 전체 runtime검사를 실행했다고 주장하지 않는다. 최신 PR의 CI 결과와 실제 병합 상태는 위 gh pr view2249 조회가 권위다. 이전 실패·취소 run을 최신 결과로 읽지 않는다.

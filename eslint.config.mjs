@@ -61,6 +61,8 @@ export default tseslint.config(
       'dist/**',
       'node_modules/**',
       'apps/barocss-docs/**',
+      // Immutable source snapshots and diagnostic evidence, not executable application or test inputs.
+      'apps/cad-studio/handover/notes/**',
       '*.config.js',
       '*.config.ts',
     ],
