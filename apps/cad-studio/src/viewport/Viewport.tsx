@@ -1093,7 +1093,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       const s = liveShape.current; const c = sketchDraft.current.cursor;
       if (sk.tool !== 'carc') carc.current = null;
       if (sk.tool !== 'spline') splineFit.current = null;
-      else if (splineFit.current?.length && c) { const o = splineOutline([...splineFit.current, c], false); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: false }); }
+      else if (splineFit.current?.length && c) { const o = splineOutline([...splineFit.current, c], false); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: false, fromSpline: true }); }
       if (picking(sk)) sketchDraft.current.hover = isSettled(s) ? pickSketch(s, sketchProject(sk.plane), x, y, sk.done) : null;
       else if (sk.tool === 'carc') {
         const d = carc.current;
@@ -1196,10 +1196,10 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       if (sk.tool === 'spline') {
         // Its points so far, the curve through them redrawn (closed when the first point is clicked again).
         const fit = splineFit.current ?? [], fresh = !fit.length;
-        if (fit.length >= 3 && c[0] === fit[0][0] && c[1] === fit[0][1]) { const o = splineOutline(fit, true); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: true }); splineFit.current = null; request(); return; }
+        if (fit.length >= 3 && c[0] === fit[0][0] && c[1] === fit[0][1]) { const o = splineOutline(fit, true); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: true, fromSpline: true }); splineFit.current = null; request(); return; }
         if (fit.length && c[0] === fit[fit.length - 1][0] && c[1] === fit[fit.length - 1][1]) return;
         splineFit.current = [...fit, c];
-        const o = splineOutline(splineFit.current, false); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: false }, fresh); request(); return;
+        const o = splineOutline(splineFit.current, false); emit({ kind: 'polygon', points: o.points, bulges: o.bulges, closed: false, fromSpline: true }, fresh); request(); return;
       }
       if (sk.tool === 'carc') {
         const d = carc.current;

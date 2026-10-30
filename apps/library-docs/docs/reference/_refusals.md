@@ -355,7 +355,7 @@
 | `[DIRECT_PLANE]` | `engine` | The curve lies in the plane … = …: it does not cross it. |
 | `[DIRECT_RANGE]` | `engine` | The curves run over different parameter ranges: trim or rebuild them to one range first. |
 | `[DIRECT_SOURCE]` | `engine` | This CAD source has no curves or surfaces. |
-| `[DIRECT_VALUE]` | `engine` | Extend by a positive distance. |
+| `[DIRECT_VALUE]` | `engine` | Extend at u-min, u-max, v-min or v-max. |
 | `[DRAFT_ANGLE]` | `app` | A draft angle is not 0 and below 45° in size. |
 | `[DRAFT_PICK]` | `app` | … |
 | `[DRAIN_NO_ROOM]` | `print` | a drain of Ø… at (…) does not fit inside the part's bottom |

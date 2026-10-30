@@ -1,8 +1,8 @@
-import { r6Signed as r6 } from '../util/round';
 // Splines in a sketch: a smooth curve through the clicked points, kept as the outline the kernel builds
 // on — tangent arcs (biarcs): between each two points two arcs meet tangentially, the first leaving the
 // point along the curve's tangent there and the second arriving along the next. Tangents are the chords
-// round each point (Catmull–Rom), and the ends' follow the end chords. The result is a polygon outline
+// round each point (Catmull–Rom), and the ends' follow the end chords. The joints are kept exactly as computed
+// (unrounded: both arcs meet tangent) and the fit points unchanged. The result is a polygon outline
 // with bulges, so it extrudes, dimensions and trims like any line-and-arc outline.
 type P2 = [number, number];
 
@@ -55,7 +55,7 @@ export function splineOutline(points: readonly P2[], closed: boolean): { points:
     const a = pts[i], b = pts[(i + 1) % pts.length], ba = biarc(a, T[i], b, T[(i + 1) % pts.length]);
     out.push(a);
     if (!ba || (Math.abs(ba[1]) < 1e-9 && Math.abs(ba[2]) < 1e-9)) { bulges.push(0); continue; }
-    out.push([r6(ba[0][0]), r6(ba[0][1])]); bulges.push(ba[1], ba[2]);
+    out.push(ba[0]); bulges.push(ba[1], ba[2]);
   }
   if (!closed) { out.push(pts[pts.length - 1]); bulges.push(0); }
   return { points: out, bulges };

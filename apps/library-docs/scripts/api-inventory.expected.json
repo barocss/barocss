@@ -383714,6 +383714,90 @@
     },
     {
       "package": "@barocss/cad-model",
+      "subpath": "./sketch/conflict",
+      "exportName": "ConflictProof",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/conflict.ts",
+            "name": "ConflictProof",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "{ proven: true; } | { proven: false; why: \"budget\" | \"feasible\" | \"outside-class\"; }",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "{\n    proven: true;\n} | {\n    proven: false;\n    why: \"outside-class\" | \"feasible\" | \"budget\";\n}"
+              }
+            ],
+            "members": [
+              {
+                "name": "proven",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "false"
+              },
+              {
+                "name": "proven",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "true"
+              },
+              {
+                "name": "why",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"budget\" | \"feasible\" | \"outside-class\""
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./sketch/conflict",
+      "exportName": "rectilinearConflict",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/conflict.ts",
+            "name": "rectilinearConflict",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(points: P2[], c: OutlineConstraints, bulges?: number[]) => ConflictProof",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(points: P2[], c: OutlineConstraints, bulges?: number[]) => ConflictProof"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
       "subpath": "./sketch/corner",
       "exportName": "roundCorner",
       "space": "value",
@@ -383730,14 +383814,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, i: number, r: number) => { shape: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }; } | { error: string; }",
+            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, i: number, r: number) => { shape: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }; } | { error: string; }",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, i: number, r: number) => { shape: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }; } | { error: string; }"
+              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, i: number, r: number) => { shape: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }; } | { error: string; }"
             ]
           }
         }
@@ -385081,14 +385165,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(old: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, next: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, from: readonly number[]) => { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }",
+            "type": "(old: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, next: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, from: readonly number[]) => { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(old: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, next: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, from: readonly number[]) => { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }"
+              "(old: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, next: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, from: readonly number[]) => { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }"
             ]
           }
         }
@@ -385467,14 +385551,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, c: { c: [number, number]; r: number; }) => \"inside\" | \"outside\" | \"crossing\"",
+            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, c: { c: [number, number]; r: number; }) => \"inside\" | \"outside\" | \"crossing\"",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, c: { c: [number, number]; r: number; }) => \"inside\" | \"outside\" | \"crossing\""
+              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, c: { c: [number, number]; r: number; }) => \"inside\" | \"outside\" | \"crossing\""
             ]
           }
         }
@@ -385560,14 +385644,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => SketchOutline | null",
+            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => SketchOutline | null",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => SketchOutline | null"
+              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => SketchOutline | null"
             ]
           }
         }
@@ -385622,14 +385706,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => SketchNode | null",
+            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => SketchNode | null",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => SketchNode | null"
+              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => SketchNode | null"
             ]
           }
         }
@@ -386568,14 +386652,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(o: SketchOutline) => { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }",
+            "type": "(o: SketchOutline) => { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
               }
             ],
             "callSignatures": [
-              "(o: SketchOutline) => { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }"
+              "(o: SketchOutline) => { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }"
             ]
           }
         }
@@ -388266,11 +388350,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "SolveReport | { ok: false; reason: string; }",
+            "type": "SolveReport | { ok: false; reason: string; conflict?: true | undefined; }",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "SolveReport | {\n    ok: false;\n    reason: string;\n}"
+                "definition": "SolveReport | {\n    ok: false;\n    reason: string;\n    conflict?: true;\n}"
               }
             ],
             "members": [
@@ -388287,6 +388371,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "P2[]"
+              },
+              {
+                "name": "conflict",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "true | undefined"
               },
               {
                 "name": "dof",
@@ -388919,14 +389010,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(o: SketchOutline) => { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }",
+            "type": "(o: SketchOutline) => { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
               }
             ],
             "callSignatures": [
-              "(o: SketchOutline) => { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }"
+              "(o: SketchOutline) => { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }"
             ]
           }
         }
@@ -389436,7 +389527,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "{ ok: true; shape: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }; report: SolveReport; } | { ok: false; reason: string; }",
+            "type": "{ ok: true; shape: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }; report: SolveReport; } | { ok: false; reason: string; }",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -389477,7 +389568,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "{ kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }"
+                "type": "{ kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }"
               }
             ],
             "indexSignatures": []
@@ -389503,7 +389594,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "{ kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }",
+            "type": "{ kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -389562,6 +389653,13 @@
               },
               {
                 "name": "fromRectangle",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "true | undefined"
+              },
+              {
+                "name": "fromSpline",
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
@@ -389737,14 +389835,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, picks: readonly SketchPick[], kind: ConstraintKind) => EditResult",
+            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, picks: readonly SketchPick[], kind: ConstraintKind) => EditResult",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, picks: readonly SketchPick[], kind: ConstraintKind) => EditResult"
+              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, picks: readonly SketchPick[], kind: ConstraintKind) => EditResult"
             ]
           }
         }
@@ -389768,14 +389866,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(candidate: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, prev: ({ kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) | null, what?: string) => EditResult",
+            "type": "(candidate: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, prev: ({ kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) | null, what?: string) => EditResult",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(candidate: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, prev: ({ kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) | null, what?: string) => EditResult"
+              "(candidate: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, prev: ({ kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) | null, what?: string) => EditResult"
             ]
           }
         }
@@ -389861,14 +389959,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, key: string, value: number) => EditResult",
+            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, key: string, value: number) => EditResult",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, key: string, value: number) => EditResult"
+              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, key: string, value: number) => EditResult"
             ]
           }
         }
@@ -389892,14 +389990,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => ConstraintEntry[]",
+            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => ConstraintEntry[]",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => ConstraintEntry[]"
+              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => ConstraintEntry[]"
             ]
           }
         }
@@ -389923,14 +390021,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, picks: readonly SketchPick[]) => Record<ConstraintKind, string | null>",
+            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, picks: readonly SketchPick[]) => Record<ConstraintKind, string | null>",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, picks: readonly SketchPick[]) => Record<ConstraintKind, string | null>"
+              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, picks: readonly SketchPick[]) => Record<ConstraintKind, string | null>"
             ]
           }
         }
@@ -389954,14 +390052,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => OutlineConstraints",
+            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => OutlineConstraints",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => OutlineConstraints"
+              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => OutlineConstraints"
             ]
           }
         }
@@ -389985,14 +390083,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, picks: readonly SketchPick[]) => string | null",
+            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, picks: readonly SketchPick[]) => string | null",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, picks: readonly SketchPick[]) => string | null"
+              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, picks: readonly SketchPick[]) => string | null"
             ]
           }
         }
@@ -390016,14 +390114,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, key: string) => string",
+            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, key: string) => string",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, key: string) => string"
+              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, key: string) => string"
             ]
           }
         }
@@ -390047,14 +390145,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, key: string) => number | null",
+            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, key: string) => number | null",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, key: string) => number | null"
+              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, key: string) => number | null"
             ]
           }
         }
@@ -390078,14 +390176,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, a: number, b: number) => string",
+            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, a: number, b: number) => string",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, a: number, b: number) => string"
+              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, a: number, b: number) => string"
             ]
           }
         }
@@ -390109,14 +390207,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, edge: number, j: number) => string | null",
+            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, edge: number, j: number) => string | null",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, edge: number, j: number) => string | null"
+              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, edge: number, j: number) => string | null"
             ]
           }
         }
@@ -390140,14 +390238,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => { h: number[]; v: number[]; }",
+            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => { h: number[]; v: number[]; }",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => { h: number[]; v: number[]; }"
+              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => { h: number[]; v: number[]; }"
             ]
           }
         }
@@ -390171,14 +390269,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, key: string) => boolean",
+            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, key: string) => boolean",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, key: string) => boolean"
+              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, key: string) => boolean"
             ]
           }
         }
@@ -390202,14 +390300,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: SketchShape | null | undefined) => s is { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }",
+            "type": "(s: SketchShape | null | undefined) => s is { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: SketchShape | null | undefined) => s is { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }"
+              "(s: SketchShape | null | undefined) => s is { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }"
             ]
           }
         }
@@ -390295,14 +390393,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, id: string) => { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }",
+            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, id: string) => { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, id: string) => { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }"
+              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, id: string) => { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }"
             ]
           }
         }
@@ -390357,14 +390455,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => SolveResult",
+            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => SolveResult",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => SolveResult"
+              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) => SolveResult"
             ]
           }
         }
@@ -390484,14 +390582,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, project: Project, x: number, y: number, done?: readonly SketchShape[], pointPx?: number, edgePx?: number) => SketchPick | null",
+            "type": "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, project: Project, x: number, y: number, done?: readonly SketchShape[], pointPx?: number, edgePx?: number) => SketchPick | null",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, project: Project, x: number, y: number, done?: readonly SketchShape[], pointPx?: number, edgePx?: number) => SketchPick | null"
+              "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, project: Project, x: number, y: number, done?: readonly SketchShape[], pointPx?: number, edgePx?: number) => SketchPick | null"
             ]
           }
         }
@@ -390515,14 +390613,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(r: { kind: \"rectangle\"; a: [number, number]; b: [number, number]; } & { construction?: true | undefined; ids?: string[] | undefined; }) => ({ kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) | null",
+            "type": "(r: { kind: \"rectangle\"; a: [number, number]; b: [number, number]; } & { construction?: true | undefined; ids?: string[] | undefined; }) => ({ kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) | null",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(r: { kind: \"rectangle\"; a: [number, number]; b: [number, number]; } & { construction?: true | undefined; ids?: string[] | undefined; }) => ({ kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) | null"
+              "(r: { kind: \"rectangle\"; a: [number, number]; b: [number, number]; } & { construction?: true | undefined; ids?: string[] | undefined; }) => ({ kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }) | null"
             ]
           }
         }
@@ -391888,11 +391986,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "({ kind: \"rectangle\"; a: [number, number]; b: [number, number]; } | { kind: \"circle\"; c: [number, number]; r: number; } | { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } | { kind: \"slot\"; a: [number, number]; b: [number, number]; r: number; }) & { construction?: true | undefined; ids?: string[] | undefined; }",
+            "type": "({ kind: \"rectangle\"; a: [number, number]; b: [number, number]; } | { kind: \"circle\"; c: [number, number]; r: number; } | { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } | { kind: \"slot\"; a: [number, number]; b: [number, number]; r: number; }) & { construction?: true | undefined; ids?: string[] | undefined; }",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "({\n    kind: \"rectangle\";\n    a: [\n        number,\n        number\n    ];\n    b: [\n        number,\n        number\n    ];\n} | {\n    kind: \"circle\";\n    c: [\n        number,\n        number\n    ];\n    r: number;\n} | {\n    kind: \"polygon\";\n    points: [\n        number,\n        number\n    ][];\n    closed: boolean;\n    bulges?: number[];\n    pending?: boolean;\n    lengths?: Record<number, number>;\n    radii?: Record<number, number>;\n    tangents?: number[];\n    equalRadii?: [\n        number,\n        number\n    ][];\n    concentric?: [\n        number,\n        number\n    ][];\n    hv?: {\n        h: number[];\n        v: number[];\n    };\n    rules?: SketchRule[];\n    fromRectangle?: true;\n    circles?: {\n        c: [\n            number,\n            number\n        ];\n        r: number;\n    }[];\n    circleIds?: string[];\n} | {\n    kind: \"slot\";\n    a: [\n        number,\n        number\n    ];\n    b: [\n        number,\n        number\n    ];\n    r: number;\n}) & {\n    construction?: true;\n    ids?: string[];\n}"
+                "definition": "({\n    kind: \"rectangle\";\n    a: [\n        number,\n        number\n    ];\n    b: [\n        number,\n        number\n    ];\n} | {\n    kind: \"circle\";\n    c: [\n        number,\n        number\n    ];\n    r: number;\n} | {\n    kind: \"polygon\";\n    points: [\n        number,\n        number\n    ][];\n    closed: boolean;\n    bulges?: number[];\n    pending?: boolean;\n    lengths?: Record<number, number>;\n    radii?: Record<number, number>;\n    tangents?: number[];\n    equalRadii?: [\n        number,\n        number\n    ][];\n    concentric?: [\n        number,\n        number\n    ][];\n    hv?: {\n        h: number[];\n        v: number[];\n    };\n    rules?: SketchRule[];\n    fromRectangle?: true;\n    fromSpline?: true;\n    circles?: {\n        c: [\n            number,\n            number\n        ];\n        r: number;\n    }[];\n    circleIds?: string[];\n} | {\n    kind: \"slot\";\n    a: [\n        number,\n        number\n    ];\n    b: [\n        number,\n        number\n    ];\n    r: number;\n}) & {\n    construction?: true;\n    ids?: string[];\n}"
               }
             ],
             "members": [
@@ -391968,6 +392066,13 @@
               },
               {
                 "name": "fromRectangle",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "true | undefined"
+              },
+              {
+                "name": "fromSpline",
                 "kind": "property",
                 "optional": true,
                 "readonly": false,

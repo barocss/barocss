@@ -21,6 +21,8 @@ export type SketchShape = (
       hv?: { h: number[]; v: number[] }; rules?: SketchRule[];
       /** Drawn with the Rectangle tool: saved as a rectangle again while it still is one (see sketch/loops.ts). */
       fromRectangle?: true;
+      /** Drawn with the Spline tool: closing infers only tangency at its joints, never equal radii or shared centres between its arcs. */
+      fromSpline?: true;
       /** Circles attached to the outline: dimensioned from its points and solved with it (holes or bosses of the profile). */
       circles?: { c: [number, number]; r: number }[];
       /** The attached circles' side ids (R10a, D86), one a circle. */

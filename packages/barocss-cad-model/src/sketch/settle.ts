@@ -22,7 +22,7 @@ export function settleShape(shape: SketchShape | null, prev: SketchShape | null)
   // Closing an outline infers what was drawn nearly so (tangent joints, equal radii, shared centres);
   // the solve then makes it exact. If the inferred set cannot hold, only the explicit set is kept.
   const inferred: Relations = justClosed
-    ? { tangents: inferTangents(base.points as P2[], base.bulges), ...inferArcRelations(base.points as P2[], base.bulges) }
+    ? { tangents: inferTangents(base.points as P2[], base.bulges), ...(base.fromSpline ? { equalRadii: [], concentric: [] } : inferArcRelations(base.points as P2[], base.bulges)) }
     : { tangents: [], equalRadii: [], concentric: [] };
   const attempt = (relations: Relations) => {
     const candidate: Polygon = { ...base, ...relations };
