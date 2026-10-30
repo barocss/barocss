@@ -17560,3 +17560,20 @@ Errors 0; 265 frozen files equal the commit.
 Tier: small. Limits:
 - datum frames, section and detail views, and sheet drag are not driven (model tests cover datums and missing views);
 - CI and release NOT_RUN.
+
+## D373 — Row 03 closed: linear repeat of a cut feature; small close-out (2026-10-31)
+
+[Evidence](notes/linear-cut-pattern-closeout-2026-10-31/qualification.json). Owner order "Go to 01–06".
+
+The feature and its model tests already existed; the separate product browser run was NOT_RUN. That run now exists on the shared helper (driver `95c7ec69f`) and passed on its first run:
+- Count 1 is refused with the document unchanged;
+- count 3 at spacing 16 gives 17520 mm³ with the original nodes unchanged (no stock copies) and bounds 60×30×10;
+- Undo/Redo, Save and fresh Open are identical;
+- a count edit to 2 gives 17680, and back to 3 gives 17520.
+
+4/4 independent oracles; errors 0; 265 frozen files equal the commit.
+
+Tier: small. Limits:
+- the HUD refusal shows the internal prefix "BarocssError: [VALUE]" (cosmetic follow-up);
+- only the x direction is driven;
+- CI and release NOT_RUN.

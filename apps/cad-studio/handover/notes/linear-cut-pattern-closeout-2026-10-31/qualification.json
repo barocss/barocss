@@ -1,0 +1,34 @@
+{
+  "decision": "D373",
+  "roadmap": "03 linear repeat of a cut feature — CG2 (row close-out, owner order 'Go to 01–06')",
+  "tier": "small (close-out: the separate product browser run that was NOT_RUN)",
+  "status": "CLOSED",
+  "finding": "The feature, model tests (linear-feature-pattern-command, api-linear-feature-pattern: 17520 mm³) and refusals already exist; the row's only open item was the separate actual Studio run.",
+  "driverCommit": "95c7ec69f",
+  "fixture": "apps/cad-studio/test/fixtures/linear-cut-pattern.bcad (60x30x10 block, 4x4 through cut at x 8..12, y 8..12; volume 17840)",
+  "run": {
+    "status": "PASS",
+    "run": "run-01 (first run)",
+    "steps": [
+      "open the fixture (17840 mm³, bounds 60x30x10)",
+      "Linear cut pattern with Count 1: refused 'Count must be a whole number from 2 to 64, including the original cut', Apply disabled, document unchanged; Cancel",
+      "direction x, spacing 16, count 3: preview leaves the document unchanged; Apply: one linear-feature-pattern node, original 6 nodes deep-equal (no stock copies), bounds 60x30x10, volume 17520",
+      "Undo -> pre-pattern document; Redo -> applied",
+      "Save, fresh Open: identical document, volume and bounds",
+      "feature editor Count 2 -> 17680, only count changes; Count 3 -> 17520, document equals the applied one"
+    ],
+    "oracles": "4/4 PASS (independent 60·30·10 − n·4·4·10 from the saved numbers, cuts disjoint and inside the block)",
+    "frozenFiles": 265,
+    "frozenEqualsCommit": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0
+  },
+  "limits": [
+    "The refusal text in the HUD carries the internal prefix 'BarocssError: [VALUE]' (cosmetic; follow-up candidate)",
+    "Only the x direction and the row's reference case are driven; other directions and patterns of non-through cuts are covered by model tests only",
+    "Earlier Codex-era evidence (common 433, 4bff492c, 13e9c835, the stale-preview and refusal-code failures) stays in its own records"
+  ],
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}
