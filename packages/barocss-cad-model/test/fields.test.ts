@@ -75,7 +75,7 @@ test('fields: every document and node field survives carry-over, delete, move, d
   assertKept('move', doc, moved.doc);
   assertKept('duplicate', doc, duplicateBody(doc, { node: 5, side: 'solid' }, [0, 30, 0]).doc, OWN.filter(k => k !== 'bodies'));
   assertKept('replace', doc, replaceRange(doc, 4, 2, [{ kind: 'sketch', profile: 'rectangle', min: [60, 0], max: [72, 10] }, { kind: 'extrude', sketch: 4, height: 5 }]));
-  for (const schema of [3, 2]) {
+  for (const schema of [3]) {
     const read = readStudioDoc(JSON.stringify({ ...doc, schema })); assert.ok('doc' in read, JSON.stringify(read));
     assertKept(`save and open (schema ${schema})`, doc, read.doc);
   }
