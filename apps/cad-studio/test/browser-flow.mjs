@@ -2207,7 +2207,7 @@ try {
   await check('chat builds a plate through a scripted chat (createChat)', async () => {
     // The chat's turns are scripted in the browser (O17: shadcn's createChat, no server); the studio's end of each turn —
     // its commit, the design history — runs on them as on the chat server's.
-    const empty = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} };
+    const empty = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {} };
     const docOf = nodes => ({ ...empty, nodes, outputs: { [`b${nodes.length - 1}`]: { node: nodes.length - 1, side: 'solid' } } });
     const nodes = [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [64, 32] }, { kind: 'extrude', sketch: 0, height: 8 }];
     const events = [{ type: 'text', delta: 'Plate first.' }, { type: 'tool', name: 'features', input: { action: 'command', command: 'box' }, summary: 'Box → 1 body, 16384 mm³', isError: false }, { type: 'state', doc: docOf(nodes) }];
@@ -2266,7 +2266,7 @@ try {
 
   await check('chat commits an assembly: a pin part mated into a plate', async () => {
     // A mocked turn whose result is an assembly (the tools that build it are covered by the unit tests).
-    const empty = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} };
+    const empty = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {} };
     const plate = { ...empty, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [64, 32] }, { kind: 'extrude', sketch: 0, height: 8 }, { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [32, 16], radius: 4 }], outputs: { b2: { node: 2, side: 'solid' } } };
     const pin = { ...empty, nodes: [{ kind: 'sketch', profile: 'circle', center: [0, 0], radius: 4 }, { kind: 'extrude', sketch: 0, height: 20 }], outputs: { b1: { node: 1, side: 'solid' } } };
     const doc = { ...plate, instances: [{ id: 'p1', name: 'Pin', doc: pin, position: [32, 16, 8], rotation: [0, 0, 0] }],
@@ -2304,7 +2304,7 @@ try {
     const statusUrl = u => u.pathname === '/api/chat/status';
     await page.route(statusUrl, r => r.fulfill({ json: { enabled: true, model: 'mock-model' } }));
     await page.click('[aria-label="New part"]'); await idle();
-    const empty = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} };
+    const empty = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {} };
     const box = { ...empty, nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [40, 20] }, { kind: 'extrude', sketch: 0, height: 10 }], outputs: { b1: { node: 1, side: 'solid' } } };
     const risk = level => ({ level, features_touched: 1, references_broken: 0, hard_requirements_changed: [], approval: [] });
     const proposal = (id, title, status, level) => ({ id, title, status, by: { agent: 'chat' }, at: '2026-10-24T00:00:00Z', base: 'not-this-part', ops: [], risk: risk(level), summary: title, ...(status === 'open' ? {} : { decided: { by: 'user', at: '2026-10-24T00:00:00Z' } }) });
@@ -3027,7 +3027,7 @@ try {
     assert.equal((await doc()).nodes.at(-1).kind, 'separate');
   });
 
-  await check('templates: a part from the plate template, kept as a template, started again from it; an older file opens with a note', async () => {
+  await check('templates: a part from the plate template, kept as a template, started again from it; an older file is refused', async () => {
     await page.click('[aria-label="New from a template"]'); await page.click('[aria-label="New from Plate with a hole"]');
     await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'hole', null, { timeout: 15000 }); await idle();
     await page.click('[aria-label="New from a template"]'); await page.fill('[aria-label="Template name"]', 'My plate'); await page.click('[aria-label="Save as a template"]');
@@ -3035,12 +3035,12 @@ try {
     await page.click('[aria-label="New from a template"]'); await page.click('[aria-label="New from My plate"]');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 3, null, { timeout: 15000 });
     await page.click('[aria-label="New from a template"]'); await page.click('[aria-label="Remove template My plate"]');
-    // A file saved before schemas: opened, with what was filled in.
+    // A file saved before schemas (no schema): refused, said why, the part unchanged.
     const old = join(out, 'old-model.bcad'); (await import('node:fs')).writeFileSync(old, JSON.stringify({ format: 'barocss-cad-model', nodes: [{ kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [20, 10] }, { kind: 'extrude', sketch: 0, height: 5 }], outputs: {} }));
+    const before = await doc();
     await page.setInputFiles('input[aria-label="Model file"]', old);
-    await page.waitForFunction(() => /Opened an older model/.test(document.body.innerText), null, { timeout: 10000 });
-    // (Read as the current schema, its features given stable ids n0, n1 — their names as they were, A1.)
-    const opened = await doc(); assert.equal(opened.schema, 3); assert.deepEqual(opened.nodes.map(n => n.id), ['n0', 'n1']);
+    await page.waitForFunction(() => /older form \(no schema\); this cad-studio reads schemas 3 and 4/.test(document.body.innerText), null, { timeout: 10000 });
+    assert.deepEqual((await doc()).nodes, before.nodes, 'the part is unchanged');
     await page.click('[aria-label="Dismiss"]');
   });
 
@@ -8212,12 +8212,12 @@ try {
   // ---- G10: copies turned about Z share one tessellation --------------------------------------------------------------
   await check('G10: 24 copies of a bracket turned about Z in 15° steps share one tessellation — the same pixels and picks as each its own mesh; an edited copy gets its own, the others kept', async () => {
     const fs = await import('node:fs');
-    const bracket = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [
+    const bracket = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [
       { kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [30, 12] }, { kind: 'extrude', sketch: 0, height: 6 },
       { kind: 'hole', parent: { node: 1, side: 'solid' }, center: [6, 6], radius: 2 }, { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [24, 6], radius: 2 }],
       outputs: { b1: { node: 3, side: 'solid' } } };
     const edited = { ...bracket, nodes: [...bracket.nodes.slice(0, 3), { kind: 'hole', parent: { node: 2, side: 'solid' }, center: [21, 6], radius: 2.5 }] };
-    const ring = edit => ({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {},
+    const ring = edit => ({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {},
       instances: Array.from({ length: 24 }, (_, k) => ({ id: `r${k}`, name: `bracket ${k}`, doc: edit && k === 5 ? edited : bracket,
         position: [70 * Math.cos(k * Math.PI / 12), 70 * Math.sin(k * Math.PI / 12), 0], rotation: [0, 0, 15 * k] })) });
     const file = join(out, 'g10-ring.bcad');

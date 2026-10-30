@@ -76,7 +76,7 @@ test('legacy plain and tapped holes keep omitted depth as through after migratio
       ...(c.thread === undefined ? {} : { thread: c.thread }),
     };
     const legacy = {
-      ...base, schema: 1, units: undefined, nextId: undefined,
+      ...base, schema: 3, units: undefined, nextId: undefined,
       nodes: [...base.nodes.map(({ id: _, ...node }) => node), legacyHole],
     };
     const read = await readStudioFile(new TextEncoder().encode(JSON.stringify(legacy)));

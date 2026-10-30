@@ -8,7 +8,7 @@
   "input": {
     "file": {
       "format": "barocss-cad-model",
-      "schema": 2,
+      "schema": 3,
       "units": "mm",
       "parameters": {},
       "nodes": [

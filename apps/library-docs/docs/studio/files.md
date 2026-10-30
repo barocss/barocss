@@ -7,9 +7,9 @@ mesh blob references is written as plain JSON. This includes older documents wit
 document references mesh blobs, Save writes a binary container, `BCADPACK`, with the document and the referenced
 arrays. Each blob is named by its SHA-256, and the name is checked when the file is read. Both kinds open.
 
-The file reader converts supported older document schemas after checking the file. When **Open** fills older
-fields, **Opened an older model** lists the changes. The file stays unchanged until you save. A newer schema or
-unknown feature is refused. This does not guarantee compatibility between all unreleased versions. See
+The file reader reads schemas 3 and 4 after checking the file. When **Open** fills missing fields, **Opened an older
+model** lists the changes. The file stays unchanged until you save. An older or newer schema or unknown feature is
+refused. This does not guarantee compatibility between all unreleased versions. See
 [Document schema](/reference/document#schema-version).
 
 Keep a `.bcad` copy for later edits. Use an export for the receiving CAD system or slicer; it does not replace the
