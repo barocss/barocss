@@ -17669,3 +17669,4 @@ Limits: one part measured; the threshold is not tuned; ③ needs a slower part. 
 - The root image review caught a column misalignment and an overlap at 1024 × 700. Both were fixed.
 
 **Not covered.** The History bar sub-item, the ribbon and command search. CI and release NOT_RUN.
+Follow-up (same day): a "can't run here" notice kept its old position (left 66 px) and covered the wider rail. run06 failed on it; this was a product defect from D378. The notices now sit beside the rail (`--rail-w`). Studio 567/567; actual run07 PASS (notice at 200 px, rail 136 px).

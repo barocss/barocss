@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { toolColumns, toolRailPx, toolRowPx, TOOL_LABEL_PX } from '../src/app/toolColumns';
+import { toolColumns, toolRailPx, toolRailWidthPx, toolRowPx, TOOL_LABEL_PX } from '../src/app/toolColumns';
 
 // The rail's groups as measured in Studio (2026-10-31): create 30, modify 27, pattern 8, combine 3, inspect 7 buttons.
 const GROUPS = [30, 27, 8, 3, 7];
@@ -25,4 +25,10 @@ test('row pitch follows the rail button size rules', () => {
   assert.equal(toolRowPx(1080), 36);
   assert.equal(toolRowPx(900), 32);
   assert.equal(toolRowPx(800), 28);
+});
+
+test('the rail width the notices sit beside', () => {
+  assert.equal(toolRailWidthPx(4, 900), 8 + 4 * 30 + 3 * 2);
+  assert.equal(toolRailWidthPx(6, 700), 8 + 6 * 26 + 5 * 2);
+  assert.equal(toolRailWidthPx(1, 1080), 44);
 });

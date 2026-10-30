@@ -48,6 +48,17 @@ await f.run(async () => {
       await first.click(); await f.page.waitForFunction(() => window.__studioSelection?.active || window.__studioSelection?.sketch, null, { timeout: 15000 });
       f.report.observations.push({ clicked: name, started: await f.page.evaluate(() => ({ active: window.__studioSelection.active, sketch: window.__studioSelection.sketch })) }); await f.snapshot('1440x900-started', () => ({}));
       await f.page.keyboard.press('Escape'); await f.page.waitForFunction(() => !window.__studioSelection?.active && !window.__studioSelection?.sketch, null, { timeout: 15000 });
+      // A notice ("can't run here", from a tool that is off) must not cover the rail.
+      const off = f.page.locator('nav.toolbar .tool-group button.off').first();
+      if (await off.count()) {
+        const offName = await off.getAttribute('aria-label'); await off.click({ force: true });
+        await f.page.waitForSelector('.toast', { timeout: 10000 });
+        const notice = await f.page.evaluate(() => { const bar = document.querySelector('nav.toolbar').getBoundingClientRect();
+          return [...document.querySelectorAll('.toast')].map(t => { const r = t.getBoundingClientRect(); return { text: t.textContent, left: r.left, top: r.top, right: r.right, bottom: r.bottom, overRail: r.left < bar.right && r.right > bar.left && r.top < bar.bottom && r.bottom > bar.top }; }); });
+        f.report.observations.push({ offClicked: offName, notice }); await f.snapshot('1440x900-notice', () => ({}));
+        assert.ok(notice.every(n => !n.overRail), `a notice covers the rail: ${JSON.stringify(notice)}`);
+        await f.dismissToasts();
+      }
     }
     if (grid) assert.ok(read.insideWindow, `${w}x${h}: the bar runs past the window ${JSON.stringify(read.bar)}`);
     if (grid) assert.equal(read.overlaps, 0, `${w}x${h}: the bar covers the view controls`);

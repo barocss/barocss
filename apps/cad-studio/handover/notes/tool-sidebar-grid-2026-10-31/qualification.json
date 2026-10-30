@@ -11,11 +11,12 @@
   },
   "change": [
     "ModelTools: each group (Create 30, Modify 27, Pattern 8, Combine 3, Inspect 7 incl. BOM/Rebuild/Variants) is a grid under its label; the column count is the fewest that fits the window height above the view controls (app/toolColumns.ts)",
-    "styles.css: grid with fixed button-width columns (--tool-w follows the existing short-window button sizes), labels, rail min-width; sketch-mode rail unchanged (one column)"
+    "styles.css: grid with fixed button-width columns (--tool-w follows the existing short-window button sizes), labels, rail min-width; sketch-mode rail unchanged (one column)",
+    "App + styles.css: --rail-w from the rail's columns; notices sit beside the rail (follow-up after run06)"
   ],
   "checks": {
     "toolColumnsUnit": "3/3",
-    "studioUnit": "566/566",
+    "studioUnit": "567/567 (after the follow-up)",
     "tsc": "PASS",
     "eslint": "PASS on the changed files"
   },
@@ -23,7 +24,8 @@
     "run05": "PASS at 1440x900 (4 columns, 136 px wide), 1280x800 (5, 158 px), 1920x1080 (4, 152 px), 1024x700 (6, 188 px): no scrolling, 0 hidden buttons, 0 overlap with the view controls, inside the window; hover shows the tooltip (Sketch S); click starts it (sketch) and Escape leaves it; no page or console errors; root reviewed 1440x900, 1024x700 and the sketch-mode screens",
     "failedRuns": [
       "run02: driver expected an active command but the first Create button (Sketch) starts sketch mode -> driver fixed",
-      "run03/run04: PASS but the root image review found Combine (3 buttons) centred off the other groups' columns (fixed: fixed-width columns) and at 1024x700 the rail covering the view controls (fixed: columns chosen above them; driver now asserts no overlap)"
+      "run03/run04: PASS but the root image review found Combine (3 buttons) centred off the other groups' columns (fixed: fixed-width columns) and at 1024x700 the rail covering the view controls (fixed: columns chosen above them; driver now asserts no overlap)",
+      "run06: after the commit, a notice covered the wider rail (product defect from this change) -> fixed in the follow-up; run07 PASS"
     ]
   },
   "limits": [
@@ -33,5 +35,17 @@
     "Screenshots are not committed (repo guard)"
   ],
   "remoteCI": "NOT_RUN",
-  "release": "NOT_RUN"
+  "release": "NOT_RUN",
+  "followUp": {
+    "commit": "after 1b3731032",
+    "finding": "root check after commit: notices ('can't run here') were placed at the old 44 px rail's edge (left 66 px) and covered the wider rail (run06 FAIL: notice left 110 px, rail right 192 px)",
+    "fix": "App publishes --rail-w (from useToolColumns; 44 px in sketch, render and drawing modes) and .toast / .toast-stack sit beside it",
+    "checks": {
+      "toolColumnsUnit": "4/4",
+      "studioUnit": "567/567",
+      "tsc": "PASS",
+      "eslint": "PASS"
+    },
+    "actualRun07": "PASS at the four sizes as run05, plus a notice from an off tool (Extrude) at left 200 px beside the 136 px rail, not over it (root reviewed)"
+  }
 }

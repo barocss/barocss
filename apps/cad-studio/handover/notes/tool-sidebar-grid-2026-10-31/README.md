@@ -41,6 +41,12 @@ At every size, nothing scrolls or is hidden, and the rail does not overlap the v
 - **run02:** a driver expectation was wrong; the first button, Sketch, starts sketch mode rather than a command.
 - **run03/run04:** the root's image review found two problems: Combine was off the other groups' columns, and at 1024 × 700 the rail covered the view controls. Both were fixed, and the driver now checks for the overlap.
 
+## Follow-up: notices beside the rail
+
+After the commit, the root checked a notice. The "can't run here" notice was still placed at the old 44 px rail's edge (left 66 px), so it covered the wider rail. run06 failed on this, with the notice at 110 px and the rail ending at 192 px.
+
+The fix: the App now publishes `--rail-w` from the rail's columns (44 px in sketch, render and drawing modes), and notices sit beside it. Tests: toolColumns 4/4; Studio 567/567. Actual [run07](after-run07/receipt.json): PASS, with the notice at 200 px beside the 136 px rail.
+
 ## Limits
 
 - The rail still floats over the left 136–188 px of the viewport.

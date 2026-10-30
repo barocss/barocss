@@ -23,6 +23,11 @@ export function toolRowPx(windowHeight: number): number {
   return windowHeight > 960 ? 36 : windowHeight > 820 ? 32 : 28;
 }
 
+/** The rail's outer width at `cols` columns and a window height, px: its 4 px padding each side, the buttons and the 2 px gaps (44 px at least, as in sketch mode). */
+export function toolRailWidthPx(cols: number, windowHeight: number): number {
+  return Math.max(44, 8 + cols * (toolRowPx(windowHeight) - 2) + (cols - 1) * 2);
+}
+
 /**
  * The height the rail's buttons may take at a window height, px: from its top (50 px) down to above the view controls at the
  * viewport's bottom (they sit 86–110 px above the window's bottom and, in a narrow window, under the rail), less its padding.

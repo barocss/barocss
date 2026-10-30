@@ -16,7 +16,7 @@ import { ViewContextMenu } from './ui/ViewContextMenu';
 import { TemplatePicker } from './ui/TemplatePicker';
 import { useCommandPreview } from './state/useCommandPreview';
 import { DirectInspector } from './ui/DirectInspector';
-import { ModelTools } from './ui/ModelTools';
+import { ModelTools, useToolColumns } from './ui/ModelTools';
 import { useCommandGizmos } from './viewport/useCommandGizmos';
 import { useModelAppearance } from './viewport/useModelAppearance';
 import { useSketchActions } from './sketch/useSketchActions';
@@ -577,6 +577,8 @@ export function App() {
   const [material, setMaterial] = useState<string>(() => { try { return localStorage.getItem('studio.material') ?? 'al6061'; } catch { return 'al6061'; } });
   useEffect(() => { try { localStorage.setItem('studio.material', material); } catch { /* storage unavailable */ } }, [material]);
   const [lastMs, setLastMs] = useState(0);
+  // (The tool rail's columns for the window height; the notices sit beside its width: roadmap 21.)
+  const rail = useToolColumns();
   // (The same time for the drag preview's whole-part cost, read while dragging: roadmap 20 ①.)
   const lastEvalMs = useRef(0);
   const [menu, setMenu] = useState<{ at: { x: number; y: number }; selection: Selection; title: string } | null>(null);
@@ -1973,7 +1975,7 @@ export function App() {
   const hud = active && <Hud store={activeStore} onChange={(key, value) => { lastTyped.current = Date.now(); handleDrag.current = null;
     setActive(a => { if (!a) return a; const values = patchValues(a.cmd, a.ctx, a.values, { [key]: value }); hudValues.current = values; return { ...a, values, preview: a.upload === 'error' ? 'error' : 'busy' }; }); }} onFile={uploadFont} onApply={apply} onCancel={cancel} />;
   return (
-    <div className={'studio' + (historyShown ? ' has-history' : '') + (bottomRow.stacked ? ' history-stacked' : '') + (bottomRow.cramped ? ' stage-cramped' : '')} style={{ '--history-left': (browserPlacement === 'dock' ? HISTORY_LEFT_RAIL : HISTORY_LEFT) + 'px', '--strip-w': chatColumnShown ? '0px' : CHAT_STRIP + 'px', '--dock-strip-w': dockEdge + 'px', '--chat-col-w': (chatColumnShown ? layout.chatShown : CHAT_STRIP) + 'px' } as CSSProperties}>
+    <div className={'studio' + (historyShown ? ' has-history' : '') + (bottomRow.stacked ? ' history-stacked' : '') + (bottomRow.cramped ? ' stage-cramped' : '')} style={{ '--history-left': (browserPlacement === 'dock' ? HISTORY_LEFT_RAIL : HISTORY_LEFT) + 'px', '--strip-w': chatColumnShown ? '0px' : CHAT_STRIP + 'px', '--dock-strip-w': dockEdge + 'px', '--chat-col-w': (chatColumnShown ? layout.chatShown : CHAT_STRIP) + 'px', '--rail-w': (sketch || rendering || drawing ? 44 : rail.width) + 'px' } as CSSProperties}>
       {/* (G12b: the top bar across the centre and the dock — the window less the chat column — the dock under it.) */}
       <Profiler id="topbar" onRender={onBlockRender}><header className="topbar">
         <span className="brand"><Icon name="deployed_code" className="accent" />barocss</span>
@@ -2051,7 +2053,7 @@ export function App() {
 
       <TooltipLayer />
       <Profiler id="toolbar" onRender={onBlockRender}><nav className="card toolbar" aria-label="Tools" hidden={rendering || drawing}>
-        <ModelTools sketch={sketch} setSketch={setSketch} command={{ groupStates, activeId: active?.cmd.id ?? null, startTool, toolDragStart, toolDragEnd }}
+        <ModelTools columns={rail.columns} sketch={sketch} setSketch={setSketch} command={{ groupStates, activeId: active?.cmd.id ?? null, startTool, toolDragStart, toolDragEnd }}
           panels={{ bomOpen, setBomOpen, rebuildOpen, setRebuildOpen, variantsOpen, setVariantsOpen }} />
       </nav></Profiler>
 

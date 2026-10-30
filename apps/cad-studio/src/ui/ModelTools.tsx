@@ -3,11 +3,13 @@ import type { Command } from '@barocss/cad-model/app/commands';
 import type { SketchState } from '../viewport/Viewport';
 import { TOOLS, switchTool, detachSketchLink } from '../app/sketchControls';
 import { TOOL_GROUPS, GROUP_COMMANDS } from '../app/studioConstants';
-import { TOOL_GROUP_LABELS, toolColumns, toolRailPx, toolRowPx } from '../app/toolColumns';
+import { TOOL_GROUP_LABELS, toolColumns, toolRailPx, toolRailWidthPx, toolRowPx } from '../app/toolColumns';
 import { CommandButtons, type commandStates } from './ToolButton';
 import { ToolIconButton } from '@/components/ui/tool-button';
 import { Icon } from './atoms';
 interface ModelToolsProps {
+  /** From useToolColumns. */
+  columns: number;
   sketch: SketchState | null;
   setSketch: Dispatch<SetStateAction<SketchState | null>>;
   command: { groupStates: ReturnType<typeof commandStates>[]; activeId: string | null; startTool(command: Command): void; toolDragStart(command: Command, event: DragEvent): void; toolDragEnd(command: Command, event: DragEvent): void };
@@ -16,16 +18,17 @@ interface ModelToolsProps {
 // (The inspect group also holds BOM, Rebuild and Variants.)
 const GROUP_SIZES = GROUP_COMMANDS.map((list, gi) => list.length + (TOOL_GROUPS[gi] === 'inspect' ? 3 : 0));
 function windowHeight() { return typeof window === 'undefined' ? 900 : window.innerHeight; }
-/** The rail's column count for the current window height (roadmap 21). */
-function useToolColumns(): number {
+/** The rail's column count and outer width (px) for the current window height (roadmap 21); the App places the notices beside it. */
+export function useToolColumns(): { columns: number; width: number } {
   const [height, setHeight] = useState(windowHeight);
   useEffect(() => { const update = () => setHeight(windowHeight()); window.addEventListener('resize', update); return () => window.removeEventListener('resize', update); }, []);
-  return toolColumns(GROUP_SIZES, toolRailPx(height), toolRowPx(height));
+  const columns = toolColumns(GROUP_SIZES, toolRailPx(height), toolRowPx(height));
+  return { columns, width: toolRailWidthPx(columns, height) };
 }
-export function ModelTools({ sketch, setSketch, command, panels }: ModelToolsProps) {
+export function ModelTools({ columns, sketch, setSketch, command, panels }: ModelToolsProps) {
   const { groupStates, activeId, startTool, toolDragStart, toolDragEnd } = command;
   const { bomOpen, setBomOpen, rebuildOpen, setRebuildOpen, variantsOpen, setVariantsOpen } = panels;
-  const columns = useToolColumns(), gridStyle = { '--tool-cols': columns } as CSSProperties;
+  const gridStyle = { '--tool-cols': columns } as CSSProperties;
   return <>
         {sketch ? (<>
           {TOOLS.map(t => (

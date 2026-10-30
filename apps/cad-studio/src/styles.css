@@ -307,9 +307,9 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 /* (G12d: within the stage's room, clear of the dock's strip or open sheet at its right, and below the view cube (G12e: the
    recovery card met it at 1024 with the chat open) — 220 px at least: on a cramped
    stage, an open sheet over a narrow centre, the toast runs under the sheet, below the top bar's menus.) */
-.toast { position: absolute; left: calc(66px + var(--strip-w, 0px)); top: 144px; bottom: auto; max-width: max(220px, min(380px, calc(100% - 78px - var(--strip-w, 0px) - var(--dock-strip-w, 0px)))); box-sizing: border-box; padding: 10px 10px 10px 12px; display: flex; gap: 10px; align-items: flex-start; z-index: 4; border-color: #6e4220; }
+.toast { position: absolute; left: calc(22px + var(--rail-w, 44px) + var(--strip-w, 0px)); top: 144px; bottom: auto; max-width: max(220px, min(380px, calc(100% - 34px - var(--rail-w, 44px) - var(--strip-w, 0px) - var(--dock-strip-w, 0px)))); box-sizing: border-box; padding: 10px 10px 10px 12px; display: flex; gap: 10px; align-items: flex-start; z-index: 4; border-color: #6e4220; }
 /* (The stack takes the toast's place and width; its notices sit one under another instead of on top of each other.) */
-.toast-stack { position: absolute; left: calc(66px + var(--strip-w, 0px)); top: 144px; width: max(220px, min(380px, calc(100% - 78px - var(--strip-w, 0px) - var(--dock-strip-w, 0px)))); display: flex; flex-direction: column; align-items: flex-start; gap: 8px; z-index: 4; pointer-events: none; }
+.toast-stack { position: absolute; left: calc(22px + var(--rail-w, 44px) + var(--strip-w, 0px)); top: 144px; width: max(220px, min(380px, calc(100% - 34px - var(--rail-w, 44px) - var(--strip-w, 0px) - var(--dock-strip-w, 0px)))); display: flex; flex-direction: column; align-items: flex-start; gap: 8px; z-index: 4; pointer-events: none; }
 .toast-stack > .toast { position: static; max-width: 100%; pointer-events: auto; }
 .toast-title { font-weight: 600; margin-bottom: 2px; }
 .toast-hint { color: var(--text-2); line-height: 1.45; }
