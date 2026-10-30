@@ -1,4 +1,4 @@
-# D378 — Row 21: the tool sidebar fits without scrolling
+# D379 — Row 21: the tool sidebar fits without scrolling
 
 Tier: **small**. Only the layout changes; clicks, shortcuts and tooltips stay the same. Owner order "Go to 20/21", 2026-10-31. [Qualification](qualification.json).
 

@@ -1,5 +1,5 @@
 {
-  "decision": "D378",
+  "decision": "D379",
   "roadmap": "21 Studio tool sidebar (owner order 'Go to 20/21')",
   "tier": "small (layout only: clicks, shortcuts and tooltips unchanged; tests + one actual run, no audit)",
   "status": "QUALIFIED (sidebar); History bar sub-item open",

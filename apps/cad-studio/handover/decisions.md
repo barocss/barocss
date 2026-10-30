@@ -17631,6 +17631,12 @@ The record keeps:
 
 No PNG is committed anywhere; the examples reproduce the images. Nothing was merged into the product, as the row requires. Product checks, CI and release: NOT_RUN.
 
+## D378 — Two local GPU branches merged into local/cad-dev (2026-10-31)
+
+Owner order "Merge before row 20". Merges `e4d0b5a66` (`gpu/readback-camera-20261026`) and `6dd94373a` (`gpu/gltf-03-20261027`), plus merge fixes `8a16b0546` (target sizes default to the canvas) and `119cb0708` (white-box fixtures gain `renderTargets`). Current viewer core and behaviour kept; RenderTarget, sized targets, `target.asTexture`, PT soft visibility and the GLB subset/textures/`UNSIGNED_INT` added; nothing dropped; no dependency change. [Note](notes/gpu-branch-merge-2026-10-31/README.md).
+
+Checks: gpu build/types/lint PASS; gpu browser 53/53; viewer 62/62 + 4/4; Studio types + 185/185 affected; GLB `UNSIGNED_INT` verified for the first time; actual Studio B2 flow PASS. 16 gpu unit failures are pre-existing on `0e67f8bc9` (Studio renderer test theme lacks `selection` colours from `d5c5d7a20`; 2 source-text assertions) — follow-up, not fixed here. NOT_RUN: `test:consumer`, full Studio suite, remote CI. Tier: full for the gpu core merge. Issues: none completed. The two local branches are now contained in `local/cad-dev`.
+
 ## D377 — Row 20 ①: later features stay visible while a handle is dragged; feature (2026-10-31)
 
 [Evidence](notes/drag-preview-roll-2026-10-31/qualification.json). Owner order "Go to 20/21".
@@ -17652,7 +17658,7 @@ Verification:
 
 Limits: one part measured; the threshold is not tuned; ③ needs a slower part. CI and release NOT_RUN.
 
-## D378 — Row 21: the tool sidebar fits without scrolling; small (2026-10-31)
+## D379 — Row 21: the tool sidebar fits without scrolling; small (2026-10-31)
 
 [Evidence](notes/tool-sidebar-grid-2026-10-31/qualification.json). Owner order "Go to 20/21".
 
@@ -17669,4 +17675,4 @@ Limits: one part measured; the threshold is not tuned; ③ needs a slower part. 
 - The root image review caught a column misalignment and an overlap at 1024 × 700. Both were fixed.
 
 **Not covered.** The History bar sub-item, the ribbon and command search. CI and release NOT_RUN.
-Follow-up (same day): a "can't run here" notice kept its old position (left 66 px) and covered the wider rail. run06 failed on it; this was a product defect from D378. The notices now sit beside the rail (`--rail-w`). Studio 567/567; actual run07 PASS (notice at 200 px, rail 136 px).
+Follow-up (same day): a "can't run here" notice kept its old position (left 66 px) and covered the wider rail. run06 failed on it; this was a product defect from D379. The notices now sit beside the rail (`--rail-w`). Studio 567/567; actual run07 PASS (notice at 200 px, rail 136 px).
