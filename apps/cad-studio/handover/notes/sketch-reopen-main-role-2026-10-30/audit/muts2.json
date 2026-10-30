@@ -1,0 +1,17 @@
+[
+ ["N1 attachCircle drops circleIds append", "packages/barocss-cad-model/src/sketch/select.ts", "&& id ? { circleIds: [...(shape.circleIds ?? []), id] } : {}", "&& id ? {} : {}"],
+ ["N2 attachCircle ignores length check", "packages/barocss-cad-model/src/sketch/select.ts", "(shape.circleIds ?? []).length === (shape.circles ?? []).length && id", "id"],
+ ["N3 attachedMain disabled", "packages/barocss-cad-model/src/sketch/reopen.ts", "return (mainIds.length === 1 ? attachedMain(shape, done, mainIds[0]) : null) ?? all;", "return all;"],
+ ["N4 F4 old order [main, ...all minus main]", "packages/barocss-cad-model/src/sketch/reopen.ts", "if (main) return [main, ...done.filter(x => x !== main), ...(shape && shape !== main ? [shape] : [])];", "if (main) return [main, ...all.filter(x => x !== main)];"],
+ ["N5 pulled-out circle without ids", "packages/barocss-cad-model/src/sketch/reopen.ts", "r: c.r, ids: [id] }", "r: c.r }"],
+ ["N6 circle left on the polygon too", "packages/barocss-cad-model/src/sketch/reopen.ts", "keep = (x: SketchShape) => x === poly ? rest : x;", "keep = (x: SketchShape) => x;"],
+ ["N7 dropCircleAt keeps circleIds", "packages/barocss-cad-model/src/sketch/reopen.ts", "circleIds = (p.circleIds ?? []).filter((_, k) => k !== j);", "circleIds = [...(p.circleIds ?? [])];"],
+ ["N8 attachedMain for any mainIds length", "packages/barocss-cad-model/src/sketch/reopen.ts", "(mainIds.length === 1 ? attachedMain", "(true ? attachedMain"],
+ ["N9 pulled-out circle last", "packages/barocss-cad-model/src/sketch/reopen.ts", "return [{ kind: 'circle', c: [c.c[0], c.c[1]], r: c.r, ids: [id] }, ...done.map(keep), ...(shape ? [keep(shape)] : [])];", "return [...done.map(keep), ...(shape ? [keep(shape)] : []), { kind: 'circle', c: [c.c[0], c.c[1]], r: c.r, ids: [id] }];"],
+ ["N10 trimSketch only with shape", "apps/cad-studio/src/sketch/useSketchActions.ts", "const shapes = sketch.editNode !== undefined ? reopenedOrder", "const shapes = sketch.editNode !== undefined && sketch.shape ? reopenedOrder"],
+ ["N11 finishSketch only with shape", "apps/cad-studio/src/sketch/useSketchActions.ts", "joinOpen((sketch.editNode !== undefined ? reopenedOrder", "joinOpen((sketch.editNode !== undefined && sketch.shape ? reopenedOrder"],
+ ["N12 edited shape second", "packages/barocss-cad-model/src/sketch/reopen.ts", "if (main) return [main, ...done.filter(x => x !== main), ...(shape && shape !== main ? [shape] : [])];", "if (main) return [main, ...(shape && shape !== main ? [shape] : []), ...done.filter(x => x !== main)];"],
+ ["N13 trimSketch plain [shape, ...done]", "apps/cad-studio/src/sketch/useSketchActions.ts", "const shapes = sketch.editNode !== undefined ? reopenedOrder(sketch.shape, sketch.done ?? [], sketch.mainIds) :", "const shapes = sketch.editNode !== undefined ? [...(sketch.shape ? [sketch.shape] : []), ...(sketch.done ?? [])] :"],
+ ["N14 editSketch skips mainIds", "apps/cad-studio/src/sketch/useSketchActions.ts", "...(shape?.ids?.length ? { mainIds: shape.ids } : {}),", ""],
+ ["N15 sameIds by length only", "packages/barocss-cad-model/src/sketch/reopen.ts", "a.length === b.length && a.every((x, i) => x === b[i])", "a.length === b.length"]
+]

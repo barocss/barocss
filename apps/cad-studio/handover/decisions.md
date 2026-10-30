@@ -17051,3 +17051,32 @@ Checks:
 - Errors 0; 985 frozen files equal the commit.
 
 Limits: Loft copies do not follow parameters (stated). `loopOf` still returns NaN for bound input (S1; no caller passes one). Revolve is checked by Model tests only. Full suites, CI and release NOT_RUN.
+
+## D358 — A reopened sketch keeps its main circle; eleventh bounded09 item (2026-10-30)
+
+Qualify source `2ad782f0e` (12 paths). [Evidence](notes/sketch-reopen-main-role-2026-10-30/qualification.json). Related: #551 (context only; it stays open). This fixes D355 audit S1. A circle-main sketch with a rectangle region, reopened and finished unchanged, stored the rectangle as main and the circle as a one-arc region. The extrude lost its Diameter/Centre fields, and a bound radius was dropped. The audit found the same swap after Split/Trim/Offset, after a tool switch, and after a click on the circle. The click also renumbered the circle id (`e1` → `e6`), so a fillet on it failed.
+
+Decision:
+- Reopen records the main profile's side ids.
+- `reopenedOrder` puts that shape first in Finish and Trim, whether or not a shape is being edited. The rest keep their stored order, and an attached main circle comes back as its own shape.
+- `attachCircle` carries the circle's id.
+- Pulling a circle out of an outline drops or renumbers the rules that name it (`rulesWithoutCircle`).
+
+Retained:
+- no Studio baseline;
+- audit round 1 CHANGES_REQUIRED (F1 no-edited-shape paths, F2 circle click, F3 stale test, F4 order alternation, F5 slot never affected), fixed;
+- round 2 found the regression N1 (dimensions moved to the wrong circle; Finish refused "Shapes 3 and 4 overlap") and test gaps N2, fixed;
+- round 3 PASS, with 14/15 mutants killed;
+- run02 failed in the driver (pick signal);
+- run03 failed in the oracle (screen-click split at x=29.99999999999997).
+
+Checks: Model 21 new tests, affected 183/183; Studio 39/39; types, lint, check-docs and inventory PASS. Actual run04 PASS covered:
+- unchanged Finish;
+- circle click then Finish;
+- Split then Finish;
+- R=6;
+- Undo/Redo, Save and fresh Open.
+
+All of them keep the circle main, `e1` and the R binding, with no toast. 6/6 oracles; errors 0; 986 frozen files equal the commit.
+
+Limits: circle regions stored after a polygon region flip order once (ids and geometry unchanged); a rectangle-to-main-circle dimension drops on Finish (existing region limit); the `trimSketch` editDim clear is untested. Full suites, CI and release NOT_RUN.

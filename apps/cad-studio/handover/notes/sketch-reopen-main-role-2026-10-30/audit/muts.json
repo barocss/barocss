@@ -1,0 +1,14 @@
+[
+ ["M1 editSketch skips mainIds", "apps/cad-studio/src/sketch/useSketchActions.ts", "...(shape?.ids?.length ? { mainIds: shape.ids } : {}),", ""],
+ ["M2 sameIds by length only", "packages/barocss-cad-model/src/sketch/reopen.ts", "a.length === b.length && a.every((x, i) => x === b[i])", "a.length === b.length"],
+ ["M3 main moved to back", "packages/barocss-cad-model/src/sketch/reopen.ts", "[all[at], ...all.slice(0, at), ...all.slice(at + 1)]", "[...all.slice(0, at), ...all.slice(at + 1), all[at]]"],
+ ["M4 always first of done", "packages/barocss-cad-model/src/sketch/reopen.ts", "all.findIndex(x => sameIds(x.ids, mainIds))", "(all.length > 1 ? 1 : -1)"],
+ ["M5 at > 1", "packages/barocss-cad-model/src/sketch/reopen.ts", "return at > 0 ?", "return at > 1 ?"],
+ ["M6 finish ignores reopenedOrder", "apps/cad-studio/src/sketch/useSketchActions.ts", "reopenedOrder(sketch.shape, sketch.done ?? [], sketch.mainIds)", "[sketch.shape, ...(sketch.done ?? [])]"],
+ ["M7 rest reversed around main", "packages/barocss-cad-model/src/sketch/reopen.ts", "[all[at], ...all.slice(0, at), ...all.slice(at + 1)]", "[all[at], ...all.slice(at + 1), ...all.slice(0, at)]"],
+ ["M8 findLastIndex", "packages/barocss-cad-model/src/sketch/reopen.ts", "all.findIndex(x => sameIds(x.ids, mainIds))", "all.findLastIndex(x => sameIds(x.ids, mainIds))"],
+ ["M9 mainIds? instead of length", "packages/barocss-cad-model/src/sketch/reopen.ts", "at = mainIds?.length ? all", "at = mainIds ? all"],
+ ["M10 mainIds from first done shape", "apps/cad-studio/src/sketch/useSketchActions.ts", "...(shape?.ids?.length ? { mainIds: shape.ids } : {}),", "...(done[0]?.ids?.length ? { mainIds: done[0].ids } : {}),"],
+ ["M11 sameIds prefix match", "packages/barocss-cad-model/src/sketch/reopen.ts", "a.length === b.length && a.every", "a.length >= b.length && b.every"],
+ ["M12 move main only when shape is circle", "packages/barocss-cad-model/src/sketch/reopen.ts", "return at > 0 ?", "return at > 0 && all[at].kind === 'slot' ?"]
+]
