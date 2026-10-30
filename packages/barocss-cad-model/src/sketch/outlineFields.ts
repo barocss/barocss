@@ -1,7 +1,7 @@
 // The feature editor's fields for a sketch drawn as a constrained outline: one per driving dimension kept
 // in the sketch node. Changing one re-solves the outline with all its constraints and rewrites the
 // profile; a value the constraints cannot take leaves the nodes unchanged.
-import type { ModelNode, SketchNode, SketchOutline } from '../engine/doc';
+import { NODE_EXTRA_FIELDS, type ModelNode, type SketchNode, type SketchOutline } from '../engine/doc';
 import type { EditField } from '../app/editFields';
 import { profileOf } from './loops';
 import { commitDimension, dimensionLabel, dimensionValue } from './rules';
@@ -36,6 +36,20 @@ export function drivingValue(o: SketchOutline, key: string): number | null {
   return r && 'value' in r ? r.value : null;
 }
 
+/**
+ * The node after a dimension edit: the re-solved geometry (profile kind, points, regions, holes, outline, side ids) with
+ * what is not geometry kept from the old node — its plane, body target, construction shapes and the generic node fields
+ * (id, suppressed, …). A node from before side ids gets none from the edit, so its positional names are not renamed (D348:
+ * profileOf orders an outline's attached circles before loops drawn earlier, so such an old node's hole numbers can still shift).
+ */
+function replaced(old: SketchNode, next: SketchNode): SketchNode {
+  const out: Record<string, unknown> = { ...next };
+  if (!old.sideTags) delete out.sideTags;
+  const from = old as unknown as Record<string, unknown>;
+  for (const key of ['plane', 'on', 'construction', ...NODE_EXTRA_FIELDS]) if (from[key] !== undefined) out[key] = from[key];
+  return out as unknown as SketchNode;
+}
+
 export function outlineFields(nodes: Nodes, s: number, prefix: string): EditField[] {
   const sk = nodes[s] as SketchNode | undefined;
   if (!sk || sk.kind !== 'sketch' || !sk.outline) return [];
@@ -46,12 +60,15 @@ export function outlineFields(nodes: Nodes, s: number, prefix: string): EditFiel
       kind: 'number', key: prefix + 'o' + key, label: prefix + label, unit: key.startsWith('ang') ? '°' : 'mm',
       get: n => drivingValue(outline(n), key) ?? dimensionValue(outlinePolygon(outline(n)), key) ?? NaN,
       set: (n, v) => {
-        const r = commitDimension(outlinePolygon(outline(n)), key, v);
+        // The reopened main shape: the outline with its side ids and attached circles' ids, so the edit renumbers nothing.
+        const old = n[s] as SketchNode, { shape, done } = sketchShapes(old);
+        if (!shape || shape.kind !== 'polygon') return n as ModelNode[];
+        const r = commitDimension(shape, key, v);
         if (!r.ok) return n as ModelNode[];
         // The whole profile again: the re-solved outline (its circles with it) and the sketch's other loops.
-        const old = n[s] as SketchNode, next = profileOf([r.shape, ...sketchShapes(old).done]);
+        const next = profileOf([r.shape, ...done]);
         if ('error' in next) return n as ModelNode[];
-        return n.map((x, k) => k === s ? { ...next.node, ...(old.plane ? { plane: old.plane } : {}) } as SketchNode : x);
+        return n.map((x, k) => k === s ? replaced(old, next.node) : x);
       },
     };
   });
