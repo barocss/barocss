@@ -62,7 +62,7 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
   waypoints?: number; onAddWaypoint?(): void; onClearWaypoints?(): void;
   /** Maps the end link's workspace (RM9b): N samples, voxels of h mm, poses in self-contact left out when asked; its summary, download and hide. */
   onWorkspace?(samples: number, h: number, contactFree: boolean): void; workspace?: string | null; onWorkspaceDownload?(): void; onWorkspaceHide?(): void;
-  path?: { text: string; contact: boolean } | null;
+  path?: { text: string; contact: boolean; /** #2229: the sweep ran out of its sample budget: not certified, not a collision. */ uncertified?: boolean } | null;
   /** Every part evaluated: the masses, exports and the path check wait until then. */
   ready?: boolean;
   /** Each joint's static gravity torque (N·m) or force (N) at the pose shown (RD1). */
@@ -128,7 +128,7 @@ export function JointsPanel({ tree, instances, onBase, values, onValue, onHome, 
         {motion.contact && <div className="hud-error basis-full" role="status" aria-label="Motion contact">{motion.contact}</div>}
         {motionControls.choice === null && <MotionSave saved={motionControls.saved} disabled={!(motion.duration > 0)} onSave={motionControls.onSave} />}
       </div>}
-      {path && <div className={path.contact ? 'hud-error' : 'kv muted'} role="status" aria-label="Path check">{path.text}</div>}
+      {path && <div className={path.contact || path.uncertified ? 'hud-error' : 'kv muted'} role="status" aria-label="Path check">{path.text}</div>}
       {onWorkspace && tree.joints.some(j => j.type !== 'fixed') && <div className="flex flex-wrap items-center gap-x-2 gap-y-1 py-0.5 text-[11px] [&>label]:inline-flex [&>label]:items-center [&>label]:gap-1 [&>label]:whitespace-nowrap" aria-label="Workspace">
         <label>N <Input type="number" aria-label="Workspace samples" min={100} max={200000} step={1000} value={wsN} onChange={e => setWsN(Number(e.target.value))} style={{ width: 70 }} /></label>
         <label> h <Input type="number" aria-label="Workspace voxel" min={0.5} step={1} value={wsH} onChange={e => setWsH(Number(e.target.value))} style={{ width: 48 }} /> mm</label>

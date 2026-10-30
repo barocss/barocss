@@ -970,6 +970,8 @@ export function App() {
       const links = sweepLinks(jointTree, p => p === BASE ? bodies : instanceBodies.get(p)?.bodies, pts => convexHull(pts).positions);
       const r = sweepTimed(jointTree, links, motion.path);
       setMotionContact(r.toi !== undefined && r.links ? { toi: r.toi, links: r.links } : null);
+      // (#2229: a sweep that ran out of its sample budget is not a contact and not clear: say so, tint nothing.)
+      if (r.exhausted) setToast({ title: 'Motion contact check not certified', hint: `The sweep ran out of its sample budget at t ${r.exhausted.t.toFixed(3)} s: the motion is neither clear nor in contact.`, detail: '' });
     } catch (error) {
       setMotionContact(null); setToast({ title: 'Motion contact check refused', hint: error instanceof Error ? error.message : String(error), detail: '' });
     }

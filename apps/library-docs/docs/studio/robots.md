@@ -76,6 +76,9 @@ decomposition in this candidate; its assembly freedom does not establish robot o
   shows the gravity torques at the current pose. Right after an edit, these wait until the masses are worked out.
 - **Paths.** **Add waypoint** records poses. **Check path** sweeps the robot along them and reports the first
   collision, with continuous collision between samples.
+  - **A sweep can run out of its sample budget.** The path is then neither clear nor in contact: Check path and the
+    agent's `sweep_path` and `check_path` say "not certified" with how far the sweep got and the least clearance met
+    (`exhausted` in the reply), and never report a collision or a time of impact for it.
   - **Designed contact isn't a collision.** Some faces touch by design, and the sweep leaves those to the design
     while it still checks the rest of the same links. Each pair it skips says why.
     - Two meshing gears' teeth are the coupling's to hold.

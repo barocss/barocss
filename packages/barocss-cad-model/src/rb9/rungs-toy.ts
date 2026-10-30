@@ -47,7 +47,7 @@ export const RUNG11: Rung = {
       holds('solids', two && !!fit.pairs && fit.pairs.every(x => x.overlap === undefined), [bodies.length, fit.pairs], 'two solids, not meeting'),
       holds('gaps', !!gaps && inRange(gaps.bore) && inRange(gaps.below) && inRange(gaps.above), gaps, `every facing gap in [${FIT}, ${2 * FIT}] mm (the FDM fit gap)`),
       holds('print', !!print.rules?.length && print.rules.every(r => r.status !== 'fail'), print.rules?.filter(r => r.status === 'fail').map(r => r.id ?? r.rule), 'the FDM rules, none failing'),
-      holds('captive', escapes.length === 6 && escapes.every(e => e.captive), escapes.map(e => [e.direction, e.captive, +e.travel.toFixed(4)]), 'the ring cannot slide out along ±X, ±Y or ±Z'),
+      holds('captive', escapes.length === 6 && escapes.every(e => e.captive), escapes.map(e => [e.direction, e.exhausted ? 'not certified' : e.captive, +e.travel.toFixed(4)]), 'the ring cannot slide out along ±X, ±Y or ±Z'),
     ] as Outcome[];
   },
   mutants: [

@@ -88,7 +88,8 @@ export function checkDesign(tree: JointTree, bodies: ReadonlyMap<string, LinkBod
     // ——— RM6: the sweep
     if (sweep) {
       const s = sweepPath(tree, sweep, m.from, m.to), req = duty.clearance_mm ?? 0;
-      if (!s.clear) margins.push(trackedMargin({ check: 'sweep', move: i, value: 0, limit: r9(req), unit: 'mm', margin: -1, source: 'RM6', ok: false, detail: `contact ${s.contact!.links.join('–')} at s ${r9(s.contact!.s)}` }, 0, req));
+      if (s.exhausted) margins.push(trackedMargin({ check: 'sweep', move: i, value: r9(s.minClearance?.mm ?? Infinity), limit: r9(req), unit: 'mm', margin: -1, source: 'RM6', ok: false, detail: `not certified: the sweep ran out of its sample budget at s ${r9(s.exhausted.s)} (least clearance ${s.minClearance ? r9(s.minClearance.mm) + ' mm' : 'none met'})` }, s.minClearance?.mm ?? Infinity, req));
+      else if (!s.clear) margins.push(trackedMargin({ check: 'sweep', move: i, value: 0, limit: r9(req), unit: 'mm', margin: -1, source: 'RM6', ok: false, detail: `contact ${s.contact!.links.join('–')} at s ${r9(s.contact!.s)}` }, 0, req));
       else { const mm = s.minClearance?.mm ?? Infinity; margins.push(trackedMargin({ check: 'sweep', move: i, value: r9(mm), limit: r9(req), unit: 'mm', margin: r9((mm - req) / Math.max(req, 1)), source: 'RM6', ok: mm > req, ...(s.minClearance ? { detail: `least ${s.minClearance.links.join('–')} at s ${r9(s.minClearance.s)}` } : {}) }, mm, req)); }
     }
     // ——— consistency: RNEA's holding torques against RD1's; the mass matrix SPD

@@ -15,7 +15,7 @@ import { treeInertia, type LinkInertia, type V3 } from './inertia';
 import { exportUrdf, withoutCams, type UrdfResult } from './urdf';
 import { exportMjcf, type MjcfClosure, type MjcfResult } from './mjcf';
 import { closeLoops, closureOfDoc, loopCloserOf, loopResidual, type LoopCloser } from './loop';
-import { sweepLinks, sweepPath, type SweepLink, type SweepResult } from './sweep';
+import { checkMaxSamples, sweepLinks, sweepPath, type SweepLink, type SweepResult } from './sweep';
 import { gravityTorques, linkBodies, linkMasses, moveTorques, type MoveLimits } from './dynamics';
 import { sizeActuators, sizeCoupled, type Motor, type Reducer } from './actuators';
 import type { ProfileKind } from './profile';
@@ -86,12 +86,17 @@ export function poseOf(view: RobotView, given: Readonly<Record<string, number>>,
   const frames = [...framePoses(t, fk.motions)].map(([frame, p]) => ({ frame, link: t.frames!.find(f => f.name === frame)!.link, position: p.o.map(r), rotation: eulerOf(p.R).map(r) }));
   return { unknown: fk.unknown, reply: { values: fk.values, links, ...(frames.length ? { frames } : {}), gears, out_of_limits: fk.outOfLimits, ...(closed ? { loops: { drivers: closed.drivers, solved: closed.solved, residual: closed.residual } } : {}) } };
 }
+/** #2229: the words for a sweep that ran out of its sample budget (neither contact nor clear), the least clearance met so far. */
+export function notCertified(at: number, least: number | undefined, coordinate: 'path' | 'time'): string {
+  return `the sweep ran out of its sample budget at ${coordinate === 'path' ? 's' : 't'} = ${r6(at)}${coordinate === 'time' ? ' s' : ''} (least clearance ${least === undefined ? 'none met' : `${r6(least)} mm`}); the rest of the path is unchecked`;
+}
 /** sweep_path's reply: a straight joint move checked for contact between the links. */
-export function sweepOf(view: RobotView, from: Readonly<Record<string, number>>, to: Readonly<Record<string, number>>, t: JointTree = treeOf(view)) {
-  const r = sweepPath(t, sweepLinksOf(view, t), from, to);
+export function sweepOf(view: RobotView, from: Readonly<Record<string, number>>, to: Readonly<Record<string, number>>, t: JointTree = treeOf(view), o: { maxSamples?: number } = {}) {
+  if (o.maxSamples !== undefined) checkMaxSamples(o.maxSamples);
+  const r = sweepPath(t, sweepLinksOf(view, t), from, to, o.maxSamples !== undefined ? { maxSamples: o.maxSamples } : {});
   return { ...(r.contact ? { rawContactValues: r.contact.values as Readonly<Record<string, number>> } : {}),
-    reply: { clear: r.clear, ...(r.contact ? { contact: { s: r6(r.contact.s), values: Object.fromEntries(Object.entries(r.contact.values).map(([k, v]) => [k, r6(v)])), links: r.contact.links } } : {}), minClearance: pathClearanceJson(r.minClearance), samples: r.samples, pairs: r.pairs.length, skipped: r.skipped, designed: r.designed },
-    summary: r.clear ? `clear (${r.samples} steps)` : `contact ${r.contact!.links.join('–')} at s ${r6(r.contact!.s)}` };
+    reply: { clear: r.clear, ...(r.contact ? { contact: { s: r6(r.contact.s), values: Object.fromEntries(Object.entries(r.contact.values).map(([k, v]) => [k, r6(v)])), links: r.contact.links } } : {}), ...(r.exhausted ? { exhausted: { s: r6(r.exhausted.s), samples: r.exhausted.samples, reason: 'sample budget' } } : {}), minClearance: pathClearanceJson(r.minClearance), samples: r.samples, pairs: r.pairs.length, skipped: r.skipped, designed: r.designed },
+    summary: r.clear ? `clear (${r.samples} steps)` : r.exhausted ? `not certified: ${notCertified(r.exhausted.s, r.minClearance?.mm, 'path')}` : `contact ${r.contact!.links.join('–')} at s ${r6(r.contact!.s)}` };
 }
 /** link_inertia's links: each link's mass, centre and inertia in its frame. */
 export function inertiaOf(view: RobotView, t: JointTree = treeOf(view)): LinkInertia[] {
@@ -252,7 +257,8 @@ export function motionPlaybackOf(view: RobotView, motion: MotionPath, at?: numbe
  * between two closed poses swept straight and certified (sweepPath, RM6); how far a chord's midpoint is from closing is
  * the chords' error, reported. The first contact's time is on its chord's profile.
  */
-function sweepClosed(view: RobotView, t: JointTree, closer: LoopCloser, path: TimedPath) {
+function sweepClosed(view: RobotView, t: JointTree, closer: LoopCloser, path: TimedPath, o: { maxSamples?: number } = {}) {
+  if (o.maxSamples !== undefined) checkMaxSamples(o.maxSamples);
   const links = sweepLinksOf(view, t), segments = timePath(t, path), skipped: SweepResult['skipped'] = [], designed: SweepResult['designed'] = [];
   let prev: Record<string, number> = {}, qa: Record<string, number> = { ...closeLoops(t, closer, path.waypoints[0], {}).q, ...path.waypoints[0] };
   prev = qa;
@@ -267,11 +273,12 @@ function sweepClosed(view: RobotView, t: JointTree, closer: LoopCloser, path: Ti
       const qb = { ...drv, ...closeLoops(t, closer, drv, prev).q }; prev = qb;
       const mid = Object.fromEntries(Object.keys({ ...qa, ...qb }).map(key => [key, ((qa[key] ?? 0) + (qb[key] ?? 0)) / 2]));
       worst = Math.max(worst, loopResidual(t, closer, mid)); chords++;
-      const r = sweepPath(t, links, qa, qb, { tolerance: CCD_TOLERANCE }), at = (s: number) => g.t0 + timeAt(g.profile, (i - 1 + s) / n);
+      const r = sweepPath(t, links, qa, qb, { tolerance: CCD_TOLERANCE, ...(o.maxSamples !== undefined ? { maxSamples: o.maxSamples } : {}) }), at = (s: number) => g.t0 + timeAt(g.profile, (i - 1 + s) / n);
       samples += r.samples;
       for (const x of r.skipped) if (!skipped.some(y => y.links.join() === x.links.join())) skipped.push(x);
       for (const x of r.designed) if (!designed.some(y => y.links.join() === x.links.join())) designed.push(x);
       if (r.minClearance && (!min || r.minClearance.mm < min.mm)) min = { mm: r.minClearance.mm, t: at(r.minClearance.s), links: r.minClearance.links };
+      if (r.exhausted) return { clear: false, exhausted: { segment: k, t: at(r.exhausted.s), samples: r.exhausted.samples }, minClearance: min, samples, skipped, designed, chords, worst };
       if (r.contact) return { clear: false, toi: at(r.contact.s), segment: k, links: r.contact.links, values: r.contact.values, minClearance: min, samples, skipped, designed, chords, worst };
       qa = qb;
     }
@@ -279,17 +286,18 @@ function sweepClosed(view: RobotView, t: JointTree, closer: LoopCloser, path: Ti
   return { clear: true, minClearance: min, samples, skipped, designed, chords, worst };
 }
 /** check_path: a motion checked for contact between the links along its timing (sweepTimed; a looped robot's closed, RS6), degrees and mm out. */
-export function checkMotion(view: RobotView, name: string, t: JointTree = treeOf(view)) {
+export function checkMotion(view: RobotView, name: string, t: JointTree = treeOf(view), o: { maxSamples?: number } = {}) {
+  if (o.maxSamples !== undefined) checkMaxSamples(o.maxSamples);
   const m = motionNamed(readRobot(view.doc.robot).motions, name), path = playable(t, m), closer = loopCloserOf(view.doc, t);
   if (closer) {
-    const r = sweepClosed(view, t, closer, path), contact = r.clear ? undefined : { time: r6(r.toi!), segment: r.segment!, links: r.links!, values: jointValuesOut(t, r.values ?? {}) };
-    return { motion: name, duration: r6(duration(path)), clear: r.clear, ...(contact ? { contact } : {}),
+    const r = sweepClosed(view, t, closer, path, o), contact = r.clear || r.exhausted ? undefined : { time: r6(r.toi!), segment: r.segment!, links: r.links!, values: jointValuesOut(t, r.values ?? {}) };
+    return { motion: name, duration: r6(duration(path)), clear: r.clear, ...(contact ? { contact } : {}), ...(r.exhausted ? { exhausted: { segment: r.exhausted.segment, time: r6(r.exhausted.t), samples: r.exhausted.samples, reason: 'sample budget' } } : {}),
       minClearance: timedClearanceJson(r.minClearance), samples: r.samples, skipped: r.skipped, designed: r.designed,
       loops: { chords: r.chords, chordResidual: Number(r.worst.toPrecision(3)) } };
   }
-  const r = sweepTimed(t, sweepLinksOf(view, t), path);
-  const contact = r.clear ? undefined : { time: r6(r.toi!), segment: r.segment!, links: r.links!, values: jointValuesOut(t, r.values ?? {}) };
-  return { motion: name, duration: r6(duration(path)), clear: r.clear, ...(contact ? { contact } : {}),
+  const r = sweepTimed(t, sweepLinksOf(view, t), path, o);
+  const contact = r.clear || r.exhausted ? undefined : { time: r6(r.toi!), segment: r.segment!, links: r.links!, values: jointValuesOut(t, r.values ?? {}) };
+  return { motion: name, duration: r6(duration(path)), clear: r.clear, ...(contact ? { contact } : {}), ...(r.exhausted ? { exhausted: { segment: r.exhausted.segment, time: r6(r.exhausted.t), samples: r.exhausted.samples, reason: 'sample budget' } } : {}),
     minClearance: timedClearanceJson(r.minClearance), samples: r.samples, skipped: r.skipped, designed: r.designed };
 }
 /** play: a motion's poses at `samples` even times (poseAt, as the studio plays it): each time, the values (degrees, mm) and the links' placements. */

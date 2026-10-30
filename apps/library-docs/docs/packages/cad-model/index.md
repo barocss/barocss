@@ -463,7 +463,7 @@ A pose reply has no overall `ok` flag; inspect the fields needed by your caller:
 | `robot.pose(values).values` | The resolved joint values, including followers, in degrees or mm. |
 | `links`, optional `frames` | Named link/frame positions in mm and rotations in degrees, in the assembly coordinates. |
 | `out_of_limits` | Joint keys outside their stored limits. A direct pose preview keeps those values rather than clamping them; a returned pose alone is not a readiness check. |
-| `path.check()` | An array with one sweep reply for each adjacent waypoint pair, in waypoint order, for supported open-chain paths. Read each reply's `clear`, optional `contact`, and `minClearance`. |
+| `path.check()` | An array with one sweep reply for each adjacent waypoint pair, in waypoint order, for supported open-chain paths. Read each reply's `clear`, optional `contact`, and `minClearance`. A reply whose sample budget ran out carries `exhausted` (with `clear: false` and no `contact`): that segment is not certified, neither clear nor in contact. |
 
 Given a robot and waypoints from the caller's current joint keys:
 

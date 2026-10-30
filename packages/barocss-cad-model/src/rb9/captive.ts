@@ -9,7 +9,7 @@ import { sweepPath, type SweepLink } from '../robot/sweep';
 import { boundsOf } from '../engine/bounds';
 
 export const DIRECTIONS: readonly [string, [number, number, number]][] = [['+x', [1, 0, 0]], ['-x', [-1, 0, 0]], ['+y', [0, 1, 0]], ['-y', [0, -1, 0]], ['+z', [0, 0, 1]], ['-z', [0, 0, -1]]];
-export interface Escape { direction: string; captive: boolean; /** How far it slid before contact (mm); the full travel when it escapes. */ travel: number; samples: number }
+export interface Escape { direction: string; /** False when `exhausted`: the sweep is not certified either way (#2229). */ captive: boolean; /** The sweep ran out of its sample budget at this fraction of the travel: neither captive nor escaping. */ exhausted?: { s: number };  /** How far it slid before contact (mm); the full travel when it escapes. */ travel: number; samples: number }
 
 function linkOf(id: string, bodies: readonly BodyResult[]): SweepLink {
   let nv = 0, ni = 0; for (const b of bodies) { nv += b.mesh.positions.length; ni += b.mesh.indices.length; }
@@ -29,7 +29,7 @@ export function captivity(fixed: readonly BodyResult[], moving: readonly BodyRes
     const tree: JointTree = { version: 1, base: 'still', links: [{ id: 'still', part: null, name: 'still' }, { id: 'fixed', part: 'fixed', name: 'fixed' }, { id: 'moving', part: 'moving', name: 'moving' }],
       joints: [joint('still~fixed', 'fixed', 'fixed', [0, 0, 1]), joint('still~moving', 'prismatic', 'moving', d)], loops: [], couplings: [], problems: [], notes: [] };
     const r = sweepPath(tree, [A, B], {}, { 'still~moving': travel });
-    out.push({ direction: name, captive: !r.clear, travel: r.contact ? r.contact.s * travel : travel, samples: r.samples });
+    out.push({ direction: name, captive: !r.clear && !r.exhausted, ...(r.exhausted ? { exhausted: { s: r.exhausted.s } } : {}), travel: r.contact ? r.contact.s * travel : r.exhausted ? r.exhausted.s * travel : travel, samples: r.samples });
   }
   return out;
 }

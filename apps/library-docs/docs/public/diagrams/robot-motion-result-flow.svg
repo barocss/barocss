@@ -25,7 +25,7 @@
     <text x="609" y="196">Inspect out_of_limits</text>
     <rect x="287" y="250" width="549" height="125" rx="9" fill="#fff3dd" stroke="#b59a66"/>
     <text x="305" y="279" font-weight="700">path.check() · supported open chains only</text>
-    <text x="305" y="306">Each segment: clear / contact / minClearance</text>
+    <text x="305" y="306">Each segment: clear / contact / exhausted / minClearance</text>
     <text x="305" y="332">contact.s / minClearance.fraction: dimensionless</text>
     <text x="305" y="358">minClearance.value: mm</text>
     <text x="430" y="408" text-anchor="middle">A segment fraction is not elapsed time. Timing does not certify collision clearance.</text>

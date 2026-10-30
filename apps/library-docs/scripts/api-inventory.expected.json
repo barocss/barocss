@@ -179785,7 +179785,7 @@
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
-                "type": "() => { contact?: { s: number; values: { [k: string]: number; }; links: [string, string]; } | undefined; minClearance: PublicPathClearance | null; samples: number; pairs: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; clear: boolean; }[]"
+                "type": "() => { contact?: { s: number; values: { [k: string]: number; }; links: [string, string]; } | undefined; minClearance: PublicPathClearance | null; samples: number; pairs: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; exhausted?: { s: number; samples: number; reason: string; } | undefined; clear: boolean; }[]"
               },
               {
                 "name": "duration",
@@ -187569,7 +187569,7 @@
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
-                "type": "() => { contact?: { s: number; values: { [k: string]: number; }; links: [string, string]; } | undefined; minClearance: PublicPathClearance | null; samples: number; pairs: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; clear: boolean; }[]"
+                "type": "() => { contact?: { s: number; values: { [k: string]: number; }; links: [string, string]; } | undefined; minClearance: PublicPathClearance | null; samples: number; pairs: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; exhausted?: { s: number; samples: number; reason: string; } | undefined; clear: boolean; }[]"
               },
               {
                 "name": "duration",
@@ -191969,7 +191969,7 @@
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
-                "type": "() => { contact?: { s: number; values: { [k: string]: number; }; links: [string, string]; } | undefined; minClearance: PublicPathClearance | null; samples: number; pairs: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; clear: boolean; }[]"
+                "type": "() => { contact?: { s: number; values: { [k: string]: number; }; links: [string, string]; } | undefined; minClearance: PublicPathClearance | null; samples: number; pairs: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; exhausted?: { s: number; samples: number; reason: string; } | undefined; clear: boolean; }[]"
               },
               {
                 "name": "duration",
@@ -192409,14 +192409,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(doc: StudioDoc, from: Readonly<Record<string, number>>, to: Readonly<Record<string, number>>) => { contact?: { s: number; values: { [k: string]: number; }; links: [string, string]; } | undefined; minClearance: PublicPathClearance | null; samples: number; pairs: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; clear: boolean; }",
+            "type": "(doc: StudioDoc, from: Readonly<Record<string, number>>, to: Readonly<Record<string, number>>) => { contact?: { s: number; values: { [k: string]: number; }; links: [string, string]; } | undefined; minClearance: PublicPathClearance | null; samples: number; pairs: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; exhausted?: { s: number; samples: number; reason: string; } | undefined; clear: boolean; }",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(doc: StudioDoc, from: Readonly<Record<string, number>>, to: Readonly<Record<string, number>>) => { contact?: { s: number; values: { [k: string]: number; }; links: [string, string]; } | undefined; minClearance: PublicPathClearance | null; samples: number; pairs: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; clear: boolean; }"
+              "(doc: StudioDoc, from: Readonly<Record<string, number>>, to: Readonly<Record<string, number>>) => { contact?: { s: number; values: { [k: string]: number; }; links: [string, string]; } | undefined; minClearance: PublicPathClearance | null; samples: number; pairs: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; exhausted?: { s: number; samples: number; reason: string; } | undefined; clear: boolean; }"
             ]
           }
         }
@@ -307432,6 +307432,13 @@
                 "type": "string"
               },
               {
+                "name": "exhausted",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "{ s: number; } | undefined"
+              },
+              {
                 "name": "samples",
                 "kind": "property",
                 "optional": false,
@@ -311203,6 +311210,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "{ links: [string, string]; why: string; }[]"
+              },
+              {
+                "name": "exhausted",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "{ segment: number; t: number; s: number; samples: number; values: Record<string, number>; } | undefined"
               },
               {
                 "name": "links",
@@ -323031,6 +323045,62 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./robot/sweep",
+      "exportName": "DEFAULT_MAX_SAMPLES",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/robot/sweep.ts",
+            "name": "DEFAULT_MAX_SAMPLES",
+            "kind": "const"
+          },
+          "shape": {
+            "type": "20000",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./robot/sweep",
+      "exportName": "MAX_SAMPLES_CEILING",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/robot/sweep.ts",
+            "name": "MAX_SAMPLES_CEILING",
+            "kind": "const"
+          },
+          "shape": {
+            "type": "10000000",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./robot/sweep",
       "exportName": "SweepLink",
       "space": "type",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -323134,6 +323204,13 @@
                 "type": "{ links: [string, string]; why: string; }[]"
               },
               {
+                "name": "exhausted",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "{ s: number; values: Record<string, number>; samples: number; } | undefined"
+              },
+              {
                 "name": "minClearance",
                 "kind": "property",
                 "optional": false,
@@ -323163,6 +323240,37 @@
               }
             ],
             "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./robot/sweep",
+      "exportName": "checkMaxSamples",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/robot/sweep.ts",
+            "name": "checkMaxSamples",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(n: unknown) => number",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(n: unknown) => number"
+            ]
           }
         }
       ]
@@ -325729,14 +325837,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(view: RobotView, name: string, t?: JointTree) => { minClearance: PublicTimedClearance | null; samples: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; loops: { chords: number; chordResidual: number; }; contact?: { time: number; segment: number; links: [string, string]; values: Record<string, number>; } | undefined; motion: string; duration: number; clear: boolean; } | { minClearance: PublicTimedClearance | null; samples: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; contact?: { time: number; segment: number; links: [string, string]; values: Record<string, number>; } | undefined; motion: string; duration: number; clear: boolean; }",
+            "type": "(view: RobotView, name: string, t?: JointTree, o?: { maxSamples?: number | undefined; }) => { minClearance: PublicTimedClearance | null; samples: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; loops: { chords: number; chordResidual: number; }; exhausted?: { segment: number; time: number; samples: number; reason: string; } | undefined; contact?: { time: number; segment: number; links: [string, string]; values: Record<string, number>; } | undefined; motion: string; duration: number; clear: boolean; } | { minClearance: PublicTimedClearance | null; samples: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; exhausted?: { segment: number; time: number; samples: number; reason: string; } | undefined; contact?: { time: number; segment: number; links: [string, string]; values: Record<string, number>; } | undefined; motion: string; duration: number; clear: boolean; }",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(view: RobotView, name: string, t?: JointTree) => { minClearance: PublicTimedClearance | null; samples: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; loops: { chords: number; chordResidual: number; }; contact?: { time: number; segment: number; links: [string, string]; values: Record<string, number>; } | undefined; motion: string; duration: number; clear: boolean; } | { minClearance: PublicTimedClearance | null; samples: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; contact?: { time: number; segment: number; links: [string, string]; values: Record<string, number>; } | undefined; motion: string; duration: number; clear: boolean; }"
+              "(view: RobotView, name: string, t?: JointTree, o?: { maxSamples?: number | undefined; }) => { minClearance: PublicTimedClearance | null; samples: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; loops: { chords: number; chordResidual: number; }; exhausted?: { segment: number; time: number; samples: number; reason: string; } | undefined; contact?: { time: number; segment: number; links: [string, string]; values: Record<string, number>; } | undefined; motion: string; duration: number; clear: boolean; } | { minClearance: PublicTimedClearance | null; samples: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; exhausted?: { segment: number; time: number; samples: number; reason: string; } | undefined; contact?: { time: number; segment: number; links: [string, string]; values: Record<string, number>; } | undefined; motion: string; duration: number; clear: boolean; }"
             ]
           }
         }
@@ -326086,6 +326194,37 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./robot/verbs",
+      "exportName": "notCertified",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/robot/verbs.ts",
+            "name": "notCertified",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(at: number, least: number | undefined, coordinate: \"path\" | \"time\") => string",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(at: number, least: number | undefined, coordinate: \"path\" | \"time\") => string"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./robot/verbs",
       "exportName": "partsOf",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -326318,14 +326457,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(view: RobotView, from: Readonly<Record<string, number>>, to: Readonly<Record<string, number>>, t?: JointTree) => { reply: { minClearance: PublicPathClearance | null; samples: number; pairs: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; contact?: { s: number; values: { [k: string]: number; }; links: [string, string]; } | undefined; clear: boolean; }; summary: string; rawContactValues?: Readonly<Record<string, number>> | undefined; }",
+            "type": "(view: RobotView, from: Readonly<Record<string, number>>, to: Readonly<Record<string, number>>, t?: JointTree, o?: { maxSamples?: number | undefined; }) => { reply: { minClearance: PublicPathClearance | null; samples: number; pairs: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; exhausted?: { s: number; samples: number; reason: string; } | undefined; contact?: { s: number; values: { [k: string]: number; }; links: [string, string]; } | undefined; clear: boolean; }; summary: string; rawContactValues?: Readonly<Record<string, number>> | undefined; }",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(view: RobotView, from: Readonly<Record<string, number>>, to: Readonly<Record<string, number>>, t?: JointTree) => { reply: { minClearance: PublicPathClearance | null; samples: number; pairs: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; contact?: { s: number; values: { [k: string]: number; }; links: [string, string]; } | undefined; clear: boolean; }; summary: string; rawContactValues?: Readonly<Record<string, number>> | undefined; }"
+              "(view: RobotView, from: Readonly<Record<string, number>>, to: Readonly<Record<string, number>>, t?: JointTree, o?: { maxSamples?: number | undefined; }) => { reply: { minClearance: PublicPathClearance | null; samples: number; pairs: number; skipped: { links: [string, string]; why: string; }[]; designed: { links: [string, string]; why: string; }[]; exhausted?: { s: number; samples: number; reason: string; } | undefined; contact?: { s: number; values: { [k: string]: number; }; links: [string, string]; } | undefined; clear: boolean; }; summary: string; rawContactValues?: Readonly<Record<string, number>> | undefined; }"
             ]
           }
         }

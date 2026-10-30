@@ -7,7 +7,7 @@
 // precision. Everything before it is certified free; the contact at it is met to the tolerance.
 import type { JointTree } from './joints';
 import { at, sCurve, trapezoid, type Profile, type ProfileKind } from './profile';
-import { sweepPath, type SweepLink, type SweepResult } from './sweep';
+import { checkMaxSamples, sweepPath, type SweepLink, type SweepResult } from './sweep';
 import { refusal } from '../engine/refusal';
 
 export interface JointLimits { v: number; a: number; j?: number }
@@ -21,6 +21,8 @@ export interface TimedPath {
 export interface TimedSegment { from: Readonly<Record<string, number>>; to: Readonly<Record<string, number>>; t0: number; duration: number; profile: Profile | null }
 export interface TimedSweep {
   clear: boolean;
+  /** #2229: a segment's sample budget ran out (neither contact nor clear): its index, the time reached, the joint values there. No `toi`. */
+  exhausted?: { segment: number; t: number; s: number; samples: number; values: Record<string, number> };
   /** The time of impact (s from the path's start), its segment, the two links and the joint values there. */
   toi?: number; segment?: number; links?: [string, string]; values?: Record<string, number>;
   /** The least clearance met (mm), when and between which links. */
@@ -69,19 +71,22 @@ export function timeAt(profile: Profile | null, s: number): number {
   return hi;
 }
 
-/** The path swept, segment by segment: clear, or its first contact in time; the least clearance and the profile along it. */
+/** The path swept, segment by segment: clear, its first contact in time, or (#2229) `exhausted` where a segment's sample budget ran out; the least clearance and the profile along it. */
+/** `maxSamples` is each segment's own budget (the returned `samples` is their sum). */
 export function sweepTimed(tree: JointTree, links: readonly SweepLink[], path: TimedPath, o: { maxSamples?: number } = {}): TimedSweep {
+  if (o.maxSamples !== undefined) checkMaxSamples(o.maxSamples);
   const segments = timePath(tree, path), clearanceProfile: [number, number][] = [], skipped: SweepResult['skipped'] = [], designed: SweepResult['designed'] = [];
   let min: TimedSweep['minClearance'] = null, samples = 0;
   for (let k = 0; k < segments.length; k++) {
     const g = segments[k], trace: [number, number][] = [];
     if (!g.profile) continue;
-    const r = sweepPath(tree, links, g.from, g.to, { tolerance: CCD_TOLERANCE, trace, ...(o.maxSamples ? { maxSamples: o.maxSamples } : {}) });
+    const r = sweepPath(tree, links, g.from, g.to, { tolerance: CCD_TOLERANCE, trace, ...(o.maxSamples !== undefined ? { maxSamples: o.maxSamples } : {}) });
     samples += r.samples;
     for (const s of r.skipped) if (!skipped.some(x => x.links[0] === s.links[0] && x.links[1] === s.links[1])) skipped.push(s);
     for (const s of r.designed) if (!designed.some(x => x.links[0] === s.links[0] && x.links[1] === s.links[1])) designed.push(s);
     for (const [s, mm] of trace) clearanceProfile.push([g.t0 + timeAt(g.profile, s), mm]);
     if (r.minClearance && (!min || r.minClearance.mm < min.mm)) min = { mm: r.minClearance.mm, t: g.t0 + timeAt(g.profile, r.minClearance.s), links: r.minClearance.links };
+    if (r.exhausted) return { clear: false, exhausted: { segment: k, t: g.t0 + timeAt(g.profile, r.exhausted.s), s: r.exhausted.s, samples: r.exhausted.samples, values: r.exhausted.values }, minClearance: min, clearanceProfile, segments, samples, skipped, designed };
     if (r.contact) return { clear: false, toi: g.t0 + timeAt(g.profile, r.contact.s), segment: k, links: r.contact.links, values: r.contact.values, minClearance: min, clearanceProfile, segments, samples, skipped, designed };
   }
   return { clear: true, minClearance: min, clearanceProfile, segments, samples, skipped, designed };
