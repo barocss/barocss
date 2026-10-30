@@ -118,6 +118,16 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
    - 05 [CLOSED D375] Viewer 마감: 남은 일: viewer 패키지의 현재 정상 상태(build/type/관련 테스트)와 앱 UI 실제 흐름 1회로 제품 연결 범위를 확정하고, 미완(IGES 제한·파일 닫기·driver/OOM 복구)은 한계로 분리 기록(small, 범위 확인부터).
    - 06 [CLOSED D376] GPU 인계: 남은 일: 기록된 GPU commit들(fe2637f4, 607f7d0, 8de2f6ac, 5d8b7757, 2a35e9b6, 29fd0191/d4e2c3ec)이 현재 이력에 있는지 확인하고 인계 기록(정상 commit·원 실패·PNG·한계)을 한 문서로 정리; 이 제품에 자동 병합하지 않음(docs only).
 3. 20 기즈모·드래그 + 21 사이드바. 드래그 지연은 T5 측정과 함께 본다.
+   **20/21 원장 (2026-10-31, 오너 "Go to 20/21", 한 번에 한 항목·직렬, 측정 먼저):**
+   - 20③+① 측정 [먼저]: 실제 Studio에서 뒤 기능이 있는 부품(상자+구멍+필렛)의 치수 화살표 드래그 중 미리보기 1회 시간(rolled/전체)과 화면 갱신 간격을 기록한다. 이 수치가 ①·③의 수정 여부를 정한다(측정만, small).
+   - 20① 드래그 중 뒤 기능 사라짐: `useCommandPreview`의 `rolled` 경로. 측정에서 전체 미리보기가 빠르면(예: 120 ms 이하) 줄이지 않고 전체를 보인다; 느릴 때만 rolled. 동작 변경이므로 feature(감사 1회+실제 흐름).
+   - 20② [CLOSED D368] 필렛 값 튐.
+   - 20③ 드래그 끊김: 측정에서 프레임 간격이 미리보기 시간에 묶여 있으면 즉시 화면 변환과 Kernel 결과 반영을 분리하는 최소 수정; 아니면 측정값만 기록. T5 의존 범위 재생성은 측정이 근거를 줄 때만 후보로 남긴다.
+   - 20④ 화살표 놓은 뒤 적용 방식: 현재 동작(Enter·Apply·Esc)을 실제로 확인하고 명령별 방식을 표로 정한 뒤 바꾼다(feature).
+   - 20⑤ [해결 `7174b010f`] 복구 Restore 잔여 미리보기.
+   - 20⑥ 핸들 옆 이름 붙은 값 입력칸: 현재 HUD/핸들 입력 상태 확인 후 없으면 추가(feature).
+   - 20⑦ 알림이 뷰포트 왼쪽 위 면을 가림: `.toast-stack` 위치를 뷰포트 밖 또는 클릭 통과로(배치만이면 small).
+   - 21 도구 사이드바: `ModelTools` 한 줄 76개 → 카테고리 라벨 2~3열 격자, 1440×900에서 스크롤 없음; History 막대 이름 표시·편집 중 유지 검토. 배치만이면 small, 동작이 바뀌면 feature. shadcn/Tailwind, 새 라이브러리 없음.
 3b. 정리 묶음 (오너 2026-10-30 "그렇게 해줘", 이어서 "잘 분배해서 진행해줘": 지금 시작, lane 분리 — 리팩토링 lane이 ①→② kernel만, 09와 겹치지 않는 시점에 ③→④; CI lane이 33을 병행): ① R7.3d — kernel 밖에서 아무도 쓰지 않는 137파일·28,681줄
 (측정: [kernel reachability](notes/kernel-reachability-2026-10-30/README.md))을 모듈별 retire/keep 판단 뒤 제거, test/example 전용 19파일 결정 (**① 완료, D360**: 100파일 retire, 37파일 keep, E 19파일 keep — [노트](notes/kernel-refactor-3b-2026-10-30/README.md));
 ② `part/part-model.ts`(4,583줄)를 피처별 모듈로 분리 (**② 완료, D361**: 2,192줄 — frame·finish·shell·sheet·face-fillet을 각 모듈로 이동, 남은 20개 case는 다음 창); ③ cad-model 오류를 메시지 정규식(`engine/errors.ts`) 대신 코드 기반으로 (**③ 완료, D362**: 70개 규칙 중 30개 코드 행, 40개는 코드 없는/괄호 없는 메시지라 text 행 유지, golden 0차이);
