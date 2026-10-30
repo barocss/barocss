@@ -1,0 +1,19 @@
+{
+  "decision": "D374",
+  "roadmap": "02 drawing document connection + 04 API docs final public list/docs site (closed together, as row 02 requires)",
+  "tier": "small (docs close-out)",
+  "status": "CLOSED",
+  "commit": "ab152dd9a",
+  "row02": "studio/drawings.md matched to the D372 actual flow: Frame details editing, a hidden view (VIEW_NEEDED, position kept, no move), Save/SVG keeping the position, TEXT_OVER_LINES for annotation text (commit 7a4677895)",
+  "row04": {
+    "samples": "apps/library-docs samples/run.mjs: 162/162 pass, 0 fail, 0 cancelled (the earlier 164-sample run had 159 PASS/2 FAIL/3 CANCELLED; those are gone on the current code)",
+    "publicList": "api-inventory --check PASS; reviewed 3 packages / 6198 exposures (@barocss/cad-model 3084, @barocss/cad 2045, @barocss/gpu 1069): no test/debug/mock/internal names exposed by mistake; two underscore exports (_docFieldsComplete, _nodeFieldsComplete) are intentional compile-time field-completeness guards; 'internal gear' names are the gear domain",
+    "checkDocs": "PASS (68 pages)",
+    "siteBuild": "vitepress build: complete in 14 s, 69 HTML pages, no dead link or error (built to the scratchpad, not committed)",
+    "pages": "studio/drawings.html (anchor datum-references-and-control-frames resolves; the four new sentences present) and packages/cad-model/ (renders; includes the D367 exhausted note) checked in the built site; URLs and anchors unchanged by this work"
+  },
+  "limits": [
+    "The 24-case gallery and older Codex-era image work are not closed by this (as the row says)",
+    "No deployment of the site (NOT_RUN); release NOT_RUN"
+  ]
+}

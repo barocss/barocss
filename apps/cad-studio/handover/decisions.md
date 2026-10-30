@@ -17577,3 +17577,19 @@ Tier: small. Limits:
 - the HUD refusal shows the internal prefix "BarocssError: [VALUE]" (cosmetic follow-up);
 - only the x direction is driven;
 - CI and release NOT_RUN.
+
+## D374 — Rows 02 and 04 closed: drawing docs and the docs site batch; small (2026-10-31)
+
+[Evidence](notes/docs-closeout-2026-10-31/qualification.json). Owner order "Go to 01–06".
+
+**Row 02.** The drawing document now matches the D372 actual flow: Frame details, a hidden view with `VIEW_NEEDED`, Save and SVG keeping the position, and `TEXT_OVER_LINES`.
+
+**Row 04.**
+- Samples: 162/162 pass. The earlier 2 FAIL and 3 CANCELLED are gone.
+- API inventory: PASS. Public list reviewed: 6198 exposures, no accidental internal names; the two underscore guards are intentional.
+- check-docs: PASS.
+- vitepress build: 69 pages, no dead links. The drawings and cad-model API pages were checked in the built site.
+
+Limits:
+- the 24-case gallery is not closed by this;
+- site deployment and release NOT_RUN.
