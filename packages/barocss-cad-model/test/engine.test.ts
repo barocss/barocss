@@ -360,7 +360,7 @@ test('revolve: a circle sketch turns into a torus, cut by a box; a profile along
 
 test('a slot sketch extrudes as one line + arc body with two curved faces and exact mass', async () => {
   const { slotSegments } = await import('../src/sketch/profile');
-  const doc = withNode(withNode(prefixDoc({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} }, 0),
+  const doc = withNode(withNode(prefixDoc({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {} }, 0),
     { kind: 'sketch', profile: 'loop', segments: slotSegments([0, 0], [40, 0], 6) }), { kind: 'extrude', sketch: 0, height: 5 });
   const r = evaluateDoc(doc, 1);
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
@@ -382,7 +382,7 @@ test('a concave outline with an arc notch becomes a loop body; straight convex o
   const bulges = [0, 0, 0, bulgeThrough([25, 20], [15, 20], [20, 15]), 0, 0];
   const segments = outlineSegments(points, bulges);
   assert.deepEqual(segments[3], { kind: 'arc', start: [25, 20], center: [20, 20], direction: 'cw' });
-  const doc = withNode(withNode(prefixDoc({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} }, 0),
+  const doc = withNode(withNode(prefixDoc({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {} }, 0),
     { kind: 'sketch', profile: 'loop', segments }), { kind: 'extrude', sketch: 0, height: 4 });
   const r = evaluateDoc(doc, 1);
   assert.ok(r.ok, JSON.stringify(!r.ok && r.error));
@@ -473,7 +473,7 @@ test('closing infers equal radii and shared centres; a loop with them still extr
   assert.equal(r.error, null);
   const s = r.shape as typeof open & { concentric: [number, number][] };
   assert.deepEqual(s.concentric, [[0, 2]]);
-  const doc = withNode(withNode(prefixDoc({ format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: {}, nodes: [], outputs: {} }, 0),
+  const doc = withNode(withNode(prefixDoc({ format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [], outputs: {} }, 0),
     { kind: 'sketch', profile: 'loop', segments: outlineSegments(s.points, s.bulges) }), { kind: 'extrude', sketch: 0, height: 6 });
   const e = evaluateDoc(doc, 1);
   assert.ok(e.ok, JSON.stringify(!e.ok && e.error));

@@ -256928,7 +256928,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "3 | 1 | 2 | 4"
+                "type": "3 | 4"
               },
               {
                 "name": "underlays",
@@ -276822,7 +276822,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "3 | 1 | 2 | 4"
+                "type": "3 | 4"
               },
               {
                 "name": "underlays",

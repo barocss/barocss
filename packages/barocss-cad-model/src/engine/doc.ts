@@ -668,8 +668,8 @@ export interface RouteBundle {
 }
 export interface StudioDoc {
   format: 'barocss-cad-model';
-  /** 4: explicit route bundles; 3: stable body keys; 2: stable feature ids; 1: index-based feature ids. */
-  schema: 1 | 2 | 3 | 4;
+  /** 4: explicit route bundles; 3: stable body keys (schema 1 and 2 files are refused on read, D365). */
+  schema: 3 | 4;
   /** The next feature serial to hand out (`n<nextId>`): ids are never used twice, see engine/ids.ts. */
   nextId?: number;
   units: 'mm';
