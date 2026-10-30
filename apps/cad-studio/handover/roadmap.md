@@ -100,8 +100,8 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
 | 27 | 릴리스·운영 (2026-10-30) | 설치·자동 업데이트, crash 보고, 라이선스, 보안 sandbox, 데이터 보존 정책. CG9 desktop 빌드를 포함한다. | Release + Studio. 기존 릴리스 권한 유지, 외부 서비스는 오너 결정 | 실제 설치·업데이트·복구 흐름과 개인정보·보안 검토 기록 |
 | 28 | 교환 형식 범위·표준 부품 카탈로그 (2026-10-30) | Parasolid·JT·DWG 등 형식별 지원 범위 결정과 출처가 분명한 표준 부품 카탈로그. | Interop + Model. 외부 SDK·WASM·새 의존성 금지와 충돌하므로 오너 결정 필요; 부품 row는 사람이 가져온 파일 규칙 유지 | 형식별 지원/손실/거절 표와 독립 read-back, 카탈로그 출처·라이선스 기록 |
 | 29 | 협업·PDM (2026-10-30) | 여러 사람 편집, check-in/out, 승인 흐름, 권한. 12행 버전 위에 쌓는다. | Studio + Model. 12 파일·버전 뒤, 서버는 오너 결정 | 동시 편집 충돌·거절·복구를 실제 두 클라이언트로 확인 |
-| 30 | 커널 일반성 (2026-10-30 엔진 리뷰) | 접선·graze 접촉과 작은 loop를 놓치지 않는 일반 SSI, 정확한 sweep/thicken(현재 faceted), 꼭짓점·setback 블렌드, 일반 곡면 offset. | Kernel. 16 강건성(fuzz38)과 함께, 24 곡면 품질 앞 | 독립 oracle·fuzz로 놓친 loop와 잘못된 성공 0, 기존 한정 profile 결과 bit/형상 유지 |
-| 31 | B-rep 직접 편집 (2026-10-30 엔진 리뷰) | solid 면의 이동·삭제·교체·push/pull과 주변 면 재연장. | Kernel + Model + Studio. 30 뒤 | 실제 Studio 편집·Undo·파일, 실패 시 원본 유지와 거절 이유 |
+| 30 | 커널 일반성 (2026-10-30 엔진 리뷰) | 접선·graze 접촉과 작은 loop를 놓치지 않는 일반 SSI, 정확한 sweep/thicken(현재 faceted), 꼭짓점·setback 블렌드, 일반 곡면 offset. Issues: SSI #2253, Boolean contact #2254, certified predicates #2255, non-manifold results #2256, exact sweep #2257, exact thicken/offset #2258, fillet generality #2259, freeform shell #2260, draft generality #2261, NURBS limits #2266. | Kernel. 16 강건성(fuzz38)과 함께, 24 곡면 품질 앞 | 독립 oracle·fuzz로 놓친 loop와 잘못된 성공 0, 기존 한정 profile 결과 bit/형상 유지 |
+| 31 | B-rep 직접 편집 (2026-10-30 엔진 리뷰) | solid 면의 이동·삭제·교체·push/pull과 주변 면 재연장. Issue #2264. | Kernel + Model + Studio. 30 뒤 | 실제 Studio 편집·Undo·파일, 실패 시 원본 유지와 거절 이유 |
 | 32 | Viewer SDK 상용 기준 (2026-10-30 엔진 리뷰) | 크기 제한(정점4096·객체64) 해제, STEP/glTF 입력(기존 interop 재사용), Safari·Firefox·모바일·pinch, 각도·반경·최소 거리 측정, SDK 단면. | Viewer + GPU. 05·23·28과 함께 | 측정 작업량의 frame·메모리, 브라우저별 실제 확인, 측정값의 독립 계산 일치 |
 | 33 | CI 브라우저 검증 (2026-10-30 엔진 리뷰) | gpu·viewer·Studio 브라우저 테스트를 CI에서 실제로 실행(지금은 CHROME/PW_DIR 없이 건너뜀). device loss 복구 화면, 장시간 메모리. | Integration(공용 CI 경로 소유) | CI 기록에 건너뜀 0과 실제 WebGPU 결과, 실패가 CI를 막음 |
 | 34 | 단위 접미사 이름 정리 R7.7 (2026-10-30 엔진 리뷰) | cad-model 약 351곳(문서 필드 `insetMM`·`offsetMM`, `editCurvePole` `xMM/yMM/zMM`, 재료 JSON, agent 출력 `axisLengthMM`)과 kernel에서 넘어오는 이름. | Model + Kernel + Docs. 진행 중 lane과 파일 충돌을 피해 조용한 경계에서 | 문서는 최신 schema만 따르므로 fixture 갱신, 생성 docs 표 재생성, 남은 접미사 0 |
@@ -398,6 +398,22 @@ direct `ruledSurface`/`loft` results are not linked to their sources.
 
 Both need Kernel/Model/API → actual Studio edit, a source-change regeneration and file proof before
 any completion claim.
+
+**Kernel feature issues 2026-10-30** (owner: "커널 관련해서 어떤 기능들이 더 필요한지 기능별로 자세히 이슈로").
+Fourteen issues, each with current state (file:line at `302027519`), gap, increments, acceptance,
+dependencies and constraints; static reading only, nothing run: #2253 general SSI, #2254 Boolean
+contact cases and fuzz38, #2255 certified predicates (child of #1657), #2256 non-manifold/multi-result
+outputs, #2257 exact sweep, #2258 exact thicken and surface offset (#2089 first increment), #2259 fillet
+generality, #2260 freeform shell, #2261 draft generality, #2262 healing of imports (rows 16/26),
+#2263 STEP breadth (rows 13/28), #2264 B-rep direct editing (row 31), #2265 throughput and
+large-model benchmark (rows 22/23), #2266 NURBS degree/pole limits. Suggested order: #2255 → #2253 →
+#2254/#2256; #2265 benchmark and #2266 may start any time; then #2258, #2260/#2263 with #2257/#2259/#2261;
+#2262 after #2255/#2263; #2264 last. Owner decision before adoption: #2257, #2258 and #2259 replace
+existing faceted or mitre results, #2265 increment 3 (Newton closest point) and #2266 increment 2
+(import knot splitting) change existing outputs; until decided they are opt-in. Reading corrections:
+partial cylinder crossings are built in closed form (`analytic-boolean.ts` 1043; the header is stale);
+shell already admits surfaces of revolution; SSI skips near-parallel-normal seeds, so tangent contacts
+get no seed. Closure after D354: #2051 closed as completed (all three sections present).
 
 ### 제품 완료와 인계의 공통 조건
 
