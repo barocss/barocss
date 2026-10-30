@@ -17146,6 +17146,9 @@ Suites (job about 24 min):
 
 Not changed here: no test was excluded or edited. The owner chooses how CI treats these three before the batch PR to develop.
 
+
+**Closure 2026-10-30 (owner: "github actions 에서는 못하니깐 로컬에서만 테스트 되면 돼", then "Clean up here").** GitHub Actions runners cannot present a WebGPU canvas headless (software compositing; WebGPU interop disabled), and under Xvfb three SwiftShader cases still differ, so the owner chose local-only browser testing. The CI browser job is reverted as one new commit (reverts of `14dfe667c`, `065f2df1f`, `f74f8b060`, `e4351b0d9`; no amend): `.github` equals its pre-row-33 state, `.github/scripts/*.test.mjs` 73/73 PASS. The gpu and viewer WebGPU browser suites run locally with `CHROME` and `PW_DIR` set (Mac Metal 59/59 PASS earlier in this entry). Remote runs 1–3 and the cancelled run 4 stay recorded above. Row 33 closes as local-only; a GPU runner is a separate owner decision.
+
 ## D360 — Retire 100 unused legacy kernel files, keep 37; refactor batch 3b step ① (R7.3d) (2026-10-30)
 
 Qualify `dca18afab` (702 paths; base `fa79c9969`). [Note](notes/kernel-refactor-3b-2026-10-30/README.md), with the two lists [retired.txt](notes/kernel-refactor-3b-2026-10-30/retired.txt) and [kept.txt](notes/kernel-refactor-3b-2026-10-30/kept.txt). Input: the reachability set D, 137 kernel files that nothing outside the kernel uses.

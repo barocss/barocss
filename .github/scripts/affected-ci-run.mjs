@@ -2,8 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, readdirSync, lstatSync, mkdirSync, copyFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { digest, safePath, validatePlan, validateAggregate, browserSuitesRequired } from './affected-ci-plan.mjs';
-import { runBrowserSuites } from './browser-ci.mjs';
+import { digest, safePath, validatePlan, validateAggregate } from './affected-ci-plan.mjs';
 
 function run(command, args) {
   const start = Date.now();
@@ -49,8 +48,9 @@ function packageScript(name, directory, command, expected) {
   if (manifest.name !== name || typeof manifest.scripts?.[command] !== 'string' || (expected !== undefined && manifest.scripts[command] !== expected)) throw new Error('selected script missing or changed');
   run('pnpm', ['--filter', name, 'run', command]);
 }
-function regressionBrowser() {
-  runBrowserSuites(['@barocss/gpu', '@barocss/viewer']);
+function viewer() {
+  // Real-browser WebGPU tests: they skip without CHROME and PW_DIR.
+  for (const name of ['viewer-browser', 'viewer-native-browser']) run(process.execPath, ['--test', '--test-concurrency=1', `packages/barocss-viewer/tests/${name}.test.mjs`]);
   run(process.execPath, ['--test', 'examples/viewer-native-scene-replacement/surface-curvature-contract.test.mjs']);
 }
 function rootChecks() {
@@ -146,28 +146,20 @@ function restore(plan) {
 async function main() {
   const plan = JSON.parse(readFileSync('affected-ci-plan.json', 'utf8')); checkCurrent(plan);
   const action = process.argv[2];
-  console.log('Required CI runs lint/types/build, plus real WebGPU browser suites for affected gpu/viewer (skips fail). Other package/runtime tests run on manual/pre-release regression. Application tests are external: run locally or on Execute Tester. This CI does not claim they passed.');
+  console.log('Required CI runs lint/types/build. Package/runtime tests run on manual/pre-release regression. Application tests are external: run locally or on Execute Tester. This CI does not claim they passed.');
   if (action === 'aggregate') { const needs = JSON.parse(process.env.CI_NEEDS); validateAggregate(plan, { ...needs, build: needs.prerequisites }); console.log('Selected CI coverage succeeded', plan.planId); return; }
-  if (action === 'browser') {
-    const names = browserSuitesRequired(plan);
-    if (!names.length) throw new Error('browser suites not selected');
-    if (plan.mode === 'full') run('pnpm', [...names.flatMap((name) => ['--filter', `${name}...`]), 'run', 'build:library']);
-    else restore(plan);
-    const result = runBrowserSuites(names);
-    if (result.status !== 'PASS') throw new Error('browser suites did not run');
-    return;
-  }
   if (action === 'full' || action === 'regression') {
     const concurrency = spawnSync('pnpm', ['config', 'get', 'workspace-concurrency'], { encoding: 'utf8' });
     if (concurrency.status !== 0 || concurrency.stdout.trim() !== '2') throw new Error('full workspace concurrency must be 2');
     if (plan.mode !== 'full') throw new Error('wrong route');
     const regression = action === 'regression';
     if (regression && !['workflow_dispatch', 'workflow_call'].includes(process.env.GITHUB_EVENT_NAME)) throw new Error('regression requires a manual/pre-release caller');
+    if (regression) viewer();
     for (const args of fullCheckCommands(JSON.parse(readFileSync('package.json', 'utf8')), regression)) {
       run('pnpm', args);
       if (args.length === 1 && args[0] === 'lint') await appLint(plan, undefined, regression);
     }
-    if (regression) { regressionBrowser(); rootChecks(); } if (plan.docsNeeded) docs(); return; }
+    if (regression) rootChecks(); if (plan.docsNeeded) docs(); return; }
   if (plan.mode === 'full') throw new Error('partial action on full plan');
   if (action === 'build') { build(plan); return; }
   restore(plan);
