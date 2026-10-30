@@ -4,6 +4,7 @@ import type { SketchShape, SketchState } from './types';
 import { sampleSegment, type P2 } from './profile';
 import { angleKey, circlePairKeys, distanceKey, edgeCircleKey, isSettled, samePick, type Polygon, type SketchPick } from './rules';
 import { segmentDistance as toSegment } from '../engine/geom2';
+import { tagsOf } from './entityIds';
 
 /** Plane coordinates → screen pixels. */
 export type Project = (u: number, v: number) => readonly number[];
@@ -89,7 +90,10 @@ export function sketchClick(s: SketchState, hit: SketchPick | null, additive: bo
 export function rectangleOutline(r: Extract<NonNullable<SketchState['shape']>, { kind: 'rectangle' }>): Polygon | null {
   const x0 = Math.min(r.a[0], r.b[0]), x1 = Math.max(r.a[0], r.b[0]), y0 = Math.min(r.a[1], r.b[1]), y1 = Math.max(r.a[1], r.b[1]);
   if (x1 - x0 < 1 || y1 - y0 < 1) return null;
-  return { kind: 'polygon', points: [[x0, y0], [x1, y0], [x1, y1], [x0, y1]], closed: true, bulges: [0, 0, 0, 0], hv: { h: [0, 2], v: [1, 3] }, fromRectangle: true };
+  const points: [number, number][] = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
+  // (Side ids follow the sides, not their order: the outline runs from the lower-left corner, the rectangle from `a`.)
+  const ids = tagsOf(r, points.map(start => ({ kind: 'line' as const, start })));
+  return { kind: 'polygon', points, closed: true, bulges: [0, 0, 0, 0], hv: { h: [0, 2], v: [1, 3] }, fromRectangle: true, ...(ids ? { ids } : {}), ...(r.construction ? { construction: true as const } : {}) };
 }
 
 /**

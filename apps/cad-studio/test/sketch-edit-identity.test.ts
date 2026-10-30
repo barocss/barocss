@@ -121,3 +121,17 @@ test('D349: a reopened sketch edit keeps its body', async () => {
   assert.deepEqual(f.accepted[0].nodes.filter((_, i) => i !== index), doc.nodes.filter((_, i) => i !== index));
   assert.ok(extrudeFields(f.accepted[0], index, on).includes('op'));
 });
+
+test('D355: Edit sketch then Finish on a rectangle with a circle hole (and a Bezier drawn first) keeps the stored side tags', async () => {
+  const bezier = { kind: 'bezier' as const, poles: [[0, 20], [10, 40], [20, 20]] as [number, number][] };
+  const fresh = actions(part('D355').box({ w: 4, d: 4, h: 4 }).doc);
+  fresh.setSketch({ plane: xyPlane(), tool: 'circle', shape: { kind: 'circle', c: [5, 3], r: 1 }, done: [bezier, { kind: 'rectangle', a: [0, 0], b: [10, 6] }] });
+  fresh.render(); fresh.api.finishSketch(); await setImmediate();
+  assert.equal(fresh.accepted.length, 1);
+  const doc = fresh.accepted[0], index = doc.nodes.length - 1, stored = doc.nodes[index] as unknown as { sideTags?: { outer: string[] } };
+  assert.ok(stored.sideTags, 'the node carries side tags');
+  const f = actions(doc); f.api.editSketch(index);
+  f.render(); f.api.finishSketch(); await setImmediate();
+  assert.equal(f.notices.length, 0); assert.equal(f.accepted.length, 1);
+  assert.deepEqual((f.accepted[0].nodes[index] as unknown as { sideTags?: unknown }).sideTags, stored.sideTags);
+});
