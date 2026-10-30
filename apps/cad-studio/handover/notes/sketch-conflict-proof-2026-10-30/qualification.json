@@ -1,0 +1,68 @@
+{
+  "decision": "D350",
+  "roadmap": "09 Advanced sketch — CG3 (third bounded item: conflict versus nonconvergence diagnostics)",
+  "status": "BOUNDED_QUALIFIED",
+  "scope": "After the kernel's NONCONVERGENCE, prove a conflict exactly for rectilinear outlines (straight H/V edges, their lengths, dx/dy distances, fixed points incl. the point-1 anchor; nothing else in the sketch), relaxed by 4x the kernel linear tolerance, within a 4096-check sign search; otherwise keep the nonconvergence message. DOF and redundancy messages unchanged.",
+  "baseCommit": "fbbe7e671",
+  "sourceCommit": "b3157a614",
+  "sourcePaths": ["packages/barocss-cad-model/src/sketch/conflict.ts", "packages/barocss-cad-model/src/sketch/profile.ts", "packages/barocss-cad-model/test/sketch-conflict-proof.test.ts", "apps/cad-studio/test/sketch-conflict-proof-browser.mjs", "apps/cad-studio/test/fixtures/d350.bcad", "apps/library-docs/docs/studio/sketches.md", "apps/library-docs/docs/how/sketch-solver.md"],
+  "models": {
+    "rootJudgmentAndVerification": "claude-opus-5-5 (main session)",
+    "independentAudit": "claude-opus-5-5 sub-agent",
+    "implementation": "Sonnet sub-agents from frozen briefs (proof+tests+docs in an isolated worktree; audit follow-ups in this worktree; Studio driver)",
+    "rootEdits": "driver oracle threshold 2*TOL -> 4*TOL before run00; mutant re-check",
+    "sol": "NOT_USED"
+  },
+  "baselineDefects": [
+    "provable rectilinear conflicts (rectangle 60/50, L 60 vs 40+30, dx 60 vs length 50, length 30 vs dy 20) reported only as 'this is not an inconsistency proof' while the docs promised a conflict refusal (probe-before/conflict.ts)",
+    "actual Studio run00: Edge 3 length 50 against 60 showed the nonconvergence text"
+  ],
+  "model": {
+    "newTests": 15,
+    "negativeControl": "first version: 7 pass / 5 fail without the solveOutline wiring",
+    "affected": "102/102 (sketch- editFields engine fit) after audit follow-ups; 99/99 before",
+    "types": "PASS",
+    "lint": "PASS",
+    "mutants": "after follow-ups the new tests catch m2 (no anchor, test 14) and m7 (float32, test 13)"
+  },
+  "studioUnit": { "constraintsSketchIdsSketchEditIdentity": "32/32", "types": "PASS", "expectationChanges": 0 },
+  "kernel": { "sourceChanged": false },
+  "audit": {
+    "verdict": "CHANGES_REQUIRED (docs/tests only; code sound)",
+    "falseProofs": "0 in 18,000 oracle-comparison and 3,600 kernel-property cases",
+    "findings": ["docs overclaim (band, other rules, budget) fixed", "exactness test non-discriminating fixed (one-ulp boundary)", "anchor-only test added; test renamed", "direct-caller index hardening added", "worst budget ~0.6 s at n=62 retained", "conflict flag not passed through checkEdit (nit, retained)"]
+  },
+  "browser": {
+    "run00": "BASELINE_FAIL_AS_EXPECTED at 02: nonconvergence text for a provable conflict; errors 0, resources closed",
+    "run01": "PASS on the pre-follow-up source (superseded by run02 after conflict.ts changed)",
+    "status": "PASS_RUN_02",
+    "chromeProcesses": 1,
+    "serialContexts": 2,
+    "cases": { "conflict": ["02 Edge3 50 vs 60", "05 Edge3 45 vs 60 after edit", "08 Edge3 50 after fresh Open"], "redundant": "03 Edge3 60", "accepted": "04 Edge2 40 -> volume 24000", "nonconvergence": "06 triangle Edge3 30 (no Conflict claim)" },
+    "productReads": 3,
+    "independentPythonFractionOracles": 3,
+    "nativeFiles": 1,
+    "frozenFiles": 761,
+    "frozenEqualsCommit": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "cleanup": ["CONTEXT_CLOSED", "CONTEXT_CLOSED", "BROWSER_CLOSED", "SERVER_CLOSED"]
+  },
+  "visual": { "status": "SCOPED_PASS", "rootImages": ["run01 02-conflict", "run01 06-nonconvergence"], "note": "A reopened standalone sketch away from the bodies is framed on the body region, so the triangle is off-screen (existing framing, not D350)" },
+  "limits": [
+    "Only rectilinear outlines with nothing else in the sketch; any arc, circle or other rule falls back to the nonconvergence message",
+    "Contradictions within a few 1e-7 mm (the relaxation band) are not proven",
+    "Sign search capped at 4096 checks; worst observed ~0.6 s synchronous at n=62 before 'budget'",
+    "The Studio panel shows the reason without the dimension label (existing settleShape behaviour)",
+    "solveOutline still throws for a dx rule with a fractional point (pre-existing, unreachable from the UI)",
+    "Hashes are provenance only"
+  ],
+  "fullKernel": "NOT_RUN",
+  "fullModel": "NOT_RUN",
+  "fullStudio": "NOT_RUN",
+  "docsSiteBuild": "NOT_RUN",
+  "perfBench": "NOT_RUN (diagnostic path only runs after a failed solve; latency measured by the audit)",
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

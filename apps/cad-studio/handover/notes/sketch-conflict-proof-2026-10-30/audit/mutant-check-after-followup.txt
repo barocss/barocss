@@ -1,0 +1,11 @@
+Root mutant check after the audit follow-up edits (new test file bundled with sketch/conflict redirected to each mutant;
+mutants from the audit, see mut/):
+== m2-no-anchor
+not ok 14 - a conflict that depends only on the anchor (no fix on point 0)
+not ok 15 - malformed indices are outside the class and do not throw
+# pass 13 / fail 2
+== m7-float32
+not ok 13 - one-ulp boundary of a dx chain: largest double within the bound is feasible, the next is proven
+not ok 15 - malformed indices are outside the class and do not throw
+# pass 13 / fail 2
+(15 fails on both because the mutants predate the hardening; 14 and 13 are the targeted catches.)

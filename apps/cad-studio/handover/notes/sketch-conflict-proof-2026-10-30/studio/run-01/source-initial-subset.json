@@ -1,0 +1,17 @@
+{
+  "count": 12,
+  "hashes": {
+    "apps/cad-studio/src/App.tsx": "ff5557ec527a330c0e783fc5a51f4a17f6e915a6d179c15fb02a7c19522bfccc",
+    "apps/cad-studio/src/sketch/useSketchActions.ts": "1c3c224608078c7a2a94a17b78c97b2fb19df576a52492199a6a06f316a5f1e7",
+    "apps/cad-studio/src/ui/NodeEditor.tsx": "25d592886d4829b0d2140a842d8e19251b28f407059dd4d6d5370928c482d459",
+    "apps/cad-studio/src/ui/SketchMarks.tsx": "63ea04a442b7e328ad6e6eb0b1833ce7c390a1037d14065de78b64b088bb4358",
+    "apps/cad-studio/src/ui/SketchPanel.tsx": "f34d280de50d1114a7c2caf595ea4c795e951a3b5590a81e513efb26109ec942",
+    "apps/cad-studio/test/fixtures/d350.bcad": "d44214f4cb256a81d91e8d84ba383728f0e7ac62bea5b11eb3377621a8a0c642",
+    "apps/cad-studio/test/sketch-conflict-proof-browser.mjs": "f3a3d1361637fd6f42bcacf3aa1b032364e708fefe2073b0d38dfbdc6977382e",
+    "packages/barocss-cad-model/src/sketch/outlineFields.ts": "ff5efa088588959f162abfb0d2b089b0ed2406fe10b31d57ce3b125af71859bb",
+    "packages/barocss-cad-model/src/sketch/profile.ts": "25c9b0ac1aa52470df3d25b82561c7be35133557f3d2f3f401be72d5cf4d0b21",
+    "packages/barocss-cad-model/src/sketch/reopen.ts": "27f5708610580e10723dc9ccbc847735d149f0c79a3a55f2da22e96feb5530b5",
+    "packages/barocss-cad-model/src/sketch/rules.ts": "396e50b31071792a3b0643d01b1bbe0f742a007e699dfca14e3c627cbbaa6720",
+    "packages/barocss-cad-model/src/sketch/settle.ts": "f336249a64bd8b86419053507a7646a41cca952f9c4ae5becbf98cafa630ae94"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "results": [
+    {
+      "label": "04-native#0",
+      "kind": "rect",
+      "edge": 2,
+      "value": "45",
+      "opposite": 0,
+      "oppositeStored": "60",
+      "difference": "15",
+      "verdict": "conflict",
+      "analyticVolume": 24000.0
+    }
+  ],
+  "productImports": 0
+}

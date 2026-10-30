@@ -1,0 +1,174 @@
+{
+  "label": "02-conflict",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "polygon",
+        "points": [
+          [
+            0,
+            0
+          ],
+          [
+            60,
+            0
+          ],
+          [
+            60,
+            30
+          ],
+          [
+            0,
+            30
+          ]
+        ],
+        "outline": {
+          "points": [
+            [
+              0,
+              0
+            ],
+            [
+              60,
+              0
+            ],
+            [
+              60,
+              30
+            ],
+            [
+              0,
+              30
+            ]
+          ],
+          "lengths": {
+            "0": 60
+          },
+          "hv": {
+            "h": [
+              0,
+              2
+            ],
+            "v": [
+              1,
+              3
+            ]
+          }
+        },
+        "sideTags": {
+          "outer": [
+            "e1",
+            "e2",
+            "e3",
+            "e4"
+          ]
+        },
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 10,
+        "id": "n1"
+      },
+      {
+        "kind": "sketch",
+        "profile": "polygon",
+        "points": [
+          [
+            100.00000000034353,
+            -5.476437497007764e-10
+          ],
+          [
+            110.00000000062094,
+            -9.89416394234131e-10
+          ],
+          [
+            104.70001060074209,
+            8.479983038812657
+          ]
+        ],
+        "outline": {
+          "points": [
+            [
+              100.00000000034353,
+              -5.476437497007764e-10
+            ],
+            [
+              110.00000000062094,
+              -9.89416394234131e-10
+            ],
+            [
+              104.70001060074209,
+              8.479983038812657
+            ]
+          ],
+          "lengths": {
+            "0": 10,
+            "1": 10
+          },
+          "hv": {
+            "h": [
+              0
+            ],
+            "v": []
+          }
+        },
+        "sideTags": {
+          "outer": [
+            "e1",
+            "e2",
+            "e3"
+          ]
+        },
+        "id": "n2"
+      }
+    ],
+    "outputs": {
+      "b1": {
+        "node": 1,
+        "side": "solid"
+      }
+    },
+    "nextId": 3
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b1",
+        "volume": 18000,
+        "centroid": [
+          30.000000000000007,
+          15.000000000000004,
+          5
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 1,
+    "active": null,
+    "sketch": true,
+    "measure": false
+  },
+  "notices": [],
+  "editor": null,
+  "sketchPanel": "SKETCH · Select · Z 0Under-defined · 1 DOF left — add dimensions or constraintsConflict: no shape meets all of these constraints (proven for horizontal and vertical edges, their lengths, axis distances and fixed points)XYEdge1234ADD CONSTRAINTPick points and edges with Select (S) · Shift addsHHorizVVert∥Parallel⊥Perp=Equal◎Centre⌒Tangent⟷Sym⚓Fix↔DimensionCONSTRAINTS · 6Anchorpoint 1×Horizontaledge 1×Horizontaledge 3×Verticaledge 2×Verticaledge 4×Lengthedge 1 = 60×Solverrank 7 · 1 DOFOFFSETmmOutInCURVESMake curves of the sketch",
+  "hud": null,
+  "sketchAlert": "Conflict: no shape meets all of these constraints (proven for horizontal and vertical edges, their lengths, axis distances and fixed points)",
+  "sketchStatus": "Under-defined · 1 DOF left — add dimensions or constraints"
+}

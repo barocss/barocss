@@ -1,0 +1,1 @@
+{"ok":true,"error":null,"bodyCount":1,"evalVolume":24000,"probes":[{"node":0,"edge":2,"value":45,"kind":"rect","expect":"conflict","key":"len2","ok":false,"reason":"Length of edge 3 = 45: Conflict: no shape meets all of these constraints (proven for horizontal and vertical edges, their lengths, axis distances and fixed points)"}]}
