@@ -1,0 +1,891 @@
+{
+  "node": "v22.19.0",
+  "scope": "Captured old straight placement/error behavior for differential preservation; not an independent curved geometry oracle",
+  "cases": [
+    {
+      "name": "line",
+      "path": {
+        "degree": 1,
+        "knots": [
+          0,
+          0,
+          1,
+          2,
+          2
+        ],
+        "controlPoints": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            16,
+            0,
+            0
+          ],
+          [
+            16,
+            16,
+            0
+          ]
+        ],
+        "weights": [
+          1,
+          1,
+          1
+        ]
+      },
+      "spacing": 8,
+      "count": 5,
+      "offsets": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          8,
+          0,
+          0
+        ],
+        [
+          16,
+          0,
+          0
+        ],
+        [
+          16,
+          8,
+          0
+        ],
+        [
+          16,
+          16,
+          0
+        ]
+      ],
+      "status": "ACCEPTED"
+    },
+    {
+      "name": "line",
+      "path": {
+        "degree": 1,
+        "knots": [
+          0,
+          0,
+          1,
+          2,
+          2
+        ],
+        "controlPoints": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            16,
+            0,
+            0
+          ],
+          [
+            16,
+            16,
+            0
+          ]
+        ],
+        "weights": [
+          1,
+          1,
+          1
+        ]
+      },
+      "spacing": 6,
+      "count": 5,
+      "offsets": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          6,
+          0,
+          0
+        ],
+        [
+          12,
+          0,
+          0
+        ],
+        [
+          16,
+          2,
+          0
+        ],
+        [
+          16,
+          8,
+          0
+        ]
+      ],
+      "status": "ACCEPTED"
+    },
+    {
+      "name": "line",
+      "path": {
+        "degree": 1,
+        "knots": [
+          0,
+          0,
+          1,
+          2,
+          2
+        ],
+        "controlPoints": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            16,
+            0,
+            0
+          ],
+          [
+            16,
+            16,
+            0
+          ]
+        ],
+        "weights": [
+          1,
+          1,
+          1
+        ]
+      },
+      "spacing": 10,
+      "count": 3,
+      "offsets": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          10,
+          0,
+          0
+        ],
+        [
+          16,
+          4,
+          0
+        ]
+      ],
+      "status": "ACCEPTED"
+    },
+    {
+      "name": "line",
+      "path": {
+        "degree": 1,
+        "knots": [
+          0,
+          0,
+          1,
+          2,
+          2
+        ],
+        "controlPoints": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            16,
+            0,
+            0
+          ],
+          [
+            16,
+            16,
+            0
+          ]
+        ],
+        "weights": [
+          1,
+          1,
+          1
+        ]
+      },
+      "spacing": 8,
+      "count": 1,
+      "offsets": [
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      "status": "ACCEPTED"
+    },
+    {
+      "name": "line",
+      "path": {
+        "degree": 1,
+        "knots": [
+          0,
+          0,
+          1,
+          2,
+          2
+        ],
+        "controlPoints": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            16,
+            0,
+            0
+          ],
+          [
+            16,
+            16,
+            0
+          ]
+        ],
+        "weights": [
+          1,
+          1,
+          1
+        ]
+      },
+      "spacing": 8.000000000000002,
+      "count": 5,
+      "status": "REFUSED",
+      "code": "PARAMETER",
+      "message": "last cut placement exceeds the open path length"
+    },
+    {
+      "name": "quadratic-straight",
+      "path": {
+        "degree": 2,
+        "knots": [
+          0,
+          0,
+          0,
+          1,
+          1,
+          2,
+          2,
+          2
+        ],
+        "controlPoints": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            8,
+            0,
+            0
+          ],
+          [
+            16,
+            0,
+            0
+          ],
+          [
+            16,
+            8,
+            0
+          ],
+          [
+            16,
+            16,
+            0
+          ]
+        ],
+        "weights": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      "spacing": 8,
+      "count": 5,
+      "offsets": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          8,
+          0,
+          0
+        ],
+        [
+          16,
+          0,
+          0
+        ],
+        [
+          16,
+          8,
+          0
+        ],
+        [
+          16,
+          16,
+          0
+        ]
+      ],
+      "status": "ACCEPTED"
+    },
+    {
+      "name": "quadratic-straight",
+      "path": {
+        "degree": 2,
+        "knots": [
+          0,
+          0,
+          0,
+          1,
+          1,
+          2,
+          2,
+          2
+        ],
+        "controlPoints": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            8,
+            0,
+            0
+          ],
+          [
+            16,
+            0,
+            0
+          ],
+          [
+            16,
+            8,
+            0
+          ],
+          [
+            16,
+            16,
+            0
+          ]
+        ],
+        "weights": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      "spacing": 6,
+      "count": 5,
+      "offsets": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          6,
+          0,
+          0
+        ],
+        [
+          12,
+          0,
+          0
+        ],
+        [
+          16,
+          2,
+          0
+        ],
+        [
+          16,
+          8,
+          0
+        ]
+      ],
+      "status": "ACCEPTED"
+    },
+    {
+      "name": "quadratic-straight",
+      "path": {
+        "degree": 2,
+        "knots": [
+          0,
+          0,
+          0,
+          1,
+          1,
+          2,
+          2,
+          2
+        ],
+        "controlPoints": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            8,
+            0,
+            0
+          ],
+          [
+            16,
+            0,
+            0
+          ],
+          [
+            16,
+            8,
+            0
+          ],
+          [
+            16,
+            16,
+            0
+          ]
+        ],
+        "weights": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      "spacing": 10,
+      "count": 3,
+      "offsets": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          10,
+          0,
+          0
+        ],
+        [
+          16,
+          4,
+          0
+        ]
+      ],
+      "status": "ACCEPTED"
+    },
+    {
+      "name": "quadratic-straight",
+      "path": {
+        "degree": 2,
+        "knots": [
+          0,
+          0,
+          0,
+          1,
+          1,
+          2,
+          2,
+          2
+        ],
+        "controlPoints": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            8,
+            0,
+            0
+          ],
+          [
+            16,
+            0,
+            0
+          ],
+          [
+            16,
+            8,
+            0
+          ],
+          [
+            16,
+            16,
+            0
+          ]
+        ],
+        "weights": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      "spacing": 8,
+      "count": 1,
+      "offsets": [
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      "status": "ACCEPTED"
+    },
+    {
+      "name": "quadratic-straight",
+      "path": {
+        "degree": 2,
+        "knots": [
+          0,
+          0,
+          0,
+          1,
+          1,
+          2,
+          2,
+          2
+        ],
+        "controlPoints": [
+          [
+            0,
+            0,
+            0
+          ],
+          [
+            8,
+            0,
+            0
+          ],
+          [
+            16,
+            0,
+            0
+          ],
+          [
+            16,
+            8,
+            0
+          ],
+          [
+            16,
+            16,
+            0
+          ]
+        ],
+        "weights": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      "spacing": 8.000000000000002,
+      "count": 5,
+      "status": "REFUSED",
+      "code": "PARAMETER",
+      "message": "last cut placement exceeds the open path length"
+    },
+    {
+      "name": "translated-nonuniform",
+      "path": {
+        "degree": 1,
+        "knots": [
+          -10,
+          -10,
+          -9,
+          20,
+          20
+        ],
+        "controlPoints": [
+          [
+            100,
+            -200,
+            300
+          ],
+          [
+            116,
+            -200,
+            300
+          ],
+          [
+            116,
+            -184,
+            300
+          ]
+        ],
+        "weights": [
+          1,
+          1,
+          1
+        ]
+      },
+      "spacing": 8,
+      "count": 5,
+      "offsets": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          8,
+          0,
+          0
+        ],
+        [
+          16,
+          0,
+          0
+        ],
+        [
+          16,
+          8,
+          0
+        ],
+        [
+          16,
+          16,
+          0
+        ]
+      ],
+      "status": "ACCEPTED"
+    },
+    {
+      "name": "translated-nonuniform",
+      "path": {
+        "degree": 1,
+        "knots": [
+          -10,
+          -10,
+          -9,
+          20,
+          20
+        ],
+        "controlPoints": [
+          [
+            100,
+            -200,
+            300
+          ],
+          [
+            116,
+            -200,
+            300
+          ],
+          [
+            116,
+            -184,
+            300
+          ]
+        ],
+        "weights": [
+          1,
+          1,
+          1
+        ]
+      },
+      "spacing": 6,
+      "count": 5,
+      "offsets": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          6,
+          0,
+          0
+        ],
+        [
+          12,
+          0,
+          0
+        ],
+        [
+          16,
+          2,
+          0
+        ],
+        [
+          16,
+          8,
+          0
+        ]
+      ],
+      "status": "ACCEPTED"
+    },
+    {
+      "name": "translated-nonuniform",
+      "path": {
+        "degree": 1,
+        "knots": [
+          -10,
+          -10,
+          -9,
+          20,
+          20
+        ],
+        "controlPoints": [
+          [
+            100,
+            -200,
+            300
+          ],
+          [
+            116,
+            -200,
+            300
+          ],
+          [
+            116,
+            -184,
+            300
+          ]
+        ],
+        "weights": [
+          1,
+          1,
+          1
+        ]
+      },
+      "spacing": 10,
+      "count": 3,
+      "offsets": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          10,
+          0,
+          0
+        ],
+        [
+          16,
+          4,
+          0
+        ]
+      ],
+      "status": "ACCEPTED"
+    },
+    {
+      "name": "translated-nonuniform",
+      "path": {
+        "degree": 1,
+        "knots": [
+          -10,
+          -10,
+          -9,
+          20,
+          20
+        ],
+        "controlPoints": [
+          [
+            100,
+            -200,
+            300
+          ],
+          [
+            116,
+            -200,
+            300
+          ],
+          [
+            116,
+            -184,
+            300
+          ]
+        ],
+        "weights": [
+          1,
+          1,
+          1
+        ]
+      },
+      "spacing": 8,
+      "count": 1,
+      "offsets": [
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      "status": "ACCEPTED"
+    },
+    {
+      "name": "translated-nonuniform",
+      "path": {
+        "degree": 1,
+        "knots": [
+          -10,
+          -10,
+          -9,
+          20,
+          20
+        ],
+        "controlPoints": [
+          [
+            100,
+            -200,
+            300
+          ],
+          [
+            116,
+            -200,
+            300
+          ],
+          [
+            116,
+            -184,
+            300
+          ]
+        ],
+        "weights": [
+          1,
+          1,
+          1
+        ]
+      },
+      "spacing": 8.000000000000002,
+      "count": 5,
+      "status": "REFUSED",
+      "code": "PARAMETER",
+      "message": "last cut placement exceeds the open path length"
+    }
+  ]
+}

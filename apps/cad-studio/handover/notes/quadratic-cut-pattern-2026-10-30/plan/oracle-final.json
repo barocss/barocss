@@ -1,0 +1,297 @@
+{
+  "status": "PASS",
+  "productImports": 0,
+  "cases": [
+    {
+      "name": "authorable right quadratic",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          20,
+          0
+        ],
+        [
+          20,
+          20
+        ]
+      ],
+      "authority": "exact fixed-point sqrt intervals and Simpson fourth-derivative bound at128 uniform panels; analyticNumber only crosscheck",
+      "speedSquared": {
+        "A": "3200",
+        "B": "-1600",
+        "C": "1600",
+        "delta": "2560000"
+      },
+      "certifiedMinimumSpeed": 28,
+      "certifiedFourthDerivativeBound": 7000,
+      "totalLength": [
+        32.46450479343963,
+        32.464504811548714
+      ],
+      "analyticLengthCrosscheck": 32.46450480280461,
+      "offsets": [
+        {
+          "distance": 10,
+          "parameter": 0.2860197077970952,
+          "exactParameter": {
+            "n": "314481994496",
+            "d": "1099511627776"
+          },
+          "offset": [
+            9.804642846917092,
+            1.6361454649667142
+          ],
+          "exactOffset": [
+            {
+              "n": "11853085889737957822955520",
+              "d": "1208925819614629174706176"
+            },
+            {
+              "n": "1977978497243643485880320",
+              "d": "1208925819614629174706176"
+            }
+          ],
+          "exactOffsetCurveResidualUpper": 4.633966678280683e-9,
+          "offsetRoundingL1Upper": 7.090682208055201e-16,
+          "worldEuclideanResidualUpper": 4.6339673873489035e-9
+        },
+        {
+          "distance": 20,
+          "parameter": 0.6317024959716946,
+          "exactParameter": {
+            "n": "694564239616",
+            "d": "1099511627776"
+          },
+          "offset": [
+            17.287138970530407,
+            7.980960868337377
+          ],
+          "exactOffset": [
+            {
+              "n": "20898868648740469330411520",
+              "d": "1208925819614629174706176"
+            },
+            {
+              "n": "9648389659067045276549120",
+              "d": "1208925819614629174706176"
+            }
+          ],
+          "exactOffsetCurveResidualUpper": 6.6252608666428816e-9,
+          "offsetRoundingL1Upper": 7.264154555652882e-16,
+          "worldEuclideanResidualUpper": 6.625261593058337e-9
+        }
+      ],
+      "work": {
+        "panels": 128,
+        "evaluations": 534,
+        "inverseIterations": 64
+      },
+      "stockMinusThreeCutsGuide": {
+        "volume": 23550,
+        "centroid": [
+          30.238268905621354,
+          20.15848976857768,
+          5
+        ],
+        "centroidFromCurvePositionErrorUpper": 7.171483427010981e-11
+      }
+    },
+    {
+      "name": "asymmetric quadratic",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          20,
+          0
+        ],
+        [
+          24,
+          18
+        ]
+      ],
+      "authority": "exact fixed-point sqrt intervals and Simpson fourth-derivative bound at128 uniform panels; analyticNumber only crosscheck",
+      "speedSquared": {
+        "A": "2320",
+        "B": "-1280",
+        "C": "1600",
+        "delta": "2073600"
+      },
+      "certifiedMinimumSpeed": 29,
+      "certifiedFourthDerivativeBound": 3400,
+      "totalLength": [
+        32.95184910225117,
+        32.95184911104702
+      ],
+      "analyticLengthCrosscheck": 32.951849106872366,
+      "offsets": [
+        {
+          "distance": 10,
+          "parameter": 0.27735445788130164,
+          "exactParameter": {
+            "n": "304954451456",
+            "d": "1099511627776"
+          },
+          "offset": [
+            9.863370390345974,
+            1.3846589155193532
+          ],
+          "exactOffset": [
+            {
+              "n": "11924083133311671561355264",
+              "d": "1208925819614629174706176"
+            },
+            {
+              "n": "1673949914330937489358848",
+              "d": "1208925819614629174706176"
+            }
+          ],
+          "exactOffsetCurveResidualUpper": 1.5408740591071373e-9,
+          "offsetRoundingL1Upper": 1.6956921977673294e-16,
+          "worldEuclideanResidualUpper": 1.540874228676357e-9
+        },
+        {
+          "distance": 20,
+          "parameter": 0.6030945109669119,
+          "exactParameter": {
+            "n": "663109427456",
+            "d": "1099511627776"
+          },
+          "offset": [
+            18.30421261214178,
+            6.547013804851535
+          ],
+          "exactOffset": [
+            {
+              "n": "22128435234533931838603264",
+              "d": "1208925819614629174706176"
+            },
+            {
+              "n": "7914854030058434279374848",
+              "d": "1208925819614629174706176"
+            }
+          ],
+          "exactOffsetCurveResidualUpper": 3.2574534535327184e-9,
+          "offsetRoundingL1Upper": 3.9540853230546357e-16,
+          "worldEuclideanResidualUpper": 3.2574538489412507e-9
+        }
+      ],
+      "work": {
+        "panels": 128,
+        "evaluations": 531,
+        "inverseIterations": 63
+      },
+      "stockMinusThreeCutsGuide": {
+        "volume": 23550,
+        "centroid": [
+          30.231416668773964,
+          20.16922501451993,
+          5
+        ],
+        "centroidFromCurvePositionErrorUpper": 3.0562599220494314e-11
+      }
+    },
+    {
+      "name": "live middle-pole edit",
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          20,
+          5
+        ],
+        [
+          20,
+          20
+        ]
+      ],
+      "authority": "exact fixed-point sqrt intervals and Simpson fourth-derivative bound at128 uniform panels; analyticNumber only crosscheck",
+      "speedSquared": {
+        "A": "2000",
+        "B": "-1400",
+        "C": "1700",
+        "delta": "1440000"
+      },
+      "certifiedMinimumSpeed": 26,
+      "certifiedFourthDerivativeBound": 3500,
+      "totalLength": [
+        30.809778558485117,
+        30.809778567539656
+      ],
+      "analyticLengthCrosscheck": 30.80977856321602,
+      "offsets": [
+        {
+          "distance": 10,
+          "parameter": 0.2707530736224726,
+          "exactParameter": {
+            "n": "297696152704",
+            "d": "1099511627776"
+          },
+          "offset": [
+            9.363978407378582,
+            3.4406030049848866
+          ],
+          "exactOffset": [
+            {
+              "n": "11320355270993842426019840",
+              "d": "1208925819614629174706176"
+            },
+            {
+              "n": "4159433807769909904179200",
+              "d": "1208925819614629174706176"
+            }
+          ],
+          "exactOffsetCurveResidualUpper": 1.7678776455676288e-9,
+          "offsetRoundingL1Upper": 4.328406123105256e-16,
+          "worldEuclideanResidualUpper": 1.767878078408241e-9
+        },
+        {
+          "distance": 20,
+          "parameter": 0.6095533755142242,
+          "exactParameter": {
+            "n": "670211024128",
+            "d": "1099511627776"
+          },
+          "offset": [
+            16.95102866855327,
+            9.81108693115009
+          ],
+          "exactOffset": [
+            {
+              "n": "20492536226441839675965440",
+              "d": "1208925819614629174706176"
+            },
+            {
+              "n": "11860876309550998891397120",
+              "d": "1208925819614629174706176"
+            }
+          ],
+          "exactOffsetCurveResidualUpper": 5.378092525097388e-9,
+          "offsetRoundingL1Upper": 1.0209931858296e-15,
+          "worldEuclideanResidualUpper": 5.3780935460905735e-9
+        }
+      ],
+      "work": {
+        "panels": 128,
+        "evaluations": 537,
+        "inverseIterations": 65
+      },
+      "stockMinusThreeCutsGuide": {
+        "volume": 23550,
+        "centroid": [
+          30.243216515439922,
+          20.13533955454691,
+          5
+        ],
+        "centroidFromCurvePositionErrorUpper": 4.551574283120264e-11
+      }
+    }
+  ]
+}

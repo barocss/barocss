@@ -1,0 +1,20 @@
+{
+  "status": "READ_ONLY_PREPARATION_CONTRACT_PENDING",
+  "repositoryEdits": false,
+  "build": "NOT_RUN",
+  "tests": "NOT_RUN",
+  "browser": "NOT_RUN",
+  "d345ArtifactsModified": false,
+  "modelPrimaryChange": "engine/curveFeaturePattern.ts numerical admission/length/placement delegation after High contract",
+  "otherLikelyChange": "only existing Path command hint and empty text",
+  "existingAPIShapeSufficient": true,
+  "acceptedInputSemanticsWiden": true,
+  "newSharedExportDecision": "PENDING_HIGH_ROOT_CONTRACT",
+  "actualUIAuthorRoute": "Sketch single Line -> Make curves degree2/3poles/weights1 -> Direct Control point P1 lazy X/Y edits",
+  "newAppAuthorHookRequired": false,
+  "selectionRisk": "Path successful Apply is not in current Offset/Fill selection-clear branch; record witness alias before repick; not yet a D346 reproduced defect",
+  "files": {
+    "source-map.md": "93f58ab439eae0341b0869242428482357c187350bd1947f8dd5f014dd544699",
+    "test-plan.md": "00044b0ded3867c924d94e11f8dabf3d6b016e7220939fd7ad57e0fa720ba62c"
+  }
+}

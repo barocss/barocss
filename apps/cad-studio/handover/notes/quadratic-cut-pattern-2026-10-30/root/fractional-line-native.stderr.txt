@@ -1,0 +1,8 @@
+file:///private/tmp/d346-root/fractional-line-native.mjs:7
+const snapshot=p.evaluate(),out=snapshot.outputs[0],expected=24000-3*150;
+                 ^
+
+TypeError: p.evaluate is not a function
+    at file:///private/tmp/d346-root/fractional-line-native.mjs:7:18
+
+Node.js v22.19.0

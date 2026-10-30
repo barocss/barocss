@@ -1,0 +1,9 @@
+{
+  "ownedSourceSHA256": {
+    "packages/barocss-cad-model/src/engine/curveFeaturePattern.ts": "6e8401b33e3c248105d6f17ff220e84845708405816c0faa0ba80e8f7caa8fc8",
+    "packages/barocss-cad-model/src/app/commands.ts": "40038af0c928b749618a8a7f35273cf5e78fb0c01e484f9394c79a755735926c",
+    "packages/barocss-cad-model/test/quadratic-feature-pattern.test.ts": "afca5ac9ea74ffe1e6ed02c0ecd0153fe76a68a2dbe27408e4472c599e4f5abb",
+    "packages/barocss-cad-model/test/api-curve-feature-pattern.test.ts": "b3f91f147672cd44e39e72a867633a86ab7bfc8847999b72047e5532b0297837"
+  },
+  "reviewSHA256": "a3aeb99f7d5f294ca06f7b86557cd99911eae9dde3530a5ea999d44d882e6603"
+}

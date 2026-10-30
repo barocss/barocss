@@ -1,0 +1,31 @@
+{
+  "status": "SOURCE_READY_FROZEN_WAITING_ROOT_STUDIO_AND_BROWSER_GATES",
+  "driverSha256": "68bfe8a11aea020a2729bee5d8921d65251971da9b659a446008c549320be18a",
+  "checks": {
+    "syntax": "PASS",
+    "scopedLint": "PASS_WITH_ONE_NO_CONSOLE_WARNING",
+    "browser": "NOT_RUN",
+    "build": "NOT_RUN",
+    "heavy": "NOT_RUN"
+  },
+  "numericContract": {
+    "status": "FROZEN",
+    "positionTolerance": 1e-07,
+    "volumeTolerance": 1e-07,
+    "centroidTolerance": 1e-07,
+    "policy": "Existing bounded ordinary oracles; no tolerance expansion.",
+    "positionalAuthority": "Reviewed exact dyadic sqrt/Simpson inverse+joint output rounding certificate; independent Decimal80 analytic ordinary-fixture crosscheck,6certified10/20referenceballs;12/24 are additional highprecisioncrosschecks, notcertifiedDecimalintervals"
+  },
+  "authorityInputs": {
+    "/tmp/d346-review/final-core-review.md": "c7b886d9ecc64478e9cd2665271f543df98ec1bb171c65439e76e23bbf556074",
+    "/tmp/d346-plan/oracle-final.json": "ad12d0f8256de8eee448c277baf8d14b4f66701ea887939673210221d2fb4359"
+  },
+  "publicInspectorCompatibility": "Read-only source inspection confirms offsets and length.lower/upper/estimate; public wrapper maps known refusals to VALUE and returns no internal work field. Inspector uses only these public fields.",
+  "sourceGate": "D346_SOURCE_FROZEN=1 required before generation/server/browser; initial subset and expanded full frozen maps retained.",
+  "launch": {
+    "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+    "command": "D346_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME=\"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome\" /Users/user/Library/pnpm/nodejs/22.19.0/bin/node apps/cad-studio/test/quadratic-cut-pattern-browser.mjs /tmp/d346-studio/run-01"
+  },
+  "scope": "One Chrome; serial contexts; actual UI authored unit-domain quadratic; spacing10/12, liveP1 edit, translation, native files, exact accepted selection postcondition, atomic tooLong refusal. Root must separately inspect screenshots.",
+  "notClaimed": "No Decimal interval certification, arbitrary-domain actual browser, general quadratic families, general Boolean/selection remapping or product success before actual run."
+}

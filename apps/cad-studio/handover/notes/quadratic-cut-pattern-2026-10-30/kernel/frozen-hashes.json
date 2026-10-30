@@ -1,0 +1,9 @@
+{
+  "src/features/curve-cut-pattern.ts": "f4c435337229921935906f8a55877ba7226fbeac49efc08d779348688643d24a",
+  "src/features/quadratic-cut-arithmetic.ts": "47fe4a5f2c9b9853828b3315e3f0cdb5f20867e70c6db1c5a290c6e038563563",
+  "src/features/quadratic-cut-plan.ts": "de244b7826e9424d7b121b95c56275ea1b760956801841d1d280a81dd7c7ef5b",
+  "src/api/curve-feature-pattern-plan.ts": "9ced2ad6b7f58027ba8e820188623da7c12ace027f9bd47fce123ffa2ddca067",
+  "src/api/index.ts": "46c4e80584ec19603127795e9f28f6cfb5d74d22f815cf27177ddd333b4c5f26",
+  "test/quadratic-cut-pattern.test.mjs": "06be27bc92d7bbf7edb0a946dc98bbf33a3a0e2fd07046e92a94d6fad66699c4",
+  "test/helpers/quadratic-cut-oracle.mjs": "bfc9c3bc8aa02524b11057b8c9c7a3dafca0328d49fbe3b0c9535768c066faf5"
+}

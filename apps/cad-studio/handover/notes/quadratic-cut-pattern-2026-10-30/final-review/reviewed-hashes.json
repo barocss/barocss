@@ -1,0 +1,16 @@
+{
+  "status": "SCOPED_PASS",
+  "reviewSHA256": "3637973467ac596c4968f8d4ec07c2880cc42ac13c7e88df932ee81fc2f26938",
+  "reviewerRuntime": "NOT_RUN",
+  "sourceSHA256": {
+    "apps/cad-studio/src/App.tsx": "ff5557ec527a330c0e783fc5a51f4a17f6e915a6d179c15fb02a7c19522bfccc",
+    "apps/cad-studio/test/quadratic-cut-pattern-browser.mjs": "68bfe8a11aea020a2729bee5d8921d65251971da9b659a446008c549320be18a",
+    "packages/barocss-cad/src/api/curve-feature-pattern-plan.ts": "8f0e9a43339a78e6803da7ceb94391213928b2e0d99c17593c177ae27f0d93f4",
+    "packages/barocss-cad/src/api/index.ts": "46c4e80584ec19603127795e9f28f6cfb5d74d22f815cf27177ddd333b4c5f26",
+    "packages/barocss-cad-model/test/quadratic-feature-pattern.test.ts": "2f49a33d585e95b7af0ae8e0ff311dca4826489a7ba9569103823918ef05f341",
+    "packages/barocss-cad/src/features/curve-cut-pattern.ts": "aa5a11e8065c516160f6916f8919e233b220f2b2050bf197bf533d4c6fe9f7bd",
+    "packages/barocss-cad/src/features/quadratic-cut-arithmetic.ts": "47fe4a5f2c9b9853828b3315e3f0cdb5f20867e70c6db1c5a290c6e038563563",
+    "packages/barocss-cad/src/features/quadratic-cut-plan.ts": "de244b7826e9424d7b121b95c56275ea1b760956801841d1d280a81dd7c7ef5b"
+  },
+  "run02ReceiptSHA256": "b12b43eafe20af7cfdd90780e60647457ad985a0b3a4312e682914689a1f7ca2"
+}

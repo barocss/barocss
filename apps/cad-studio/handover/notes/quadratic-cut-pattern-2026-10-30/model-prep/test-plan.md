@@ -1,0 +1,21 @@
+# D346 proposed consumer tests and product proof
+
+Status: PROPOSED, NOT_RUN. Numerical inputs, positional residual policy and exact shared helper interface await High/root contract.
+
+## Model/API focused controls
+
+- **Exact old line preservation:** existing degree1 polyline and equivalent exact-midpoint degree2 inputs retain old numeric lengths, every represented offset and @k name, source CUT activity, count1 behavior, parameter binding and serialized node shape. Keep the current huge/subnormal/TwoSum midpoint controls; do not replace old straight tests with a curved-only oracle.
+- **Real nonstraight span:** create the actual existing outlineCurve one-line output, edit P1 by directOps.editCurvePole, then resolve inline and live paths through the actual command. Use independently derived length/inverse placement on the stored poles, not control-polygon chords or production estimates as expected values. The P0(0,0),P1(20,0),P2(20,20) curve has B(.5)=(15,5), distinct from chord midpoint(10,10). A spacing10/count3 interior fixture avoids treating a rounded full-path endpoint constant as exact authority.
+- **Material and identity:** source stock60×40×10, asymmetric3×5×10 CUT plus independent witness420; three disjoint admitted cuts imply V23550. Derive first moments and actual cut corners from independent offsets. Verify native strict geometry, stable @1/@2 names, source prefix/feature IDs and no query mutation. Fixed cutter orientation is explicit; no tangent rotation or clipping.
+- **Regularity/refusal:** test non-midpoint collinear/backtracking inputs and actual interior zero-speed/cusp candidates against the final classifier; require deterministic refusal rather than silently fitting a line. Equal endpoints/closed path, zero endpoint derivative if excluded, rational weights, multi-span curved, non-XY/new-frame, malformed arrays, nonfinite/range/budget and distance-too-long remain outside the bounded family as agreed. Never loosen tolerance to admit a fixture.
+- **Live edit atomicity:** direct P1 changes, valid Stretch and whole-path Move, missing/delete, invalid/cusp/shortened source; accepted document/selection/source/Undo remain unchanged on refusal, then valid retry. Compare current source geometry rather than inferred display point or stale sourceVersion.
+- **Files and containers:** raw inline path and base live objectId native Save/read/wire preserve coefficients, keys, names and spacing bindings. Suppressed/pending/nested invalid recipes cannot bypass admission; live nested references remain refused under existing policy. No format bump or broad flatten semantics change.
+- **API audit:** same RawNurbsPath/CurveFeaturePatternPath/options signatures and method names can carry the input. Semantic acceptance widens. Preserve old callers; root must count any new shared Kernel planner export or internal subpath rather than assuming none. Keep Count unbindable and Spacing bindable.
+
+## Smallest actual Studio proof
+
+One Chrome and serial contexts. Public API seed only the stock/original CUT and a stable witness after it. Use actual Sketch Line → Make curves → Direct Control point P1 X/Y to author one new curved path. Readonly observation decodes stored source; no document/selection mutation hook.
+
+Choose that live path in the existing command. Preview Cancel, invalid distance refusal with no accepted doc/selection/history change, valid retry Apply, then inspect actual accepted selection/body order before any repick. Verify independent offsets/material/mass/names, one literal Spacing edit, one valid live P1 or Stretch edit and one invalid live edit/refusal/retry. Use Undo/Redo and native Save/fresh Open to reselect the same editable Path/Spacing/Count and source coefficient fields. A full D334 rerun is unnecessary; only meaningful old no-change focused controls accompany the new profile.
+
+Root must review screenshots for visible curved reference and translated fixed-orientation cuts. Pixels are not the arc-length or native geometry oracle. Keep page/console/watch/download errors, source caps, virtual-stdin exclusion and cleanup receipts. If the known Path selection index risk becomes actual witness alias, preserve the first failure and request root's bounded consumer fix before qualifying the curved generality.

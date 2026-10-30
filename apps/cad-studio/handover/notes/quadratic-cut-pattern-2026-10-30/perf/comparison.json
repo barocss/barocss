@@ -1,0 +1,87 @@
+{
+  "status": "PAIRED_OBSERVATION_SHAPE_PASS",
+  "baselineScope": "Held pre-final-optimization D346 WIP built variant, NOT published D345 source",
+  "scriptSHA256": "eee742a91af488363a70662144026a89052f92290feb5c1dea34daf681977217",
+  "node": "v22.19.0",
+  "protocol": {
+    "warmup": 3,
+    "runs": 7,
+    "batch": 1,
+    "timer": "Full feature evaluation and native CUT result; fresh authored fixture creation outside timer",
+    "cases": [
+      "quadratic-path-cut-3",
+      "straight-path-cut-3"
+    ],
+    "heavy": "Serial owned heavy gate; no other own heavy jobs"
+  },
+  "baselineTimings": {
+    "quadratic-path-cut-3": {
+      "ms": 5,
+      "fp": "587d9286e97a1bb3",
+      "rawDuration": [
+        5.358791999999994,
+        5.741292000000016,
+        4.629166999999995,
+        5.135833000000019,
+        4.563417000000015,
+        5.757666,
+        4.547582999999975
+      ],
+      "median": 5.135833000000019,
+      "perQuery": 5.135833000000019,
+      "unit": "ms",
+      "batch": 1,
+      "warmup": 3,
+      "runs": 7
+    },
+    "straight-path-cut-3": {
+      "ms": 3,
+      "fp": "3449b732b83723fe",
+      "rawDuration": [
+        2.524916000000019,
+        2.6126669999999876,
+        3.2748750000000086,
+        2.591124999999977,
+        2.335083000000054,
+        2.623457999999971,
+        2.3047919999999635
+      ],
+      "median": 2.591124999999977,
+      "perQuery": 2.591124999999977,
+      "unit": "ms",
+      "batch": 1,
+      "warmup": 3,
+      "runs": 7
+    }
+  },
+  "correctness": "Shape strict validity/counts/names/volume/centroid saved; independent curved point/moment oracles remain separate; hashes are provenance/differential only",
+  "limits": [
+    "No planner-only latency claim",
+    "No actual Studio end-to-end timing claim",
+    "Seven samples of one case pair do not establish universal performance",
+    "64-copy baseline fails work certification; no accepted-shape before/after comparison exists for that case"
+  ],
+  "candidate": "Kernel audit-v2 frozen candidate, Core geometry/planner paths unchanged by later failure-adapter allocation lift",
+  "comparisons": {
+    "quadratic-path-cut-3": {
+      "beforeMedian": 5.135833000000019,
+      "afterMedian": 4.430542000000003,
+      "percent": -13.732747930082889,
+      "bitIdentity": false,
+      "shape": "SAME",
+      "volumeBefore": 23550,
+      "volumeAfter": 23550,
+      "centroidMaximumDelta": 0.0
+    },
+    "straight-path-cut-3": {
+      "beforeMedian": 2.591124999999977,
+      "afterMedian": 2.5067090000000007,
+      "percent": -3.2578899126818217,
+      "bitIdentity": true,
+      "shape": "SAME",
+      "volumeBefore": 23550,
+      "volumeAfter": 23550,
+      "centroidMaximumDelta": 0.0
+    }
+  }
+}

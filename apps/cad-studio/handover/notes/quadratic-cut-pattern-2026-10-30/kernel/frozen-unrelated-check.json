@@ -1,0 +1,22 @@
+{
+  "src/brep/brep-mass-quadrature.ts": {
+    "actual": "696ec924bc4f1d7b74862533676af5e4c0b8a2a284a8a249ea7007dade4c8ed5",
+    "expected": "696ec924bc4f1d7b74862533676af5e4c0b8a2a284a8a249ea7007dade4c8ed5",
+    "match": true
+  },
+  "src/brep/solid-mass.ts": {
+    "actual": "19ec118c7f6096f738d246e5ca46095b42dd9bf7f67e341bcc6f735690141eac",
+    "expected": "19ec118c7f6096f738d246e5ca46095b42dd9bf7f67e341bcc6f735690141eac",
+    "match": true
+  },
+  "src/features/prismatic-solid.ts": {
+    "actual": "17f2b70b5ecbe0b1ab7912636d780fa1594469804f4af7fb48365212bc802f5a",
+    "expected": "17f2b70b5ecbe0b1ab7912636d780fa1594469804f4af7fb48365212bc802f5a",
+    "match": true
+  },
+  "src/features/fill-cut-pattern.ts": {
+    "actual": "0fec3fd49214621265507db89229fe957cfa6aef2ad0e1ccf42150ebd1e0684f",
+    "expected": "0fec3fd49214621265507db89229fe957cfa6aef2ad0e1ccf42150ebd1e0684f",
+    "match": true
+  }
+}

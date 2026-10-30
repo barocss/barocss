@@ -1,5 +1,14 @@
 # Hand-over (2026-10-28)
 
+## Latest D346 / Claude handoff — 2026-10-30
+
+The owner now requests finishing the current work, committing and merging to develop, then handing over to Claude. **Start no new feature in this session.** Read the [current handoff](../claude-handoff-2026-10-30/README.md) first.
+
+- D346 sources `aed4d1535`/`24fb68ff4` qualify the bounded single polynomial quadratic CUT path. [Qualification](../quadratic-cut-pattern-2026-10-30/qualification.json). Kernel31/Model97/types/lint/API/generated/Studio build-chat23 pass; no new full suites.
+- Source audit defects and first actual witness-selection FAIL remain preserved. Final same-driver run02 has oneChrome/three serialcontexts/12observations/9native reads/6oracles/2native files, root six-image scoped review, source979 maps match/errors0/allclose. Public64 counter196882 is one Node profile, not all quadratic/browser64 support.
+- NextD347 positive untrimmed Extend is STOPPED_BY_USER/incomplete read-only planning; no new defect, implementation or runtime qualification. Reuse [08 scope ledger](../quadratic-cut-pattern-2026-10-30/model-prep/roadmap08-scope-ledger.md); assess bounded08 exit after Extend before09.07delivered/Electron15queued. Follow current GitHub PR/CI for the final integration state.
+
+
 ## Latest D345 checkpoint — 2026-10-30
 
 - Shared optional readonly polygon-hole Fill CUT mask implemented in `eaa1ec299`, driver locator fix `b22f7ba2e`, successful-Fill selection fix `283b48afb`; nine distinct implementation paths. [Qualification](../fill-cut-pattern-holes-2026-10-30/qualification.json). Existing total16 straight vertices, worldXY/reference-point/seed/order/names semantics remain. Curves, frames and full-tool containment remain open.
