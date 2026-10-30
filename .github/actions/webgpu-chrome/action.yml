@@ -2,7 +2,8 @@ name: WebGPU Chrome
 description: Install Playwright and a SwiftShader WebGPU Chrome wrapper and export CHROME and PW_DIR for the browser suites.
 
 # Playwright is a CI-only tool installed outside the workspace (no lockfile entry);
-# chrome.sh gives every browser test the same SwiftShader WebGPU flags.
+# chrome.sh applies WEBGPU_CHROME_FLAGS; the runner (browser-ci.mjs) probes the flag sets and uses the first that
+# presents a WebGPU canvas, so no flags are exported here.
 runs:
   using: composite
   steps:

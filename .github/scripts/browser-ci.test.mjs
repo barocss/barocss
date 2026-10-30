@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { browserTestFiles, checkBrowserEnvironment, parseTapSummary, assertRealRun, runBrowserSuites } from './browser-ci.mjs';
+import { browserTestFiles, checkBrowserEnvironment, parseTapSummary, assertRealRun, runBrowserSuites, chromeFlagSets, selectChromeFlags } from './browser-ci.mjs';
 
 const clean = { tests: 3, pass: 3, fail: 0, cancelled: 0, skipped: 0, todo: 0, skips: [] };
 const tap = `TAP version 13
@@ -59,4 +59,32 @@ test('runBrowserSuites reports NOT_RUN locally and fails in CI before spawning',
   assert.deepEqual(runBrowserSuites(['@barocss/gpu'], { env: {}, log: (line) => lines.push(line) }), { status: 'NOT_RUN', results: [] });
   assert.match(lines.join('\n'), /NOT_RUN/);
   assert.throws(() => runBrowserSuites(['@barocss/gpu'], { env: { CI: 'true' }, log: () => {} }), /CI requires CHROME and PW_DIR/);
+});
+
+test('chromeFlagSets are ordered and each later set extends the first', () => {
+  assert.deepEqual(chromeFlagSets.map(({ name }) => name), ['swiftshader-gl', 'swiftshader-angle', 'swiftshader-vulkan', 'swiftshader-vulkan-nosurface']);
+  for (const { flags } of chromeFlagSets.slice(1)) assert.ok(flags.startsWith(chromeFlagSets[0].flags + ' '));
+  assert.match(chromeFlagSets[3].flags, /--enable-features=Vulkan .*--disable-vulkan-surface$/);
+});
+
+test('selectChromeFlags probes each set in order with the wrapper and keeps the first pass', () => {
+  const seen = [];
+  const spawn = (_, __, options) => { seen.push(options.env.WEBGPU_CHROME_FLAGS); return { status: seen.length === 2 ? 0 : 1 }; };
+  const env = { WEBGPU_REAL_CHROME: '/chrome' }; const lines = [];
+  assert.equal(selectChromeFlags(env, { spawn, log: (line) => lines.push(line) }), 'swiftshader-angle');
+  assert.deepEqual(seen, [chromeFlagSets[0].flags, chromeFlagSets[1].flags]);
+  assert.equal(env.WEBGPU_CHROME_FLAGS, chromeFlagSets[1].flags);
+  assert.match(lines.join(), /swiftshader-angle/);
+  const all = [];
+  assert.throws(() => selectChromeFlags({ WEBGPU_REAL_CHROME: '/chrome' }, { spawn: (_, __, o) => (all.push(o.env.WEBGPU_CHROME_FLAGS), { status: 1 }), log: () => {} }), /no Chrome flag set presents a WebGPU canvas/);
+  assert.equal(all.length, chromeFlagSets.length);
+});
+
+test('selectChromeFlags runs one probe when flags are pinned or no wrapper is in use', () => {
+  for (const env of [{ WEBGPU_REAL_CHROME: '/chrome', WEBGPU_CHROME_FLAGS: '--x' }, { CHROME: '/c' }]) {
+    let calls = 0;
+    assert.equal(selectChromeFlags(env, { spawn: () => (calls++, { status: 0 }), log: () => {} }), null);
+    assert.equal(calls, 1);
+    assert.throws(() => selectChromeFlags(env, { spawn: () => ({ status: 1 }), log: () => {} }), /WebGPU probe failed/);
+  }
 });
