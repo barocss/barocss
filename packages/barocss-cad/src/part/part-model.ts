@@ -65,7 +65,7 @@ import { readNativeSIInertia, transferNativeMassBasis, unsupportedNativeMass } f
 import { glueAtSharedFace } from '../brep/brep-glue.js';
 import { loftSolid, type LoftInput, type LoftSectionFrame, type LoftSectionInput } from '../features/loft.js';
 import { type MeshShellReport } from '../mesh/mesh-offset.js';
-import { bendAllowance, bendDeduction, flangeSection, lookupBend, outsideSetback, type BendTable, type BendTableUse, type SheetReport } from '../frame-sheet/sheet-metal.js';
+import { type BendTable, type SheetReport } from '../frame-sheet/sheet-metal.js';
 import { flatPattern as sheetFlatPattern, isFlatPatternError, type FlatPattern } from '../frame-sheet/sheet-flat.js';
 import { isExtrudedProfileError, buildProfileLoop, type ProfileSegmentInput } from '../features/extruded-profile-solid.js';
 import { type BeadReport, type EndCapReport, type GussetReport, type BeadJointRef, type BeadSharedComponent } from '../frame-sheet/frame-weldment.js';
@@ -1191,159 +1191,16 @@ function frameOf(plane: CadPartSketchPlane, xyz: Tools['xyz'], fail: Tools['fail
 }
 /** A point of a sketch's own XYZ in the part. */
 const framed = (frame: Frame | undefined, p: Point): Point => !frame ? p : [frame.m[0] * p[0] + frame.m[1] * p[1] + frame.m[2] * p[2] + frame.o[0], frame.m[3] * p[0] + frame.m[4] * p[1] + frame.m[5] * p[2] + frame.o[1], frame.m[6] * p[0] + frame.m[7] * p[1] + frame.m[8] * p[2] + frame.o[2]];
-/** A bend's K: the sheet's, or its table's for T, R and the angle (R12.4, D120); a bend outside the table refused by name. */
-function bendK(rules: { readonly kFactor?: number; readonly bendTable?: BendTable }, T: number, R: number, angle: number, what: string, fail: Tools['fail']): { kFactor: number; use?: BendTableUse } {
-  if (rules.kFactor !== undefined) return { kFactor: rules.kFactor };
-  const r = lookupBend(rules.bendTable!, T, R, angle);
-  if ('miss' in r) return fail('PARAMETER', `[BEND_TABLE_MISS] ${what}: ${r.miss}`);
-  return r;
-}
 /** A solid's volume by its exact surfaces (quadrature where curved): the flange's collision test. */
-const exactVolume = (s: Solid) => s.kind === 'upright' ? prismaticVolume(s.solid) : brepMassProperties(s.brep, 1).volume;
-/**
- * An edge flange on a sheet (R12.3, D118; see the feature): its edge's frame (x out across the edge, y up from the picked
- * skin, z along the edge), the plate trimmed and relieved, the flange's section extruded and united; refused where it
- * meets the sheet anywhere but its root.
- */
-function sheetFlange(o: { part: Part; sheet: SheetReport; at: string; edge: string; T: number; K: { kFactor: number; use?: BendTableUse }; R: number; th: number; trim: number; straight: number; off: [number, number]; relief: { kind: 'rectangular' | 'obround'; width: number; depth: number } | null | undefined; fail: Tools['fail'] }): Result {
-  const { part, sheet, at, T, K, R, th, trim, straight, off, relief, fail } = o, brep = brepOf(part, 'target');
-  const e = edgeNamed(brep, o.edge, fail);
-  const ends = e.curve.controlPoints, A = ends[0], B = ends[ends.length - 1], Le = len(sub(B, A));
-  const tol = 1e-9 * Math.max(1, ...A.map(Math.abs), ...B.map(Math.abs));
-  if (!(e.curve.degree === 1 && ends.length === 2 && Le > tol)) fail('PARAMETER', `[EDGE_NOT_SHEET] ${e.name} is not straight: a flange goes on a straight edge`);
-  const u = scale(sub(B, A), 1 / Le), loopFace = new Map(brep.loops.map(l => [l.id, l.face])), faceIds = brep.coedges.filter(c => c.edge === e!.id).map(c => loopFace.get(c.loop)!);
-  const faces = faceIds.map(id => brep.faces.find(x => x.id === id)!), geos = faces.map(x => faceGeometry(x));
-  // The picked skin S and the thickness face E: both planes, square to each other and the edge; E with an edge along this
-  // one T below S over some of its length (the sheet T thick there; E may run on, merged with a flange's end beside it),
-  // the plate behind E.
-  let frame: { n: Point; m: Point; S: number } | null = null;
-  for (const [s, k] of [[0, 1], [1, 0]] as const) {
-    const gs = geos[s], ge = geos[k];
-    if (faces.length !== 2 || gs.kind !== 'plane' || ge.kind !== 'plane' || Math.abs(dot(gs.n, ge.n)) > 1e-9 || Math.abs(dot(gs.n, u)) > 1e-9 || Math.abs(dot(ge.n, u)) > 1e-9) continue;
-    const behind = faceVertices(brep, faces[s].id).map(q => dot(sub(q, A), ge.n));
-    if (Math.max(...behind) <= tol && hasEdgeBelow(brep, faces[k].id, A, u, Le, gs.n, T)) { frame = { n: gs.n, m: ge.n, S: s }; break; }
-  }
-  if (!frame) return fail('PARAMETER', `[EDGE_NOT_SHEET] ${e.name} is not an edge between the sheet's skin and its ${T} mm thickness`);
-  const { n, m } = frame, w = cross(m, n), zB = dot(sub(B, A), w), zlo = Math.min(0, zB), zhi = Math.max(0, zB);
-  // (Offsets from the edge's start (A) and end (B).)
-  const z0 = zlo + (zB > 0 ? off[0] : off[1]), z1 = zhi - (zB > 0 ? off[1] : off[0]);
-  if (!(z1 - z0 > 1e-6)) fail('PARAMETER', `[BEND_DOES_NOT_FIT] offsets ${off[0]} and ${off[1]} leave nothing of the ${+Le.toFixed(6)} mm edge`);
-  // The plate behind the edge must reach past the trim.
-  const depth = -Math.min(...faceVertices(brep, faces[frame.S].id).map(q => dot(sub(q, A), m)));
-  if (trim > 0 && !(depth > trim + tol)) fail('PARAMETER', `[BEND_DOES_NOT_FIT] the sheet is ${+depth.toFixed(6)} mm deep behind ${e.name}; the bend takes ${+trim.toFixed(6)} mm of it`);
-  const F: BrepAffine['matrix'] = [m[0], n[0], w[0], m[1], n[1], w[1], m[2], n[2], w[2]];
-  const local = (outer: ProfileSegmentInput[], from: number, h: number, tag: string, names?: { outer: string[]; bottom: string; top: string }) => affine({ kind: 'upright', solid: prismaticFromProfile({ outer, height: h, from: from, tag, ...(names ? { names } : {}) }) }, F, A);
-  // The cut into the plate, one tool (no two cuts with faces on one plane): the trim [−trim, 1] × [z0, z1] and a relief at
-  // each end inside the edge, `depth` past the bend's start, as one loop across the edge (x) and along it (z), taken down
-  // through the plate. (Bend outside: no trim, each relief its own loop.)
-  // An end inside the edge needs a relief said (kind, width and depth, or 'none'); 'none' cuts nothing there.
-  const inside0 = z0 > zlo + tol, inside1 = z1 < zhi - tol;
-  if ((inside0 || inside1) && relief === undefined) fail('PARAMETER', `[RELIEF_REQUIRED] the flange on ${e.name} ends inside the edge: give its relief — { kind: 'rectangular' | 'obround', width, depth } or { kind: 'none' }`);
-  const cut = relief ?? null, at0 = cut !== null && inside0, at1 = cut !== null && inside1;
-  const xd = cut ? -(trim + cut.depth) : -trim, r = cut ? cut.width / 2 : 0;
-  if ((at0 && z0 - 2 * r < zlo - tol) || (at1 && z1 + 2 * r > zhi + tol)) fail('PARAMETER', `[BEND_DOES_NOT_FIT] a relief ${cut!.width} mm wide does not fit beside the flange on ${e.name} (offset it at least that far)`);
-  if (cut?.kind === 'obround' && cut.depth < r) fail('PARAMETER', `[BEND_DOES_NOT_FIT] an obround relief needs a depth of at least half its width (${r} mm)`);
-  const loops: ProfileSegmentInput[][] = [];
-  const tail = (y: number, out: ProfileSegmentInput[], up: boolean) => {
-    // A relief from the edge (x = 1) across to its deep end and back, between y and y ± width (up: towards +z).
-    const y1 = up ? y + 2 * r : y - 2 * r;
-    if (cut!.kind === 'rectangular') { out.push({ kind: 'line', start: [xd, up ? y1 : y] }, { kind: 'line', start: [xd, up ? y : y1] }); return; }
-    out.push({ kind: 'arc', start: [xd + r, up ? y1 : y], center: [xd + r, (y + y1) / 2], direction: 'ccw' }, { kind: 'line', start: [xd + r, up ? y : y1] });
-  };
-  if (trim > 0) {
-    const ya = at0 ? z0 - 2 * r : z0, yb = at1 ? z1 + 2 * r : z1, loop: ProfileSegmentInput[] = [{ kind: 'line', start: [1, ya] }, { kind: 'line', start: [1, yb] }];
-    if (at1) tail(z1, loop, true);
-    loop.push({ kind: 'line', start: [-trim, z1] }, { kind: 'line', start: [-trim, z0] });
-    if (at0) tail(z0, loop, false);
-    loops.push(loop);
-  } else {
-    if (at0) { const l: ProfileSegmentInput[] = [{ kind: 'line', start: [1, z0 - 2 * r] }, { kind: 'line', start: [1, z0] }]; tail(z0 - 2 * r, l, true); loops.push(l); }
-    if (at1) { const l: ProfileSegmentInput[] = [{ kind: 'line', start: [1, z1] }, { kind: 'line', start: [1, z1 + 2 * r] }]; tail(z1, l, true); loops.push(l); }
-  }
-  const G: BrepAffine['matrix'] = [m[0], w[0], -n[0], m[1], w[1], -n[1], m[2], w[2], -n[2]], top = add(A, n);
-  let plate = part.solid;
-  // (Where the cut or the flange reaches another bend of the sheet the Boolean meets it along an edge: said so by name.)
-  const collide = (cause: unknown): never => {
-    if (cause instanceof Error && /not a manifold solid|touch along an edge/.test(cause.message)) fail('GEOMETRY', `[FLANGES_COLLIDE] the flange on ${e!.name} or its cut into the plate meets the sheet's other bends or flanges: keep it at least its setback (${+Math.max(trim, (R + T) * Math.tan(th / 2)).toFixed(6)} mm) from them`);
-    throw cause;
-  };
-  try { loops.forEach((outer, k) => { plate = boolean(plate, affine({ kind: 'upright', solid: prismaticFromProfile({ outer, height: T + 2, from: 0, tag: k ? `${at}.relief${k}` : trim > 0 ? `${at}.trim` : `${at}.relief0` }) }, G, top), 'difference', at); }); }
-  catch (cause) { collide(cause); }
-  const sec = flangeSection(at, T, R, th, trim, straight), piece = local([...sec.segments], z0, z1 - z0, at, { outer: [...sec.names], bottom: `${at}.start`, top: `${at}.end` });
-  // Joined at its root only: anything more is the flange running into the sheet (or another flange).
-  let out: Solid;
-  try { out = boolean(plate, piece, 'union', at); }
-  catch (cause) { collide(cause); }
-  // (Reliefs of neighbouring flanges may meet and cut a corner off: the sheet must stay one piece.)
-  const pieces = out!.kind === 'brep' ? out!.brep.bodies.length : 1;
-  if (pieces > 1) fail('GEOMETRY', `[SHEET_IN_PIECES] the flange on ${e.name} and its reliefs leave the sheet in ${pieces} pieces: move it, or its neighbour, further from the corner`);
-  const vp = exactVolume(plate), vf = exactVolume(piece), vu = exactVolume(out!);
-  if (vp + vf - vu > 1e-8 * (vp + vf)) fail('GEOMETRY', `[FLANGES_COLLIDE] the flange on ${e.name} runs into the sheet: ${+(vp + vf - vu).toPrecision(6)} mm³ of it overlaps`);
-  const c = add(A, add(scale(m, sec.center[0]), scale(n, sec.center[1])));
-  const bend = { name: `${at}.bend`, inner: `${at}.bend.inner`, outer: `${at}.bend.outer`, radius: R, angle: th * 180 / Math.PI, axis: { origin: c, direction: w }, allowance: bendAllowance(th, R, T, K.kFactor), setback: outsideSetback(th, R, T), deduction: bendDeduction(th, R, T, K.kFactor), kFactor: K.kFactor, ...(K.use ? { table: K.use } : {}) };
-  return { kind: 'solid', parts: [{ solid: out!, sheet: { ...sheet, bends: [...sheet.bends, bend] } }] };
-}
-/** An edge of a B-rep by its name, else by its faces' names without their piece numbers (one such edge). */
-function edgeNamed(brep: Brep, name: string, fail: Tools['fail']): Brep['edges'][number] {
-  let e = brep.edges.find(x => x.name === name);
-  if (!e) {
-    const want = name.split('|').map(n => n.replace(/#\d+$/, '')).sort().join('|');
-    const like = brep.edges.filter(x => x.name && x.name.split('|').map(n => n.replace(/#\d+$/, '')).sort().join('|') === want);
-    if (like.length > 1) fail('SELECTION', `${name} names ${like.length} edges: ${like.map(x => x.name).join(', ')}`);
-    e = like[0];
-  }
-  if (!e) return fail('SELECTION', `no edge named ${name}; edges: ${brep.edges.slice(0, 12).map(x => x.name).join(', ')}${brep.edges.length > 12 ? ', …' : ''}`);
-  return e;
-}
-/**
- * A corner relief on a sheet (R12.3b, D119; see the feature): the corner's frame (x and y into the plate along its two
- * edges, z along the thickness), the square or the quarter disc cut through it; refused unless exactly the plate's corner
- * goes (s² T or π s² T / 4) and the sheet stays one piece.
- */
-function sheetCornerRelief(part: Part, sheet: SheetReport, at: string, corner: string, shape: 'square' | 'round', s: number, fail: Tools['fail']): Result {
-  const T = sheet.thickness, brep = brepOf(part, 'target'), e = edgeNamed(brep, corner, fail);
-  const ends = e.curve.controlPoints, A = ends[0], B = ends[ends.length - 1], tol = 1e-9 * Math.max(1, ...A.map(Math.abs), ...B.map(Math.abs));
-  if (!(e.curve.degree === 1 && ends.length === 2 && Math.abs(len(sub(B, A)) - T) <= 1e-7 * Math.max(1, T))) fail('PARAMETER', `[EDGE_NOT_SHEET] ${e.name} is not a corner of the sheet: the straight edge, ${T} mm long, between two thickness faces`);
-  const d = scale(sub(B, A), 1 / len(sub(B, A))), loopFace = new Map(brep.loops.map(l => [l.id, l.face]));
-  const faces = brep.coedges.filter(c => c.edge === e.id).map(c => brep.faces.find(x => x.id === loopFace.get(c.loop))!), geos = faces.map(x => faceGeometry(x));
-  if (faces.length !== 2 || geos.some(g => g.kind !== 'plane') || geos.some(g => Math.abs(dot((g as { n: Point }).n, d)) > 1e-9)) fail('PARAMETER', `[EDGE_NOT_SHEET] ${e.name} is not between two thickness faces of the sheet`);
-  const m1 = (geos[0] as { n: Point }).n, m2 = (geos[1] as { n: Point }).n;
-  if (Math.abs(dot(m1, m2)) > 1e-9) fail('CAPABILITY', `[CORNER_NOT_SQUARE] the corner ${e.name} is ${+(Math.acos(Math.max(-1, Math.min(1, -dot(m1, m2)))) * 180 / Math.PI).toFixed(6)}°: corner reliefs are made at square corners yet`);
-  // Convex: each face behind the other's plane.
-  const behind = (face: string, n: Point) => faceVertices(brep, face).every(q => dot(sub(q, A), n) <= tol);
-  if (!behind(faces[1].id, m1) || !behind(faces[0].id, m2)) fail('CAPABILITY', `[CORNER_NOT_SQUARE] the corner ${e.name} is not convex`);
-  const X = scale(m1, -1), Y = scale(m2, -1), Z = cross(X, Y), zB = dot(sub(B, A), Z), z0 = Math.min(0, zB) - 1, z1 = Math.max(0, zB) + 1;
-  const outer: ProfileSegmentInput[] = shape === 'square' ? [{ kind: 'line', start: [-1, -1] }, { kind: 'line', start: [s, -1] }, { kind: 'line', start: [s, s] }, { kind: 'line', start: [-1, s] }] : [{ kind: 'arc', start: [s, 0], center: [0, 0], direction: 'ccw' }];
-  const tool = affine({ kind: 'upright', solid: prismaticFromProfile({ outer, height: z1 - z0, from: z0, tag: at }) }, [X[0], Y[0], Z[0], X[1], Y[1], Z[1], X[2], Y[2], Z[2]], A);
-  let out: Solid;
-  try { out = boolean(part.solid, tool, 'difference', at); }
-  catch (cause) { if (cause instanceof Error && /not a manifold solid|touch along an edge/.test(cause.message)) fail('GEOMETRY', `[CORNER_NOT_CLEAR] the relief at ${e.name} meets more than the plate's corner`); throw cause; }
-  const want = (shape === 'square' ? s * s : Math.PI * s * s / 4) * T, took = exactVolume(part.solid) - exactVolume(out!), pieces = out!.kind === 'brep' ? out!.brep.bodies.length : 1;
-  if (pieces > 1 || Math.abs(took - want) > 1e-8 * Math.max(want, exactVolume(part.solid))) fail('GEOMETRY', `[CORNER_NOT_CLEAR] the relief at ${e.name} would take ${+took.toPrecision(9)} mm³ (the plate's corner is ${+want.toPrecision(9)}): a flange or a cut is there already, or the size reaches past the plate`);
-  return { kind: 'solid', parts: [{ solid: out!, sheet }] };
-}
-/** Whether a face has a straight edge along u at T below the plane through A (normal n), overlapping [A, A + Le·u]. */
-function hasEdgeBelow(brep: Brep, face: string, A: Point, u: Point, Le: number, n: Point, T: number): boolean {
-  const loops = new Set(brep.loops.filter(l => l.face === face).map(l => l.id)), edges = new Map(brep.edges.map(x => [x.id, x])), tol = 1e-7 * Math.max(1, T);
-  for (const c of brep.coedges) {
-    if (!loops.has(c.loop)) continue;
-    const p = edges.get(c.edge)!.curve.controlPoints, a = p[0], b = p[p.length - 1], d = sub(b, a), l = len(d);
-    if (!(l > 0) || Math.abs(Math.abs(dot(d, u)) / l - 1) > 1e-9 || Math.abs(dot(sub(a, A), n) + T) > tol || Math.abs(dot(sub(b, A), n) + T) > tol) continue;
-    const s0 = Math.min(dot(sub(a, A), u), dot(sub(b, A), u)), s1 = Math.max(dot(sub(a, A), u), dot(sub(b, A), u));
-    if (Math.min(s1, Le) - Math.max(s0, 0) > tol) return true;
-  }
-  return false;
-}
+export const exactVolume = (s: Solid) => s.kind === 'upright' ? prismaticVolume(s.solid) : brepMassProperties(s.brep, 1).volume;
 /** The points of a face's loops' vertices (its edges' ends). */
-function faceVertices(brep: Brep, face: string): Point[] {
+export function faceVertices(brep: Brep, face: string): Point[] {
   const loops = new Set(brep.loops.filter(l => l.face === face).map(l => l.id)), edges = new Map(brep.edges.map(x => [x.id, x])), out: Point[] = [];
   for (const c of brep.coedges) if (loops.has(c.loop)) { const p = edges.get(c.edge)!.curve.controlPoints; out.push(p[0], p[p.length - 1]); }
   return out;
 }
 /** Parts made from sheets (holes, cuts) carrying their sheet's report, part for part (R12.2, D117). */
 const carrySheet = (r: Result, from: readonly Part[]): Result => r.kind === 'solid' && from.some(p => p.sheet) ? { kind: 'solid', parts: r.parts.map((q, i) => from[i]?.sheet ? { ...q, sheet: from[i].sheet } : q) } : r;
-/** A sheet feature's result: its one part carrying the sheet's report. */
-const withSheet = (r: Result, sheet: SheetReport): Result => r.kind === 'solid' ? { kind: 'solid', parts: r.parts.map(p => ({ ...p, sheet })) } : r;
 /** A result built on a sketch's own XY, moved onto its plane. */
 /** A guide given in world coordinates, into a sketch frame's (z along its normal); left as given when it is not well formed (the loft refuses it). */
 function guideInFrame(g: Record<string, unknown>, frame: Frame | undefined): Record<string, unknown> {
@@ -2814,5 +2671,5 @@ function stl(brep: Brep, segmentsPerQuarter: number): Uint8Array {
  * The part model's own helpers a feature family's module uses: passed in, never imported (they share this module's state,
  * the facet limit; `boolean` stays here). Frozen, so no family can swap one (R5.3, D221).
  */
-const HELPERS = Object.freeze({ isRecord, brepOf, CadPartLimits, stepSizeProblem, splitBodies, meshArrayOk, facetBody, facetTriangles, brepBodies, bendK, frameOf, framed, placed, sheetCornerRelief, sheetFlange, withSheet });
+const HELPERS = Object.freeze({ isRecord, brepOf, CadPartLimits, stepSizeProblem, splitBodies, meshArrayOk, facetBody, facetTriangles, brepBodies, frameOf, framed, placed });
 export type PartHelpers = typeof HELPERS;
