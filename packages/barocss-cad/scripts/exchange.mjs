@@ -85,15 +85,3 @@ runXYArcExchange();
 
 const { runRectangleExtrusionExchange } = await import('./rectangle-extrusion-exchange.mjs');
 runRectangleExtrusionExchange();
-
-const { runRectangleFeatureExchange } = await import('./rectangle-feature-exchange.mjs');
-runRectangleFeatureExchange();
-
-const { runLinearSketchExchange } = await import('./linear-sketch-exchange.mjs');
-runLinearSketchExchange();
-
-const { runAxisDimensionExchange } = await import('./axis-dimension-exchange.mjs');
-runAxisDimensionExchange();
-
-const { runPolygonRegionExchange } = await import('./polygon-region-exchange.mjs');
-runPolygonRegionExchange();

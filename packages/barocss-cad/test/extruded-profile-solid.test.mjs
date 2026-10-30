@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildProfileLoop, buildExtrudedProfileSolid, measureExtrudedProfileSolid, tessellateExtrudedProfileSolid, exportExtrudedProfileSolidStl, isExtrudedProfileError, evaluateCurve, cad, CadModelError } from '../dist/index.js';
+import { buildProfileLoop, buildExtrudedProfileSolid, measureExtrudedProfileSolid, tessellateExtrudedProfileSolid, exportExtrudedProfileSolidStl, isExtrudedProfileError, evaluateCurve } from '../dist/index.js';
 
 const slot = (l = 40, r = 6) => [
   { kind: 'line', start: [0, -r] },
@@ -96,39 +96,8 @@ test('mass matches the analytic box and a watertight mesh matches the volume', (
   assert.equal(stl.length, 84 + 50 * new DataView(stl.buffer).getUint32(80, true));
 });
 
-test('model graph: a parametric slot loop loads, measures, exports, saves and refuses convex-only operations', () => {
-  const at = (x, y) => [x, y];
-  const doc = { format: 'barocss-cad-model', schema: 1, units: 'mm', parameters: { length: 40, r: 6 }, nodes: [
-    { kind: 'sketch', profile: 'loop', segments: [
-      { kind: 'line', start: at(0, -6) }, { kind: 'arc', start: [{ parameter: 'length' }, -6], center: [{ parameter: 'length' }, 0], direction: 'ccw' },
-      { kind: 'line', start: [{ parameter: 'length' }, 6] }, { kind: 'arc', start: at(0, 6), center: at(0, 0), direction: 'ccw' }] },
-    { kind: 'extrude', sketch: 0, height: 5, from: 2 }], outputs: { slot: { node: 1, side: 'solid' } } };
-  const snap = cad.load(JSON.stringify(doc));
-  assert.equal(snap.bodies.slot.family, 'extruded-profile');
-  assert.deepEqual(snap.evidence.map(e => [e.kind, e.profile]), [['sketch', 'loop'], ['extrude', 'loop']]);
-  close(snap.bodies.slot.native.report.volume, (480 + Math.PI * 36) * 5, 1e-8, 'volume');
-  const longer = snap.withParameters({ length: 60 });
-  close(longer.bodies.slot.native.report.volume, (720 + Math.PI * 36) * 5, 1e-8, 'edited volume');
-  assert.deepEqual(longer.recomputation.evaluatedFeatures, [0, 1]);
-  const mass = snap.massProperties('slot', { densityKgPerM3: 2700 });
-  assert.equal(mass.family, 'extruded-profile'); close(mass.massKG, 2700 * (480 + Math.PI * 36) * 5e-9, 1e-15, 'mass');
-  close(mass.centroidMM[2], 4.5, 1e-12, 'cz');
-  const stl = snap.exportStl('slot');
-  assert.equal(stl.family, 'extruded-profile'); assert.equal(stl.byteLength, 84 + 50 * stl.triangleCount);
-  assert.ok(stl.maximumVertexDisplacementMM > 0 && stl.maximumVertexDisplacementMM < 0.01);
-  assert.deepEqual(JSON.parse(cad.load(snap.save()).save()), JSON.parse(snap.save()));
-  const refuse = (nodes, outputs = doc.outputs) => { try { cad.load(JSON.stringify({ ...doc, nodes, outputs })); return 'none'; } catch (e) { assert.ok(e instanceof CadModelError, String(e)); return e.code + ' ' + e.operation; } };
-  assert.equal(refuse([{ ...doc.nodes[0], segments: [{ kind: 'line', start: [0, 0] }, { kind: 'line', start: [10, 10] }, { kind: 'line', start: [10, 0] }, { kind: 'line', start: [0, 10] }] }, doc.nodes[1]]), 'CAPABILITY loop');
-  assert.equal(refuse([{ ...doc.nodes[0], segments: [{ kind: 'spline', start: [0, 0] }] }, doc.nodes[1]]), 'CAPABILITY loop');
-  assert.equal(refuse([...doc.nodes, { kind: 'chamfer', parent: { node: 1, side: 'solid' }, edge: { parallelTo: 'x' }, distance: 1 }]), 'CAPABILITY chamfer');
-  assert.equal(refuse([...doc.nodes, { kind: 'translate', parent: { node: 1, side: 'solid' }, offset: [1, 0, 0] }], { slot: { node: 2, side: 'solid' } }), 'CAPABILITY translate');
-});
-
 test('model builder: sketch.loop authors the same node and a full-circle loop extrudes', () => {
-  const m = cad.model();
-  const snap = m.build({ disc: m.sketch.loop([{ kind: 'arc', start: [10, 0], center: [0, 0], direction: 'ccw' }]).extrude(3, { from: -1 }) });
-  assert.equal(snap.bodies.disc.family, 'extruded-profile'); assert.equal(snap.bodies.disc.native.faces.length, 3);
-  assert.deepEqual(snap.bodies.disc.native.report.bounds.min.map(v => Math.round(v * 1e9) / 1e9), [-10, -10, -1]);
-  assert.deepEqual(JSON.parse(snap.save()).nodes[0], { kind: 'sketch', profile: 'loop', segments: [{ kind: 'arc', start: [10, 0], center: [0, 0], direction: 'ccw' }] });
-  assert.throws(() => cad.model().sketch.loop([{ kind: 'arc', start: [10, 0], center: [0, 1], direction: 'up' }]), e => e instanceof CadModelError && e.code === 'INPUT');
+  const disc = buildExtrudedProfileSolid(buildProfileLoop([{ kind: 'arc', start: [10, 0], center: [0, 0], direction: 'ccw' }]), { id: 'disc', height: 3, from: -1 });
+  assert.equal(disc.faces.length, 3);
+  assert.deepEqual(disc.report.bounds.min.map(v => Math.round(v * 1e9) / 1e9), [-10, -10, -1]);
 });

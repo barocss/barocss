@@ -164,11 +164,6 @@ Mass properties hold the tensor about the centroid, not its principal axes. The 
 - **`polygonSectionProperties`** gives a straight-edged plane section's area, centroid and second moments by Green's
   theorem. Its principal moments come in closed form: I₁,₂ = m ± r, with m = (I<sub>xx</sub> + I<sub>yy</sub>)/2 and
   r = √(((I<sub>xx</sub> − I<sub>yy</sub>)/2)² + I<sub>xy</sub>²). I₁'s axis is at ½ atan2(−2 I<sub>xy</sub>, I<sub>xx</sub> − I<sub>yy</sub>).
-- **`analyzeExtrusionConstructionPrincipalInertia`** (`src/features/extrusion-principal-inertia.ts`) works on the native
-  extrusion-construction mass record, in kg·m². It runs classical Jacobi: each turn clears the largest off-diagonal entry,
-  by θ = ½ atan2(2 a<sub>pq</sub>, a<sub>qq</sub> − a<sub>pp</sub>). It takes at most 64 turns and checks every turn's
-  residuals against 512 ε. It refuses a tensor that is not exactly symmetric, or a principal moment that is not clearly
-  positive.
 
 The moment about any other line is `momentOfInertiaAboutAxis(props, { point, direction })` (`src/brep/axis-inertia.ts`):
 uᵀ I u + m ‖d × u‖², with u the unit direction and d = c − point
@@ -187,7 +182,6 @@ uᵀ I u + m ‖d × u‖², with u the unit direction and d = c − point
 | `packages/barocss-cad/src/part/part-model.ts` | `massPropertiesOf`: which method a part's output takes |
 | `packages/barocss-cad/src/brep/axis-inertia.ts` | `momentOfInertiaAboutAxis`: the parallel-axis query |
 | `packages/barocss-cad/src/features/section-properties.ts` | `polygonSectionProperties`, `symmetricEigen3` (cyclic Jacobi) |
-| `packages/barocss-cad/src/features/extrusion-principal-inertia.ts` | principal moments of the native extrusion mass record (classical Jacobi) |
 
 ## How it is checked
 

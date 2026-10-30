@@ -17120,3 +17120,55 @@ Remote run 1 ([41040669187](https://github.com/barocss/barocss/actions/runs/4104
 Fix in a later commit, without excluding any test:
 - The probe now presents a canvas for 3 frames, maps a buffer and reads a pixel.
 - On the runner it tries `swiftshader-gl`, `-angle`, `-vulkan` and `-vulkan-nosurface` in that order. It logs every outcome and runs the suites with the first set that presents.
+
+## D360 — Retire 100 unused legacy kernel files, keep 37; refactor batch 3b step ① (R7.3d) (2026-10-30)
+
+Qualify `dca18afab` (702 paths; base `fa79c9969`). [Note](notes/kernel-refactor-3b-2026-10-30/README.md), with the two lists [retired.txt](notes/kernel-refactor-3b-2026-10-30/retired.txt) and [kept.txt](notes/kernel-refactor-3b-2026-10-30/kept.txt). Input: the reachability set D, 137 kernel files that nothing outside the kernel uses.
+
+Decision:
+- **Rule.** A file is kept when it is one of these:
+  - a generic geometry primitive that a row-30 issue names or plainly needs: exact planar predicates for #2255, NURBS curve and surface tools and root isolation for #2253 and #2266, Euler operators for #2256 and #2264;
+  - a kernel API the library docs describe;
+  - a tested helper of a live family;
+  - a file another package's tests import.
+  Everything else is retired: the legacy object API and the bounded solvers only it used, the old document versions, and the V3 preview, proof, graph and document experiments.
+- **Retired (100).** `createCadModel` with `modeling.ts`, its 11 internals and the `cad` namespace (`core/public-api.ts`). R7.3d's condition is met: `api-legacy-coverage` covers the modelling 11/11. Also retired:
+  - 11 root bounded solvers;
+  - planar-solids 31, sketch 10, document 4, paired 7, translated-strip 1;
+  - the source-wide graphs 3, quintic Hermite and endpoint continuity;
+  - exact-proof 7 (preview acceptance/session/leaf, impact plan, rebuild candidate, persistent face reference, boundary-face adjacency);
+  - intersect 3 (convex planar face, holes, ray);
+  - features 6;
+  - `brep-adapters` and `closed-exact-patch-shell`.
+- **Kept (37).** The groups are listed in the note's table:
+  - `robust-orientation-v1` and its six arrangement siblings;
+  - the curve-wide intersections and adaptive sampling;
+  - Bézier spans, subdivision and degree elevation;
+  - the Z-axis revolved surface;
+  - Bernstein roots and the curve–plane, curve–line, coincident-plane, convex-loop and plane–cylinder clips;
+  - `brep-euler`, `brep-sweep` and `axis-inertia`;
+  - `subd-report` and the two wrap helpers;
+  - the circular numerical sketch solver (4 files);
+  - `own-plate-circular-hole` with its preview and `axis-rectangle-extrusion` (cad-interop's test imports them through `dist/index.js`).
+- **Set E (19 test- or example-only files): all kept.** Their consumers are cad-interop examples, which are the GPU lane's (a cross-lane change), and several are generic tools. Revisit with that owner.
+- **What went with them.** Their tests, helpers, fixtures and evidence folders; 26 scripts; 85 cad-nurbs demos; `CONCISE_API.md` and `FEATURE_CACHE_CONTRACT.md`; 140 index.ts exports; README sections (11,657 → 6,883 lines). The API inventory was regenerated: 696 names removed, 0 added, 15 exposures changed only in union print order.
+- **Live tests that used the old API.** They now read 12 JSON fixtures recorded from the pre-retirement build, each checked lossless. `api-legacy-coverage` compares the facade with the old API's recorded results. Deleted cases in kept files: extruded-profile-solid's old-codec case and numeric-policy's three chart-lift cases. Two error-class count guards were lowered to the new counts (100 and 106 classes).
+
+Checks:
+- Build: PASS.
+- perf-bench fingerprints: 34/34 SAME.
+- Kernel suite on the merged tree: 1848 tests, 1846 pass, 0 fail, 2 skip (base 2363 / 2357 / 6 skip). 515 names are missing and 0 added; every missing name is from a deleted file or a deleted case.
+  - The first run had 5 failures. 3 came from a retired-API test the classifier missed, now deleted. 2 came from the count guards, now lowered.
+- Conformance: unchanged.
+- Kernel types and lint: PASS.
+- cad-model, studio and interop types: PASS.
+- check-docs (refusals, agent tools, inventory): PASS.
+- Merged inventory: equal to a fresh regeneration.
+- NOT_RUN: cad-model and studio tests (no file imports a retired name), interop's integration test (needs the gpu build), RB, browser flows, CI.
+
+Issues: none completed. No open issue tracks R7.3d. #1710 was already closed; its proposal document is now retired.
+
+Limits:
+- `features/boolean-extrusion-feature-graph.ts` (live) lost its only kernel tests, the retired exact-proof tests.
+- `CAD_ERROR_CODES` may keep codes that only retired classes carried.
+- R7.3d's y-up tag rename and the old-version paths still reached through product imports remain.
