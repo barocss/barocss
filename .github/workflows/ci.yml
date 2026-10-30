@@ -21,6 +21,7 @@ jobs:
     outputs:
       mode: ${{ steps.plan.outputs.mode }}
       docs: ${{ steps.plan.outputs.docs }}
+      browser: ${{ steps.plan.outputs.browser }}
       matrix: ${{ steps.plan.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
@@ -178,9 +179,47 @@ jobs:
       - name: Run root coverage
         run: node .github/scripts/affected-ci-run.mjs root
 
+  browser:
+    name: WebGPU browser suites
+    needs: [plan, prerequisites]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.plan.outputs.browser == 'true' && (needs.plan.outputs.mode == 'full' || needs.prerequisites.result == 'success') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: affected-ci-plan
+      - uses: actions/download-artifact@v4
+        if: needs.plan.outputs.mode != 'full'
+        with:
+          name: affected-ci-dist
+          path: .ci-dist
+      - uses: ./.github/actions/webgpu-chrome
+      - name: Run WebGPU browser suites
+        env:
+          BROWSER_EVIDENCE_DIR: ${{ runner.temp }}/browser-evidence
+        run: node .github/scripts/affected-ci-run.mjs browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: webgpu-browser-evidence
+          path: ${{ runner.temp }}/browser-evidence
+          if-no-files-found: ignore
+          retention-days: 7
+
   verify:
     name: Test and Build
-    needs: [plan, full, prerequisites, checks, docs, root]
+    needs: [plan, full, prerequisites, checks, docs, root, browser]
     if: always()
     runs-on: ubuntu-latest
     steps:

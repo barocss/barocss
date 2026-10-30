@@ -25,7 +25,17 @@ jobs:
         with:
           version: 9
       - run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/webgpu-chrome
       - name: Bind regression to checked-out source
         run: node .github/scripts/affected-ci-plan.mjs
       - name: Run package, Viewer and release contracts
+        env:
+          BROWSER_EVIDENCE_DIR: ${{ runner.temp }}/browser-evidence
         run: node .github/scripts/affected-ci-run.mjs regression
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: webgpu-browser-evidence
+          path: ${{ runner.temp }}/browser-evidence
+          if-no-files-found: ignore
+          retention-days: 7

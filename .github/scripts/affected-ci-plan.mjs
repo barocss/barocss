@@ -170,10 +170,13 @@ export function validatePlan(plan) {
   return true;
 }
 
+export const browserPackages = ['@barocss/gpu', '@barocss/viewer'];
+export function browserSuitesRequired(plan) { return plan.mode === 'full' ? [...browserPackages] : browserPackages.filter((name) => plan.packages.some((row) => row.name === name)); }
+
 export function validateAggregate(plan, needs) {
   validatePlan(plan);
-  for (const name of ['plan', 'full', 'build', 'checks', 'docs', 'root']) {
-    const required = name === 'plan' || (plan.mode === 'full' ? name === 'full' : name === 'build' || name === 'root' || (name === 'checks' && plan.packages.length > 0) || (name === 'docs' && plan.docsNeeded));
+  for (const name of ['plan', 'full', 'build', 'checks', 'docs', 'root', 'browser']) {
+    const required = name === 'browser' ? browserSuitesRequired(plan).length > 0 : name === 'plan' || (plan.mode === 'full' ? name === 'full' : name === 'build' || name === 'root' || (name === 'checks' && plan.packages.length > 0) || (name === 'docs' && plan.docsNeeded));
     if (needs?.[name]?.result !== (required ? 'success' : 'skipped')) throw new Error(`required coverage ${name}: ${needs?.[name]?.result ?? 'missing'}`);
   }
   return true;
@@ -236,8 +239,8 @@ function main() {
   } catch (error) { args.fullReason = `unavailable comparison: ${error.message}`; }
   const plan = createAffectedPlan(args); validatePlan(plan);
   writeFileSync('affected-ci-plan.json', `${JSON.stringify(plan, null, 2)}\n`);
-  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `mode=${plan.mode}\ndocs=${plan.docsNeeded}\nmatrix=${JSON.stringify({ package: plan.packages.map(({ name }) => name) })}\n`);
-  const summary = `Affected CI: ${plan.mode}\nRequired CI: lint/types/build; runtime tests: manual/pre-release\nApplication tests: external (local / Execute Tester), not a CI pass claim\nReasons: ${plan.reasons.join('; ')}\nChecks: ${plan.packages.map(({ name }) => name).join(', ') || 'full/docs route'}\nBuilds: ${plan.builds.map(({ name }) => name).join(', ')}\nPlan: ${plan.planId}\n`;
+  if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `mode=${plan.mode}\ndocs=${plan.docsNeeded}\nbrowser=${browserSuitesRequired(plan).length > 0}\nmatrix=${JSON.stringify({ package: plan.packages.map(({ name }) => name) })}\n`);
+  const summary = `Affected CI: ${plan.mode}\nRequired CI: lint/types/build; runtime tests: manual/pre-release; WebGPU browser suites for affected gpu/viewer\nBrowser (WebGPU) suites: ${browserSuitesRequired(plan).join(', ') || 'none'}\nApplication tests: external (local / Execute Tester), not a CI pass claim\nReasons: ${plan.reasons.join('; ')}\nChecks: ${plan.packages.map(({ name }) => name).join(', ') || 'full/docs route'}\nBuilds: ${plan.builds.map(({ name }) => name).join(', ')}\nPlan: ${plan.planId}\n`;
   console.log(summary);
   if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
 }
