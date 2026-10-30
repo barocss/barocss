@@ -17110,6 +17110,25 @@ Follow-ups:
 - Studio browser flows in CI are not built.
 - gpu's `test:browser` script still lists 16 of the 25 files.
 
+Remote run 1 ([41040669187](https://github.com/barocss/barocss/actions/runs/41040669187), `workflow_dispatch` on `local/cad-dev` at `57adee015`, full mode): **FAIL**.
+- Plan, and Full lint types and builds: success.
+- WebGPU browser suites: failure. The aggregate Test and Build check failed with it, so the blocking works.
+- The probe saw a SwiftShader adapter (Chrome 156.0.8078.47), yet gpu passed 4/55 (51 fail, 0 skip) and viewer 0/4.
+- Cause: the Chrome flag set, not heavy cases. Every test that presents a canvas failed within about 4 s with `mapAsync … Instance reference no longer exists` / `Instance dropped`, then `[NO_ADAPTER]` on recovery. The GPU process dropped the instance and Chrome disabled the GPU. The four passes are compute-only (G25a/b, O10 costs, the recovery-failure test).
+- The adapter-only probe could not see this.
+
+Fix in a later commit, without excluding any test:
+- The probe now presents a canvas for 3 frames, maps a buffer and reads a pixel.
+- On the runner it tries `swiftshader-gl`, `-angle`, `-vulkan` and `-vulkan-nosurface` in that order. It logs every outcome and runs the suites with the first set that presents.
+
+Remote run 2 ([41042337412](https://github.com/barocss/barocss/actions/runs/41042337412), at `1c9594189`, full mode): **FAIL**.
+- Plan, and Full lint types and builds: success.
+- Browser job: failure. The aggregate Test and Build check failed with it.
+- All four flag sets fail the canvas probe the same way on Chrome 156.0.8078.47. The adapter is SwiftShader, the device is lost ("destroyed"), the map fails with "Instance reference no longer exists", and the pixel is 0.
+- The suites did not start: gpu and viewer NOT_RUN, with 0 pass and 0 skip.
+- The same probe passes on the Mac, natively and on SwiftShader (red pixel). Linux headless canvas presentation on the runner is therefore the open cause; a flag set alone does not fix it.
+- Row 33 is not closed.
+
 ## D360 — Retire 100 unused legacy kernel files, keep 37; refactor batch 3b step ① (R7.3d) (2026-10-30)
 
 Qualify `dca18afab` (702 paths; base `fa79c9969`). [Note](notes/kernel-refactor-3b-2026-10-30/README.md), with the two lists [retired.txt](notes/kernel-refactor-3b-2026-10-30/retired.txt) and [kept.txt](notes/kernel-refactor-3b-2026-10-30/kept.txt). Input: the reachability set D, 137 kernel files that nothing outside the kernel uses.
