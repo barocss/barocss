@@ -29,4 +29,6 @@ runs:
           echo "VIEWER_ADAPTER=swiftshader"
           echo "BAROCSS_BROWSER_REQUIRED=1"
           echo "DISPLAY=:99"
+          # Names the known-failures list in .github/browser-known-failures.json that applies on this runner.
+          echo "BROWSER_KNOWN_FAILURES_PROFILE=linux-swiftshader"
         } >> "$GITHUB_ENV"
