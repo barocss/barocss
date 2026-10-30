@@ -111,6 +111,10 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
 1. 09 마감 → B1 2D 밴드 → B2 3D 밴드. T2는 09 안에서, T1/T3/T4는 B2와 함께 판단한다.
 2. 01–06 마감. 기능 작업과 파일이 겹치지 않으면 Docs/Viewer/GPU 쪽에서 병행한다. 33 CI 브라우저 검증도 여기서 먼저 한다.
 3. 20 기즈모·드래그 + 21 사이드바. 드래그 지연은 T5 측정과 함께 본다.
+3b. 30 커널 일반성 직전 정리 묶음 (오너 2026-10-30, "그렇게 해줘"): ① R7.3d — kernel 밖에서 아무도 쓰지 않는 137파일·28,681줄
+(측정: [kernel reachability](notes/kernel-reachability-2026-10-30/README.md))을 모듈별 retire/keep 판단 뒤 제거, test/example 전용 19파일 결정;
+② `part/part-model.ts`(4,583줄)를 피처별 모듈로 분리; ③ cad-model 오류를 메시지 정규식(`engine/errors.ts`) 대신 코드 기반으로;
+④ schema 1·2 migration 제거(최신 schema만). 각 단계는 perf-bench 기준 bit-identical 또는 형상·테스트 동일로 받는다. 33 CI 브라우저 검증이 먼저 있어야 한다.
 4. 10 조립 → 11 도면 확장 → 13 교환 → 14 생산. 12 파일·버전과 16 정확도는 각 단계에서 함께 검사한다. 30 커널 일반성은 16과 함께 이 단계 내내 진행하고, 31 직접 편집은 30 뒤에 붙인다.
 5. 15 사용성으로 릴리스 전 마감. 32 Viewer SDK는 05·23과 함께, 34 이름 정리는 B2 뒤 진행 lane이 적은 경계에서 한다. 23–29 상용 공백은 선행 행이 끝나는 대로 붙이고, 26·27·28·29의 외부 의존은 오너 결정 뒤에 시작한다.
 6. 17 경로 묶음, 18 로봇, 19 가상 실험은 기존 Physics/Motion·CAE 보류를 유지한 채 마지막. 22 성능은 측정 작업량이 생길 때 붙인다.
@@ -416,6 +420,8 @@ splitting) is not the default: raise the limits first, splitting only as an expl
 partial cylinder crossings are built in closed form (`analytic-boolean.ts` 1043; the header is stale);
 shell already admits surfaces of revolution; SSI skips near-parallel-normal seeds, so tangent contacts
 get no seed. Closure after D354: #2051 closed as completed (all three sections present).
+Each of #2253–#2266 now shows a schematic current-versus-target figure from
+`docs/design/kernel-issues-2026-10-30/` (`ca57e5eaa`); figures are illustrations, not kernel outputs.
 
 ### 제품 완료와 인계의 공통 조건
 
