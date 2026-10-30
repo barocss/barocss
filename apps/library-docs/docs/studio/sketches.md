@@ -41,7 +41,11 @@ bore. Shapes that overlap are refused.
 A spline keeps its fit points. After closing it (or reopening the sketch), the **SPLINE** section lists each fit point's
 X and Y and its handle: the curve's direction there, in degrees. Type a value and press <kbd>Enter</kbd> (or leave the box)
 to apply it; leave a handle empty for the automatic direction. A handle or point that leaves no arc pair the model can build
-to the next point is refused. A spline is driven only by its fit points and handles: a dimension or relation on it, or an
+to the next point is refused. On a closed spline with **Select**, drag a handle end to turn its tangent (whole degrees,
+<kbd>Shift</kbd> for 0.1°) or a fit point to move it (grid step, 1 mm by default; <kbd>Shift</kbd> for 0.01 mm). The drag
+starts after the pointer moves 3 px, so a plain click still picks. Releasing applies it as one step (none if nothing changed),
+<kbd>Escape</kbd> cancels, and a position with no buildable arc pair keeps the last valid one. The arc radius chips are hidden
+on a closed spline so they do not cover its handles; lock a radius in the panel grid instead. A spline is driven only by its fit points and handles: a dimension or relation on it, or an
 edit of its outline points, turns it into an ordinary outline.
 
 A closed shape inside a hole is not supported in the same sketch. **Finish sketch** refuses it;

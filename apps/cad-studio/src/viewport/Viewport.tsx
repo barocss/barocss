@@ -31,7 +31,9 @@ import { CAGE_LINE_KEYS, CageMarks, cageLines, cagePoints } from './CageMarks';
 import { pickCage, type CageHit, type CageMode, type CageSelection, type StudioCage } from '@barocss/cad-model/subd/cageEdit';
 import type { CageValidation } from '@barocss/cad';
 import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } from '@barocss/cad-model/sketch/osnap';
-import { splineAutoHandles, splineMatches, splineOutline, type SplineDef } from '@barocss/cad-model/sketch/spline';
+import { respline, splineEditError, splineMatches, splineOutline } from '@barocss/cad-model/sketch/spline';
+import { draggedSpline, sameSplineDef, splineDragStarted, splineHandleGeometry, splineHandleHit, type SplineHandleHit } from './splineHandles';
+import type { SplineDef } from '@barocss/cad-model/sketch/spline';
 import type { Analysis } from './analysis';
 import { recordCanvas } from './recordVideo';
 import { renderFocusDistance } from './renderFocus';
@@ -431,10 +433,10 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     for (const e of mesh.edges) for (let k = 0; k < 2; k++) { const p = k ? e.b : e.a; if (print?.printed && p[2] > print.top + 1e-7) continue; const q = camera.current.project(p as Vec3, w, h), d = Math.hypot(q[0] - x, q[1] - y); if (d < d0) { d0 = d; best = [...p] as Vec3; } }
     return best ? { body: bi, at: best } : null;
   };
-  const drag = useRef<{ mode: 'orbit' | 'pan' | 'gizmo' | 'box' | 'tool' | null; x: number; y: number; moved: boolean; x0?: number; y0?: number;
+  const drag = useRef<{ mode: 'orbit' | 'pan' | 'gizmo' | 'box' | 'tool' | 'spline' | null; splineArm?: { hit: SplineHandleHit; pointerId: number }; splineHit?: SplineHandleHit; splineStart?: SketchShape; splineLast?: SketchShape; splineLastDef?: SplineDef; pointerId?: number; x: number; y: number; moved: boolean; x0?: number; y0?: number;
     /** A gizmo drag: what was hit, the pointer's start and last points, and what it means so far. */
     hit?: GizmoHit; from?: [number, number]; last?: [number, number]; turned?: number; delta?: Vec3; degrees?: number; value?: number; start?: number; value2?: number; start2?: number; origin?: Vec3; handleAt?: Vec3; factor?: number;
-    gizmo?: TransformGizmo; pointerId?: number; sessionKey?: string | number }>({ mode: null, x: 0, y: 0, moved: false });
+    gizmo?: TransformGizmo; sessionKey?: string | number }>({ mode: null, x: 0, y: 0, moved: false });
   /** The gizmo handle under the pointer, drawn brighter. */
   const gizmoHot = useRef<GizmoHit | null>(null);
   // While the camera moves (orbit, pan, zoom), frames leave out ambient occlusion; 180 ms after the last
@@ -498,6 +500,13 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const snap = (v: number) => { const st = propsRef.current.snapStep ?? 1; return st > 0 ? Math.round(Math.round(v / st) * st * 1000) / 1000 : Math.round(v * 1000) / 1000; };
   // Pointer events can arrive before React re-renders with the shape we just emitted, so handlers read
   // the latest emitted shape; a new shape from the app (panel edit, solver settle) replaces it.
+  const splineCancelRef = useRef<() => void>(() => undefined);
+  useEffect(() => {
+    // (Capture phase: the drag's Escape is not also the app's.)
+    // While a spline drag is active every key is swallowed (Escape cancels it), so no app shortcut acts mid-drag.
+    const key = (e: KeyboardEvent) => { if (drag.current.mode !== 'spline') return; e.stopImmediatePropagation(); e.preventDefault(); if (e.key === 'Escape') splineCancelRef.current(); };
+    window.addEventListener('keydown', key, true); return () => window.removeEventListener('keydown', key, true);
+  }, []);
   const liveShape = useRef<SketchShape | null>(props.sketch?.shape ?? null), seenShape = useRef(props.sketch?.shape);
   if (props.sketch?.shape !== seenShape.current) { seenShape.current = props.sketch?.shape; liveShape.current = props.sketch?.shape ?? null; }
   const emit = (shape: SketchShape | null, fresh = false) => { liveShape.current = shape; propsRef.current.onSketchShape(shape, fresh); };
@@ -1046,13 +1055,41 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     d.degrees = snapTo(d.turned, step); g.onTurn?.(hit.axis, d.degrees, done);
   };
 
+  /** A spline drag at the pointer: the valid definition previews live (no history step); an unbuildable one keeps the last valid preview. */
+  const splineDragTo = (d: typeof drag.current, x: number, y: number, w: number, h: number, fine: boolean) => {
+    const sk = propsRef.current.sketch, start = d.splineStart; if (!sk || !start || start.kind !== 'polygon' || !d.splineHit) return;
+    const p = sketchPoint(x, y, w, h, sk.plane); if (!p) return;
+    const def = draggedSpline(start.spline!, d.splineHit, p, { fine, step: propsRef.current.snapStep });
+    if (splineEditError(def)) return;
+    d.splineLast = respline(start, def); d.splineLastDef = def; liveShape.current = d.splineLast; request();
+  };
+  /** Ends an armed or active spline drag without emitting: an active one restores the start shape. `moved` keeps the pick click away. */
+  const splineDragCancel = () => {
+    const d = drag.current; if (d.mode !== 'spline' && !d.splineArm) return;
+    if (d.mode === 'spline') liveShape.current = d.splineStart ?? null;
+    drag.current = { mode: null, x: 0, y: 0, moved: true };
+    if (canvas.current) canvas.current.style.cursor = '';
+    request();
+  };
+  splineCancelRef.current = splineDragCancel;
+  /** A cancelled or lost pointer ends its own armed or active spline drag only. */
+  const splineCancelOf = (pointerId: number) => { const d = drag.current; if ((d.splineArm?.pointerId ?? (d.mode === 'spline' ? d.pointerId : undefined)) === pointerId) splineDragCancel(); };
+  // A tool change or the end of the sketch cancels a pending spline drag and drops the grab cursor.
+  const sketchTool = props.sketch?.tool;
+  useEffect(() => { splineCancelRef.current(); if (canvas.current) canvas.current.style.cursor = ''; }, [sketchTool, !!props.sketch]);
+
   const onPointerDown = (e: React.PointerEvent) => {
     if (drag.current.mode === 'gizmo') return;
+    if (drag.current.splineArm || drag.current.mode === 'spline') return; // (another pointer while a spline drag is armed or active)
     canvas.current!.setPointerCapture(e.pointerId);
     const { x, y } = local(e);
     if (focusPick.current && e.button === 0 && !e.altKey) { drag.current = { mode: null, x, y, moved: false }; return; }
     const tool = propsRef.current.tool;
     if (tool && e.button === 0 && !e.altKey && tool.down(x, y, toolView(), e)) { drag.current = { mode: 'tool', x, y, moved: false }; request(); return; }
+    // (D353: a down on a closed spline's handle end or fit point arms a drag; a release before it starts is the ordinary click.)
+    const sk1 = propsRef.current.sketch, sd = e.button === 0 && !e.altKey && sk1?.tool === 'select' ? closedSplineOf(liveShape.current) : null;
+    const sh = sd ? splineHandleHit(sd, sketchProject(sk1!.plane), x, y) : null;
+    if (sh) { drag.current = { mode: null, x, y, moved: false, x0: x, y0: y, splineArm: { hit: sh, pointerId: e.pointerId } }; return; }
     const hit = e.button === 0 && !propsRef.current.sketch ? gizmoHit(x, y) : null;
     if (hit) {
       const hd = hit.kind === 'handle' ? propsRef.current.handles![hit.index] : undefined;
@@ -1070,6 +1107,19 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const onPointerMove = (e: React.PointerEvent) => {
     const d = drag.current; if (d.mode === 'gizmo' && d.pointerId !== e.pointerId) return;
     const { x, y, w, h } = local(e); const r = renderer.current; if (!r) return;
+    if (d.splineArm || d.mode === 'spline') {
+      if ((d.splineArm?.pointerId ?? d.pointerId) !== e.pointerId) return;
+      if (!(e.buttons & 1)) { splineDragCancel(); return; } // (released outside: hover never moves a drag)
+      if (d.splineArm) {
+        if (!splineDragStarted(x - d.x, y - d.y)) return;
+        // Activate: the start is the current shape (after any blur-commit re-render), and must still hold the armed handle.
+        const start = liveShape.current, def = closedSplineOf(start), hit = d.splineArm.hit;
+        if (!start || !def || hit.i >= def.fit.length) { splineDragCancel(); return; }
+        drag.current = { mode: 'spline', x: d.x, y: d.y, moved: true, splineHit: hit, splineStart: start, pointerId: e.pointerId };
+        canvas.current!.style.cursor = 'grabbing';
+      }
+      splineDragTo(drag.current, x, y, w, h, e.shiftKey); return;
+    }
     if (d.mode === 'orbit') { camera.current.orbit(x - d.x, y - d.y); d.x = x; d.y = y; d.moved = true; moving.current(); request(); return; }
     if (d.mode === 'pan') { camera.current.pan(x - d.x, y - d.y, h); d.x = x; d.y = y; d.moved = true; moving.current(); request(); return; }
     if (d.mode === 'gizmo') { gizmoDrag(x, y, e.shiftKey, false); d.moved = true; request(); return; }
@@ -1083,6 +1133,11 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       canvas.current!.style.cursor = '';
     }
     const sk = propsRef.current.sketch;
+    if (!d.mode && sk?.tool === 'select' && e.buttons === 0) {
+      // (D353: a closed spline's handle end or fit point under the pointer.)
+      const sp = closedSplineOf(liveShape.current), over = sp ? splineHandleHit(sp, sketchProject(sk.plane), x, y) : null;
+      canvas.current!.style.cursor = over ? 'grab' : '';
+    }
     if (!sk && e.buttons === 1 && d.x0 !== undefined && (d.mode === 'box' || Math.hypot(x - d.x0, y - d.y0!) > 5)) {
       d.mode = 'box'; d.x = x; d.y = y; d.moved = true; request(); return;
     }
@@ -1160,10 +1215,20 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   };
   const onPointerUp = (e: React.PointerEvent) => {
     const d = drag.current; if (d.mode === 'gizmo' && d.pointerId !== e.pointerId) return;
+    if ((d.splineArm || d.mode === 'spline') && (d.splineArm?.pointerId ?? d.pointerId) !== e.pointerId) return;
     drag.current = { mode: null, x: 0, y: 0, moved: false };
     const { x, y, w, h } = local(e);
     if (d.mode === 'gizmo') { gizmoDrag(x, y, e.shiftKey, true, d); request(); return; }
     if (d.mode === 'tool') { propsRef.current.tool?.up(x, y, toolView(), e); request(); return; }
+    if (d.mode === 'spline') {
+      // One history step for the whole drag (only when the definition changed, and the sketch is still the one dragged), never also a pick click.
+      canvas.current!.style.cursor = '';
+      const now = propsRef.current.sketch, cur = now?.tool === 'select' ? now.shape : null, st = d.splineStart;
+      const same = !!cur && !!st && (cur === st || JSON.stringify(cur) === JSON.stringify(st));
+      const changed = d.splineLastDef && st?.kind === 'polygon' && !sameSplineDef(st.spline!, d.splineLastDef);
+      if (same && changed && d.splineLast) emit(d.splineLast); else liveShape.current = cur ?? null;
+      request(); return;
+    }
     if (d.mode === 'box') { boxSelect(d.x0!, d.y0!, x, y, e.shiftKey); request(); return; }
     if (e.button === 2 && d.mode === 'orbit' && !d.moved && !propsRef.current.sketch) {
       const { face, edge } = pickAt(renderer.current!, x, y);
@@ -1347,7 +1412,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
           for (const [k, q] of [d.points[0], d.points[d.points.length - 1]].entries()) { const p = P(q[0], q[1]); items.push(<circle key={'de' + i + '.' + k} cx={p[0]} cy={p[1]} r={3} className="sk-end" />); }
         } else items.push(<polygon key={'done' + i} points={shapeOutline(d).map(q => { const p = P(q[0], q[1]); return p[0] + ',' + p[1]; }).join(' ')} className={cls} />);
       });
-      const s = sk.shape;
+      const s = drag.current.mode === 'spline' ? liveShape.current : sk.shape;
       if (s?.kind === 'rectangle') {
         const [x0, x1] = [Math.min(s.a[0], s.b[0]), Math.max(s.a[0], s.b[0])], [y0, y1] = [Math.min(s.a[1], s.b[1]), Math.max(s.a[1], s.b[1])];
         const pts = [P(x0, y0), P(x1, y0), P(x1, y1), P(x0, y1)];
@@ -1381,7 +1446,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
           : <polyline key="pl" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape open" />);
         if (marks) items.push(...marks.under);
         pts.forEach((p, i) => items.push(<circle key={'p' + i} cx={p[0]} cy={p[1]} r={3.5} className="sk-point" />));
-        if (s.spline && s.spline.fit.length >= 2 && splineMatches(s)) items.push(...splineHandleMarks(s.spline, P));
+        const csp = closedSplineOf(s); // (D353: handles only on a closed spline, whose radius chips are hidden so they do not cover them)
+        if (csp) items.push(...splineHandleMarks(csp, P));
         (s.tangents ?? []).forEach(j => { const p = pts[j]; if (p) items.push(<g key={'tg' + j}><rect x={p[0] + 6} y={p[1] - 22} width={16} height={15} rx={3} className="cons-chip" /><text x={p[0] + 14} y={p[1] - 11} textAnchor="middle" className="cons-text">T</text></g>); });
         const n = s.points.length;
         for (let i = 0; i < (s.closed ? n : n - 1); i++) {
@@ -1389,7 +1455,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
           if (bulge) {
             const arc = arcOf(a, b, bulge), t = arc.start + arc.sweep / 2, m = P(arc.center[0] + arc.radius * Math.cos(t), arc.center[1] + arc.radius * Math.sin(t));
             const cc = P(arc.center[0], arc.center[1]); items.push(<circle key={'ac' + i} cx={cc[0]} cy={cc[1]} r={2} className="sk-point" />);
-            if (s.closed && !s.pending && !driving.has('rad' + i)) items.push(label(m[0], m[1] - 18, 'R' + fmtLen(arc.radius), 'rad' + i));
+            if (s.closed && !s.pending && !csp && !driving.has('rad' + i)) items.push(label(m[0], m[1] - 18, 'R' + fmtLen(arc.radius), 'rad' + i));
             if ((s.equalRadii ?? []).some(p => p.includes(i))) items.push(<g key={'eq' + i}><rect x={m[0] + 30} y={m[1] - 26} width={16} height={15} rx={3} className="cons-chip" /><text x={m[0] + 38} y={m[1] - 15} textAnchor="middle" className="cons-text">=</text></g>);
             if ((s.concentric ?? []).some(p => p.includes(i))) items.push(<circle key={'oc' + i} cx={cc[0]} cy={cc[1]} r={6} className="sk-guide" fill="none" />);
             continue;
@@ -1569,7 +1635,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       onDragOver={e => { if (!e.dataTransfer.types.includes(DRAG_TYPE)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; const l = local(e); propsRef.current.onSpot?.(spotAt(l.x, l.y, l.w, l.h), false); }}
       onDrop={e => { if (!e.dataTransfer.types.includes(DRAG_TYPE)) return; e.preventDefault(); const l = local(e); propsRef.current.onSpot?.(spotAt(l.x, l.y, l.w, l.h), true); }}>
       <canvas ref={canvas} className="vp-canvas" onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerLeave={onPointerLeave}
-        onPointerCancel={e => cancelGizmo('pointercancel', e.pointerId)} onLostPointerCapture={e => cancelGizmo('lostpointercapture', e.pointerId)}
+        onPointerCancel={e => { splineCancelOf(e.pointerId); cancelGizmo('pointercancel', e.pointerId); }} onLostPointerCapture={e => { splineCancelOf(e.pointerId); cancelGizmo('lostpointercapture', e.pointerId); }}
         onDoubleClick={e => { const p = propsRef.current, r = renderer.current; if (!r || p.sketch || p.placing) return;
           if (p.cage) { const { x, y, w, h } = local(e), hit = pickCage(p.cage.cage, q => camera.current.project(q as Vec3, w, h), x, y, 'edge'); if (hit) p.onPickCage?.(hit, e.shiftKey, e.altKey ? 'ring' : 'loop'); return; } const { x, y } = local(e), { face, edge } = pickAt(r, x, y); if (edge && p.onPickChain) p.onPickChain(edge.body, edge.edge); else if (face) p.onPickBody?.(face.body); }}
         onWheel={onWheel} onContextMenu={e => e.preventDefault()} aria-label="3D viewport. Right-drag to orbit, middle-drag to pan, wheel to zoom." />
@@ -1584,14 +1650,17 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
 /** The drag-and-drop type of a command dragged from the rail (its id is the data). */
 export const DRAG_TYPE = 'application/x-cad-command';
 const fmtLen = (v: number) => String(Math.round(v * 10) / 10);
-/** A spline's handles: at each fit point a short line through it along its tangent (the handle, else the automatic one), a dot at each end. */
+/** The definition of a settled, closed polygon that is a spline still matching it (D353), else null. */
+function closedSplineOf(s: SketchShape | null): SplineDef | null {
+  return s && s.kind === 'polygon' && s.closed && isSettled(s) && s.spline && s.spline.closed && s.spline.fit.length >= 2 && splineMatches(s) ? s.spline : null;
+}
+/** A spline's handles (D353): at each fit point a handle line 30 px each way along its tangent (the handle, else the automatic one) with a dot at each end; the fit points are dots. */
 function splineHandleMarks(def: SplineDef, P: (u: number, v: number) => readonly number[]): React.ReactNode[] {
-  const out: React.ReactNode[] = [], auto = splineAutoHandles(def.fit, def.closed);
-  def.fit.forEach((f, i) => {
-    const h = (def.handles?.[i] ?? auto[i]) * Math.PI / 180, c = P(f[0], f[1]), t = P(f[0] + Math.cos(h), f[1] + Math.sin(h));
-    const l = Math.hypot(t[0] - c[0], t[1] - c[1]) || 1, d = [(t[0] - c[0]) / l * 22, (t[1] - c[1]) / l * 22];
-    out.push(<line key={'sh' + i} x1={c[0] - d[0]} y1={c[1] - d[1]} x2={c[0] + d[0]} y2={c[1] + d[1]} className="sk-guide" />,
-      <circle key={'sha' + i} cx={c[0] - d[0]} cy={c[1] - d[1]} r={2} className="sk-point" />, <circle key={'shb' + i} cx={c[0] + d[0]} cy={c[1] + d[1]} r={2} className="sk-point" />);
+  const out: React.ReactNode[] = [];
+  splineHandleGeometry(def, P).forEach((g, i) => {
+    out.push(<line key={'sh' + i} x1={g.back[0]} y1={g.back[1]} x2={g.fwd[0]} y2={g.fwd[1]} className="sk-handle" />,
+      <circle key={'sha' + i} cx={g.back[0]} cy={g.back[1]} r={4} className="sk-handle-end" />, <circle key={'shb' + i} cx={g.fwd[0]} cy={g.fwd[1]} r={4} className="sk-handle-end" />,
+      <circle key={'shc' + i} cx={g.c[0]} cy={g.c[1]} r={3.5} className="sk-point" />);
   });
   return out;
 }

@@ -125,6 +125,10 @@ select.param-bind { width: 44px; margin-left: 4px; font-size: 11px; padding: 2px
 :root[data-theme='light'] .sk-shape.done { stroke: rgba(40, 46, 56, 0.6); }
 .sk-point { fill: var(--accent); }
 .sk-guide { stroke: var(--accent); stroke-width: 1; stroke-dasharray: 4 4; }
+.sk-handle { stroke: #3fb6e8; stroke-width: 1.5; }
+.sk-handle-end { fill: #3fb6e8; stroke: #101113; stroke-width: 1; }
+:root[data-theme='light'] .sk-handle { stroke: #1479a8; }
+:root[data-theme='light'] .sk-handle-end { fill: #1479a8; stroke: #fff; }
 .sk-cursor { stroke: var(--accent); stroke-width: 1.5; }
 .sk-grid { stroke: rgba(160, 166, 176, 0.22); stroke-width: 1; }
 .sk-grid.axis { stroke: rgba(232, 194, 90, 0.45); }
