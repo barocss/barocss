@@ -14,6 +14,7 @@ import { profileOf } from '@barocss/cad-model/sketch/loops';
 import { xyPlane } from '@barocss/cad-model/sketch/plane';
 import type { EngineClient } from '../src/engine/client';
 import { useSketchActions } from '../src/sketch/useSketchActions';
+import { switchTool } from '../src/app/sketchControls';
 import type { SketchState } from '../src/viewport/Viewport';
 
 function source() {
@@ -154,7 +155,11 @@ test('D356: a binding that cannot survive Finish becomes a number and the toast 
   const R = { parameter: 'R' }, base = part('D356 drop').box({ w: 4, d: 4, h: 4 }).doc;
   const square = [[20, -5], [40, -5], [40, 5], [20, 5]].map(start => ({ kind: 'line', start }));
   const doc = withNode({ ...base, parameters: { R: 5 } } as StudioDoc, { kind: 'sketch', profile: 'circle', center: [0, 0], radius: R, regions: [square] } as unknown as ModelNode), index = doc.nodes.length - 1;
-  const f = actions(doc); f.api.editSketch(index); f.render(); f.api.finishSketch(); await setImmediate();
+  const f = actions(doc); f.api.editSketch(index);
+  // (The circle is the main profile; Select moved it beside the rectangle being edited. Resizing it makes the bound radius a new number.)
+  const editing = f.sketch; assert.ok(editing?.done?.some(x => x.kind === 'circle')); if (!editing) return;
+  f.setSketch({ ...editing, done: (editing.done ?? []).map(x => x.kind === 'circle' ? { ...x, r: 6 } : x) });
+  f.render(); f.api.finishSketch(); await setImmediate();
   assert.equal(f.accepted.length, 1); assert.equal(f.evaluated.length, 1);
   assert.ok(!JSON.stringify(f.accepted[0].nodes[index]).includes('"parameter"'), 'no reference is left');
   assert.equal(f.notices.length, 1); const toast = f.notices[0] as { title: string; hint: string };
@@ -168,4 +173,45 @@ test('D356: a missing parameter refuses the reopen with a toast that has no code
   assert.equal(f.sketch, null); assert.equal(f.notices.length, 1);
   const toast = f.notices[0] as { title: string; hint: string }; assert.equal(toast.title, 'Cannot open sketch');
   assert.match(toast.hint, /Gone/); assert.ok(!/^\[/.test(toast.hint), toast.hint);
+});
+
+test('D358: a circle main with a rectangle region reopens and finishes unchanged as the same circle sketch, with no toast', async () => {
+  const base = part('D358').box({ w: 4, d: 4, h: 4 }).doc;
+  const stored = profileOf([{ kind: 'circle', c: [0, 0], r: 5 }, { kind: 'polygon', closed: true, points: [[20, -5], [40, -5], [40, 5], [20, 5]], bulges: [0, 0, 0, 0] }]);
+  assert.ok('node' in stored && stored.node.profile === 'circle' && stored.node.sideTags);
+  const doc = withNode(base, stored.node), index = doc.nodes.length - 1;
+  const f = actions(doc); f.api.editSketch(index); f.render(); f.api.finishSketch(); await setImmediate();
+  assert.equal(f.notices.length, 0); assert.equal(f.accepted.length, 1);
+  const node = f.accepted[0].nodes[index] as unknown as { profile: string; radius: number; sideTags: unknown };
+  assert.equal(node.profile, 'circle'); assert.equal(node.radius, 5); assert.deepEqual(node.sideTags, stored.node.sideTags);
+});
+
+test('D358: split a rectangle edge of a reopened circle-main sketch, Finish: the circle stays main, no toast', async () => {
+  const base = part('D358 split').box({ w: 4, d: 4, h: 4 }).doc;
+  const stored = profileOf([{ kind: 'circle', c: [0, 0], r: 5 }, { kind: 'polygon', closed: true, points: [[20, -5], [40, -5], [40, 5], [20, 5]], bulges: [0, 0, 0, 0] }]);
+  assert.ok('node' in stored);
+  const doc = withNode(base, stored.node), index = doc.nodes.length - 1;
+  const f = actions(doc); f.api.editSketch(index); f.render(); f.api.trimSketch('split', [30, -5], 0.5);
+  assert.equal(f.sketch?.shape, null); f.render(); f.api.finishSketch(); await setImmediate();
+  assert.equal(f.notices.length, 0); assert.equal(f.accepted.length, 1);
+  const node = f.accepted[0].nodes[index] as unknown as { profile: string; radius: number };
+  assert.equal(node.profile, 'circle'); assert.equal(node.radius, 5);
+});
+
+test('D358: reopen a circle main with two rectangle regions, switch to a drawing tool, Finish: the circle stays main, regions in stored order', async () => {
+  const base = part('D358 tool').box({ w: 4, d: 4, h: 4 }).doc, rect = (x0: number, x1: number) => ({ kind: 'polygon' as const, closed: true, points: [[x0, -5], [x1, -5], [x1, 5], [x0, 5]] as [number, number][], bulges: [0, 0, 0, 0] });
+  const stored = profileOf([{ kind: 'circle', c: [0, 0], r: 5 }, rect(20, 40), rect(50, 70)]);
+  assert.ok('node' in stored && stored.node.profile === 'circle');
+  const doc = withNode(base, stored.node), index = doc.nodes.length - 1;
+  const f = actions(doc); f.api.editSketch(index);
+  const editing = f.sketch; assert.ok(editing?.shape?.kind === 'polygon', 'Select edits one rectangle region'); if (!editing) return;
+  // The panel's tool buttons: the edited shape goes aside and the drawing tool starts with no shape.
+  f.setSketch(switchTool(editing, 'circle'));
+  assert.equal(f.sketch?.shape, null); assert.equal(f.sketch?.tool, 'circle');
+  f.render(); f.api.finishSketch(); await setImmediate();
+  assert.equal(f.notices.length, 0); assert.equal(f.accepted.length, 1);
+  const node = f.accepted[0].nodes[index] as unknown as { profile: string; radius: number; regions: { start: number[] }[][] };
+  assert.equal(node.profile, 'circle'); assert.equal(node.radius, 5);
+  assert.deepEqual(node.regions.map(r => r[0].start), [[20, -5], [50, -5]]);
+  assert.deepEqual((f.accepted[0].nodes[index] as { sideTags?: unknown }).sideTags, (stored.node as { sideTags?: unknown }).sideTags);
 });

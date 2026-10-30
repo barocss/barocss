@@ -130,7 +130,8 @@ A profile may run along the Revolve axis on whole straight segments; zero-length
 It must not cross the axis or touch it inside an arc; a full turn must not pinch to a point between two walls.
 
 A sketch you finished can be reopened from the feature editor, with its constraints. Changes are written back in
-place, and the features made from it update.
+place, and the features made from it update. A reopened sketch keeps its main profile: a circle stays the main profile
+even when you edit or dimension a rectangle beside it, or the circle itself.
 
 Reopening a sketch whose values are bound shows each at its parameter's current value. Finishing keeps each binding whose value
 you left as it was. A rectangle's or circle's bound value stays bound when you change its other sizes (changing the height keeps a

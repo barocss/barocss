@@ -3,7 +3,7 @@
 import type { LoopSegment, SketchNode, SketchOutline } from '../engine/doc';
 import type { SketchShape } from './types';
 import type { P2 } from './profile';
-import type { Polygon } from './rules';
+import { rulesWithoutCircle, type Polygon } from './rules';
 import { loopOf } from './loops';
 import { wellFormedBezier } from './bezier';
 import type { SplineDef } from './spline';
@@ -26,6 +26,35 @@ export function resolveSketchDims(node: SketchNode, params: Params = {}): Sketch
     return v;
   };
   return walk(node) as SketchNode;
+}
+
+const sameIds = (a: readonly string[] | undefined, b: readonly string[]) => !!a && a.length === b.length && a.every((x, i) => x === b[i]);
+const dropCircleAt = (p: Extract<SketchShape, { kind: 'polygon' }>, j: number): SketchShape => {
+  const rest: Record<string, unknown> = { ...p }, circles = (p.circles ?? []).filter((_, k) => k !== j), circleIds = (p.circleIds ?? []).filter((_, k) => k !== j);
+  delete rest.circles; delete rest.circleIds; delete rest.rules;
+  const rules = rulesWithoutCircle(p.rules ?? [], j);
+  return { ...rest, ...(circles.length ? { circles } : {}), ...(circleIds.length ? { circleIds } : {}), ...(p.rules ? { rules } : {}) } as SketchShape;
+};
+/** The stored main circle that a click attached to a polygon's outline, as a circle shape of its own (with the polygon minus it), or null. */
+function attachedMain(shape: SketchShape | null, done: readonly SketchShape[], id: string): SketchShape[] | null {
+  const poly = [...(shape ? [shape] : []), ...done].find((x): x is Extract<SketchShape, { kind: 'polygon' }> => x.kind === 'polygon' && !!x.circles && !!x.circleIds?.includes(id));
+  if (!poly?.circles) return null;
+  const j = poly.circleIds!.indexOf(id), c = poly.circles[j];
+  if (!c) return null;
+  const rest = dropCircleAt(poly, j), keep = (x: SketchShape) => x === poly ? rest : x;
+  return [{ kind: 'circle', c: [c.c[0], c.c[1]], r: c.r, ids: [id] }, ...done.map(keep), ...(shape ? [keep(shape)] : [])];
+}
+/**
+ * A reopened sketch's shapes in Finish order: the shape with the stored main profile's side ids first, then the other
+ * finished shapes in their order, then the shape Select edits (the stored order of a round trip). A main circle a click
+ * attached to the outline comes back as its own shape. With no ids or no such shape, `[shape, ...done]`.
+ */
+export function reopenedOrder(shape: SketchShape | null, done: readonly SketchShape[], mainIds?: readonly string[]): SketchShape[] {
+  const all = [...(shape ? [shape] : []), ...done];
+  if (!mainIds?.length) return all;
+  const main = all.find(x => sameIds(x.ids, mainIds));
+  if (main) return [main, ...done.filter(x => x !== main), ...(shape && shape !== main ? [shape] : [])];
+  return (mainIds.length === 1 ? attachedMain(shape, done, mainIds[0]) : null) ?? all;
 }
 
 const SAME = (a: number, b: number) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b));

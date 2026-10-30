@@ -389295,6 +389295,37 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./sketch/reopen",
+      "exportName": "reopenedOrder",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/reopen.ts",
+            "name": "reopenedOrder",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(shape: SketchShape | null, done: readonly SketchShape[], mainIds?: readonly string[] | undefined) => SketchShape[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(shape: SketchShape | null, done: readonly SketchShape[], mainIds?: readonly string[] | undefined) => SketchShape[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./sketch/reopen",
       "exportName": "resolveSketchDims",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -390708,6 +390739,37 @@
             ],
             "callSignatures": [
               "(s: { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; spline?: SplineDef | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }, id: string) => { kind: \"polygon\"; points: [number, number][]; closed: boolean; bulges?: number[] | undefined; pending?: boolean | undefined; lengths?: Record<number, number> | undefined; radii?: Record<number, number> | undefined; tangents?: number[] | undefined; equalRadii?: [number, number][] | undefined; concentric?: [number, number][] | undefined; hv?: { h: number[]; v: number[]; } | undefined; rules?: SketchRule[] | undefined; fromRectangle?: true | undefined; fromSpline?: true | undefined; spline?: SplineDef | undefined; circles?: { c: [number, number]; r: number; }[] | undefined; circleIds?: string[] | undefined; } & { construction?: true | undefined; ids?: string[] | undefined; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./sketch/rules",
+      "exportName": "rulesWithoutCircle",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/sketch/rules.ts",
+            "name": "rulesWithoutCircle",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(rules: readonly SketchRule[], j: number) => SketchRule[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(rules: readonly SketchRule[], j: number) => SketchRule[]"
             ]
           }
         }
@@ -392797,6 +392859,13 @@
                 "optional": true,
                 "readonly": false,
                 "type": "boolean | undefined"
+              },
+              {
+                "name": "mainIds",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string[] | undefined"
               },
               {
                 "name": "make",

@@ -354,3 +354,23 @@ export function removeConstraint(s: Polygon, id: string): Polygon {
     default: return s;
   }
 }
+
+/** One rule's circle indices as [field, index] pairs (every kind that names an outline circle by index: cdist/cdx/cdy/cedge/ctan `circle`; ccdist/ccdx/ccdy/cconc `a` and `b`). */
+const CIRCLE_FIELDS: Partial<Record<SketchRule['kind'], readonly string[]>> = { cdist: ['circle'], cdx: ['circle'], cdy: ['circle'], cedge: ['circle'], ctan: ['circle'], ccdist: ['a', 'b'], ccdx: ['a', 'b'], ccdy: ['a', 'b'], cconc: ['a', 'b'] };
+const renumberCircle = (r: SketchRule, fields: readonly string[]): SketchRule => {
+  const out: Record<string, unknown> = { ...r };
+  for (const f of fields) { out[f] = (out[f] as number) - 1; }
+  return out as unknown as SketchRule;
+};
+/** An outline's rules once its circle `j` is removed: rules naming circle `j` go, higher circle indices step down by one. */
+export function rulesWithoutCircle(rules: readonly SketchRule[], j: number): SketchRule[] {
+  const out: SketchRule[] = [];
+  for (const r of rules) {
+    const fields = CIRCLE_FIELDS[r.kind];
+    if (!fields) { out.push(r); continue; }
+    const rec = r as unknown as Record<string, number>;
+    if (fields.some(f => rec[f] === j)) continue;
+    out.push(renumberCircle(r, fields.filter(f => rec[f] > j)));
+  }
+  return out;
+}
