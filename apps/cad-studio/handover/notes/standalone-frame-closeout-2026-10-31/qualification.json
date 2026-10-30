@@ -1,0 +1,36 @@
+{
+  "decision": "D372",
+  "roadmap": "01 standalone tolerance frame — CG5 DR-6 (row close-out, owner order 'Go to 01–06')",
+  "tier": "small (close-out: focused check + one actual run)",
+  "status": "CLOSED",
+  "finding": "The row's remaining action (latest reader/writer field preservation and raw-input checks, product connection) is already in the code: drawing/controls.ts reads saved frames as an array with explicit refusals; sheet/SVG render standalone frames at view-mm; issues.ts reports FRAME_VIEW_MISSING/VIEW_NEEDED/DATUM_UNDEFINED/TEXT_OVER_LINES. Model tests drawing-standalone*/composite*/current-contract 26/26 cover the real file codec round trip.",
+  "driverCommit": "48a348d28",
+  "codeAtRun": "7ec040ab8 (+ the driver)",
+  "run": {
+    "status": "PASS",
+    "run": "run-01 (first run)",
+    "steps": [
+      "open bracket.bcad, Drawing workspace",
+      "Add standalone frame in the right view at view-mm [2,8]: id frame-1, view right, no dim, place within 0.2 mm, sheet group 'Ø0.1'",
+      "edit characteristic flatness and tolerance 0.25: only those fields change",
+      "Move to [6,8.5]: only place changes",
+      "hide the right view: frame kept, group gone, VIEW_NEEDED names the frame, Move disabled, 'The frame view is not shown'; show again: settings equal",
+      "Save, New part, Open: frame, nodes and drawing identical",
+      "Export SVG: independent Python oracle — border top-left = view origin + scale·place within 5e-3 mm; symbol '0.25' in the value cell",
+      "Remove frame, Undo: document identical, SVG position unchanged"
+    ],
+    "oracles": "2/2 PASS",
+    "frozenFiles": 265,
+    "frozenEqualsCommit": true,
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0
+  },
+  "limits": [
+    "Datum-referencing frames, section/detail views and dragging the frame on the sheet are not driven (model tests cover datums and missing views)",
+    "TEXT_OVER_LINES appeared for the chosen place (recorded, as the product should report it)",
+    "Earlier Codex-era evidence (5PASS/1FAIL and the corrected results) stays in its own notes; this run is a fresh close-out on the current code"
+  ],
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

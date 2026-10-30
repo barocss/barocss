@@ -17543,3 +17543,20 @@ Limits:
 - the full kernel suite was not rerun after the fixes.
 
 CI and release NOT_RUN.
+
+## D372 — Row 01 closed: standalone tolerance frames; small close-out (2026-10-31)
+
+[Evidence](notes/standalone-frame-closeout-2026-10-31/qualification.json). Owner order "Go to 01–06".
+
+The row's remaining action is already in the code: reader/writer field preservation with raw-input refusals, view-mm sheet/SVG rendering and the frame diagnostics. Model tests pass 26/26. The close-out ran one actual Studio flow on the shared helper (driver `48a348d28`), which passed on its first run:
+- Add, edit and Move;
+- hide and show the view, with the warning;
+- Save, New and Open, identical;
+- SVG export, with an independent paper-mm oracle within 5e-3 mm;
+- Remove and Undo, identical.
+
+Errors 0; 265 frozen files equal the commit.
+
+Tier: small. Limits:
+- datum frames, section and detail views, and sheet drag are not driven (model tests cover datums and missing views);
+- CI and release NOT_RUN.
