@@ -17630,3 +17630,24 @@ The record keeps:
 - limits: not general glTF; 133d29e9b source only.
 
 No PNG is committed anywhere; the examples reproduce the images. Nothing was merged into the product, as the row requires. Product checks, CI and release: NOT_RUN.
+
+## D377 — Row 20 ①: later features stay visible while a handle is dragged; feature (2026-10-31)
+
+[Evidence](notes/drag-preview-roll-2026-10-31/qualification.json). Owner order "Go to 20/21".
+
+Measured first on a box with two holes and two fillets after it:
+- whole-part preview ~20 ms; box-only (rolled) ~1.2 ms;
+- every drag preview rolled back, so the later features vanished while moving;
+- frames 16.7 ms, so ③ (stutter) does not reproduce on this part.
+
+Change: `useCommandPreview` rolls back only when a whole-part preview on this document took longer than `ROLL_AFTER_MS` (120 ms). Until that is measured, it uses the App's last evaluation time.
+
+Audit: CHANGES_REQUIRED.
+- F1 (idle drag keyed by command): fixed, with tests.
+- F2: comment placement.
+
+Verification:
+- drag-wall 24/24; 3/3 mutants killed; Studio 563/563; tsc PASS;
+- actual run03 after the fixes: 0 box-only previews, whole part median 17.5 ms, no frame gap over 50 ms, holes visible while dragging, Escape leaves the document unchanged.
+
+Limits: one part measured; the threshold is not tuned; ③ needs a slower part. CI and release NOT_RUN.

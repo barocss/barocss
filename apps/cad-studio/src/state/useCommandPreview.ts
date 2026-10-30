@@ -8,9 +8,12 @@ import type { EngineClient } from '../engine/client';
 import type { ValueStore } from './valueStore';
 interface CommandPreviewOptions {
   command: { activeStore: ValueStore<Active | null>; bearingRootCurrent: boolean };
-  worker: { engine: EngineClient; nextRevision(): number; currentBearingDoc(): StudioDoc };
+  /** `wholeMs`: the last whole-document evaluation's time, the cost of a whole-part preview until one of this document is measured. */
+  worker: { engine: EngineClient; nextRevision(): number; currentBearingDoc(): StudioDoc; wholeMs?(): number };
   result: { setPreviewBodies: Dispatch<SetStateAction<BodyResult[] | null>>; previewFor: { current: string | null } };
 }
+/** A whole-part preview slower than this (ms) makes a handle drag show only the part up to the dragged feature (roadmap 20 ①). */
+export const ROLL_AFTER_MS = 120;
 /** The step-snapped value halfway between the last good value and the bound, or null when they are one step apart (or the pointer is not past the bound). */
 function bisectValue(hd: { lastOk: number; bad: number | null; want: number; wall: number; step: number }): number | null {
   // (Only while the pointer asks for a value at or past the bound: a pointer between them is evaluated as it is.)
@@ -24,7 +27,7 @@ function bisectValue(hd: { lastOk: number; bad: number | null; want: number; wal
 /** The HUD preview queue and drag limits retain their original per-command subscription. */
 export function useCommandPreview({ command, worker, result }: CommandPreviewOptions) {
   const { activeStore, bearingRootCurrent } = command, setActive = activeStore.set;
-  const { engine, nextRevision, currentBearingDoc } = worker;
+  const { engine, nextRevision, currentBearingDoc, wholeMs } = worker;
   const { setPreviewBodies, previewFor } = result;
   // Live preview: re-evaluate the candidate whenever HUD values change. One evaluation at a time, the
   // newest values next (a drag sends many): the preview keeps up as fast as the kernel does, with no
@@ -39,11 +42,14 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
   const handleDrag = useRef<{ key: string; lastOk: number; wall: number; bad: number | null; want: number; step: number; dragging: boolean } | null>(null);
   const lastTyped = useRef(0);
   /**
-   * While a handle is dragged on a feature that later ones build on (a box under fillets), the preview
-   * is the part up to that feature — quick, so the body keeps up with the pointer — and the whole part
-   * follows when the drag pauses or ends (`fullTimer`).
+   * While a handle is dragged on a feature that later ones build on (a box under fillets), the preview is the
+   * whole part as long as it keeps up: once a whole-part preview on this document took longer than ROLL_AFTER_MS
+   * (`wholeCost`, else the document's own evaluation time), it is the part up to that feature — quick, so the body
+   * keeps up with the pointer — and the whole part follows when the drag pauses or ends (`fullTimer`), which also
+   * measures it again. (Keyed by the document, not the command: an idle handle's edit is a new command each time.)
    */
   const fullTimer = useRef(0);
+  const wholeCost = useRef<{ doc: StudioDoc; ms: number } | null>(null);
   const watch = () => {
     // (R1d: run on each change of the command's values, followed in the store — the App does not render for a value typed
     // into the HUD or placed by the pointer.)
@@ -74,13 +80,15 @@ export function useCommandPreview({ command, worker, result }: CommandPreviewOpt
         // A part it places as an instance (a fastener inserted as its own part) shows folded in as features.
         const placed = (candidate.instances ?? []).filter(i => !(ctx.doc.instances ?? []).some(j => j.id === i.id));
         if (placed.length) shown = flattenAssembly({ ...candidate, instances: placed });
-        if (!full && handleDrag.current?.dragging && candidate.nodes.length === ctx.doc.nodes.length) {
+        const slow = (wholeCost.current?.doc === ctx.doc ? wholeCost.current.ms : wholeMs?.() ?? 0) > ROLL_AFTER_MS;
+        if (!full && slow && handleDrag.current?.dragging && candidate.nodes.length === ctx.doc.nodes.length) {
           // (The last node the drag changed: nodes it left are the same objects, compared by content only if not.)
           let k = -1; for (let i = 0; i < candidate.nodes.length; i++) { const n = candidate.nodes[i], o = ctx.doc.nodes[i]; if (n !== o && JSON.stringify(n) !== JSON.stringify(o)) k = i; }
           if (k >= 0 && k < candidate.nodes.length - 1) { shown = prefixDoc(candidate, k + 1); rolled = true; }
         }
         window.clearTimeout(fullTimer.current);
-        const result = await engine.preview(shown, nextRevision());
+        const t0 = performance.now(), result = await engine.preview(shown, nextRevision());
+        if (!rolled) wholeCost.current = { doc: ctx.doc, ms: performance.now() - t0 };
         if (cmd.id === 'bearing' && ctx.bearingAssembly?.root !== currentBearingDoc()) return;
         if (rolled && live) fullTimer.current = window.setTimeout(() => { if (!live) return; run.next = () => job(true); if (!run.busy) void pump(); }, 220);
         // A queued update can use an intermediate result, unless this command was replaced or refused.

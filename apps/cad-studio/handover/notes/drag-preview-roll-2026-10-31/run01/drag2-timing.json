@@ -1,0 +1,779 @@
+{
+  "summary": {
+    "label": "drag2",
+    "moves": 70,
+    "holdMs": 900,
+    "pointerMovesSent": 70,
+    "previewRequests": 13,
+    "rolledRequests": 0,
+    "fullRequests": 0,
+    "rolledMs": {
+      "median": null,
+      "p90": null,
+      "max": null
+    },
+    "fullMs": {
+      "median": null,
+      "p90": null,
+      "max": null
+    },
+    "frameGapMs": {
+      "count": 108,
+      "median": 16.7,
+      "p90": 16.7,
+      "max": 33.4,
+      "over50": 0
+    },
+    "widthShown": {
+      "first": null,
+      "last": null,
+      "distinct": 1
+    }
+  },
+  "previews": [
+    {
+      "t": 60.7,
+      "id": 17,
+      "type": "preview",
+      "nodes": null,
+      "ms": 20.9,
+      "ok": true,
+      "bodies": 1
+    },
+    {
+      "t": 148.1,
+      "id": 18,
+      "type": "preview",
+      "nodes": null,
+      "ms": 1,
+      "ok": true,
+      "bodies": 1
+    },
+    {
+      "t": 281,
+      "id": 19,
+      "type": "preview",
+      "nodes": null,
+      "ms": 1.1,
+      "ok": true,
+      "bodies": 1
+    },
+    {
+      "t": 412.9,
+      "id": 20,
+      "type": "preview",
+      "nodes": null,
+      "ms": 0.8,
+      "ok": true,
+      "bodies": 1
+    },
+    {
+      "t": 630,
+      "id": 21,
+      "type": "preview",
+      "nodes": null,
+      "ms": 0.9,
+      "ok": true,
+      "bodies": 1
+    },
+    {
+      "t": 764.6,
+      "id": 22,
+      "type": "preview",
+      "nodes": null,
+      "ms": 1,
+      "ok": true,
+      "bodies": 1
+    },
+    {
+      "t": 929.7,
+      "id": 23,
+      "type": "preview",
+      "nodes": null,
+      "ms": 1.1,
+      "ok": true,
+      "bodies": 1
+    },
+    {
+      "t": 1063.3,
+      "id": 24,
+      "type": "preview",
+      "nodes": null,
+      "ms": 0.9,
+      "ok": true,
+      "bodies": 1
+    },
+    {
+      "t": 1229.6,
+      "id": 25,
+      "type": "preview",
+      "nodes": null,
+      "ms": 1,
+      "ok": true,
+      "bodies": 1
+    },
+    {
+      "t": 1447.3,
+      "id": 26,
+      "type": "preview",
+      "nodes": null,
+      "ms": 1,
+      "ok": true,
+      "bodies": 1
+    },
+    {
+      "t": 1580.8,
+      "id": 27,
+      "type": "preview",
+      "nodes": null,
+      "ms": 2.4,
+      "ok": true,
+      "bodies": 1
+    },
+    {
+      "t": 1730.1,
+      "id": 28,
+      "type": "preview",
+      "nodes": null,
+      "ms": 0.9,
+      "ok": true,
+      "bodies": 1
+    },
+    {
+      "t": 1951.6,
+      "id": 29,
+      "type": "preview",
+      "nodes": null,
+      "ms": 19,
+      "ok": true,
+      "bodies": 1
+    }
+  ],
+  "samples": [
+    {
+      "i": 1,
+      "t": 4911.899999856949,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 2,
+      "t": 4952.099999904633,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 3,
+      "t": 4968,
+      "width": null,
+      "status": "preview"
+    },
+    {
+      "i": 4,
+      "t": 4999.299999952316,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 5,
+      "t": 5031.699999809265,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 6,
+      "t": 5048.799999952316,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 7,
+      "t": 5065.599999904633,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 8,
+      "t": 5082.699999809265,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 9,
+      "t": 5100,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 10,
+      "t": 5132.399999856949,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 11,
+      "t": 5165.199999809265,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 12,
+      "t": 5181.699999809265,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 13,
+      "t": 5198.699999809265,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 14,
+      "t": 5215.699999809265,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 15,
+      "t": 5231.5,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 16,
+      "t": 5263.899999856949,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 17,
+      "t": 5299.299999952316,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 18,
+      "t": 5315.699999809265,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 19,
+      "t": 5332.299999952316,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 20,
+      "t": 5348.199999809265,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 21,
+      "t": 5432.5,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 22,
+      "t": 5481.099999904633,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 23,
+      "t": 5515.099999904633,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 24,
+      "t": 5532.399999856949,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 25,
+      "t": 5548.799999952316,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 26,
+      "t": 5565.899999856949,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 27,
+      "t": 5582.699999809265,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 28,
+      "t": 5634.299999952316,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 29,
+      "t": 5682.099999904633,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 30,
+      "t": 5699.599999904633,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 31,
+      "t": 5715.299999952316,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 32,
+      "t": 5732.199999809265,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 33,
+      "t": 5749.299999952316,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 34,
+      "t": 5781.199999809265,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 35,
+      "t": 5815.299999952316,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 36,
+      "t": 5832.399999856949,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 37,
+      "t": 5848.699999809265,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 38,
+      "t": 5865.799999952316,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 39,
+      "t": 5882.5,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 40,
+      "t": 5914.599999904633,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 41,
+      "t": 5948.699999809265,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 42,
+      "t": 5965.799999952316,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 43,
+      "t": 5982.5,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 44,
+      "t": 6013.299999952316,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 45,
+      "t": 6032.299999952316,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 46,
+      "t": 6048.199999809265,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 47,
+      "t": 6081,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 48,
+      "t": 6115.699999809265,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 49,
+      "t": 6132,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 50,
+      "t": 6148,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 51,
+      "t": 6232,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 52,
+      "t": 6265.5,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 53,
+      "t": 6316.199999809265,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 54,
+      "t": 6331.899999856949,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 55,
+      "t": 6348.699999809265,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 56,
+      "t": 6365.899999856949,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 57,
+      "t": 6381.799999952316,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 58,
+      "t": 6398.399999856949,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 59,
+      "t": 6451.599999904633,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 60,
+      "t": 6465.799999952316,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 61,
+      "t": 6482.5,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 62,
+      "t": 6499.399999856949,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 63,
+      "t": 6515.899999856949,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 64,
+      "t": 6545.699999809265,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 65,
+      "t": 6599.299999952316,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 66,
+      "t": 6615.299999952316,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 67,
+      "t": 6631.799999952316,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 68,
+      "t": 6648.699999809265,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 69,
+      "t": 6665.199999809265,
+      "width": null,
+      "status": "evaluating…"
+    },
+    {
+      "i": 70,
+      "t": 6681.799999952316,
+      "width": null,
+      "status": "evaluating…"
+    }
+  ],
+  "frames": [
+    10.6,
+    27.3,
+    44,
+    77.4,
+    94,
+    110.6,
+    127.3,
+    144,
+    160.6,
+    177.3,
+    194,
+    210.7,
+    227.3,
+    244,
+    260.7,
+    277.4,
+    294,
+    310.7,
+    327.3,
+    344,
+    360.7,
+    377.3,
+    394,
+    410.6,
+    427.3,
+    443.9,
+    460.7,
+    477.3,
+    494,
+    510.7,
+    527.4,
+    544,
+    560.6,
+    577.3,
+    593.9,
+    610.6,
+    627.4,
+    643.9,
+    660.7,
+    677.3,
+    693.9,
+    710.7,
+    727.3,
+    743.9,
+    760.6,
+    777.3,
+    794,
+    810.6,
+    827.3,
+    843.9,
+    860.6,
+    877.3,
+    893.9,
+    910.7,
+    927.3,
+    944,
+    960.6,
+    977.3,
+    994,
+    1010.6,
+    1027.3,
+    1043.9,
+    1060.7,
+    1077.3,
+    1094,
+    1110.6,
+    1127.3,
+    1144,
+    1160.6,
+    1177.3,
+    1194,
+    1210.6,
+    1227.3,
+    1244,
+    1260.6,
+    1277.3,
+    1293.9,
+    1310.6,
+    1327.3,
+    1343.9,
+    1360.6,
+    1377.2,
+    1394,
+    1410.6,
+    1427.3,
+    1444,
+    1460.6,
+    1477.3,
+    1494,
+    1510.6,
+    1527.3,
+    1543.9,
+    1560.6,
+    1577.2,
+    1594,
+    1610.6,
+    1627.3,
+    1643.9,
+    1660.6,
+    1677.2,
+    1693.9,
+    1710.6,
+    1727.3,
+    1744,
+    1760.6,
+    1777.2,
+    1794,
+    1810.6,
+    1827.2,
+    1843.9,
+    1860.6,
+    1877.3,
+    1893.9,
+    1910.6,
+    1927.3,
+    1943.9,
+    1960.6,
+    1977.3,
+    1993.9,
+    2010.6,
+    2027.3,
+    2043.9,
+    2060.6,
+    2077.2,
+    2093.9,
+    2110.6,
+    2127.3,
+    2143.9,
+    2160.6,
+    2177.2,
+    2193.9,
+    2210.6,
+    2227.3,
+    2243.9,
+    2260.5,
+    2277.2,
+    2293.9,
+    2310.6,
+    2327.2,
+    2343.9,
+    2360.6,
+    2377.2,
+    2393.9,
+    2410.6,
+    2427.2,
+    2443.9,
+    2460.6,
+    2477.3,
+    2493.9,
+    2510.6,
+    2527.2,
+    2543.9,
+    2560.5,
+    2577.3,
+    2593.9,
+    2610.6,
+    2627.3,
+    2643.9,
+    2660.5,
+    2677.3,
+    2693.9,
+    2710.6,
+    2727.2,
+    2743.9,
+    2760.5,
+    2777.2,
+    2793.9,
+    2810.6,
+    2827.2,
+    2843.9,
+    2860.5,
+    2877.2,
+    2893.9,
+    2910.6,
+    2927.2,
+    2943.9,
+    2960.5,
+    2977.2,
+    2993.8,
+    3010.6,
+    3027.3,
+    3043.8,
+    3060.6,
+    3077.2,
+    3093.9,
+    3110.5,
+    3127.2,
+    3143.9,
+    3160.5,
+    3177.2,
+    3193.9,
+    3210.5,
+    3227.2,
+    3243.8,
+    3260.5,
+    3277.2,
+    3293.9,
+    3310.6,
+    3327.3,
+    3343.9,
+    3360.5,
+    3377.3,
+    3393.9
+  ]
+}

@@ -577,6 +577,8 @@ export function App() {
   const [material, setMaterial] = useState<string>(() => { try { return localStorage.getItem('studio.material') ?? 'al6061'; } catch { return 'al6061'; } });
   useEffect(() => { try { localStorage.setItem('studio.material', material); } catch { /* storage unavailable */ } }, [material]);
   const [lastMs, setLastMs] = useState(0);
+  // (The same time for the drag preview's whole-part cost, read while dragging: roadmap 20 ①.)
+  const lastEvalMs = useRef(0);
   const [menu, setMenu] = useState<{ at: { x: number; y: number }; selection: Selection; title: string } | null>(null);
   const revision = useRef(1);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -748,7 +750,7 @@ export function App() {
         setParameterEdit(null);
         return;
       }
-      setBusy(false); setLastMs(result.wallTime * 1000);
+      setBusy(false); setLastMs(lastEvalMs.current = result.wallTime * 1000);
       if (result.ok) {
         acceptedEvaluation.current = { key, result };
         const prev = bodiesRef.current;
@@ -1031,7 +1033,7 @@ export function App() {
   useEffect(() => () => routeEditor.dispose(), []);
 
   const bearingRootCurrent = active?.cmd.id !== 'bearing' || active.ctx.bearingAssembly?.root === doc;
-  const commandPreview = useCommandPreview({ command: { activeStore, bearingRootCurrent }, worker: { engine, nextRevision: () => revision.current++, currentBearingDoc: () => bearingEditScope.current.doc },
+  const commandPreview = useCommandPreview({ command: { activeStore, bearingRootCurrent }, worker: { engine, nextRevision: () => revision.current++, currentBearingDoc: () => bearingEditScope.current.doc, wholeMs: () => lastEvalMs.current },
     result: { setPreviewBodies, previewFor } });
   const { handleDrag, lastTyped } = commandPreview;
   useEffect(() => commandPreview.watch(), [active?.cmd, engine, bearingRootCurrent, activeStore]);
