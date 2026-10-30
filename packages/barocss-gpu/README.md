@@ -141,6 +141,25 @@ camera, materials and lighting. Later edits to the live viewer do not update tha
 still. Create another session to render the edited scene; raster rendering and
 controls remain independent.
 
+Point and spot lights with `castShadow` enabled and a positive `shadowRadius`
+sample shadow visibility over a disk perpendicular to the direction to the
+light. Its radius uses world units. The centre direction still determines the
+BRDF, distance attenuation, range and spot cone. This is a shadow visibility
+filter, not a full area-emitter radiance model. Directional lights remain delta
+lights in the still.
+
+Zero, omitted or disabled radii retain the previous delta-light path. Path
+tracing still tests geometric occlusion for every direct light; `castShadow`
+gates this disk radius and does not turn off that existing occlusion. An enabled
+radius must be nonnegative and representable as a finite f32, without positive
+underflow. Invalid enabled radii refuse with `LIGHT_INVALID` before allocating
+the still's GPU resources. These checks apply to all lights in the still,
+independently of raster shadow-map limits. A frozen still keeps its accepted
+radius after live edits.
+
+[Interactive path-traced shadow example](examples/path-trace-soft-shadows.html)
+compares a zero-radius capture with the selected point or spot radius.
+
 ```js
 // Use the populated viewer from the example above.
 const still = await viewer.createPathTrace({ width: 640, height: 480, bounces: 6 });
@@ -424,6 +443,57 @@ viewer.dispose();
 (`segments`, default 48, shared between objects of the same shape), shows the scene
 background unless `background: false`, fits the camera on first show unless
 `fit: false`, and accepts an outer `transform` for a scene inside another world.
+
+### Render to a target
+
+An output target belongs to the viewer that created it. With no size option it
+uses the canvas size at creation; `{ width, height }` selects an independent
+pixel size. Both use the viewer output format. Render into the target before
+reading its top-to-bottom RGBA bytes. A target render leaves a scheduled canvas
+frame in place. Use an active viewer with a scene:
+
+```js
+const target = viewer.createRenderTarget();
+viewer.render(target);
+const image = await target.read(); // { width, height, data: Uint8Array }
+target.dispose();
+```
+
+An explicitly sized target remains usable when the canvas changes size. Create
+a new default-sized target after changing the canvas size, and create all targets
+again after restoring the device.
+Reading before the first render, using a disposed target, or rendering with a
+different viewer is refused. Calling `dispose()` more than once is safe.
+
+`target.asTexture()` supplies a triangle surface's
+`Material.map`. Render the source target with an opaque background first. Then
+assign its texture to a mesh in the same viewer:
+
+```js
+viewer.render(target); // The source scene must not sample target itself.
+consumer.material = { map: target.asTexture() };
+viewer.render();
+```
+
+The map is a live view of the target's last frame. A later target render updates
+the image sampled by a later consumer render. The sampled image is the final
+8-bit sRGB output, including the viewer's output effects; it is LDR, not HDR
+scene data. Sampling decodes sRGB, uses linear filtering and clamps at the
+edges. It uses one mip level. The target owns the texture; disposing the target,
+losing its device, or invalidating a default-sized target through a canvas resize
+makes the map unusable. Render a new target to replace it.
+
+The last source frame must have an opaque background each time the map is used.
+If a later source frame has a transparent background, sampling is refused until
+an opaque frame is rendered again. A viewer refuses a render that samples the
+same target it writes. Hide or remove the consuming mesh when rendering that
+target. A target map is not a normal, roughness, metallic, or environment map.
+Path tracing refuses a target map on a surface it would trace. An opaque source
+map does not make a consumer material with opacity below one opaque.
+
+The 02.2 owner branch passed a scoped build, the new WebGPU regression, lint
+and the synthetic public example on the tested Chrome/Apple Metal adapter.
+Product integration and broader device coverage remain separate.
 
 ## Generated SDF shader text
 
