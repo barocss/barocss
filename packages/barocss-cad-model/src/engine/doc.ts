@@ -939,6 +939,8 @@ export function withNode(doc: StudioDoc, node: ModelNode): StudioDoc {
  * `scale` times the sketch about the centre of its outline's box.
  */
 export function loftTop(sketch: SketchNode, shape: 'scaled' | 'circle' | 'rectangle', scale: number): SketchNode {
+  // A parameter-bound size has no number here: refused, not turned into NaN (resolve the sketch first).
+  if (/"parameter":/.test(JSON.stringify(sketch))) throw refusal('VALUE', 'A loft top needs a sketch with plain sizes: resolve its parameters first.');
   const pts: [number, number][] = sketch.profile === 'rectangle' ? [sketch.min, sketch.max].map(p => p.map(Number) as [number, number])
     : sketch.profile === 'circle' ? [[Number(sketch.center[0]) - Number(sketch.radius), Number(sketch.center[1]) - Number(sketch.radius)], [Number(sketch.center[0]) + Number(sketch.radius), Number(sketch.center[1]) + Number(sketch.radius)]]
       : sketch.profile === 'polygon' ? sketch.points.map(p => p.map(Number) as [number, number]) : sketch.segments.map(g => g.start.map(Number) as [number, number]);

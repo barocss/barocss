@@ -186,6 +186,9 @@ import { commitDimension, isSettled } from '@barocss/cad-model/sketch/rules';
 import { sketchClick } from '@barocss/cad-model/sketch/select';
 import { SketchHistory } from '@barocss/cad-model/sketch/history';
 
+// A free sketch's outlines at the document's parameter values; none when a parameter it uses is missing.
+const ringsOf = (n: SketchNode, params: StudioDoc['parameters']) => { try { return profileRings(n, params); } catch (e) { if (!isRefusal(e, 'PARAMETER_UNKNOWN')) throw e; return []; } };
+
 // Workspaces off the first screen load when first opened (the chat's tools, the drawing and the render panel).
 const ChatPanel = lazy(() => import('./ui/ChatPanel').then(m => ({ default: m.ChatPanel })));
 const DrawingWorkspace = lazy(() => import('./ui/DrawingWorkspace').then(m => ({ default: m.DrawingWorkspace })));
@@ -1199,7 +1202,7 @@ export function App() {
   const freeSketches = useMemo(() => unusedSketches(evaluated.nodes), [evaluated.nodes]);
   // The steps inside a part made in several (a bolt's head, shank and their union): one history entry, the last.
   const innerSteps = useMemo(() => new Set(doc.nodes.flatMap((n, i) => 'made' in n && n.made?.nodes ? Array.from({ length: n.made.nodes - 1 }, (_, k) => i - n.made!.nodes! + 1 + k) : [])), [doc.nodes]);
-  const profiles = useMemo(() => sketch ? [] : freeSketches.map(i => ({ id: i, rings: profileRings(evaluated.nodes[i] as SketchNode), picked: !!selection.sketches?.includes(i) })), [freeSketches, evaluated.nodes, selection.sketches, sketch]);
+  const profiles = useMemo(() => sketch ? [] : freeSketches.map(i => ({ id: i, rings: ringsOf(evaluated.nodes[i] as SketchNode, shownDoc.parameters), picked: !!selection.sketches?.includes(i) })), [freeSketches, evaluated.nodes, shownDoc.parameters, selection.sketches, sketch]);
   const pickProfile = useCallback((id: number | null, additive: boolean) => {
     if (id === null) return;
     setDirectSel([]); setInstanceSel([]);

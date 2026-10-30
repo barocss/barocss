@@ -76,11 +76,12 @@ function placedHandles(ctx: Ctx, nodes: readonly ModelNode[], index: number): Ha
   return [{ key: 'spacing', at: at(box.min[k] + len / 2 + s), dir, min: 1 }, { key: 'count', at: at(box.min[k] + len + s * (count - 1)), dir, scale: 1 / Math.max(1, s), min: 2, max: 24, unit: '' }];
 }
 /** A revolve's angle: an arc about its axis from the profile's middle. */
-function revolveHandles(nodes: readonly ModelNode[], index: number): HandleSpec[] {
+function revolveHandles(nodes: readonly ModelNode[], index: number, params?: Readonly<Record<string, number>>): HandleSpec[] {
   const r = nodes[index] as Extract<ModelNode, { kind: 'revolve' }>, sk = nodes[r.sketch] as SketchNode | undefined;
   if (!sk || sk.kind !== 'sketch') return [];
   const plane = planeOf(sk), o: [number, number] = r.origin ? [num(r.origin[0]), num(r.origin[1])] : [0, 0];
-  const d0: [number, number] = r.dir ?? (r.axis === 'x' ? [1, 0] : [0, 1]), l = Math.hypot(d0[0], d0[1]) || 1, d: [number, number] = [d0[0] / l, d0[1] / l], m = profileMiddle(sk);
+  const d0: [number, number] = r.dir ?? (r.axis === 'x' ? [1, 0] : [0, 1]), l = Math.hypot(d0[0], d0[1]) || 1, d: [number, number] = [d0[0] / l, d0[1] / l];
+  let m: [number, number]; try { m = profileMiddle(sk, params); } catch { return []; }
   const t = (m[0] - o[0]) * d[0] + (m[1] - o[1]) * d[1], foot: [number, number] = [o[0] + d[0] * t, o[1] + d[1] * t];
   const centre = toWorld(plane, foot), from = toWorld(plane, m), tip = toWorld(plane, [foot[0] + d[0], foot[1] + d[1]]), axis: V3 = [tip[0] - centre[0], tip[1] - centre[1], tip[2] - centre[2]];
   if (Math.hypot(from[0] - centre[0], from[1] - centre[1], from[2] - centre[2]) < 1e-6) return [];
@@ -148,7 +149,7 @@ export function editCommand(index: number, nodes: readonly ModelNode[], rows: Pi
       if (n.kind === 'extrude') return extrudeHandles(now, index);
       if (n.kind === 'hole') return holeHandles(ctx, now, index);
       if (n.kind === 'split' || n.kind === 'linear-pattern') return placedHandles(ctx, now, index);
-      if (n.kind === 'revolve') return revolveHandles(now, index);
+      if (n.kind === 'revolve') return revolveHandles(now, index, ctx.doc.parameters);
       // A shell's wall: on its largest inside face, into the hollow; further in is thicker.
       if (n.kind === 'shell') {
         const was = ctx.doc.nodes[index], t0 = was?.kind === 'shell' ? num(was.thickness) : NaN, t = num(n.thickness);

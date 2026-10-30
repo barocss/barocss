@@ -492,7 +492,7 @@
 | `[PARAMETER_EXISTS]` | `engine` | there is a parameter … already; set its value instead |
 | `[PARAMETER_NAME]` | `engine` | a parameter's name starts with a letter and has letters, digits and _ (up to 32), not … |
 | `[PARAMETER_UNBINDABLE]` | `engine` | feature …'s … can't take a parameter (its values that can are …) |
-| `[PARAMETER_UNKNOWN]` | `engine`, `sketch` | no parameter …; the parameters are … |
+| `[PARAMETER_UNKNOWN]` | `app`, `engine`, `sketch` | no parameter …; the parameters are … |
 | `[PART_MATED]` | `assembly` | … mate… move …; delete … first, or fix the other part. |
 | `[PATH_TOO_SHORT]` | `robot` | a path needs at least two waypoints |
 | `[PRIMITIVE_SIZE]` | `app` | The tube radius must be smaller than the ring radius. |

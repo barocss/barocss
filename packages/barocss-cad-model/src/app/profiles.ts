@@ -6,9 +6,35 @@ import type { Vec3 } from '../engine/mesh';
 import { NODE_EXTRA_FIELDS, parentsOf, type LoopSegment, type ModelNode, type SketchNode } from '../engine/doc';
 import { toLocal, toWorld, xyPlane, yAxisOf, type SketchPlane } from '../sketch/plane';
 import { loopOf } from '../sketch/loops';
+import { resolveSketchDims } from '../sketch/reopen';
+import { isRefusal, refusal } from '../engine/refusal';
 
 type XY = [number, number];
 const num = (v: unknown) => Number(v);
+type Params = Readonly<Record<string, number>>;
+// A stored sketch with its `{ parameter }` sizes as numbers now; refuses a missing or non-finite parameter (as reopen does).
+// With the sketch's index, a refusal names that sketch ("Sketch 2 uses parameter W, …").
+const valued = (n: SketchNode, params: Params, index?: number): SketchNode => {
+  try { return resolveSketchDims(n, params); } catch (e) {
+    if (index === undefined || !isRefusal(e, 'PARAMETER_UNKNOWN')) throw e;
+    throw refusal('PARAMETER_UNKNOWN', e.message.replace(/^\[\w+\] the sketch/, `Sketch ${index + 1}`));
+  }
+};
+
+// Adds the name of every `{ parameter }` value inside v to names.
+function collectParameters(v: unknown, names: Set<string>): void {
+  if (Array.isArray(v)) { for (const x of v) collectParameters(x, names); return; }
+  if (!v || typeof v !== 'object') return;
+  if (Object.keys(v).length === 1 && typeof (v as { parameter?: unknown }).parameter === 'string') { names.add((v as { parameter: string }).parameter); return; }
+  for (const x of Object.values(v)) collectParameters(x, names);
+}
+
+/** The parameters picked sketches are bound to, once each by name, with their values now (a bound size that cannot be read is left out). */
+export function boundParameters(nodes: readonly ModelNode[], picked: readonly number[], params: Params = {}): [string, number][] {
+  const names = new Set<string>();
+  for (const i of picked) if (nodes[i]?.kind === 'sketch') collectParameters(nodes[i], names);
+  return [...names].sort().flatMap(name => Object.hasOwn(params, name) && Number.isFinite(params[name]) ? [[name, params[name]] as [string, number]] : []);
+}
 
 /** Sketch nodes no later node uses: the profiles waiting for a feature. */
 export function unusedSketches(nodes: readonly ModelNode[]): number[] {
@@ -39,25 +65,27 @@ export function sampleLoop(loop: readonly LoopSegment[]): XY[] {
   });
   return out;
 }
-/** Every loop of a sketch (main, regions, holes) as closed world polylines. */
-export function profileRings(n: SketchNode): Vec3[][] {
-  const plane = planeOf(n);
+/** Every loop of a sketch (main, regions, holes) as closed world polylines (parameter-bound sizes at the document's values; refuses a missing parameter). */
+export function profileRings(stored: SketchNode, params: Params = {}): Vec3[][] {
+  const n = valued(stored, params), plane = planeOf(n);
   return [loopOf(n), ...(n.regions ?? []), ...(n.holes ?? [])].map(loop => sampleLoop(loop).map(p => toWorld(plane, p)));
 }
-/** The middle of a sketch's main loop (plane coordinates). */
-export function profileMiddle(n: SketchNode): XY {
-  const pts = sampleLoop(loopOf(n));
+/** The middle of a sketch's main loop (plane coordinates; parameter-bound sizes at the document's values; refuses a missing parameter). */
+export function profileMiddle(stored: SketchNode, params: Params = {}): XY {
+  const pts = sampleLoop(loopOf(valued(stored, params)));
   return [pts.reduce((s, p) => s + p[0], 0) / (pts.length || 1), pts.reduce((s, p) => s + p[1], 0) / (pts.length || 1)];
 }
 
 /**
  * Loft sections: the picked sketches ordered along the first one's normal, each as a loop sketch on the
  * first one's plane (its points carried across) with its distance along the normal. Null with a reason
- * when they do not lie on parallel planes facing one way, or two share a height.
+ * when they do not lie on parallel planes facing one way, or two share a height. The section nodes are copies
+ * with parameter-bound sizes as the numbers they have now (a snapshot: later parameter changes do not reach them);
+ * a missing parameter is refused.
  */
-export function loftSections(nodes: readonly ModelNode[], picked: readonly number[]): { plane: SketchPlane; sections: { node: SketchNode; z: number; source: number }[] } | { error: string } {
+export function loftSections(nodes: readonly ModelNode[], picked: readonly number[], params: Params = {}): { plane: SketchPlane; sections: { node: SketchNode; z: number; source: number }[] } | { error: string } {
   if (picked.length < 2) return { error: 'Pick two or more sketches (Shift-click) to loft through.' };
-  const sketches = picked.map(i => ({ i, n: nodes[i] as SketchNode })), base = planeOf(sketches[0].n);
+  const sketches = picked.map(i => ({ i, n: valued(nodes[i] as SketchNode, params, i) })), base = planeOf(sketches[0].n);
   const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
   const out: { node: SketchNode; z: number; source: number }[] = [];
   for (const { i, n } of sketches) {
@@ -71,13 +99,13 @@ export function loftSections(nodes: readonly ModelNode[], picked: readonly numbe
   }
   out.sort((a, b) => a.z - b.z);
   // Measured from the lowest section's plane (the first height 0).
-  if (out[0].z !== 0 && out[0].source !== picked[0]) return loftSections(nodes, [out[0].source, ...picked.filter(i => i !== out[0].source)]);
+  if (out[0].z !== 0 && out[0].source !== picked[0]) return loftSections(nodes, [out[0].source, ...picked.filter(i => i !== out[0].source)], params);
   for (let k = 1; k < out.length; k++) if (!(out[k].z > out[k - 1].z + 1e-9)) return { error: 'Two sections lie at the same height: put each on its own offset plane.' };
   return { plane: base, sections: out };
 }
 
-/** Guided loft sections: keep the picked order and authored sketches in their own world-mm frames. */
-export function framedLoftSections(nodes: readonly ModelNode[], picked: readonly number[]): { sections: { node: SketchNode; frame: LoftSectionFrame; source: number }[] } | { error: string } {
+/** Guided loft sections: keep the picked order and authored sketches in their own world-mm frames (parameter-bound sizes as the numbers they have now, a snapshot; a missing parameter is refused). */
+export function framedLoftSections(nodes: readonly ModelNode[], picked: readonly number[], params: Params = {}): { sections: { node: SketchNode; frame: LoftSectionFrame; source: number }[] } | { error: string } {
   if (picked.length !== 2) return { error: 'A guided loft needs exactly two finished sketches.' };
   if (new Set(picked).size !== picked.length) return { error: 'Pick two different sketches for the guided loft.' };
   const sections: { node: SketchNode; frame: LoftSectionFrame; source: number }[] = [];
@@ -86,7 +114,7 @@ export function framedLoftSections(nodes: readonly ModelNode[], picked: readonly
     if (!Number.isInteger(source) || node?.kind !== 'sketch') return { error: 'A picked loft section is not a finished sketch.' };
     if (node.regions?.length || node.holes?.length) return { error: `Sketch ${source + 1} has holes or several shapes: a loft section is one closed shape.` };
     const plane = planeOf(node);
-    const copy = structuredClone(node);
+    const copy = structuredClone(valued(node, params, source)) as typeof node;
     for (const key of NODE_EXTRA_FIELDS) delete copy[key];
     // Use the existing SketchPlane meaning, including yAxisOf's clean behavior. Do not carry or round profiles.
     sections.push({ node: copy, frame: { origin: [...plane.origin] as Vec3, xAxis: [...plane.xAxis] as Vec3, yAxis: yAxisOf(plane) }, source });

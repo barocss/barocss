@@ -255615,6 +255615,37 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./app/profiles",
+      "exportName": "boundParameters",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/app/profiles.ts",
+            "name": "boundParameters",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(nodes: readonly ModelNode[], picked: readonly number[], params?: Readonly<Record<string, number>>) => [string, number][]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(nodes: readonly ModelNode[], picked: readonly number[], params?: Readonly<Record<string, number>>) => [string, number][]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./app/profiles",
       "exportName": "framedLoftSections",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -255630,14 +255661,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(nodes: readonly ModelNode[], picked: readonly number[]) => { sections: { node: SketchNode; frame: LoftSectionFrame; source: number; }[]; } | { error: string; }",
+            "type": "(nodes: readonly ModelNode[], picked: readonly number[], params?: Readonly<Record<string, number>>) => { sections: { node: SketchNode; frame: LoftSectionFrame; source: number; }[]; } | { error: string; }",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(nodes: readonly ModelNode[], picked: readonly number[]) => { sections: { node: SketchNode; frame: LoftSectionFrame; source: number; }[]; } | { error: string; }"
+              "(nodes: readonly ModelNode[], picked: readonly number[], params?: Readonly<Record<string, number>>) => { sections: { node: SketchNode; frame: LoftSectionFrame; source: number; }[]; } | { error: string; }"
             ]
           }
         }
@@ -255661,14 +255692,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(nodes: readonly ModelNode[], picked: readonly number[]) => { plane: SketchPlane; sections: { node: SketchNode; z: number; source: number; }[]; } | { error: string; }",
+            "type": "(nodes: readonly ModelNode[], picked: readonly number[], params?: Readonly<Record<string, number>>) => { plane: SketchPlane; sections: { node: SketchNode; z: number; source: number; }[]; } | { error: string; }",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(nodes: readonly ModelNode[], picked: readonly number[]) => { plane: SketchPlane; sections: { node: SketchNode; z: number; source: number; }[]; } | { error: string; }"
+              "(nodes: readonly ModelNode[], picked: readonly number[], params?: Readonly<Record<string, number>>) => { plane: SketchPlane; sections: { node: SketchNode; z: number; source: number; }[]; } | { error: string; }"
             ]
           }
         }
@@ -255754,14 +255785,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(n: SketchNode) => XY",
+            "type": "(stored: SketchNode, params?: Readonly<Record<string, number>>) => XY",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(n: SketchNode) => XY"
+              "(stored: SketchNode, params?: Readonly<Record<string, number>>) => XY"
             ]
           }
         }
@@ -255785,14 +255816,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(n: SketchNode) => Vec3[][]",
+            "type": "(stored: SketchNode, params?: Readonly<Record<string, number>>) => Vec3[][]",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(n: SketchNode) => Vec3[][]"
+              "(stored: SketchNode, params?: Readonly<Record<string, number>>) => Vec3[][]"
             ]
           }
         }

@@ -59,6 +59,7 @@ or side-face relief and text wrap remain unsupported. See [Text relief](/how/tex
 In **Loft**, **Guide (copied)** selects one polynomial direct curve. A general B-spline guide (degree 1–5) takes
 2–8 ruled sections on parallel planes and must pass through a vertex of each section. The guide is copied; later
 curve edits do not update the loft. A single quadratic or cubic Bézier span keeps the two-frame path.
+A section sketch with parameter-bound sizes is copied at the parameters' values then (the Sizes step lists them, as "Copied at W = 40"): later parameter changes do not update the loft.
 See [Lofts and guides](/how/loft-sweep#one-polynomial-guide-on-height-sections) for the input rules and limits.
 
 ## Route bundles
