@@ -1,0 +1,76 @@
+{
+  "status": "DEFECT_REPRODUCED_EQUAL_COORDINATE_COVERAGE_FAIL",
+  "sourceCommit": "4428c79a87a6f0152db1cc00e73bcd68735aac2e",
+  "scope": "single authored hole edit; resolved dimension differential; retained same/unequal coordinate coverage",
+  "firstFailure": {
+    "kind": "PRODUCT_CONTRACT",
+    "stage": "equal_coordinate_missing_target_location_diagnostic",
+    "message": "Expected HOLE_NOT_LOCATED for independently authored n5 Y location with d9 absent. Actual checker has no warning; unrelated n2 Y15 is counted as coverage.",
+    "stack": "AssertionError [ERR_ASSERTION]: Expected HOLE_NOT_LOCATED for independently authored n5 Y location with d9 absent. Actual checker has no warning; unrelated n2 Y15 is counted as coverage.\n    at file:///Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/drawing-duplicate-differential-20261029T092450/runner.mjs:106636:12\n    at check36 (file:///Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/drawing-duplicate-differential-20261029T092450/runner.mjs:106529:5)\n    at file:///Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/drawing-duplicate-differential-20261029T092450/runner.mjs:106635:3"
+  },
+  "collection": {
+    "baseline": "SAVED",
+    "publicEdit": "SAVED",
+    "editedResolved": "SAVED",
+    "equalRetainedCoverage": "SAVED",
+    "unequalRetainedCoverage": "SAVED"
+  },
+  "checks": [
+    {
+      "name": "authored_single_input_and_reference_contract",
+      "status": "PASS"
+    },
+    {
+      "name": "independent_resolved_dimension_differential",
+      "status": "PASS"
+    },
+    {
+      "name": "equal_coordinate_missing_target_location_diagnostic",
+      "status": "FAIL",
+      "failureKind": "PRODUCT_CONTRACT",
+      "message": "Expected HOLE_NOT_LOCATED for independently authored n5 Y location with d9 absent. Actual checker has no warning; unrelated n2 Y15 is counted as coverage."
+    },
+    {
+      "name": "unequal_coordinate_missing_target_location_diagnostic",
+      "status": "PASS"
+    }
+  ],
+  "policy": {
+    "newNumericalTolerance": false,
+    "geometryMetricOracle": "NOT_CLAIMED",
+    "numericPolicy": "Exact authored integer15\u219217; displayed strings15/17; exact IDs/refs/deepStrictEqual. Product SAME1e-6 and toSig original metadata rounding retained; not independent geometry tolerance.",
+    "publicEdits": 1,
+    "fixCalls": 0,
+    "proposalCalls": 0,
+    "browser": "NOT_RUN",
+    "API9": "NOT_RUN",
+    "manual": "NOT_TESTED_NONE",
+    "StudioUndoPDFNativeRoundtrip": "NOT_RUN"
+  },
+  "priorRun": "091150 FAIL preserved; separate followup, no retroactivePASS",
+  "observed": {
+    "d3": "15\u219215",
+    "d9": "15\u219217",
+    "afterPairDuplicate": false,
+    "equalMissingD9LocationWarnings": 0,
+    "unequalMissingD9LocationWarnings": 1,
+    "allRawEvidenceSavedBeforeProductVerdict": true
+  },
+  "executionCompleted": true,
+  "retries": 0,
+  "inputControls": {
+    "path": "public-api-input-controls.json",
+    "runtimeOriginalReceipt": "receipt-runtime-original.json",
+    "runtimeOriginalReceiptSha256": "384f924045ea5887a6d25888edf993045c0c371d535107e0d35b4f246c0fd1d6",
+    "supportedPaths": {
+      "edit": "exported chat/tools.ts dispatchTool(state, features, {action:edit,index:4,feature:{...originalNode4,center:[17,20]}}, evaluatePart(doc,1))",
+      "dispatcherBoundary": "existing public exported proposal-replay/tool-test dispatcher; not session approval or StudioUI acceptance",
+      "currentResolved": "drawingInputs(actual editedDoc) -> issueContext -> drawingIssues; saved before contract assertions",
+      "equalCoverage": "readStudioFile(original DA1c after.bcad) -> drawingInputs(retainedDoc) -> issueContext/drawingIssues",
+      "unequalCoverage": "drawingInputs(actual editedDoc, readDrawing(original retainedDoc.drawing)) -> issueContext/drawingIssues; supported explicit settings argument; no synthetic kernel/document replacement",
+      "metadata": "pure exported signaturesOf(actual final body).edges + toSig for exact normal signature validation"
+    },
+    "preservedOriginalPolicy": true,
+    "postRunProvenanceSupplementOnly": true
+  }
+}

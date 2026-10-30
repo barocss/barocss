@@ -1,0 +1,7 @@
+test/skeleton-reader.test.ts(39,23): error TS2352: Conversion of type '{ id: string; constraints: { kind: "fixed"; point: number; at: [number, number, number]; }[]; kind: string; name: string; points: number[][]; segments: never[]; }' to type 'ModelNode' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ id: string; constraints: { kind: "fixed"; point: number; at: [number, number, number]; }[]; kind: string; name: string; points: number[][]; segments: never[]; }' is not comparable to type '{ kind: "skeleton"; points: [Dim, Dim, Dim][]; segments: [number, number][]; name?: string | undefined; constraints?: BoundConstraint3D[] | undefined; } & NodeExtras'.
+    Type '{ id: string; constraints: { kind: "fixed"; point: number; at: [number, number, number]; }[]; kind: string; name: string; points: number[][]; segments: never[]; }' is not comparable to type '{ kind: "skeleton"; points: [Dim, Dim, Dim][]; segments: [number, number][]; name?: string | undefined; constraints?: BoundConstraint3D[] | undefined; }'.
+      Types of property 'points' are incompatible.
+        Type 'number[][]' is not comparable to type '[Dim, Dim, Dim][]'.
+          Type 'number[]' is not comparable to type '[Dim, Dim, Dim]'.
+            Target requires 3 element(s) but source may have fewer.

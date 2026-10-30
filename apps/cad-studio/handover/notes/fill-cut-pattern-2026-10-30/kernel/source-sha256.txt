@@ -1,0 +1,8 @@
+3252a00f9f7c5cbf4c66e094027450ba92fe7bb9f30dc5667fa65a30c18158b5  packages/barocss-cad/src/features/fill-cut-pattern.ts
+fcb4b0a1d703d357bf8a78d206542670c49530f1ce8461e5070a601e6b881add  packages/barocss-cad/src/api/spec.ts
+828c9359412e017a35da37865081e079c27ca0d6d79227e585cfb0574d31c852  packages/barocss-cad/src/api/part.ts
+f431ba435b5403efaad693c4c47eb74164490a97d660ebe0c8df7f183d4ba8fd  packages/barocss-cad/src/api/index.ts
+c6e70c28225a90b2af578659872e65c13928439eaac90293f590270a7da8e430  packages/barocss-cad/src/api/kernel.ts
+59848c6894ee65717fd46f2e043af7b67b4ac12f2a2fb44fd32a1d6b4456baa3  packages/barocss-cad/src/part/part-model.ts
+70c6ea5ddd26f158ccf37a74921a6387f6412addecb52b3045122fddbae228fb  packages/barocss-cad/test/fill-cut-pattern.test.mjs
+cd34a9f5c34b79be8514434758e966acdab132cc6b4dd3e7478edbcab88a0a8c  packages/barocss-cad/README.md

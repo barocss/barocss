@@ -1,0 +1,37 @@
+{
+  "status": "SCOPED_PASS",
+  "reviewer": "root",
+  "numericOracle": "Separate six Fraction/native/public/Model/actualStudio checks; screenshots do not prove exact coordinates or mass",
+  "images": [
+    {
+      "path": "05-actual-two-hole-source.png",
+      "status": "PASS",
+      "finding": "Outer and rectangle/triangle holes visible with retained seed and witness."
+    },
+    {
+      "path": "07-valid-preview.png",
+      "status": "PASS",
+      "finding": "Seven-cut preview and enabled Apply visible; witness unchanged."
+    },
+    {
+      "path": "08-seven-cuts-applied.png",
+      "status": "PASS",
+      "finding": "Seven cuts visible; unrelated witness has no selected highlight after successful Fill."
+    },
+    {
+      "path": "11-nine-cuts-spacing.png",
+      "status": "PASS",
+      "finding": "Nine-cut result visible after spacing edit; no filled hole-mask region cuts."
+    },
+    {
+      "path": "13-five-cuts-reselected.png",
+      "status": "PASS",
+      "finding": "Five-cut result and changed outer snapshot visible."
+    },
+    {
+      "path": "15-final-editable.png",
+      "status": "PASS",
+      "finding": "Fresh Open retains five cuts and editable Fill fields; witness retained."
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "status": "MATCH",
+  "comparison": [
+    {
+      "file": "packages/barocss-cad-model/src/drawing/measurement.ts",
+      "reviewHash": "193b3fc9bdcc01b77991f385dd65bd6c8604bdb512dced385d9bf8329b011d21",
+      "currentHash": "193b3fc9bdcc01b77991f385dd65bd6c8604bdb512dced385d9bf8329b011d21",
+      "rootProfileHash": "193b3fc9bdcc01b77991f385dd65bd6c8604bdb512dced385d9bf8329b011d21"
+    },
+    {
+      "file": "packages/barocss-cad-model/src/drawing/auto.ts",
+      "reviewHash": "25e1cdfbb2ef960062c60d835b7868f7afd319b0a1fa761b2c66014c1a44e6fc",
+      "currentHash": "25e1cdfbb2ef960062c60d835b7868f7afd319b0a1fa761b2c66014c1a44e6fc",
+      "rootProfileHash": "25e1cdfbb2ef960062c60d835b7868f7afd319b0a1fa761b2c66014c1a44e6fc"
+    },
+    {
+      "file": "packages/barocss-cad-model/src/drawing/issues.ts",
+      "reviewHash": "ec7e077ac0d07e546cee291b7920889f917b1b98336a1bf82abb34a9e5b2e7ae",
+      "currentHash": "ec7e077ac0d07e546cee291b7920889f917b1b98336a1bf82abb34a9e5b2e7ae",
+      "rootProfileHash": "ec7e077ac0d07e546cee291b7920889f917b1b98336a1bf82abb34a9e5b2e7ae"
+    },
+    {
+      "file": "packages/barocss-cad-model/src/drawing/callout.ts",
+      "reviewHash": "fdef87e9915d085e3506d6c425430a015b3a64e5ba41f3c0c8e90493cb44ecac",
+      "currentHash": "fdef87e9915d085e3506d6c425430a015b3a64e5ba41f3c0c8e90493cb44ecac",
+      "rootProfileHash": "fdef87e9915d085e3506d6c425430a015b3a64e5ba41f3c0c8e90493cb44ecac"
+    },
+    {
+      "file": "packages/barocss-cad-model/src/drawing/layout.ts",
+      "reviewHash": "f7a4499d90a2873bcfa8340c1e29d9d45d5694173e92f4dae81bc2dc15d8daae",
+      "currentHash": "f7a4499d90a2873bcfa8340c1e29d9d45d5694173e92f4dae81bc2dc15d8daae",
+      "rootProfileHash": "f7a4499d90a2873bcfa8340c1e29d9d45d5694173e92f4dae81bc2dc15d8daae"
+    },
+    {
+      "file": "packages/barocss-cad-model/src/chat/drawing.ts",
+      "reviewHash": "8edb682363afc5800b2b3d60ba660235ea40149806ebd8d94cbd8dfa197ccbb2",
+      "currentHash": "8edb682363afc5800b2b3d60ba660235ea40149806ebd8d94cbd8dfa197ccbb2",
+      "rootProfileHash": "8edb682363afc5800b2b3d60ba660235ea40149806ebd8d94cbd8dfa197ccbb2"
+    },
+    {
+      "file": "packages/barocss-cad-model/test/drawing-independent-locations.test.ts",
+      "reviewHash": "acec80df6a45510929769ecadcd589982bc6fd0befa59cdf122ab99b205fba67",
+      "currentHash": "acec80df6a45510929769ecadcd589982bc6fd0befa59cdf122ab99b205fba67",
+      "rootProfileHash": "acec80df6a45510929769ecadcd589982bc6fd0befa59cdf122ab99b205fba67"
+    },
+    {
+      "file": "apps/cad-studio/src/ui/useDrawingSheet.ts",
+      "reviewHash": "c39b6e1442a8d9bda744963cdba43f3d7be75f907898a8c3963c9c307e2d2b94",
+      "currentHash": "c39b6e1442a8d9bda744963cdba43f3d7be75f907898a8c3963c9c307e2d2b94",
+      "rootProfileHash": "c39b6e1442a8d9bda744963cdba43f3d7be75f907898a8c3963c9c307e2d2b94"
+    },
+    {
+      "file": "apps/cad-studio/src/ui/DrawingWorkspace.tsx",
+      "reviewHash": "b614f32a24404f2ccf347a757d24d69739fd720d0015b0c7013ccb236992f194",
+      "currentHash": "b614f32a24404f2ccf347a757d24d69739fd720d0015b0c7013ccb236992f194",
+      "rootProfileHash": "b614f32a24404f2ccf347a757d24d69739fd720d0015b0c7013ccb236992f194"
+    }
+  ]
+}

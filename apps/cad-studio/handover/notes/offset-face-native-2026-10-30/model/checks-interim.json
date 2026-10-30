@@ -1,0 +1,31 @@
+{
+  "status": "REGULAR_CHECKS_PASS_NEARFULL_EDGE_OPEN",
+  "firstRun": {
+    "tests": 58,
+    "pass": 54,
+    "fail": 4,
+    "skip": 0,
+    "log": "/tmp/d342-model/focused-first.log"
+  },
+  "firstFailures": "Test oracle unnormalized zero fractions overflowed Number conversion to NaN in cylinder/repeat/newer-sketch assertions; translated rounded span was incorrectly treated as exact collapse. Preserved; corrected only tests.",
+  "commandFinal": {
+    "tests": 21,
+    "pass": 21,
+    "fail": 0,
+    "skip": 0,
+    "log": "/tmp/d342-model/command-final.log"
+  },
+  "unaffectedFirstPass": 37,
+  "types": "PASS",
+  "ownedLint": "PASS",
+  "staleDisplay": "fixed BAD_REFERENCE refusal assertion",
+  "repeat": "fixed required admitted native one-solid exact fractional geometry assertion",
+  "nearFullEdge": {
+    "status": "OPEN_INVALID_NATIVE_SUCCESS",
+    "result": "/tmp/d342-model/nearfull-result.json",
+    "strictNativeCheck": false,
+    "modelCentroidOutsideRetainedInterval": true
+  },
+  "gate": "RELEASED_holder_none_slots_0",
+  "noCommitPushBrowser": true
+}

@@ -1,0 +1,497 @@
+{
+  "label": "24-facade-fresh-open",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {
+      "unrelated": 2
+    },
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          80,
+          -3
+        ],
+        "max": [
+          92,
+          4
+        ],
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 5,
+        "from": 1,
+        "id": "n1",
+        "made": {
+          "command": "box",
+          "values": {
+            "w": 12,
+            "d": 7,
+            "h": 5,
+            "x": 80,
+            "y": -3,
+            "z": 1
+          }
+        }
+      },
+      {
+        "kind": "sew",
+        "names": [
+          "Whole surface snapshot 1",
+          "Whole surface snapshot 2",
+          "Whole surface snapshot 3",
+          "Whole surface snapshot 4",
+          "Whole surface snapshot 5",
+          "Whole surface snapshot 6"
+        ],
+        "surfaces": [
+          {
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              -2,
+              -2,
+              6,
+              6
+            ],
+            "knotsV": [
+              1,
+              1,
+              7,
+              7
+            ],
+            "controlPoints": [
+              [
+                [
+                  10,
+                  -6,
+                  3
+                ],
+                [
+                  50,
+                  -6,
+                  3
+                ]
+              ],
+              [
+                [
+                  10,
+                  24,
+                  3
+                ],
+                [
+                  50,
+                  24,
+                  3
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          {
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              -2,
+              -2,
+              6,
+              6
+            ],
+            "knotsV": [
+              1,
+              1,
+              7,
+              7
+            ],
+            "controlPoints": [
+              [
+                [
+                  10,
+                  -6,
+                  15
+                ],
+                [
+                  50,
+                  -6,
+                  15
+                ]
+              ],
+              [
+                [
+                  10,
+                  24,
+                  15
+                ],
+                [
+                  50,
+                  24,
+                  15
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          {
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              -2,
+              -2,
+              6,
+              6
+            ],
+            "knotsV": [
+              1,
+              1,
+              7,
+              7
+            ],
+            "controlPoints": [
+              [
+                [
+                  10,
+                  -6,
+                  3
+                ],
+                [
+                  10,
+                  -6,
+                  15
+                ]
+              ],
+              [
+                [
+                  50,
+                  -6,
+                  3
+                ],
+                [
+                  50,
+                  -6,
+                  15
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          {
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              -2,
+              -2,
+              6,
+              6
+            ],
+            "knotsV": [
+              1,
+              1,
+              7,
+              7
+            ],
+            "controlPoints": [
+              [
+                [
+                  10,
+                  24,
+                  3
+                ],
+                [
+                  10,
+                  24,
+                  15
+                ]
+              ],
+              [
+                [
+                  50,
+                  24,
+                  3
+                ],
+                [
+                  50,
+                  24,
+                  15
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          {
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              -2,
+              -2,
+              6,
+              6
+            ],
+            "knotsV": [
+              1,
+              1,
+              7,
+              7
+            ],
+            "controlPoints": [
+              [
+                [
+                  10,
+                  -6,
+                  3
+                ],
+                [
+                  10,
+                  -6,
+                  15
+                ]
+              ],
+              [
+                [
+                  10,
+                  24,
+                  3
+                ],
+                [
+                  10,
+                  24,
+                  15
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          {
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              -2,
+              -2,
+              6,
+              6
+            ],
+            "knotsV": [
+              1,
+              1,
+              7,
+              7
+            ],
+            "controlPoints": [
+              [
+                [
+                  50,
+                  -6,
+                  3
+                ],
+                [
+                  50,
+                  -6,
+                  15
+                ]
+              ],
+              [
+                [
+                  50,
+                  24,
+                  3
+                ],
+                [
+                  50,
+                  24,
+                  15
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          }
+        ],
+        "tolerance": 0.01,
+        "id": "n2"
+      }
+    ],
+    "outputs": {
+      "b1": {
+        "node": 1,
+        "side": "solid"
+      },
+      "b2": {
+        "node": 2,
+        "side": "solid"
+      }
+    },
+    "nextId": 3,
+    "direct": {
+      "sources": {
+        "src_1": "@model d339 { version:0; length-unit:mm;\n @surface #bottom { type:nurbs; degree-u:1; degree-v:1; knots-u:[-2,-2,6,6]; knots-v:[1,1,7,7]; control-points:[[[10,-6,3],[50,-6,3]],[[10,24,3],[50,24,3]]]; weights:[[1,1],[1,1]]; }\n @surface #top { type:nurbs; degree-u:1; degree-v:1; knots-u:[-2,-2,6,6]; knots-v:[1,1,7,7]; control-points:[[[10,-6,15],[50,-6,15]],[[10,24,15],[50,24,15]]]; weights:[[1,1],[1,1]]; }\n @surface #ymin { type:nurbs; degree-u:1; degree-v:1; knots-u:[-2,-2,6,6]; knots-v:[1,1,7,7]; control-points:[[[10,-6,3],[10,-6,15]],[[50,-6,3],[50,-6,15]]]; weights:[[1,1],[1,1]]; }\n @surface #ymax { type:nurbs; degree-u:1; degree-v:1; knots-u:[-2,-2,6,6]; knots-v:[1,1,7,7]; control-points:[[[10,24,3],[10,24,15]],[[50,24,3],[50,24,15]]]; weights:[[1,1],[1,1]]; }\n @surface #xmin { type:nurbs; degree-u:1; degree-v:1; knots-u:[-2,-2,6,6]; knots-v:[1,1,7,7]; control-points:[[[10,-6,3],[10,-6,15]],[[10,24,3],[10,24,15]]]; weights:[[1,1],[1,1]]; }\n @surface #xmax { type:nurbs; degree-u:1; degree-v:1; knots-u:[-2,-2,6,6]; knots-v:[1,1,7,7]; control-points:[[[50,-6,3],[50,-6,15]],[[50,24,3],[50,24,15]]]; weights:[[1,1],[1,1]]; }\n @curve #hole { type:nurbs; degree:1; knots:[0,0,1,2,3,4,4]; control-points:[[50,0,5],[50,10,5],[50,10,10],[50,0,10],[50,0,5]]; weights:[1,1,1,1,1]; }\n}"
+      },
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "D339 · bottom",
+          "source": "src_1",
+          "geometry": "bottom"
+        },
+        {
+          "id": "obj_2",
+          "name": "D339 · top",
+          "source": "src_1",
+          "geometry": "top"
+        },
+        {
+          "id": "obj_3",
+          "name": "D339 · ymin",
+          "source": "src_1",
+          "geometry": "ymin"
+        },
+        {
+          "id": "obj_4",
+          "name": "D339 · ymax",
+          "source": "src_1",
+          "geometry": "ymax"
+        },
+        {
+          "id": "obj_5",
+          "name": "D339 · xmin",
+          "source": "src_1",
+          "geometry": "xmin"
+        },
+        {
+          "id": "obj_6",
+          "name": "D339 · xmax",
+          "source": "src_1",
+          "geometry": "xmax"
+        },
+        {
+          "id": "obj_7",
+          "name": "D339 · hole",
+          "source": "src_1",
+          "geometry": "hole"
+        }
+      ]
+    }
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b1",
+        "volume": 420.0000000000001,
+        "centroid": [
+          85.99999999999996,
+          0.4999999999999998,
+          3.5
+        ],
+        "massRef": null
+      },
+      {
+        "key": "b2",
+        "volume": 14400,
+        "centroid": [
+          30,
+          9,
+          9
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "shown": {
+    "gpu": true,
+    "exact": false,
+    "clip": null,
+    "hatch": {
+      "spacing": 1,
+      "lines": null
+    },
+    "bodies": 2,
+    "mode": null,
+    "planes": null,
+    "volume": null,
+    "shownVolume": 14820,
+    "shownKeys": [
+      "b1",
+      "b2"
+    ],
+    "sources": [
+      "b1",
+      "b2"
+    ],
+    "offsets": null
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 2,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "directSelection": [],
+  "hud": null,
+  "hudStatus": null,
+  "editor": null,
+  "feedback": []
+}

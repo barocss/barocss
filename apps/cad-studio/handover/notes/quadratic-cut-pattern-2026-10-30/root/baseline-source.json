@@ -1,0 +1,12 @@
+{
+  "head": "024475e5e62457bb66c7b49c6f26138d0c1a3b88",
+  "scope": "D345 baseline actual helper/public Part refusal; hashes establish source provenance only",
+  "files": {
+    "packages/barocss-cad/src/features/curve-cut-pattern.ts": "2abc40f9cd7fbb5d744571f6b731c87b736aac252ee60b2fafcae9c70bf58bf4",
+    "packages/barocss-cad/dist/features/curve-cut-pattern.js": "11852f8a46965762914f6f096b52db9c1fa92decf0370286294082d26eb31111",
+    "packages/barocss-cad-model/src/engine/curveFeaturePattern.ts": "9721677e953caf6df5bf5e69b9ec43be8891a81785f6bc968b5b5aac2ef67d60",
+    "packages/barocss-cad/src/part/part-model.ts": "59848c6894ee65717fd46f2e043af7b67b4ac12f2a2fb44fd32a1d6b4456baa3",
+    "packages/barocss-cad-model/src/app/commands.ts": "2e446d417d4b70e67e015206a33f02750075e019871dc95c57acb5de02d5914c",
+    "apps/cad-studio/src/App.tsx": "878f77670463ebddeca3038de8a7b97a3bc2240fba006e9b3119709a72912670"
+  }
+}

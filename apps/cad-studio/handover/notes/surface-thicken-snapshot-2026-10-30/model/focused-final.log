@@ -1,0 +1,49 @@
+TAP version 13
+# Subtest: raw facade creates on an empty part, with all sides and independent planar mass and bounds
+ok 1 - raw facade creates on an empty part, with all sides and independent planar mass and bounds
+  ---
+  duration_ms: 615.278709
+  type: 'test'
+  ...
+# {"side":"normal","t":2,"publicNames":["n0.facet0","n0.facet1","n0.facet2+n0.facet6+n0.facet8+n0.facet10+n0.facet12+n0.facet16+n0.facet20+n0.facet24+n0.facet26+n0.facet28+n0.facet30+n0.facet32+n0.facet37+n0.facet40+n0.facet43+n0.facet45+n0.facet47+n0.facet50+n0.facet53+n0.facet57+n0.facet60+n0.facet62","n0.facet3+n0.facet13+n0.facet17+n0.facet21+n0.facet64+n0.facet66+n0.facet68","n0.facet4+n0.facet7+n0.facet9+n0.facet11+n0.facet14+n0.facet18+n0.facet22+n0.facet25+n0.facet27+n0.facet29+n0.facet31+n0.facet33+n0.facet38+n0.facet41+n0.facet44+n0.facet46+n0.facet48+n0.facet51+n0.facet54+n0.facet58+n0.facet61+n0.facet63","n0.facet5+n0.facet15+n0.facet19+n0.facet23+n0.facet34+n0.facet35+n0.facet36+n0.facet39+n0.facet42+n0.facet49+n0.facet52+n0.facet55+n0.facet56+n0.facet59+n0.facet65+n0.facet67+n0.facet69+n0.facet70+n0.facet71+n0.facet72"],"brepNames":["n0.facet0","n0.facet1","n0.facet2","n0.facet3","n0.facet4","n0.facet5","n0.facet6","n0.facet7","n0.facet8","n0.facet9","n0.facet10","n0.facet11","n0.facet12","n0.facet13","n0.facet14","n0.facet15","n0.facet16","n0.facet17","n0.facet18","n0.facet19","n0.facet20","n0.facet21","n0.facet22","n0.facet23","n0.facet24","n0.facet25","n0.facet26","n0.facet27","n0.facet28","n0.facet29","n0.facet30","n0.facet31","n0.facet32","n0.facet33","n0.facet34","n0.facet35","n0.facet36","n0.facet37","n0.facet38","n0.facet39","n0.facet40","n0.facet41","n0.facet42","n0.facet43","n0.facet44","n0.facet45","n0.facet46","n0.facet47","n0.facet48","n0.facet49","n0.facet50","n0.facet51","n0.facet52","n0.facet53","n0.facet54","n0.facet55","n0.facet56","n0.facet57","n0.facet58","n0.facet59","n0.facet60","n0.facet61","n0.facet62","n0.facet63","n0.facet64","n0.facet65","n0.facet66","n0.facet67","n0.facet68","n0.facet69","n0.facet70","n0.facet71","n0.facet72"]}
+# {"side":"reverse","t":2,"publicNames":["n0.facet0","n0.facet1","n0.facet2+n0.facet6+n0.facet8+n0.facet10+n0.facet12+n0.facet16+n0.facet20+n0.facet24+n0.facet26+n0.facet28+n0.facet30+n0.facet32+n0.facet37+n0.facet40+n0.facet43+n0.facet45+n0.facet47+n0.facet50+n0.facet53+n0.facet57+n0.facet60+n0.facet62","n0.facet3+n0.facet13+n0.facet17+n0.facet21+n0.facet64+n0.facet66+n0.facet68","n0.facet4+n0.facet7+n0.facet9+n0.facet11+n0.facet14+n0.facet18+n0.facet22+n0.facet25+n0.facet27+n0.facet29+n0.facet31+n0.facet33+n0.facet38+n0.facet41+n0.facet44+n0.facet46+n0.facet48+n0.facet51+n0.facet54+n0.facet58+n0.facet61+n0.facet63","n0.facet5+n0.facet15+n0.facet19+n0.facet23+n0.facet34+n0.facet35+n0.facet36+n0.facet39+n0.facet42+n0.facet49+n0.facet52+n0.facet55+n0.facet56+n0.facet59+n0.facet65+n0.facet67+n0.facet69+n0.facet70+n0.facet71+n0.facet72"],"brepNames":["n0.facet0","n0.facet1","n0.facet2","n0.facet3","n0.facet4","n0.facet5","n0.facet6","n0.facet7","n0.facet8","n0.facet9","n0.facet10","n0.facet11","n0.facet12","n0.facet13","n0.facet14","n0.facet15","n0.facet16","n0.facet17","n0.facet18","n0.facet19","n0.facet20","n0.facet21","n0.facet22","n0.facet23","n0.facet24","n0.facet25","n0.facet26","n0.facet27","n0.facet28","n0.facet29","n0.facet30","n0.facet31","n0.facet32","n0.facet33","n0.facet34","n0.facet35","n0.facet36","n0.facet37","n0.facet38","n0.facet39","n0.facet40","n0.facet41","n0.facet42","n0.facet43","n0.facet44","n0.facet45","n0.facet46","n0.facet47","n0.facet48","n0.facet49","n0.facet50","n0.facet51","n0.facet52","n0.facet53","n0.facet54","n0.facet55","n0.facet56","n0.facet57","n0.facet58","n0.facet59","n0.facet60","n0.facet61","n0.facet62","n0.facet63","n0.facet64","n0.facet65","n0.facet66","n0.facet67","n0.facet68","n0.facet69","n0.facet70","n0.facet71","n0.facet72"]}
+# {"side":"both","t":2,"publicNames":["n0.facet0","n0.facet1","n0.facet2+n0.facet6+n0.facet8+n0.facet10+n0.facet12+n0.facet16+n0.facet20+n0.facet24+n0.facet26+n0.facet28+n0.facet30+n0.facet32+n0.facet37+n0.facet40+n0.facet43+n0.facet45+n0.facet47+n0.facet50+n0.facet53+n0.facet57+n0.facet60+n0.facet62","n0.facet3+n0.facet13+n0.facet17+n0.facet21+n0.facet64+n0.facet66+n0.facet68","n0.facet4+n0.facet7+n0.facet9+n0.facet11+n0.facet14+n0.facet18+n0.facet22+n0.facet25+n0.facet27+n0.facet29+n0.facet31+n0.facet33+n0.facet38+n0.facet41+n0.facet44+n0.facet46+n0.facet48+n0.facet51+n0.facet54+n0.facet58+n0.facet61+n0.facet63","n0.facet5+n0.facet15+n0.facet19+n0.facet23+n0.facet34+n0.facet35+n0.facet36+n0.facet39+n0.facet42+n0.facet49+n0.facet52+n0.facet55+n0.facet56+n0.facet59+n0.facet65+n0.facet67+n0.facet69+n0.facet70+n0.facet71+n0.facet72"],"brepNames":["n0.facet0","n0.facet1","n0.facet2","n0.facet3","n0.facet4","n0.facet5","n0.facet6","n0.facet7","n0.facet8","n0.facet9","n0.facet10","n0.facet11","n0.facet12","n0.facet13","n0.facet14","n0.facet15","n0.facet16","n0.facet17","n0.facet18","n0.facet19","n0.facet20","n0.facet21","n0.facet22","n0.facet23","n0.facet24","n0.facet25","n0.facet26","n0.facet27","n0.facet28","n0.facet29","n0.facet30","n0.facet31","n0.facet32","n0.facet33","n0.facet34","n0.facet35","n0.facet36","n0.facet37","n0.facet38","n0.facet39","n0.facet40","n0.facet41","n0.facet42","n0.facet43","n0.facet44","n0.facet45","n0.facet46","n0.facet47","n0.facet48","n0.facet49","n0.facet50","n0.facet51","n0.facet52","n0.facet53","n0.facet54","n0.facet55","n0.facet56","n0.facet57","n0.facet58","n0.facet59","n0.facet60","n0.facet61","n0.facet62","n0.facet63","n0.facet64","n0.facet65","n0.facet66","n0.facet67","n0.facet68","n0.facet69","n0.facet70","n0.facet71","n0.facet72"]}
+# Subtest: only thickness binds; edits preserve names, snapshots and immutable input on refusal
+ok 2 - only thickness binds; edits preserve names, snapshots and immutable input on refusal
+  ---
+  duration_ms: 670.09325
+  type: 'test'
+  ...
+# Subtest: creation preserves a separate stock body and its focus
+ok 3 - creation preserves a separate stock body and its focus
+  ---
+  duration_ms: 176.380583
+  type: 'test'
+  ...
+# Subtest: raw context discovery and chat admission use the strict public snapshot validator
+ok 4 - raw context discovery and chat admission use the strict public snapshot validator
+  ---
+  duration_ms: 1.154458
+  type: 'test'
+  ...
+# Subtest: selected direct capture checks trims and identity before copying, and keeps independent history
+ok 5 - selected direct capture checks trims and identity before copying, and keeps independent history
+  ---
+  duration_ms: 5.361125
+  type: 'test'
+  ...
+# Subtest: fold preview refuses before acceptance and facade retains its native mapped refusal
+ok 6 - fold preview refuses before acceptance and facade retains its native mapped refusal
+  ---
+  duration_ms: 11.238458
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1610.665625

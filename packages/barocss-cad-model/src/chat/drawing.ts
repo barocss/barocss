@@ -15,7 +15,7 @@ import { projectViews } from '../drawing/project';
 import { tableContent } from '../drawing/tables';
 import { bomPanelDataOf } from '../bom/bom';
 import type { Bom } from '../bom/core';
-import { holeCallout } from '../drawing/callout';
+import { holeCallout, holeCalloutOwnerOf } from '../drawing/callout';
 import { sectionsCut } from '../drawing/section';
 import { sheetSections } from '../drawing/sheet';
 import { threadsOf } from '../app/threads';
@@ -78,7 +78,7 @@ export function drawingInputs(doc: StudioDoc, settings: DrawingSettings = readDr
   const r = projectViews(b.breps, b.prefixes, { tangentEdges: !!settings.tangent, ...(settings.orientation ? { orientation: settings.orientation } : {}) });
   if (!r.ok) return r.empty ? 'There is no body to draw yet.' : `The views could not be projected: ${r.error}`;
   const sections = sheetSections(sectionsCut(doc, sectionsOf(settings), settings.orientation, made)), elements = partElements(doc), bom = bomOf(doc, settings);
-  return { views: r.views, settings, fastenerSizes: fastenerSizesOf(doc), elements, callout: withElements(doc, withFit(doc, e => holeCallout(doc.nodes, e, doc.parameters)), elements), fitMiss: fitMiss(doc), followedChanged: followedStale(authored).map(staleText), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), source: revisionOf(authored), threads: threadsOf(doc.nodes, fastenerSizesOf(doc)), tableContent: tb => tableContent(tb, { doc, ...(bom ? { bom } : {}) }), ...(settings.weldSymbols ? { welds: weldJointsOf(doc) } : {}), ...(bom ? { bom } : {}), ...(bom && settings.balloons ? { bodyFaces: baseBodyFaces(doc) } : {}) }, ...(sections.length ? { sections } : {}) };
+  return { views: r.views, settings, locationOwner: e => holeCalloutOwnerOf(doc, e), fastenerSizes: fastenerSizesOf(doc), elements, callout: withElements(doc, withFit(doc, e => holeCallout(doc.nodes, e, doc.parameters)), elements), fitMiss: fitMiss(doc), followedChanged: followedStale(authored).map(staleText), meta: { title: settings.title ?? 'part', date: new Date().toISOString().slice(0, 10), source: revisionOf(authored), threads: threadsOf(doc.nodes, fastenerSizesOf(doc)), tableContent: tb => tableContent(tb, { doc, ...(bom ? { bom } : {}) }), ...(settings.weldSymbols ? { welds: weldJointsOf(doc) } : {}), ...(bom ? { bom } : {}), ...(bom && settings.balloons ? { bodyFaces: baseBodyFaces(doc) } : {}) }, ...(sections.length ? { sections } : {}) };
 }
 
 /** O147 B2: the BOM, when a table or the balloons read it (each document evaluated on its own, synchronously). */
@@ -124,7 +124,7 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
     case 'auto_dimension': {
       if (drawingScopeOf(i.settings).kind === 'assembly') return { error: '[DRAWING_SCOPE_AUTO] automatic component dimensions belong to a part drawing; assembly annotations and BOM are retained' };
       if (args.layout === false) {
-        const ctx = issueContext(i), r = autoDimensions(i.views, ctx.layout, i.settings, i.callout, i.elements, i.sections);
+        const ctx = issueContext(i), r = autoDimensions(i.views, ctx.layout, i.settings, i.callout, i.elements, i.sections, i.locationOwner);
         return set(withElementNotes({ ...i.settings, dimensions: r.dimensions }, i.elements ? elementNotes(i.views, ctx.layout, i.elements) : []), 'drawing dimensioned', { added: r.report.added, kept: r.report.kept, skipped: r.report.skipped, crowded: r.report.crowded });
       }
       // The front's side by information, when nothing placed by hand ties it (R14.3b): the part projected for it first.

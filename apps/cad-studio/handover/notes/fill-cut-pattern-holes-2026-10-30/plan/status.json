@@ -1,0 +1,16 @@
+{
+  "status": "SOURCE_ONLY_PLAN",
+  "implementation": "NOT_RUN",
+  "runtime": "NOT_RUN",
+  "tests": "NOT_RUN",
+  "browser": "NOT_RUN",
+  "oracleExecution": "NOT_RUN",
+  "ownedArtifacts": [
+    "plan.md",
+    "oracle.mjs",
+    "source-sha256.json"
+  ],
+  "aggregateVertices": 16,
+  "maximumHolesDerived": 4,
+  "maximumCandidateCells": 64
+}

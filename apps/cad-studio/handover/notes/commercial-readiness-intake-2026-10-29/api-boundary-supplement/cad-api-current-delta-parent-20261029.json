@@ -1,0 +1,130 @@
+{
+  "status": "VERIFIED_READ_ONLY_CURRENT_DELTA",
+  "pin": "c99cb121c42da75005d31cacacaa088f4b18a122",
+  "verifiedChangedFiles": [
+    {
+      "path": "packages/barocss-cad/src/api/index.ts",
+      "sha256": "a5cc7bb23964eb281526af185320d88acd4963b7e93eaf2ff5b3e7d0fc8571c2",
+      "blob": "58328e6fd3430633edb79d2c20c02e24610b01f4",
+      "verified": true
+    },
+    {
+      "path": "packages/barocss-cad/src/api/kernel.ts",
+      "sha256": "cf8d5a45a0a3b3eacac9bd617b656d4ff037ecefa6e2c7408c33a94903541b7f",
+      "blob": "15d97f5592cebac3421a9937ad193a9a715ae09c",
+      "verified": true
+    },
+    {
+      "path": "packages/barocss-cad/src/api/part.ts",
+      "sha256": "9b57f113729e271c1a114f75b645296fa81683e4eedf9ec5bc6c0235ec86528a",
+      "blob": "36405fc051cbd459637316de9b0be2160a76064f",
+      "verified": true
+    },
+    {
+      "path": "packages/barocss-cad/src/api/spec.ts",
+      "sha256": "eb98bc7f833dc267d697d8711bd534ac7abfe810cb7938e7c9d513681818398e",
+      "blob": "bbfc9bb91c6171c672b654ad749ecf43cc53315f",
+      "verified": true
+    },
+    {
+      "path": "packages/barocss-cad/src/brep/brep-transform.ts",
+      "sha256": "c3ce31f53397f5c8d5c86c7ff65581590f6266932046ce8d93101542eec78414",
+      "blob": "c24de152d41b50e2befaae0763e06462c095090f",
+      "verified": true
+    },
+    {
+      "path": "packages/barocss-cad/src/features/prismatic-solid.ts",
+      "sha256": "712e2f69536b677cc04e30439fb52923bef45359dc511fcb92957f38dc3ed2d4",
+      "blob": "16c8d102eb028e79a612f67357b6d12bf0d50087",
+      "verified": true
+    },
+    {
+      "path": "packages/barocss-cad/src/part/part-model.ts",
+      "sha256": "0163716112fab5d4bea1cc0f0edb0c4f3c46ede1f8eb06db5913cda61033b56c",
+      "blob": "216d985bb514e4ddde59241f0b69f4a26df90568",
+      "verified": true
+    },
+    {
+      "path": "packages/barocss-cad/test/rectangular-cut-pattern.test.mjs",
+      "sha256": "62bb5c3ad65a2db85392902cc21fc07d2802c847e521fbfda1776c26905fc1d7",
+      "blob": "6d06c78bef562b9d890c9bc07f0fcca8f514b9e7",
+      "verified": true
+    },
+    {
+      "path": "packages/barocss-cad-model/README.md",
+      "sha256": "d7c3c38cec6519e5ebf1cfba36a5c61777a74468cda9f1c085a55de08516daee",
+      "blob": "d5b49f915f6f462978989aebc2575ff1211752ae",
+      "verified": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/api/index.ts",
+      "sha256": "1e8ecaabd0f98a744bacce4f95284f9840dac5fb485859de1f5e96ea67bd36ea",
+      "blob": "b005929aa6672ae5531871b9daa370ac1043a6a6",
+      "verified": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/api/studio.ts",
+      "sha256": "654139233bcb5e68eff2c80953e8343c125aa6975164b8f1be06a57d0eff15a5",
+      "blob": "3bcc5595f4dc58ec147290d90399f0c78df2480d",
+      "verified": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/app/commands.ts",
+      "sha256": "ca73197823b89741e5497dbea2f34b4c73f209ae20e5b4feadf798641a878a65",
+      "blob": "066d4978624ac129a725b83fa58b502ad5e11468",
+      "verified": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/app/editFields.ts",
+      "sha256": "fd09649346e27c6fdff328824d58668351c5bd3ed608bb14d221f7ecb32cbacd",
+      "blob": "28c0ef4550e125645405af2cb0dad720ba3562b3",
+      "verified": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/chat/features.ts",
+      "sha256": "01138bd2883b4a679ec177b0d23d51334fb83403d0135a3c3ea437b9758f0da0",
+      "blob": "725e7ac887000e8393dc4d6e5b3d2322798676ff",
+      "verified": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/chat/part/features.ts",
+      "sha256": "f0dcd301b7d1d42dca3ba9febba7e6872c3f95ac6d4702a229fd9a28c4e9598a",
+      "blob": "73cb48f3d823d6b8ffab217834eb34d9b0891362",
+      "verified": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/doc.ts",
+      "sha256": "573634ddce98abc8e2d7442aa709a688e8968c8bbd466a95445567f797816d0e",
+      "blob": "97d0f62dca864cddd8f1301173a58412732066c0",
+      "verified": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/migrate.ts",
+      "sha256": "212bcfcb326781b53d9f6480b47f623590e460e0350d41b230d2a46ea7aed94f",
+      "blob": "f07a36bfbb7860d78c9978c8348d0042b9872698",
+      "verified": true
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/part.ts",
+      "sha256": "3a32f6ad75662cd5e282a78789b97ca373a28de9a66b507f5097f7cac979b639",
+      "blob": "de2e25934cfa6e1c57b0d07ff1ec91e920681814",
+      "verified": true
+    },
+    {
+      "path": "packages/barocss-cad-model/test/api-rectangular-feature-pattern.test.ts",
+      "sha256": "80e76f724fc8c78b5d58b893ae12159bb6998f047b0c09e5f99e844cc4738ede",
+      "blob": "d74f31ec3c9d1ef08471f4257c3cbb39b3bb5d07",
+      "verified": true
+    },
+    {
+      "path": "packages/barocss-cad-model/test/rectangular-feature-pattern-command.test.ts",
+      "sha256": "2ab9032656ef0da5062abd6a9d6a2223da35e0bbe461b0c0ed68a2dcfc022834",
+      "blob": "63fa4120213e14da839f33ebc791aa1bc8a53efb",
+      "verified": true
+    }
+  ],
+  "fileCount": 20,
+  "runtime": "NOT_RUN",
+  "productEdits": 0,
+  "at": "2026-10-29T13:56:53.064398+00:00"
+}

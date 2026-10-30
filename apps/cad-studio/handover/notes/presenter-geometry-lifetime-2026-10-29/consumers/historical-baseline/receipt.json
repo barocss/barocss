@@ -1,0 +1,317 @@
+{
+  "baseline": "5463dbf32af5dd10670badd0d334c68504615292",
+  "command": "CHROME=... PW_DIR=... node harness/viewer-readiness.mjs",
+  "sourceInputs": 577,
+  "sourceResolution": "PASS",
+  "browserVersion": "156.0.8078.48",
+  "backendProfile": "default adapter",
+  "browserErrors": [],
+  "result": {
+    "status": "EXECUTED",
+    "adapterInfo": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "",
+      "description": ""
+    },
+    "initialCovered": 9048,
+    "frameReadbacks": [
+      {
+        "label": "setPackets",
+        "bytes": 307200,
+        "covered": 9048
+      },
+      {
+        "label": "orbit-1",
+        "bytes": 307200,
+        "covered": 8965
+      },
+      {
+        "label": "orbit-2",
+        "bytes": 307200,
+        "covered": 8873
+      },
+      {
+        "label": "orbit-3",
+        "bytes": 307200,
+        "covered": 8792
+      },
+      {
+        "label": "orbit-4",
+        "bytes": 307200,
+        "covered": 8709
+      },
+      {
+        "label": "orbit-5",
+        "bytes": 307200,
+        "covered": 8617
+      },
+      {
+        "label": "orbit-6",
+        "bytes": 307200,
+        "covered": 8528
+      },
+      {
+        "label": "orbit-7",
+        "bytes": 307200,
+        "covered": 8437
+      },
+      {
+        "label": "orbit-8",
+        "bytes": 307200,
+        "covered": 8345
+      },
+      {
+        "label": "orbit-9",
+        "bytes": 307200,
+        "covered": 8253
+      },
+      {
+        "label": "orbit-10",
+        "bytes": 307200,
+        "covered": 8161
+      },
+      {
+        "label": "orbit-11",
+        "bytes": 307200,
+        "covered": 8060
+      },
+      {
+        "label": "orbit-12",
+        "bytes": 307200,
+        "covered": 7974
+      },
+      {
+        "label": "orbit-13",
+        "bytes": 307200,
+        "covered": 7876
+      },
+      {
+        "label": "orbit-14",
+        "bytes": 307200,
+        "covered": 7785
+      },
+      {
+        "label": "orbit-15",
+        "bytes": 307200,
+        "covered": 7681
+      },
+      {
+        "label": "orbit-16",
+        "bytes": 307200,
+        "covered": 7587
+      },
+      {
+        "label": "orbit-17",
+        "bytes": 307200,
+        "covered": 7488
+      },
+      {
+        "label": "orbit-18",
+        "bytes": 307200,
+        "covered": 7387
+      },
+      {
+        "label": "orbit-19",
+        "bytes": 307200,
+        "covered": 7282
+      },
+      {
+        "label": "orbit-20",
+        "bytes": 307200,
+        "covered": 7186
+      },
+      {
+        "label": "orbit-21",
+        "bytes": 307200,
+        "covered": 7078
+      },
+      {
+        "label": "orbit-22",
+        "bytes": 307200,
+        "covered": 6977
+      },
+      {
+        "label": "orbit-23",
+        "bytes": 307200,
+        "covered": 6872
+      },
+      {
+        "label": "orbit-24",
+        "bytes": 307200,
+        "covered": 6767
+      },
+      {
+        "label": "orbit-25",
+        "bytes": 307200,
+        "covered": 6659
+      },
+      {
+        "label": "orbit-26",
+        "bytes": 307200,
+        "covered": 6553
+      },
+      {
+        "label": "orbit-27",
+        "bytes": 307200,
+        "covered": 6446
+      },
+      {
+        "label": "orbit-28",
+        "bytes": 307200,
+        "covered": 6338
+      },
+      {
+        "label": "orbit-29",
+        "bytes": 307200,
+        "covered": 6227
+      },
+      {
+        "label": "orbit-30",
+        "bytes": 307200,
+        "covered": 6123
+      },
+      {
+        "label": "orbit-31",
+        "bytes": 307200,
+        "covered": 6007
+      },
+      {
+        "label": "orbit-32",
+        "bytes": 307200,
+        "covered": 5896
+      }
+    ],
+    "counts": [
+      {
+        "label": "created",
+        "retainedGeometries": 0,
+        "meshCount": 0,
+        "residentGeometries": 0
+      },
+      {
+        "label": "setPackets",
+        "retainedGeometries": 1,
+        "meshCount": 1,
+        "residentGeometries": 1
+      },
+      {
+        "label": "orbit-1",
+        "retainedGeometries": 2,
+        "meshCount": 1,
+        "residentGeometries": 2
+      },
+      {
+        "label": "orbit-8",
+        "retainedGeometries": 9,
+        "meshCount": 1,
+        "residentGeometries": 9
+      },
+      {
+        "label": "orbit-16",
+        "retainedGeometries": 17,
+        "meshCount": 1,
+        "residentGeometries": 17
+      },
+      {
+        "label": "orbit-32",
+        "retainedGeometries": 33,
+        "meshCount": 1,
+        "residentGeometries": 33
+      },
+      {
+        "label": "clear",
+        "retainedGeometries": 36,
+        "meshCount": 0,
+        "residentGeometries": 36
+      },
+      {
+        "label": "dispose",
+        "retainedGeometries": 0,
+        "meshCount": 0,
+        "residentGeometries": 0
+      }
+    ],
+    "samples": [
+      {
+        "label": "visible-control",
+        "requested": {
+          "near": 0.01,
+          "far": 100
+        },
+        "coreCamera": {
+          "near": 4.51507575950825,
+          "far": null
+        },
+        "covered": 9600,
+        "centerRGBA": [
+          51,
+          138,
+          201,
+          255
+        ],
+        "pick": {
+          "ref": {
+            "modelId": "audit",
+            "surfaceId": "audit_patch"
+          },
+          "triangleIndex": 0,
+          "distanceScene": 6,
+          "positionScene": [
+            0,
+            0,
+            0
+          ],
+          "parameterUV": [
+            0.5,
+            0.5
+          ],
+          "approximate": true,
+          "ambiguous": true
+        }
+      },
+      {
+        "label": "near-excludes",
+        "requested": {
+          "near": 7,
+          "far": 100
+        },
+        "coreCamera": {
+          "near": 4.51507575950825,
+          "far": null
+        },
+        "covered": 9600,
+        "centerRGBA": [
+          51,
+          138,
+          201,
+          255
+        ],
+        "pick": null
+      },
+      {
+        "label": "far-excludes",
+        "requested": {
+          "near": 0.01,
+          "far": 5
+        },
+        "coreCamera": {
+          "near": 4.51507575950825,
+          "far": null
+        },
+        "covered": 9600,
+        "centerRGBA": [
+          51,
+          138,
+          201,
+          255
+        ],
+        "pick": null
+      }
+    ],
+    "retentionObserved": true,
+    "controlValid": true,
+    "clippingMismatchObserved": true,
+    "measurement": "internal Geometry counts; no hardware-memory measurement"
+  }
+}

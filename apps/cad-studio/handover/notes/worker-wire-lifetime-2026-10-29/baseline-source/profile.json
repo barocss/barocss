@@ -1,0 +1,35 @@
+[
+  {
+    "path": "packages/barocss-cad-model/src/engine/wireDoc.ts",
+    "commit": "3420adb4f",
+    "bytes": 7199,
+    "sha256": "0d2d8568a772765d4c7e6e834b36c07ae474957e74a0db926f4630767e55907f",
+    "capsule": "packages__barocss-cad-model__src__engine__wireDoc.ts.gz"
+  },
+  {
+    "path": "apps/cad-studio/src/engine/client.ts",
+    "commit": "3420adb4f",
+    "bytes": 16673,
+    "sha256": "56f10abe7acc2c3d528a7fc6096e8dbf0b6b5b1417d41e85dc6752cd76303d6b",
+    "capsule": "apps__cad-studio__src__engine__client.ts.gz"
+  },
+  {
+    "path": "apps/cad-studio/src/App.tsx",
+    "commit": "3420adb4f",
+    "bytes": 189661,
+    "sha256": "d669b9138128b2684f36a3fa1fdd8c0dfd19f8f39e647f61a23c13b7143e1fda",
+    "capsule": "apps__cad-studio__src__App.tsx.gz"
+  },
+  {
+    "path": "packages/barocss-cad-model/test/wire-sender-disposal.test.ts",
+    "bytes": 2010,
+    "sha256": "40777bc396a9a76318fb303ba09683bc3536b3d6c4b595f72497eb7b3394cccb",
+    "capsule": "wire-sender-disposal.test.ts.gz"
+  },
+  {
+    "path": "apps/cad-studio/test/engine-client-lifecycle.test.ts",
+    "bytes": 9078,
+    "sha256": "4915efd41dcd7083ecb7a5f3e131b1f9e86c7066b2d7220a72692c3a3d10f8ff",
+    "capsule": "engine-client-lifecycle.test.ts.gz"
+  }
+]

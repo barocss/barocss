@@ -1,0 +1,14 @@
+{
+  "sketch": {
+    "pass": 1,
+    "fail": 1,
+    "meaning": "starter passed; root new .sk-panel .card-title locator matches five headings. Preserve strict failure and scope only actual SKETCH title, no product mutation."
+  },
+  "stop": {
+    "pass": 2,
+    "fail": 0,
+    "meaning": "starter plus isolated actualD321 selected1; existing missing Render-history equality EXCLUDED from history PASS. Doc/work/refusal/Undo observations separate."
+  },
+  "production45Unchanged": true,
+  "cleanup": "Each separate Node/Vite/browser finally closed; outer gate returned"
+}

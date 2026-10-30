@@ -96,6 +96,8 @@ export type { SurfaceKnotInsertionOptions, SurfaceKnotUnchangedPole, SurfaceKnot
 export { extractSurfaceIsoCurve } from './nurbs/surfaces/surface-isocurve.js';
 export type { SurfaceIsoCurveOptions, SurfaceIsoCurveBasis, SurfaceIsoCurveContribution, SurfaceIsoCurvePole, SurfaceIsoCurveProvenance, SurfaceIsoCurveReport, SurfaceIsoCurveResult } from './nurbs/surfaces/surface-isocurve.js';
 export { splitSurfaceAtParameter } from './nurbs/surfaces/surface-parameter-split.js';
+export { splitTrimmedSurfaceAtParameter, TrimmedSurfaceParameterSplitError } from './nurbs/surfaces/trimmed-surface-parameter-split.js';
+export type { TrimmedSurfaceParameterSplitDiagnosticCode, TrimmedSurfaceSplitComponent, TrimmedSurfaceSplitReport, TrimmedSurfaceParameterSplitResult } from './nurbs/surfaces/trimmed-surface-parameter-split.js';
 export type { SurfaceParameterSplitOptions, SurfaceSplitPoleMapping, SurfaceSplitKnotMapping, SurfaceSplitChildProvenance, SurfaceSplitRefinementProvenance, SurfaceSplitSharedCoefficients, SurfaceParameterSplitProvenance, SurfaceParameterSplitReport, SurfaceParameterSplitResult } from './nurbs/surfaces/surface-parameter-split.js';
 export { splitCurveAtParameter } from './nurbs/curves/curve-parameter-split.js';
 export type { CurveParameterSplitOptions, CurveSplitPoleMapping, CurveSplitKnotMapping, CurveSplitChildProvenance, CurveSplitRefinementProvenance, CurveSplitSharedCoefficient, CurveParameterSplitProvenance, CurveParameterSplitReport, CurveParameterSplitResult } from './nurbs/curves/curve-parameter-split.js';
@@ -154,10 +156,14 @@ export type { CurveReversalOptions, CurveReversalD1State, CurveReversalKnotMappi
 export { extractCurveInterval, validateExtractedCurveInterval, CurveIntervalExtractionError, CurveIntervalExtractionDiagnosticCode } from './nurbs/curves/curve-interval-extraction.js';
 export type { CurveIntervalExtractionOptions, CurveIntervalExtractionD1State, CurveIntervalBoundaryChoice, CurveIntervalSplitOperation, CurveIntervalExtractionProvenance, CurveIntervalExtractionObservation, CurveIntervalExtractionGuardObservation, ExtractedCurveIntervalReport, ExtractedCurveIntervalResult } from './nurbs/curves/curve-interval-extraction.js';
 export { extractSurfaceRegion, validateExtractedSurfaceRegion, SurfaceRegionError, SurfaceRegionDiagnosticCode } from './nurbs/surfaces/surface-region.js';
+export { extractTrimmedSurfaceRegion, TrimmedSurfaceRegionError } from './nurbs/surfaces/trimmed-surface-region.js';
+export type { TrimmedSurfaceRegionDiagnosticCode, TrimmedSurfaceRegionComponent, TrimmedSurfaceRegionReport, ExtractedTrimmedSurfaceRegionResult } from './nurbs/surfaces/trimmed-surface-region.js';
 export type { SurfaceRegionOptions, SurfaceRegionDomain, SurfaceRegionD1State, SurfaceRegionBoundaryChoice, SurfaceRegionSplitOperation, SurfaceRegionProvenance, SurfaceRegionObservation, SurfaceRegionGuardObservation, ExtractedSurfaceRegionReport, ExtractedSurfaceRegionResult } from './nurbs/surfaces/surface-region.js';
 export { refineCurveWide, validateWideCurveRefinement, WideCurveRefinementError, WideCurveRefinementDiagnosticCode } from './nurbs/source-wide/curve-wide-refinement.js';
 export type { WideCurveInsertionRequest, WideCurveRefinementOptions, WideCurveRefinementD1State, WideCurveHomogeneousPole, WideCurveRefinementOperation, WideCurveRefinementProvenance, WideCurveRefinementObservation, WideCurveRefinementGuardObservation, WideCurveRefinementReport, WideCurveRefinementResult } from './nurbs/source-wide/curve-wide-refinement.js';
 export { reverseSurfaceAxis, validateReversedSurfaceAxis, SurfaceAxisReversalError, SurfaceAxisReversalDiagnosticCode } from './nurbs/surfaces/surface-axis-reversal.js';
+export { reverseTrimmedSurfaceAxis, TrimmedSurfaceAxisReversalError, TrimmedSurfaceAxisReversalDiagnosticCode } from './nurbs/surfaces/trimmed-surface-axis-reversal.js';
+export type { SurfaceAxisTrimLoop, OwnedSurfaceAxisTrimLoop, TrimmedSurfaceAxisTransportReport, ReversedTrimmedSurfaceAxisResult } from './nurbs/surfaces/trimmed-surface-axis-reversal.js';
 export type { SurfaceAxisReversalOptions, SurfaceAxisReversalDomain, SurfaceAxisReversalD1State, SurfaceAxisReversalStrip, SurfaceAxisReversalCoefficientMapping, SurfaceAxisReversalProvenance, SurfaceAxisReversalObservation, SurfaceAxisReversalGuardObservation, ReversedSurfaceAxisReport, ReversedSurfaceAxisResult } from './nurbs/surfaces/surface-axis-reversal.js';
 export { sampleCurveWideAdaptive, validateWideAdaptiveCurveSamples, WideAdaptiveCurveSamplingError, WideAdaptiveCurveSamplingDiagnosticCode } from './nurbs/source-wide/curve-wide-adaptive-sampling.js';
 export type { WideAdaptiveCurveSamplingOptions, WideAdaptiveCurveSample, WideAdaptiveCurveD1State, WideAdaptiveCurveExtractionLevel, WideAdaptiveCurveSpan, WideAdaptiveCurveObservation, WideAdaptiveCurveSegment, WideAdaptiveCurveSplitOperation, WideAdaptiveCurveSamplingReport, WideAdaptiveCurveSamplingResult } from './nurbs/source-wide/curve-wide-adaptive-sampling.js';
@@ -691,3 +697,5 @@ export { BarocssError, type Problem, type RefusalWhere } from './core/barocss-er
 export type { CadPartNameSignature } from './part/part-expect.js';
 // R7.3a batch 2: one list of the kernel's codes (D278).
 export { CAD_ERROR_CODES, CAD_REFUSAL_CODES, refusalCodeOf, type CadErrorCode, type CadRefusalCode } from './core/error-codes.js';
+
+export type { CylindricalWrapReport } from './features/cylindrical-wrap-feature.js';

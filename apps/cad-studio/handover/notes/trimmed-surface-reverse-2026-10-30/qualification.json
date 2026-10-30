@@ -1,0 +1,223 @@
+{
+  "workId": "D337",
+  "date": "2026-10-30",
+  "status": "BOUNDED_QUALIFIED",
+  "source": {
+    "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+    "branch": "local/cad-dev",
+    "planInspected": "7ab1a23c9ed2aed24d8281430eff04591f118171",
+    "kernelBaseline": "92413878961db4f5886097fcf43439761c11452d",
+    "checkpoint": "481105e400d713e2b79f7160c307836fc65bd13a",
+    "checkpointFiles": 9,
+    "driverFix": "7cd5726657b7823356f213dbe8e35c40422499d2",
+    "baseline": "92413878961db4f5886097fcf43439761c11452d"
+  },
+  "scope": "One simple stored3..160-point trim loop through affine planar surface Reverse. Whole08 remains open.",
+  "contract": {
+    "helper": "reverseTrimmedSurfaceAxis",
+    "profile": "Exact affine degree1x1 nondegenerate plane; four equal positive represented weights; one simple dense loop3..160; either axis and keep flag; finite clamped nonunit domains.",
+    "rounding": "Exact rational reflection then one nearest rounding; endpoint partner copies; nonselected bits unchanged.",
+    "UVTolerance": 1e-07,
+    "worldBindingToleranceMM": 1e-07,
+    "ownership": "Owned output sidecar; hidden original unchanged; publication after successful transport.",
+    "retainedGuards": [
+      "Split",
+      "Region",
+      "Extend",
+      "Intersection",
+      "visible IGES",
+      "Studio Thicken",
+      "Studio Sew"
+    ],
+    "unsupported": "Nonaffine/curved/unequal-weight support, multiple loops, malformed or oversized loops, failed topology/binding refuse.",
+    "changes": "No new saved node/schema/package export/core-result check change."
+  },
+  "checks": {
+    "kernelFocused": {
+      "status": "PASS",
+      "pass": 8,
+      "fail": 0,
+      "logSource": "kernel/focused-first.log"
+    },
+    "kernelRelated": {
+      "status": "PASS",
+      "pass": 19,
+      "fail": 0,
+      "logSource": "kernel/related-first.log"
+    },
+    "kernelBuild": {
+      "status": "PASS",
+      "logSource": "kernel/build-first.log"
+    },
+    "kernelTypes": {
+      "status": "PASS",
+      "logSource": "kernel/types-first.log"
+    },
+    "kernelLint": {
+      "status": "PASS",
+      "logSource": "kernel/lint-first.log"
+    },
+    "kernelWhole": {
+      "status": "PASS",
+      "pass": 2237,
+      "fail": 0,
+      "existingSkip": 6,
+      "total": 2243,
+      "log": "root/kernel-full-first.log",
+      "exitCode": 0
+    },
+    "model": {
+      "status": "PASS",
+      "pass": 33,
+      "fail": 0,
+      "logSource": "model/tests-first.log",
+      "boundary": "Coordinator-provided receipt; prior Model handoff NOT_RUN remains historical."
+    },
+    "modelTypes": {
+      "status": "PASS",
+      "exitCode": 0,
+      "receiptSource": "model/types-first.exit"
+    },
+    "independentHighReview": {
+      "status": "NO_REQUIRED_FINDINGS",
+      "runtime": "NOT_RUN",
+      "reportSource": "review/review.md",
+      "snapshotSource": "review/snapshot.json",
+      "listedInputs": 12,
+      "boundary": "Source-only review; no reviewer runtime."
+    },
+    "api": {
+      "status": "SCOPED_PASS",
+      "added": 7,
+      "removed": 0,
+      "changed": 0,
+      "metadata": "UNCHANGED",
+      "boundary": "Seven public named exports added; no package export-map keys added. Six existing inventory rules only. No schema/core-result check change.",
+      "log": "root/api-check.log",
+      "delta": "root/api-delta.json"
+    },
+    "studioTypes": {
+      "status": "PASS",
+      "exitCode": 0,
+      "boundary": "Coordinator-provided result."
+    },
+    "lint": {
+      "status": "PASS",
+      "errors": 0,
+      "warnings": 1,
+      "boundary": "Coordinator-provided result; console warning retained."
+    },
+    "browserDriverSyntax": {
+      "status": "PASS",
+      "reportSource": "studio/preparation.md"
+    },
+    "browser": {
+      "status": "FULL_FLOW_PASS",
+      "receipt": "studio/run-02/receipt.json",
+      "priorAttempt": {
+        "status": "FAIL_BEFORE_BROWSER_AND_SERVER_LAUNCH",
+        "receipt": "studio/run-01/receipt.json",
+        "log": "root/native-first.log",
+        "cause": "Capsule attempted to read a virtual stdin seed path; ENOENT. Driver now explicitly excludes that virtual input. No product failure."
+      },
+      "browserInvocationsWithLaunch": 1,
+      "chromeProcesses": 1,
+      "backend": "Chrome WebGPU",
+      "serialContextsClosed": 6,
+      "observationalStates": 29,
+      "refusals": 4,
+      "downloads": 1,
+      "nativeSaveFreshOpen": "PASS_SEMANTIC_EQUALITY",
+      "publicProducerPoints": 160,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "sourceChanges": 0,
+      "boundary": "29 observations, not29 tests. Actual public Trim by the curve; outside/inside/concave U/V positives; IGES/Thicken/Sew/nonplanar refusals. Retained failed prelaunch attempt is separate from the clean run-02 flow."
+    },
+    "docs": {
+      "status": "PASS",
+      "exitCode": 0,
+      "metrics": {
+        "pages": 68,
+        "beingWritten": 0,
+        "shots": 55,
+        "shotKB": 4811,
+        "labels": 861
+      },
+      "log": "root/docs-check.log",
+      "boundary": "After feature notes, decision, roadmap and resume assembly; subsequent changes only correct evidence scope and receipts/manifest."
+    },
+    "studioBuild": {
+      "status": "PASS",
+      "exitCode": 0,
+      "log": "root/studio-build.log",
+      "boundary": "Existing bundler warnings retained."
+    },
+    "orchestration": {
+      "status": "FAILURE_RETAINED_CORRECTED",
+      "receipt": "root/orchestration-failures.json",
+      "boundary": "Initial relative cp from package cwd failed before full suite. Corrected at root cwd. Command issue, not product failure."
+    },
+    "agentTools": {
+      "status": "PASS",
+      "exitCode": 0,
+      "log": "root/agent-tools.log"
+    },
+    "refusals": {
+      "status": "PASS",
+      "exitCode": 0,
+      "log": "root/refusals.log"
+    }
+  },
+  "independentOracle": {
+    "plane": "S(u,v)=[20+5u,-11+5v,3]; u[-2,6],v[1,7]",
+    "rectangleOutsideArea": 1100,
+    "rectangleOutsideCentroid": [
+      "340/11",
+      "104/11",
+      3
+    ],
+    "rectangleInsideArea": 100,
+    "rectangleInsideCentroid": [
+      20,
+      4,
+      3
+    ],
+    "concaveDesignArea": 131,
+    "concaveStored160PolylineArea": 130.9590625,
+    "boundary": "Preserve actual stored world polygon, not ideal curve or sampled display mesh. Double reversal uses geometric tolerance, not bitwise UV equality.",
+    "witness": {
+      "volume": 420,
+      "centroid": [
+        86,
+        0.5,
+        3.5
+      ],
+      "boundary": "Unrelated accepted solid only. Trimmed surface solid mass NOT_APPLICABLE."
+    },
+    "concaveActualBrowserStoredHoleArea": 130.95906250000002
+  },
+  "notProven": [
+    "Generic curved/multi-loop trim transport",
+    "Trimmed IGES or trimmed solid construction",
+    "Exact sampled mesh area or trimmed solid mass",
+    "Full Model/Studio/GPU/Viewer suites",
+    "Performance, remoteCI, release and whole08 acceptance"
+  ],
+  "next": "Investigate remaining08 consumer/generality gaps before09. Electron15 stays queued. No new queue.",
+  "provenance": {
+    "sourceInputCount": 720,
+    "boundary": "Seed-bundle inputs plus selected UI inputs only; not full served graph. Source-provenance keeps decoded/stored SHA256. Manifest excludes only the top-level manifest itself.",
+    "initialInputCount": 9,
+    "initialSubsetMatchesFrozen": true,
+    "frozenAfterCleanupMatch": 720
+  },
+  "ownershipProof": {
+    "trimSource": "Actual Studio public Trim by the curve creates160 stored points. Both axes/flags and concave outline are observed.",
+    "native": "One actual Save/download and fresh Open preserves accepted document, exact stored UV/flags/IDs/source semantically; reselect succeeds. No raw-byte identity claim.",
+    "guards": "IGES, Thicken, Sew and nonplanar Reverse refuse with doc/selection/no-download preservation. Thicken/Sew each have eligible count1. Undo proves no extra guard Undo item. Nonplanar refusal has Undo/Redo and valid retry.",
+    "witness": "Stable b1, volume420, centroid[86,.5,3.5]; unrelated accepted solid only.",
+    "cleanup": "Six contexts, browser and server closed.",
+    "imageReview": "Coordinator viewed06-trim-preserving-reverse-v.png and18-concave-reverse-v.png."
+  }
+}

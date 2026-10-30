@@ -17,14 +17,32 @@ const INDEXED = new Set(['edit_feature', 'delete_feature', ...CAGE_MUTATORS]);
 /** A feature id or body key in a string: `n12`, `n12.top`, `n12_p1`, `b12`, `b12_cut`. */
 const TOKEN = /(?<![\w])([nb])(\d+)(?!\d)/g;
 
+/** Copies authored literals without interpreting their strings or object keys as feature ids. */
+function copyOpaque(value: unknown): unknown {
+  if (Array.isArray(value)) { const out: unknown[] = []; for (const item of value) out.push(copyOpaque(item)); return out; }
+  if (isObj(value)) { const out: Record<string, unknown> = { ...value }; for (const [key, item] of Object.entries(value)) out[key] = copyOpaque(item); return out; }
+  return value;
+}
+
 /** A value with every id the map moves renamed (in strings and in object keys): `n5` → `n7`, `n5.top` → `n7.top`, `b5` → `b7`. */
 export function renameIds<T>(v: T, ids: ReadonlyMap<string, string>): T {
   if (!ids.size) return v;
   const str = (s: string) => s.replace(TOKEN, (all, kind: string, k: string) => { const to = ids.get(`n${k}`); return to ? `${kind}${to.slice(1)}` : all; });
-  const walk = (x: unknown): unknown => {
+  const walk = (x: unknown, context?: 'text-command-args' | 'text-command-values'): unknown => {
     if (typeof x === 'string') return str(x);
-    if (Array.isArray(x)) return x.map(walk);
-    if (isObj(x)) { const out: Record<string, unknown> = {}; for (const [k, y] of Object.entries(x)) out[str(k)] = walk(y); return out; }
+    if (Array.isArray(x)) { const out: unknown[] = []; for (const item of x) out.push(walk(item)); return out; }
+    if (isObj(x)) {
+      const out: Record<string, unknown> = {}, textNode = (x.kind === 'text' || x.kind === 'text-relief') && typeof x.text === 'string' && isObj(x.font);
+      const args = isObj(x.args) ? x.args : undefined;
+      const textCommand = x.tool === 'run_command' && (args?.command === 'text' || args?.command === 'text-relief') && isObj(args.values);
+      for (const [k, y] of Object.entries(x)) {
+        if ((textNode || context === 'text-command-values') && (k === 'text' || k === 'font')) out[k] = copyOpaque(y);
+        else if (textCommand && k === 'args') out[str(k)] = walk(y, 'text-command-args');
+        else if (context === 'text-command-args' && k === 'values') out[str(k)] = walk(y, 'text-command-values');
+        else out[str(k)] = walk(y);
+      }
+      return out;
+    }
     return x;
   };
   return walk(v) as T;

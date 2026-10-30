@@ -1,0 +1,18 @@
+flow display: {"requestedDpr":1,"renderer":"webgpu","devicePixelRatio":1,"cssWidth":1140,"cssHeight":900,"backingWidth":1140,"backingHeight":900}
+The input did not match the regular expression /first native quarter/. Input:
+
+'wrap_text\n' +
+  'Cylindrical wrap\n' +
+  'preview\n' +
+  'U start (native)\n' +
+  'U end (native)\n' +
+  'V start (native)\n' +
+  'V end (native)\n' +
+  'Height (must equal radius)\n' +
+  'mm\n' +
+  'Cancel\n' +
+  'Apply'
+
+ok 1 starter plate loads
+FAIL 36 CG1 cylindrical wrap: native quarter preview, apply, undo, edit and portable Save/Open — The input did not match the regular expression /first native quarter/. Input:
+screenshots: /tmp/d313-wrap-flow-second

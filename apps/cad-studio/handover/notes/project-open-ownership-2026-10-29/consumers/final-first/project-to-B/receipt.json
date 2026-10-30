@@ -1,0 +1,1918 @@
+{
+  "status": "SAFE_CONTRACT_PASS",
+  "scenario": "project-to-B",
+  "baseline": "f841c0c34",
+  "runnerProcess": 97413,
+  "projectName": "d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8",
+  "namespace": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/",
+  "target": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+  "states": [
+    {
+      "label": "normal-B-control",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              12,
+              13
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 14,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 12,
+                "d": 13,
+                "h": 14,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "nextId": 2
+      },
+      "body": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": 2184.0000000000005,
+            "centroid": [
+              6,
+              6.499999999999998,
+              7
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "fileName": "B",
+      "dirty": false,
+      "recovery": null,
+      "history": {
+        "present": true,
+        "type": "HTMLDivElement",
+        "rows": [
+          {
+            "tag": "BUTTON",
+            "label": "Box 12×13×14",
+            "index": "1"
+          }
+        ]
+      },
+      "project": "d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8 · in this browserClose",
+      "activePath": "B.bcad",
+      "versions": [
+        "Version B-version"
+      ],
+      "offered": null,
+      "nativeA": {
+        "tag": "657-1793261054748",
+        "bytesFile": "normal-B-control-nativeA.bcad"
+      },
+      "nativeB": {
+        "tag": "657-1793261055730",
+        "bytesFile": "normal-B-control-nativeB.bcad"
+      },
+      "trace": {
+        "namespace": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/",
+        "selected": null,
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 1,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 2,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 3,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 4,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 5,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots/90bdced6d240765f.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 6,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 7,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 8,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 9,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 10,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/A.bcad.json",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 11,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 12,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 13,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 14,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 15,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 16,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 17,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 18,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots/b59b88e411e27fc4.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 19,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 20,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 21,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 22,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 23,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 24,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 25,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 26,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "production",
+            "byteLength": 657
+          },
+          {
+            "sequence": 27,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 28,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 29,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 30,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "byteLength": 402
+          },
+          {
+            "sequence": 31,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 32,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 33,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots/b59b88e411e27fc4.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 34,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots/b59b88e411e27fc4.bcad",
+            "scope": "production",
+            "byteLength": 657
+          },
+          {
+            "sequence": 35,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 36,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/autosave",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 37,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "inspection",
+            "error": null
+          },
+          {
+            "sequence": 38,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "inspection",
+            "byteLength": 657
+          },
+          {
+            "sequence": 39,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "inspection",
+            "error": null
+          },
+          {
+            "sequence": 40,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "inspection",
+            "byteLength": 657
+          }
+        ]
+      }
+    },
+    {
+      "label": "A-read-held",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [],
+        "outputs": {},
+        "nextId": 0
+      },
+      "body": {
+        "fresh": true,
+        "bodies": [],
+        "massReady": true,
+        "colored": []
+      },
+      "fileName": "Untitled",
+      "dirty": true,
+      "recovery": null,
+      "history": {
+        "present": true,
+        "type": "HTMLDivElement",
+        "rows": []
+      },
+      "project": "d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8 · in this browserClose",
+      "activePath": null,
+      "versions": [],
+      "offered": null,
+      "nativeA": {
+        "tag": "657-1793261054748",
+        "bytesFile": "A-read-held-nativeA.bcad"
+      },
+      "nativeB": {
+        "tag": "657-1793261055730",
+        "bytesFile": "A-read-held-nativeB.bcad"
+      },
+      "trace": {
+        "namespace": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/",
+        "selected": {
+          "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+          "fulfilled": true,
+          "returned": false,
+          "byteLength": 657,
+          "bytesFile": "held-original-A.bcad"
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 1,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 2,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 3,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 4,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 5,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots/90bdced6d240765f.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 6,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 7,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 8,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 9,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 10,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/A.bcad.json",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 11,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 12,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 13,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 14,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 15,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 16,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 17,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 18,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots/b59b88e411e27fc4.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 19,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 20,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 21,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 22,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 23,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 24,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 25,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 26,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "production",
+            "byteLength": 657
+          },
+          {
+            "sequence": 27,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 28,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 29,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 30,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "byteLength": 402
+          },
+          {
+            "sequence": 31,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 32,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 33,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots/b59b88e411e27fc4.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 34,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots/b59b88e411e27fc4.bcad",
+            "scope": "production",
+            "byteLength": 657
+          },
+          {
+            "sequence": 35,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 36,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/autosave",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 37,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "inspection",
+            "error": null
+          },
+          {
+            "sequence": 38,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "inspection",
+            "byteLength": 657
+          },
+          {
+            "sequence": 39,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "inspection",
+            "error": null
+          },
+          {
+            "sequence": 40,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "inspection",
+            "byteLength": 657
+          },
+          {
+            "sequence": 41,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 42,
+            "kind": "native-read-held",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad"
+          },
+          {
+            "sequence": 43,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "inspection",
+            "error": null
+          },
+          {
+            "sequence": 44,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "inspection",
+            "byteLength": 657
+          },
+          {
+            "sequence": 45,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "inspection",
+            "error": null
+          },
+          {
+            "sequence": 46,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "inspection",
+            "byteLength": 657
+          }
+        ]
+      }
+    },
+    {
+      "label": "current-before-A-release",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              12,
+              13
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 14,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 12,
+                "d": 13,
+                "h": 14,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "nextId": 2
+      },
+      "body": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": 2184.0000000000005,
+            "centroid": [
+              6,
+              6.499999999999998,
+              7
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "fileName": "B",
+      "dirty": false,
+      "recovery": null,
+      "history": {
+        "present": true,
+        "type": "HTMLDivElement",
+        "rows": [
+          {
+            "tag": "BUTTON",
+            "label": "Box 12×13×14",
+            "index": "1"
+          }
+        ]
+      },
+      "project": "d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8 · in this browserClose",
+      "activePath": "B.bcad",
+      "versions": [
+        "Version B-version"
+      ],
+      "offered": null,
+      "nativeA": {
+        "tag": "657-1793261054748",
+        "bytesFile": "current-before-A-release-nativeA.bcad"
+      },
+      "nativeB": {
+        "tag": "657-1793261055730",
+        "bytesFile": "current-before-A-release-nativeB.bcad"
+      },
+      "trace": {
+        "namespace": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/",
+        "selected": {
+          "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+          "fulfilled": true,
+          "returned": false,
+          "byteLength": 657,
+          "bytesFile": "held-original-A.bcad"
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 1,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 2,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 3,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 4,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 5,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots/90bdced6d240765f.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 6,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 7,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 8,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 9,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 10,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/A.bcad.json",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 11,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 12,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 13,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 14,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 15,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 16,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 17,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 18,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots/b59b88e411e27fc4.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 19,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 20,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 21,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 22,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 23,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 24,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 25,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 26,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "production",
+            "byteLength": 657
+          },
+          {
+            "sequence": 27,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 28,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 29,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 30,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "byteLength": 402
+          },
+          {
+            "sequence": 31,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 32,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 33,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots/b59b88e411e27fc4.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 34,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots/b59b88e411e27fc4.bcad",
+            "scope": "production",
+            "byteLength": 657
+          },
+          {
+            "sequence": 35,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 36,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/autosave",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 37,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "inspection",
+            "error": null
+          },
+          {
+            "sequence": 38,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "inspection",
+            "byteLength": 657
+          },
+          {
+            "sequence": 39,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "inspection",
+            "error": null
+          },
+          {
+            "sequence": 40,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "inspection",
+            "byteLength": 657
+          },
+          {
+            "sequence": 41,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 42,
+            "kind": "native-read-held",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad"
+          },
+          {
+            "sequence": 43,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "inspection",
+            "error": null
+          },
+          {
+            "sequence": 44,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "inspection",
+            "byteLength": 657
+          },
+          {
+            "sequence": 45,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "inspection",
+            "error": null
+          },
+          {
+            "sequence": 46,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "inspection",
+            "byteLength": 657
+          },
+          {
+            "sequence": 47,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 48,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "production",
+            "byteLength": 657
+          },
+          {
+            "sequence": 49,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 50,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 51,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 52,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "byteLength": 402
+          },
+          {
+            "sequence": 53,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 54,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 55,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots/b59b88e411e27fc4.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 56,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots/b59b88e411e27fc4.bcad",
+            "scope": "production",
+            "byteLength": 657
+          },
+          {
+            "sequence": 57,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 58,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/autosave",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 59,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "inspection",
+            "error": null
+          },
+          {
+            "sequence": 60,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "inspection",
+            "byteLength": 657
+          },
+          {
+            "sequence": 61,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "inspection",
+            "error": null
+          },
+          {
+            "sequence": 62,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "inspection",
+            "byteLength": 657
+          }
+        ]
+      }
+    },
+    {
+      "label": "after-A-release",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              12,
+              13
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 14,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 12,
+                "d": 13,
+                "h": 14,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "nextId": 2
+      },
+      "body": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": 2184.0000000000005,
+            "centroid": [
+              6,
+              6.499999999999998,
+              7
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "fileName": "B",
+      "dirty": false,
+      "recovery": null,
+      "history": {
+        "present": true,
+        "type": "HTMLDivElement",
+        "rows": [
+          {
+            "tag": "BUTTON",
+            "label": "Box 12×13×14",
+            "index": "1"
+          }
+        ]
+      },
+      "project": "d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8 · in this browserClose",
+      "activePath": "B.bcad",
+      "versions": [
+        "Version B-version"
+      ],
+      "offered": null,
+      "nativeA": {
+        "tag": "657-1793261054748",
+        "bytesFile": "after-A-release-nativeA.bcad"
+      },
+      "nativeB": {
+        "tag": "657-1793261055730",
+        "bytesFile": "after-A-release-nativeB.bcad"
+      },
+      "trace": {
+        "namespace": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/",
+        "selected": {
+          "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+          "fulfilled": true,
+          "returned": true,
+          "byteLength": 657,
+          "bytesFile": "held-original-A.bcad"
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 1,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 2,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 3,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 4,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 5,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots/90bdced6d240765f.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 6,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 7,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 8,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 9,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 10,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/A.bcad.json",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 11,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 12,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 13,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 14,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 15,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 16,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 17,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 18,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots/b59b88e411e27fc4.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 19,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 20,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 21,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 22,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 23,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 24,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 25,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 26,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "production",
+            "byteLength": 657
+          },
+          {
+            "sequence": 27,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 28,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 29,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 30,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "byteLength": 402
+          },
+          {
+            "sequence": 31,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 32,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 33,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots/b59b88e411e27fc4.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 34,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots/b59b88e411e27fc4.bcad",
+            "scope": "production",
+            "byteLength": 657
+          },
+          {
+            "sequence": 35,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 36,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/autosave",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 37,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "inspection",
+            "error": null
+          },
+          {
+            "sequence": 38,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "inspection",
+            "byteLength": 657
+          },
+          {
+            "sequence": 39,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "inspection",
+            "error": null
+          },
+          {
+            "sequence": 40,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "inspection",
+            "byteLength": 657
+          },
+          {
+            "sequence": 41,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 42,
+            "kind": "native-read-held",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad"
+          },
+          {
+            "sequence": 43,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "inspection",
+            "error": null
+          },
+          {
+            "sequence": 44,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "inspection",
+            "byteLength": 657
+          },
+          {
+            "sequence": 45,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "inspection",
+            "error": null
+          },
+          {
+            "sequence": 46,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "inspection",
+            "byteLength": 657
+          },
+          {
+            "sequence": 47,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 48,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "production",
+            "byteLength": 657
+          },
+          {
+            "sequence": 49,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 50,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 51,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 52,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/versions/B.bcad.json",
+            "scope": "production",
+            "byteLength": 402
+          },
+          {
+            "sequence": 53,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 54,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 55,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots/b59b88e411e27fc4.bcad",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 56,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/snapshots/b59b88e411e27fc4.bcad",
+            "scope": "production",
+            "byteLength": 657
+          },
+          {
+            "sequence": 57,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss",
+            "scope": "production",
+            "error": null
+          },
+          {
+            "sequence": 58,
+            "kind": "directory-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/.barocss/autosave",
+            "scope": "production",
+            "error": "NotFoundError"
+          },
+          {
+            "sequence": 59,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "inspection",
+            "error": null
+          },
+          {
+            "sequence": 60,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "inspection",
+            "byteLength": 657
+          },
+          {
+            "sequence": 61,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "inspection",
+            "error": null
+          },
+          {
+            "sequence": 62,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "inspection",
+            "byteLength": 657
+          },
+          {
+            "sequence": 63,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 64,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "production",
+            "byteLength": 657
+          },
+          {
+            "sequence": 65,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "inspection",
+            "error": null
+          },
+          {
+            "sequence": 66,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/A.bcad",
+            "scope": "inspection",
+            "byteLength": 657
+          },
+          {
+            "sequence": 67,
+            "kind": "file-handle-result",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "inspection",
+            "error": null
+          },
+          {
+            "sequence": 68,
+            "kind": "native-read-return",
+            "path": "projects/d326-open-35d65fd0-0b0f-4e4a-a871-a9251f50d6a8/B.bcad",
+            "scope": "inspection",
+            "byteLength": 657
+          }
+        ]
+      }
+    }
+  ],
+  "errors": [],
+  "completion": {
+    "nativeReturnObserved": true,
+    "nextTaskAfterMicrotasks": true,
+    "operationPromise": "NOT_EXPOSED",
+    "sourceBoundary": "Asset-free JSON: project readPart decoding drains microtasks then stale guard returns; App input guard returns directly after arrayBuffer. No old metadata tail required."
+  },
+  "observed": {
+    "liveDocEqualsCurrent": true,
+    "fileName": "B",
+    "activePath": "B.bcad",
+    "versions": [
+      "Version B-version"
+    ],
+    "historyPresent": true,
+    "historyType": "HTMLDivElement"
+  }
+}

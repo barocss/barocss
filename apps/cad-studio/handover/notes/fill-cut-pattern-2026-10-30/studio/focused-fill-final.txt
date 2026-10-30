@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: the actual feature editor draft stages its raw fill snapshot without accepting nodes, IDs or outputs
+ok 1 - the actual feature editor draft stages its raw fill snapshot without accepting nodes, IDs or outputs
+  ---
+  duration_ms: 36.258792
+  type: 'test'
+  ...
+# Subtest: snapshot reselection copies the actual source sketch and later sketch edits keep the captured polygon
+ok 2 - snapshot reselection copies the actual source sketch and later sketch edits keep the captured polygon
+  ---
+  duration_ms: 9.194458
+  type: 'test'
+  ...
+# Subtest: a bad fill draft remains an unaccepted candidate and Stop, discard and Open cannot borrow accepted history
+ok 3 - a bad fill draft remains an unaccepted candidate and Stop, discard and Open cannot borrow accepted history
+  ---
+  duration_ms: 7.269875
+  type: 'test'
+  ...
+# Subtest: ordinary feature edits keep their current evaluation path
+ok 4 - ordinary feature edits keep their current evaluation path
+  ---
+  duration_ms: 7.009583
+  type: 'test'
+  ...
+# Subtest: the same profile conversion as Finish sketch supplies an eligible concave line-loop snapshot with normal metadata
+ok 5 - the same profile conversion as Finish sketch supplies an eligible concave line-loop snapshot with normal metadata
+  ---
+  duration_ms: 8.34075
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 461.618209

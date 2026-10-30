@@ -1,0 +1,8 @@
+/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/fill-cut-pattern-browser.mjs:212
+  }
+  ^
+
+SyntaxError: Missing catch or finally after try
+    at checkSyntax (node:internal/main/check_syntax:74:5)
+
+Node.js v22.19.0

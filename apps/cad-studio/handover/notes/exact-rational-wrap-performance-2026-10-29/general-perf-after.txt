@@ -1,0 +1,4 @@
+shaft-thread                     578 ms 63f2e23cc5a7c377
+tilted-boxes-polyhedral           21 ms 001f7199c2adf525
+SAME shaft-thread                     583 →     578 ms (-0.9%)
+SAME tilted-boxes-polyhedral           23 →      21 ms (-8.7%)

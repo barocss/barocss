@@ -1,0 +1,148 @@
+{
+  "artifacts": {
+    "README.md": {
+      "sha256": "29b293e66ebccf663bedee6b059f344680f0db4c59edaeb7e0c1423cef858627",
+      "bytes": 5367
+    },
+    "after-bundle.inputs.json": {
+      "sha256": "39c63b07cd7dd2f9d51f5cb352c7639390d3d0840e8b1ac8bee211fd71978ef5",
+      "bytes": 103892
+    },
+    "after-bundle.mjs.gz": {
+      "sha256": "059f1e4c1967782f7a0d822851fdf6da7440c7d95e18d24b97ed25ab83b5aa5c",
+      "bytes": 609410
+    },
+    "after-results.json": {
+      "sha256": "a8966ae23621c71041244df15571809d612ab23a648ca2e666cc894ecd4fb46a",
+      "bytes": 663
+    },
+    "after-results.txt": {
+      "sha256": "f2620edb9a7cc22efc51e8ccdaeba75aa14d40bb9b8932414a15f6d46c513e7b",
+      "bytes": 561
+    },
+    "after.mjs": {
+      "sha256": "b50c392af28531ce924f62713373afa4ed772b52ab639dded0812dee15db44b3",
+      "bytes": 853
+    },
+    "baseline-bundle.inputs.json": {
+      "sha256": "437c2f76ce09a84739f748f463cbd9877ed33963002b346efc4f9789758af888",
+      "bytes": 104136
+    },
+    "baseline-bundle.mjs.gz": {
+      "sha256": "88956eca213e26a9a3a1ac6a10f6eb0eaa8db9497364e650dfb2298a68be3d1b",
+      "bytes": 609442
+    },
+    "baseline-identity.json": {
+      "sha256": "9c7b6ec896d976ea52dfe20ab1902fa05947750a9bcc921e9e33a793a3718a4d",
+      "bytes": 2861
+    },
+    "baseline-results.json": {
+      "sha256": "5179babe873e2b4fd5d98dca110e61b44c2867d969a6dfff886ba00a5bf3b438",
+      "bytes": 664
+    },
+    "baseline-results.txt": {
+      "sha256": "2ba8cc5bc19e12dbf1305bb6a970be42a2a8b1244fb129c456d2d3af6a3320b7",
+      "bytes": 562
+    },
+    "build.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "external-texture-test.txt": {
+      "sha256": "46e97c641cdb4772dabc67d9515d17863f0d7299293b0075a5596666e80c015b",
+      "bytes": 384
+    },
+    "lint-test-final.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "lint.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "original-package.json": {
+      "sha256": "1d575b89482ff9234d5605033fcd24677eed9c4a32824fe34be156d44ab0496b",
+      "bytes": 1210
+    },
+    "original-packages__barocss-gpu__dist__viewer__scene.js": {
+      "sha256": "a4da71f00cb8730b0b2758c1f3e139524b55a470fb74cb32cb2d9e2e198c30af",
+      "bytes": 24256
+    },
+    "original-packages__barocss-gpu__dist__viewer__viewer.js": {
+      "sha256": "4fb9bc5f5a6556b6d476dca2332d075a4292f6b2c72d9889c17e64d4b8e077dd",
+      "bytes": 165924
+    },
+    "original-packages__barocss-gpu__package.json": {
+      "sha256": "4455c834adaf3a1ae891394376b7bf62c78d283766b35426ba1e1634947d5327",
+      "bytes": 3902
+    },
+    "original-packages__barocss-gpu__src__viewer__geometry.ts": {
+      "sha256": "9c77377ef621977c0ccda0e8ed7ef02e8a7eb215d2d9a4f39a3901407a593cc5",
+      "bytes": 44854
+    },
+    "original-packages__barocss-gpu__src__viewer__scene.ts": {
+      "sha256": "3d215f883911a52f3dbc278eb6978622f2f8cdf0ecbad51e06a4b3d3b19939ff",
+      "bytes": 32794
+    },
+    "original-packages__barocss-gpu__src__viewer__viewer.ts": {
+      "sha256": "0b1adf995958122808cd49c6cd440ba623343469dd789d6e87d22057d8f89cb9",
+      "bytes": 163641
+    },
+    "original-packages__barocss-gpu__tsconfig.json": {
+      "sha256": "97606bdc9b2332f183baae576ea36851ad9f3428c00482dcf793b205a2fb31bd",
+      "bytes": 283
+    },
+    "original-packages__barocss-viewer__package.json": {
+      "sha256": "7eae9edcf73be3de63de6dff19822866196d9fd6ce62577ff488e6f5a27e64d6",
+      "bytes": 911
+    },
+    "original-packages__barocss-viewer__src__index.ts": {
+      "sha256": "ec81a4222a69b3859fbe16203c07cc1606fa99aa504c8fa521a3ea0c3f114a91",
+      "bytes": 161192
+    },
+    "original-packages__barocss-viewer__src__native-backend.ts": {
+      "sha256": "5b7be77f6b73490ec49e3e8543cf28d1a9e2e03bba7beb68d04cfdd51ebbf99c",
+      "bytes": 7040
+    },
+    "original-packages__barocss-viewer__src__presenter.ts": {
+      "sha256": "3acb1296f52675be808bf62f7853675aa592163390236923388f937edcd6f1ea",
+      "bytes": 12840
+    },
+    "original-packages__barocss-viewer__tsconfig.json": {
+      "sha256": "5dbdd00a4bc0bc15ad6d2d309253a731f5f31630cb26dbacf07fa07f4d7ef381",
+      "bytes": 291
+    },
+    "related-tests.txt": {
+      "sha256": "915a0cd5bfde6b125f6d41b0d56c2343e0d62f9ab2b1a1ca3d97c77ac0fd9039",
+      "bytes": 9876
+    },
+    "reproduce.mjs": {
+      "sha256": "3144a499d17c9789b14167e53c87ff4a44b834916aebc8d649aa7a8e49cee0a5",
+      "bytes": 858
+    },
+    "source-review.md": {
+      "sha256": "bcfa02424586047469debaea6d962e1d40df5df39a186c9a9e51bfcdec47be61",
+      "bytes": 2065
+    },
+    "unit-after-initial.txt": {
+      "sha256": "c91d5d1a1010636a29d9cf8070c17c23c9c3bc530616c40c10d59aa9852af85d",
+      "bytes": 1930
+    },
+    "unit-baseline-addfault.txt": {
+      "sha256": "b595bb5fe57857e334fe9203d5bb604495bb1e3e75da0c2bef9c7989feec5e3b",
+      "bytes": 1202
+    },
+    "unit-baseline.txt": {
+      "sha256": "70740a95fea03970049062ff91469dd0b074a9df19bfd9674cdd8f4a06a0008a",
+      "bytes": 8568
+    },
+    "unit-report.json": {
+      "sha256": "2ec837330d7aeeba4cccca425550e6f97a64db12b5b271ea0a5ff48487955244",
+      "bytes": 1769
+    },
+    "verification.json": {
+      "sha256": "ed34360389078f35bc68d6b8226674fc957083949a52abfd1f3b5b0a343bdd45",
+      "bytes": 1603
+    }
+  }
+}

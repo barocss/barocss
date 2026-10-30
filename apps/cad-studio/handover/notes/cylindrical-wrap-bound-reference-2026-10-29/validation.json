@@ -1,0 +1,85 @@
+{
+  "source": "343cbf976965f0704b6d1b5dbf2ab66b40c5737c",
+  "node": "22.19.0",
+  "buildLintCodeShape": "PASS",
+  "firstFocused": {
+    "pass": 23,
+    "fail": 1,
+    "cause": "global ORDER first-request-only structural freeze work; original full TAP retained"
+  },
+  "finalFocused": {
+    "pass": 24,
+    "fail": 0,
+    "duration_ms": 706.798459
+  },
+  "kernel": {
+    "tests": 2164.0,
+    "pass": 2158.0,
+    "fail": 0.0,
+    "skipped": 6.0,
+    "duration_ms": 244920.266375
+  },
+  "tools": "PASS",
+  "refusals": "PASS",
+  "apiInventory": "unchanged SCOPED_PASS",
+  "docs": {
+    "pages": 68,
+    "beingWritten": 0,
+    "shots": 53,
+    "shotKB": 4488,
+    "labels": 852
+  },
+  "actualCoupledCases": [
+    {
+      "label": "Z0-reference-standard",
+      "status": "returned",
+      "counts": {
+        "exactOperations": 193290,
+        "nativeOperations": 160132,
+        "formalOperations": 33095,
+        "outerDirectOperations": 63,
+        "nativeWork": 325839,
+        "formalWork": 60135,
+        "outerWork": 9183,
+        "work": 395157,
+        "maximumBits": 1187
+      }
+    },
+    {
+      "label": "centered-negative-Z-density",
+      "status": "returned",
+      "counts": {
+        "exactOperations": 192736,
+        "nativeOperations": 159588,
+        "formalOperations": 33085,
+        "outerDirectOperations": 63,
+        "nativeWork": 324561,
+        "formalWork": 60090,
+        "outerWork": 9183,
+        "work": 393834,
+        "maximumBits": 1178
+      }
+    },
+    {
+      "label": "asymmetric-negative-Z-budget-frontier",
+      "status": "refused",
+      "code": "BUDGET",
+      "source": "cylindrical-wrap-formal-mass",
+      "message": "Formal pad mass: the aggregate source, rational, direct, or work limit was exceeded"
+    }
+  ],
+  "nativePrefixAllBitsAndCounts": "SAME",
+  "formalPrefix": "all numerical/source/error fields SAME; first work -10 from constant initialization, second complete receipt SAME",
+  "formalPerformance": {
+    "runs": 7,
+    "beforeMedianMs": 9,
+    "afterMedianMs": 10,
+    "fingerprint": "4ee49b3a32aa9a46",
+    "speedup": false,
+    "stableRegressionEstablished": false
+  },
+  "coupledPerformance": "NOT_RUN",
+  "globalClosedReferencePhysicalPartProduct": "NOT_QUALIFIED",
+  "modelStudioTypesBrowser": "NOT_RUN; last whole consumers/types D299901b4ce45",
+  "pushPrRelease": "NOT_RUN"
+}

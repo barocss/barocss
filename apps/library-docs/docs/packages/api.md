@@ -313,6 +313,59 @@ checks that all three ways give the same document, byte for byte.
 
 <<< @/../samples/cad-model-api.test.mjs#material
 
+### Text from a font file
+
+`StudioPart.text(font, text, options)` creates a new independent output. `size` is the em height in mm and `h` is
+a positive extrusion height. `tolerance` is the explicit outline chord bound (default 0.01 mm). Optional `tracking`
+adds mm between scalars; optional `plane` supplies `origin`, `normal` and `xAxis`. Size, height and tracking can use
+the existing `Dim` parameter binding. Separate glyph components can remain several physical bodies in one output.
+
+```js
+import { readFile } from 'node:fs/promises';
+import { fontFromBytes, part } from '@barocss/cad-model/api';
+
+const bytes = new Uint8Array(await readFile('./font.ttf'));
+const font = await fontFromBytes(bytes, { filename: 'font.ttf' });
+const label = part('label').text(font, 'A', {
+  size: 10, h: 2, tolerance: 0.002, tracking: 0.2,
+});
+const doc = label.doc;
+```
+
+Supply an admitted static TrueType original. Optional `source` and `license` metadata are preserved as supplied;
+they are not inferred. The recipe keeps the original string, source and dimensions, while the blob store keeps
+the original bytes for the existing `.bcad` container path. There is no OS font lookup or fallback substitution.
+This call does not join existing bodies. Shaping, kerning, bidi, normalization and text wrap are not
+implemented. The separate bounded modifier below embosses or engraves a supported top face. See [Text from font outlines](/how/text) for input limits and refusals.
+
+### Text relief on a top face
+
+`StudioPart.textRelief(selector, font, text, options)` modifies the selected body. The selector must return one
+exact unmerged +Z top face, for example `b => b.faces().facing('+z')`. The native target must be one closed
+line-only upright slab with one physical solid. Every filled text component must fit within both its actual
+material and that selected face's trim, with clearance for flatness and native policy. Overlap/contact between
+components, unsupported source representations and ambiguous face names are refused.
+
+```js
+// Reuse the imported font source from the example above.
+const plate = part('label plate').box({ w: 40, d: 30, h: 10 });
+const raised = plate.textRelief(b => b.faces().facing('+z'), font, 'A', {
+  size: 10, depth: 2, at: [5, 5], mode: 'emboss', tolerance: 0.002,
+});
+const pocket = plate.textRelief(b => b.faces().facing('+z'), font, 'A', {
+  size: 10, depth: 2, at: [5, 5], mode: 'engrave', tolerance: 0.002,
+});
+```
+
+Required options are `size`, positive `depth`, world-XY baseline `at:[x,y]`, and `mode:'emboss'|'engrave'`.
+Optional `tolerance` defaults to 0.01 mm and `tracking` to zero. Size, depth, both baseline coordinates and
+tracking accept existing `Dim` bindings. There is no plane option. Engrave must leave a bottom web above the
+existing native linear tolerance; emboss needs a represented positive raised height and seat. The result is one
+physical solid. The original font/string/recipe remains editable and uses the existing `.bcad` asset path.
+The selected Korean `가한` Model fixtures pass at size 10, at `[5,5]`, depth 2 and the default tolerance 0.01.
+The tighter Myeongjo engrave fixture at 0.002 explicitly refuses the unchanged work budget and keeps its requested
+tolerance. The API does not increase tolerance to force success. The source `plate` is unchanged. See [Text relief](/how/text#emboss-or-engrave-a-top-face) for limits and refusals.
+
 ### The studio's own commands
 
 The CAD model part provides these Studio commands as methods. For these calls, it writes what the agent's

@@ -1,0 +1,261 @@
+{
+  "status": "BASELINE_AND_CANDIDATE_CAPTURED_SAME_BENCHMARK",
+  "heavyGate": "RELEASED",
+  "sourceHashes": {
+    "packages/barocss-cad/scripts/perf-bench.mjs": "37d81a207f097d7cb35d859200db64f716d0c38d30ed8a79b3d79e60ab4c39a9",
+    "packages/barocss-cad/src/brep/brep-mass-quadrature.ts": "696ec924bc4f1d7b74862533676af5e4c0b8a2a284a8a249ea7007dade4c8ed5",
+    "packages/barocss-cad/dist/brep/brep-mass-quadrature.js": "830606c3e8f1c28501188566a987b1caf71d0bbefecc9733b121794a51f86e57",
+    "packages/barocss-cad/src/brep/solid-mass.ts": "19ec118c7f6096f738d246e5ca46095b42dd9bf7f67e341bcc6f735690141eac",
+    "packages/barocss-cad/src/features/prismatic-solid.ts": "17f2b70b5ecbe0b1ab7912636d780fa1594469804f4af7fb48365212bc802f5a"
+  },
+  "conditions": {
+    "runs": 7,
+    "warmup": 3,
+    "batch": 32,
+    "unit": "ms",
+    "density": 1,
+    "quadratureSegments": 8,
+    "uncachedQueriesPerMeasuredBatch": 32,
+    "uncachedMeasuredQueriesPerCase": 224,
+    "warmupFreshQueriesPerCase": 96,
+    "timed": "map of first mass calls, result-array allocation and one receipt WeakMap store",
+    "untimed": "fixture construction, clones, fingerprint, strict geometry classification and references",
+    "perQuery": "batch median /32; not individually timed queries",
+    "broadPerformanceClaim": false
+  },
+  "cases": {
+    "ordinary": {
+      "baseline": {
+        "ms": 12,
+        "fp": "3a40ea461ce69d67",
+        "rawDuration": [
+          12.588582999999971,
+          12.35737499999999,
+          12.100708999999995,
+          11.867875000000026,
+          12.362458000000004,
+          12.031041000000016,
+          11.787374999999997
+        ],
+        "median": 12.100708999999995,
+        "perQuery": 0.37814715624999984,
+        "unit": "ms",
+        "batch": 32,
+        "warmup": 3,
+        "runs": 7
+      },
+      "candidate": {
+        "ms": 12,
+        "fp": "96b0d93dee9464fc",
+        "rawDuration": [
+          12.082750000000004,
+          12.401457999999991,
+          12.996458000000018,
+          12.155208000000016,
+          11.79116700000003,
+          11.70474999999999,
+          11.905250000000024
+        ],
+        "median": 12.082750000000004,
+        "perQuery": 0.37758593750000014,
+        "unit": "ms",
+        "batch": 32,
+        "warmup": 3,
+        "runs": 7
+      },
+      "relativeMedianChange": -0.0014841279134958363,
+      "fullNativeInputBytesEqual": true,
+      "strictCheckEqual": true,
+      "topologyNamesBoundsAndWholePatchClassificationEqual": true,
+      "baselineNativeMass": {
+        "volume": 141.37421410159007,
+        "mass": 0.14137421410159007,
+        "centroid": [
+          0.12345669999999984,
+          -0.23456779999999974,
+          2.8457239
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            0.6126321976016964,
+            -2.6645352591003758e-18,
+            7.105427357601002e-18
+          ],
+          [
+            -2.6645352591003758e-18,
+            0.6126321976016964,
+            1.4210854715202004e-17
+          ],
+          [
+            7.105427357601002e-18,
+            1.4210854715202004e-17,
+            0.6361839634571307
+          ]
+        ]
+      },
+      "candidateNativeMass": {
+        "volume": 141.37421410159007,
+        "mass": 0.14137421410159007,
+        "centroid": [
+          0.12345669999999996,
+          -0.23456779999999985,
+          2.8457239
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            0.6126321976016964,
+            -2.4868995751603507e-17,
+            0
+          ],
+          [
+            -2.4868995751603507e-17,
+            0.6126321976016964,
+            0
+          ],
+          [
+            0,
+            0,
+            0.6361839634571307
+          ]
+        ]
+      },
+      "baselineArea": 150.79814383234284,
+      "candidateArea": 150.79814383234284,
+      "prismaticContextUnchanged": true,
+      "fingerprintChanged": true,
+      "fingerprintClassification": "Intentional changed mass receipt, not changed input geometry",
+      "sampleRange": {
+        "baseline": [
+          11.787374999999997,
+          12.588582999999971
+        ],
+        "candidate": [
+          11.70474999999999,
+          12.996458000000018
+        ]
+      },
+      "statisticalInference": "One local pair, 7 measured batches per case; no significance, tail SLO or UI latency conclusion"
+    },
+    "tiny": {
+      "baseline": {
+        "ms": 11,
+        "fp": "329559d045fae174",
+        "rawDuration": [
+          10.509208000000001,
+          10.119291999999973,
+          10.411666999999966,
+          10.572499999999991,
+          10.41595799999999,
+          12.155666999999994,
+          10.544291999999984
+        ],
+        "median": 10.509208000000001,
+        "perQuery": 0.32841275000000003,
+        "unit": "ms",
+        "batch": 32,
+        "warmup": 3,
+        "runs": 7
+      },
+      "candidate": {
+        "ms": 11,
+        "fp": "4b19584f061aeeb4",
+        "rawDuration": [
+          11.71162499999997,
+          10.948417000000006,
+          11.141584000000023,
+          11.668541000000005,
+          10.734209000000021,
+          11.387833,
+          10.621125000000006
+        ],
+        "median": 11.141584000000023,
+        "perQuery": 0.3481745000000007,
+        "unit": "ms",
+        "batch": 32,
+        "warmup": 3,
+        "runs": 7
+      },
+      "relativeMedianChange": 0.06017351640580548,
+      "fullNativeInputBytesEqual": true,
+      "strictCheckEqual": true,
+      "topologyNamesBoundsAndWholePatchClassificationEqual": true,
+      "baselineNativeMass": {
+        "volume": 6.180191251439208e-15,
+        "mass": 6.180191251439208e-18,
+        "centroid": [
+          0.10042170557247179,
+          -0.26839177431837347,
+          0.3456789000000001
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            1.3779584638173598e-17,
+            -2.984199179341948e-20,
+            7.395570986446986e-35
+          ],
+          [
+            -2.984199179341948e-20,
+            1.409014833576738e-17,
+            0
+          ],
+          [
+            7.395570986446986e-35,
+            0,
+            2.786973297394098e-17
+          ]
+        ]
+      },
+      "candidateNativeMass": {
+        "volume": 6.278163296415527e-15,
+        "mass": 6.278163296415527e-18,
+        "centroid": [
+          0.12345669999999997,
+          -0.23456779999999938,
+          0.3456789000000001
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            1.4125867416934425e-17,
+            -6.656013887802287e-34,
+            0
+          ],
+          [
+            -6.656013887802287e-34,
+            1.4125867416934413e-17,
+            -9.860761315262648e-35
+          ],
+          [
+            0,
+            -9.860761315262648e-35,
+            2.825173483386884e-17
+          ]
+        ]
+      },
+      "baselineArea": 56.54866776461627,
+      "candidateArea": 56.54866776461627,
+      "prismaticContextUnchanged": true,
+      "fingerprintChanged": true,
+      "fingerprintClassification": "Intentional changed mass receipt, not changed input geometry",
+      "sampleRange": {
+        "baseline": [
+          10.119291999999973,
+          12.155666999999994
+        ],
+        "candidate": [
+          10.621125000000006,
+          11.71162499999997
+        ]
+      },
+      "statisticalInference": "One local pair, 7 measured batches per case; no significance, tail SLO or UI latency conclusion"
+    }
+  },
+  "commands": {
+    "baseline": "RUNS=7 WARMUP=3 BATCH=32 BASE=/tmp/d344-perf/baseline.json Node22 scripts/perf-bench.mjs save native-cylinder-ordinary-first-mass,native-cylinder-tiny-first-mass",
+    "candidate": "RUNS=7 WARMUP=3 BATCH=32 BASE=/tmp/d344-perf/candidate.json Node22 scripts/perf-bench.mjs save native-cylinder-ordinary-first-mass,native-cylinder-tiny-first-mass"
+  },
+  "qualificationBoundary": "Benchmark fixtures only; corrected mass accuracy is qualified by High independent tests, not this performance timing or old wrong baseline. No broad Kernel, UI latency or product PASS claim."
+}

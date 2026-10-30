@@ -1,0 +1,4 @@
+flow display: {"requestedDpr":1,"renderer":"webgpu","devicePixelRatio":1,"cssWidth":1140,"cssHeight":900,"backingWidth":1140,"backingHeight":900}
+ok 1 starter plate loads
+ok 251 A6.4: a hand-written DXF in inches added as a sketch draft (3 dimensions to confirm); one confirmed as it is, a hole re-driven to another diameter; an export says it is a draft
+screenshots: /tmp/d328/browser-dxf-final

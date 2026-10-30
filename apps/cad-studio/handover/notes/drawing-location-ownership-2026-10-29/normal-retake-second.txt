@@ -1,0 +1,5 @@
+flow display: {"requestedDpr":1,"renderer":"webgpu","devicePixelRatio":1,"cssWidth":1140,"cssHeight":900,"backingWidth":1140,"backingHeight":900}
+ok 1 starter plate loads
+ok 227 R14.1: Auto-dimension places overall sizes, the hole position and its callout; a hand-placed one is kept
+ok 228 R14.2: the issue list names what is missing and what repeats; Fix all and a single fix clear them
+screenshots: /tmp/d331/normal-retake-second

@@ -4,10 +4,47 @@ Every command adds a feature to the part's history. Each feature is kept as data
 is built on — so the part can be edited and rebuilt. Start a command from its key, from the shapes in the top bar,
 from the **Tools** rail or from the command palette (<kbd>Space</kbd>).
 
+While the part is computing, wait or use **Cancel** before making another document change.
+The app refuses that change before adding it to history. Camera and workspace controls remain available.
+Cancel takes back only the accepted change that started the computation. If the computation has no accepted
+change to take back, the document stays unchanged and the view remains out of date until recomputed.
+
 ## Shapes
 
 **Box**, **Cylinder**, **Sphere**, **Cone**, **Torus**, **Tube**, **Wedge** and **Polygon prism** make a body from
 their sizes. The HUD shows the fields, and the viewport shows handles you can drag.
+
+## Text
+
+**Text** creates an independent solid from an original static `.ttf` file. Enter **Text**, load **Font file**, then
+set **Em size**, positive **Height**, **Curve tolerance** and **Tracking**. Preview the result and choose **Apply**.
+Em size is the font em height, not its visible letter height. One history feature/output can contain separate
+physical bodies, such as letters, dots and Korean components.
+
+Edit the Text feature in history to change the original string or dimensions. Bound dimensions stay bound;
+change their numbers in **Parameters**. Undo/Redo and `.bcad` Save/Open keep the recipe and original font bytes,
+so reopened text remains editable. Font-bearing templates are currently refused; use a `.bcad` file.
+
+The selected Latin and precomposed Korean examples use outline data, not browser-rendered glyphs. Shaping,
+kerning, bidi, Unicode normalization and text wrapping are not implemented. The separate bounded **Text relief**
+modifier below embosses or engraves a supported top face. Missing glyphs and
+unsupported font/profile cases are refused. See [Text from font outlines](/how/text) for the admitted range.
+
+### Text relief
+
+Pick one flat, uniquely named top face facing +Z and choose **Text relief**. Set the original font and text,
+**Em size**, positive **Depth**, **Curve tolerance**, **Tracking**, **Baseline X** and **Baseline Y** and **Operation**: **Emboss**
+or **Engrave**. Baseline X/Y are world XY coordinates in the part. Preview the candidate, then **Apply** or **Cancel**.
+
+The source must be one physical solid with one straight-sided native upright slab. Every stroke must fit in the
+actual material and selected face, clear of outer edges and holes by the required margin. Components that overlap
+or touch are refused. Engrave must leave a bottom web; both operations keep one physical solid. The source top is
+derived again after an ordinary height edit, rather than stored as an absolute Z coordinate.
+
+Edit the relief in history to change its original recipe. Change bound dimension numbers in **Parameters**.
+Font source, selected face/signature and dimensions use the existing Undo/Redo and `.bcad` paths.
+A smaller curve tolerance can exceed the fixed work budget and be refused. It is never automatically increased. Curved, tilted
+or side-face relief and text wrap remain unsupported. See [Text relief](/how/text#emboss-or-engrave-a-top-face).
 
 ## From a sketch
 
@@ -19,9 +56,10 @@ their sizes. The HUD shows the fields, and the viewport shows handles you can dr
 | **Pipe** | Carries a finished sketch along a run, a bend and a run |
 | **Loft** | A solid through two or more sketches on parallel planes (<kbd>Shift</kbd>-click to pick them) |
 
-The CAD document format also supports one quadratic guide for a bounded circle or ellipse loft. This option requires
-exactly two explicit section frames with identical axes. See [Guided conic lofts](/packages/cad/robustness#guided-conic-lofts)
-for the input rules.
+In **Loft**, **Guide (copied)** selects one polynomial direct curve. A general B-spline guide (degree 1–5) takes
+2–8 ruled sections on parallel planes and must pass through a vertex of each section. The guide is copied; later
+curve edits do not update the loft. A single quadratic or cubic Bézier span keeps the two-frame path.
+See [Lofts and guides](/how/loft-sweep#one-polynomial-guide-on-height-sections) for the input rules and limits.
 
 ## Route bundles
 
@@ -78,6 +116,7 @@ fastener sizes you have loaded; without them they are refused with `[FASTENER_SI
 | Command | What it does |
 |---|---|
 | **Fillet** (<kbd>Shift</kbd> <kbd>F</kbd>), **Chamfer** (<kbd>C</kbd>) | Round or bevel the picked edges; a picked face takes all its edges |
+| **Face fillet** | Round between two picked faces. Meeting polynomial Bezier sides of a guided loft can use the rolling ball; unsupported free-form pairs are refused. See [Face fillets](/how/fillets) |
 | **Shell** | Hollows a body, leaving the picked faces open |
 | **Draft** | Tapers the picked side faces for a pull along Z |
 | **Offset face** | Moves a flat face along its normal, adding or taking off material |
@@ -85,6 +124,26 @@ fastener sizes you have loaded; without them they are refused with `[FASTENER_SI
 | **Move** (<kbd>G</kbd>), **Rotate** (<kbd>R</kbd>), **Scale**, **Align** (<kbd>A</kbd>) | Place a body: by the gizmo, by typed values, or by putting one face on another |
 | **Hollow for printing**, **Fill with a lattice**, **Split to fit the bed** | Prepare a part for 3D printing |
 | **Simplify mesh** | Fewer triangles on a mesh body, such as an STL or a scan |
+
+### Cylindrical wrap
+
+Select an original upright cylinder wall and choose **Cylindrical wrap**. This first profile adds
+one rectangular pad to the first native quarter of the original +Y half. The cylinder must be
+centered on the world Z axis. The selected display wall keeps its usual merged appearance;
+the feature stores the individual original half and its reference signature.
+
+Set **U start (native)** and **U end (native)** with `0 < start < end < 0.5`. Set
+**V start (native)** and **V end (native)** with `0 < start < end < 1`. These are the original
+surface parameters. **Height (must equal radius)** must equal the authored cylinder radius.
+Preview the pad, then Apply. Edit its bounds from History; Undo/Redo and Save/Open retain the
+same recipe and individual face reference.
+
+The reported mass uses the closed wrap reference. Surface joins retain the model tolerance.
+This profile has no holes, text or engraving. Later consuming features and uncertified native
+SI inertia exports are refused. A saved document rebuilds the evaluated mass provider when it
+opens; a copied output alone does not carry that provider.
+
+![Editing a reopened cylindrical wrap in Studio at 1024 by 768 pixels](/shots/studio/cylindrical-wrap.png)
 
 ## Patterns and Booleans
 

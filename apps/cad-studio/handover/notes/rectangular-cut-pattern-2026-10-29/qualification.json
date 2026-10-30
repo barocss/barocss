@@ -1,0 +1,177 @@
+{
+  "decision": "D333",
+  "status": "BOUNDED_FEATURE_QUALIFICATION_WITH_RETAINED_FIRST_BROWSER_FAILURE",
+  "docsCheck": {
+    "exit": 0,
+    "pages": 68,
+    "beingWritten": 0,
+    "shots": 55,
+    "shotKB": 4811,
+    "labels": 860,
+    "scope": "Post-note/decision/roadmap assembly; before receipt/manifest update"
+  },
+  "source": {
+    "base": "92256f0df",
+    "featureCommit": "c99cb121c42da75005d31cacacaa088f4b18a122",
+    "apiAndDriverFollowup": "17493e8f6365a81f8e0741f21b38fe069f880a06",
+    "latestListedInputs": 22,
+    "latestGitMatch": "All listed inputs match their Git bytes; API expected not-profile baseline is intentionally updated in the tracked follow-up.",
+    "fullKernelTiming": "Build and full tests started from the working-tree candidate at92256f0df. Source checkpoint c99cb121 was committed during the test run without changing Kernel bytes; tests finished afterward. Changed Kernel inputs match before/after, not a complete dependency-graph attestation."
+  },
+  "contract": {
+    "kind": "rectangular-feature-pattern",
+    "target": "Current active unsuppressed one-solid direct difference",
+    "directions": "Two distinct global X/Y/Z axes",
+    "publicSpacing": "Finite positive, at most 10000",
+    "coreDirectSpacing": "Finite nonzero signed, absolute value at most 10000",
+    "counts": "Each safe integer 1..64; safe product <=64 includes the original cut",
+    "parameters": "Both spacings bind in Model; both count bindings refuse PARAMETER_UNBINDABLE",
+    "default": "3 by 2 on global X/Y",
+    "geometry": "Translate original cut tool only; retain original cut and stock; no stock copies",
+    "representation": "One editable Model node; no schema bump or migration",
+    "naming": "Stable cell string suffix; transform APIs retain callback support and avoid per-cell rename closures"
+  },
+  "gates": {
+    "kernelBuild": {
+      "exit": 0
+    },
+    "finalWholeKernel": {
+      "tests": 2218,
+      "pass": 2212,
+      "fail": 0,
+      "skip": 6,
+      "skipScope": "Existing skips",
+      "newRectangularTests": 9,
+      "earlierFocused": "11 passing focused tests preceded two added cases and matrix hoist; not the final gate"
+    },
+    "modelRelated": {
+      "pass": 70,
+      "fail": 0,
+      "skip": 0,
+      "overlap": "Includes focused14; do not sum"
+    },
+    "modelFocused": {
+      "pass": 14,
+      "fail": 0,
+      "skip": 0,
+      "newRectangular": 8,
+      "existingLinear": 6
+    },
+    "studioChat": {
+      "pass": 23,
+      "fail": 0,
+      "skip": 0
+    },
+    "modelTypes": {
+      "exit": 0
+    },
+    "studioTypes": {
+      "exit": 0
+    },
+    "studioBuild": {
+      "exit": 0
+    },
+    "scopedLint": {
+      "agentExits": 0,
+      "rootKernelDriverExit": 0
+    },
+    "apiRules": {
+      "status": "SCOPED_PASS",
+      "exit": 0,
+      "rules": [
+        "EX001",
+        "EX002",
+        "EX003",
+        "DA001",
+        "IV001",
+        "IV002"
+      ],
+      "wholeAPIConventions": "NOT_PROVEN"
+    },
+    "agentToolsCheck": {
+      "exit": 0
+    },
+    "refusalsCheck": {
+      "exit": 0
+    }
+  },
+  "apiDelta": {
+    "addedExposureRows": 6,
+    "changedExposureRows": 12,
+    "removedExposureRows": 0,
+    "coreResultChecks": "Only the new feature kind in the snapshot.features union",
+    "review": "Root reviewed raw, semantic and member-multiset diffs; unchanged package export policy/version and unrelated members are not recast as new changes"
+  },
+  "review": {
+    "final": "NO_REQUIRED_FINDINGS_IN_REVIEWED_PRODUCTION_SCOPE",
+    "initial": "Required missing raw/chat admission wiring at observed hash30dec3...; retained report and reproduction",
+    "restoration": "Only intended import/SPECS/validator branch restored, byte-identical to preserved candidate01138bd2..., then committed",
+    "cause": "UNKNOWN; no author or writer attribution",
+    "scope": "Source plus lightweight admission/representation controls, not geometry/browser qualification"
+  },
+  "retainedFailures": [
+    "Initial Kernel missing API-export import failure",
+    "Initial overly strict 1x1 raw B-rep identifier test failure",
+    "Initial actual browser receipt FAIL after spacing edit: obsolete Close editor click waited after Apply had already closed the editor",
+    "Initial same-volume edit snapshot retained old centroid; it does not prove new authored mass readiness"
+  ],
+  "sourceWatch": {
+    "matchingObservations": 44,
+    "listedFilesPerSegment": 22,
+    "segments": 2,
+    "allMatch": true,
+    "scope": "Listed inputs only; excludes pre-watch source flip; not full served graph",
+    "rootMonitorPID": 70130,
+    "cleanup": "Root monitor stopped before planned driver correction; edit-tail trap closed its watch"
+  },
+  "actualBrowser": {
+    "backend": "WebGPU",
+    "finiteProfiles": 1,
+    "invocations": 2,
+    "singleFullCleanRunPass": false,
+    "prefix": {
+      "status": "FAIL_RETAINED",
+      "successes": "Preview leaves accepted seed at23840; same-axis refusal/Cancel; product66 refusal/repair; Apply23040; Undo/Redo; native Save and fresh Open",
+      "firstFailure": "After spacing2=12 Apply, driver timed out waiting for Close editor, which Apply already auto-closed"
+    },
+    "editTail": {
+      "status": "PASS",
+      "mode": "RESUME_EDIT_TAIL",
+      "input": "Original native-first accepted.bcad, SHA256ff80362274bb554c67dbdb8e5901a6b7a370436a7115885a61eda39b0e262075",
+      "scope": "Only spacing2=12 (field, volume23040 and independent centroid), then first count=2 (4 cuts,volume23360), Save, fresh Open and editable12/2 fields",
+      "oracle": "Independent stock first moments minus disjoint authored cut prisms; volume and centroid tolerance1e-7",
+      "prefixRerun": false
+    },
+    "counting": "States and captures are not test cases; one bounded feature profile is covered across the retained prefix and resumed tail",
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "changes": 0,
+    "cleanup": "Both receipts close all contexts, browser and server",
+    "rootVisualReview": [
+      "native-first/06-applied.png shows six holes",
+      "native-edit-retake/10-edited-fresh-open.png shows four holes"
+    ]
+  },
+  "notClaimed": [
+    "Full Model suite",
+    "Full Studio suite",
+    "GPU/Viewer suites or renderer matrix",
+    "Full assembly matrix",
+    "Curve cuts/general fill/vector frames/whole CG2",
+    "Performance",
+    "Natural crash/device-loss/OOM recovery",
+    "Remote CI",
+    "Release or commercial product acceptance",
+    "Every64-cell cutting geometry or arbitrary stock/profile coverage"
+  ],
+  "evidence": {
+    "originals": "Distinct evidence/root, evidence/kernel, evidence/model, evidence/review folders",
+    "compressedLargeFiles": [
+      "evidence/root/api-candidate.json.gz",
+      "evidence/root/native-first/seed-generator.mjs.gz"
+    ],
+    "decodedHashMapping": "source-provenance.json",
+    "manifest": "manifest.json",
+    "incomingBoundaryIntake": "Root-owned separate registration; not copied or dispatched here"
+  }
+}

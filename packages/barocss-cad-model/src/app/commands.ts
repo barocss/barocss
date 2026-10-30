@@ -1,3 +1,6 @@
+import { eligibleFillPatternRegions, fillFeaturePatternProblem, fillRegionSnapshot } from '../engine/fillFeaturePattern';
+import type { FillFeaturePatternRegion } from '@barocss/cad/api';
+import { curveFeaturePatternProblem, eligibleCurvePatternPaths, type CurveFeaturePatternPath } from '../engine/curveFeaturePattern';
 // Commands are driven by the current selection. Each one says whether it applies (and why not),
 // which fields its HUD shows, and how it changes the document.
 import { profileCommands } from './profileCommands';
@@ -10,6 +13,13 @@ import { glandCommands } from './glandCommands';
 import { driveCommands } from './driveCommands';
 import { connectorCommands } from './connectorCommands';
 import { weldmentCommands } from './weldmentCommands';
+import { sewCommand } from './sewCommand';
+import type { SewSnapshot } from '../engine/sew';
+import { thickenCommand } from './thickenCommand';
+import type { ThickenSnapshot } from '../engine/thicken';
+import { textCommand } from './textCommand';
+import { cylindricalWrapCommand } from './cylindricalWrapCommand';
+import { textReliefCommand } from './textReliefCommand';
 import { alignCommand } from './alignCommand';
 import { fastenerCommand } from './fasteners';
 import { mountCommand } from './mounts';
@@ -34,12 +44,14 @@ export interface EdgeSel { body: number; edge: number }
 /** `vertices`: corners picked (ends of edges), by body and position. */
 export interface Selection { faces: FaceSel[]; edges: EdgeSel[]; bodies: number[]; sketches?: number[]; vertices?: { body: number; at: [number, number, number] }[] }
 /** `direct`: the direct curves and surfaces picked (their ids). */
-export interface Ctx { doc: StudioDoc; bodies: BodyResult[]; selection: Selection; pick?: [number, number, number]; direct?: string[]; bearingAssembly?: BearingAssemblyInput }
+export interface Ctx { sewSnapshot?: SewSnapshot; thickenSnapshot?: ThickenSnapshot; fillPatternRegion?: FillFeaturePatternRegion; fillPatternAnchor?: readonly [number, number]; curvePatternPath?: CurveFeaturePatternPath; doc: StudioDoc; bodies: BodyResult[]; selection: Selection; pick?: [number, number, number]; direct?: string[]; bearingAssembly?: BearingAssemblyInput }
 
 export type Values = Record<string, number | string>;
 /** `when`: shown (and required) only for these values. */
 export type Field = (
   | { key: string; label: string; kind: 'mm' | 'count' | 'deg' | 'ratio' | 'number'; min?: number; max?: number; step?: number }
+  | { key: string; label: string; kind: 'text'; maxLength: number }
+  | { key: string; label: string; kind: 'file'; accept: string; maxLength: number; filename(value: number | string): string | null }
   | { key: string; label: string; kind: 'choice'; options: { value: string; label: string }[]; /** Why there is nothing to choose, when the options are none (O7: no rows loaded). */ empty?: string;
       /** Why a value is none of them, when that has a typed refusal of its own (O14: no such row). */ unknown?: (value: string) => string }
 ) & { when?: (values: Values) => boolean };
@@ -435,6 +447,11 @@ const allCommands: Command[] = [
   ...driveCommands,
   ...connectorCommands,
   ...weldmentCommands,
+  textCommand,
+  thickenCommand,
+  sewCommand,
+  textReliefCommand,
+  cylindricalWrapCommand,
   {
     id: 'box', label: 'Box', icon: 'cad-box', hint: 'A block by width, depth and height', shortcut: 'B', group: 'create', keywords: 'cube block plate',
     available: () => ok,
@@ -772,6 +789,58 @@ const allCommands: Command[] = [
       if (!Number.isFinite(spacing) || spacing <= 0 || spacing > 10000) throw refusal('VALUE', 'Spacing must be positive and at most 10000 mm.');
       if (!Number.isInteger(count) || count < 2 || count > 64) throw refusal('VALUE', 'Count must be a whole number from 2 to 64, including the original cut.');
       return withNode(ctx.doc, { kind: 'linear-feature-pattern', parent: refOf(oneBody(ctx)!), axis, spacing, count });
+    },
+  },
+  {
+    id: 'fill-feature-pattern', label: 'Fill cut pattern', icon: 'cad-pattern-linear', hint: 'Capture a straight world XY mask with at most 16 total vertices. Later sketch edits do not change it. The original cut stays; added reference points inside or on holes are skipped. Cuts may cross boundaries.', group: 'pattern', keywords: 'fill region feature cut repeat subtract',
+    available: ctx => { const why = linearCutProblem(ctx); return why ? no(why.message) : ok; },
+    fields: ctx => [...(ctx.fillPatternRegion ? [] : [{ key: 'region', label: 'Region snapshot', kind: 'choice' as const, options: eligibleFillPatternRegions(ctx.doc), empty: 'Add a closed straight world XY sketch with at most 16 outer and hole vertices in total.' }]),
+      { key: 'anchorX', label: 'Reference X', kind: 'number', min: -10000, max: 10000 }, { key: 'anchorY', label: 'Reference Y', kind: 'number', min: -10000, max: 10000 },
+      { key: 'spacing', label: 'X spacing', kind: 'mm', min: 0, max: 10000 }, { key: 'count', label: 'Columns', kind: 'count', min: 1, max: 64 },
+      { key: 'spacing2', label: 'Y spacing', kind: 'mm', min: 0, max: 10000 }, { key: 'count2', label: 'Rows', kind: 'count', min: 1, max: 64 }],
+    defaults: ctx => ({ region: eligibleFillPatternRegions(ctx.doc)[0]?.value ?? '', anchorX: ctx.fillPatternAnchor?.[0] ?? 0, anchorY: ctx.fillPatternAnchor?.[1] ?? 0, spacing: 12, count: 4, spacing2: 10, count2: 3 }),
+    build: (ctx, v) => {
+      const why = linearCutProblem(ctx); if (why) throw why;
+      if (!ctx.fillPatternRegion && (typeof v.region !== 'string' || !/^(0|[1-9][0-9]*)$/.test(v.region))) throw refusal('VALUE', 'Select a region snapshot.');
+      const node = { kind: 'fill-feature-pattern' as const, parent: refOf(oneBody(ctx)!), region: ctx.fillPatternRegion ?? fillRegionSnapshot(ctx.doc, Number(v.region)), anchor: ctx.fillPatternAnchor ?? [Number(v.anchorX), Number(v.anchorY)] as const, spacing: Number(v.spacing), count: Number(v.count), spacing2: Number(v.spacing2), count2: Number(v.count2) };
+      const problem = fillFeaturePatternProblem(node, ctx.doc.nodes, ctx.doc.parameters);
+      if (problem) throw coded(problem.startsWith('[BAD_REFERENCE]') ? 'BAD_REFERENCE' : 'VALUE', problem);
+      return withNode(ctx.doc, structuredClone(node));
+    },
+  },
+  {
+    id: 'curve-feature-pattern', label: 'Path cut pattern', icon: 'cad-pattern-linear', hint: 'Repeat a cut on an open polyline or one planar quadratic span with fixed orientation', group: 'pattern', keywords: 'curve path feature cut repeat subtract',
+    available: ctx => { const why = linearCutProblem(ctx); return why ? no(why.message) : ok; },
+    fields: ctx => [...(ctx.curvePatternPath ? [] : [{ key: 'path', label: 'Path', kind: 'choice' as const, options: eligibleCurvePatternPaths(ctx.doc), empty: 'Add an open polyline, straight quadratic path, or one planar quadratic span.' }]),
+      { key: 'spacing', label: 'Spacing', kind: 'mm', min: 0, max: 10000 }, { key: 'count', label: 'Count', kind: 'count', min: 1, max: 64 }],
+    defaults: ctx => ({ path: eligibleCurvePatternPaths(ctx.doc)[0]?.value ?? '', spacing: 8, count: 3 }),
+    build: (ctx, v) => {
+      const why = linearCutProblem(ctx); if (why) throw why;
+      const node = { kind: 'curve-feature-pattern' as const, parent: refOf(oneBody(ctx)!), path: ctx.curvePatternPath ?? { objectId: String(v.path) }, spacing: Number(v.spacing), count: Number(v.count) };
+      const problem = curveFeaturePatternProblem(node, ctx.doc.nodes, ctx.doc.parameters, ctx.doc);
+      if (problem) throw coded(problem.startsWith('[BAD_REFERENCE]') ? 'BAD_REFERENCE' : 'VALUE', problem);
+      return withNode(ctx.doc, structuredClone(node));
+    },
+  },
+  {
+    id: 'rectangular-feature-pattern', label: 'Rectangular cut pattern', icon: 'cad-pattern-linear', hint: 'Repeat the cut along two global axes', group: 'pattern', keywords: 'feature cut repeat subtract',
+    available: ctx => { const why = linearCutProblem(ctx); return why ? no(why.message) : ok; },
+    fields: () => [{ key: 'axis', label: 'First direction', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] },
+      { key: 'spacing', label: 'First spacing', kind: 'mm', min: 0, max: 10000 }, { key: 'count', label: 'First count', kind: 'count', min: 1, max: 64 },
+      { key: 'axis2', label: 'Second direction', kind: 'choice', options: [{ value: 'x', label: 'X' }, { value: 'y', label: 'Y' }, { value: 'z', label: 'Z' }] },
+      { key: 'spacing2', label: 'Second spacing', kind: 'mm', min: 0, max: 10000 }, { key: 'count2', label: 'Second count', kind: 'count', min: 1, max: 64 }],
+    defaults: () => ({ axis: 'x', spacing: 16, count: 3, axis2: 'y', spacing2: 16, count2: 2 }),
+    build: (ctx, v) => {
+      const why = linearCutProblem(ctx); if (why) throw why;
+      const axis = v.axis, spacing = Number(v.spacing), count = Number(v.count);
+      const axis2 = v.axis2, spacing2 = Number(v.spacing2), count2 = Number(v.count2);
+      if (axis !== 'x' && axis !== 'y' && axis !== 'z') throw refusal('VALUE', 'Direction must be X, Y or Z.');
+      if (!Number.isFinite(spacing) || spacing <= 0 || spacing > 10000) throw refusal('VALUE', 'Spacing must be positive and at most 10000 mm.');
+      if (!Number.isInteger(count) || count < 1 || count > 64) throw refusal('VALUE', 'Count must be a whole number from 1 to 64, including the original cut.');
+      if (axis2 !== 'x' && axis2 !== 'y' && axis2 !== 'z' || axis === axis2) throw refusal('VALUE', 'Select two different global directions X, Y or Z.');
+      if (!Number.isFinite(spacing2) || spacing2 <= 0 || spacing2 > 10000) throw refusal('VALUE', 'Second spacing must be positive and at most 10000 mm.');
+      if (!Number.isInteger(count2) || count2 < 1 || count2 > 64 || !Number.isSafeInteger(count * count2) || count * count2 > 64) throw refusal('VALUE', 'Each count must be from 1 to 64, and their product must be at most 64, including the original cut.');
+      return withNode(ctx.doc, { kind: 'rectangular-feature-pattern', parent: refOf(oneBody(ctx)!), axis, spacing, count, axis2, spacing2, count2 });
     },
   },
   {

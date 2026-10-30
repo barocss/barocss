@@ -1,0 +1,21 @@
+{
+  "status": "FAIL",
+  "appSHA256": "09e402caf8e6fa163f4ec8b181ff872c8369f9969298b046e66d34dd1a02bf7c",
+  "sourceCapsules": "second-run/production-source.json and harness-source.json gzip hashes verified",
+  "observedCompletedStages": [
+    "pending Grid refused twice",
+    "Drawing Sheet size refused",
+    "D1 document and completed recovery retained",
+    "Stop restored exact D0 and dirty/recoveryD0",
+    "new native epoch2 evaluate for D0 node2 with result and mass delivered, fresh/massReady true volume1000"
+  ],
+  "failure": "Public Redo then 4nodes/2bodies/volume2000 readiness timed out after30s; failure screenshot still shows D0onebody.",
+  "afterRedoRawState": "NOT_RETAINED in this run. Last raw snapshot is the successful StopD0 stage; no stronger inference beyond log/screenshot.",
+  "sourceHypothesis": "cancelWork Redo functional updater reads docNow.current after that ref is assigned targetD0; High/root investigating.",
+  "drawing": "Actual UI setting accessible and refused; not a projection readiness-only result.",
+  "completedClickRace": "NOT_RUN",
+  "viewportExactGeometryProvenance": "NOT_EXPOSED",
+  "nextDriverChange": "Readiness timeout additionally captures a raw failure snapshot; no staging/assertion change.",
+  "failureClass": "PRODUCT_REGRESSION_CONFIRMED",
+  "confirmedFix": "High synchronously captures redoEntry before mutating docNow.current; final source fe99a2... passes original Redo/Doc/mass assertions."
+}

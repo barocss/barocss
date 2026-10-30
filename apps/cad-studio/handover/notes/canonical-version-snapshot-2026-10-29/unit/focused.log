@@ -1,0 +1,84 @@
+TAP version 13
+# Subtest: project versions preserve an admitted snapshot with omitted nextId under its original canonical key
+ok 1 - project versions preserve an admitted snapshot with omitted nextId under its original canonical key
+  ---
+  duration_ms: 3.234458
+  type: 'test'
+  ...
+# Subtest: project versions: schema3 raw optional fields, original identifiers and binary mesh survive
+ok 2 - project versions: schema3 raw optional fields, original identifiers and binary mesh survive
+  ---
+  duration_ms: 7.923084
+  type: 'test'
+  ...
+# schema3 fixture re-encoded bytes equal: true
+# Subtest: project versions: schema4 raw optional fields, original identifiers and binary mesh survive
+ok 3 - project versions: schema4 raw optional fields, original identifiers and binary mesh survive
+  ---
+  duration_ms: 9.797625
+  type: 'test'
+  ...
+# schema4 fixture re-encoded bytes equal: true
+# Subtest: project versions retain missing-snapshot refusal and refuse a different document stored under an original key
+ok 4 - project versions retain missing-snapshot refusal and refuse a different document stored under an original key
+  ---
+  duration_ms: 0.927959
+  type: 'test'
+  ...
+# Subtest: ordinary part and autosave Open still normalize omitted nextId while version snapshot remains raw
+ok 5 - ordinary part and autosave Open still normalize omitted nextId while version snapshot remains raw
+  ---
+  duration_ms: 0.317125
+  type: 'test'
+  ...
+# Subtest: store (memory): write, read, list, remove; tags; paths
+ok 6 - store (memory): write, read, list, remove; tags; paths
+  ---
+  duration_ms: 1.42675
+  type: 'test'
+  ...
+# Subtest: store (handle): write, read, list, remove; tags; paths
+ok 7 - store (handle): write, read, list, remove; tags; paths
+  ---
+  duration_ms: 1.029959
+  type: 'test'
+  ...
+# Subtest: paths: what a project path may be
+ok 8 - paths: what a project path may be
+  ---
+  duration_ms: 0.174416
+  type: 'test'
+  ...
+# Subtest: project (memory): parts as Save writes them, version logs with write-once documents, autosave
+ok 9 - project (memory): parts as Save writes them, version logs with write-once documents, autosave
+  ---
+  duration_ms: 6.567042
+  type: 'test'
+  ...
+# Subtest: project (handle): parts as Save writes them, version logs with write-once documents, autosave
+ok 10 - project (handle): parts as Save writes them, version logs with write-once documents, autosave
+  ---
+  duration_ms: 3.372792
+  type: 'test'
+  ...
+# Subtest: project: a document with mesh data keeps it — the container written and read back with its arrays
+ok 11 - project: a document with mesh data keeps it — the container written and read back with its arrays
+  ---
+  duration_ms: 5.075125
+  type: 'test'
+  ...
+# Subtest: linked parts: a part inserted from the project is offered again when its file changes, accepted keeps the link; unchanged, waiting or from disk: nothing
+ok 12 - linked parts: a part inserted from the project is offered again when its file changes, accepted keeps the link; unchanged, waiting or from disk: nothing
+  ---
+  duration_ms: 1.025333
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 91.527208

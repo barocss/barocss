@@ -1,0 +1,4337 @@
+{
+  "inputs": {
+    "../../packages/barocss-cad/src/core/math.ts": {
+      "bytes": 15511,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/numeric-policy.ts": {
+      "bytes": 3318,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/core/vec3.ts": {
+      "bytes": 1066,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/brep/brep-check-geometry.ts": {
+      "bytes": 23713,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/mesh/facet-patch.ts": {
+      "bytes": 5570,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/core/derivatives.ts": {
+      "bytes": 8208,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/core/barocss-error.ts": {
+      "bytes": 3354,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/core/second-derivatives.ts": {
+      "bytes": 16409,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/numeric-policy.ts",
+          "kind": "import-statement",
+          "original": "../numeric-policy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/derivatives.ts",
+          "kind": "import-statement",
+          "original": "./derivatives.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "./barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/nurbs/surfaces/surface-closest.ts": {
+      "bytes": 11185,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/derivatives.ts",
+          "kind": "import-statement",
+          "original": "../../core/derivatives.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/second-derivatives.ts",
+          "kind": "import-statement",
+          "original": "../../core/second-derivatives.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/brep/brep-core.ts": {
+      "bytes": 31758,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/numeric-policy.ts",
+          "kind": "import-statement",
+          "original": "../numeric-policy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-check-geometry.ts",
+          "kind": "import-statement",
+          "original": "./brep-check-geometry.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/facet-patch.ts",
+          "kind": "import-statement",
+          "original": "../mesh/facet-patch.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/surfaces/surface-closest.ts",
+          "kind": "import-statement",
+          "original": "../nurbs/surfaces/surface-closest.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/core/extent.ts": {
+      "bytes": 1299,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/brep/curved-arrangement.ts": {
+      "bytes": 59062,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/numeric-policy.ts",
+          "kind": "import-statement",
+          "original": "../numeric-policy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/extent.ts",
+          "kind": "import-statement",
+          "original": "../core/extent.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/io/stl.ts": {
+      "bytes": 1376,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/extruded-profile-solid.ts": {
+      "bytes": 26148,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/io/stl.ts",
+          "kind": "import-statement",
+          "original": "../io/stl.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/document/side-names.ts": {
+      "bytes": 976,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/prismatic-solid.ts": {
+      "bytes": 31953,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/curved-arrangement.ts",
+          "kind": "import-statement",
+          "original": "../brep/curved-arrangement.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/extruded-profile-solid.ts",
+          "kind": "import-statement",
+          "original": "./extruded-profile-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/document/side-names.ts",
+          "kind": "import-statement",
+          "original": "../document/side-names.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/section-offset.ts": {
+      "bytes": 6205,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/curved-arrangement.ts",
+          "kind": "import-statement",
+          "original": "../brep/curved-arrangement.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/document/unit-named.ts": {
+      "bytes": 1265,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/core/dyadic.ts": {
+      "bytes": 757,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/brep/planar-arrangement.ts": {
+      "bytes": 18564,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/dyadic.ts",
+          "kind": "import-statement",
+          "original": "../core/dyadic.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/brep/brep-tessellate.ts": {
+      "bytes": 93010,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "./brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/derivatives.ts",
+          "kind": "import-statement",
+          "original": "../core/derivatives.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/brep/polyhedral-boolean.ts": {
+      "bytes": 29638,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "./brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/planar-arrangement.ts",
+          "kind": "import-statement",
+          "original": "./planar-arrangement.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-tessellate.ts",
+          "kind": "import-statement",
+          "original": "./brep-tessellate.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/prismatic-solid.ts",
+          "kind": "import-statement",
+          "original": "../features/prismatic-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/dyadic.ts",
+          "kind": "import-statement",
+          "original": "../core/dyadic.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/extent.ts",
+          "kind": "import-statement",
+          "original": "../core/extent.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/nurbs/surfaces/surface-revolution.ts": {
+      "bytes": 7823,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-tessellate.ts",
+          "kind": "import-statement",
+          "original": "../../brep/brep-tessellate.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../../core/vec3.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/nurbs/curves/curve-segment.ts": {
+      "bytes": 2595,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../../core/math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/nurbs/surfaces/surface-isocline.ts": {
+      "bytes": 12280,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/surfaces/surface-closest.ts",
+          "kind": "import-statement",
+          "original": "./surface-closest.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../../core/vec3.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/intersect/surface-intersection.ts": {
+      "bytes": 27533,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/brep/analytic-boolean.ts": {
+      "bytes": 196073,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/surfaces/surface-revolution.ts",
+          "kind": "import-statement",
+          "original": "../nurbs/surfaces/surface-revolution.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/curves/curve-segment.ts",
+          "kind": "import-statement",
+          "original": "../nurbs/curves/curve-segment.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "./brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/facet-patch.ts",
+          "kind": "import-statement",
+          "original": "../mesh/facet-patch.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-tessellate.ts",
+          "kind": "import-statement",
+          "original": "./brep-tessellate.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/curved-arrangement.ts",
+          "kind": "import-statement",
+          "original": "./curved-arrangement.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/prismatic-solid.ts",
+          "kind": "import-statement",
+          "original": "../features/prismatic-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/polyhedral-boolean.ts",
+          "kind": "import-statement",
+          "original": "./polyhedral-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/surfaces/surface-isocline.ts",
+          "kind": "import-statement",
+          "original": "../nurbs/surfaces/surface-isocline.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/intersect/surface-intersection.ts",
+          "kind": "import-statement",
+          "original": "../intersect/surface-intersection.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-tessellate.ts",
+          "kind": "import-statement",
+          "original": "./brep-tessellate.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/numeric-policy.ts",
+          "kind": "import-statement",
+          "original": "../numeric-policy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/extent.ts",
+          "kind": "import-statement",
+          "original": "../core/extent.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/internal/native-si-mass-state.ts": {
+      "bytes": 2987,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/revolve.ts": {
+      "bytes": 27502,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/curved-arrangement.ts",
+          "kind": "import-statement",
+          "original": "../brep/curved-arrangement.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/planar-arrangement.ts",
+          "kind": "import-statement",
+          "original": "../brep/planar-arrangement.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/document/side-names.ts",
+          "kind": "import-statement",
+          "original": "../document/side-names.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/extruded-profile-solid.ts",
+          "kind": "import-statement",
+          "original": "./extruded-profile-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/internal/native-si-mass-state.ts",
+          "kind": "import-statement",
+          "original": "../internal/native-si-mass-state.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/brep/brep-transform.ts": {
+      "bytes": 3279,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "./brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/facet-patch.ts",
+          "kind": "import-statement",
+          "original": "../mesh/facet-patch.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/blend/fillet-section.ts": {
+      "bytes": 9518,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/blend/polynomial-run.ts": {
+      "bytes": 4574,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/numeric-policy.ts",
+          "kind": "import-statement",
+          "original": "../numeric-policy.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/blend/rolling-ball.ts": {
+      "bytes": 121134,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/analytic-boolean.ts",
+          "kind": "import-statement",
+          "original": "../brep/analytic-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/blend/polynomial-run.ts",
+          "kind": "import-statement",
+          "original": "./polynomial-run.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/blend/edge-finish.ts": {
+      "bytes": 105398,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/analytic-boolean.ts",
+          "kind": "import-statement",
+          "original": "../brep/analytic-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/prismatic-solid.ts",
+          "kind": "import-statement",
+          "original": "../features/prismatic-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/revolve.ts",
+          "kind": "import-statement",
+          "original": "../features/revolve.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-transform.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-transform.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-tessellate.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-tessellate.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/surfaces/surface-revolution.ts",
+          "kind": "import-statement",
+          "original": "../nurbs/surfaces/surface-revolution.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/blend/fillet-section.ts",
+          "kind": "import-statement",
+          "original": "./fillet-section.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/blend/rolling-ball.ts",
+          "kind": "import-statement",
+          "original": "./rolling-ball.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/numeric-policy.ts",
+          "kind": "import-statement",
+          "original": "../numeric-policy.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/core/quadrature.ts": {
+      "bytes": 794,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/brep/brep-mass-quadrature.ts": {
+      "bytes": 59988,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-tessellate.ts",
+          "kind": "import-statement",
+          "original": "./brep-tessellate.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/derivatives.ts",
+          "kind": "import-statement",
+          "original": "../core/derivatives.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/facet-patch.ts",
+          "kind": "import-statement",
+          "original": "../mesh/facet-patch.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/quadrature.ts",
+          "kind": "import-statement",
+          "original": "../core/quadrature.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/brep/solid-mass.ts": {
+      "bytes": 16704,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/curved-arrangement.ts",
+          "kind": "import-statement",
+          "original": "./curved-arrangement.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/internal/native-si-mass-state.ts",
+          "kind": "import-statement",
+          "original": "../internal/native-si-mass-state.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-tessellate.ts",
+          "kind": "import-statement",
+          "original": "./brep-tessellate.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-mass-quadrature.ts",
+          "kind": "import-statement",
+          "original": "./brep-mass-quadrature.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/facet-patch.ts",
+          "kind": "import-statement",
+          "original": "../mesh/facet-patch.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/section-rational-internal.ts": {
+      "bytes": 9787,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/blend/polynomial-face-fillet.ts": {
+      "bytes": 32786,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/analytic-boolean.ts",
+          "kind": "import-statement",
+          "original": "../brep/analytic-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/solid-mass.ts",
+          "kind": "import-statement",
+          "original": "../brep/solid-mass.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/section-rational-internal.ts",
+          "kind": "import-statement",
+          "original": "../section-rational-internal.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/numeric-policy.ts",
+          "kind": "import-statement",
+          "original": "../numeric-policy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/blend/rolling-ball.ts",
+          "kind": "import-statement",
+          "original": "./rolling-ball.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/drafted-extrusion.ts": {
+      "bytes": 10634,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/document/side-names.ts",
+          "kind": "import-statement",
+          "original": "../document/side-names.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/extruded-profile-solid.ts",
+          "kind": "import-statement",
+          "original": "./extruded-profile-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/profile-relief.ts": {
+      "bytes": 38275,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/planar-arrangement.ts",
+          "kind": "import-statement",
+          "original": "../brep/planar-arrangement.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/curved-arrangement.ts",
+          "kind": "import-statement",
+          "original": "../brep/curved-arrangement.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/solid-mass.ts",
+          "kind": "import-statement",
+          "original": "../brep/solid-mass.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/numeric-policy.ts",
+          "kind": "import-statement",
+          "original": "../numeric-policy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/dyadic.ts",
+          "kind": "import-statement",
+          "original": "../core/dyadic.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/section-rational-internal.ts",
+          "kind": "import-statement",
+          "original": "../section-rational-internal.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/extruded-profile-solid.ts",
+          "kind": "import-statement",
+          "original": "./extruded-profile-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/prismatic-solid.ts",
+          "kind": "import-statement",
+          "original": "./prismatic-solid.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/core/own-data.ts": {
+      "bytes": 6162,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/cylindrical-wrap-curve.ts": {
+      "bytes": 18944,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/numeric-policy.ts",
+          "kind": "import-statement",
+          "original": "../numeric-policy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/section-rational-internal.ts",
+          "kind": "import-statement",
+          "original": "../section-rational-internal.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/cylindrical-wrap-map.ts": {
+      "bytes": 26812,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/own-data.ts",
+          "kind": "import-statement",
+          "original": "../core/own-data.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/numeric-policy.ts",
+          "kind": "import-statement",
+          "original": "../numeric-policy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/section-rational-internal.ts",
+          "kind": "import-statement",
+          "original": "../section-rational-internal.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/language/expression-parser.ts": {
+      "bytes": 8850,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/language/source-ast.ts": {
+      "bytes": 16540,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/language/expression-parser.ts",
+          "kind": "import-statement",
+          "original": "./expression-parser.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/language/expression-parser.ts",
+          "kind": "import-statement",
+          "original": "./expression-parser.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/extrusion-validation.ts": {
+      "bytes": 3553,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/data-copy.ts": {
+      "bytes": 374,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/document/parameter-semantics.ts": {
+      "bytes": 12112,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/language/source-ast.ts",
+          "kind": "import-statement",
+          "original": "../language/source-ast.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/data-copy.ts",
+          "kind": "import-statement",
+          "original": "../data-copy.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/document/function-quantity-semantics.ts": {
+      "bytes": 25482,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/language/source-ast.ts",
+          "kind": "import-statement",
+          "original": "../language/source-ast.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/data-copy.ts",
+          "kind": "import-statement",
+          "original": "../data-copy.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/language/semantic-model.ts": {
+      "bytes": 10675,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/language/source-ast.ts",
+          "kind": "import-statement",
+          "original": "./source-ast.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/extrusion-validation.ts",
+          "kind": "import-statement",
+          "original": "../features/extrusion-validation.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/data-copy.ts",
+          "kind": "import-statement",
+          "original": "../data-copy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/document/parameter-semantics.ts",
+          "kind": "import-statement",
+          "original": "../document/parameter-semantics.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/document/function-quantity-semantics.ts",
+          "kind": "import-statement",
+          "original": "../document/function-quantity-semantics.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/data-copy.ts",
+          "kind": "import-statement",
+          "original": "../data-copy.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/core/extrusion.ts": {
+      "bytes": 956,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/features/extrusion-validation.ts",
+          "kind": "import-statement",
+          "original": "../features/extrusion-validation.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/language/lower-model.ts": {
+      "bytes": 1286,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/language/semantic-model.ts",
+          "kind": "import-statement",
+          "original": "./semantic-model.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/extrusion.ts",
+          "kind": "import-statement",
+          "original": "../core/extrusion.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/model-compiler.ts": {
+      "bytes": 6988,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/language/source-ast.ts",
+          "kind": "import-statement",
+          "original": "./language/source-ast.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/language/semantic-model.ts",
+          "kind": "import-statement",
+          "original": "./language/semantic-model.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/language/lower-model.ts",
+          "kind": "import-statement",
+          "original": "./language/lower-model.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/nurbs/curves/curve-source.ts": {
+      "bytes": 5624,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/model-compiler.ts",
+          "kind": "import-statement",
+          "original": "../../model-compiler.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../../core/math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/core/structural-equality.ts": {
+      "bytes": 883,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/nurbs/surfaces/surface-isocurve.ts": {
+      "bytes": 14119,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/curves/curve-source.ts",
+          "kind": "import-statement",
+          "original": "../curves/curve-source.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/data-copy.ts",
+          "kind": "import-statement",
+          "original": "../../data-copy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/structural-equality.ts",
+          "kind": "import-statement",
+          "original": "../../core/structural-equality.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/nurbs/curves/knot-guard.ts": {
+      "bytes": 464,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/nurbs/curves/curve-knot-insertion.ts": {
+      "bytes": 15356,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/numeric-policy.ts",
+          "kind": "import-statement",
+          "original": "../../numeric-policy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/curves/curve-source.ts",
+          "kind": "import-statement",
+          "original": "./curve-source.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/data-copy.ts",
+          "kind": "import-statement",
+          "original": "../../data-copy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/structural-equality.ts",
+          "kind": "import-statement",
+          "original": "../../core/structural-equality.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/curves/knot-guard.ts",
+          "kind": "import-statement",
+          "original": "./knot-guard.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/nurbs/surfaces/surface-knot-insertion.ts": {
+      "bytes": 15645,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/curves/curve-knot-insertion.ts",
+          "kind": "import-statement",
+          "original": "../curves/curve-knot-insertion.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/model-compiler.ts",
+          "kind": "import-statement",
+          "original": "../../model-compiler.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/curves/curve-source.ts",
+          "kind": "import-statement",
+          "original": "../curves/curve-source.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/data-copy.ts",
+          "kind": "import-statement",
+          "original": "../../data-copy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/structural-equality.ts",
+          "kind": "import-statement",
+          "original": "../../core/structural-equality.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/nurbs/surfaces/surface-parameter-split.ts": {
+      "bytes": 19978,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/surfaces/surface-knot-insertion.ts",
+          "kind": "import-statement",
+          "original": "./surface-knot-insertion.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/model-compiler.ts",
+          "kind": "import-statement",
+          "original": "../../model-compiler.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/curves/curve-source.ts",
+          "kind": "import-statement",
+          "original": "../curves/curve-source.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/data-copy.ts",
+          "kind": "import-statement",
+          "original": "../../data-copy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/structural-equality.ts",
+          "kind": "import-statement",
+          "original": "../../core/structural-equality.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/cylindrical-wrap-source.ts": {
+      "bytes": 13995,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/own-data.ts",
+          "kind": "import-statement",
+          "original": "../core/own-data.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/numeric-policy.ts",
+          "kind": "import-statement",
+          "original": "../numeric-policy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/surfaces/surface-isocurve.ts",
+          "kind": "import-statement",
+          "original": "../nurbs/surfaces/surface-isocurve.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/surfaces/surface-parameter-split.ts",
+          "kind": "import-statement",
+          "original": "../nurbs/surfaces/surface-parameter-split.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-map.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-map.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/prismatic-solid.ts",
+          "kind": "import-statement",
+          "original": "./prismatic-solid.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/core/native-d0-bound.ts": {
+      "bytes": 30879,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "./math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/own-data.ts",
+          "kind": "import-statement",
+          "original": "./own-data.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "./barocss-error.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/numeric-policy.ts",
+          "kind": "import-statement",
+          "original": "../numeric-policy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/section-rational-internal.ts",
+          "kind": "import-statement",
+          "original": "../section-rational-internal.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/cylindrical-wrap-chart.ts": {
+      "bytes": 18437,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/own-data.ts",
+          "kind": "import-statement",
+          "original": "../core/own-data.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/numeric-policy.ts",
+          "kind": "import-statement",
+          "original": "../numeric-policy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/section-rational-internal.ts",
+          "kind": "import-statement",
+          "original": "../section-rational-internal.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/cylindrical-wrap-chart-cone.ts": {
+      "bytes": 11599,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-chart.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-chart.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/cylindrical-wrap-chart-separation.ts": {
+      "bytes": 10360,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/own-data.ts",
+          "kind": "import-statement",
+          "original": "../core/own-data.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-chart.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-chart.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/cylindrical-wrap-chart-winding.ts": {
+      "bytes": 17073,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/own-data.ts",
+          "kind": "import-statement",
+          "original": "../core/own-data.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/numeric-policy.ts",
+          "kind": "import-statement",
+          "original": "../numeric-policy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-chart.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-chart.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/cylindrical-wrap-chart-component.ts": {
+      "bytes": 11910,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/own-data.ts",
+          "kind": "import-statement",
+          "original": "../core/own-data.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-chart.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-chart.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-chart-cone.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-chart-cone.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-chart-separation.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-chart-separation.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-chart-winding.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-chart-winding.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/cylindrical-wrap-side-family.ts": {
+      "bytes": 10545,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/own-data.ts",
+          "kind": "import-statement",
+          "original": "../core/own-data.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/numeric-policy.ts",
+          "kind": "import-statement",
+          "original": "../numeric-policy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-chart.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-chart.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-chart-component.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-chart-component.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/cylindrical-wrap-native-position.ts": {
+      "bytes": 16018,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/own-data.ts",
+          "kind": "import-statement",
+          "original": "../core/own-data.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/numeric-policy.ts",
+          "kind": "import-statement",
+          "original": "../numeric-policy.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/cylindrical-wrap-assembly.ts": {
+      "bytes": 76345,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/planar-arrangement.ts",
+          "kind": "import-statement",
+          "original": "../brep/planar-arrangement.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/own-data.ts",
+          "kind": "import-statement",
+          "original": "../core/own-data.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/numeric-policy.ts",
+          "kind": "import-statement",
+          "original": "../numeric-policy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/section-rational-internal.ts",
+          "kind": "import-statement",
+          "original": "../section-rational-internal.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-curve.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-curve.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-map.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-map.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-source.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-source.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/native-d0-bound.ts",
+          "kind": "import-statement",
+          "original": "../core/native-d0-bound.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-chart-component.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-chart-component.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-chart.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-chart.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-side-family.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-side-family.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-native-position.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-native-position.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/cylindrical-wrap-formal-mass.ts": {
+      "bytes": 32256,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/own-data.ts",
+          "kind": "import-statement",
+          "original": "../core/own-data.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/solid-mass.ts",
+          "kind": "import-statement",
+          "original": "../brep/solid-mass.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/internal/native-si-mass-state.ts",
+          "kind": "import-statement",
+          "original": "../internal/native-si-mass-state.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/numeric-policy.ts",
+          "kind": "import-statement",
+          "original": "../numeric-policy.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/section-rational-internal.ts",
+          "kind": "import-statement",
+          "original": "../section-rational-internal.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-source.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-source.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/cylindrical-wrap-bound-reference.ts": {
+      "bytes": 14037,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/own-data.ts",
+          "kind": "import-statement",
+          "original": "../core/own-data.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-assembly.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-assembly.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-formal-mass.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-formal-mass.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/cylindrical-wrap-wall-cycle.ts": {
+      "bytes": 12294,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/numeric-policy.ts",
+          "kind": "import-statement",
+          "original": "../numeric-policy.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/cylindrical-wrap-source-walls.ts": {
+      "bytes": 12434,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/section-rational-internal.ts",
+          "kind": "import-statement",
+          "original": "../section-rational-internal.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-bound-reference.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-bound-reference.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-wall-cycle.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-wall-cycle.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/cylindrical-wrap-reference-context.ts": {
+      "bytes": 5162,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/section-rational-internal.ts",
+          "kind": "import-statement",
+          "original": "../section-rational-internal.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/cylindrical-wrap-reference-closure.ts": {
+      "bytes": 18819,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-wall-cycle.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-wall-cycle.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-reference-context.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-reference-context.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/cylindrical-wrap-reference-mass.ts": {
+      "bytes": 8870,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-reference-context.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-reference-context.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/cylindrical-wrap-closed-reference.ts": {
+      "bytes": 1868,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-bound-reference.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-bound-reference.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-source-walls.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-source-walls.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-reference-context.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-reference-context.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-reference-closure.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-reference-closure.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-reference-mass.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-reference-mass.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/cylindrical-wrap-feature.ts": {
+      "bytes": 4079,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/internal/native-si-mass-state.ts",
+          "kind": "import-statement",
+          "original": "../internal/native-si-mass-state.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-closed-reference.ts",
+          "kind": "import-statement",
+          "original": "./cylindrical-wrap-closed-reference.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/mesh/mesh-brep.ts": {
+      "bytes": 13569,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/dyadic.ts",
+          "kind": "import-statement",
+          "original": "../core/dyadic.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/mesh/facet-brep.ts": {
+      "bytes": 26945,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/mesh-brep.ts",
+          "kind": "import-statement",
+          "original": "./mesh-brep.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/facet-patch.ts",
+          "kind": "import-statement",
+          "original": "./facet-patch.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/mesh/facet-split.ts": {
+      "bytes": 17103,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-tessellate.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-tessellate.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/facet-brep.ts",
+          "kind": "import-statement",
+          "original": "./facet-brep.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/mesh-brep.ts",
+          "kind": "import-statement",
+          "original": "./mesh-brep.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/mesh/mesh-repair.ts": {
+      "bytes": 36843,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-tessellate.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-tessellate.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/facet-brep.ts",
+          "kind": "import-statement",
+          "original": "./facet-brep.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/mesh-brep.ts",
+          "kind": "import-statement",
+          "original": "./mesh-brep.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/mesh/facet-boolean.ts": {
+      "bytes": 26231,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/analytic-boolean.ts",
+          "kind": "import-statement",
+          "original": "../brep/analytic-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-tessellate.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-tessellate.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/facet-brep.ts",
+          "kind": "import-statement",
+          "original": "./facet-brep.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/facet-split.ts",
+          "kind": "import-statement",
+          "original": "./facet-split.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/mesh-brep.ts",
+          "kind": "import-statement",
+          "original": "./mesh-brep.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/mesh-repair.ts",
+          "kind": "import-statement",
+          "original": "./mesh-repair.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/brep/brep-bounds.ts": {
+      "bytes": 6495,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-tessellate.ts",
+          "kind": "import-statement",
+          "original": "./brep-tessellate.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-mass-quadrature.ts",
+          "kind": "import-statement",
+          "original": "./brep-mass-quadrature.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/brep/brep-glue.ts": {
+      "bytes": 8268,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "./brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/analytic-boolean.ts",
+          "kind": "import-statement",
+          "original": "./analytic-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/mesh/triangle-bvh.ts": {
+      "bytes": 12532,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/mesh/facet-bvh.ts": {
+      "bytes": 6589,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/triangle-bvh.ts",
+          "kind": "import-statement",
+          "original": "./triangle-bvh.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/io/step-import.ts": {
+      "bytes": 54160,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/facet-brep.ts",
+          "kind": "import-statement",
+          "original": "../mesh/facet-brep.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-glue.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-glue.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/solid-mass.ts",
+          "kind": "import-statement",
+          "original": "../brep/solid-mass.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/facet-bvh.ts",
+          "kind": "import-statement",
+          "original": "../mesh/facet-bvh.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/mesh-brep.ts",
+          "kind": "import-statement",
+          "original": "../mesh/mesh-brep.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/io/step.ts": {
+      "bytes": 20811,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/mesh/facet-boolean.ts",
+          "kind": "import-statement",
+          "original": "../mesh/facet-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/analytic-boolean.ts",
+          "kind": "import-statement",
+          "original": "../brep/analytic-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/solid-mass.ts",
+          "kind": "import-statement",
+          "original": "../brep/solid-mass.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-bounds.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-bounds.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/mesh-brep.ts",
+          "kind": "import-statement",
+          "original": "../mesh/mesh-brep.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-glue.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-glue.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/facet-brep.ts",
+          "kind": "import-statement",
+          "original": "../mesh/facet-brep.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/io/step-import.ts",
+          "kind": "import-statement",
+          "original": "./step-import.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/brep/sweep-solid.ts": {
+      "bytes": 5539,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/mesh/mesh-brep.ts",
+          "kind": "import-statement",
+          "original": "../mesh/mesh-brep.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-tessellate.ts",
+          "kind": "import-statement",
+          "original": "./brep-tessellate.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/derivatives.ts",
+          "kind": "import-statement",
+          "original": "../core/derivatives.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/frame-sheet/frame-section.ts": {
+      "bytes": 29357,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/section-table.ts": {
+      "bytes": 7058,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/frame-sheet/frame-section.ts",
+          "kind": "import-statement",
+          "original": "../frame-sheet/frame-section.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/loft-nurbs-guide.ts": {
+      "bytes": 9565,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/derivatives.ts",
+          "kind": "import-statement",
+          "original": "../core/derivatives.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/curves/curve-knot-insertion.ts",
+          "kind": "import-statement",
+          "original": "../nurbs/curves/curve-knot-insertion.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/curves/curve-segment.ts",
+          "kind": "import-statement",
+          "original": "../nurbs/curves/curve-segment.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/extruded-profile-solid.ts",
+          "kind": "import-statement",
+          "original": "./extruded-profile-solid.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/xy-arc.ts": {
+      "bytes": 4189,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/curves/curve-source.ts",
+          "kind": "import-statement",
+          "original": "./nurbs/curves/curve-source.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/data-copy.ts",
+          "kind": "import-statement",
+          "original": "./data-copy.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/loft-guide.ts": {
+      "bytes": 4626,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/extruded-profile-solid.ts",
+          "kind": "import-statement",
+          "original": "./extruded-profile-solid.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/curved-loft.ts": {
+      "bytes": 10744,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/solid-mass.ts",
+          "kind": "import-statement",
+          "original": "../brep/solid-mass.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/quadrature.ts",
+          "kind": "import-statement",
+          "original": "../core/quadrature.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/xy-arc.ts",
+          "kind": "import-statement",
+          "original": "../xy-arc.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/extruded-profile-solid.ts",
+          "kind": "import-statement",
+          "original": "./extruded-profile-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/loft-guide.ts",
+          "kind": "import-statement",
+          "original": "./loft-guide.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/loft-common-frame.ts": {
+      "bytes": 4303,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-transform.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-transform.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/solid-mass.ts",
+          "kind": "import-statement",
+          "original": "../brep/solid-mass.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/internal/native-si-mass-state.ts",
+          "kind": "import-statement",
+          "original": "../internal/native-si-mass-state.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/extruded-profile-solid.ts",
+          "kind": "import-statement",
+          "original": "./extruded-profile-solid.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/framed-mixed-loft.ts": {
+      "bytes": 6607,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/extruded-profile-solid.ts",
+          "kind": "import-statement",
+          "original": "./extruded-profile-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/loft-guide.ts",
+          "kind": "import-statement",
+          "original": "./loft-guide.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/loft-common-frame.ts",
+          "kind": "import-statement",
+          "original": "./loft-common-frame.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/framed-nurbs-loft.ts": {
+      "bytes": 4910,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/extruded-profile-solid.ts",
+          "kind": "import-statement",
+          "original": "./extruded-profile-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/loft-common-frame.ts",
+          "kind": "import-statement",
+          "original": "./loft-common-frame.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/oriented-loft.ts": {
+      "bytes": 14590,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/solid-mass.ts",
+          "kind": "import-statement",
+          "original": "../brep/solid-mass.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/quadrature.ts",
+          "kind": "import-statement",
+          "original": "../core/quadrature.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/extruded-profile-solid.ts",
+          "kind": "import-statement",
+          "original": "./extruded-profile-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/curved-loft.ts",
+          "kind": "import-statement",
+          "original": "./curved-loft.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/framed-mixed-loft.ts",
+          "kind": "import-statement",
+          "original": "./framed-mixed-loft.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/framed-nurbs-loft.ts",
+          "kind": "import-statement",
+          "original": "./framed-nurbs-loft.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/loft-guide-patches.ts": {
+      "bytes": 6888,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/curves/curve-segment.ts",
+          "kind": "import-statement",
+          "original": "../nurbs/curves/curve-segment.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/loft.ts": {
+      "bytes": 26476,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/extruded-profile-solid.ts",
+          "kind": "import-statement",
+          "original": "./extruded-profile-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/solid-mass.ts",
+          "kind": "import-statement",
+          "original": "../brep/solid-mass.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/quadrature.ts",
+          "kind": "import-statement",
+          "original": "../core/quadrature.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/loft-nurbs-guide.ts",
+          "kind": "import-statement",
+          "original": "./loft-nurbs-guide.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/oriented-loft.ts",
+          "kind": "import-statement",
+          "original": "./oriented-loft.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/loft-guide-patches.ts",
+          "kind": "import-statement",
+          "original": "./loft-guide-patches.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/blend/general-shell.ts": {
+      "bytes": 51779,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/analytic-boolean.ts",
+          "kind": "import-statement",
+          "original": "../brep/analytic-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-tessellate.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-tessellate.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/prismatic-solid.ts",
+          "kind": "import-statement",
+          "original": "../features/prismatic-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/section-offset.ts",
+          "kind": "import-statement",
+          "original": "../features/section-offset.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-transform.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-transform.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/revolve.ts",
+          "kind": "import-statement",
+          "original": "../features/revolve.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/surfaces/surface-revolution.ts",
+          "kind": "import-statement",
+          "original": "../nurbs/surfaces/surface-revolution.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/curved-arrangement.ts",
+          "kind": "import-statement",
+          "original": "../brep/curved-arrangement.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/nurbs/surfaces/local-curvature.ts": {
+      "bytes": 8105,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/second-derivatives.ts",
+          "kind": "import-statement",
+          "original": "../../core/second-derivatives.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/blend/offset-cavity.ts": {
+      "bytes": 75586,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/analytic-boolean.ts",
+          "kind": "import-statement",
+          "original": "../brep/analytic-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-tessellate.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-tessellate.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/surfaces/local-curvature.ts",
+          "kind": "import-statement",
+          "original": "../nurbs/surfaces/local-curvature.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/blend/region-shell.ts": {
+      "bytes": 16649,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/analytic-boolean.ts",
+          "kind": "import-statement",
+          "original": "../brep/analytic-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-glue.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-glue.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-tessellate.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-tessellate.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/prismatic-solid.ts",
+          "kind": "import-statement",
+          "original": "../features/prismatic-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-transform.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-transform.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/blend/general-shell.ts",
+          "kind": "import-statement",
+          "original": "./general-shell.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/blend/offset-cavity.ts",
+          "kind": "import-statement",
+          "original": "./offset-cavity.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/mesh/mesh-distance.ts": {
+      "bytes": 3397,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/mesh/triangle-bvh.ts",
+          "kind": "import-statement",
+          "original": "./triangle-bvh.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/section-properties.ts": {
+      "bytes": 6325,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/mesh/mesh-offset.ts": {
+      "bytes": 7781,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/mesh-repair.ts",
+          "kind": "import-statement",
+          "original": "./mesh-repair.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/mesh-distance.ts",
+          "kind": "import-statement",
+          "original": "./mesh-distance.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/section-properties.ts",
+          "kind": "import-statement",
+          "original": "../features/section-properties.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/frame-sheet/sheet-metal.ts": {
+      "bytes": 22837,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/frame-sheet/sheet-flat.ts": {
+      "bytes": 42342,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/derivatives.ts",
+          "kind": "import-statement",
+          "original": "../core/derivatives.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/analytic-boolean.ts",
+          "kind": "import-statement",
+          "original": "../brep/analytic-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-tessellate.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-tessellate.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/solid-mass.ts",
+          "kind": "import-statement",
+          "original": "../brep/solid-mass.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/frame-sheet/sheet-metal.ts",
+          "kind": "import-statement",
+          "original": "./sheet-metal.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/frame-sheet/frame-weldment.ts": {
+      "bytes": 5873,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/machine/gear.ts": {
+      "bytes": 74724,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/machine/gear-bevel.ts": {
+      "bytes": 68899,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/gear.ts",
+          "kind": "import-statement",
+          "original": "./gear.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/machine/gear-internal.ts": {
+      "bytes": 59117,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/machine/gear.ts",
+          "kind": "import-statement",
+          "original": "./gear.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/machine/gear-worm.ts": {
+      "bytes": 36025,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/machine/gear.ts",
+          "kind": "import-statement",
+          "original": "./gear.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/machine/gear-worm-wheel.ts": {
+      "bytes": 42045,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/gear.ts",
+          "kind": "import-statement",
+          "original": "./gear.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/gear-worm.ts",
+          "kind": "import-statement",
+          "original": "./gear-worm.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/machine/gear-rack.ts": {
+      "bytes": 28677,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/machine/gear.ts",
+          "kind": "import-statement",
+          "original": "./gear.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/part/part-gears.ts": {
+      "bytes": 29272,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/machine/gear-bevel.ts",
+          "kind": "import-statement",
+          "original": "../machine/gear-bevel.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/gear.ts",
+          "kind": "import-statement",
+          "original": "../machine/gear.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/gear-internal.ts",
+          "kind": "import-statement",
+          "original": "../machine/gear-internal.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/gear-worm-wheel.ts",
+          "kind": "import-statement",
+          "original": "../machine/gear-worm-wheel.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/gear-rack.ts",
+          "kind": "import-statement",
+          "original": "../machine/gear-rack.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/gear-worm.ts",
+          "kind": "import-statement",
+          "original": "../machine/gear-worm.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-transform.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-transform.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/machine/fits.ts": {
+      "bytes": 16645,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/analytic-boolean.ts",
+          "kind": "import-statement",
+          "original": "../brep/analytic-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/solid-mass.ts",
+          "kind": "import-statement",
+          "original": "../brep/solid-mass.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/part/part-model.ts",
+          "kind": "import-statement",
+          "original": "../part/part-model.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/machine/bearing.ts": {
+      "bytes": 19985,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/analytic-boolean.ts",
+          "kind": "import-statement",
+          "original": "../brep/analytic-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/solid-mass.ts",
+          "kind": "import-statement",
+          "original": "../brep/solid-mass.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-transform.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-transform.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/part/part-model.ts",
+          "kind": "import-statement",
+          "original": "../part/part-model.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/fits.ts",
+          "kind": "import-statement",
+          "original": "./fits.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/machine/cam.ts": {
+      "bytes": 35287,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/machine/gear.ts",
+          "kind": "import-statement",
+          "original": "./gear.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/machine/connector.ts": {
+      "bytes": 15235,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/analytic-boolean.ts",
+          "kind": "import-statement",
+          "original": "../brep/analytic-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/solid-mass.ts",
+          "kind": "import-statement",
+          "original": "../brep/solid-mass.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-transform.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-transform.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/part/part-model.ts",
+          "kind": "import-statement",
+          "original": "../part/part-model.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/machine/drive.ts": {
+      "bytes": 36877,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/machine/gear.ts",
+          "kind": "import-statement",
+          "original": "./gear.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/part/part-model.ts",
+          "kind": "import-statement",
+          "original": "../part/part-model.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-transform.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-transform.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/machine/oring.ts": {
+      "bytes": 20220,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/analytic-boolean.ts",
+          "kind": "import-statement",
+          "original": "../brep/analytic-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/solid-mass.ts",
+          "kind": "import-statement",
+          "original": "../brep/solid-mass.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-transform.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-transform.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/part/part-model.ts",
+          "kind": "import-statement",
+          "original": "../part/part-model.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/fits.ts",
+          "kind": "import-statement",
+          "original": "./fits.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/machine/spring.ts": {
+      "bytes": 59558,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/analytic-boolean.ts",
+          "kind": "import-statement",
+          "original": "../brep/analytic-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-transform.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-transform.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-glue.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-glue.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/machine/shaft-parts.ts": {
+      "bytes": 18826,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/analytic-boolean.ts",
+          "kind": "import-statement",
+          "original": "../brep/analytic-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-transform.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-transform.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/part/part-model.ts",
+          "kind": "import-statement",
+          "original": "../part/part-model.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/fits.ts",
+          "kind": "import-statement",
+          "original": "./fits.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/machine/shaft.ts": {
+      "bytes": 20867,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/analytic-boolean.ts",
+          "kind": "import-statement",
+          "original": "../brep/analytic-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-transform.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-transform.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/part/part-model.ts",
+          "kind": "import-statement",
+          "original": "../part/part-model.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/machine/thread-helical.ts": {
+      "bytes": 17358,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/thread-solid.ts",
+          "kind": "import-statement",
+          "original": "./thread-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/machine/thread-solid.ts": {
+      "bytes": 7375,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/mesh/mesh-brep.ts",
+          "kind": "import-statement",
+          "original": "../mesh/mesh-brep.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/thread-helical.ts",
+          "kind": "import-statement",
+          "original": "./thread-helical.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/part/part-machine.ts": {
+      "bytes": 31916,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/machine/bearing.ts",
+          "kind": "import-statement",
+          "original": "../machine/bearing.js"
+        },
+        {
+          "path": "../brep/brep-core.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/cam.ts",
+          "kind": "import-statement",
+          "original": "../machine/cam.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/connector.ts",
+          "kind": "import-statement",
+          "original": "../machine/connector.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/drive.ts",
+          "kind": "import-statement",
+          "original": "../machine/drive.js"
+        },
+        {
+          "path": "../machine/fits.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/oring.ts",
+          "kind": "import-statement",
+          "original": "../machine/oring.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/spring.ts",
+          "kind": "import-statement",
+          "original": "../machine/spring.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/shaft-parts.ts",
+          "kind": "import-statement",
+          "original": "../machine/shaft-parts.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/mesh-brep.ts",
+          "kind": "import-statement",
+          "original": "../mesh/mesh-brep.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/shaft.ts",
+          "kind": "import-statement",
+          "original": "../machine/shaft.js"
+        },
+        {
+          "path": "../brep/curved-arrangement.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/thread-solid.ts",
+          "kind": "import-statement",
+          "original": "../machine/thread-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-transform.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-transform.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/part/part-finish.ts": {
+      "bytes": 5779,
+      "imports": [
+        {
+          "path": "../blend/rolling-ball.js",
+          "kind": "import-statement",
+          "external": true
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/brep/sew-solid.ts": {
+      "bytes": 11650,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "./brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/surfaces/surface-isocurve.ts",
+          "kind": "import-statement",
+          "original": "../nurbs/surfaces/surface-isocurve.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/subd-sd2.ts": {
+      "bytes": 45996,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/derivatives.ts",
+          "kind": "import-statement",
+          "original": "../core/derivatives.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/features/subd.ts": {
+      "bytes": 28027,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/subd-sd2.ts",
+          "kind": "import-statement",
+          "original": "./subd-sd2.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/subd-sd2.ts",
+          "kind": "import-statement",
+          "original": "./subd-sd2.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/mesh/mesh-decimate.ts": {
+      "bytes": 30368,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/mesh/mesh-distance.ts",
+          "kind": "import-statement",
+          "original": "./mesh-distance.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/part/part-mesh.ts": {
+      "bytes": 10890,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../types.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/mesh-brep.ts",
+          "kind": "import-statement",
+          "original": "../mesh/mesh-brep.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/sew-solid.ts",
+          "kind": "import-statement",
+          "original": "../brep/sew-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/subd.ts",
+          "kind": "import-statement",
+          "original": "../features/subd.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/mesh-decimate.ts",
+          "kind": "import-statement",
+          "original": "../mesh/mesh-decimate.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/facet-brep.ts",
+          "kind": "import-statement",
+          "original": "../mesh/facet-brep.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/io/step.ts",
+          "kind": "import-statement",
+          "original": "../io/step.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-transform.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-transform.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/brep/thicken-solid.ts": {
+      "bytes": 3775,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/mesh/mesh-brep.ts",
+          "kind": "import-statement",
+          "original": "../mesh/mesh-brep.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/derivatives.ts",
+          "kind": "import-statement",
+          "original": "../core/derivatives.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/blend/offset-cavity.ts",
+          "kind": "import-statement",
+          "original": "../blend/offset-cavity.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/part/part-shell.ts": {
+      "bytes": 2932,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/mesh-brep.ts",
+          "kind": "import-statement",
+          "original": "../mesh/mesh-brep.js"
+        },
+        {
+          "path": "../types.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/thicken-solid.ts",
+          "kind": "import-statement",
+          "original": "../brep/thicken-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/part/part-sheet.ts": {
+      "bytes": 9074,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/frame-sheet/sheet-metal.ts",
+          "kind": "import-statement",
+          "original": "../frame-sheet/sheet-metal.js"
+        },
+        {
+          "path": "../types.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/prismatic-solid.ts",
+          "kind": "import-statement",
+          "original": "../features/prismatic-solid.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/part/part-frame.ts": {
+      "bytes": 15344,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/part/part-expect.ts": {
+      "bytes": 10940,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-tessellate.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-tessellate.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/analytic-boolean.ts",
+          "kind": "import-statement",
+          "original": "../brep/analytic-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/surfaces/surface-revolution.ts",
+          "kind": "import-statement",
+          "original": "../nurbs/surfaces/surface-revolution.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/core/error-codes.ts": {
+      "bytes": 7300,
+      "imports": [],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/part/part-model.ts": {
+      "bytes": 424875,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-core.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/prismatic-solid.ts",
+          "kind": "import-statement",
+          "original": "../features/prismatic-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/section-offset.ts",
+          "kind": "import-statement",
+          "original": "../features/section-offset.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/document/unit-named.ts",
+          "kind": "import-statement",
+          "original": "../document/unit-named.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/curved-arrangement.ts",
+          "kind": "import-statement",
+          "original": "../brep/curved-arrangement.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/polyhedral-boolean.ts",
+          "kind": "import-statement",
+          "original": "../brep/polyhedral-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/analytic-boolean.ts",
+          "kind": "import-statement",
+          "original": "../brep/analytic-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/blend/edge-finish.ts",
+          "kind": "import-statement",
+          "original": "../blend/edge-finish.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/blend/polynomial-face-fillet.ts",
+          "kind": "import-statement",
+          "original": "../blend/polynomial-face-fillet.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/drafted-extrusion.ts",
+          "kind": "import-statement",
+          "original": "../features/drafted-extrusion.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/profile-relief.ts",
+          "kind": "import-statement",
+          "original": "../features/profile-relief.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/cylindrical-wrap-feature.ts",
+          "kind": "import-statement",
+          "original": "../features/cylindrical-wrap-feature.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/io/step.ts",
+          "kind": "import-statement",
+          "original": "../io/step.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/mesh-brep.ts",
+          "kind": "import-statement",
+          "original": "../mesh/mesh-brep.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/facet-brep.ts",
+          "kind": "import-statement",
+          "original": "../mesh/facet-brep.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/facet-split.ts",
+          "kind": "import-statement",
+          "original": "../mesh/facet-split.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/facet-boolean.ts",
+          "kind": "import-statement",
+          "original": "../mesh/facet-boolean.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/mesh-repair.ts",
+          "kind": "import-statement",
+          "original": "../mesh/mesh-repair.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/sweep-solid.ts",
+          "kind": "import-statement",
+          "original": "../brep/sweep-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../features/subd.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../mesh/mesh-decimate.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../../packages/barocss-cad/src/document/side-names.ts",
+          "kind": "import-statement",
+          "original": "../document/side-names.js"
+        },
+        {
+          "path": "../machine/gear-rack.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../machine/gear.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../machine/gear-internal.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../machine/gear-bevel.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../machine/gear-worm.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../machine/oring.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../machine/bearing.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../machine/shaft-parts.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../machine/shaft.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../machine/drive.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/section-table.ts",
+          "kind": "import-statement",
+          "original": "../features/section-table.js"
+        },
+        {
+          "path": "../machine/connector.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../machine/cam.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../machine/spring.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../machine/gear-worm-wheel.js",
+          "kind": "import-statement",
+          "external": true
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/revolve.ts",
+          "kind": "import-statement",
+          "original": "../features/revolve.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-transform.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-transform.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/math.ts",
+          "kind": "import-statement",
+          "original": "../core/math.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-tessellate.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-tessellate.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/triangle-bvh.ts",
+          "kind": "import-statement",
+          "original": "../mesh/triangle-bvh.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/solid-mass.ts",
+          "kind": "import-statement",
+          "original": "../brep/solid-mass.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/internal/native-si-mass-state.ts",
+          "kind": "import-statement",
+          "original": "../internal/native-si-mass-state.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-glue.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-glue.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/loft.ts",
+          "kind": "import-statement",
+          "original": "../features/loft.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/blend/general-shell.ts",
+          "kind": "import-statement",
+          "original": "../blend/general-shell.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/blend/offset-cavity.ts",
+          "kind": "import-statement",
+          "original": "../blend/offset-cavity.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/blend/region-shell.ts",
+          "kind": "import-statement",
+          "original": "../blend/region-shell.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/mesh/mesh-offset.ts",
+          "kind": "import-statement",
+          "original": "../mesh/mesh-offset.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/frame-sheet/sheet-metal.ts",
+          "kind": "import-statement",
+          "original": "../frame-sheet/sheet-metal.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/frame-sheet/sheet-flat.ts",
+          "kind": "import-statement",
+          "original": "../frame-sheet/sheet-flat.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/features/extruded-profile-solid.ts",
+          "kind": "import-statement",
+          "original": "../features/extruded-profile-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/frame-sheet/frame-weldment.ts",
+          "kind": "import-statement",
+          "original": "../frame-sheet/frame-weldment.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/frame-sheet/frame-section.ts",
+          "kind": "import-statement",
+          "original": "../frame-sheet/frame-section.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/vec3.ts",
+          "kind": "import-statement",
+          "original": "../core/vec3.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/io/stl.ts",
+          "kind": "import-statement",
+          "original": "../io/stl.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/part/part-gears.ts",
+          "kind": "import-statement",
+          "original": "./part-gears.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/part/part-machine.ts",
+          "kind": "import-statement",
+          "original": "./part-machine.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/nurbs/surfaces/surface-revolution.ts",
+          "kind": "import-statement",
+          "original": "../nurbs/surfaces/surface-revolution.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/machine/thread-solid.ts",
+          "kind": "import-statement",
+          "original": "../machine/thread-solid.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/part/part-finish.ts",
+          "kind": "import-statement",
+          "original": "./part-finish.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/part/part-mesh.ts",
+          "kind": "import-statement",
+          "original": "./part-mesh.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/part/part-shell.ts",
+          "kind": "import-statement",
+          "original": "./part-shell.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/part/part-sheet.ts",
+          "kind": "import-statement",
+          "original": "./part-sheet.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/part/part-frame.ts",
+          "kind": "import-statement",
+          "original": "./part-frame.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/part/part-expect.ts",
+          "kind": "import-statement",
+          "original": "./part-expect.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/core/error-codes.ts",
+          "kind": "import-statement",
+          "original": "../core/error-codes.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/api/refusal.ts": {
+      "bytes": 1469,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/core/barocss-error.ts",
+          "kind": "import-statement",
+          "original": "../core/barocss-error.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/api/select.ts": {
+      "bytes": 12910,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/api/refusal.ts",
+          "kind": "import-statement",
+          "original": "./refusal.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/api/core.ts": {
+      "bytes": 4155,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/part/part-model.ts",
+          "kind": "import-statement",
+          "original": "../part/part-model.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/brep/brep-tessellate.ts",
+          "kind": "import-statement",
+          "original": "../brep/brep-tessellate.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/io/step.ts",
+          "kind": "import-statement",
+          "original": "../io/step.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/api/select.ts",
+          "kind": "import-statement",
+          "original": "./select.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/api/refusal.ts",
+          "kind": "import-statement",
+          "original": "./refusal.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/api/sketch.ts": {
+      "bytes": 11403,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/api/refusal.ts",
+          "kind": "import-statement",
+          "original": "./refusal.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/api/spec.ts": {
+      "bytes": 17650,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/api/refusal.ts",
+          "kind": "import-statement",
+          "original": "./refusal.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/api/sketch.ts",
+          "kind": "import-statement",
+          "original": "./sketch.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/api/part.ts": {
+      "bytes": 19406,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/api/spec.ts",
+          "kind": "import-statement",
+          "original": "./spec.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/api/sketch.ts",
+          "kind": "import-statement",
+          "original": "./sketch.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/api/refusal.ts",
+          "kind": "import-statement",
+          "original": "./refusal.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/api/kernel.ts": {
+      "bytes": 13142,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/api/core.ts",
+          "kind": "import-statement",
+          "original": "./core.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/api/part.ts",
+          "kind": "import-statement",
+          "original": "./part.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/api/refusal.ts",
+          "kind": "import-statement",
+          "original": "./refusal.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "../../packages/barocss-cad/src/api/index.ts": {
+      "bytes": 1653,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/api/kernel.ts",
+          "kind": "import-statement",
+          "original": "./kernel.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/api/part.ts",
+          "kind": "import-statement",
+          "original": "./part.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/api/spec.ts",
+          "kind": "import-statement",
+          "original": "./spec.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/api/sketch.ts",
+          "kind": "import-statement",
+          "original": "./sketch.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/api/select.ts",
+          "kind": "import-statement",
+          "original": "./select.js"
+        },
+        {
+          "path": "../../packages/barocss-cad/src/api/refusal.ts",
+          "kind": "import-statement",
+          "original": "./refusal.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "src/storage/store.ts": {
+      "bytes": 2783,
+      "imports": [
+        {
+          "path": "../../packages/barocss-cad/src/api/index.ts",
+          "kind": "import-statement",
+          "original": "@barocss/cad/api"
+        }
+      ],
+      "format": "esm"
+    },
+    "src/storage/handleStore.ts": {
+      "bytes": 5764,
+      "imports": [
+        {
+          "path": "src/storage/store.ts",
+          "kind": "import-statement",
+          "original": "./store"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "handleStore.js": {
+      "imports": [],
+      "exports": [
+        "handleStore"
+      ],
+      "entryPoint": "src/storage/handleStore.ts",
+      "inputs": {
+        "../../packages/barocss-cad/src/core/math.ts": {
+          "bytesInOutput": 11129
+        },
+        "../../packages/barocss-cad/src/numeric-policy.ts": {
+          "bytesInOutput": 1601
+        },
+        "../../packages/barocss-cad/src/core/vec3.ts": {
+          "bytesInOutput": 550
+        },
+        "../../packages/barocss-cad/src/brep/brep-check-geometry.ts": {
+          "bytesInOutput": 16175
+        },
+        "../../packages/barocss-cad/src/mesh/facet-patch.ts": {
+          "bytesInOutput": 3877
+        },
+        "../../packages/barocss-cad/src/core/derivatives.ts": {
+          "bytesInOutput": 6330
+        },
+        "../../packages/barocss-cad/src/core/barocss-error.ts": {
+          "bytesInOutput": 1185
+        },
+        "../../packages/barocss-cad/src/core/second-derivatives.ts": {
+          "bytesInOutput": 11068
+        },
+        "../../packages/barocss-cad/src/nurbs/surfaces/surface-closest.ts": {
+          "bytesInOutput": 6205
+        },
+        "../../packages/barocss-cad/src/brep/brep-core.ts": {
+          "bytesInOutput": 20055
+        },
+        "../../packages/barocss-cad/src/core/extent.ts": {
+          "bytesInOutput": 439
+        },
+        "../../packages/barocss-cad/src/brep/curved-arrangement.ts": {
+          "bytesInOutput": 38747
+        },
+        "../../packages/barocss-cad/src/features/extruded-profile-solid.ts": {
+          "bytesInOutput": 9958
+        },
+        "../../packages/barocss-cad/src/document/side-names.ts": {
+          "bytesInOutput": 136
+        },
+        "../../packages/barocss-cad/src/features/prismatic-solid.ts": {
+          "bytesInOutput": 22245
+        },
+        "../../packages/barocss-cad/src/features/section-offset.ts": {
+          "bytesInOutput": 4159
+        },
+        "../../packages/barocss-cad/src/core/dyadic.ts": {
+          "bytesInOutput": 557
+        },
+        "../../packages/barocss-cad/src/brep/planar-arrangement.ts": {
+          "bytesInOutput": 9499
+        },
+        "../../packages/barocss-cad/src/brep/brep-tessellate.ts": {
+          "bytesInOutput": 66007
+        },
+        "../../packages/barocss-cad/src/brep/polyhedral-boolean.ts": {
+          "bytesInOutput": 22033
+        },
+        "../../packages/barocss-cad/src/nurbs/surfaces/surface-revolution.ts": {
+          "bytesInOutput": 5555
+        },
+        "../../packages/barocss-cad/src/nurbs/curves/curve-segment.ts": {
+          "bytesInOutput": 1555
+        },
+        "../../packages/barocss-cad/src/intersect/surface-intersection.ts": {
+          "bytesInOutput": 19127
+        },
+        "../../packages/barocss-cad/src/brep/analytic-boolean.ts": {
+          "bytesInOutput": 123092
+        },
+        "../../packages/barocss-cad/src/internal/native-si-mass-state.ts": {
+          "bytesInOutput": 1191
+        },
+        "../../packages/barocss-cad/src/features/revolve.ts": {
+          "bytesInOutput": 20967
+        },
+        "../../packages/barocss-cad/src/brep/brep-transform.ts": {
+          "bytesInOutput": 1667
+        },
+        "../../packages/barocss-cad/src/blend/fillet-section.ts": {
+          "bytesInOutput": 5245
+        },
+        "../../packages/barocss-cad/src/blend/polynomial-run.ts": {
+          "bytesInOutput": 3513
+        },
+        "../../packages/barocss-cad/src/blend/rolling-ball.ts": {
+          "bytesInOutput": 81654
+        },
+        "../../packages/barocss-cad/src/blend/edge-finish.ts": {
+          "bytesInOutput": 75801
+        },
+        "../../packages/barocss-cad/src/core/quadrature.ts": {
+          "bytesInOutput": 563
+        },
+        "../../packages/barocss-cad/src/brep/brep-mass-quadrature.ts": {
+          "bytesInOutput": 39352
+        },
+        "../../packages/barocss-cad/src/brep/solid-mass.ts": {
+          "bytesInOutput": 9120
+        },
+        "../../packages/barocss-cad/src/features/drafted-extrusion.ts": {
+          "bytesInOutput": 7962
+        },
+        "../../packages/barocss-cad/src/features/profile-relief.ts": {
+          "bytesInOutput": 33
+        },
+        "../../packages/barocss-cad/src/features/cylindrical-wrap-map.ts": {
+          "bytesInOutput": 582
+        },
+        "../../packages/barocss-cad/src/language/expression-parser.ts": {
+          "bytesInOutput": 117
+        },
+        "../../packages/barocss-cad/src/language/source-ast.ts": {
+          "bytesInOutput": 139
+        },
+        "../../packages/barocss-cad/src/language/semantic-model.ts": {
+          "bytesInOutput": 0
+        },
+        "../../packages/barocss-cad/src/core/native-d0-bound.ts": {
+          "bytesInOutput": 110
+        },
+        "../../packages/barocss-cad/src/features/cylindrical-wrap-chart.ts": {
+          "bytesInOutput": 194
+        },
+        "../../packages/barocss-cad/src/features/cylindrical-wrap-chart-component.ts": {
+          "bytesInOutput": 648
+        },
+        "../../packages/barocss-cad/src/features/cylindrical-wrap-side-family.ts": {
+          "bytesInOutput": 686
+        },
+        "../../packages/barocss-cad/src/features/cylindrical-wrap-formal-mass.ts": {
+          "bytesInOutput": 389
+        },
+        "../../packages/barocss-cad/src/features/cylindrical-wrap-bound-reference.ts": {
+          "bytesInOutput": 654
+        },
+        "../../packages/barocss-cad/src/features/cylindrical-wrap-source-walls.ts": {
+          "bytesInOutput": 632
+        },
+        "../../packages/barocss-cad/src/features/cylindrical-wrap-reference-mass.ts": {
+          "bytesInOutput": 55
+        },
+        "../../packages/barocss-cad/src/features/cylindrical-wrap-feature.ts": {
+          "bytesInOutput": 178
+        },
+        "../../packages/barocss-cad/src/mesh/mesh-brep.ts": {
+          "bytesInOutput": 7958
+        },
+        "../../packages/barocss-cad/src/mesh/facet-brep.ts": {
+          "bytesInOutput": 18064
+        },
+        "../../packages/barocss-cad/src/mesh/facet-split.ts": {
+          "bytesInOutput": 9326
+        },
+        "../../packages/barocss-cad/src/mesh/mesh-repair.ts": {
+          "bytesInOutput": 6639
+        },
+        "../../packages/barocss-cad/src/mesh/facet-boolean.ts": {
+          "bytesInOutput": 16341
+        },
+        "../../packages/barocss-cad/src/brep/brep-glue.ts": {
+          "bytesInOutput": 6365
+        },
+        "../../packages/barocss-cad/src/mesh/triangle-bvh.ts": {
+          "bytesInOutput": 5722
+        },
+        "../../packages/barocss-cad/src/mesh/facet-bvh.ts": {
+          "bytesInOutput": 369
+        },
+        "../../packages/barocss-cad/src/io/step-import.ts": {
+          "bytesInOutput": 479
+        },
+        "../../packages/barocss-cad/src/io/step.ts": {
+          "bytesInOutput": 0
+        },
+        "../../packages/barocss-cad/src/frame-sheet/frame-section.ts": {
+          "bytesInOutput": 17650
+        },
+        "../../packages/barocss-cad/src/features/section-table.ts": {
+          "bytesInOutput": 5092
+        },
+        "../../packages/barocss-cad/src/features/loft.ts": {
+          "bytesInOutput": 79
+        },
+        "../../packages/barocss-cad/src/blend/general-shell.ts": {
+          "bytesInOutput": 36559
+        },
+        "../../packages/barocss-cad/src/nurbs/surfaces/local-curvature.ts": {
+          "bytesInOutput": 176
+        },
+        "../../packages/barocss-cad/src/blend/offset-cavity.ts": {
+          "bytesInOutput": 52754
+        },
+        "../../packages/barocss-cad/src/blend/region-shell.ts": {
+          "bytesInOutput": 11573
+        },
+        "../../packages/barocss-cad/src/mesh/mesh-distance.ts": {
+          "bytesInOutput": 1083
+        },
+        "../../packages/barocss-cad/src/features/section-properties.ts": {
+          "bytesInOutput": 1207
+        },
+        "../../packages/barocss-cad/src/mesh/mesh-offset.ts": {
+          "bytesInOutput": 5310
+        },
+        "../../packages/barocss-cad/src/frame-sheet/sheet-metal.ts": {
+          "bytesInOutput": 4041
+        },
+        "../../packages/barocss-cad/src/frame-sheet/frame-weldment.ts": {
+          "bytesInOutput": 1166
+        },
+        "../../packages/barocss-cad/src/machine/gear-bevel.ts": {
+          "bytesInOutput": 265
+        },
+        "../../packages/barocss-cad/src/machine/gear-worm.ts": {
+          "bytesInOutput": 34
+        },
+        "../../packages/barocss-cad/src/machine/cam.ts": {
+          "bytesInOutput": 62
+        },
+        "../../packages/barocss-cad/src/machine/drive.ts": {
+          "bytesInOutput": 24
+        },
+        "../../packages/barocss-cad/src/machine/spring.ts": {
+          "bytesInOutput": 573
+        },
+        "../../packages/barocss-cad/src/machine/thread-helical.ts": {
+          "bytesInOutput": 44
+        },
+        "../../packages/barocss-cad/src/features/subd-sd2.ts": {
+          "bytesInOutput": 210
+        },
+        "../../packages/barocss-cad/src/features/subd.ts": {
+          "bytesInOutput": 0
+        },
+        "../../packages/barocss-cad/src/mesh/mesh-decimate.ts": {
+          "bytesInOutput": 152
+        },
+        "../../packages/barocss-cad/src/part/part-expect.ts": {
+          "bytesInOutput": 46
+        },
+        "../../packages/barocss-cad/src/core/error-codes.ts": {
+          "bytesInOutput": 1964
+        },
+        "../../packages/barocss-cad/src/part/part-model.ts": {
+          "bytesInOutput": 139591
+        },
+        "../../packages/barocss-cad/src/api/refusal.ts": {
+          "bytesInOutput": 91
+        },
+        "../../packages/barocss-cad/src/api/select.ts": {
+          "bytesInOutput": 63
+        },
+        "../../packages/barocss-cad/src/api/sketch.ts": {
+          "bytesInOutput": 3479
+        },
+        "../../packages/barocss-cad/src/api/index.ts": {
+          "bytesInOutput": 0
+        },
+        "src/storage/store.ts": {
+          "bytesInOutput": 733
+        },
+        "src/storage/handleStore.ts": {
+          "bytesInOutput": 3805
+        }
+      },
+      "bytes": 1016871
+    }
+  }
+}

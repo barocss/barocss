@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: 160-point rectangle: both axes and keep flags preserve exact independent world material; parent remains unchanged
+ok 1 - 160-point rectangle: both axes and keep flags preserve exact independent world material; parent remains unchanged
+  ---
+  duration_ms: 76.881959
+  type: 'test'
+  ...
+# Subtest: 160-point concave fractional loop preserves actual stored area130.9590625, separately from ideal design131
+ok 2 - 160-point concave fractional loop preserves actual stored area130.9590625, separately from ideal design131
+  ---
+  duration_ms: 43.788958
+  type: 'test'
+  ...
+# Subtest: fractional nearest rounding, endpoint copies, nonselected negative-zero bits and clockwise loops
+ok 3 - fractional nearest rounding, endpoint copies, nonselected negative-zero bits and clockwise loops
+  ---
+  duration_ms: 14.621083
+  type: 'test'
+  ...
+# Subtest: double selected reversals and combined axes preserve world material within original bound
+ok 4 - double selected reversals and combined axes preserve world material within original bound
+  ---
+  duration_ms: 14.019
+  type: 'test'
+  ...
+# Subtest: native error precedence and unsupported support profiles retain typed refusal and input ownership
+ok 5 - native error precedence and unsupported support profiles retain typed refusal and input ownership
+  ---
+  duration_ms: 5.972833
+  type: 'test'
+  ...
+# Subtest: malformed, sparse, multi-loop, oversized, and out-of-domain trims refuse without mutation
+ok 6 - malformed, sparse, multi-loop, oversized, and out-of-domain trims refuse without mutation
+  ---
+  duration_ms: 20.271542
+  type: 'test'
+  ...
+# Subtest: exact topology rejects duplicate, zero edge, backtracking, nonadjacent touch, overlap, crossing, and zero area
+ok 7 - exact topology rejects duplicate, zero edge, backtracking, nonadjacent touch, overlap, crossing, and zero area
+  ---
+  duration_ms: 14.896625
+  type: 'test'
+  ...
+# Subtest: large chart coordinates use actual domains; original UV tolerance rejects excessive rounding
+ok 8 - large chart coordinates use actual domains; original UV tolerance rejects excessive rounding
+  ---
+  duration_ms: 4.318209
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 399.337083

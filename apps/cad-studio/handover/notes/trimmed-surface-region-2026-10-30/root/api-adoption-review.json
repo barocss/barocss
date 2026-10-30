@@ -1,0 +1,9 @@
+{
+  "status": "JUSTIFIED_ADOPTION",
+  "semanticAddedRootExports": 6,
+  "semanticRemovals": 0,
+  "semanticExistingChanges": 0,
+  "presentationOnlyExistingChanges": 0,
+  "beforeSHA256": "265f4b8e15914ed089e87be6428ea7094f66ca1df34d68108f1840fce6fe3af4",
+  "afterSHA256": "067f845827a1848811fbfe63f3e30c8558356d695f3cf1a377a0b2b6eaa941dd"
+}

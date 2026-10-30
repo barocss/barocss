@@ -1,0 +1,37 @@
+{
+  "status": "PROPOSAL_INTAKE_NO_RUNTIME",
+  "files": [
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/gpu-material-authoring-20261029/review.md",
+      "copy": "sources/review.md",
+      "bytes": 18156,
+      "lines": 163,
+      "sha256": "9371fd588844306a54226a33f2b7b42a59ff1eb22fa5e21c16ef7cc305282bfd",
+      "read": "full supplied document"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/gpu-material-authoring-20261029/authoring-options.md",
+      "copy": "sources/authoring-options.md",
+      "bytes": 17207,
+      "lines": 127,
+      "sha256": "546c5d00d6c38032d0627491d46d226949558d98eaabecbdae7a44df4ac05649",
+      "read": "full supplied document"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/gpu-material-public-20261029/verification.json",
+      "copy": "sources/verification.json",
+      "bytes": 3525,
+      "lines": 123,
+      "sha256": "2b4737b73e0992c8a2d7b27b81aa1b88e1f4303ca9393934a1115297b588603b",
+      "read": "full supplied document"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/studio-modernization-20261029/runtime-followup-072849.md",
+      "copy": "sources/studio-runtime-followup.md",
+      "bytes": 7039,
+      "lines": 58,
+      "sha256": "6aa635a5ad8c0f7073db89e2a2eb3ed54e2311efa67edee7f32ef45a6fc29552",
+      "read": "full supplied document"
+    }
+  ]
+}

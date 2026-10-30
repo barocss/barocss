@@ -1,0 +1,6 @@
+{"name":"cubic-16-prism","maximumSurfacePoles":16,"strictValid":true,"mass":1.0000000000000018}
+{"name":"cubic-16-taper","maximumSurfacePoles":16,"strictValid":true,"mass":2.3333333333333344}
+{"name":"cubic-17-prism","maximumSurfacePoles":17,"checkError":"Surface V control point count must be in 2..16","mass":1.0000000000000004,"pointError":"Surface V control point count must be in 2..16","tessellationError":"Surface V control point count must be in 2..16"}
+{"name":"cubic-17-taper","maximumSurfacePoles":17,"checkError":"Surface V control point count must be in 2..16","mass":2.3333333333333357,"pointError":"Surface V control point count must be in 2..16","tessellationError":"Surface V control point count must be in 2..16"}
+{"name":"cubic-64-prism","maximumSurfacePoles":64,"checkError":"Surface V control point count must be in 2..16","mass":0.999999999999999,"pointError":"Surface V control point count must be in 2..16","tessellationError":"Surface V control point count must be in 2..16"}
+{"name":"cubic-64-taper","maximumSurfacePoles":64,"checkError":"Surface V control point count must be in 2..16","mass":2.3333333333333335,"pointError":"Surface V control point count must be in 2..16","tessellationError":"Surface V control point count must be in 2..16"}

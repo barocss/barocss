@@ -1,0 +1,194 @@
+{
+  "status": "PASS",
+  "expectedExactRectangleComponents": [
+    {
+      "areaWorld": {
+        "numerator": "36771541840937858208483127134069553485984801768512771513105415",
+        "denominator": "175520486114261802449666899764139639267328259481336098586624",
+        "value": 209.50000000000006
+      },
+      "centroidWorld": [
+        {
+          "numerator": "26948304394164229398261581411869841996477633555571085437404130583100359710824128143844869973583923453131301",
+          "denominator": "859866697723398883044370064448623078662719707156551987582364742158240143841919371159472893002138471366656",
+          "value": 31.340095465393794
+        },
+        {
+          "numerator": "52941995872728751192055987284284359477089304800690312620799249748927062171621",
+          "denominator": "99362581279611804434282167386959630845321161756411889948310808240119825301504",
+          "value": 0.5328162291169454
+        },
+        {
+          "numerator": "3",
+          "denominator": "1",
+          "value": 3.0
+        }
+      ]
+    },
+    {
+      "areaWorld": {
+        "numerator": "1622592768292133902442907884846075",
+        "denominator": "81129638414606681695789005144064",
+        "value": 20.000000000000004
+      },
+      "centroidWorld": [
+        {
+          "numerator": "6263578445703870445621660098868188050245126858145",
+          "denominator": "250543137828154827440814746787690168758329933824",
+          "value": 25.0
+        },
+        {
+          "numerator": "2740315569995443905890401429546729614954486048763",
+          "denominator": "438450491199270948021425806878457795327077384192",
+          "value": 6.250000000000001
+        },
+        {
+          "numerator": "3",
+          "denominator": "1",
+          "value": 3.0
+        }
+      ]
+    }
+  ],
+  "actualStoredComponents": [
+    {
+      "id": "obj_3",
+      "areaWorld": {
+        "numerator": "33993318495720209439375581568303475",
+        "denominator": "162259276829213363391578010288128",
+        "value": 209.50000000000006
+      },
+      "centroidWorld": [
+        {
+          "numerator": "4606010100146581601521788312549607398242709748177105",
+          "denominator": "146968604649995639862647138861155680481472629702656",
+          "value": 31.340095465393794
+        },
+        {
+          "numerator": "9788407216023730205457961698593638814950399273913",
+          "denominator": "18371075581249454982830892357644460060184078712832",
+          "value": 0.5328162291169454
+        },
+        {
+          "numerator": "3",
+          "denominator": "1",
+          "value": 3.0
+        }
+      ]
+    },
+    {
+      "id": "obj_4",
+      "areaWorld": {
+        "numerator": "1622592768292133902442907884846075",
+        "denominator": "81129638414606681695789005144064",
+        "value": 20.000000000000004
+      },
+      "centroidWorld": [
+        {
+          "numerator": "6263578445703870445621660098868188050245126858145",
+          "denominator": "250543137828154827440814746787690168758329933824",
+          "value": 25.0
+        },
+        {
+          "numerator": "2740315569995443905890401429546729614954486048763",
+          "denominator": "438450491199270948021425806878457795327077384192",
+          "value": 6.250000000000001
+        },
+        {
+          "numerator": "3",
+          "denominator": "1",
+          "value": 3.0
+        }
+      ]
+    }
+  ],
+  "slabLevelsIncludingPerpendicularBoundarySwitches": 34,
+  "probes": [
+    {
+      "world": [
+        18,
+        11.25,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        32,
+        11.25,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        25,
+        6.25,
+        3
+      ],
+      "inCrop": true,
+      "expectedMaterial": true,
+      "owners": [
+        "obj_4"
+      ]
+    },
+    {
+      "world": [
+        25,
+        11.25,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        25,
+        3,
+        3
+      ],
+      "inCrop": true,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        13,
+        -3,
+        3
+      ],
+      "inCrop": true,
+      "expectedMaterial": true,
+      "owners": [
+        "obj_3"
+      ]
+    },
+    {
+      "world": [
+        44,
+        19,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        23,
+        9,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    }
+  ],
+  "tolerance": 1e-07,
+  "scope": "Independent exact Fraction rectangle sweep and stored Green moments/ray parity; no CAD or production predicates"
+}

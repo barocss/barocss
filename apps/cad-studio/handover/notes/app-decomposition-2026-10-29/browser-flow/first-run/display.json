@@ -1,0 +1,9 @@
+{
+  "requestedDpr": 1,
+  "renderer": "webgpu",
+  "devicePixelRatio": 1,
+  "cssWidth": 1140,
+  "cssHeight": 900,
+  "backingWidth": 1140,
+  "backingHeight": 900
+}

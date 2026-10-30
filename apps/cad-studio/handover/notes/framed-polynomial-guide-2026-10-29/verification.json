@@ -1,0 +1,51 @@
+{
+  "checkout": "d187a840bd0586a739a11046b9331de9868674ef",
+  "node": "v22.19.0",
+  "sourceFrozen": true,
+  "build": {
+    "status": "PASS",
+    "command": "node scripts/tool.mjs build",
+    "exitCode": 0
+  },
+  "relatedTests": {
+    "status": "PASS",
+    "passed": 102,
+    "failed": 0,
+    "skipped": 0,
+    "duration": 2500.976791,
+    "timeUnit": "ms"
+  },
+  "legacyDifferential": {
+    "status": "PASS",
+    "fixtures": 21,
+    "sameEntireBinary64Trees": true,
+    "preservedInputs": true
+  },
+  "baselineAfter": {
+    "status": "PASS",
+    "fixtures": 6
+  },
+  "lint": {
+    "status": "PASS",
+    "exitCode": 0
+  },
+  "fullKernel": "NOT_RUN",
+  "fullModel": "NOT_RUN",
+  "fullStudio": "NOT_RUN",
+  "gate": "RELEASED",
+  "hashes": {
+    "packages/barocss-cad/src/features/loft.ts": "51fbaeae17e091101ef078bbf843c5e49bce9268032749aaad47db21f5c31eef",
+    "packages/barocss-cad/src/features/loft-guide.ts": "cfbe1032c8606014492e13b1e5b375a813af4b80b6a08cd53534612efd48c3fb",
+    "packages/barocss-cad/src/features/oriented-loft.ts": "829c94ee6399de23069a5f624e5f9f728b41b69111f22746633c7d3806cb3c74",
+    "packages/barocss-cad/src/features/framed-mixed-loft.ts": "e8291abbefcd2995c10bf2bd3da149ca0e5c0fb7b02527dd011ac39658e54293",
+    "packages/barocss-cad/src/features/framed-nurbs-loft.ts": "eecac8cc3d992e5edf4b68729ec0f83717bbdadb57e8ada221f24b4d49bf5b66",
+    "packages/barocss-cad/src/features/loft-common-frame.ts": "bf9a7fe7d2238c21c201b66dd41cb5e02c55b2fdf51ab3b53d5ee28d023e0197",
+    "packages/barocss-cad/dist/features/loft.js": "1e652cb8cb2f8b153bf0511ab41ac1d6622cd41bd182e6a7afbf5f685e762a00",
+    "packages/barocss-cad/dist/features/loft-guide.js": "b2e5ff7c3b32ab8f0f0fa667932c47dfe0b1bf25749b9ddfcf5c503dc7c1a1e8",
+    "packages/barocss-cad/dist/features/oriented-loft.js": "2dc2150de225a3f95f8e31fe564f3f1c707cd548647ac461e2d8e486103a3f56",
+    "packages/barocss-cad/dist/features/framed-mixed-loft.js": "52cdf8985af2c5f36ea3497836b12f686e89bf6f01c062ad5bd74204043e4572",
+    "packages/barocss-cad/dist/features/framed-nurbs-loft.js": "41d42677e5e2b289c835dd22ac9bd8b7444da314a969d9738ed0e575a3bc5dfa",
+    "packages/barocss-cad/dist/features/loft-common-frame.js": "63ad35b3c3fa747201ccc8d18c8aeec59128f86b5b28fef2b9bc4379163759d5",
+    "packages/barocss-cad/test/framed-polynomial-guide.test.mjs": "e6c50303d78c8c8b07f617c504316416c05e7e2c1e8838404cfb3fbc53d4bb91"
+  }
+}

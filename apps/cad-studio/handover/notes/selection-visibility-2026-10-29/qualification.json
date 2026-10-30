@@ -1,0 +1,124 @@
+{
+  "status": "QUALIFIED_BOUNDED_BASE_SELECTION_VISIBILITY",
+  "baseline": "564897679cf9e32798faf4c23aba2e89fcde12f9",
+  "sourceCommit": "d5c5d7a20c4057cbae9f0a9f21a92745a5ef1d79",
+  "driverFollowupCommit": "5f845139c394b479063cf55eaffca1eb557e7c27",
+  "scope": "Base solid point/edge/face/body selection in four finite backend/theme profiles",
+  "implementation": {
+    "darkSelection": "#22d3ee",
+    "lightSelection": "#007f9e",
+    "faceTintShare": 0.64,
+    "edgeWidth": 3.4,
+    "bodyOutlineWidth": 3,
+    "pointRadius": 6,
+    "hoverPointRadius": 4,
+    "pointRing": true,
+    "generalAccentPreserved": true,
+    "contactOutlineCaveat": "WebGPU viewer outlineWidth is global: existing red contact outlines also use3 instead of2; color/priority preserved",
+    "webglBodyOutline": "Existing visible edge/silhouette pass, not GPU postprocess equivalence",
+    "authoredMaterialAndGeometryUnchanged": true
+  },
+  "checks": {
+    "typesExit": 0,
+    "buildExit": 0,
+    "focusedFacePaint": {
+      "pass": 3,
+      "fail": 0,
+      "skip": 0
+    },
+    "scopedLintExit": 0,
+    "existingBundlerWarningsRetained": true
+  },
+  "native": {
+    "initial": {
+      "status": "FAIL",
+      "profiles": [
+        {
+          "id": "webgpu-dark",
+          "status": "PASS",
+          "states": 9
+        },
+        {
+          "id": "webgpu-light",
+          "status": "PASS",
+          "states": 7
+        },
+        {
+          "id": "webgl2-dark",
+          "status": "FAIL",
+          "states": 1
+        }
+      ],
+      "firstFailure": {
+        "phase": "webgl2-dark public box preview and Apply",
+        "message": "page.waitForSelector: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.hud') to be visible\u001b[22m\n",
+        "stack": "page.waitForSelector: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.hud') to be visible\u001b[22m\n\n    at createBox (/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/selection-visibility-browser.mjs:84:14)\n    at async file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/selection-visibility-browser.mjs:119:61"
+      },
+      "meaning": "Two WebGPU PASS, WebGL2-dark setup timeout before HUD, WebGL2-light NOT_RUN; no product exception. Public pending-work refusal is correct."
+    },
+    "gl2Retake": {
+      "status": "PASS",
+      "profiles": [
+        {
+          "id": "webgl2-dark",
+          "status": "PASS",
+          "states": 9
+        },
+        {
+          "id": "webgl2-light",
+          "status": "PASS",
+          "states": 7
+        }
+      ],
+      "meaning": "Only WebGL2 selected after driver waits for normal accepted engine readiness"
+    },
+    "qualifiedUniqueProfiles": 4,
+    "serial": true,
+    "wholeRunPass": false,
+    "allOwnedCleanupClosed": true,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "servedChanges": 0
+  },
+  "manualVisualReview": {
+    "reviewed": [
+      "native-first/webgpu-dark/selected-faces.png",
+      "native-first/webgpu-light/selected-bodies.png",
+      "native-first/webgpu-dark/selected-vertices.png",
+      "native-gl2-retake/webgl2-dark/selected-edges.png",
+      "native-gl2-retake/webgl2-light/selected-vertices.png",
+      "native-gl2-retake/webgl2-light/selected-faces.png",
+      "native-first/webgpu-dark/selected-face-flipped-light.png",
+      "native-gl2-retake/webgl2-dark/selected-face-flipped-light.png"
+    ],
+    "result": "Point/ring, selected edge, face tint, body outline and selected-face theme recolor visibly distinct in these captures",
+    "pixelContrast": "NOT_AUTOMATED; no numeric accessibility/color-vision threshold acceptance"
+  },
+  "sourceWatch": {
+    "observations": 12,
+    "allMatch": true,
+    "listedFiles": 6,
+    "fullDependencyGraph": false,
+    "plannedDriverOnlyChangeRetained": true
+  },
+  "notRun": [
+    "Direct curves/surfaces and instance-specific actual selection",
+    "Sketch/cage/editor selection states",
+    "Full Studio/Model/Kernel/GPU/Viewer/browser suites",
+    "New Save/Open test for color-only state",
+    "Contact-specific actual3px proof",
+    "Natural device-loss/OOM/performance/memory acceptance",
+    "Independent numeric contrast/color-blindness/accessibility certification",
+    "Electron runtime or WebGPU-only migration",
+    "Remote CI/release"
+  ],
+  "docs": {
+    "exit": 0,
+    "pages": 68,
+    "shots": 55,
+    "shotKB": 4811,
+    "labels": 860,
+    "boundary": "Post-note/roadmap/decision check; before adding this receipt and manifest"
+  },
+  "artifacts": "manifest.json"
+}

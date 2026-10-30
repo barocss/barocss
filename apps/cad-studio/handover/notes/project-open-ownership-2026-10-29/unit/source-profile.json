@@ -1,0 +1,22 @@
+{
+  "apps/cad-studio/src/App.tsx": {
+    "bytes": 385325,
+    "sha256": "6523603f2d1e417ace3cbb2c93c77f46e384286593f2b87d81457b7d82e24c66"
+  },
+  "apps/cad-studio/src/storage/useProject.ts": {
+    "bytes": 16619,
+    "sha256": "4cfc5b96100c382ea06056c85c8c80843f6efc64622b60e43c8711458dfbaa63"
+  },
+  "apps/cad-studio/src/state/openOwnership.ts": {
+    "bytes": 257,
+    "sha256": "ea2098e7834673157f929f525732f5261ac9ea74d8209290e7306f0420b89839"
+  },
+  "apps/cad-studio/test/project-open-ownership.test.ts": {
+    "bytes": 20188,
+    "sha256": "58a200217c860617af8b8ac63cd282c3df9baa469eb3405b4acf99295031ba45"
+  },
+  "apps/cad-studio/test/project-open-ownership-browser.mjs": {
+    "bytes": 19049,
+    "sha256": "010ab5211ff822ed58a777fbe77bcdf4a068b21ffeb9f22dde34f2035cc55027"
+  }
+}

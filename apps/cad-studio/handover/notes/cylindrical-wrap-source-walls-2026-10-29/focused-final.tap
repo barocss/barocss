@@ -1,0 +1,226 @@
+TAP version 13
+# Subtest: one bound reference contains both complete actual child results under one final ledger
+ok 1 - one bound reference contains both complete actual child results under one final ledger
+  ---
+  duration_ms: 114.687
+  type: 'test'
+  ...
+# Subtest: clockwise and rotated starts derive actual rectangle min/max without assuming native ID rotation
+ok 2 - clockwise and rotated starts derive actual rectangle min/max without assuming native ID rotation
+  ---
+  duration_ms: 92.622458
+  type: 'test'
+  ...
+# Subtest: exact total reservation succeeds and total minus one refuses without changing caller data
+ok 3 - exact total reservation succeeds and total minus one refuses without changing caller data
+  ---
+  duration_ms: 108.635083
+  type: 'test'
+  ...
+# Subtest: owned frozen results do not freeze or alias the original Part, ring or options
+ok 4 - owned frozen results do not freeze or alias the original Part, ring or options
+  ---
+  duration_ms: 30.388833
+  type: 'test'
+  ...
+# Subtest: fresh source checking refuses changed coefficients and metadata after an earlier successful request
+ok 5 - fresh source checking refuses changed coefficients and metadata after an earlier successful request
+  ---
+  duration_ms: 32.474042
+  type: 'test'
+  ...
+# Subtest: getters, inherited options and caller authority flags cannot supply wrapper inputs
+ok 6 - getters, inherited options and caller authority flags cannot supply wrapper inputs
+  ---
+  duration_ms: 8.344834
+  type: 'test'
+  ...
+# Subtest: original native and formal refusals propagate with their namespace and wording
+ok 7 - original native and formal refusals propagate with their namespace and wording
+  ---
+  duration_ms: 41.643584
+  type: 'test'
+  ...
+# Subtest: the separately measured Z0 reference pad accepts both complete source checks without a prefix deduction
+ok 8 - the separately measured Z0 reference pad accepts both complete source checks without a prefix deduction
+  ---
+  duration_ms: 29.599375
+  type: 'test'
+  ...
+# Subtest: actual native rays and all ten source/pad/raw moments enclose an independent complex-polar oracle
+ok 9 - actual native rays and all ten source/pad/raw moments enclose an independent complex-polar oracle
+  ---
+  duration_ms: 36.891958
+  type: 'test'
+  ...
+# Subtest: public MMGS values are audited against exact represented density divided by1000
+ok 10 - public MMGS values are audited against exact represented density divided by1000
+  ---
+  duration_ms: 48.573667
+  type: 'test'
+  ...
+# Subtest: negative source Z and asymmetric V preserve signed mixed moments and central inertia
+ok 11 - negative source Z and asymmetric V preserve signed mixed moments and central inertia
+  ---
+  duration_ms: 18.106833
+  type: 'test'
+  ...
+# Subtest: centered axial pad retains exact zero Z/XZ/YZ and nonzero angular moments
+ok 12 - centered axial pad retains exact zero Z/XZ/YZ and nonzero angular moments
+  ---
+  duration_ms: 7.699708
+  type: 'test'
+  ...
+# Subtest: aggregate limits only tighten, and impossible scalar precision is not widened
+ok 13 - aggregate limits only tighten, and impossible scalar precision is not widened
+  ---
+  duration_ms: 27.636334
+  type: 'test'
+  ...
+# Subtest: overflow, underflow, nonfinite input, invalid ranges, and radius overrides refuse
+ok 14 - overflow, underflow, nonfinite input, invalid ranges, and radius overrides refuse
+  ---
+  duration_ms: 31.567166
+  type: 'test'
+  ...
+# Subtest: all scalar budgets must be explicit positive finite values
+ok 15 - all scalar budgets must be explicit positive finite values
+  ---
+  duration_ms: 13.619833
+  type: 'test'
+  ...
+# Subtest: getters never supply authority and input/output snapshots do not alias
+ok 16 - getters never supply authority and input/output snapshots do not alias
+  ---
+  duration_ms: 8.641917
+  type: 'test'
+  ...
+# Subtest: actual rays around the diagonal exercise the bounded three-step angle reduction
+ok 17 - actual rays around the diagonal exercise the bounded three-step angle reduction
+  ---
+  duration_ms: 8.005625
+  type: 'test'
+  ...
+# Subtest: changed actual source coefficients or native metadata cannot borrow formal-circle authority
+ok 18 - changed actual source coefficients or native metadata cannot borrow formal-circle authority
+  ---
+  duration_ms: 7.14675
+  type: 'test'
+  ...
+# Subtest: tiny valid source refuses the overflowing existing native SI density intermediate
+ok 19 - tiny valid source refuses the overflowing existing native SI density intermediate
+  ---
+  duration_ms: 1.668584
+  type: 'test'
+  ...
+# Subtest: all returned raw midpoint Number bits equal generic nearest on positive, negative and zero moments
+ok 20 - all returned raw midpoint Number bits equal generic nearest on positive, negative and zero moments
+  ---
+  duration_ms: 20.723917
+  type: 'test'
+  ...
+# Subtest: all four actual spans match independent generic Bernstein products at multiple native radii
+ok 21 - all four actual spans match independent generic Bernstein products at multiple native radii
+  ---
+  duration_ms: 44.708709
+  type: 'test'
+  ...
+# Subtest: the cycle is derived from actual directed endpoints, independent of span list order
+ok 22 - the cycle is derived from actual directed endpoints, independent of span list order
+  ---
+  duration_ms: 5.178958
+  type: 'test'
+  ...
+# Subtest: nonclosed, branched, reversed, angularly singular and unsupported operands refuse
+ok 23 - nonclosed, branched, reversed, angularly singular and unsupported operands refuse
+  ---
+  duration_ms: 8.069792
+  type: 'test'
+  ...
+# Subtest: a changed admitted lower weight produces its own exact proof instead of borrowing the upper quarter
+ok 24 - a changed admitted lower weight produces its own exact proof instead of borrowing the upper quarter
+  ---
+  duration_ms: 4.705542
+  type: 'test'
+  ...
+# Subtest: the actual fresh native/formal prefix stays identical and its complete cost is retained
+ok 25 - the actual fresh native/formal prefix stays identical and its complete cost is retained
+  ---
+  duration_ms: 110.022167
+  type: 'test'
+  ...
+# Subtest: the complete operation total succeeds, one less refuses, and the former prefix cap cannot fund new work
+ok 26 - the complete operation total succeeds, one less refuses, and the former prefix cap cannot fund new work
+  ---
+  duration_ms: 118.483084
+  type: 'test'
+  ...
+# Subtest: the distinct Z0 original reference request fits with all four spans and unchanged physical exclusions
+ok 27 - the distinct Z0 original reference request fits with all four spans and unchanged physical exclusions
+  ---
+  duration_ms: 31.085958
+  type: 'test'
+  ...
+# Subtest: native circle-extrusion source agrees with actual Part output and keeps the original +Y quarter
+ok 28 - native circle-extrusion source agrees with actual Part output and keeps the original +Y quarter
+  ---
+  duration_ms: 46.822667
+  type: 'test'
+  ...
+# Subtest: the other original semicircle retains its distinct weight bit and every protected original record
+ok 29 - the other original semicircle retains its distinct weight bit and every protected original record
+  ---
+  duration_ms: 16.708667
+  type: 'test'
+  ...
+# Subtest: source, cached B-rep, options and returned data do not alias caller data
+ok 30 - source, cached B-rep, options and returned data do not alias caller data
+  ---
+  duration_ms: 16.191333
+  type: 'test'
+  ...
+# Subtest: the original Z slab may be above or below zero without replacing its wall domains
+ok 31 - the original Z slab may be above or below zero without replacing its wall domains
+  ---
+  duration_ms: 44.195333
+  type: 'test'
+  ...
+# Subtest: every original topology/name/sense/pcurve/tolerance or coefficient mismatch is refused
+ok 32 - every original topology/name/sense/pcurve/tolerance or coefficient mismatch is refused
+  ---
+  duration_ms: 25.368667
+  type: 'test'
+  ...
+# Subtest: hollow, cut, multi-slab, displaced and non-native source families refuse atomically
+ok 33 - hollow, cut, multi-slab, displaced and non-native source families refuse atomically
+  ---
+  duration_ms: 9.383167
+  type: 'test'
+  ...
+# Subtest: a radius label or B-rep provenance string alone cannot replace its native source geometry
+ok 34 - a radius label or B-rep provenance string alone cannot replace its native source geometry
+  ---
+  duration_ms: 5.281125
+  type: 'test'
+  ...
+# Subtest: plain own data and bounded extraction options are required without invoking getters
+ok 35 - plain own data and bounded extraction options are required without invoking getters
+  ---
+  duration_ms: 1.735583
+  type: 'test'
+  ...
+# Subtest: native-UV admission owns an original carrier certificate without satisfying a full inverse request
+ok 36 - native-UV admission owns an original carrier certificate without satisfying a full inverse request
+  ---
+  duration_ms: 22.863709
+  type: 'test'
+  ...
+1..36
+# tests 36
+# suites 0
+# pass 36
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 692.357458

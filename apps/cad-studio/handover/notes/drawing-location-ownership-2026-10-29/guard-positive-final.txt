@@ -1,0 +1,88 @@
+TAP version 13
+# Subtest: independent cross-view hole locations with equal values are retained; missing target remains diagnosed
+ok 1 - independent cross-view hole locations with equal values are retained; missing target remains diagnosed
+  ---
+  duration_ms: 257.988167
+  type: 'test'
+  ...
+# Subtest: public edit changes only the second hole location from 15 to 17; both targets remain independently covered
+ok 2 - public edit changes only the second hole location from 15 to 17; both targets remain independently covered
+  ---
+  duration_ms: 215.244292
+  type: 'test'
+  ...
+# Subtest: manual first-hole location does not suppress automatic location of an independent equal-value target
+ok 3 - manual first-hole location does not suppress automatic location of an independent equal-value target
+  ---
+  duration_ms: 75.077333
+  type: 'test'
+  ...
+# Subtest: a later repeat of the second target is found after an independent target with the same span
+ok 4 - a later repeat of the second target is found after an independent target with the same span
+  ---
+  duration_ms: 72.685292
+  type: 'test'
+  ...
+# Subtest: independently authored square-grid holes each retain two target-owned locations and distinct placement rows
+ok 5 - independently authored square-grid holes each retain two target-owned locations and distinct placement rows
+  ---
+  duration_ms: 154.751625
+  type: 'test'
+  ...
+# Subtest: same-target orthographic repeat keeps manual reference and removes its automatic repeat
+ok 6 - same-target orthographic repeat keeps manual reference and removes its automatic repeat
+  ---
+  duration_ms: 67.349208
+  type: 'test'
+  ...
+# Subtest: a common hole target does not merge measurements from two independent coincident datum features
+ok 7 - a common hole target does not merge measurements from two independent coincident datum features
+  ---
+  duration_ms: 65.512084
+  type: 'test'
+  ...
+# Subtest: reversing a counted pitch changes its extension direction and does not offer a duplicate removal
+ok 8 - reversing a counted pitch changes its extension direction and does not offer a duplicate removal
+  ---
+  duration_ms: 71.261166
+  type: 'test'
+  ...
+# Subtest: same-owner endpoint pitches keep direction and count; a same-direction repeat prefers the manual dimension
+ok 9 - same-owner endpoint pitches keep direction and count; a same-direction repeat prefers the manual dimension
+  ---
+  duration_ms: 130.938917
+  type: 'test'
+  ...
+# Subtest: a manual endpoint count does not suppress a generated overall size with a different count or direction
+ok 10 - a manual endpoint count does not suppress a generated overall size with a different count or direction
+  ---
+  duration_ms: 66.975875
+  type: 'test'
+  ...
+# Subtest: actual independent compound stacks keep different location owners despite equal text and coaxial circles
+ok 11 - actual independent compound stacks keep different location owners despite equal text and coaxial circles
+  ---
+  duration_ms: 34.479667
+  type: 'test'
+  ...
+# Subtest: compound location owners retain instance paths and exact pattern-copy identity; invalid dependent cuts do not bind
+ok 12 - compound location owners retain instance paths and exact pattern-copy identity; invalid dependent cuts do not bind
+  ---
+  duration_ms: 0.160166
+  type: 'test'
+  ...
+# Subtest: assembly ownership resolves actual instance features rather than colliding base ids
+ok 13 - assembly ownership resolves actual instance features rather than colliding base ids
+  ---
+  duration_ms: 49.276083
+  type: 'test'
+  ...
+1..13
+# tests 13
+# suites 0
+# pass 13
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1495.064917

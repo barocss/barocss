@@ -1,0 +1,33 @@
+{
+  "purpose": "Compressed artifact provenance. Original source files remain in /tmp; gzip streams are evidence storage only.",
+  "artifacts": [
+    {
+      "originalPath": "/tmp/d335-root/api-candidate.json",
+      "storedPath": "root/api-candidate.json.gz",
+      "originalBytes": 17360620,
+      "originalSHA256": "8b0303653011744a8a1bb21956f418c6bcc760157d47e1a80e50a62a4ebe2b1a",
+      "storedBytes": 911990,
+      "storedSHA256": "f7997d5c84f671b223b5d43c35234702ba7ad6e786bc4831a2bb7c57ee041a17",
+      "handling": "gzip mtime=0; original uncompressed hash retained"
+    },
+    {
+      "originalPath": "/tmp/d335-root/api-previous.json.gz",
+      "storedPath": "root/api-previous.json.gz",
+      "originalBytes": 910963,
+      "originalSHA256": "f0f1d96cccf12e18c2d62f0a6883a02b14da11962a546cd08a519694ba9fd9d5",
+      "storedBytes": 910963,
+      "storedSHA256": "f0f1d96cccf12e18c2d62f0a6883a02b14da11962a546cd08a519694ba9fd9d5",
+      "handling": "Already compressed; copied byte-for-byte",
+      "decompressedSHA256": "495beb5b6d3b69f5a10b096136e9a2e0838b221d0765bf928d018a3049ffed89"
+    },
+    {
+      "originalPath": "/tmp/d335-root/native-first/seed-generator.mjs",
+      "storedPath": "root/native-first/seed-generator.mjs.gz",
+      "originalBytes": 5627512,
+      "originalSHA256": "a100db0b2de9d1272c4c30ae865da7fe4904492288da4b15afc5f6bab31d2fed",
+      "storedBytes": 1387707,
+      "storedSHA256": "a93187e339b6ea8a2f21244dbea3054dd7a6329074e015f557adff4ef7220511",
+      "handling": "gzip mtime=0; original uncompressed hash retained"
+    }
+  ]
+}

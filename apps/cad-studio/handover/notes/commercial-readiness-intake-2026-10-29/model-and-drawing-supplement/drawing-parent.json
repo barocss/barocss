@@ -1,0 +1,63 @@
+{
+  "status": "FAIL_ORCHESTRATION_WITH_VALID_PINNED_CPU_OBSERVATIONS",
+  "cleanIndependentAcceptance": "NOT_QUALIFIED",
+  "sourceCommit": "ccbdf285e357f53a9bb070f119d6e625e6cd3070",
+  "firstFailure": {
+    "kind": "ORCHESTRATION_PREFLIGHT_FAILURE",
+    "stage": "pre_guard_head_assertion",
+    "message": "assert headBeforeGuard == sourceCommit failed; the shell continued to sh run.sh because the submitted command separated operations by a newline without if/exit/set-e",
+    "rawText": "Traceback (most recent call last):\n  File \"<stdin>\", line 3, in <module>\nAssertionError\n",
+    "actualHeadAtFailedAssertion": "NOT_PERSISTED_BEFORE_ASSERTION",
+    "postRunObservedHead": "564897679cf9e32798faf4c23aba2e89fcde12f9",
+    "continuedAfterPreflightFailure": true,
+    "retry": false,
+    "acknowledgement": "Agent control-flow error; this is not a clean acceptance gate."
+  },
+  "sourceFilesAndGitTreeVerified": 2774,
+  "artifactFilesVerified": 55,
+  "compiledInputsVerified": 682,
+  "workspaceLinksInternal": 2,
+  "oldRawFailureHashesUnchanged": true,
+  "rawCPUChecks": [
+    {
+      "name": "original_equal_independent_targets",
+      "status": "PASS"
+    },
+    {
+      "name": "equal_coordinate_missing_target_diagnostic",
+      "status": "PASS"
+    },
+    {
+      "name": "public_auto_dimension_retains_both_targets",
+      "status": "PASS"
+    },
+    {
+      "name": "public_single_input_edit_differential",
+      "status": "PASS"
+    },
+    {
+      "name": "true_orthographic_repeat_and_manual_auto_priority",
+      "status": "PASS"
+    },
+    {
+      "name": "manual_first_target_does_not_suppress_independent_auto_target",
+      "status": "PASS"
+    }
+  ],
+  "rawCPUFirstFailure": null,
+  "rawReceiptSha256": "84745db529879b5e36d1543340d9ecc65a71ae205326d0bcff55349775c59211",
+  "observedPairBefore": {
+    "d3": 15,
+    "d9": 15
+  },
+  "observedPairAfter": {
+    "d3": 15,
+    "d9": 17
+  },
+  "missingRightTargetWarningsEqualAndUnequal": 1,
+  "parentReadPathFailure": "verification/drawing-repair-parent-read-path-failure-131022.json",
+  "parentRuntime": "NOT_RUN_READONLY_REVIEW",
+  "newProductFinding": "NONE_CONFIRMED_THIS_PARENT_REVIEW",
+  "scope": "Valid pinned six CPU observations; overall procedure failed. No clean repair acceptance or whole-product qualification.",
+  "at": "2026-10-29T13:24:39.359704+00:00"
+}

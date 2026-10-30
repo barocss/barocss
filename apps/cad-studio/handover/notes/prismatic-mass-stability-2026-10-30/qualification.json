@@ -1,0 +1,909 @@
+{
+  "workId": "D343",
+  "status": "BOUNDED_QUALIFIED",
+  "source": {
+    "baselinePublishedD342": "4ce1b35c753952010eb6961c62ccd6c6490bd01e",
+    "checkpoint": "e1ff873c4e0de4dca628c6486c5e99e7b8bcc591",
+    "checkpointFiles": 3,
+    "sourceFrozen": true,
+    "checkpointScope": "Final local cap-source checkpoint used by qualified run03; document gate and push remain pending",
+    "kernelProductionSha256": "19ec118c7f6096f738d246e5ca46095b42dd9bf7f67e341bcc6f735690141eac",
+    "actualResultHelperSha256": "2112393a89e38f9ff02e6fc3aaa2be6446e9bca31e87f1b2d4129c83b083c847",
+    "offsetWiringSha256": "8a1fdc9adb080cae39edc1ed34c1c591e5e87095b79e79cc53e48df94be231fd",
+    "browserDriverSha256": "7facd870e00f61fe2f524f1111342cc5cf3a1aee192e9b67d61feeaf56f9c686",
+    "checkpointMatchesLatestFrozenSource": true,
+    "postCircleRepairCheckpoint": "3177950c40077de5b91c9965376636769417d830",
+    "circleRegressionTestSha256": "3aece22c3baa6fe8fe28bdde39b6326ba6eb8e774e55f8cd1cc29470aafeb55d",
+    "previousCheckpoint": "3177950c40077de5b91c9965376636769417d830",
+    "previousCheckpointFiles": 2,
+    "implementationDistinctPathsAcrossCheckpoints": 14,
+    "apiExpectedAddedLinesAcrossCheckpoints": 31,
+    "pendingRepair": null,
+    "capIdentityProductionSha256": "17f2b70b5ecbe0b1ab7912636d780fa1594469804f4af7fb48365212bc802f5a",
+    "capIdentityKernelTestSha256": "01fbec53bd5d2b4c7423d75e7f186f0d93848155ea44d95c034f98a824923dbc",
+    "massLongitudinalConsumerTestSha256": "a0132f80eb59313de65b8acb3bf0fa95abc6c715185172a5dd1009ad4b43b0d6",
+    "postCapIdentityCheckpoint": "e1ff873c4e0de4dca628c6486c5e99e7b8bcc591",
+    "sourceCheckpoints": [
+      {
+        "sha": "f9c17c1461ad7814f89d6fefef0e358aac473596",
+        "files": 11,
+        "scope": "Initial source and API expected snapshot"
+      },
+      {
+        "sha": "3177950c40077de5b91c9965376636769417d830",
+        "files": 2,
+        "scope": "Circle runtime qualifier and regression"
+      },
+      {
+        "sha": "e1ff873c4e0de4dca628c6486c5e99e7b8bcc591",
+        "files": 3,
+        "scope": "Cap-source identity and Kernel/Model regressions"
+      }
+    ],
+    "orchestrationFirstFailure": {
+      "artifact": "root/cap-checkpoint-first-error.txt",
+      "classification": "Root wrapper mapping KeyError before staging; corrected direct mapping, no product source change"
+    },
+    "initialCheckpoint": "f9c17c1461ad7814f89d6fefef0e358aac473596",
+    "initialCheckpointFiles": 11
+  },
+  "checks": {
+    "kernel": {
+      "baselineFocused": {
+        "pass": 25,
+        "fail": 19,
+        "skip": 0,
+        "firstFailure": "Captured normal centroid 0.34375 outside [0.3456789,0.34567890000000023]"
+      },
+      "candidateFocused": {
+        "pass": 44,
+        "fail": 0,
+        "skip": 0
+      },
+      "related": {
+        "pass": 68,
+        "fail": 0,
+        "skip": 0
+      },
+      "full": {
+        "status": "PASS",
+        "pass": 2325,
+        "fail": 0,
+        "skip": 6,
+        "tests": 2331,
+        "skipScope": "Existing registered SKIP cases",
+        "durationMs": 250509.062917,
+        "exit": 0,
+        "log": "root/kernel-full-cap.log.gz",
+        "exitArtifact": "root/kernel-full-cap.exit",
+        "source": "Final frozen cap-source17f2b70b and unchanged mass formulas19ec118c"
+      },
+      "types": "PASS",
+      "lint": "PASS",
+      "commonVolumeMassBitPairs": 43,
+      "bitPairScope": "Shared recorded observations only; arithmetic evidence, not a geometry checksum",
+      "receipt": "kernel/receipt.md",
+      "review": {
+        "status": "NO_REQUIRED_SOURCE_FINDING",
+        "artifact": "kernel-review/review.md",
+        "scope": "Source and oracle review; reviewer did not execute runtime"
+      },
+      "fullBeforeCapIdentityRepair": {
+        "pass": 2317,
+        "fail": 0,
+        "skip": 6,
+        "tests": 2323,
+        "skipScope": "Existing registered SKIP cases",
+        "durationMs": 250775.750792,
+        "exit": 0,
+        "log": "kernel/full-first.log.gz"
+      }
+    },
+    "modelHistorical": {
+      "pass": 36,
+      "fail": 2,
+      "skip": 0,
+      "tests": 38,
+      "log": "model/historical-first.log.gz",
+      "reason": "Historical circle mass-refusal expectations cease to throw after corrected provider. Actual Z success was independently checked before changes. Strict-invalid polygon remains refused."
+    },
+    "actualZProofBeforeExpectationUpdate": {
+      "pass": 1,
+      "fail": 0,
+      "skip": 0,
+      "actualCommand": true,
+      "nativeStrictValid": true,
+      "nativeSolids": 1,
+      "nativeClosedShells": 1,
+      "storedInterval": [
+        0.3456789,
+        0.34567890000000023
+      ],
+      "gapFraction": {
+        "numerator": "1",
+        "denominator": "4503599627370496"
+      },
+      "expectedMidpointFraction": {
+        "numerator": "3113598730459687",
+        "denominator": "9007199254740992"
+      },
+      "actualKernelModelPublicNormalCentroid": 0.3456789000000001,
+      "actualKernelModelPublicVolume": 6.278163296415536e-15,
+      "modelNativeFileReopen": "PASS",
+      "artifact": "model/actual-corrected-proof.json",
+      "boundary": "Actual Z-upright consumer proof; not native quadrature or browser acceptance"
+    },
+    "modelBeforeResultSafety": {
+      "pass": 44,
+      "fail": 0,
+      "skip": 0,
+      "receipt": "model/receipt.md",
+      "boundary": "Superseded for final source by actual-result v2 integration; first-stage evidence retained"
+    },
+    "actualResultSafety": {
+      "status": "PASS_FINAL_V2_SOURCE_AND_AFFECTED_MODEL_INTEGRATION",
+      "history": [
+        {
+          "stage": "initialFocused",
+          "pass": 0,
+          "fail": 6,
+          "skip": 0,
+          "log": "actual-result/focused-first.log.gz"
+        },
+        {
+          "stage": "secondFocused",
+          "pass": 4,
+          "fail": 2,
+          "skip": 0,
+          "log": "actual-result/focused-second.log.gz"
+        },
+        {
+          "stage": "v1Focused",
+          "pass": 6,
+          "fail": 0,
+          "skip": 0,
+          "log": "actual-result/focused-final.log.gz"
+        },
+        {
+          "stage": "v1BroaderIntegration",
+          "pass": 79,
+          "fail": 2,
+          "skip": 0,
+          "tests": 81,
+          "log": "model/final-result-first.log.gz",
+          "error": "[FACE_DISTANCE] Offset result: both intended stored target levels must survive the actual composition.",
+          "reason": "Ordinary X/Y +2 retries rejected by exact vertex endpoint presence condition; review reopened"
+        },
+        {
+          "stage": "v2OverrestrictedAttempt",
+          "pass": 7,
+          "fail": 1,
+          "skip": 0,
+          "log": "actual-result/focused-v2-first.log.gz",
+          "reason": "Unused side-support poles incorrectly treated as trimmed material bounds"
+        },
+        {
+          "stage": "v2FinalFocused",
+          "pass": 8,
+          "fail": 0,
+          "skip": 0,
+          "log": "actual-result/focused-v2-final.log.gz"
+        },
+        {
+          "stage": "v2FinalAffectedModelIntegration",
+          "pass": 83,
+          "fail": 0,
+          "skip": 0,
+          "log": "model/final-result-v2-first.log.gz"
+        }
+      ],
+      "types": "PASS",
+      "lint": "PASS",
+      "receipt": "actual-result/receipt.md",
+      "reviewHistory": {
+        "v1": {
+          "artifact": "result-review/review.md",
+          "initialVerdict": "SOURCE_PASS_NO_BLOCKING_FINDING",
+          "finalStatus": "REOPENED_AFTER_79_PASS_2_FAIL_INTEGRATION",
+          "promotedAsFinalAcceptance": false
+        },
+        "v2": {
+          "artifact": "result-review/review-v2.md",
+          "verdict": "SOURCE_PASS_NO_BLOCKING_FINDING",
+          "integrationAtReviewTime": "PENDING",
+          "laterFinalIntegration": {
+            "pass": 83,
+            "fail": 0,
+            "skip": 0
+          },
+          "laterProductQualification": "Run01 failed before actual-result validation at native circle qualifier; product gate reopened. Actual-result function body remains unchanged in v3."
+        },
+        "v3": {
+          "artifact": "result-review/review-v3.md",
+          "verdict": "SOURCE_PASS_NO_BLOCKING_FINDING",
+          "actualResultAndDistanceBodiesByteEqualToV2": true,
+          "circleCandidatePreconditionChanged": true,
+          "laterFinalModelIntegration": {
+            "pass": 86,
+            "fail": 0,
+            "skip": 0
+          },
+          "actualRun02": "FAIL_AFTER_APPLY_PUBLIC_CAP_IDENTITY",
+          "laterActualRun03": "PASS_ON_FINAL_SOURCE"
+        },
+        "v4": {
+          "artifact": "result-review/review-v4.md",
+          "verdict": "SOURCE_PASS_NO_BLOCKING_FINDING",
+          "runtimeAtReviewTime": "PENDING",
+          "laterRootFullKernel": {
+            "pass": 2325,
+            "fail": 0,
+            "skip": 6,
+            "tests": 2331
+          },
+          "laterFinalModel": {
+            "pass": 86,
+            "fail": 0,
+            "skip": 0
+          },
+          "laterActualRun03": "PASS_SEPARATE_ROOT_RUNTIME_AND_IMAGE_REVIEW",
+          "reviewerExecutedRuntime": false
+        }
+      },
+      "runtimeBoundary": "Runs after existing shared Offset Extrude/Boolean build and before candidate return. Not a persisted feature or a generic later Boolean/file/parameter/edit guard.",
+      "geometryBoundary": "Actual target identity, strict native closure/validity, exact full cap support levels, strict vertex/boundary normal interval, positive actual span, bounded tangent extents and actual Model normal mass. Not full material or side-interior equivalence.",
+      "ownershipBoundary": "Existing prospective distance predicate body remains byte-equal; whole-helper byte-equality requirement superseded by approved actual-result addition. Core mass source remains frozen.",
+      "cacheBoundary": "One last candidate WeakRef/content/refusal per trusted proof; source and recipe checks precede reuse; no latency or performance acceptance"
+    },
+    "modelFinal": {
+      "status": "PASS",
+      "pass": 86,
+      "fail": 0,
+      "skip": 0,
+      "types": "PASS",
+      "narrowChangedMassTestLint": "PASS",
+      "testLog": "model/final-cap-model-first.log.gz",
+      "exitArtifact": "model/final-cap-model-first.exit",
+      "hashes": "model/final-cap-model-sources.sha256",
+      "receipt": "model/final-cap-model-receipt.md",
+      "actualConsumerProof": "model/final-cap-model-actual-proof.json",
+      "selectors": [
+        "native-offset-face",
+        "offset-face-native",
+        "native-offset-result",
+        "native-offset-circle-browser",
+        "mass-longitudinal",
+        "mass.test",
+        "face-commands",
+        "feature-handles",
+        "sketch-profile-precision",
+        "o10-body-keys"
+      ],
+      "newIdentityAssertions": {
+        "nativePhysicalFaceCount": 4,
+        "publicLogicalGroupCount": 3,
+        "uniquePublicNames": true,
+        "oneCapEachDirection": true,
+        "wholeQueryNameCountEachCap": 1,
+        "freshOpenNamesStable": true,
+        "noWitnessTestNames": [
+          "n1.bottom",
+          "n1.side0",
+          "n4.bottom"
+        ],
+        "featurePrefixBoundary": "Witness actual replay has new tool n6 instead of n4; same-namespace names are compared only within a recipe and reopen"
+      },
+      "allPreviousMassGeometryAssertionsRetained": true,
+      "heavyRelease": "holder none, slots0 in model/final-cap-model-gate-status.txt"
+    },
+    "apiStudio": {
+      "status": "PASS_WITH_DOCUMENTED_REUSE_AND_FINAL_STUDIO_BUILD",
+      "recordedCheckCount": 9,
+      "allRecordedExits": 0,
+      "exitArtifact": "root/api-studio-exit-codes.tsv",
+      "checks": {
+        "inventoryGeneration": "PASS",
+        "inventoryAdoptionReview": "PASS",
+        "apiCheck": "PASS",
+        "agentToolsCheck": "PASS",
+        "refusalsCheck": "PASS",
+        "studioChat": {
+          "pass": 23,
+          "fail": 0,
+          "skip": 0
+        },
+        "studioTypes": "PASS",
+        "studioViteBuild": {
+          "beforeCircleRepair": "PASS",
+          "afterCircleRepair": "PASS",
+          "exit": 0,
+          "log": "root/studio-vite-v3.log.gz",
+          "exitArtifact": "root/studio-vite-v3.exit",
+          "afterCapIdentityRepair": {
+            "status": "PASS",
+            "exit": 0,
+            "log": "root/studio-vite-cap-final.log.gz",
+            "exitArtifact": "root/studio-vite-cap-final.exit"
+          }
+        },
+        "browserDriverLint": {
+          "status": "PASS",
+          "errors": 0,
+          "warnings": 1,
+          "warning": "no-console"
+        }
+      },
+      "apiSemanticDelta": {
+        "beforeExposures": 6833,
+        "afterExposures": 6834,
+        "added": 1,
+        "removed": 0,
+        "presentationOnlyExistingChanges": 0,
+        "newExposure": {
+          "package": "@barocss/cad-model",
+          "subpath": "./app/nativeOffsetFace",
+          "exportName": "validateNativeOffsetResult",
+          "type": "(ctx: Ctx, candidate: StudioDoc, profile: NativeOffsetFaceProfile, distance: number) => void"
+        },
+        "artifact": "root/api-semantic-delta.json",
+        "adoptionReview": "root/api-adoption-review.json",
+        "existingShapeChanges": 0,
+        "privateImplementationBehaviorIntentionallyChanged": true,
+        "furtherExportsAfterCircleAndCapRepairs": 0
+      },
+      "warningBoundary": "Successful Vite build is not a warning-free build",
+      "reuseBoundary": "API declaration shapes/exports, generated checks, Studio chat23/types and unchanged driver lint reused for private implementation-only circle/cap changes; final Model types and fresh Studio builds complete. Behavior intentionally changes.",
+      "reuseArtifact": "root/v3-gate-reuse.json"
+    },
+    "browser": {
+      "status": "PASS_RUN03_AFTER_TWO_PRESERVED_PRODUCT_FAILURES",
+      "firstRun": {
+        "run": "studio/run-01",
+        "status": "FAIL",
+        "driverFailure": "page.waitForFunction: Timeout 60000ms exceeded.\n    at acceptedPreview (/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/prismatic-mass-stability-browser.mjs:116:13)\n    at /Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/prismatic-mass-stability-browser.mjs:147:286",
+        "recordedPhase": "actual viewport cap pick 02-original-top",
+        "actualFailureStage": "acceptedPreview waiting for preview; original viewport cap selection had succeeded",
+        "phaseLabelCaution": "Historical phase label remained at viewport pick; do not treat this as a selection failure",
+        "hudStatus": "refused",
+        "hudText": "Offset facerefusedcheck_circleMove5.00009 mm in (material taken off)OffsetmmInvalid inputBarocssError: [VALUE] Offset face: the native circular cap needs one finite circular bound.CancelApply",
+        "refusalCode": "VALUE",
+        "refusalMessage": "Offset face: the native circular cap needs one finite circular bound.",
+        "acceptedDocUnchanged": true,
+        "successfulOffsetApply": false,
+        "actualResultValidatorReached": false,
+        "pageErrors": 0,
+        "consoleErrors": 0,
+        "watchChanges": 0,
+        "chromeProcessesLaunched": 1,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "receipt": "studio/run-01/receipt.json",
+        "state": "studio/run-01/failure.json",
+        "screenshot": "studio/run-01/failure.png"
+      },
+      "run02": {
+        "run": "studio/run-02",
+        "status": "FAIL",
+        "sourceCheckpoint": "3177950c40077de5b91c9965376636769417d830",
+        "failure": "AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n\n2 !== 3\n\n    at readNative (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/prismatic-mass-stability-browser.mjs:88:424)\n    at async file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/prismatic-mass-stability-browser.mjs:148:634",
+        "phase": "actual Apply 04-captured-inward-applied",
+        "preview": "SUCCESS",
+        "apply": "SUCCESS",
+        "publicIdentity": "FAIL",
+        "nativeFaceCount": 4,
+        "publicLogicalGroupCount": 3,
+        "publicUniqueNameCount": 2,
+        "publicNames": [
+          "n1.bottom",
+          "n1.bottom",
+          "n1.side0"
+        ],
+        "nativeNames": [
+          "n1.side0#2",
+          "n1.side0#1",
+          "n1.bottom#1",
+          "n1.bottom#2"
+        ],
+        "rawKernelMass": {
+          "volume": 6.278163296415536e-15,
+          "mass": 6.2781632964155365e-18,
+          "centroid": [
+            0.12345670000000006,
+            -0.23456779999999994,
+            0.3456789000000001
+          ],
+          "method": "closed-form",
+          "inertia": [
+            [
+              1.4125867416934958e-17,
+              3.6977854932234927e-34,
+              0
+            ],
+            [
+              3.6977854932234927e-34,
+              1.4125867416934958e-17,
+              0
+            ],
+            [
+              0,
+              0,
+              2.8251734833869917e-17
+            ]
+          ]
+        },
+        "rawModelMass": {
+          "volume": 6.278163296415536e-15,
+          "centroid": [
+            0.12345670000000006,
+            -0.23456779999999994,
+            0.3456789000000001
+          ]
+        },
+        "rawPublicMass": {
+          "volume": 6.278163296415536e-15,
+          "mass": 6.2781632964155365e-18,
+          "centroid": [
+            0.12345670000000006,
+            -0.23456779999999994,
+            0.3456789000000001
+          ],
+          "inertia": [
+            [
+              1.4125867416934958e-17,
+              3.6977854932234927e-34,
+              0
+            ],
+            [
+              3.6977854932234927e-34,
+              1.4125867416934958e-17,
+              0
+            ],
+            [
+              0,
+              0,
+              2.8251734833869917e-17
+            ]
+          ]
+        },
+        "independentMassOracleTail": "NOT_REACHED_AFTER_PUBLIC_IDENTITY_ASSERTION",
+        "fileUndoRedoTail": "NOT_REACHED",
+        "pageErrors": 0,
+        "consoleErrors": 0,
+        "watchChanges": 0,
+        "chromeProcessesLaunched": 1,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "receipt": "studio/run-02/receipt.json",
+        "rawNative": "studio/run-02/04-captured-thin-native.raw.json",
+        "driverAssertionWeakened": false
+      },
+      "partialResultsPromoted": false,
+      "run03": {
+        "run": "studio/run-03",
+        "status": "PASS",
+        "sourceCheckpoint": "e1ff873c4e0de4dca628c6486c5e99e7b8bcc591",
+        "receipt": "studio/run-03/receipt.json",
+        "firstProductPass": false,
+        "partialResultsPromoted": false,
+        "chromeProcesses": 1,
+        "serialContexts": 3,
+        "observationalStates": 14,
+        "stateCountIsRegisteredTestCount": false,
+        "nativeReads": 6,
+        "independentFractionOracles": 4,
+        "actualStudioMassReads": 4,
+        "actualMousePicks": 2,
+        "acceptedSelectionChecks": 2,
+        "nativeFiles": 1,
+        "downloads": 1,
+        "undoRedo": "PASS_EXACT_ACCEPTED_RECIPES",
+        "nativeSaveFreshOpen": "PASS_SEMANTIC_RECIPE_AND_REFERENCE_IDENTITY",
+        "rawByteIdentityClaim": false,
+        "capturedLiteralOffset": -5.00009,
+        "rawGeneratedHeight": 5.00009,
+        "rawGeneratedFrom": -5.00009,
+        "unchangedSourcePrefix": true,
+        "clearedAcceptedGeometryPicks": true,
+        "witnessAliased": false,
+        "ordinaryVisibleControl": {
+          "radius": 3,
+          "sourceHeight": 5.00009,
+          "offset": 2,
+          "status": "PASS",
+          "roundedPiGuideOnly": true
+        },
+        "actualStudioTinyVolume": 6.278163296415537e-15,
+        "nodePublicTinyVolume": 6.278163296415536e-15,
+        "crossEngineVolumeDifference": "One ulp; no bit-identity claim",
+        "rawNormalCentroid": 0.3456789000000001,
+        "exactPhysicalInterval": [
+          0.3456789,
+          0.34567890000000023
+        ],
+        "exactGapFraction": {
+          "numerator": "1",
+          "denominator": "4503599627370496"
+        },
+        "exactMidpointFraction": {
+          "numerator": "3113598730459687",
+          "denominator": "9007199254740992"
+        },
+        "intervalAuthority": "Original native stored endpoints plus represented request; four independent Fraction oracle checks. Pixel and Float32 bounds are not authority.",
+        "publicNames": [
+          "n1.bottom",
+          "n1.side0",
+          "n6.bottom"
+        ],
+        "publicLogicalGroups": 3,
+        "publicUniqueNames": 3,
+        "nativePhysicalFaces": 4,
+        "nativeNames": [
+          "n1.side0#2",
+          "n1.side0#1",
+          "n1.bottom",
+          "n6.bottom"
+        ],
+        "namesAndCountsStableThroughRedoAndFreshOpen": true,
+        "witness": {
+          "key": "b4",
+          "expectedVolume": 420,
+          "expectedCentroid": [
+            86,
+            0.5,
+            3.5
+          ],
+          "comparisonTolerance": 1e-07,
+          "publicNames": [
+            "n4.bottom",
+            "n4.side0",
+            "n4.side1",
+            "n4.side2",
+            "n4.side3",
+            "n4.top"
+          ],
+          "nativeNames": [
+            "n4.side0",
+            "n4.side1",
+            "n4.side2",
+            "n4.side3",
+            "n4.bottom",
+            "n4.top"
+          ],
+          "stable": true
+        },
+        "sourceCapsule": {
+          "beforeGenerationSubset": 13,
+          "afterGenerationFrozenListedBundleInputs": 728,
+          "after": 728,
+          "afterCleanup": 728,
+          "frozenAfterCleanupMatch": true,
+          "scope": "Initial subset differs from full listed Node bundle graph; not whole served-graph attestation before generation. Virtual inputs are excluded from disk paths and their exact source is saved separately.",
+          "hashesAreGeometryOracle": false
+        },
+        "pageErrors": 0,
+        "consoleErrors": 0,
+        "watchedChanges": 0,
+        "cleanup": [
+          "CONTEXT_CLOSED",
+          "CONTEXT_CLOSED",
+          "CONTEXT_CLOSED",
+          "BROWSER_CLOSED",
+          "SERVER_CLOSED"
+        ],
+        "allResourcesClosed": true
+      },
+      "buildGraphSummary": "root/browser-build-graph-summary.json"
+    },
+    "studioNativeFileFlow": {
+      "status": "PASS_ON_RUN03",
+      "nativeFiles": 1,
+      "downloads": 1,
+      "saveFreshOpen": "PASS",
+      "semanticRecipeIdentity": "PASS",
+      "publicAndNativeNames": "PASS_STABLE",
+      "sourcePrefix": "UNCHANGED",
+      "rawByteIdentityClaim": false,
+      "firstTwoRunsPreservedFailures": true
+    },
+    "rootVisual": {
+      "status": "SCOPED_VISUAL_AND_PRODUCT_FLOW_PASS",
+      "artifact": "root/flow-review-run03.json",
+      "sourceCheckpoint": "e1ff873c4e0de4dca628c6486c5e99e7b8bcc591",
+      "reviewer": "Root",
+      "viewedImages": [
+        {
+          "path": "studio/run-03/03-captured-inward-preview.png",
+          "sha256": "18eaf3b244a91c1c02e0f472fb751a061d0ab9e4cda2eb40bd2b9b424b0c7c38"
+        },
+        {
+          "path": "studio/run-03/04-thin-ui-presence-only.png",
+          "sha256": "5a9e79b13ca7ed6e9b2f48bbac232350d7ad1bff3e2b0b77b15285ed28774b4a"
+        },
+        {
+          "path": "studio/run-03/08-reopened-thin-ui-presence-only.png",
+          "sha256": "0d6ab1d4f339cb5f4bc6a3ccb5272e3f6e95c46c8d08a16fee553c1460fb8964"
+        },
+        {
+          "path": "studio/run-03/13-visible-control-iso.png",
+          "sha256": "79d542737542520ec3251cc4c0ea6c5b40772700692b9b6fd82fe43022bda82e"
+        }
+      ],
+      "observations": [
+        "Offset HUD accepts the captured literal and shows preview.",
+        "After Apply and fresh Open the thin disc and witness are visible in Iso; source cylinder height is gone.",
+        "Ordinary +2 control remains a visible closed cylinder beside the unchanged witness.",
+        "Cleared geometry selection does not alias the reordered witness body."
+      ],
+      "boundary": "Pixels/Float32 cannot resolve the four-ULP height, prove native cap identity, exact geometry or raw mass. Native coefficient checks and four independent scalar oracles are separate authority.",
+      "imageCount": 4,
+      "pixelProofOfFourUlpInterval": false,
+      "rootCapNameLevelComparison": "root/flow-review-run03.json"
+    },
+    "documentGate": {
+      "status": "PASS",
+      "command": "node apps/library-docs/scripts/check-docs.mjs",
+      "metrics": {
+        "pages": 68,
+        "beingWritten": 0,
+        "shots": 55,
+        "shotKB": 4811,
+        "labels": 861
+      },
+      "log": "root/check-docs-final.log.gz",
+      "scope": "Library documentation structural checks. Handover provenance/manifest and staged whitespace are separately verified by root.",
+      "stagedWhitespace": "PASS_AFTER_BYTE_PRESERVING_GZIP"
+    },
+    "modelFinalBeforeBrowserRepair": {
+      "pass": 83,
+      "fail": 0,
+      "skip": 0,
+      "types": "PASS",
+      "narrowLint": "PASS",
+      "ownedDiffCheck": "PASS",
+      "selectors": [
+        "native-offset-face",
+        "offset-face-native",
+        "native-offset-result",
+        "mass-longitudinal",
+        "mass.test",
+        "face-commands",
+        "feature-handles",
+        "sketch-profile-precision",
+        "o10-body-keys"
+      ],
+      "massSelectorScope": "Includes registered ordinary, deferred and frozen mass matches",
+      "exitArtifact": "model/final-result-v2-first.exit",
+      "hashes": "model/final-result-v2-sources.sha256",
+      "receipt": "model/receipt.md",
+      "heavyRelease": "holder none, slots 0 at handoff"
+    },
+    "circleRuntimeQualificationRepair": {
+      "status": "SOURCE_FROZEN_MODEL_CHECKS_PASS_PRODUCT_PENDING",
+      "baseCheckpoint": "f9c17c1461ad7814f89d6fefef0e358aac473596",
+      "diagnostic": {
+        "chromeNativeXHalf": 3,
+        "chromeNativeYHalf": 3.0000000000000004,
+        "nodeInspectorXHalf": 3,
+        "nodeInspectorYHalf": 3,
+        "observation": "Exact bbox half-radius equality rejected the actual browser native cap. Underlying Math implementation cause not established."
+      },
+      "sourceChange": "Four-line candidate precondition change: both half-spans finite and positive replaces exact equality. Existing complete circle quotient remains the authority.",
+      "unchanged": [
+        "Complete both-cap all-four-span rational quotient certification",
+        "side ruling qualification",
+        "prospective distance predicate",
+        "actual-result validation",
+        "existing joint 1e-7 budget",
+        "Core mass files",
+        "public exports"
+      ],
+      "highFocused": {
+        "pass": 26,
+        "fail": 0,
+        "skip": 0,
+        "composition": "Existing native profile15 + actual result8 + circle regression3"
+      },
+      "highTypes": "PASS",
+      "highNarrowLint": "PASS",
+      "finalModelIntegration": {
+        "pass": 86,
+        "fail": 0,
+        "skip": 0
+      },
+      "rawReceiptSource": "circle-browser/receipt.md",
+      "postFixActualStudio": "PASS_RUN03_AFTER_SEPARATE_CAP_IDENTITY_REPAIR; run02 preview/Apply already passed circle qualifier but failed later public names",
+      "importedStepBoundary": "Captured STEP controls were correctly refused because the importer reconstructed a larger planar support; no generic imported-circle expansion was made.",
+      "review": {
+        "artifact": "result-review/review-v3.md",
+        "verdict": "SOURCE_PASS_NO_BLOCKING_FINDING",
+        "productAtReviewTime": "PENDING",
+        "laterFinalModelIntegration": {
+          "pass": 86,
+          "fail": 0,
+          "skip": 0
+        },
+        "actualRun02": "FAIL_AFTER_APPLY_PUBLIC_CAP_IDENTITY",
+        "laterActualRun03": "PASS_AFTER_CAP_IDENTITY_REPAIR"
+      }
+    },
+    "modelBeforeCapIdentityRepair": {
+      "pass": 86,
+      "fail": 0,
+      "skip": 0,
+      "types": "PASS",
+      "narrowLint": "PASS",
+      "ownedDiffCheck": "PASS",
+      "selectors": [
+        "native-offset-face",
+        "offset-face-native",
+        "native-offset-result",
+        "mass-longitudinal",
+        "mass.test",
+        "face-commands",
+        "feature-handles",
+        "sketch-profile-precision",
+        "o10-body-keys",
+        "native-offset-circle-browser"
+      ],
+      "massSelectorScope": "Includes registered ordinary, deferred and frozen mass matches",
+      "exitArtifact": "model/final-circle-first.exit",
+      "hashes": "model/final-circle-sources.sha256",
+      "receipt": "model/final-circle-receipt.md",
+      "heavyRelease": "holder none, slots 0 in model/final-circle-gate-status.txt",
+      "testLog": "model/final-circle-first.log.gz",
+      "typesEvidence": "PASS reused from High final circle source at helper2112393a/newtest3aece22c",
+      "narrowLintEvidence": "PASS reused for unchanged wiring/tests and High final helper/newtest as authorized"
+    },
+    "publicCapIdentityRepair": {
+      "status": "BOUNDED_QUALIFIED_FINAL_SOURCE_RUNTIME_AND_FILE",
+      "observedProblem": "Tolerance-first cap-source lookup aliases distinct four-ulp levels to the same first source; public cap names duplicate despite four valid physical native faces",
+      "consumerTest": "PASS: distinct +z/-z caps, unambiguous whole-query names, native4/public3 separate, same names after file reopen",
+      "kernelFocusedAndFull": "FOCUSED8_RELATED105_AND_ROOT_FULL2325_PASS_6_EXISTING_SKIP",
+      "modelFinal": {
+        "pass": 86,
+        "fail": 0,
+        "skip": 0,
+        "types": "PASS",
+        "changedTestLint": "PASS"
+      },
+      "postRepairBrowser": "PASS_RUN03",
+      "newApiSignatures": "NONE_EXPECTED",
+      "fullMaterialOrNativeQuadratureCertification": false,
+      "productionChange": "Cap provenance lookup cp.z===z replaces abs(cp.z-z)<=tol; same-height membership/order and generated fallback unchanged",
+      "ownerBuild": "PASS",
+      "ownerFocused": {
+        "pass": 8,
+        "fail": 0,
+        "skip": 0
+      },
+      "ownerRelated": {
+        "pass": 105,
+        "fail": 0,
+        "skip": 0,
+        "families": [
+          "prismatic-solid",
+          "prismatic-mass-stability",
+          "part-model",
+          "api-part",
+          "api-query-snapshot"
+        ]
+      },
+      "ownerTypes": "PASS",
+      "ownerNarrowLint": "PASS",
+      "correctedReplay": {
+        "publicNames": [
+          "n1.side0",
+          "n1.bottom",
+          "n6.bottom"
+        ],
+        "publicNamesUnique": true,
+        "nativePhysicalFaces": 4,
+        "lowlevelSolidExactEqual": true,
+        "lowlevelMassExactEqual": true,
+        "lowlevelBrepExceptNamesExactEqual": true,
+        "actualRecipeExactEqual": true,
+        "actualBrepExceptNamesExactEqual": true
+      },
+      "rawOwnerReceiptSource": "cap-identity/receipt.md",
+      "rawComparisonSource": "cap-identity/geometry-mass-comparison.json",
+      "firstFailures": {
+        "preFixFocused": {
+          "pass": 1,
+          "fail": 7,
+          "caution": "Includes a fallback-name test typo; not seven distinct product failures"
+        },
+        "candidateFirstFocused": {
+          "pass": 3,
+          "fail": 5,
+          "reason": "Test-only exact rounded-pi arithmetic assumptions; bounded machine-rounding guide corrected without product tolerance change"
+        }
+      },
+      "review": {
+        "artifact": "result-review/review-v4.md",
+        "verdict": "SOURCE_PASS_NO_BLOCKING_FINDING"
+      },
+      "productNamesAndFileProof": "Three unique logical public groups versus four physical native faces, stable through Redo and native fresh Open in run03",
+      "generalPublicNamingCertification": false
+    },
+    "fullModelSuite": "NOT_RUN",
+    "fullStudioSuite": "NOT_RUN",
+    "performanceBenchmark": "NOT_RUN"
+  },
+  "unrepairedNativeQuadrature": {
+    "status": "UNREPAIRED_SEPARATE_PROVIDER",
+    "actualVolume": 6.180191251439208e-15,
+    "actualCentroid": [
+      0.10042170557247179,
+      -0.26839177431837347,
+      0.3456789000000001
+    ],
+    "comparisonReference": "Upright positive volume and independently rounded circle guide; exact pi is not claimed",
+    "differenceSummary": "About -1.56 percent volume difference and shifted tangent centroid",
+    "promotedAsLongitudinalRepairAccuracy": false,
+    "artifact": "model/actual-corrected-proof.json"
+  },
+  "limits": [
+    "No global central-inertia repair.",
+    "No 2D Green integration repair.",
+    "No universal finite, subnormal or overflow guarantee.",
+    "No new geometry tolerance, minimum thickness, coordinate rewrite or centroid clamp.",
+    "Native B-rep quadrature and other providers remain separate.",
+    "Normal interval and tangent extents do not prove full material identity, arbitrary side-surface interiors, tangent centroid or inertia accuracy.",
+    "Actual-result safety is a shared Offset build-time postcondition, not a persisted general Boolean, file, parameter or edit guard.",
+    "Source hashes establish provenance; mass bits are bounded arithmetic evidence, not geometry certification.",
+    "Tiny display bounds and pixels cannot prove the native normal interval.",
+    "No performance, UI latency, whole roadmap16 or whole08 acceptance claim."
+  ],
+  "nextSourceOnlyReview": {
+    "sourcePath": "/tmp/d344-plan/native-quadrature-review-plan.md",
+    "status": "SOURCE_ONLY",
+    "issue": "Existing roadmap16/CG10 native quadrature conditioning",
+    "order": "Existing unresolved 16 accuracy work before remaining ordinary 08; 09 after 08; Electron 15 queued",
+    "implementationTestsBuildBrowserPublication": "NOT_RUN",
+    "parallelQueueCreated": false,
+    "artifact": "next-plan/native-quadrature-review-plan.md",
+    "includesStepConsumerRoute": true
+  },
+  "publication": {
+    "localSourceCommit": {
+      "status": "CREATED_LOCAL_NOT_PUSHED",
+      "sha": "e1ff873c4e0de4dca628c6486c5e99e7b8bcc591",
+      "files": 3,
+      "implementationDistinctPathsAcrossThreeSourceCommits": 14
+    },
+    "sourceCheckpoints": [
+      {
+        "sha": "f9c17c1461ad7814f89d6fefef0e358aac473596",
+        "files": 11,
+        "scope": "Initial source and API expected snapshot"
+      },
+      {
+        "sha": "3177950c40077de5b91c9965376636769417d830",
+        "files": 2,
+        "scope": "Circle runtime qualifier and regression"
+      },
+      {
+        "sha": "e1ff873c4e0de4dca628c6486c5e99e7b8bcc591",
+        "files": 3,
+        "scope": "Cap-source identity and Kernel/Model regressions"
+      }
+    ],
+    "documentCommit": "THIS_DOCUMENT_COMMIT_AFTER_STAGED_CHECK",
+    "push": "NORMAL_PUSH_REQUESTED_AFTER_THIS_DOCUMENT_COMMIT",
+    "remoteCI": "NOT_RUN",
+    "release": "NOT_RUN",
+    "boundary": "The note cannot embed its own final commit hash. Root verifies exact remote HEAD after publication; this recorded status is the pre-push document boundary."
+  },
+  "artifactWhitespace": {
+    "first": "FAIL_ON_RAW_DIFF_CONTEXT_SPACE",
+    "log": "root/staged-diff-check-first.log.gz",
+    "repair": "Exact raw diff stored as deterministic gzip; decoded hash unchanged.",
+    "final": "PASS"
+  }
+}

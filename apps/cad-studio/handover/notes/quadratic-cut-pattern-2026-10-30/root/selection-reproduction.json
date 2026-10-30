@@ -1,0 +1,50 @@
+{
+  "status": "ACTUAL_PRODUCT_FAIL_REPRODUCED",
+  "failure": "AssertionError [ERR_ASSERTION]: Successful Path Apply must not alias the consumed target pick to witness420\n    at selectionAfterApply (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/quadratic-cut-pattern-browser.mjs:208:10)\n    at async file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/quadratic-cut-pattern-browser.mjs:238:297",
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": [
+        0
+      ]
+    },
+    "bodies": 2,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b6",
+        "volume": 420.0000000000001,
+        "centroid": [
+          85.99999999999996,
+          0.4999999999999998,
+          3.5
+        ],
+        "massRef": null
+      },
+      {
+        "key": "b7",
+        "volume": 23549.99999999998,
+        "centroid": [
+          30.238268905603764,
+          20.15848976855284,
+          5
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "visual": "Root viewedfailure.png: unrelated420witness selectedafterconsumedtarget reorder",
+  "cleanup": [
+    "CONTEXT_CLOSED",
+    "BROWSER_CLOSED",
+    "SERVER_CLOSED"
+  ]
+}

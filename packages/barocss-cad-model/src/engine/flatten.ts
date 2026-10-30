@@ -1,3 +1,4 @@
+import { fillPatternDocumentProblem } from './fillFeaturePattern';
 // A sub-assembly as one part: a document's own features, then each visible instance's features placed as
 // they stand (their mates were solved when the file was saved), renumbered after them. Inserted into
 // another assembly, it is then one instance with several bodies whose faces mate like any part's.
@@ -5,9 +6,12 @@ import { placedDoc, prefixDoc, type BodyRef, type Dim, type MemberSection, type 
 import { nextSerial, renameFeatureIds, withIds } from './ids';
 import { refusal } from './refusal';
 import { assertRouteBundleDocument } from './routeBundle';
+import { curvePatternDocumentProblem } from './curveFeaturePattern';
 
 /** The document with its instances folded in as features (nested sub-assemblies too). */
 export function flattenAssembly(doc: StudioDoc): StudioDoc {
+  const pathProblem = fillPatternDocumentProblem(doc) ?? curvePatternDocumentProblem({ instances: [{ doc }] });
+  if (pathProblem) throw refusal('VALUE', pathProblem);
   assertRouteBundleDocument(doc);
   if (doc.schema === 4 || Object.prototype.hasOwnProperty.call(doc, 'routeBundles') || doc.nodes.some(n => Object.prototype.hasOwnProperty.call(n, 'routeBundleMember'))) throw refusal('BAD_REFERENCE', 'Route bundle: flattening linked route documents is not supported.');
   if (doc.nodes.some(n => n.kind === 'sketch' && n.association !== undefined)) throw refusal('BAD_REFERENCE', 'Associative sketch: flattening recipes is not supported.');
@@ -37,7 +41,7 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
   if (node.rematched) node = { ...node, rematched: Object.fromEntries(Object.entries(node.rematched).map(([n, v]) => [name(n), name(v)])) };
   switch (node.kind) {
     case 'sketch': return node.on ? { ...node, on: ref(node.on) } : node;
-    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'cam': case 'sprocket': case 'pulley': case 'coupling': case 'shaft': case 'key': case 'retaining-ring': case 'pin': case 'bearing': case 'oring': case 'rack': case 'library': case 'sheet-contour': return node;
+    case 'text': case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'cam': case 'sprocket': case 'pulley': case 'coupling': case 'shaft': case 'key': case 'retaining-ring': case 'pin': case 'bearing': case 'oring': case 'rack': case 'library': case 'sheet-contour': return node;
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return { ...node, sketch: node.sketch + k };
     case 'frame-member': return node.section.kind === 'sketch' ? { ...node, section: { kind: 'sketch', sketch: node.section.sketch + k } } : node;
     case 'skeleton': return node;
@@ -55,6 +59,7 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
     case 'chamfer': case 'fillet': return { ...node, parent: ref(node.parent), edges: node.edges.map(name) };
     case 'sheet-flange': case 'sheet-corner-relief': return { ...node, parent: ref(node.parent), edges: [name(node.edges[0])] };
     case 'draft': case 'full-round': return { ...node, parent: ref(node.parent), faces: node.faces.map(name) };
+    case 'cylindrical-wrap': case 'text-relief': return { ...node, parent: ref(node.parent), faces: [name(node.faces[0])] };
     case 'face-fillet': return { ...node, parent: ref(node.parent), faces: [name(node.faces[0]), name(node.faces[1])] };
     case 'face-thread': return { ...node, parent: ref(node.parent), face: name(node.face) };
     case 'shell': return { ...node, parent: ref(node.parent), open: node.open.map(name) };
@@ -64,7 +69,9 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
 
 /** Parameter references replaced by their values (the parts' parameters may share names). */
 function inlineParameters(node: ModelNode, parameters: Record<string, number>): ModelNode {
+  const font = node.kind === 'text' || node.kind === 'text-relief' ? node.font : undefined;
   const walk = (v: unknown): unknown => {
+    if (font && v === font) return v;
     if (Array.isArray(v)) return v.map(walk);
     if (v && typeof v === 'object') {
       const keys = Object.keys(v);

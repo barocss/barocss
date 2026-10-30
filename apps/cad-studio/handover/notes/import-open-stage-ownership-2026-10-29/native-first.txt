@@ -1,0 +1,68 @@
+TAP version 13
+# Subtest: A05 imported Open ownership: step-read-new
+ok 1 - A05 imported Open ownership: step-read-new
+  ---
+  duration_ms: 22065.624708
+  type: 'test'
+  ...
+# Subtest: A05 imported Open ownership: stl-read-new
+ok 2 - A05 imported Open ownership: stl-read-new
+  ---
+  duration_ms: 19790.343916
+  type: 'test'
+  ...
+# Subtest: A05 imported Open ownership: direct-read-new
+ok 3 - A05 imported Open ownership: direct-read-new
+  ---
+  duration_ms: 31174.071584
+  type: 'test'
+  ...
+# Subtest: A05 imported Open ownership: step-stage-new
+ok 4 - A05 imported Open ownership: step-stage-new
+  ---
+  duration_ms: 20949.588167
+  type: 'test'
+  ...
+# Subtest: A05 imported Open ownership: step-stage-stop
+not ok 5 - A05 imported Open ownership: step-stage-stop
+  ---
+  duration_ms: 44388.987333
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/imported-open-ownership-browser.mjs:56:3'
+  failureType: 'testCodeFailure'
+  error: 'page.waitForFunction: Timeout 30000ms exceeded.'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TimeoutError'
+  stack: |-
+    ready (/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/imported-open-ownership-browser.mjs:69:32)
+    TestContext.<anonymous> (/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/imported-open-ownership-browser.mjs:115:107)
+  ...
+# Subtest: A05 imported Open ownership: mesh-dialog-new
+ok 6 - A05 imported Open ownership: mesh-dialog-new
+  ---
+  duration_ms: 21386.725416
+  type: 'test'
+  ...
+# Subtest: A05 imported Open ownership: mesh-diagnose-stop-retry
+not ok 7 - A05 imported Open ownership: mesh-diagnose-stop-retry
+  ---
+  duration_ms: 47107.602792
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/imported-open-ownership-browser.mjs:56:3'
+  failureType: 'testCodeFailure'
+  error: 'page.waitForFunction: Timeout 30000ms exceeded.'
+  code: 'ERR_TEST_FAILURE'
+  name: 'TimeoutError'
+  stack: |-
+    ready (/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/imported-open-ownership-browser.mjs:69:32)
+    TestContext.<anonymous> (/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/imported-open-ownership-browser.mjs:115:107)
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 5
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 207074.291583

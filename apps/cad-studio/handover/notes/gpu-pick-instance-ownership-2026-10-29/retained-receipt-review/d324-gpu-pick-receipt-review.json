@@ -1,0 +1,676 @@
+{
+  "verdict": "APPROVE_BOUNDED_AUTHOR_RECEIPTS",
+  "mode": "SOURCE_AUTHOR_RECEIPT_HASH_REVIEW",
+  "authorCommit": "d85558ce0031d812341d5871743f8535520eb8d4",
+  "currentHead": "4c6d42260ff9607945efcef7e24cfe38f79c264b",
+  "dirty": "?? .claude/\n",
+  "independentRuntime": "NOT_RUN",
+  "productMutation": false,
+  "stateLedgerMutation": false,
+  "references": {
+    "total": 63,
+    "uniquePaths": 47,
+    "overlap": 16,
+    "allMatch": true,
+    "currentRetainedFilesystemMatchesAuthorGit": true
+  },
+  "sourceBindings": [
+    {
+      "path": "packages/barocss-gpu/src/viewer/viewer.ts",
+      "sha256": "1c1df2143fe714569fe40b7aa27e6772faca9f44c9c50a9cca56194467b052a8",
+      "expected": "1c1df2143fe714569fe40b7aa27e6772faca9f44c9c50a9cca56194467b052a8",
+      "match": true,
+      "currentSha256": "3a67717a03e84782b247d1eb6d0f02d000b84b98134be8df38159b7c994a0c24",
+      "currentIdentical": false,
+      "gitBlob": "10f775514a36bc4a8d1c7d437d0bb56fd40b2213"
+    },
+    {
+      "path": "packages/barocss-gpu/src/viewer/scene.ts",
+      "sha256": "f7e17275a2efb6c8b9d5bf73c89e61902f94a9f01541476ce07c79baf59954d5",
+      "expected": "f7e17275a2efb6c8b9d5bf73c89e61902f94a9f01541476ce07c79baf59954d5",
+      "match": true,
+      "currentSha256": "f7e17275a2efb6c8b9d5bf73c89e61902f94a9f01541476ce07c79baf59954d5",
+      "currentIdentical": true,
+      "gitBlob": "dceff44008affc553293d3d218d00883bf4aab09"
+    },
+    {
+      "path": "packages/barocss-gpu/package.json",
+      "sha256": "bdbb24facbd051018037667576248c75b7a3c0bd8713d22c2375f14794f21fb1",
+      "expected": "bdbb24facbd051018037667576248c75b7a3c0bd8713d22c2375f14794f21fb1",
+      "match": true,
+      "currentSha256": "bdbb24facbd051018037667576248c75b7a3c0bd8713d22c2375f14794f21fb1",
+      "currentIdentical": true,
+      "gitBlob": "954222db11d0c300c3d6e0d8737d21e26692311b"
+    },
+    {
+      "path": "packages/barocss-gpu/tests/pick-instance-readback.test.mjs",
+      "sha256": "471f03427c52724fca953434e2db52bbb32267a16b658222c0f40ebc217fed5b",
+      "expected": "471f03427c52724fca953434e2db52bbb32267a16b658222c0f40ebc217fed5b",
+      "match": true,
+      "currentSha256": "471f03427c52724fca953434e2db52bbb32267a16b658222c0f40ebc217fed5b",
+      "currentIdentical": true,
+      "gitBlob": "242fd9afc92570006abe6b07a687d44eb22ec288"
+    },
+    {
+      "path": "packages/barocss-gpu/tests/pick-instance-readback-browser.test.mjs",
+      "sha256": "5939c7d77118ecceaacfa99c76bdd9fd7b1a63eeec65c447bc880d41490d8213",
+      "expected": "5939c7d77118ecceaacfa99c76bdd9fd7b1a63eeec65c447bc880d41490d8213",
+      "match": true,
+      "currentSha256": "5939c7d77118ecceaacfa99c76bdd9fd7b1a63eeec65c447bc880d41490d8213",
+      "currentIdentical": true,
+      "gitBlob": "e238cb923b78c79fdc946579cad49eeddfc68ccc"
+    },
+    {
+      "path": "apps/library-docs/scripts/api-inventory.expected.json",
+      "sha256": "59ff7b47a074cda811aff9055a7cd301a5a79e76bb44acc3bf3ed6b082c2d356",
+      "expected": "59ff7b47a074cda811aff9055a7cd301a5a79e76bb44acc3bf3ed6b082c2d356",
+      "match": true,
+      "currentSha256": "91e1e6fefd6f3994c4d4182d63f5022722ec749c819f0838bbc5d69e1f25bd0e",
+      "currentIdentical": false,
+      "gitBlob": "7ce990f31db171c02cb6f24038f0a0ba84298c36"
+    }
+  ],
+  "capsules": [
+    {
+      "path": "consumers/native-first/pick-instance-readback-browser.test.mjs.gz",
+      "gzipSha256": "c42aa17a6ebb7930d9f1c21628488b3e1b981ef083cdd36868c8746f329e3dc2",
+      "rawSha256": "5939c7d77118ecceaacfa99c76bdd9fd7b1a63eeec65c447bc880d41490d8213",
+      "target": "packages/barocss-gpu/tests/pick-instance-readback-browser.test.mjs",
+      "targetRevision": "d85558ce0031d812341d5871743f8535520eb8d4",
+      "matchesExactGit": true
+    },
+    {
+      "path": "source/scene.ts.before.gz",
+      "gzipSha256": "a2896d8f481579b2a9c01942623a28eea3199418810d95c75c4e9467c947df1c",
+      "rawSha256": "3d215f883911a52f3dbc278eb6978622f2f8cdf0ecbad51e06a4b3d3b19939ff",
+      "target": "packages/barocss-gpu/src/viewer/scene.ts",
+      "targetRevision": "a5d1acfa7e6834951819eaaeeaf6da314cae9b8f",
+      "matchesExactGit": true
+    },
+    {
+      "path": "source/viewer.ts.before.gz",
+      "gzipSha256": "2c7d50f72d977b286c6bc9bda0893ff63160d567e04895a2dcb84fa9cd3d8fb1",
+      "rawSha256": "0b1adf995958122808cd49c6cd440ba623343469dd789d6e87d22057d8f89cb9",
+      "target": "packages/barocss-gpu/src/viewer/viewer.ts",
+      "targetRevision": "a5d1acfa7e6834951819eaaeeaf6da314cae9b8f",
+      "matchesExactGit": true
+    }
+  ],
+  "authorResults": {
+    "baseline": {
+      "pass": 1,
+      "fail": 1,
+      "skip": 0,
+      "emit": 0,
+      "error": "Cannot read properties of undefined (reading '0')",
+      "kind": "CPU mock readback"
+    },
+    "cpu": {
+      "files": 47,
+      "pass": 357,
+      "fail": 0,
+      "skip": 0,
+      "topLevel": 343,
+      "nested": 14,
+      "includedNew": 15,
+      "existing": 342,
+      "newSeparateRun": false,
+      "emit": 0,
+      "lint": 0
+    },
+    "native": {
+      "selectedTests": 1,
+      "groups": 6,
+      "pass": 1,
+      "fail": 0,
+      "skip": 0,
+      "browser": "156.0.8078.48",
+      "cases": [
+        {
+          "name": "unchanged",
+          "status": "PASS",
+          "positive": {
+            "pixel": [
+              255,
+              64,
+              32,
+              255
+            ],
+            "hit": {
+              "mesh": "original",
+              "instance": 1,
+              "triangle": 0,
+              "face": 71,
+              "point": [
+                0.7916351938838438,
+                -0.009099255102113114,
+                4.975408472310373e-07
+              ],
+              "depth": 0.778640627861023
+            },
+            "size": [
+              320,
+              240
+            ]
+          },
+          "delayed": {
+            "mesh": "original",
+            "instance": 1,
+            "triangle": 0,
+            "face": 71,
+            "point": [
+              0.7916351938838438,
+              -0.009099255102113114,
+              4.975408472310373e-07
+            ],
+            "depth": 0.778640627861023
+          },
+          "fresh": {
+            "mesh": "original",
+            "instance": 1,
+            "triangle": 0,
+            "face": 71,
+            "point": [
+              0.7916351938838438,
+              -0.009099255102113114,
+              4.975408472310373e-07
+            ],
+            "depth": 0.778640627861023
+          },
+          "cleanup": "OWN_VIEWER_DISPOSED",
+          "held": {
+            "fulfilled": true,
+            "released": false,
+            "unmaps": 0,
+            "ranges": 0,
+            "arguments": [
+              1
+            ]
+          },
+          "afterDelayed": {
+            "fulfilled": true,
+            "released": true,
+            "unmaps": 1,
+            "ranges": 3,
+            "arguments": [
+              1
+            ]
+          },
+          "afterFresh": {
+            "fulfilled": true,
+            "released": true,
+            "unmaps": 2,
+            "ranges": 6,
+            "arguments": [
+              1
+            ]
+          }
+        },
+        {
+          "name": "matrix-replacement",
+          "status": "PASS",
+          "positive": {
+            "pixel": [
+              255,
+              64,
+              32,
+              255
+            ],
+            "hit": {
+              "mesh": "original",
+              "instance": 1,
+              "triangle": 0,
+              "face": 71,
+              "point": [
+                0.7916351938838438,
+                -0.009099255102113114,
+                4.975408472310373e-07
+              ],
+              "depth": 0.778640627861023
+            },
+            "size": [
+              320,
+              240
+            ]
+          },
+          "delayed": null,
+          "fresh": {
+            "mesh": "original",
+            "instance": 1,
+            "triangle": 0,
+            "face": 71,
+            "point": [
+              1.1920024053200047,
+              -0.00909925500244275,
+              5.63262944033478e-07
+            ],
+            "depth": 0.7451962232589722
+          },
+          "cleanup": "OWN_VIEWER_DISPOSED",
+          "held": {
+            "fulfilled": true,
+            "released": false,
+            "unmaps": 0,
+            "ranges": 0,
+            "arguments": [
+              1
+            ]
+          },
+          "afterDelayed": {
+            "fulfilled": true,
+            "released": true,
+            "unmaps": 1,
+            "ranges": 3,
+            "arguments": [
+              1
+            ]
+          },
+          "afterFresh": {
+            "fulfilled": true,
+            "released": true,
+            "unmaps": 2,
+            "ranges": 6,
+            "arguments": [
+              1
+            ]
+          }
+        },
+        {
+          "name": "reorder",
+          "status": "PASS",
+          "positive": {
+            "pixel": [
+              255,
+              64,
+              32,
+              255
+            ],
+            "hit": {
+              "mesh": "original",
+              "instance": 1,
+              "triangle": 0,
+              "face": 71,
+              "point": [
+                0.7916351938838438,
+                -0.009099255102113114,
+                4.975408472310373e-07
+              ],
+              "depth": 0.778640627861023
+            },
+            "size": [
+              320,
+              240
+            ]
+          },
+          "delayed": null,
+          "fresh": {
+            "mesh": "original",
+            "instance": 0,
+            "triangle": 0,
+            "face": 71,
+            "point": [
+              0.7916351938838438,
+              -0.009099255102113114,
+              4.975408472310373e-07
+            ],
+            "depth": 0.778640627861023
+          },
+          "cleanup": "OWN_VIEWER_DISPOSED",
+          "held": {
+            "fulfilled": true,
+            "released": false,
+            "unmaps": 0,
+            "ranges": 0,
+            "arguments": [
+              1
+            ]
+          },
+          "afterDelayed": {
+            "fulfilled": true,
+            "released": true,
+            "unmaps": 1,
+            "ranges": 3,
+            "arguments": [
+              1
+            ]
+          },
+          "afterFresh": {
+            "fulfilled": true,
+            "released": true,
+            "unmaps": 2,
+            "ranges": 6,
+            "arguments": [
+              1
+            ]
+          }
+        },
+        {
+          "name": "shrink",
+          "status": "PASS",
+          "positive": {
+            "pixel": [
+              255,
+              64,
+              32,
+              255
+            ],
+            "hit": {
+              "mesh": "original",
+              "instance": 1,
+              "triangle": 0,
+              "face": 71,
+              "point": [
+                0.7916351938838438,
+                -0.009099255102113114,
+                4.975408472310373e-07
+              ],
+              "depth": 0.778640627861023
+            },
+            "size": [
+              320,
+              240
+            ]
+          },
+          "delayed": null,
+          "fresh": {
+            "mesh": "original",
+            "instance": 0,
+            "triangle": 0,
+            "face": 71,
+            "point": [
+              -0.7916352782648303,
+              -0.009099256072009513,
+              -1.420035809242793e-07
+            ],
+            "depth": 0.9010050296783447
+          },
+          "cleanup": "OWN_VIEWER_DISPOSED",
+          "held": {
+            "fulfilled": true,
+            "released": false,
+            "unmaps": 0,
+            "ranges": 0,
+            "arguments": [
+              1
+            ]
+          },
+          "afterDelayed": {
+            "fulfilled": true,
+            "released": true,
+            "unmaps": 1,
+            "ranges": 3,
+            "arguments": [
+              1
+            ]
+          },
+          "afterFresh": {
+            "fulfilled": true,
+            "released": true,
+            "unmaps": 2,
+            "ranges": 6,
+            "arguments": [
+              1
+            ]
+          }
+        },
+        {
+          "name": "instances-null",
+          "status": "PASS",
+          "positive": {
+            "pixel": [
+              255,
+              64,
+              32,
+              255
+            ],
+            "hit": {
+              "mesh": "original",
+              "instance": 1,
+              "triangle": 0,
+              "face": 71,
+              "point": [
+                0.7916351938838438,
+                -0.009099255102113114,
+                4.975408472310373e-07
+              ],
+              "depth": 0.778640627861023
+            },
+            "size": [
+              320,
+              240
+            ]
+          },
+          "delayed": null,
+          "fresh": {
+            "mesh": "original",
+            "instance": null,
+            "triangle": 0,
+            "face": 71,
+            "point": [
+              0.009099256072009674,
+              -0.009099256072009513,
+              -1.420035809242793e-07
+            ],
+            "depth": 0.9010050296783447
+          },
+          "cleanup": "OWN_VIEWER_DISPOSED",
+          "held": {
+            "fulfilled": true,
+            "released": false,
+            "unmaps": 0,
+            "ranges": 0,
+            "arguments": [
+              1
+            ]
+          },
+          "afterDelayed": {
+            "fulfilled": true,
+            "released": true,
+            "unmaps": 1,
+            "ranges": 3,
+            "arguments": [
+              1
+            ]
+          },
+          "afterFresh": {
+            "fulfilled": true,
+            "released": true,
+            "unmaps": 2,
+            "ranges": 6,
+            "arguments": [
+              1
+            ]
+          }
+        },
+        {
+          "name": "mesh-removal",
+          "status": "PASS",
+          "positive": {
+            "pixel": [
+              255,
+              64,
+              32,
+              255
+            ],
+            "hit": {
+              "mesh": "original",
+              "instance": 1,
+              "triangle": 0,
+              "face": 71,
+              "point": [
+                0.7916351938838438,
+                -0.009099255102113114,
+                4.975408472310373e-07
+              ],
+              "depth": 0.778640627861023
+            },
+            "size": [
+              320,
+              240
+            ]
+          },
+          "delayed": null,
+          "fresh": {
+            "mesh": "replacement",
+            "instance": 1,
+            "triangle": 0,
+            "face": 71,
+            "point": [
+              0.7916351938838438,
+              -0.009099255102113114,
+              4.975408472310373e-07
+            ],
+            "depth": 0.778640627861023
+          },
+          "cleanup": "OWN_VIEWER_DISPOSED",
+          "held": {
+            "fulfilled": true,
+            "released": false,
+            "unmaps": 0,
+            "ranges": 0,
+            "arguments": [
+              1
+            ]
+          },
+          "afterDelayed": {
+            "fulfilled": true,
+            "released": true,
+            "unmaps": 1,
+            "ranges": 3,
+            "arguments": [
+              1
+            ]
+          },
+          "afterFresh": {
+            "fulfilled": true,
+            "released": true,
+            "unmaps": 2,
+            "ranges": 6,
+            "arguments": [
+              1
+            ]
+          }
+        }
+      ],
+      "kind": "real native GPU pipeline; fulfilled native map return schedule held only"
+    }
+  },
+  "adapterBoundary": {
+    "recordedAvailabilityAdapter": {
+      "vendor": "apple",
+      "architecture": "metal-3"
+    },
+    "actualViewerAdapterIdentity": "UNKNOWN",
+    "source": "tests/pick-instance-readback-browser.test.mjs:81 vs :88"
+  },
+  "retainedPNGs": {
+    "paths": 2,
+    "uniqueContent": 1,
+    "sha256": "675c0ce485d4373862b2368056bb516a8b2ac7cc45bdda4e7dfe15be97286e44",
+    "independentlyViewed": true
+  },
+  "sourceProfile": {
+    "worktree": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+    "critical": [
+      {
+        "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/src/viewer/viewer.ts",
+        "sha256": "1c1df2143fe714569fe40b7aa27e6772faca9f44c9c50a9cca56194467b052a8"
+      },
+      {
+        "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/src/viewer/scene.ts",
+        "sha256": "f7e17275a2efb6c8b9d5bf73c89e61902f94a9f01541476ce07c79baf59954d5"
+      },
+      {
+        "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/dist/viewer/viewer.js",
+        "sha256": "d7cfd0a0e8d486267ea44959797b85f384d6138c14c50071e91ed67717e67c9c"
+      },
+      {
+        "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/dist/viewer/scene.js",
+        "sha256": "f8b810380643b45156e716513f25f73f412dbcc3137208e7c5285854e3327213"
+      }
+    ],
+    "driverSha256": "5939c7d77118ecceaacfa99c76bdd9fd7b1a63eeec65c447bc880d41490d8213",
+    "driverCapsule": "pick-instance-readback-browser.test.mjs.gz",
+    "gzipSha256": "c42aa17a6ebb7930d9f1c21628488b3e1b981ef083cdd36868c8746f329e3dc2",
+    "producerEmitReceipt": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/handover/notes/gpu-pick-instance-ownership-2026-10-29/unit/final-exits.txt",
+    "producerEmit": 0,
+    "producerCpu": 0,
+    "producerLint": 0,
+    "rebuild": "NOT_RUN; exact producer fresh dist served"
+  },
+  "sourceGraphBoundary": "critical source2/dist2 author hash records; source and driver exactGit verified; dist bytes and complete graph not retained",
+  "currentScopeDelta": " packages/barocss-gpu/src/viewer/camera.ts       | 20 ++++++++-\n packages/barocss-gpu/src/viewer/shaders/pick.ts | 16 +++++++\n packages/barocss-gpu/src/viewer/viewer.ts       | 57 ++++++++++++++++++-------\n 3 files changed, 75 insertions(+), 18 deletions(-)\n",
+  "preservedFailure": "original CPU TypeError and api inventory IV001 old expected mismatch; no extra emit/lint/syntax/native harness failure in retained first/final records",
+  "apiChange": "3 existing internal optional-argument declarations;0 added members/exposures",
+  "notQualified": [
+    "current GPU runtime",
+    "actualViewerAdapterIdentity",
+    "native before-fix",
+    "native ABA/clear/invalid-setter/dispose-pending full matrix",
+    "natural driver failure",
+    "device-loss/recovery",
+    "VRAM/OOM/performance",
+    "whole suites/remoteCI",
+    "all geometry/material/visibility mutations"
+  ],
+  "cleanup": "author: six Viewers disposed; context/browser/server closed; runner49501 exited and gate released",
+  "issue2237": "closed for transfer; no remote action; not acceptance evidence",
+  "nextCheckpoint": "parent records bounded author-receipt approval; expanded claims require only their missing evidence",
+  "artifactHashes": {
+    "README.md": "76e2a1cc8cd83fb6f8e3fe6ada42465d46b511d2973b0d92cc45e04d5a16f3bc",
+    "api-review/README.md": "62ed9d1e95eb0af9576c64ce80ca26b16190d7cd4931c041e74f05a9b8691b57",
+    "api-review/adoption.json": "38f67804f50248e00a8d21031e172676e02c5770d11480c875722a05182b20b1",
+    "api-review/candidate-generation.json": "23ddf674de4905a74c3956568328a6c07f8bd9737afbea6fd138253e85f4d0d7",
+    "api-review/old-expected-check.json": "876563df7dae9368a954bf447ca58bcdbc69c31d323fb29fd155e3394e070274",
+    "api-review/reviewed-delta.json": "bca82f47d8605521e531e278e95f987bfcc89b417171f1d0357a45ee47eca531",
+    "consumers/README.md": "94dc46fdcddb3bbfdecc129dcd6cd85c78e76ee6c7f757fd513c520f5fbe4bc2",
+    "consumers/artifact-manifest.json": "54c284036b4f88934f1254936e977f04f2945585a34b47d551e15678ffd78ade",
+    "consumers/gate-first.txt": "af2d4de8916f9debcf578fc67eaceca0e8925226f95298546dd873e604333455",
+    "consumers/lint-first-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "consumers/lint-first.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "consumers/native-first/native-fresh-after-removal.png": "675c0ce485d4373862b2368056bb516a8b2ac7cc45bdda4e7dfe15be97286e44",
+    "consumers/native-first/native-positive.png": "675c0ce485d4373862b2368056bb516a8b2ac7cc45bdda4e7dfe15be97286e44",
+    "consumers/native-first/pick-instance-readback-browser.test.mjs.gz": "c42aa17a6ebb7930d9f1c21628488b3e1b981ef083cdd36868c8746f329e3dc2",
+    "consumers/native-first/receipt.json": "61e1e14bd0e22f9db01295b5224fffb56c706b04934c66165d5027298985c8e0",
+    "consumers/native-first/source-profile.json": "29fba9a0f625afe98f41f6d079f21c3b4cdba1520887d1d832df0e1a08f36a86",
+    "consumers/native-first-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "consumers/native-first.txt": "a80b65a19d167b52b1ba53021f09ecf5eb05e139ff0ee74038e5f2b432771dd8",
+    "consumers/plan.md": "2cab0540a55d41f9b4dc379339f18df475cdc7fe23d4db257e6511a04c4c0eab",
+    "consumers/syntax-first-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "consumers/syntax-first.json": "d37f0825b1a6430ae5d2e7396c578014fed567f59274a1d8bb6eaa09fb3011e7",
+    "consumers/syntax-first.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "consumers/validation.json": "159c7cfad34d8d50f45967c137901c37e71dd28128833fae24b8d6f7ed617131",
+    "issue2237-source.json": "ef764fc363df74386bfa53850dc95ebe9a338bebe2ff7240435e901e263c248f",
+    "qualification.json": "fc4922f81d75cc19edc6787ee70615eb7a5b78d6ee9714fdb4f049aa8cee5e46",
+    "root-docs-check.txt": "311d9938df550c33b29d042bfd9e0824929872dd7f60d4e002305addf2e68041",
+    "root-docs-exit.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "source/README.md": "6a58f052c196bd03bf13e3c0c122437aa41b2ff9ef44a51cff036e3fd42b451f",
+    "source/baseline-source.json": "5193c651cc49f21817f838b4f55debfc50d5c7e732254cbb71af1d57b7306aa8",
+    "source/current-source.json": "4448858c6564369505eec0e41972f66f11cb86a44741ac4c9bbca321e61708da",
+    "source/scene.ts.before.gz": "a2896d8f481579b2a9c01942623a28eea3199418810d95c75c4e9467c947df1c",
+    "source/viewer.ts.before.gz": "2c7d50f72d977b286c6bc9bda0893ff63160d567e04895a2dcb84fa9cd3d8fb1",
+    "unit/after-plan.md": "730288c757163b3770116f8278cc71361a31cb6045d44478559b79e05e3b8862",
+    "unit/baseline-dist-sha256.txt": "fbed7a3ace297802c93cf82c0f5a4b540031ad8f4f001ff825096e8270ca8009",
+    "unit/baseline-emit.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "unit/baseline-exits.txt": "7c79cd1f12b4a32c3cb458281197ba3aa3e77c0821e11f8d88cba089ac43de92",
+    "unit/baseline-report.md": "1c63206a6f7affda6a67ab2c8dae2d507e603a0971fa6dafefb0e4af5f5fcde1",
+    "unit/baseline-source-sha256.txt": "55a9e33279311354f3a8ffe2e8d83c2e77fdb09d12d1e193ea1372359d42158d",
+    "unit/baseline-test.mjs": "5c61b5efb5c09caaa76a6abb48c5f5a45eb6aa167d087f51ddcebba9fa3f3faa",
+    "unit/baseline.log": "15b7208c93ceb5ab9f4fa9d3b842a938df64fae8087ebfb9d153c020f01eef2f",
+    "unit/cpu-final.log": "ac18626b9e7e29675f43802022c1fb4ad08e1b3033bf5f639a1b6681221e61c2",
+    "unit/final-dist-sha256.txt": "caafda533487b488d0733e62822fd52de6a9d1ed9751eba955fea8a5c03e5479",
+    "unit/final-emit.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "unit/final-exits.txt": "aa1fd5c45991ec48661808869bf4fc9ff49c6cf5dfda19131499b44660870adf",
+    "unit/final-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "unit/final-source-sha256.txt": "23222506cfdc190df9bf0153208b2df64096ade03202c49ddc07079a408cfd9b",
+    "unit/report.md": "e47c6d6c6e30c783337dc4c8009c1168db0d09c00623f4e8d78e4034f8fef28d"
+  },
+  "inventory": {
+    "path": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/d324-receipt-review-20261029T094820/inventory.json",
+    "sha256": "6e98cd0def978076f9b1691c736fc01ace00018fce7bbe83dab981b7597bd1da"
+  },
+  "report": {
+    "path": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/d324-gpu-pick-receipt-review.md",
+    "sha256": "3df6aee9286209e6a4dbc3f217db8b616f85438ef305173818b5e146113b4ad8"
+  }
+}

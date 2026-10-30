@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: gear and gear-mesh: what run_command writes
+ok 1 - gear and gear-mesh: what run_command writes
+  ---
+  duration_ms: 1234.731166
+  type: 'test'
+  ...
+# Subtest: spring: what run_command writes
+ok 2 - spring: what run_command writes
+  ---
+  duration_ms: 1984.509667
+  type: 'test'
+  ...
+# Subtest: rows from a person's file, then a fastener from them: what load_rows and run_command write
+ok 3 - rows from a person's file, then a fastener from them: what load_rows and run_command write
+  ---
+  duration_ms: 57.128084
+  type: 'test'
+  ...
+# Subtest: a Boolean's tool callback takes several verbs: the body it makes is the one they act on
+ok 4 - a Boolean's tool callback takes several verbs: the body it makes is the one they act on
+  ---
+  duration_ms: 24.984042
+  type: 'test'
+  ...
+# Subtest: edit fields: an extrude edits its sketch's width and corner as well as its distance
+ok 5 - edit fields: an extrude edits its sketch's width and corner as well as its distance
+  ---
+  duration_ms: 19.367458
+  type: 'test'
+  ...
+# Subtest: edit fields: a circle extrude edits its diameter; a parameter-driven size is left out
+ok 6 - edit fields: a circle extrude edits its diameter; a parameter-driven size is left out
+  ---
+  duration_ms: 19.566375
+  type: 'test'
+  ...
+# Subtest: edit fields: choice and toggle fields — a loft turns smooth, a pipe bends the other way, a pattern counts
+ok 7 - edit fields: choice and toggle fields — a loft turns smooth, a pipe bends the other way, a pattern counts
+  ---
+  duration_ms: 100.575958
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3447.68375

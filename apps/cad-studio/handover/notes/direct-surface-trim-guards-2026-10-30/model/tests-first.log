@@ -1,0 +1,154 @@
+TAP version 13
+# Subtest: Fill: four polynomial Bezier sides make the exact Coons patch, in any pick order and direction
+ok 1 - Fill: four polynomial Bezier sides make the exact Coons patch, in any pick order and direction
+  ---
+  duration_ms: 6.520792
+  type: 'test'
+  ...
+# Subtest: Fill: sides the exact patch does not admit still fill by sampling, as before
+ok 2 - Fill: sides the exact patch does not admit still fill by sampling, as before
+  ---
+  duration_ms: 24.420875
+  type: 'test'
+  ...
+# Subtest: Fill: a broken loop is refused with the same message
+ok 3 - Fill: a broken loop is refused with the same message
+  ---
+  duration_ms: 1.231584
+  type: 'test'
+  ...
+# Subtest: direct trims: all six consumers refuse exact outside and inside loops without state changes
+ok 4 - direct trims: all six consumers refuse exact outside and inside loops without state changes
+  ---
+  duration_ms: 1.671792
+  type: 'test'
+  ...
+# Subtest: direct trims: all six consumers refuse the actual public Trim by curve result
+ok 5 - direct trims: all six consumers refuse the actual public Trim by curve result
+  ---
+  duration_ms: 13.876042
+  type: 'test'
+  ...
+# Subtest: direct trims: intersection checks both selected operands, including hidden sources
+ok 6 - direct trims: intersection checks both selected operands, including hidden sources
+  ---
+  duration_ms: 0.254125
+  type: 'test'
+  ...
+# Subtest: direct trims: IGES refuses the whole visible set and ignores hidden trimmed surfaces
+ok 7 - direct trims: IGES refuses the whole visible set and ignores hidden trimmed surfaces
+  ---
+  duration_ms: 5.230958
+  type: 'test'
+  ...
+# Subtest: direct trims: empty trims and explicit Untrim retain whole-surface operations and IGES reimport
+ok 8 - direct trims: empty trims and explicit Untrim retain whole-surface operations and IGES reimport
+  ---
+  duration_ms: 87.089166
+  type: 'test'
+  ...
+# Subtest: direct trims: existing pick and Extend value refusals retain precedence
+ok 9 - direct trims: existing pick and Extend value refusals retain precedence
+  ---
+  duration_ms: 0.202583
+  type: 'test'
+  ...
+# Subtest: direct geometry: a .barocad source imports as curve and surface objects that display
+ok 10 - direct geometry: a .barocad source imports as curve and surface objects that display
+  ---
+  duration_ms: 12.290125
+  type: 'test'
+  ...
+# Subtest: direct geometry: curve tools split, reverse, join, refine and edit poles
+ok 11 - direct geometry: curve tools split, reverse, join, refine and edit poles
+  ---
+  duration_ms: 23.046459
+  type: 'test'
+  ...
+# Subtest: direct geometry: surface tools split, extract, reverse, refine; curves make ruled and swept surfaces
+ok 12 - direct geometry: surface tools split, extract, reverse, refine; curves make ruled and swept surfaces
+  ---
+  duration_ms: 47.472667
+  type: 'test'
+  ...
+# Subtest: direct geometry: lengths, curvature and IGES
+ok 13 - direct geometry: lengths, curvature and IGES
+  ---
+  duration_ms: 5.214
+  type: 'test'
+  ...
+# Subtest: direct geometry: move, rotate and scale in place; duplicate and rename
+ok 14 - direct geometry: move, rotate and scale in place; duplicate and rename
+  ---
+  duration_ms: 3.544834
+  type: 'test'
+  ...
+# Subtest: direct geometry: a loft through three curves of one degree and knots
+ok 15 - direct geometry: a loft through three curves of one degree and knots
+  ---
+  duration_ms: 5.994084
+  type: 'test'
+  ...
+# Subtest: IGES: written curves and surfaces read back as the same geometry; a file it cannot read is refused
+ok 16 - IGES: written curves and surfaces read back as the same geometry; a file it cannot read is refused
+  ---
+  duration_ms: 6.256875
+  type: 'test'
+  ...
+# Subtest: direct: a curve raised a degree keeps its shape; a surface shows isocurves of both families
+ok 17 - direct: a curve raised a degree keeps its shape; a surface shows isocurves of both families
+  ---
+  duration_ms: 5.432375
+  type: 'test'
+  ...
+# Subtest: direct: stretch by axis and shear copy the geometry by the affine map about its centre
+ok 18 - direct: stretch by axis and shear copy the geometry by the affine map about its centre
+  ---
+  duration_ms: 3.03975
+  type: 'test'
+  ...
+# Subtest: direct: a loft through curves of different degrees and knots makes them alike first
+ok 19 - direct: a loft through curves of different degrees and knots makes them alike first
+  ---
+  duration_ms: 22.327042
+  type: 'test'
+  ...
+# Subtest: curves made in the studio: a sketch outline, a circle and model edges as exact curves
+ok 20 - curves made in the studio: a sketch outline, a circle and model edges as exact curves
+  ---
+  duration_ms: 52.844708
+  type: 'test'
+  ...
+# Subtest: direct: a curve's crossings with a plane; two surfaces' intersection curve; a point in or out of a body
+ok 21 - direct: a curve's crossings with a plane; two surfaces' intersection curve; a point in or out of a body
+  ---
+  duration_ms: 93.35025
+  type: 'test'
+  ...
+# Subtest: direct geometry: poles listed by key and moved one at a time
+ok 22 - direct geometry: poles listed by key and moved one at a time
+  ---
+  duration_ms: 3.490916
+  type: 'test'
+  ...
+# Subtest: Sweep along a picked curve: the newest sketch carried along it, a bent rod of the area times the path
+ok 23 - Sweep along a picked curve: the newest sketch carried along it, a bent rod of the area times the path
+  ---
+  duration_ms: 221.858417
+  type: 'test'
+  ...
+# Subtest: trim by a loop: a circle above the panel cuts a hole (or keeps the disc); the support stays whole
+ok 24 - trim by a loop: a circle above the panel cuts a hole (or keeps the disc); the support stays whole
+  ---
+  duration_ms: 97.074625
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 759.081708

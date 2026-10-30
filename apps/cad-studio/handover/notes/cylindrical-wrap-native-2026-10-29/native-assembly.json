@@ -1,0 +1,64 @@
+{
+  "scope": "private original-native-UV rectilinear diagnostic, factor2 only",
+  "check": {
+    "valid": true,
+    "issues": [],
+    "counts": {
+      "bodies": 1,
+      "shells": 1,
+      "faces": 19,
+      "loops": 22,
+      "coedges": 84,
+      "edges": 42,
+      "vertices": 28
+    },
+    "topology": [
+      {
+        "body": "post_b0",
+        "vertices": 28,
+        "edges": 42,
+        "faces": 19,
+        "loops": 22,
+        "shells": 1,
+        "genus": 0
+      }
+    ],
+    "maximumVertexGap": 3.66205343881779e-15,
+    "maximumPcurveGap": 5.0242958677880805e-15,
+    "maximumEdgeSurfaceGap": 3.972054645195637e-15
+  },
+  "proof": {
+    "diagnosticOnly": true,
+    "solidQualified": false,
+    "representedVolumeCertified": false,
+    "globalEvaluatorErrorCertified": false,
+    "generalTextSupported": false,
+    "counts": {
+      "exactOperations": 185431,
+      "helperOperations": 150454,
+      "rationalOperations": 34460,
+      "integerOperations": 517,
+      "integerMaximumBits": 219,
+      "work": 7790,
+      "horizontalCompositions": 3,
+      "angularCertificates": 3,
+      "verticalCurves": 6,
+      "outerClones": 12
+    },
+    "limits": {
+      "components": 64,
+      "edges": 512,
+      "work": 1048576,
+      "exactOperations": 200000,
+      "integerBits": 8192
+    },
+    "added": {
+      "vertices": 24,
+      "edges": 36,
+      "faces": 15,
+      "loops": 18,
+      "coedges": 72,
+      "counters": 1
+    }
+  }
+}

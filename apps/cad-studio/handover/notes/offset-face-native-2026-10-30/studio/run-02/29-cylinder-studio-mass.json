@@ -1,0 +1,56 @@
+{
+  "label": "29-cylinder",
+  "target": {
+    "key": "b6",
+    "volume": 197.92033717615698,
+    "centroid": [
+      2.5130308594279636e-16,
+      1.2391530920357018e-16,
+      3.5000000000000004
+    ],
+    "massRef": null
+  },
+  "witness": {
+    "key": "b3",
+    "volume": 420.0000000000001,
+    "centroid": [
+      85.99999999999996,
+      0.4999999999999998,
+      3.5
+    ],
+    "massRef": null
+  },
+  "targetNativeRef": {
+    "node": 6,
+    "side": "solid"
+  },
+  "sourceRecipeHash": "90fbc6cca6a437efe5ed8d051c064dfd0339d9155fecb075cdfa29f0e90ff522",
+  "route": "Existing read-only __studioBodies accepted Model mass keyed to the actual native body; excludes preview mesh and rounded UI text",
+  "rawState": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b3",
+        "volume": 420.0000000000001,
+        "centroid": [
+          85.99999999999996,
+          0.4999999999999998,
+          3.5
+        ],
+        "massRef": null
+      },
+      {
+        "key": "b6",
+        "volume": 197.92033717615698,
+        "centroid": [
+          2.5130308594279636e-16,
+          1.2391530920357018e-16,
+          3.5000000000000004
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  }
+}

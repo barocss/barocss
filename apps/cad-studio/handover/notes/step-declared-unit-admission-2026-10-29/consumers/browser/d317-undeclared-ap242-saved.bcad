@@ -1,0 +1,21 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": {},
+  "nodes": [
+    {
+      "kind": "import",
+      "name": "d317-undeclared-ap242",
+      "step": "ISO-10303-21;\nHEADER;\nFILE_DESCRIPTION(('BaroCSS CAD part'),'2;1');\nFILE_NAME('1000 cube mesh.step','2026-10-29T04:30:27',(''),(''),'BaroCSS CAD','BaroCSS CAD','');\nFILE_SCHEMA(('AP242_MANAGED_MODEL_BASED_3D_ENGINEERING_MIM_LF { 1 0 10303 442 1 1 4 }'));\nENDSEC;\nDATA;\n#1=APPLICATION_CONTEXT('core data for automotive mechanical design processes');\n#2=APPLICATION_PROTOCOL_DEFINITION('international standard','automotive_design',2000,#1);\n#3=PRODUCT_CONTEXT('',#1,'mechanical');\n#4=PRODUCT('1000 cube mesh','1000 cube mesh','',(#3));\n#5=PRODUCT_RELATED_PRODUCT_CATEGORY('part',$,(#4));\n#6=PRODUCT_DEFINITION_FORMATION('','',#4);\n#7=PRODUCT_DEFINITION_CONTEXT('part definition',#1,'design');\n#8=PRODUCT_DEFINITION('design','',#6,#7);\n#9=PRODUCT_DEFINITION_SHAPE('','',#8);\n#11=(NAMED_UNIT(*)PLANE_ANGLE_UNIT()SI_UNIT($,.RADIAN.));\n#12=(NAMED_UNIT(*)SI_UNIT($,.STERADIAN.)SOLID_ANGLE_UNIT());\n#14=(GEOMETRIC_REPRESENTATION_CONTEXT(3)REPRESENTATION_CONTEXT('Context3D','3D Context with UNIT and UNCERTAINTY'));\n#15=COORDINATES_LIST('',8,((0.,0.,1000.),(0.,0.,0.),(1000.,0.,0.),(1000.,0.,1000.),(1000.,1000.,0.),(1000.,1000.,1000.),(0.,1000.,0.),(0.,1000.,1000.)));\n#16=TRIANGULATED_FACE('cube.region0',#15,4,(),$,(1,2,3,4),((1,2,3),(3,4,1)));\n#17=TRIANGULATED_FACE('cube.region1',#15,4,(),$,(4,3,5,6),((1,2,3),(3,4,1)));\n#18=TRIANGULATED_FACE('cube.region2',#15,4,(),$,(6,5,7,8),((1,2,3),(3,4,1)));\n#19=TRIANGULATED_FACE('cube.region3',#15,4,(),$,(8,7,2,1),((1,2,3),(3,4,1)));\n#20=TRIANGULATED_FACE('cube.region4',#15,4,(),$,(3,2,7,5),((1,2,3),(3,4,1)));\n#21=TRIANGULATED_FACE('cube.region5',#15,4,(),$,(8,1,4,6),((1,2,3),(3,4,1)));\n#22=TESSELLATED_SOLID('cube',(#16,#17,#18,#19,#20,#21),$);\n#23=CARTESIAN_POINT('',(0.,0.,0.));\n#24=DIRECTION('',(0.,0.,1.));\n#25=DIRECTION('',(1.,0.,0.));\n#26=AXIS2_PLACEMENT_3D('',#23,#24,#25);\n#27=TESSELLATED_SHAPE_REPRESENTATION('1000 cube mesh',(#22),#14);\n#28=SHAPE_DEFINITION_REPRESENTATION(#9,#27);\n#29=DERIVED_UNIT_ELEMENT(#10,3.);\n#30=(DERIVED_UNIT((#29))VOLUME_UNIT());\n#31=DERIVED_UNIT_ELEMENT(#10,2.);\n#32=(AREA_UNIT()DERIVED_UNIT((#31)));\n#33=MEASURE_REPRESENTATION_ITEM('volume measure',VOLUME_MEASURE(1000000000.0000001),#30);\n#34=REPRESENTATION('volume',(#33),#14);\n#35=PROPERTY_DEFINITION('geometric validation property','volume of 1000 cube mesh',#9);\n#36=PROPERTY_DEFINITION_REPRESENTATION(#35,#34);\n#37=MEASURE_REPRESENTATION_ITEM('surface area measure',AREA_MEASURE(6000000.),#32);\n#38=REPRESENTATION('surface area',(#37),#14);\n#39=PROPERTY_DEFINITION('geometric validation property','surface area of 1000 cube mesh',#9);\n#40=PROPERTY_DEFINITION_REPRESENTATION(#39,#38);\n#41=CARTESIAN_POINT('centre point',(500.,500.,500.));\n#42=REPRESENTATION('centroid',(#41),#14);\n#43=PROPERTY_DEFINITION('geometric validation property','centroid of 1000 cube mesh',#9);\n#44=PROPERTY_DEFINITION_REPRESENTATION(#43,#42);\n#45=CARTESIAN_POINT('minimum point',(0.,0.,0.));\n#46=CARTESIAN_POINT('maximum point',(1000.,1000.,1000.));\n#47=REPRESENTATION('bounding box',(#45,#46),#14);\n#48=PROPERTY_DEFINITION('geometric validation property','bounding box of 1000 cube mesh',#9);\n#49=PROPERTY_DEFINITION_REPRESENTATION(#48,#47);\nENDSEC;\nEND-ISO-10303-21;\n",
+      "id": "n0"
+    }
+  ],
+  "outputs": {
+    "b0": {
+      "node": 0,
+      "side": "solid"
+    }
+  },
+  "nextId": 1
+}

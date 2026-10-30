@@ -1,0 +1,56 @@
+{
+  "label": "12-visible-control",
+  "target": {
+    "key": "b7",
+    "volume": 197.92288186620638,
+    "centroid": [
+      0.12345670000000003,
+      -0.23456779999999983,
+      3.8457239000000003
+    ],
+    "massRef": null
+  },
+  "witness": {
+    "key": "b4",
+    "volume": 420.0000000000001,
+    "centroid": [
+      85.99999999999996,
+      0.4999999999999998,
+      3.5
+    ],
+    "massRef": null
+  },
+  "targetNativeRef": {
+    "node": 7,
+    "side": "solid"
+  },
+  "sourceRecipeHash": "1203dcb474779ac1ea6d7448b691364aa9f92373ac2f54f595111bc787cee542",
+  "route": "Existing read-only __studioBodies accepted Model mass keyed to the actual native body; excludes preview mesh and rounded UI text",
+  "rawState": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b4",
+        "volume": 420.0000000000001,
+        "centroid": [
+          85.99999999999996,
+          0.4999999999999998,
+          3.5
+        ],
+        "massRef": null
+      },
+      {
+        "key": "b7",
+        "volume": 197.92288186620638,
+        "centroid": [
+          0.12345670000000003,
+          -0.23456779999999983,
+          3.8457239000000003
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  }
+}

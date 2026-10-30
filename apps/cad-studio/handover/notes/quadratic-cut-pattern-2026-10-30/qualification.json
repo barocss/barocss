@@ -1,0 +1,107 @@
+{
+  "decision": "D346",
+  "status": "BOUNDED_QUALIFIED",
+  "scope": "One fixed-orientation, noncollinear polynomial quadratic CUT path with3poles/unitweights/constantfiniteZ/clampeddomain",
+  "sourceCommits": [
+    "aed4d15356c99a01fc9c99bae02d0aca00435420",
+    "24fb68ff4f96ae57550f8119a7e5da28d38a02d7"
+  ],
+  "sourcePaths": 15,
+  "kernel": {
+    "new": 12,
+    "related": 19,
+    "uniquePASS": 31,
+    "types": "PASS",
+    "lint": "PASS",
+    "rootWrapperFollowup": "Build+12PASS+types/lint PASS; no additional unique tests"
+  },
+  "model": {
+    "new": 8,
+    "related": 89,
+    "uniquePASS": 97,
+    "types": "PASS",
+    "lint": "PASS",
+    "rootCommentDiagnosticFollowup": "8PASS; assertions unchanged"
+  },
+  "api": {
+    "added": 2,
+    "removed": 0,
+    "changedOld": 0,
+    "meaning": "One owned sharedquery and named result type",
+    "inventory": "SCOPED_PASS"
+  },
+  "studio": {
+    "types": "PASS",
+    "vite": "PASS",
+    "chat": "23PASS",
+    "lint": "0errors_1consolewarning"
+  },
+  "generated": {
+    "agentTools": "PASS",
+    "refusals": "PASS"
+  },
+  "browser": {
+    "status": "PASS_RUN_02",
+    "chromeProcesses": 1,
+    "serialContexts": 3,
+    "observations": 12,
+    "nativeReads": 9,
+    "independentDecimalChecks": 6,
+    "nativeFiles": 2,
+    "refusals": [
+      {
+        "kind": "distance-too-long",
+        "acceptedDocUnchanged": true,
+        "selectionUnchanged": true
+      }
+    ],
+    "sourceCounts": [
+      12,
+      979,
+      979,
+      979
+    ],
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchedChanges": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ]
+  },
+  "visual": {
+    "status": "SCOPED_PASS",
+    "rootImages": 6,
+    "limit": "Z0 guide stroke occluded by stock in source view; controls/poles/native diagnostics visible, no universal curve-rendering claim"
+  },
+  "work": {
+    "scope": "Single sharedplanner query; not all Model/Studio invocations or Booleans combined",
+    "limit": 200000,
+    "public64": 196882,
+    "legacy63pole": 28477,
+    "bits": 8192,
+    "speedEvaluations": 16384,
+    "subdivisions": 512,
+    "integrationDepth": 16
+  },
+  "performance": "Paired seven-sample observation using fixed perf-bench.mjs; both shape SAME; see perf/comparison.json and Korean report; baseline is D346 WIP, not D345",
+  "heldFailures": [
+    "Initial64query arithmetic-budget refusals; optimized without increasingcaps",
+    "Initialnewtest7PASS2FAIL: missingfixtureparameters and publicrequestbudget",
+    "Firstnarrowlint incorrect dependency path",
+    "Core audit CHANGES_REQUIRED: decoder reserve underbound and out-of-range numeric keys",
+    "Model affected88PASS1FAIL oldcollinear reason; two assertions preservetypedVALUE+specificnewreason",
+    "Modeltestglue initial TS2783/TS2550/TS7006 and two unused imports",
+    "Actualrun01 consumedtarget selection aliases witness; successfulPath-onlyclear beforecleanrun02"
+  ],
+  "fullKernel": "NOT_RUN_FOR_D346",
+  "fullModel": "NOT_RUN",
+  "fullStudio": "NOT_RUN",
+  "remoteCI": "PENDING_INTEGRATION_PR",
+  "release": "NOT_RUN",
+  "documentation": "PASS_NODE22_CHECK_DOCS_68PAGES_55SHOTS_861LABELS_LIBRARY_STRUCTURE_SCOPE",
+  "publication": "Owner now explicitly requests commit and merge to develop; final PR/head/merge status recorded separately after this document commit."
+}

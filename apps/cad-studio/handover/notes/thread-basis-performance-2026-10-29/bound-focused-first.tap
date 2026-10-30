@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: boundary scan preserves exact threshold, adjacent floats and signed-zero early hits
+ok 1 - boundary scan preserves exact threshold, adjacent floats and signed-zero early hits
+  ---
+  duration_ms: 1.904959
+  type: 'test'
+  ...
+# Subtest: boundary scan retains nearest-sample ties, no-hit refinement and evaluator failures
+ok 2 - boundary scan retains nearest-sample ties, no-hit refinement and evaluator failures
+  ---
+  duration_ms: 0.4295
+  type: 'test'
+  ...
+# Subtest: boundary scan preserves nonfinite, overflow, subnormal and negative-threshold outcomes
+ok 3 - boundary scan preserves nonfinite, overflow, subnormal and negative-threshold outcomes
+  ---
+  duration_ms: 7.62375
+  type: 'test'
+  ...
+# Subtest: finite component filtering agrees with the full scan over varied cached grids
+ok 4 - finite component filtering agrees with the full scan over varied cached grids
+  ---
+  duration_ms: 13.448
+  type: 'test'
+  ...
+# Subtest: the current Math.hypot implementation never returns less than a finite component
+ok 5 - the current Math.hypot implementation never returns less than a finite component
+  ---
+  duration_ms: 7.360792
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 351.6885

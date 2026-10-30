@@ -1,0 +1,47 @@
+{
+  "fresh": true,
+  "bodies": [
+    {
+      "key": "b1_part0",
+      "volume": 1440,
+      "centroid": [
+        20,
+        -1.603655480014115e-16,
+        2.3438041630975528e-16
+      ],
+      "massRef": null
+    },
+    {
+      "key": "b1_part1",
+      "volume": 720,
+      "centroid": [
+        40,
+        10,
+        2.3438041630975528e-16
+      ],
+      "massRef": null
+    },
+    {
+      "key": "b2_part0",
+      "volume": 3039.999999999993,
+      "centroid": [
+        20,
+        -1.2154020480107005e-15,
+        1.7763568394002544e-15
+      ],
+      "massRef": null
+    },
+    {
+      "key": "b2_part1",
+      "volume": 1519.9999999999966,
+      "centroid": [
+        40,
+        10,
+        1.7763568394002544e-15
+      ],
+      "massRef": null
+    }
+  ],
+  "massReady": true,
+  "colored": []
+}

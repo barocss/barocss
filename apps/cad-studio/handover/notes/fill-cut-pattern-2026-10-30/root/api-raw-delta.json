@@ -1,0 +1,34 @@
+{
+  "added": [
+    "[\"@barocss/cad\",\"./api\",\"FillFeaturePatternOptions\",\"type\"]",
+    "[\"@barocss/cad\",\"./api\",\"FillFeaturePatternRegion\",\"type\"]",
+    "[\"@barocss/cad\",\"./api\",\"fillFeaturePatternSpec\",\"value\"]",
+    "[\"@barocss/cad-model\",\"./api\",\"FillFeaturePatternOptions\",\"type\"]",
+    "[\"@barocss/cad-model\",\"./api\",\"FillFeaturePatternRegion\",\"type\"]",
+    "[\"@barocss/cad-model\",\"./api/index\",\"FillFeaturePatternOptions\",\"type\"]",
+    "[\"@barocss/cad-model\",\"./api/index\",\"FillFeaturePatternRegion\",\"type\"]",
+    "[\"@barocss/cad-model\",\"./engine/fillFeaturePattern\",\"eligibleFillPatternRegions\",\"value\"]",
+    "[\"@barocss/cad-model\",\"./engine/fillFeaturePattern\",\"fillFeaturePatternProblem\",\"value\"]",
+    "[\"@barocss/cad-model\",\"./engine/fillFeaturePattern\",\"fillPatternDocumentProblem\",\"value\"]",
+    "[\"@barocss/cad-model\",\"./engine/fillFeaturePattern\",\"fillRegionSnapshot\",\"value\"]"
+  ],
+  "removed": [],
+  "rawChanged": [
+    "[\"@barocss/cad\",\".\",\"CadPartFeature\",\"type\"]",
+    "[\"@barocss/cad\",\".\",\"CadPartSnapshot\",\"type\"]",
+    "[\"@barocss/cad\",\".\",\"FinitePlaneCylinderEquation\",\"type\"]",
+    "[\"@barocss/cad\",\"./api\",\"FeatureSpec\",\"type\"]",
+    "[\"@barocss/cad\",\"./api\",\"KernelPart\",\"type+value\"]",
+    "[\"@barocss/cad\",\"./api\",\"Part\",\"type+value\"]",
+    "[\"@barocss/cad-model\",\"./api\",\"StudioPart\",\"type+value\"]",
+    "[\"@barocss/cad-model\",\"./api/index\",\"StudioPart\",\"type+value\"]",
+    "[\"@barocss/cad-model\",\"./api/part\",\"StudioPart\",\"type+value\"]",
+    "[\"@barocss/cad-model\",\"./app/commands\",\"Ctx\",\"type\"]",
+    "[\"@barocss/cad-model\",\"./app/editFields\",\"EditScope\",\"type\"]",
+    "[\"@barocss/cad-model\",\"./engine/doc\",\"ModelNode\",\"type\"]",
+    "[\"@barocss/cad-model\",\"./engine/doc\",\"isSolidNode\",\"value\"]"
+  ],
+  "otherChanged": [
+    "coreResultChecks"
+  ]
+}

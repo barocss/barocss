@@ -1,0 +1,31 @@
+{
+  "status": "PASS_SCOPED_VISUAL_AND_SELECTION_FLOW",
+  "sourceCommit": "7e3d0a229810e036d80fc9b07f52fd0e17616c3d",
+  "numericRunStatus": "PASS",
+  "imagesViewed": [
+    "04-outward-native-authority-iso.png",
+    "12-distance-reeditable.png",
+    "16-inward-applied.png",
+    "20-drafted-refusal.png",
+    "29-cylinder-applied.png"
+  ],
+  "observations": [
+    "Outward result is visibly filled and contiguous, with the unrelated witness separately visible.",
+    "After outward and inward Apply, no old geometry pick or witness highlight remains; inspector shows the part rather than an unrelated selected face.",
+    "Reopened result can be reselected and its existing extrusion Distance is bound to offsetDistance at3.",
+    "Drafted unsupported cap retains its selected source and shows a refusal with Apply disabled.",
+    "Existing integer cylinder remains visibly filled after its Offset Apply."
+  ],
+  "acceptedSelectionChecks": {
+    "count": 4,
+    "allPass": true
+  },
+  "limits": [
+    "Initial run01 numeric PASS and separate post-Apply selection FLOW FAIL are preserved. No clean first product PASS.",
+    "Screenshots cannot resolve30nm footprint loss or0.0003211mm gaps. Native support/topology and independent numeric evidence verify those dimensions.",
+    "Ordinary numeric proof covers native Core, public Part and accepted Studio raw mass state; rounded inspector labels are not precision oracles.",
+    "Five views do not certify all raster points, arbitrary body offsets or all-axis Studio interactions.",
+    "Captured-source mismatch guard has source inspection; actual concurrent source-mutation flow NOT_RUN.",
+    "No generic stable selection remapper or Shift-Enter repeat policy acceptance."
+  ]
+}

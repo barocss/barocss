@@ -1,0 +1,53 @@
+{
+  "status": "SELECTED_NORMAL_UI_CONSUMER_PASS",
+  "baseline": "27500e219febc591845cd5e4c53341a24ca9d39b",
+  "changedSource": "apps/cad-studio/src/storage/project.ts",
+  "sourceProfile": "actual/source-profile.json",
+  "sourceHashesUnchangedAfterRun": true,
+  "firstAttempt": true,
+  "selected": {
+    "name": "CG6 project: open a folder, save into it, two versions, compare, restore the first; autosave kept in the project and offered back after a reload",
+    "step": 316,
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+  },
+  "starterSmoke": {
+    "pass": 1
+  },
+  "exit": 0,
+  "renderer": "WebGPU",
+  "devicePixelRatio": 1,
+  "pageErrors": "None reported; runner exit includes page errors.",
+  "observedByExistingAssertions": [
+    "UI Make First then second Box and native project Save; UI Make Second",
+    "Native part/index/snapshot files present; two versions listed",
+    "Compare First shows added sketch n2/extrude n3",
+    "Restore First gives one body and preserves both versions",
+    "Actual native autosave of restored one-Box document",
+    "Reload, reopen recent project and part; two versions re-read",
+    "Restore offered project autosave gives one body"
+  ],
+  "directVisualReview": [
+    "actual/316a-cg6-compare.png",
+    "actual/316b-cg6-versions.png"
+  ],
+  "cleanup": {
+    "ownOpfsFolder": "Existing selected flow awaited recursive removal of its unique cg6-flow folder; no separate post-delete absence probe",
+    "browserAndServer": "Runner finally awaited both closures; process exited0; target process absent",
+    "gate": "holder:none after process exit"
+  },
+  "boundaries": [
+    "Normal UI documents include nextId; omitted-nextId canonical identity regression is focused Model/storage API proof, not this UI input",
+    "Existing native folder picker substitute returns a real OPFS directory handle; actual OS dialog/external folder not exercised",
+    "Reload in same browser context/profile; no fresh-context claim",
+    "Existing harness asserts native files but does not export their raw bytes; no retained-byte or new semantic JSON receipt claim",
+    "No new harness, runtime edit or additional cases"
+  ],
+  "notRun": [
+    "Full browser/Model/Studio/Kernel suites",
+    "Rare omitted-nextId creation through UI",
+    "External OS folder dialog",
+    "New schema/general Open/Save expansion"
+  ]
+}

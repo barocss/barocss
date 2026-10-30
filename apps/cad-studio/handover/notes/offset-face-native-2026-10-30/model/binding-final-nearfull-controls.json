@@ -1,0 +1,78 @@
+{
+  "status": "FINAL_SOURCE_NEARFULL_ATOMIC_REFUSAL_AND_POSITIVE_RETRY_PASS",
+  "count": 2,
+  "cases": [
+    {
+      "kind": "polygon",
+      "coordinate": 5.3457689,
+      "opposite": 0.3456789,
+      "distance": -5.00009,
+      "intendedGap": {
+        "numerator": "1",
+        "denominator": "4503599627370496"
+      },
+      "storedGap": 2.220446049250313e-16,
+      "nearfull": "FACE_DISTANCE atomic refusal",
+      "retryDistance": -4.99909,
+      "retryNative": {
+        "min": [
+          0.1234567,
+          -0.2345678,
+          0.3456789
+        ],
+        "max": [
+          20.123486699999997,
+          9.765502199999998,
+          0.34667890000000057
+        ],
+        "volume": 0.20000170000221112,
+        "centroid": [
+          10.1234717,
+          4.765467199999999,
+          0.3461789000000003
+        ],
+        "modelCentroid": [
+          10.123471699999994,
+          4.765467199999998,
+          0.3461789000000025
+        ]
+      }
+    },
+    {
+      "kind": "circle",
+      "coordinate": 5.3457689,
+      "opposite": 0.3456789,
+      "distance": -5.00009,
+      "intendedGap": {
+        "numerator": "1",
+        "denominator": "4503599627370496"
+      },
+      "storedGap": 2.220446049250313e-16,
+      "nearfull": "FACE_DISTANCE atomic refusal",
+      "retryDistance": -4.99909,
+      "retryNative": {
+        "min": [
+          -2.8765433,
+          -0.2345678,
+          0.3456789
+        ],
+        "max": [
+          3.1234567,
+          -0.23456779999999963,
+          0.34667890000000057
+        ],
+        "volume": 0.02827433388232405,
+        "centroid": [
+          0.1234566999999973,
+          -0.23456779999999955,
+          0.3461789000000003
+        ],
+        "modelCentroid": [
+          0.12345670000000006,
+          -0.23456779999999994,
+          0.34617890000000245
+        ]
+      }
+    }
+  ]
+}

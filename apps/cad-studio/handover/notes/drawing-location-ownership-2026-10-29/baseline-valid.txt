@@ -1,0 +1,238 @@
+TAP version 13
+# Subtest: independent cross-view hole locations with equal values are retained; missing target remains diagnosed
+not ok 1 - independent cross-view hole locations with equal values are retained; missing target remains diagnosed
+  ---
+  duration_ms: 161.8035
+  type: 'test'
+  location: '/private/tmp/d331/baseline-valid.test.mjs:106527:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     code: 'DUPLICATE',
+    +     dims: [
+    +       'd3',
+    +       'd9'
+    +     ],
+    +     fix: {
+    +       dim: 'd9',
+    +       kind: 'remove'
+    +     },
+    +     message: '15 is given twice (top and right view).',
+    +     severity: 'warning',
+    +     view: 'right'
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      code: 'DUPLICATE'
+      severity: 'warning'
+      message: '15 is given twice (top and right view).'
+      dims:
+        0: 'd3'
+        1: 'd9'
+      view: 'right'
+      fix:
+        kind: 'remove'
+        dim: 'd9'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/d331/baseline-valid.test.mjs:106531:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: public edit changes only the second hole location from 15 to 17; both targets remain independently covered
+ok 2 - public edit changes only the second hole location from 15 to 17; both targets remain independently covered
+  ---
+  duration_ms: 225.157416
+  type: 'test'
+  ...
+# Subtest: manual first-hole location does not suppress automatic location of an independent equal-value target
+not ok 3 - manual first-hole location does not suppress automatic location of an independent equal-value target
+  ---
+  duration_ms: 78.814542
+  type: 'test'
+  location: '/private/tmp/d331/baseline-valid.test.mjs:106553:1'
+  failureType: 'testCodeFailure'
+  error: 'false == true'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/d331/baseline-valid.test.mjs:106560:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a later repeat of the second target is found after an independent target with the same span
+not ok 4 - a later repeat of the second target is found after an independent target with the same span
+  ---
+  duration_ms: 73.405041
+  type: 'test'
+  location: '/private/tmp/d331/baseline-valid.test.mjs:106562:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    2 !== 1
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 1
+  actual: 2
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/d331/baseline-valid.test.mjs:106568:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: independently authored square-grid holes each retain two target-owned locations and distinct placement rows
+not ok 5 - independently authored square-grid holes each retain two target-owned locations and distinct placement rows
+  ---
+  duration_ms: 59.937291
+  type: 'test'
+  location: '/private/tmp/d331/baseline-valid.test.mjs:106575:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    4 !== 8
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 8
+  actual: 4
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/d331/baseline-valid.test.mjs:106578:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: same-target orthographic repeat keeps manual reference and removes its automatic repeat
+ok 6 - same-target orthographic repeat keeps manual reference and removes its automatic repeat
+  ---
+  duration_ms: 68.667792
+  type: 'test'
+  ...
+# Subtest: a common hole target does not merge measurements from two independent coincident datum features
+not ok 7 - a common hole target does not merge measurements from two independent coincident datum features
+  ---
+  duration_ms: 69.325625
+  type: 'test'
+  location: '/private/tmp/d331/baseline-valid.test.mjs:106596:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     code: 'DUPLICATE',
+    +     dims: [
+    +       'd3',
+    +       'other-datum'
+    +     ],
+    +     fix: {
+    +       dim: 'other-datum',
+    +       kind: 'remove'
+    +     },
+    +     message: '15 is given twice (top and top view).',
+    +     severity: 'warning',
+    +     view: 'top'
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      code: 'DUPLICATE'
+      severity: 'warning'
+      message: '15 is given twice (top and top view).'
+      dims:
+        0: 'd3'
+        1: 'other-datum'
+      view: 'top'
+      fix:
+        kind: 'remove'
+        dim: 'other-datum'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/d331/baseline-valid.test.mjs:106603:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: reversing a counted pitch changes its extension direction and does not offer a duplicate removal
+not ok 8 - reversing a counted pitch changes its extension direction and does not offer a duplicate removal
+  ---
+  duration_ms: 73.155625
+  type: 'test'
+  location: '/private/tmp/d331/baseline-valid.test.mjs:106605:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     code: 'DUPLICATE',
+    +     dims: [
+    +       'd3',
+    +       'reverse-count'
+    +     ],
+    +     fix: {
+    +       dim: 'reverse-count',
+    +       kind: 'remove'
+    +     },
+    +     message: '3× 15 is given twice (top and top view).',
+    +     severity: 'warning',
+    +     view: 'top'
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      code: 'DUPLICATE'
+      severity: 'warning'
+      message: '3× 15 is given twice (top and top view).'
+      dims:
+        0: 'd3'
+        1: 'reverse-count'
+      view: 'top'
+      fix:
+        kind: 'remove'
+        dim: 'reverse-count'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/tmp/d331/baseline-valid.test.mjs:106608:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 2
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1054.888459

@@ -2,7 +2,7 @@
 // the line from it to its own middle (straight up when it sits in the middle), by `k` times that
 // distance — for display only: the parts, their placements and their mates stay as they are.
 import type { BodyResult } from '../engine/evaluate';
-import type { DisplayMesh, Vec3 } from '../engine/mesh';
+import { withoutNativeFaces, type DisplayMesh, type Vec3 } from '../engine/mesh';
 import { boundsOf } from '../engine/bounds';
 
 /** The middle of the bodies' box. */
@@ -27,6 +27,6 @@ export function movedBody(b: BodyResult, d: Vec3): BodyResult {
   for (let i = 0; i < P.length; i++) P[i] += d[i % 3];
   for (let i = 0; i < L.length; i++) L[i] += d[i % 3];
   const add = (p: readonly number[]): Vec3 => [p[0] + d[0], p[1] + d[1], p[2] + d[2]];
-  const mesh: DisplayMesh = { ...m, positions: P, edgeLines: L, faces: m.faces.map(f => ({ ...f, centroid: add(f.centroid) })), edges: m.edges.map(e => ({ ...e, a: add(e.a), b: add(e.b) })), bounds: { min: add(m.bounds.min), max: add(m.bounds.max) } };
+  const mesh: DisplayMesh = { ...m, positions: P, edgeLines: L, faces: m.faces.map(f => ({ ...withoutNativeFaces(f), centroid: add(f.centroid) })), edges: m.edges.map(e => ({ ...e, a: add(e.a), b: add(e.b) })), bounds: { min: add(m.bounds.min), max: add(m.bounds.max) } };
   return { ...b, mesh, ...(b.centroid ? { centroid: add(b.centroid) } : {}) };
 }

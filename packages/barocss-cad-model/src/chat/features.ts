@@ -1,3 +1,7 @@
+import { sewNodeProblem } from '../engine/sew';
+import { thickenNodeProblem } from '../engine/thicken';
+import { fillFeaturePatternProblem } from '../engine/fillFeaturePattern';
+import { curveFeaturePatternProblem } from '../engine/curveFeaturePattern';
 // Feature nodes written by the model (add_features / edit_feature), checked before the kernel sees
 // them: every field of the node's kind with the right type, references to earlier sketches and to
 // bodies that are still visible, and no unknown fields. Also deleting a feature (with the sketches only
@@ -5,7 +9,7 @@
 // (engine/ids.ts), so they stay as they are.
 import { type BoundConstraint3D, type V3 } from '../frames/sketch3d';
 import { boundConstraints, boundRefusal, followersOf, SKELETON_CODES } from '../frames/skeleton';
-import { frameGeometry, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type PartInstance, type StudioDoc } from '../engine/doc';
+import { rectangularFeaturePatternProblem, frameGeometry, cylindricalWrapNodeProblem, textNodeProblem, textReliefNodeProblem, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type PartInstance, type StudioDoc } from '../engine/doc';
 import { BASE, mateLabel } from '../assembly/mates';
 import type { CentreRef, DimPoint, DrawingDimension } from '../drawing/types';
 import { bodyKeyFor, bodyNodeOf, featureId, nextSerial, nodesOfName, renameFeatureIds, serialOf } from '../engine/ids';
@@ -16,6 +20,7 @@ import { isObj, isVec3 } from '../util/guards';
 type Spec = Record<string, string>;
 /** `?` marks an optional field. */
 const SPECS: Record<string, Spec> = {
+  text: { text: 'text', font: 'any', size: 'dim', height: 'dim', tolerance: 'num', 'tracking?': 'dim', 'plane?': 'plane' },
   bearing: { row: 'text', shaft: 'shaft-node', step: 'positive-index', against: 'enum:start|end', 'housing?': 'body-node', 'housingRef?': 'housing-ref', 'shaftClass?': 'text', 'housingClass?': 'text' },
   extrude: { sketch: 'sketch', height: 'dim', 'from?': 'dim', 'draft?': 'num' },
   revolve: { sketch: 'sketch', axis: 'enum:x|y', 'origin?': 'dim2', angle: 'num' },
@@ -26,6 +31,9 @@ const SPECS: Record<string, Spec> = {
   mirror: { parent: 'ref', plane: 'enum:xy|xz|yz' },
   scale: { parent: 'ref', factor: 'pos', 'pivot?': 'dim3' },
   'linear-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'count' },
+  'fill-feature-pattern': { parent: 'ref', region: 'any', anchor: 'any', spacing: 'dim', count: 'positive-index', spacing2: 'dim', count2: 'positive-index' },
+  'curve-feature-pattern': { parent: 'ref', path: 'any', spacing: 'dim', count: 'positive-index' },
+  'rectangular-feature-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'positive-index', axis2: 'enum:x|y|z', spacing2: 'dim', count2: 'positive-index' },
   'linear-feature-pattern': { parent: 'ref', axis: 'enum:x|y|z', spacing: 'dim', count: 'count' },
   'circular-pattern': { parent: 'ref', axis: 'enum:x|y|z', angle: 'num', count: 'count' },
   union: { left: 'ref', right: 'ref' },
@@ -33,7 +41,11 @@ const SPECS: Record<string, Spec> = {
   difference: { parent: 'ref', tool: 'ref' },
   rib: { parent: 'ref', min: 'dim3', max: 'dim3' },
   'rectangular-relief': { parent: 'ref', min: 'dim2', max: 'dim2', depth: 'dim', mode: 'enum:emboss|engrave' },
+  'cylindrical-wrap': { parent: 'ref', faces: 'names1', rectangle: 'any', height: 'dim' },
+  'text-relief': { parent: 'ref', faces: 'names1', text: 'text', font: 'any', size: 'dim', depth: 'dim', at: 'dim2', mode: 'enum:emboss|engrave', tolerance: 'num', 'tracking?': 'dim' },
   split: { parent: 'ref', at: 'dim', axis: 'enum:x|y|z' },
+  sew: { names: 'any', surfaces: 'any', 'tolerance?': 'num' },
+  thicken: { name: 'text', surface: 'any', thickness: 'dim', 'side?': 'enum:normal|reverse|both' },
   shell: { parent: 'ref', thickness: 'dim', open: 'names' },
   draft: { parent: 'ref', faces: 'names1', angle: 'num', 'pull?': 'enum:x|y|z|-x|-y|-z', 'neutral?': 'dim' },
   'full-round': { parent: 'ref', faces: 'names1', 'along?': 'enum:x|y' },
@@ -132,6 +144,14 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
     const why = checkValue(v, type, nodes, parameters, leaves);
     if (why) return `${kind}.${key}: ${why}`;
   }
+  if (kind === 'sew') return sewNodeProblem(node);
+  if (kind === 'thicken') return thickenNodeProblem(node, parameters);
+  if (kind === 'text') return textNodeProblem(node, parameters);
+  if (kind === 'cylindrical-wrap') return cylindricalWrapNodeProblem(node, parameters);
+  if (kind === 'text-relief') return textReliefNodeProblem(node, parameters);
+  if (kind === 'fill-feature-pattern') return fillFeaturePatternProblem(node, nodes, parameters);
+  if (kind === 'curve-feature-pattern') return curveFeaturePatternProblem(node, nodes, parameters);
+  if (kind === 'rectangular-feature-pattern') return rectangularFeaturePatternProblem(node, nodes, parameters);
   if (kind === 'linear-feature-pattern') {
     const parent = node.parent as unknown as BodyRef, source = nodes[parent.node];
     if (parent.side !== 'solid' || source?.kind !== 'difference' || source.suppressed === true) return '[BAD_REFERENCE] A linear feature pattern needs a current unsuppressed difference body.';

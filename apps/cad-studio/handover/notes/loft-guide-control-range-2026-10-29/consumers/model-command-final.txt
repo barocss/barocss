@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: Loft None preserves the fixed legacy authored bytes, including height sections and copied loop profiles
+ok 1 - Loft None preserves the fixed legacy authored bytes, including height sections and copied loop profiles
+  ---
+  duration_ms: 4.93375
+  type: 'test'
+  ...
+# Subtest: framed sections retain pick order and authored profile coordinates, with independent frames and no copied feature ids
+ok 2 - framed sections retain pick order and authored profile coordinates, with independent frames and no copied feature ids
+  ---
+  duration_ms: 0.9095
+  type: 'test'
+  ...
+# Subtest: quadratic and cubic guide commands author copied controls and explicit frames with unique new feature ids
+ok 3 - quadratic and cubic guide commands author copied controls and explicit frames with unique new feature ids
+  ---
+  duration_ms: 0.768958
+  type: 'test'
+  ...
+# Subtest: affine knot intervals and common positive weights keep the controls; baked Direct movement is copied once and stays independent
+ok 4 - affine knot intervals and common positive weights keep the controls; baked Direct movement is copied once and stays independent
+  ---
+  duration_ms: 3.992542
+  type: 'test'
+  ...
+# Subtest: unsupported direct geometry returns explicit reasons without changing the document or silently choosing another curve
+ok 5 - unsupported direct geometry returns explicit reasons without changing the document or silently choosing another curve
+  ---
+  duration_ms: 1.151958
+  type: 'test'
+  ...
+# Subtest: Guide choice lists only supported snapshots and its steps describe the chosen copied source rather than a live link
+ok 6 - Guide choice lists only supported snapshots and its steps describe the chosen copied source rather than a live link
+  ---
+  duration_ms: 0.964916
+  type: 'test'
+  ...
+# Subtest: a deleted guide or invalid saved choice is refused without falling back to None or another imported curve
+ok 7 - a deleted guide or invalid saved choice is refused without falling back to None or another imported curve
+  ---
+  duration_ms: 0.474458
+  type: 'test'
+  ...
+# Subtest: general guide snapshots retain knots and independent controls; the command authors height sections through each vertex
+ok 8 - general guide snapshots retain knots and independent controls; the command authors height sections through each vertex
+  ---
+  duration_ms: 0.700958
+  type: 'test'
+  ...
+# Subtest: a multi-span guide on three parallel sketches evaluates to the fixed translated-square oracle
+ok 9 - a multi-span guide on three parallel sketches evaluates to the fixed translated-square oracle
+  ---
+  duration_ms: 41.329292
+  type: 'test'
+  ...
+# Subtest: quartic and quintic single spans copy as general guides with their authored knot interval
+ok 10 - quartic and quintic single spans copy as general guides with their authored knot interval
+  ---
+  duration_ms: 0.73025
+  type: 'test'
+  ...
+# Subtest: 17 and 64 control copied guides preserve height recipes, actual meshes and file values
+ok 11 - 17 and 64 control copied guides preserve height recipes, actual meshes and file values
+  ---
+  duration_ms: 90.677083
+  type: 'test'
+  ...
+# Subtest: non-XY parallel height sections retain the existing two, three and eight section world placement
+ok 12 - non-XY parallel height sections retain the existing two, three and eight section world placement
+  ---
+  duration_ms: 86.577
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 370.937917

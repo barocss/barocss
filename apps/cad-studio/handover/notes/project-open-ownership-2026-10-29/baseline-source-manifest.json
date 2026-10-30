@@ -1,0 +1,50 @@
+{
+  "status": "PREPARED_NOT_RUN",
+  "headAtPreparation": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+  "capturedAtUTC": "2026-10-29T07:52:27.896458+00:00",
+  "scope": "A05 hook baseline; no production edit or runtime invocation",
+  "files": [
+    {
+      "source": "apps/cad-studio/src/App.tsx",
+      "copy": "baseline-source/App.tsx",
+      "sha256": "3408486cb5ba46cb87091c9916be0c99ceee09ce7662779d6742adfe982ded35",
+      "bytes": 384287
+    },
+    {
+      "source": "apps/cad-studio/src/storage/useProject.ts",
+      "copy": "baseline-source/useProject.ts",
+      "sha256": "b137e624895a31f76527efd7183913aec72161d07121cd2ecf3f0000d89ed94a",
+      "bytes": 13875
+    },
+    {
+      "source": "apps/cad-studio/src/storage/project.ts",
+      "copy": "baseline-source/project.ts",
+      "sha256": "a927fd79a0db9be5d5b60f5380f2ad2ac114e4b5c33c0c9f5240da8772a815ad",
+      "bytes": 5774
+    },
+    {
+      "source": "apps/cad-studio/src/storage/handleStore.ts",
+      "copy": "baseline-source/handleStore.ts",
+      "sha256": "73e879642071ec3db0597189946edb952804c523fc4159c0d7b584263b46c2a5",
+      "bytes": 5764
+    },
+    {
+      "source": "apps/cad-studio/src/storage/access.ts",
+      "copy": "baseline-source/access.ts",
+      "sha256": "2f8f6c87dca1c94e06f84d3a6a3546566d39768b2d68938c819fa844a1e90f54",
+      "bytes": 4666
+    },
+    {
+      "source": "apps/cad-studio/src/storage/linked.ts",
+      "copy": "baseline-source/linked.ts",
+      "sha256": "4b9c433a0714ae7b40bd1322171ca0b9e6033baba24c074efab45853395a1693",
+      "bytes": 2743
+    },
+    {
+      "source": "apps/cad-studio/test/project-open-ownership.test.ts",
+      "copy": "baseline-source/project-open-ownership.test.ts",
+      "sha256": "cf9a1880278c05da53578c5682d00dd89cae4454dc1a42689512a98b588eed63",
+      "bytes": 10240
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+src/drawing/measurement.ts(30,3): error TS2322: Type 'undefined' is not assignable to type '{ readonly center: Point; readonly radius: number; readonly normal: Point; readonly full: boolean; readonly sweep: number; } | null'.
+test/drawing-independent-locations.test.ts(62,70): error TS2304: Cannot find name 'input'.
+test/drawing-independent-locations.test.ts(62,117): error TS2304: Cannot find name 'ctx'.
+test/drawing-independent-locations.test.ts(62,136): error TS2304: Cannot find name 'input'.
+test/drawing-independent-locations.test.ts(63,36): error TS2304: Cannot find name 'ctx'.
+test/drawing-independent-locations.test.ts(63,47): error TS2304: Cannot find name 'ctx'.
+test/drawing-independent-locations.test.ts(63,59): error TS2304: Cannot find name 'input'.
+test/drawing-independent-locations.test.ts(63,66): error TS2304: Cannot find name 'ctx'.

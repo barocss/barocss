@@ -1,0 +1,9 @@
+[
+  {
+    "phase": "copy reviewed API candidate",
+    "status": "CORRECTED",
+    "kind": "wrong relative command path in package working directory",
+    "output": "cp: apps/library-docs/scripts/api-inventory.expected.json: No such file or directory",
+    "correction": "Repeated cp from the authoritative worktree root. Candidate and product source were not changed by the failed copy."
+  }
+]

@@ -1,0 +1,18 @@
+{
+  "failedRun": 40984417163,
+  "failedHead": "e77a750a883309cffe7f862199cea7e77d428409",
+  "rawLogSHA256": "91c775ad933c116e0718ababe24a849507e87a512daa8f45f17329172d1ab762",
+  "rawLogBytes": 238159,
+  "gzipSHA256": "f9c4af2f6c0f5ea93b40fb34edd3d815e894899281645c9c103a5920631daccd",
+  "rootCause": "13 ESLint errors in immutable archived note source/probe snapshots; no production file among errors",
+  "fix": "Exclude exactly apps/cad-studio/handover/notes/**; source/test inputs remain linted",
+  "localValidation": {
+    "affectedCIPolicy": "42PASS",
+    "trackedAppLint": "516 real files PASS0errors",
+    "StudioRealFiles": 425,
+    "StudioArchivedExclusions": 219,
+    "sixSourceTestRepresentatives": "NOT_IGNORED"
+  },
+  "runtimeTests": "Unchanged; not rerun for ESLint boundary-only fix",
+  "remoteCI": "Fresh PR head must pass lint/types/build before merge; this CI does not run the full runtime suites"
+}

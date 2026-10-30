@@ -1,0 +1,65 @@
+{
+  "status": "BASELINE_REPRODUCED_PRODUCT_FAIL",
+  "fixedGitBaseline": "a386c8705beda2c72d215da61a55fd6119351ca2",
+  "browser": "156.0.8078.48",
+  "renderer": "WebGPU",
+  "devicePixelRatio": 1,
+  "selectedTests": {
+    "total": 1,
+    "pass": 0,
+    "fail": 1,
+    "skip": 0,
+    "meaning": "Expected safe-ownership assertion failed after native schedule and observations completed; baseline product defect reproduced."
+  },
+  "execution": {
+    "exit": 1,
+    "duration": 9493.238458,
+    "testDuration": 9327.758708,
+    "timeUnit": "ms"
+  },
+  "preflight": {
+    "driverSyntax": 0,
+    "helperSyntax": 0,
+    "changedHarnessLint": 0
+  },
+  "observed": {
+    "liveDocEqualsNewer": true,
+    "savedDocEqualsA": true,
+    "dirtyAfter": false,
+    "newerAutosavePresent": false,
+    "recoveryBefore": null,
+    "recoveryAfter": null,
+    "projectPartUIBefore": "D322-owned.bcad",
+    "projectPartUIAfter": "D322-owned.bcad",
+    "projectTagRef": "NOT_EXPOSED; native file tags are retained",
+    "baselineBugObserved": true
+  },
+  "nativeCompletion": {
+    "nativeCloseReturn": 22,
+    "returnedTagRead": 23,
+    "projectRefreshComplete": 28
+  },
+  "failure": {
+    "phase": "safe ownership assertions after all raw snapshots and bytes were persisted",
+    "message": "late Save A must not mark newer Render edit B clean\n\nfalse !== true\n",
+    "stack": "AssertionError [ERR_ASSERTION]: late Save A must not mark newer Render edit B clean\n\nfalse !== true\n\n    at TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/late-save-ownership-browser.test.mjs:121:12)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)"
+  },
+  "cleanup": {
+    "projectClose": "cleanup-only, after measured case",
+    "namespace": "REMOVED_AND_ABSENT",
+    "context": "CLOSED",
+    "browser": "CLOSED",
+    "server": "CLOSED"
+  },
+  "gate": "RELEASED; holder:none/slots0 independently observed after process exit",
+  "firstAttempt": "SETUP_OR_SCHEDULE_FAILURE; async Playwright predicate returned a truthy Promise before actual autosave existed; no product conclusion",
+  "notRun": [
+    "Pending Save followed by New, Close or project switch",
+    "Other tabs, external folders, crash or actual user-file loss",
+    "Repair validation or expanded schedule matrix"
+  ],
+  "notExposed": [
+    "Private useProject tag ref"
+  ],
+  "recoveryBoundary": "Local recovery was null before and after; no claim of observed recovery loss."
+}

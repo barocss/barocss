@@ -1,0 +1,11 @@
+import { createRequire } from 'node:module';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { join } from 'node:path';
+const root = '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b';
+const require = createRequire(join(root, 'package.json'));
+const { build } = require('esbuild');
+const sources = ['auto.ts', 'issues.ts', 'dimensions.ts'];
+const hashes = {};
+const result = await build({entryPoints:[join(root,'packages/barocss-cad-model/test/drawing-independent-locations.test.ts')],outfile:'/tmp/d331/baseline-valid.test.mjs', bundle:true, platform:'node',format:'esm',target:'node22',metafile:true,define:{'import.meta.dirname':JSON.stringify(join(root,'packages/barocss-cad-model/test'))},plugins:[{name:'original-drawing-source',setup(build){build.onLoad({filter:/\/src\/drawing\/(auto|issues|dimensions)\.ts$/},args=>{const name=args.path.split('/').at(-1); const contents=readFileSync(join('/tmp/d331/baseline-source',name),'utf8');hashes[name]=createHash('sha256').update(contents).digest('hex');return {contents,loader:'ts',resolveDir:join(root,'packages/barocss-cad-model/src/drawing')};});}}]});
+writeFileSync('/tmp/d331/baseline-valid-sources.json',JSON.stringify({baseline:'2084eeb99c39b9c27518f401f89c789f03dd94f1',replacedSourceFiles:hashes,currentTestHash:createHash('sha256').update(readFileSync(join(root,'packages/barocss-cad-model/test/drawing-independent-locations.test.ts'))).digest('hex'),metafile:result.metafile},null,2));

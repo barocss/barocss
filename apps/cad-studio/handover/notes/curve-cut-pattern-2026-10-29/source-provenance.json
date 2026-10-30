@@ -1,0 +1,43 @@
+{
+  "purpose": "Integrity of compressed evidence; hashes do not establish geometric correctness.",
+  "files": [
+    {
+      "original": "/tmp/d334-root/api-candidate.json",
+      "stored": "root/api-candidate.json.gz",
+      "encoding": "gzip",
+      "originalBytes": 17340010,
+      "originalSHA256": "495beb5b6d3b69f5a10b096136e9a2e0838b221d0765bf928d018a3049ffed89",
+      "storedBytes": 910945,
+      "storedSHA256": "b85689fadc6a37fd67294524b121645751c875a2227dc821d5f68828b02465dc"
+    },
+    {
+      "original": "/tmp/d334-root/api-previous.json.gz",
+      "stored": "root/api-previous.json.gz",
+      "encoding": "gzip-preserved-byte-for-byte",
+      "originalCompressedBytes": 908012,
+      "originalCompressedSHA256": "d16057e45cbdbefbc263144966069a41308da4ef1f84aa21387cee7975797a13",
+      "storedBytes": 908012,
+      "storedSHA256": "d16057e45cbdbefbc263144966069a41308da4ef1f84aa21387cee7975797a13",
+      "uncompressedBytes": 17311309,
+      "uncompressedSHA256": "e8f570d1f68a6e3e6e32dc017760008f855f75ac500e18fbc6a6c1316a3d5f08"
+    },
+    {
+      "original": "/tmp/d334-root/native-first/seed-generator.mjs",
+      "stored": "root/native-first/seed-generator.mjs.gz",
+      "encoding": "gzip",
+      "originalBytes": 5598933,
+      "originalSHA256": "eca2f77d23dfe891feee46d6be82e2f3c2d10b500d41f5a51f8f1fc49cde328b",
+      "storedBytes": 1381529,
+      "storedSHA256": "4bee2fd463b6d60adea74dfea28195b37a73b86dad0250c494ce09449fa975c9"
+    },
+    {
+      "original": "/tmp/d334-root/native-retake/seed-generator.mjs",
+      "stored": "root/native-retake/seed-generator.mjs.gz",
+      "encoding": "gzip",
+      "originalBytes": 5598933,
+      "originalSHA256": "eca2f77d23dfe891feee46d6be82e2f3c2d10b500d41f5a51f8f1fc49cde328b",
+      "storedBytes": 1381529,
+      "storedSHA256": "4bee2fd463b6d60adea74dfea28195b37a73b86dad0250c494ce09449fa975c9"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "profile": "Frozen final D321 actual source with inactive !run Stop noop guard",
+  "files": [
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/src/App.tsx",
+      "sha256": "09e402caf8e6fa163f4ec8b181ff872c8369f9969298b046e66d34dd1a02bf7c",
+      "bytes": 383031,
+      "gzip": "App.tsx.gz",
+      "gzipSHA256": "13ea95ab62a83ccd60648616bae68f9cdbe26719dfa28e9d6b8de1a2d8ba6507"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/src/state/workOwnership.ts",
+      "sha256": "d95db66ed196df304ce29d2b6d497b589eca361160812cb5cbca30da376f6ed8",
+      "bytes": 3684,
+      "gzip": "workOwnership.ts.gz",
+      "gzipSHA256": "23df0e5b0f055bf068d7f1c7ef0f3aa8b62ce35d517d0b3f1b25bfb6ab5423d5"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/src/engine/client.ts",
+      "sha256": "56f10abe7acc2c3d528a7fc6096e8dbf0b6b5b1417d41e85dc6752cd76303d6b",
+      "bytes": 16673,
+      "gzip": "client.ts.gz",
+      "gzipSHA256": "6400e0ef262a4a588c4bf4d9e47af37110cef0b8efd38325ccb84edbca6f4f1a"
+    }
+  ]
+}

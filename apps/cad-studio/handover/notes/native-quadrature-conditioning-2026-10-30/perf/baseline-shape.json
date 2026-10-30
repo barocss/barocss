@@ -1,0 +1,32 @@
+{
+ "native-cylinder-ordinary-first-mass": {
+  "valid": true,
+  "bodies": 1,
+  "faces": 4,
+  "edges": 6,
+  "vertices": 4,
+  "volume": 141.37421410159007,
+  "centroid": [
+   0.12345669999999984,
+   -0.23456779999999974,
+   2.8457239
+  ],
+  "names": "cylinder.bottom,cylinder.side0#1,cylinder.side0#2,cylinder.top|cylinder.bottom|cylinder.side0#1,cylinder.bottom|cylinder.side0#2,cylinder.side0#1|cylinder.side0#2#1,cylinder.side0#1|cylinder.side0#2#2,cylinder.side0#1|cylinder.top,cylinder.side0#2|cylinder.top",
+  "ms": 39
+ },
+ "native-cylinder-tiny-first-mass": {
+  "valid": true,
+  "bodies": 1,
+  "faces": 4,
+  "edges": 6,
+  "vertices": 4,
+  "volume": 6.180191251439208e-15,
+  "centroid": [
+   0.10042170557247179,
+   -0.26839177431837347,
+   0.3456789000000001
+  ],
+  "names": "cylinder.bottom,cylinder.side0#1,cylinder.side0#2,cylinder.top|cylinder.bottom|cylinder.side0#1,cylinder.bottom|cylinder.side0#2,cylinder.side0#1|cylinder.side0#2#1,cylinder.side0#1|cylinder.side0#2#2,cylinder.side0#1|cylinder.top,cylinder.side0#2|cylinder.top",
+  "ms": 17
+ }
+}

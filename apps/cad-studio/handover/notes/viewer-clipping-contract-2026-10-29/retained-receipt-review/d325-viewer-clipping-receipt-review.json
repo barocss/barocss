@@ -1,0 +1,2626 @@
+{
+  "status": "APPROVE_BOUNDED_AUTHOR_RECEIPTS",
+  "workId": "D325 A08/#2239",
+  "authorCommit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+  "baselineCommit": "d85558ce0031d812341d5871743f8535520eb8d4",
+  "currentHead": "fd3e0e3ad639ebd96dd1985e0a2c24810c52a6e5",
+  "currentProductStatus": "?? .claude/\n",
+  "gpuViewerDeltaAuthorToCurrent": [],
+  "independentExecution": {
+    "build": "NOT_RUN",
+    "test": "NOT_RUN",
+    "browser": "NOT_RUN",
+    "runtime": "NOT_RUN",
+    "heavyGuard": "NOT_RUN",
+    "currentWholeGPU": "NOT_RUN"
+  },
+  "approvalBoundary": "Author f841 source/CPU/native selected contract and retained receipts only, not independent rerun/current whole-product acceptance",
+  "oldHistoricalMismatch": {
+    "path": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/viewer-001/receipt.json",
+    "sha256": "13812f7c7c34783ed52af6defd50a3396030e6ecb3fe27c2aa9368d2a78d3c8d",
+    "sourceCommit": "5463dbf32af5dd10670badd0d334c68504615292",
+    "meaning": "old actual display/public CPU pick mismatch only; not a current failure"
+  },
+  "integrity": {
+    "referenceCount": 118,
+    "uniqueReferencedPaths": 76,
+    "duplicatePathReferences": 42,
+    "hashMismatchCount": 0,
+    "allRetainedPathCount": 77,
+    "uniqueRetainedContents": 51,
+    "retainedAuthorGitMismatchCount": 0,
+    "sourceReferenceCount": 44,
+    "sourceReferenceUniqueCommitPaths": 18,
+    "sourceReferenceHashMismatchCount": 0
+  },
+  "retainedArtifacts": [
+    {
+      "path": "README.md",
+      "bytes": 3894,
+      "sha256": "53e54d38e4cba0f9028fea0c09d3a5490dca90e2f4d3b232a7eda50a06315aae",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "api-review/adoption.json",
+      "bytes": 1089,
+      "sha256": "10d280a51d0b6991cdf71c3c287e6a49285f79cf2e486e5e3860434c91e41d19",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "api-review/before-check.json",
+      "bytes": 821,
+      "sha256": "6214faabcb2834e5a4323cfa1b689090a4f9202c61b915e2268535013bfe1ee6",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "api-review/collect-review.mjs",
+      "bytes": 2579,
+      "sha256": "4bf6653823525e2528845b1cdc1f3f41e2ca56a0e313ce39af2a35d1623607e7",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "api-review/collection.log",
+      "bytes": 1748,
+      "sha256": "43b9367ebb93e0c5d00d3c289f2bd7c2eccd86c3305d75b3a3d36c598807396a",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "api-review/reviewed-delta.json",
+      "bytes": 1748,
+      "sha256": "43b9367ebb93e0c5d00d3c289f2bd7c2eccd86c3305d75b3a3d36c598807396a",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "artifact-manifest.json",
+      "bytes": 10945,
+      "sha256": "d9617820eb460381ced96370c98fa86a5b3af857f7040cf2b0ac6381cd82d3d8",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/README.md",
+      "bytes": 5755,
+      "sha256": "5c4a01851deefe5f73e17e114bb1e3af01ab5998b28a19a142c61c3c18b86c8d",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/artifact-manifest.json",
+      "bytes": 6793,
+      "sha256": "f01b1dfd1fa2f25bca8f11f6c56004bb310337535edf632d79f34f6194e210c5",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/baseline-first/clipping-contract-browser.test.mjs.gz",
+      "bytes": 3328,
+      "sha256": "648285fcb2c75f999f176536780659f7125ca1d089a8d12377ef46963b90c75b",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/baseline-first/control.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/baseline-first/far-excludes.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/baseline-first/near-excludes.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/baseline-first/receipt.json",
+      "bytes": 4589,
+      "sha256": "7848147afb627200fff1c5f6fc6111bdfd28ccf216145e6cd1239c31717c0e27",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/baseline-first/source-profile.json",
+      "bytes": 1196,
+      "sha256": "3a9ec7aae863078f5d29c1962b13c7ce040dbdcbbe3a1e2cb71ba4860e0a8fb7",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/baseline-first-exit.txt",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/baseline-first.txt",
+      "bytes": 1083,
+      "sha256": "a2ac3dd1a9c00b9f6c45b17618ca98943539a491c39ea8491cb164b04cbb63d8",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/baseline-validation.json",
+      "bytes": 3655,
+      "sha256": "8dfaadb1a3e75e8c33c611ba0a8831a0c312f7332242a4d1d125fe00205d38fe",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-first/clipping-contract-browser.test.mjs.gz",
+      "bytes": 4921,
+      "sha256": "21a5c94965daa45f9164ea93bea46eafc40b3de941565f01fc9805df7997a84d",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-first/core-exact-far.png",
+      "bytes": 1332,
+      "sha256": "46cfcc5f8a02b211dfd11464a45af5d7fd823fc0cc81153681f7ab994e15d7ab",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-first/receipt.json",
+      "bytes": 12685,
+      "sha256": "61354de2f48e2d01b53fd1f280bc41e31763b448c67ba2338c58fc3b68d530b5",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-first/scaled-closed-far.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-first/scaled-closed-near.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-first/scaled-control.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-first/scaled-far-excludes.png",
+      "bytes": 765,
+      "sha256": "ee16a8299aeec3008df5241679ced9a0c66e4c8fb83c8c27ecd36ee4a12bfc99",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-first/scaled-near-excludes.png",
+      "bytes": 765,
+      "sha256": "ee16a8299aeec3008df5241679ced9a0c66e4c8fb83c8c27ecd36ee4a12bfc99",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-first/scaled-restored.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-first/scene-closed-far.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-first/scene-closed-near.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-first/scene-control.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-first/scene-far-excludes.png",
+      "bytes": 765,
+      "sha256": "ee16a8299aeec3008df5241679ced9a0c66e4c8fb83c8c27ecd36ee4a12bfc99",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-first/scene-near-excludes.png",
+      "bytes": 765,
+      "sha256": "ee16a8299aeec3008df5241679ced9a0c66e4c8fb83c8c27ecd36ee4a12bfc99",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-first/scene-restored.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-first/source-profile.json",
+      "bytes": 1587,
+      "sha256": "6ecdd87ebe15f4b1a42f56652bcce817f6c1e6b38f99b3a46f1e3e07dbb7ef0f",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-first-exit.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-first.txt",
+      "bytes": 303,
+      "sha256": "781d2c1cf19b08f5c5abe1ab100d17adbf2f789334e1933f9d391796632ee5ff",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-gate.txt",
+      "bytes": 45,
+      "sha256": "73b0100ebbbef4780a013931ca659330ac46c52b17761bba6e9a484f95567ca3",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-plan.md",
+      "bytes": 2930,
+      "sha256": "5d1064da8bcf13b8fc6824a2e057f29df4b927eb2531d75b8d0a2b2aaa24c2d8",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-preflight/exits.txt",
+      "bytes": 16,
+      "sha256": "5aee3f467dc8a193b3dbf731c5dcce4e0bf61a5186464d9b4551e4519f28a9b3",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-preflight/first-lint-failure.txt",
+      "bytes": 293,
+      "sha256": "2d0a767e33d2025cc44369d496c7a84fca829e022ee659222292e01d7c47dd53",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-preflight/lint.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-preflight/receipt.json",
+      "bytes": 335,
+      "sha256": "bd2f209e234711ec86bd580298f1b39574a30c854c86b8fa06fbe10b136f75d8",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-preflight/syntax.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/final-validation.json",
+      "bytes": 8659,
+      "sha256": "0e3bd0c432b87fadea411a2c61f7cd1ec06b360a16de1e04c9d483095d630bbf",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/gate-first.txt",
+      "bytes": 45,
+      "sha256": "180b69775c9d5a18749d51dac218f31275868d25d6ac6947b2feea91258632be",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/lint-first.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/plan.md",
+      "bytes": 3134,
+      "sha256": "2e81dd266da66ad81dfa1d029bea0016d627d0034062a2aa1f11884725877758",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/preflight-first-exits.txt",
+      "bytes": 16,
+      "sha256": "5aee3f467dc8a193b3dbf731c5dcce4e0bf61a5186464d9b4551e4519f28a9b3",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/prepared-source.json",
+      "bytes": 928,
+      "sha256": "019d529b1fbba28ed1e547c3e11c9cdaf3905d4f26c222604deaf5859d3b7fca",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "consumers/syntax-first.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "issue2239-source.json",
+      "bytes": 7470,
+      "sha256": "1f1fd1df26d4f3d1b29dcd9027ca561e26d64ee76e03f7bcce056d048184d128",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "qualification.json",
+      "bytes": 5190,
+      "sha256": "4c5891f3c713c2ddb525f6c5df4e144ca7b48e40b7b93cd17279e2d5abe33329",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "source/README.md",
+      "bytes": 5612,
+      "sha256": "5e954c7f067edb7369ad06459f5b909e909f487080947b93122710653c7af890",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "source/barocss-gpu-camera.ts.before.gz",
+      "bytes": 1854,
+      "sha256": "1e9b6507190e7798f4e994e534a18d02ef1505516c3f49e8733f43096a27aa45",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "source/barocss-gpu-pick.ts.before.gz",
+      "bytes": 1568,
+      "sha256": "ecbc560158d5a4f85242352148d627e9a01ed94c74dd19fea4af5047cde956ea",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "source/barocss-gpu-viewer.ts.before.gz",
+      "bytes": 43407,
+      "sha256": "75ef51f3bbbd33f33451ef1c040c843dde30846b58cd1ac51d98ae4dd117f426",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "source/barocss-viewer-presenter.ts.before.gz",
+      "bytes": 4477,
+      "sha256": "fdefa0af987b7fd5e3f97401ae94b285b304931d86915c029c1a99edf938c929",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "source/baseline-source.json",
+      "bytes": 1157,
+      "sha256": "29585c2639254cb5e29b30e6fab9a5bb1a0ffd0bdfdaac957ebbcf4e3151de48",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "source/candidate-source.json",
+      "bytes": 1076,
+      "sha256": "21ec5610110113db8158a76e5a1b126cf92c913b7d5d7ec81240ddb59d55da3f",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "unit/d325-admission-lint.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "unit/d325-gpu-build-final.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "unit/d325-gpu-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "unit/d325-gpu-camera-final.log",
+      "bytes": 6235,
+      "sha256": "755e08d8edeca416977ad09674374d1a81a4589c76df7091627bf75e8492f466",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "unit/d325-gpu-display-final.log",
+      "bytes": 6249,
+      "sha256": "6838c9570af20a4e0b22c1628933a61b8a7ef1effb7109e9d1fb231e0cddbab7",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "unit/d325-gpu-test.log",
+      "bytes": 90590,
+      "sha256": "3387750894fe12528fe1fc293b86e1aff253abcfa31a8b8740bc55efe0abc52a",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "unit/d325-gpu-types-final.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "unit/d325-gpu-types.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "unit/d325-harness-lint.log",
+      "bytes": 293,
+      "sha256": "2d0a767e33d2025cc44369d496c7a84fca829e022ee659222292e01d7c47dd53",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "unit/d325-lint.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "unit/d325-sdk-test-11.log",
+      "bytes": 3327,
+      "sha256": "4018023b221c7554cb39b8fc28830149bafa4c511d3fb0ca5f58e89371d51cd0",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "unit/d325-sdk-test-final.log",
+      "bytes": 3002,
+      "sha256": "08f71fa63a1cd5e8509efb10e74e0a1898cb9182450475116e410bee7980c7f0",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "unit/d325-sdk-test-first.log",
+      "bytes": 4799,
+      "sha256": "54512f1b25aadbc36bc384cc834d575e566c9c03efc8a10ab687fa9da2141d9b",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "unit/d325-sdk-types.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "unit/docs-final.log",
+      "bytes": 68,
+      "sha256": "311d9938df550c33b29d042bfd9e0824929872dd7f60d4e002305addf2e68041",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "unit/final-source.json",
+      "bytes": 1287,
+      "sha256": "9c875705210d1a8461a78758af710f7321d6f6655242bea6eda3e8812f2e9902",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "unit/plan.md",
+      "bytes": 3652,
+      "sha256": "04067cac90d836f49ea8a4c294204dcf488e09bf3c18a1f229357bca8f3d23ab",
+      "sameAsAuthorGit": true
+    },
+    {
+      "path": "unit/validation.json",
+      "bytes": 1887,
+      "sha256": "637f80d2bd31c11abc3fb2df2631aa24d586d3e7bd7168e49994ddab65353101",
+      "sameAsAuthorGit": true
+    }
+  ],
+  "artifactReferences": [
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "README.md",
+      "bytes": 3894,
+      "sha256": "53e54d38e4cba0f9028fea0c09d3a5490dca90e2f4d3b232a7eda50a06315aae",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "api-review/adoption.json",
+      "bytes": 1089,
+      "sha256": "10d280a51d0b6991cdf71c3c287e6a49285f79cf2e486e5e3860434c91e41d19",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "api-review/before-check.json",
+      "bytes": 821,
+      "sha256": "6214faabcb2834e5a4323cfa1b689090a4f9202c61b915e2268535013bfe1ee6",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "api-review/collect-review.mjs",
+      "bytes": 2579,
+      "sha256": "4bf6653823525e2528845b1cdc1f3f41e2ca56a0e313ce39af2a35d1623607e7",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "api-review/collection.log",
+      "bytes": 1748,
+      "sha256": "43b9367ebb93e0c5d00d3c289f2bd7c2eccd86c3305d75b3a3d36c598807396a",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "api-review/reviewed-delta.json",
+      "bytes": 1748,
+      "sha256": "43b9367ebb93e0c5d00d3c289f2bd7c2eccd86c3305d75b3a3d36c598807396a",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/README.md",
+      "bytes": 5755,
+      "sha256": "5c4a01851deefe5f73e17e114bb1e3af01ab5998b28a19a142c61c3c18b86c8d",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/artifact-manifest.json",
+      "bytes": 6793,
+      "sha256": "f01b1dfd1fa2f25bca8f11f6c56004bb310337535edf632d79f34f6194e210c5",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/baseline-first/clipping-contract-browser.test.mjs.gz",
+      "bytes": 3328,
+      "sha256": "648285fcb2c75f999f176536780659f7125ca1d089a8d12377ef46963b90c75b",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/baseline-first/control.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/baseline-first/far-excludes.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/baseline-first/near-excludes.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/baseline-first/receipt.json",
+      "bytes": 4589,
+      "sha256": "7848147afb627200fff1c5f6fc6111bdfd28ccf216145e6cd1239c31717c0e27",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/baseline-first/source-profile.json",
+      "bytes": 1196,
+      "sha256": "3a9ec7aae863078f5d29c1962b13c7ce040dbdcbbe3a1e2cb71ba4860e0a8fb7",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/baseline-first-exit.txt",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/baseline-first.txt",
+      "bytes": 1083,
+      "sha256": "a2ac3dd1a9c00b9f6c45b17618ca98943539a491c39ea8491cb164b04cbb63d8",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/baseline-validation.json",
+      "bytes": 3655,
+      "sha256": "8dfaadb1a3e75e8c33c611ba0a8831a0c312f7332242a4d1d125fe00205d38fe",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-first/clipping-contract-browser.test.mjs.gz",
+      "bytes": 4921,
+      "sha256": "21a5c94965daa45f9164ea93bea46eafc40b3de941565f01fc9805df7997a84d",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-first/core-exact-far.png",
+      "bytes": 1332,
+      "sha256": "46cfcc5f8a02b211dfd11464a45af5d7fd823fc0cc81153681f7ab994e15d7ab",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-first/receipt.json",
+      "bytes": 12685,
+      "sha256": "61354de2f48e2d01b53fd1f280bc41e31763b448c67ba2338c58fc3b68d530b5",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-first/scaled-closed-far.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-first/scaled-closed-near.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-first/scaled-control.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-first/scaled-far-excludes.png",
+      "bytes": 765,
+      "sha256": "ee16a8299aeec3008df5241679ced9a0c66e4c8fb83c8c27ecd36ee4a12bfc99",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-first/scaled-near-excludes.png",
+      "bytes": 765,
+      "sha256": "ee16a8299aeec3008df5241679ced9a0c66e4c8fb83c8c27ecd36ee4a12bfc99",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-first/scaled-restored.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-first/scene-closed-far.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-first/scene-closed-near.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-first/scene-control.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-first/scene-far-excludes.png",
+      "bytes": 765,
+      "sha256": "ee16a8299aeec3008df5241679ced9a0c66e4c8fb83c8c27ecd36ee4a12bfc99",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-first/scene-near-excludes.png",
+      "bytes": 765,
+      "sha256": "ee16a8299aeec3008df5241679ced9a0c66e4c8fb83c8c27ecd36ee4a12bfc99",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-first/scene-restored.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-first/source-profile.json",
+      "bytes": 1587,
+      "sha256": "6ecdd87ebe15f4b1a42f56652bcce817f6c1e6b38f99b3a46f1e3e07dbb7ef0f",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-first-exit.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-first.txt",
+      "bytes": 303,
+      "sha256": "781d2c1cf19b08f5c5abe1ab100d17adbf2f789334e1933f9d391796632ee5ff",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-gate.txt",
+      "bytes": 45,
+      "sha256": "73b0100ebbbef4780a013931ca659330ac46c52b17761bba6e9a484f95567ca3",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-plan.md",
+      "bytes": 2930,
+      "sha256": "5d1064da8bcf13b8fc6824a2e057f29df4b927eb2531d75b8d0a2b2aaa24c2d8",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-preflight/exits.txt",
+      "bytes": 16,
+      "sha256": "5aee3f467dc8a193b3dbf731c5dcce4e0bf61a5186464d9b4551e4519f28a9b3",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-preflight/first-lint-failure.txt",
+      "bytes": 293,
+      "sha256": "2d0a767e33d2025cc44369d496c7a84fca829e022ee659222292e01d7c47dd53",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-preflight/lint.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-preflight/receipt.json",
+      "bytes": 335,
+      "sha256": "bd2f209e234711ec86bd580298f1b39574a30c854c86b8fa06fbe10b136f75d8",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-preflight/syntax.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/final-validation.json",
+      "bytes": 8659,
+      "sha256": "0e3bd0c432b87fadea411a2c61f7cd1ec06b360a16de1e04c9d483095d630bbf",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/gate-first.txt",
+      "bytes": 45,
+      "sha256": "180b69775c9d5a18749d51dac218f31275868d25d6ac6947b2feea91258632be",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/lint-first.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/plan.md",
+      "bytes": 3134,
+      "sha256": "2e81dd266da66ad81dfa1d029bea0016d627d0034062a2aa1f11884725877758",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/preflight-first-exits.txt",
+      "bytes": 16,
+      "sha256": "5aee3f467dc8a193b3dbf731c5dcce4e0bf61a5186464d9b4551e4519f28a9b3",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/prepared-source.json",
+      "bytes": 928,
+      "sha256": "019d529b1fbba28ed1e547c3e11c9cdaf3905d4f26c222604deaf5859d3b7fca",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "consumers/syntax-first.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "issue2239-source.json",
+      "bytes": 7470,
+      "sha256": "1f1fd1df26d4f3d1b29dcd9027ca561e26d64ee76e03f7bcce056d048184d128",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "qualification.json",
+      "bytes": 5190,
+      "sha256": "4c5891f3c713c2ddb525f6c5df4e144ca7b48e40b7b93cd17279e2d5abe33329",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "source/README.md",
+      "bytes": 5612,
+      "sha256": "5e954c7f067edb7369ad06459f5b909e909f487080947b93122710653c7af890",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "source/barocss-gpu-camera.ts.before.gz",
+      "bytes": 1854,
+      "sha256": "1e9b6507190e7798f4e994e534a18d02ef1505516c3f49e8733f43096a27aa45",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "source/barocss-gpu-pick.ts.before.gz",
+      "bytes": 1568,
+      "sha256": "ecbc560158d5a4f85242352148d627e9a01ed94c74dd19fea4af5047cde956ea",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "source/barocss-gpu-viewer.ts.before.gz",
+      "bytes": 43407,
+      "sha256": "75ef51f3bbbd33f33451ef1c040c843dde30846b58cd1ac51d98ae4dd117f426",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "source/barocss-viewer-presenter.ts.before.gz",
+      "bytes": 4477,
+      "sha256": "fdefa0af987b7fd5e3f97401ae94b285b304931d86915c029c1a99edf938c929",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "source/baseline-source.json",
+      "bytes": 1157,
+      "sha256": "29585c2639254cb5e29b30e6fab9a5bb1a0ffd0bdfdaac957ebbcf4e3151de48",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "source/candidate-source.json",
+      "bytes": 1076,
+      "sha256": "21ec5610110113db8158a76e5a1b126cf92c913b7d5d7ec81240ddb59d55da3f",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "unit/d325-admission-lint.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "unit/d325-gpu-build-final.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "unit/d325-gpu-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "unit/d325-gpu-camera-final.log",
+      "bytes": 6235,
+      "sha256": "755e08d8edeca416977ad09674374d1a81a4589c76df7091627bf75e8492f466",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "unit/d325-gpu-display-final.log",
+      "bytes": 6249,
+      "sha256": "6838c9570af20a4e0b22c1628933a61b8a7ef1effb7109e9d1fb231e0cddbab7",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "unit/d325-gpu-test.log",
+      "bytes": 90590,
+      "sha256": "3387750894fe12528fe1fc293b86e1aff253abcfa31a8b8740bc55efe0abc52a",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "unit/d325-gpu-types-final.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "unit/d325-gpu-types.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "unit/d325-harness-lint.log",
+      "bytes": 293,
+      "sha256": "2d0a767e33d2025cc44369d496c7a84fca829e022ee659222292e01d7c47dd53",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "unit/d325-lint.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "unit/d325-sdk-test-11.log",
+      "bytes": 3327,
+      "sha256": "4018023b221c7554cb39b8fc28830149bafa4c511d3fb0ca5f58e89371d51cd0",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "unit/d325-sdk-test-final.log",
+      "bytes": 3002,
+      "sha256": "08f71fa63a1cd5e8509efb10e74e0a1898cb9182450475116e410bee7980c7f0",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "unit/d325-sdk-test-first.log",
+      "bytes": 4799,
+      "sha256": "54512f1b25aadbc36bc384cc834d575e566c9c03efc8a10ab687fa9da2141d9b",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "unit/d325-sdk-types.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "unit/docs-final.log",
+      "bytes": 68,
+      "sha256": "311d9938df550c33b29d042bfd9e0824929872dd7f60d4e002305addf2e68041",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "unit/final-source.json",
+      "bytes": 1287,
+      "sha256": "9c875705210d1a8461a78758af710f7321d6f6655242bea6eda3e8812f2e9902",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "unit/plan.md",
+      "bytes": 3652,
+      "sha256": "04067cac90d836f49ea8a4c294204dcf488e09bf3c18a1f229357bca8f3d23ab",
+      "match": true
+    },
+    {
+      "manifest": "artifact-manifest.json",
+      "path": "unit/validation.json",
+      "bytes": 1887,
+      "sha256": "637f80d2bd31c11abc3fb2df2631aa24d586d3e7bd7168e49994ddab65353101",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/README.md",
+      "bytes": 5755,
+      "sha256": "5c4a01851deefe5f73e17e114bb1e3af01ab5998b28a19a142c61c3c18b86c8d",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/baseline-first/clipping-contract-browser.test.mjs.gz",
+      "bytes": 3328,
+      "sha256": "648285fcb2c75f999f176536780659f7125ca1d089a8d12377ef46963b90c75b",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/baseline-first/control.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/baseline-first/far-excludes.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/baseline-first/near-excludes.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/baseline-first/receipt.json",
+      "bytes": 4589,
+      "sha256": "7848147afb627200fff1c5f6fc6111bdfd28ccf216145e6cd1239c31717c0e27",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/baseline-first/source-profile.json",
+      "bytes": 1196,
+      "sha256": "3a9ec7aae863078f5d29c1962b13c7ce040dbdcbbe3a1e2cb71ba4860e0a8fb7",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/baseline-first-exit.txt",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/baseline-first.txt",
+      "bytes": 1083,
+      "sha256": "a2ac3dd1a9c00b9f6c45b17618ca98943539a491c39ea8491cb164b04cbb63d8",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/baseline-validation.json",
+      "bytes": 3655,
+      "sha256": "8dfaadb1a3e75e8c33c611ba0a8831a0c312f7332242a4d1d125fe00205d38fe",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-first/clipping-contract-browser.test.mjs.gz",
+      "bytes": 4921,
+      "sha256": "21a5c94965daa45f9164ea93bea46eafc40b3de941565f01fc9805df7997a84d",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-first/core-exact-far.png",
+      "bytes": 1332,
+      "sha256": "46cfcc5f8a02b211dfd11464a45af5d7fd823fc0cc81153681f7ab994e15d7ab",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-first/receipt.json",
+      "bytes": 12685,
+      "sha256": "61354de2f48e2d01b53fd1f280bc41e31763b448c67ba2338c58fc3b68d530b5",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-first/scaled-closed-far.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-first/scaled-closed-near.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-first/scaled-control.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-first/scaled-far-excludes.png",
+      "bytes": 765,
+      "sha256": "ee16a8299aeec3008df5241679ced9a0c66e4c8fb83c8c27ecd36ee4a12bfc99",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-first/scaled-near-excludes.png",
+      "bytes": 765,
+      "sha256": "ee16a8299aeec3008df5241679ced9a0c66e4c8fb83c8c27ecd36ee4a12bfc99",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-first/scaled-restored.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-first/scene-closed-far.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-first/scene-closed-near.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-first/scene-control.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-first/scene-far-excludes.png",
+      "bytes": 765,
+      "sha256": "ee16a8299aeec3008df5241679ced9a0c66e4c8fb83c8c27ecd36ee4a12bfc99",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-first/scene-near-excludes.png",
+      "bytes": 765,
+      "sha256": "ee16a8299aeec3008df5241679ced9a0c66e4c8fb83c8c27ecd36ee4a12bfc99",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-first/scene-restored.png",
+      "bytes": 847,
+      "sha256": "f7fa8849ab11ba5ea3d8bdd829c8546ba249bf75944ef4850be93d93e5697dd6",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-first/source-profile.json",
+      "bytes": 1587,
+      "sha256": "6ecdd87ebe15f4b1a42f56652bcce817f6c1e6b38f99b3a46f1e3e07dbb7ef0f",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-first-exit.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-first.txt",
+      "bytes": 303,
+      "sha256": "781d2c1cf19b08f5c5abe1ab100d17adbf2f789334e1933f9d391796632ee5ff",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-gate.txt",
+      "bytes": 45,
+      "sha256": "73b0100ebbbef4780a013931ca659330ac46c52b17761bba6e9a484f95567ca3",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-plan.md",
+      "bytes": 2930,
+      "sha256": "5d1064da8bcf13b8fc6824a2e057f29df4b927eb2531d75b8d0a2b2aaa24c2d8",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-preflight/exits.txt",
+      "bytes": 16,
+      "sha256": "5aee3f467dc8a193b3dbf731c5dcce4e0bf61a5186464d9b4551e4519f28a9b3",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-preflight/first-lint-failure.txt",
+      "bytes": 293,
+      "sha256": "2d0a767e33d2025cc44369d496c7a84fca829e022ee659222292e01d7c47dd53",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-preflight/lint.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-preflight/receipt.json",
+      "bytes": 335,
+      "sha256": "bd2f209e234711ec86bd580298f1b39574a30c854c86b8fa06fbe10b136f75d8",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-preflight/syntax.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/final-validation.json",
+      "bytes": 8659,
+      "sha256": "0e3bd0c432b87fadea411a2c61f7cd1ec06b360a16de1e04c9d483095d630bbf",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/gate-first.txt",
+      "bytes": 45,
+      "sha256": "180b69775c9d5a18749d51dac218f31275868d25d6ac6947b2feea91258632be",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/lint-first.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/plan.md",
+      "bytes": 3134,
+      "sha256": "2e81dd266da66ad81dfa1d029bea0016d627d0034062a2aa1f11884725877758",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/preflight-first-exits.txt",
+      "bytes": 16,
+      "sha256": "5aee3f467dc8a193b3dbf731c5dcce4e0bf61a5186464d9b4551e4519f28a9b3",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/prepared-source.json",
+      "bytes": 928,
+      "sha256": "019d529b1fbba28ed1e547c3e11c9cdaf3905d4f26c222604deaf5859d3b7fca",
+      "match": true
+    },
+    {
+      "manifest": "consumers/artifact-manifest.json",
+      "path": "consumers/syntax-first.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "match": true
+    }
+  ],
+  "reviewedSources": [
+    {
+      "path": "packages/barocss-gpu/src/viewer/camera.ts",
+      "sha256": "73d7f311c4e0f65d3755be2364d26dd8dfdf8e39bd894a2757bce39d0ab6ee0a",
+      "currentSame": true
+    },
+    {
+      "path": "packages/barocss-gpu/src/viewer/viewer.ts",
+      "sha256": "3a67717a03e84782b247d1eb6d0f02d000b84b98134be8df38159b7c994a0c24",
+      "currentSame": true
+    },
+    {
+      "path": "packages/barocss-gpu/src/viewer/shaders/pick.ts",
+      "sha256": "f56f935d60c540ee3f4fbe40038e459405fb856c63452eaff729acdbe1d36c4b",
+      "currentSame": true
+    },
+    {
+      "path": "packages/barocss-viewer/src/presenter.ts",
+      "sha256": "2c321cd8753dacc1332cdb491d068ec0636fabf616fca60b687c702bba30f54f",
+      "currentSame": true
+    },
+    {
+      "path": "packages/barocss-viewer/src/index.ts",
+      "sha256": "ec81a4222a69b3859fbe16203c07cc1606fa99aa504c8fa521a3ea0c3f114a91",
+      "currentSame": true
+    },
+    {
+      "path": "packages/barocss-viewer/tests/clipping-contract.test.mjs",
+      "sha256": "513f309f90be4521c138a0a347d1bbdbe99c43a94af66aa67b0cc44223a333c6",
+      "currentSame": true
+    },
+    {
+      "path": "packages/barocss-viewer/tests/clipping-contract-browser.test.mjs",
+      "sha256": "993e51e8afa446af0316d206a5f51c26b84c358bbe924978a153f821b3ee3fdf",
+      "currentSame": true
+    },
+    {
+      "path": "packages/barocss-gpu/tests/viewer-display.test.mjs",
+      "sha256": "7d4355e82c6710ef91053cc02960a1fcd2da5f9411944b67f28451e4f6ab1bb3",
+      "currentSame": true
+    },
+    {
+      "path": "packages/barocss-gpu/tests/camera.test.mjs",
+      "sha256": "8b00018d4ae5072a661a909ce8894cd4120ad583261a5230af8c37ca0b9f35cc",
+      "currentSame": true
+    },
+    {
+      "path": "packages/barocss-viewer/package.json",
+      "sha256": "e0166d670504e372fb0bf0a84d6d7591eeea0e87839c2637f3797c0fe88c85cf",
+      "currentSame": true
+    },
+    {
+      "path": "packages/barocss-gpu/src/viewer/math.ts",
+      "sha256": "2b31578cbfbfe52a703107c846a7f80a899576204a4f5779c3b92bb5c4cf22b4",
+      "currentSame": true
+    },
+    {
+      "path": "packages/barocss-gpu/src/viewer/lights.ts",
+      "sha256": "a3adf7e6c364bf6e3eb7a8cd00d509fa70a2aa92eef6cafd2fb9136d398c46b2",
+      "currentSame": true
+    },
+    {
+      "path": "packages/barocss-gpu/src/viewer/shaders/common.ts",
+      "sha256": "f3541637de07550a80ad484e1a074db8ee546981ce44673ef2966d1765b0a02a",
+      "currentSame": true
+    },
+    {
+      "path": "packages/barocss-gpu/src/mesh/camera.ts",
+      "sha256": "594e5304a60d93c36048ff17a4c41425c45bbaad5ab147cfc5e4d6a35964dc88",
+      "currentSame": true
+    },
+    {
+      "path": "packages/barocss-gpu/src/viewer/scene.ts",
+      "sha256": "f7e17275a2efb6c8b9d5bf73c89e61902f94a9f01541476ce07c79baf59954d5",
+      "currentSame": true
+    }
+  ],
+  "sourceBindings": [
+    {
+      "reference": "unit/final-source.json",
+      "path": "packages/barocss-gpu/src/viewer/camera.ts",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "73d7f311c4e0f65d3755be2364d26dd8dfdf8e39bd894a2757bce39d0ab6ee0a",
+      "actual": "73d7f311c4e0f65d3755be2364d26dd8dfdf8e39bd894a2757bce39d0ab6ee0a",
+      "match": true
+    },
+    {
+      "reference": "unit/final-source.json",
+      "path": "packages/barocss-gpu/src/viewer/viewer.ts",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "3a67717a03e84782b247d1eb6d0f02d000b84b98134be8df38159b7c994a0c24",
+      "actual": "3a67717a03e84782b247d1eb6d0f02d000b84b98134be8df38159b7c994a0c24",
+      "match": true
+    },
+    {
+      "reference": "unit/final-source.json",
+      "path": "packages/barocss-gpu/src/viewer/shaders/pick.ts",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "f56f935d60c540ee3f4fbe40038e459405fb856c63452eaff729acdbe1d36c4b",
+      "actual": "f56f935d60c540ee3f4fbe40038e459405fb856c63452eaff729acdbe1d36c4b",
+      "match": true
+    },
+    {
+      "reference": "unit/final-source.json",
+      "path": "packages/barocss-viewer/src/presenter.ts",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "2c321cd8753dacc1332cdb491d068ec0636fabf616fca60b687c702bba30f54f",
+      "actual": "2c321cd8753dacc1332cdb491d068ec0636fabf616fca60b687c702bba30f54f",
+      "match": true
+    },
+    {
+      "reference": "unit/final-source.json",
+      "path": "packages/barocss-gpu/tests/viewer-display.test.mjs",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "7d4355e82c6710ef91053cc02960a1fcd2da5f9411944b67f28451e4f6ab1bb3",
+      "actual": "7d4355e82c6710ef91053cc02960a1fcd2da5f9411944b67f28451e4f6ab1bb3",
+      "match": true
+    },
+    {
+      "reference": "unit/final-source.json",
+      "path": "packages/barocss-viewer/tests/clipping-contract.test.mjs",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "513f309f90be4521c138a0a347d1bbdbe99c43a94af66aa67b0cc44223a333c6",
+      "actual": "513f309f90be4521c138a0a347d1bbdbe99c43a94af66aa67b0cc44223a333c6",
+      "match": true
+    },
+    {
+      "reference": "unit/final-source.json",
+      "path": "packages/barocss-viewer/tests/clipping-contract-browser.test.mjs",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "993e51e8afa446af0316d206a5f51c26b84c358bbe924978a153f821b3ee3fdf",
+      "actual": "993e51e8afa446af0316d206a5f51c26b84c358bbe924978a153f821b3ee3fdf",
+      "match": true
+    },
+    {
+      "reference": "unit/final-source.json",
+      "path": "packages/barocss-viewer/package.json",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "e0166d670504e372fb0bf0a84d6d7591eeea0e87839c2637f3797c0fe88c85cf",
+      "actual": "e0166d670504e372fb0bf0a84d6d7591eeea0e87839c2637f3797c0fe88c85cf",
+      "match": true
+    },
+    {
+      "reference": "source/candidate-source.json",
+      "path": "packages/barocss-gpu/src/viewer/camera.ts",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "73d7f311c4e0f65d3755be2364d26dd8dfdf8e39bd894a2757bce39d0ab6ee0a",
+      "actual": "73d7f311c4e0f65d3755be2364d26dd8dfdf8e39bd894a2757bce39d0ab6ee0a",
+      "match": true
+    },
+    {
+      "reference": "source/candidate-source.json",
+      "path": "packages/barocss-gpu/src/viewer/viewer.ts",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "3a67717a03e84782b247d1eb6d0f02d000b84b98134be8df38159b7c994a0c24",
+      "actual": "3a67717a03e84782b247d1eb6d0f02d000b84b98134be8df38159b7c994a0c24",
+      "match": true
+    },
+    {
+      "reference": "source/candidate-source.json",
+      "path": "packages/barocss-gpu/src/viewer/shaders/pick.ts",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "f56f935d60c540ee3f4fbe40038e459405fb856c63452eaff729acdbe1d36c4b",
+      "actual": "f56f935d60c540ee3f4fbe40038e459405fb856c63452eaff729acdbe1d36c4b",
+      "match": true
+    },
+    {
+      "reference": "source/candidate-source.json",
+      "path": "packages/barocss-viewer/src/presenter.ts",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "2c321cd8753dacc1332cdb491d068ec0636fabf616fca60b687c702bba30f54f",
+      "actual": "2c321cd8753dacc1332cdb491d068ec0636fabf616fca60b687c702bba30f54f",
+      "match": true
+    },
+    {
+      "reference": "source/candidate-source.json",
+      "path": "packages/barocss-gpu/tests/viewer-display.test.mjs",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "7d4355e82c6710ef91053cc02960a1fcd2da5f9411944b67f28451e4f6ab1bb3",
+      "actual": "7d4355e82c6710ef91053cc02960a1fcd2da5f9411944b67f28451e4f6ab1bb3",
+      "match": true
+    },
+    {
+      "reference": "source/candidate-source.json",
+      "path": "packages/barocss-viewer/tests/clipping-contract.test.mjs",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "513f309f90be4521c138a0a347d1bbdbe99c43a94af66aa67b0cc44223a333c6",
+      "actual": "513f309f90be4521c138a0a347d1bbdbe99c43a94af66aa67b0cc44223a333c6",
+      "match": true
+    },
+    {
+      "reference": "consumers/final-first/source-profile.json",
+      "path": "packages/barocss-gpu/src/viewer/camera.ts",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "73d7f311c4e0f65d3755be2364d26dd8dfdf8e39bd894a2757bce39d0ab6ee0a",
+      "actual": "73d7f311c4e0f65d3755be2364d26dd8dfdf8e39bd894a2757bce39d0ab6ee0a",
+      "match": true
+    },
+    {
+      "reference": "consumers/final-first/source-profile.json",
+      "path": "packages/barocss-gpu/src/viewer/viewer.ts",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "3a67717a03e84782b247d1eb6d0f02d000b84b98134be8df38159b7c994a0c24",
+      "actual": "3a67717a03e84782b247d1eb6d0f02d000b84b98134be8df38159b7c994a0c24",
+      "match": true
+    },
+    {
+      "reference": "consumers/final-first/source-profile.json",
+      "path": "packages/barocss-gpu/src/viewer/shaders/pick.ts",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "f56f935d60c540ee3f4fbe40038e459405fb856c63452eaff729acdbe1d36c4b",
+      "actual": "f56f935d60c540ee3f4fbe40038e459405fb856c63452eaff729acdbe1d36c4b",
+      "match": true
+    },
+    {
+      "reference": "consumers/final-first/source-profile.json",
+      "path": "packages/barocss-viewer/src/presenter.ts",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "2c321cd8753dacc1332cdb491d068ec0636fabf616fca60b687c702bba30f54f",
+      "actual": "2c321cd8753dacc1332cdb491d068ec0636fabf616fca60b687c702bba30f54f",
+      "match": true
+    },
+    {
+      "reference": "consumers/final-first/source-profile.json",
+      "path": "packages/barocss-viewer/src/index.ts",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "ec81a4222a69b3859fbe16203c07cc1606fa99aa504c8fa521a3ea0c3f114a91",
+      "actual": "ec81a4222a69b3859fbe16203c07cc1606fa99aa504c8fa521a3ea0c3f114a91",
+      "match": true
+    },
+    {
+      "reference": "consumers/final-first/source-profile.json",
+      "path": "packages/barocss-gpu/src/viewer/scene.ts",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "f7e17275a2efb6c8b9d5bf73c89e61902f94a9f01541476ce07c79baf59954d5",
+      "actual": "f7e17275a2efb6c8b9d5bf73c89e61902f94a9f01541476ce07c79baf59954d5",
+      "match": true
+    },
+    {
+      "reference": "consumers/final-first/receipt.json",
+      "path": "packages/barocss-viewer/src/index.ts",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "ec81a4222a69b3859fbe16203c07cc1606fa99aa504c8fa521a3ea0c3f114a91",
+      "actual": "ec81a4222a69b3859fbe16203c07cc1606fa99aa504c8fa521a3ea0c3f114a91",
+      "match": true
+    },
+    {
+      "reference": "consumers/final-first/receipt.json",
+      "path": "packages/barocss-viewer/src/presenter.ts",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "2c321cd8753dacc1332cdb491d068ec0636fabf616fca60b687c702bba30f54f",
+      "actual": "2c321cd8753dacc1332cdb491d068ec0636fabf616fca60b687c702bba30f54f",
+      "match": true
+    },
+    {
+      "reference": "consumers/final-first/receipt.json",
+      "path": "packages/barocss-gpu/src/viewer/viewer.ts",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "3a67717a03e84782b247d1eb6d0f02d000b84b98134be8df38159b7c994a0c24",
+      "actual": "3a67717a03e84782b247d1eb6d0f02d000b84b98134be8df38159b7c994a0c24",
+      "match": true
+    },
+    {
+      "reference": "consumers/final-first/receipt.json",
+      "path": "packages/barocss-gpu/src/viewer/scene.ts",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "f7e17275a2efb6c8b9d5bf73c89e61902f94a9f01541476ce07c79baf59954d5",
+      "actual": "f7e17275a2efb6c8b9d5bf73c89e61902f94a9f01541476ce07c79baf59954d5",
+      "match": true
+    },
+    {
+      "reference": "consumers/final-first/receipt.json",
+      "path": "packages/barocss-gpu/src/viewer/camera.ts",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "73d7f311c4e0f65d3755be2364d26dd8dfdf8e39bd894a2757bce39d0ab6ee0a",
+      "actual": "73d7f311c4e0f65d3755be2364d26dd8dfdf8e39bd894a2757bce39d0ab6ee0a",
+      "match": true
+    },
+    {
+      "reference": "consumers/final-first/receipt.json",
+      "path": "packages/barocss-gpu/src/viewer/shaders/pick.ts",
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "expected": "f56f935d60c540ee3f4fbe40038e459405fb856c63452eaff729acdbe1d36c4b",
+      "actual": "f56f935d60c540ee3f4fbe40038e459405fb856c63452eaff729acdbe1d36c4b",
+      "match": true
+    },
+    {
+      "reference": "consumers/baseline-first/source-profile.json",
+      "path": "packages/barocss-viewer/src/index.ts",
+      "commit": "d85558ce0031d812341d5871743f8535520eb8d4",
+      "expected": "ec81a4222a69b3859fbe16203c07cc1606fa99aa504c8fa521a3ea0c3f114a91",
+      "actual": "ec81a4222a69b3859fbe16203c07cc1606fa99aa504c8fa521a3ea0c3f114a91",
+      "match": true
+    },
+    {
+      "reference": "consumers/baseline-first/source-profile.json",
+      "path": "packages/barocss-viewer/src/presenter.ts",
+      "commit": "d85558ce0031d812341d5871743f8535520eb8d4",
+      "expected": "96ce81cb3be6bc06060a7114a518a0b9925f139c7ce71ce9e7fab3ca0a8a3892",
+      "actual": "96ce81cb3be6bc06060a7114a518a0b9925f139c7ce71ce9e7fab3ca0a8a3892",
+      "match": true
+    },
+    {
+      "reference": "consumers/baseline-first/source-profile.json",
+      "path": "packages/barocss-gpu/src/viewer/viewer.ts",
+      "commit": "d85558ce0031d812341d5871743f8535520eb8d4",
+      "expected": "1c1df2143fe714569fe40b7aa27e6772faca9f44c9c50a9cca56194467b052a8",
+      "actual": "1c1df2143fe714569fe40b7aa27e6772faca9f44c9c50a9cca56194467b052a8",
+      "match": true
+    },
+    {
+      "reference": "consumers/baseline-first/source-profile.json",
+      "path": "packages/barocss-gpu/src/viewer/scene.ts",
+      "commit": "d85558ce0031d812341d5871743f8535520eb8d4",
+      "expected": "f7e17275a2efb6c8b9d5bf73c89e61902f94a9f01541476ce07c79baf59954d5",
+      "actual": "f7e17275a2efb6c8b9d5bf73c89e61902f94a9f01541476ce07c79baf59954d5",
+      "match": true
+    },
+    {
+      "reference": "consumers/baseline-first/receipt.json",
+      "path": "packages/barocss-viewer/src/index.ts",
+      "commit": "d85558ce0031d812341d5871743f8535520eb8d4",
+      "expected": "ec81a4222a69b3859fbe16203c07cc1606fa99aa504c8fa521a3ea0c3f114a91",
+      "actual": "ec81a4222a69b3859fbe16203c07cc1606fa99aa504c8fa521a3ea0c3f114a91",
+      "match": true
+    },
+    {
+      "reference": "consumers/baseline-first/receipt.json",
+      "path": "packages/barocss-viewer/src/presenter.ts",
+      "commit": "d85558ce0031d812341d5871743f8535520eb8d4",
+      "expected": "96ce81cb3be6bc06060a7114a518a0b9925f139c7ce71ce9e7fab3ca0a8a3892",
+      "actual": "96ce81cb3be6bc06060a7114a518a0b9925f139c7ce71ce9e7fab3ca0a8a3892",
+      "match": true
+    },
+    {
+      "reference": "consumers/baseline-first/receipt.json",
+      "path": "packages/barocss-gpu/src/viewer/viewer.ts",
+      "commit": "d85558ce0031d812341d5871743f8535520eb8d4",
+      "expected": "1c1df2143fe714569fe40b7aa27e6772faca9f44c9c50a9cca56194467b052a8",
+      "actual": "1c1df2143fe714569fe40b7aa27e6772faca9f44c9c50a9cca56194467b052a8",
+      "match": true
+    },
+    {
+      "reference": "consumers/baseline-first/receipt.json",
+      "path": "packages/barocss-gpu/src/viewer/scene.ts",
+      "commit": "d85558ce0031d812341d5871743f8535520eb8d4",
+      "expected": "f7e17275a2efb6c8b9d5bf73c89e61902f94a9f01541476ce07c79baf59954d5",
+      "actual": "f7e17275a2efb6c8b9d5bf73c89e61902f94a9f01541476ce07c79baf59954d5",
+      "match": true
+    },
+    {
+      "reference": "source/baseline-source.json",
+      "path": "packages/barocss-gpu/src/viewer/camera.ts",
+      "commit": "d85558ce0031d812341d5871743f8535520eb8d4",
+      "expected": "760fb86765d0f65cc9aef5790afa90e3242708446e8dc54cec63880392c2a73a",
+      "actual": "760fb86765d0f65cc9aef5790afa90e3242708446e8dc54cec63880392c2a73a",
+      "match": true
+    },
+    {
+      "reference": "source/baseline-source.json",
+      "path": "packages/barocss-gpu/src/viewer/viewer.ts",
+      "commit": "d85558ce0031d812341d5871743f8535520eb8d4",
+      "expected": "1c1df2143fe714569fe40b7aa27e6772faca9f44c9c50a9cca56194467b052a8",
+      "actual": "1c1df2143fe714569fe40b7aa27e6772faca9f44c9c50a9cca56194467b052a8",
+      "match": true
+    },
+    {
+      "reference": "source/baseline-source.json",
+      "path": "packages/barocss-gpu/src/viewer/shaders/pick.ts",
+      "commit": "d85558ce0031d812341d5871743f8535520eb8d4",
+      "expected": "4ff333ccf8e3acd880bfca1934a638287cbdad92ba792db085115dd21cd9e2a2",
+      "actual": "4ff333ccf8e3acd880bfca1934a638287cbdad92ba792db085115dd21cd9e2a2",
+      "match": true
+    },
+    {
+      "reference": "source/baseline-source.json",
+      "path": "packages/barocss-viewer/src/presenter.ts",
+      "commit": "d85558ce0031d812341d5871743f8535520eb8d4",
+      "expected": "96ce81cb3be6bc06060a7114a518a0b9925f139c7ce71ce9e7fab3ca0a8a3892",
+      "actual": "96ce81cb3be6bc06060a7114a518a0b9925f139c7ce71ce9e7fab3ca0a8a3892",
+      "match": true
+    },
+    {
+      "reference": "consumers/final-first/source-profile.json",
+      "path": "driver gzip decoded",
+      "expected": "993e51e8afa446af0316d206a5f51c26b84c358bbe924978a153f821b3ee3fdf",
+      "actual": "993e51e8afa446af0316d206a5f51c26b84c358bbe924978a153f821b3ee3fdf",
+      "match": true
+    },
+    {
+      "reference": "consumers/baseline-first/source-profile.json",
+      "path": "driver gzip decoded",
+      "expected": "fe4241e00a198c970e179b5b1550dcefa468768432f33d9a311b95535094fee4",
+      "actual": "fe4241e00a198c970e179b5b1550dcefa468768432f33d9a311b95535094fee4",
+      "match": true
+    },
+    {
+      "reference": "source/baseline-source.json decoded capsule",
+      "path": "packages/barocss-gpu/src/viewer/camera.ts",
+      "commit": "d85558ce0031d812341d5871743f8535520eb8d4",
+      "expected": "760fb86765d0f65cc9aef5790afa90e3242708446e8dc54cec63880392c2a73a",
+      "actual": "760fb86765d0f65cc9aef5790afa90e3242708446e8dc54cec63880392c2a73a",
+      "match": true
+    },
+    {
+      "reference": "source/baseline-source.json decoded capsule",
+      "path": "packages/barocss-gpu/src/viewer/viewer.ts",
+      "commit": "d85558ce0031d812341d5871743f8535520eb8d4",
+      "expected": "1c1df2143fe714569fe40b7aa27e6772faca9f44c9c50a9cca56194467b052a8",
+      "actual": "1c1df2143fe714569fe40b7aa27e6772faca9f44c9c50a9cca56194467b052a8",
+      "match": true
+    },
+    {
+      "reference": "source/baseline-source.json decoded capsule",
+      "path": "packages/barocss-gpu/src/viewer/shaders/pick.ts",
+      "commit": "d85558ce0031d812341d5871743f8535520eb8d4",
+      "expected": "4ff333ccf8e3acd880bfca1934a638287cbdad92ba792db085115dd21cd9e2a2",
+      "actual": "4ff333ccf8e3acd880bfca1934a638287cbdad92ba792db085115dd21cd9e2a2",
+      "match": true
+    },
+    {
+      "reference": "source/baseline-source.json decoded capsule",
+      "path": "packages/barocss-viewer/src/presenter.ts",
+      "commit": "d85558ce0031d812341d5871743f8535520eb8d4",
+      "expected": "96ce81cb3be6bc06060a7114a518a0b9925f139c7ce71ce9e7fab3ca0a8a3892",
+      "actual": "96ce81cb3be6bc06060a7114a518a0b9925f139c7ce71ce9e7fab3ca0a8a3892",
+      "match": true
+    }
+  ],
+  "capsules": [
+    {
+      "path": "consumers/baseline-first/clipping-contract-browser.test.mjs.gz",
+      "decodedPath": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/d325-receipt-review-20261029T095520/capsules/consumers/baseline-first/clipping-contract-browser.test.mjs",
+      "sha256": "fe4241e00a198c970e179b5b1550dcefa468768432f33d9a311b95535094fee4",
+      "bytes": 8005
+    },
+    {
+      "path": "consumers/final-first/clipping-contract-browser.test.mjs.gz",
+      "decodedPath": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/d325-receipt-review-20261029T095520/capsules/consumers/final-first/clipping-contract-browser.test.mjs",
+      "sha256": "993e51e8afa446af0316d206a5f51c26b84c358bbe924978a153f821b3ee3fdf",
+      "bytes": 14184
+    },
+    {
+      "path": "source/barocss-gpu-camera.ts.before.gz",
+      "decodedPath": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/d325-receipt-review-20261029T095520/capsules/source/barocss-gpu-camera.ts.before",
+      "sha256": "760fb86765d0f65cc9aef5790afa90e3242708446e8dc54cec63880392c2a73a",
+      "bytes": 5097
+    },
+    {
+      "path": "source/barocss-gpu-pick.ts.before.gz",
+      "decodedPath": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/d325-receipt-review-20261029T095520/capsules/source/barocss-gpu-pick.ts.before",
+      "sha256": "4ff333ccf8e3acd880bfca1934a638287cbdad92ba792db085115dd21cd9e2a2",
+      "bytes": 4034
+    },
+    {
+      "path": "source/barocss-gpu-viewer.ts.before.gz",
+      "decodedPath": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/d325-receipt-review-20261029T095520/capsules/source/barocss-gpu-viewer.ts.before",
+      "sha256": "1c1df2143fe714569fe40b7aa27e6772faca9f44c9c50a9cca56194467b052a8",
+      "bytes": 164062
+    },
+    {
+      "path": "source/barocss-viewer-presenter.ts.before.gz",
+      "decodedPath": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/d325-receipt-review-20261029T095520/capsules/source/barocss-viewer-presenter.ts.before",
+      "sha256": "96ce81cb3be6bc06060a7114a518a0b9925f139c7ce71ce9e7fab3ca0a8a3892",
+      "bytes": 13208
+    }
+  ],
+  "APIExpectedBinding": [
+    {
+      "commit": "d85558ce0031d812341d5871743f8535520eb8d4",
+      "path": "apps/library-docs/scripts/api-inventory.expected.json",
+      "sha256": "59ff7b47a074cda811aff9055a7cd301a5a79e76bb44acc3bf3ed6b082c2d356",
+      "match": true
+    },
+    {
+      "commit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+      "path": "apps/library-docs/scripts/api-inventory.expected.json",
+      "sha256": "91e1e6fefd6f3994c4d4182d63f5022722ec749c819f0838bbc5d69e1f25bd0e",
+      "match": true
+    }
+  ],
+  "actualRetainedData": {
+    "sampleCount12": true,
+    "coreSummaryExact": true,
+    "cameraGuardExact": true,
+    "sdkSummaryExact": true,
+    "pageErrorsEmpty": true
+  },
+  "native": {
+    "selectedTests": 1,
+    "pass": 1,
+    "fail": 0,
+    "skip": 0,
+    "sdkObservations": 12,
+    "sampleConditionsPerScale": 6,
+    "scales": [
+      1,
+      0.001
+    ],
+    "supportedProfile": "perspective axial square at depth6, base raster; separate Core triangle duplicate transforms/manual exact-far3..6",
+    "sdkSamples": [
+      {
+        "label": "control",
+        "scale": 1,
+        "expectedVisible": true,
+        "requestedCamera": {
+          "eye": [
+            0,
+            0,
+            6
+          ],
+          "target": [
+            0,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "fovY": 45,
+          "near": 0.01,
+          "far": 100
+        },
+        "byteLength": 307200,
+        "covered": 9600,
+        "centerRGBA": [
+          51,
+          138,
+          201,
+          255
+        ],
+        "pick": {
+          "ref": {
+            "modelId": "audit",
+            "surfaceId": "audit_patch"
+          },
+          "triangleIndex": 0,
+          "distanceScene": 6,
+          "positionScene": [
+            0,
+            0,
+            0
+          ],
+          "parameterUV": [
+            0.5,
+            0.5
+          ],
+          "approximate": true,
+          "ambiguous": true
+        }
+      },
+      {
+        "label": "near-excludes",
+        "scale": 1,
+        "expectedVisible": false,
+        "requestedCamera": {
+          "eye": [
+            0,
+            0,
+            6
+          ],
+          "target": [
+            0,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "fovY": 45,
+          "near": 7,
+          "far": 100
+        },
+        "byteLength": 307200,
+        "covered": 0,
+        "centerRGBA": [
+          9,
+          14,
+          23,
+          255
+        ],
+        "pick": null
+      },
+      {
+        "label": "far-excludes",
+        "scale": 1,
+        "expectedVisible": false,
+        "requestedCamera": {
+          "eye": [
+            0,
+            0,
+            6
+          ],
+          "target": [
+            0,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "fovY": 45,
+          "near": 0.01,
+          "far": 5
+        },
+        "byteLength": 307200,
+        "covered": 0,
+        "centerRGBA": [
+          9,
+          14,
+          23,
+          255
+        ],
+        "pick": null
+      },
+      {
+        "label": "closed-near",
+        "scale": 1,
+        "expectedVisible": true,
+        "requestedCamera": {
+          "eye": [
+            0,
+            0,
+            6
+          ],
+          "target": [
+            0,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "fovY": 45,
+          "near": 6,
+          "far": 12
+        },
+        "byteLength": 307200,
+        "covered": 9600,
+        "centerRGBA": [
+          51,
+          138,
+          201,
+          255
+        ],
+        "pick": {
+          "ref": {
+            "modelId": "audit",
+            "surfaceId": "audit_patch"
+          },
+          "triangleIndex": 0,
+          "distanceScene": 6,
+          "positionScene": [
+            0,
+            0,
+            0
+          ],
+          "parameterUV": [
+            0.5,
+            0.5
+          ],
+          "approximate": true,
+          "ambiguous": true
+        }
+      },
+      {
+        "label": "closed-far",
+        "scale": 1,
+        "expectedVisible": true,
+        "requestedCamera": {
+          "eye": [
+            0,
+            0,
+            6
+          ],
+          "target": [
+            0,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "fovY": 45,
+          "near": 3,
+          "far": 6
+        },
+        "byteLength": 307200,
+        "covered": 9600,
+        "centerRGBA": [
+          51,
+          138,
+          201,
+          255
+        ],
+        "pick": {
+          "ref": {
+            "modelId": "audit",
+            "surfaceId": "audit_patch"
+          },
+          "triangleIndex": 0,
+          "distanceScene": 6,
+          "positionScene": [
+            0,
+            0,
+            0
+          ],
+          "parameterUV": [
+            0.5,
+            0.5
+          ],
+          "approximate": true,
+          "ambiguous": true
+        }
+      },
+      {
+        "label": "restored",
+        "scale": 1,
+        "expectedVisible": true,
+        "requestedCamera": {
+          "eye": [
+            0,
+            0,
+            6
+          ],
+          "target": [
+            0,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "fovY": 45,
+          "near": 0.01,
+          "far": 100
+        },
+        "byteLength": 307200,
+        "covered": 9600,
+        "centerRGBA": [
+          51,
+          138,
+          201,
+          255
+        ],
+        "pick": {
+          "ref": {
+            "modelId": "audit",
+            "surfaceId": "audit_patch"
+          },
+          "triangleIndex": 0,
+          "distanceScene": 6,
+          "positionScene": [
+            0,
+            0,
+            0
+          ],
+          "parameterUV": [
+            0.5,
+            0.5
+          ],
+          "approximate": true,
+          "ambiguous": true
+        }
+      },
+      {
+        "label": "control",
+        "scale": 0.001,
+        "expectedVisible": true,
+        "requestedCamera": {
+          "eye": [
+            0,
+            0,
+            6
+          ],
+          "target": [
+            0,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "fovY": 45,
+          "near": 0.01,
+          "far": 100
+        },
+        "byteLength": 307200,
+        "covered": 9600,
+        "centerRGBA": [
+          51,
+          138,
+          201,
+          255
+        ],
+        "pick": {
+          "ref": {
+            "modelId": "audit",
+            "surfaceId": "audit_patch"
+          },
+          "triangleIndex": 0,
+          "distanceScene": 6,
+          "positionScene": [
+            0,
+            0,
+            0
+          ],
+          "parameterUV": [
+            0.5,
+            0.5
+          ],
+          "approximate": true,
+          "ambiguous": true
+        }
+      },
+      {
+        "label": "near-excludes",
+        "scale": 0.001,
+        "expectedVisible": false,
+        "requestedCamera": {
+          "eye": [
+            0,
+            0,
+            6
+          ],
+          "target": [
+            0,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "fovY": 45,
+          "near": 7,
+          "far": 100
+        },
+        "byteLength": 307200,
+        "covered": 0,
+        "centerRGBA": [
+          9,
+          14,
+          23,
+          255
+        ],
+        "pick": null
+      },
+      {
+        "label": "far-excludes",
+        "scale": 0.001,
+        "expectedVisible": false,
+        "requestedCamera": {
+          "eye": [
+            0,
+            0,
+            6
+          ],
+          "target": [
+            0,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "fovY": 45,
+          "near": 0.01,
+          "far": 5
+        },
+        "byteLength": 307200,
+        "covered": 0,
+        "centerRGBA": [
+          9,
+          14,
+          23,
+          255
+        ],
+        "pick": null
+      },
+      {
+        "label": "closed-near",
+        "scale": 0.001,
+        "expectedVisible": true,
+        "requestedCamera": {
+          "eye": [
+            0,
+            0,
+            6
+          ],
+          "target": [
+            0,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "fovY": 45,
+          "near": 6,
+          "far": 12
+        },
+        "byteLength": 307200,
+        "covered": 9600,
+        "centerRGBA": [
+          51,
+          138,
+          201,
+          255
+        ],
+        "pick": {
+          "ref": {
+            "modelId": "audit",
+            "surfaceId": "audit_patch"
+          },
+          "triangleIndex": 0,
+          "distanceScene": 6,
+          "positionScene": [
+            0,
+            0,
+            0
+          ],
+          "parameterUV": [
+            0.5,
+            0.5
+          ],
+          "approximate": true,
+          "ambiguous": true
+        }
+      },
+      {
+        "label": "closed-far",
+        "scale": 0.001,
+        "expectedVisible": true,
+        "requestedCamera": {
+          "eye": [
+            0,
+            0,
+            6
+          ],
+          "target": [
+            0,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "fovY": 45,
+          "near": 3,
+          "far": 6
+        },
+        "byteLength": 307200,
+        "covered": 9600,
+        "centerRGBA": [
+          51,
+          138,
+          201,
+          255
+        ],
+        "pick": {
+          "ref": {
+            "modelId": "audit",
+            "surfaceId": "audit_patch"
+          },
+          "triangleIndex": 0,
+          "distanceScene": 6,
+          "positionScene": [
+            0,
+            0,
+            0
+          ],
+          "parameterUV": [
+            0.5,
+            0.5
+          ],
+          "approximate": true,
+          "ambiguous": true
+        }
+      },
+      {
+        "label": "restored",
+        "scale": 0.001,
+        "expectedVisible": true,
+        "requestedCamera": {
+          "eye": [
+            0,
+            0,
+            6
+          ],
+          "target": [
+            0,
+            0,
+            0
+          ],
+          "up": [
+            0,
+            1,
+            0
+          ],
+          "fovY": 45,
+          "near": 0.01,
+          "far": 100
+        },
+        "byteLength": 307200,
+        "covered": 9600,
+        "centerRGBA": [
+          51,
+          138,
+          201,
+          255
+        ],
+        "pick": {
+          "ref": {
+            "modelId": "audit",
+            "surfaceId": "audit_patch"
+          },
+          "triangleIndex": 0,
+          "distanceScene": 6,
+          "positionScene": [
+            0,
+            0,
+            0
+          ],
+          "parameterUV": [
+            0.5,
+            0.5
+          ],
+          "approximate": true,
+          "ambiguous": true
+        }
+      }
+    ],
+    "core": {
+      "automatic": {
+        "mesh": "duplicates",
+        "face": 71,
+        "instance": 0,
+        "triangle": 0,
+        "depth": 0.7525126338005066,
+        "point": [
+          0.00909925576940297,
+          -0.00909925576940281,
+          5.753363863446035e-08
+        ]
+      },
+      "manual": {
+        "mesh": "duplicates",
+        "face": 71,
+        "instance": 0,
+        "triangle": 0,
+        "depth": 0,
+        "point": [
+          0.009099255856655188,
+          -0.009099255856655025,
+          0
+        ]
+      },
+      "automaticCamera": {
+        "near": 4.51507575950825,
+        "farValue": "Infinity",
+        "farFinite": false,
+        "autoClip": true
+      },
+      "camera": {
+        "near": 3,
+        "far": 6,
+        "autoClip": false
+      }
+    },
+    "cameraGuard": {
+      "before": {
+        "near": 3,
+        "far": 6,
+        "autoClip": false
+      },
+      "afterToggle": {
+        "near": 3,
+        "far": 6,
+        "autoClip": true
+      },
+      "held": {
+        "fulfilled": true,
+        "released": false,
+        "unmaps": 0,
+        "arguments": [
+          1
+        ]
+      },
+      "delayed": null,
+      "afterDelayed": {
+        "fulfilled": true,
+        "released": true,
+        "unmaps": 1,
+        "arguments": [
+          1
+        ]
+      },
+      "fresh": {
+        "mesh": "duplicates",
+        "face": 71,
+        "instance": 0,
+        "triangle": 0,
+        "depth": 0,
+        "point": [
+          0.009099255856655188,
+          -0.009099255856655025,
+          0
+        ]
+      },
+      "afterFresh": {
+        "fulfilled": true,
+        "released": true,
+        "unmaps": 2,
+        "arguments": [
+          1
+        ]
+      }
+    },
+    "browser": "156.0.8078.48",
+    "availabilityAdapter": {
+      "vendor": "apple",
+      "architecture": "metal-3"
+    },
+    "actualSDKCoreAdapterIdentity": "UNKNOWN; separate availability requestAdapter call, not identity of actual Viewer device",
+    "DPR": 1,
+    "errors": [],
+    "imagePaths": 16,
+    "uniqueImageContents": 3,
+    "independentlyViewedRetainedPNG": [
+      "consumers/baseline-first/near-excludes.png",
+      "consumers/final-first/scene-near-excludes.png",
+      "consumers/final-first/scene-closed-far.png",
+      "consumers/final-first/core-exact-far.png"
+    ],
+    "visualBoundary": "old excluded blue square; final excluded background; final closed-far blue square; Core triangle red. No new browser run/full pixelbyte comparison."
+  },
+  "sourceGraphBoundary": {
+    "retainedSourceBundleHash": "f0ca1580af1182884a05820d44699782ec75e39100a8e211d2f72a2b14b29a5c",
+    "reportedInputCount": 581,
+    "criticalBoundFiles": 6,
+    "criticalHashesMatchAuthorGit": true,
+    "driverCapsuleMatchesAuthorGit": true,
+    "fullInputMetafile": "NOT_RETAINED",
+    "actualBundleBytes": "NOT_RETAINED",
+    "producerDistHashes": "NOT_RETAINED",
+    "camera29Imports": "../dist/index.js",
+    "SDK11AndDisplay26Imports": "own-source esbuild",
+    "claim": "critical source/driver binding verified; cannot independently certify all581inputs/dist bytes"
+  },
+  "CPUCounts": {
+    "d325-gpu-test.log": {
+      "declarations": 357,
+      "uniqueNames": 357,
+      "summary": {
+        "tests": "357",
+        "pass": "355",
+        "fail": "2",
+        "skipped": "0"
+      }
+    },
+    "d325-gpu-display-final.log": {
+      "declarations": 26,
+      "uniqueNames": 26,
+      "summary": {
+        "tests": "26",
+        "pass": "26",
+        "fail": "0",
+        "skipped": "0"
+      },
+      "overlapNamesWithNormal": 26,
+      "newNamesVsNormal": []
+    },
+    "d325-gpu-camera-final.log": {
+      "declarations": 29,
+      "uniqueNames": 29,
+      "summary": {
+        "tests": "29",
+        "pass": "29",
+        "fail": "0",
+        "skipped": "0"
+      },
+      "overlapNamesWithNormal": 29,
+      "newNamesVsNormal": []
+    },
+    "d325-sdk-test-first.log": {
+      "declarations": 10,
+      "uniqueNames": 10,
+      "summary": {
+        "tests": "10",
+        "pass": "8",
+        "fail": "2",
+        "skipped": "0"
+      }
+    },
+    "d325-sdk-test-final.log": {
+      "declarations": 10,
+      "uniqueNames": 10,
+      "summary": {
+        "tests": "10",
+        "pass": "10",
+        "fail": "0",
+        "skipped": "0"
+      }
+    },
+    "d325-sdk-test-11.log": {
+      "declarations": 11,
+      "uniqueNames": 11,
+      "summary": {
+        "tests": "11",
+        "pass": "11",
+        "fail": "0",
+        "skipped": "0"
+      }
+    }
+  },
+  "CPUCountBoundary": "GPU357 initial355P/2F, final display26 and camera29 all overlap357; no final wholeGPU pass. SDK11 separate final suite, not added to overlapping repeats. Native selected1 includes12 observations, not12tests.",
+  "numericalPolicy": {
+    "CoreReversedDepth": "Perspective z(d)=near*(far-d)/((far-near)*d); orthographic z(d)=(far-d)/(far-near). Mat4 Float64 then packFrame Float32. No new endpoint clamping/tolerance.",
+    "manualPickZero": "Only fragment viewport depth z==0 maps test-depth to bitcast<f32>(0x00800000u), positive normal2^-126; raw r32float output stays0. Strictgreater + IDzero background preserved.",
+    "precisionBoundary": "Quantized fragment depth zero is not proof of analytic exact-far for every floating profile. Native near6/far12 and near3/far6 cases bounded; no arbitrary ratio/nextafter/nativeoffaxis/ortho/straddlingtriangle certification.",
+    "originalCPUTolerances": {
+      "SDKclose": 1e-10,
+      "acceptedProjectedDepthSlack": 1e-12,
+      "rawCoreRayZ": 1e-09,
+      "nativeSDKDistanceStrictLess": 1e-08,
+      "GPUcamera29DefaultClose": 1e-05
+    },
+    "nativeCoverageRule": "sum abs RGB-background bytes >12; visible >100, excluded covered===0; no byte-identity claim",
+    "SDKAdmission": "1e-4<=near<far<=10000; finite; Float32 OpenGL endpoint admission1e-3; axes1e-5; source bounds unmodified",
+    "newOrWidenedTolerance": false
+  },
+  "firstFailures": {
+    "nativeBaseline": {
+      "result": "REPRODUCED_PRODUCT_FAIL",
+      "tests": 1,
+      "pass": 0,
+      "fail": 1,
+      "skip": 0,
+      "exit": 1,
+      "controlCovered": 9600,
+      "excludedCovered": [
+        9600,
+        9600
+      ],
+      "excludedCPUPick": null,
+      "firstFailure": "near-excludes: CPU-excluded square must also be absent from actual display / 9600 !== 0",
+      "evidence": "consumers/baseline-first/"
+    },
+    "GPUCPU": "357 initial355PASS/2fixtureFAIL: owner partial mock lacksCamera; retained rawlog",
+    "SDKCPU": "10 initial8PASS/2fixtureFAIL background.top not iterable; actual Core background setter used in repair; later10/10 then11/11",
+    "nativeHarnessLint": "no-this-alias initial1error; holderobject repair; original retained",
+    "APIExpected": "IV001 expected18/actual19; intentional booleanautoClip at3existingexports; baseline/finalexpected hashes matchGit",
+    "producerCompile": "No compile failure reported in retained qualification; initial/finalbuild/types exits0, empty logs retained",
+    "reviewerTooling": {
+      "type": "KeyError driver",
+      "cause": "Initially assumed baseline and final source-profile share driver key; baseline uses sources + driverCapsule",
+      "productRuntimeRetry": false,
+      "repair": "Read actual schema and repeated read-only hash collection only"
+    }
+  },
+  "notAccepted": [
+    "independent execution",
+    "current wholeGPU/SDK/product acceptance",
+    "native orthographic/off-axis/crossing polygons",
+    "native two-square front-outside back-inside",
+    "arbitrary floating boundary/world-point metric certification",
+    "caps/probe/masks/depth-effect combinations",
+    "native pathtrace/effect-refusal combinations",
+    "natural readback failure/device loss/OOM/performance",
+    "other browser/adapter/DPR",
+    "full input graph/emitted dist binding",
+    "remoteCI"
+  ],
+  "newBugs": [],
+  "issueState": "Existing#2239 transferclosure unchanged; no issue reopen/post/fixacceptance from this review",
+  "nextCheckpoint": "Reuse author bounded receipts. For scope expansion obtain the requested full graph/dist binding and only the specific missing native matrix profile; do not repeat current successful selected case. Otherwise proceed existing D326 source/receipt queue or DA-DUP-1 new repaired SHA."
+}

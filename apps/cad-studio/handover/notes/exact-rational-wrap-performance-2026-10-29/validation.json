@@ -1,0 +1,103 @@
+{
+  "runtime": "7a1a462ca",
+  "node": "22.19.0",
+  "execution": "Serial heavy gate; Sol Medium ran consumer suites, Sol High reviewed arithmetic read-only.",
+  "build": {
+    "status": "PASS",
+    "cwd": "packages/barocss-cad",
+    "command": "node scripts/tool.mjs build"
+  },
+  "lint": {
+    "status": "PASS",
+    "command": "node scripts/tool.mjs lint",
+    "codeShapeCounts": [
+      119,
+      32,
+      273,
+      75
+    ]
+  },
+  "focused": {
+    "status": "PASS",
+    "total": 185,
+    "pass": 185,
+    "fail": 0,
+    "skip": 0,
+    "duration": 1923.703167,
+    "durationUnit": "ms",
+    "command": "node --test --test-concurrency=4 test/section-rational-conversion.test.mjs test/cylindrical-wrap-*.test.mjs test/native-d0*.test.mjs"
+  },
+  "kernel": {
+    "status": "PASS",
+    "total": 2185,
+    "pass": 2179,
+    "fail": 0,
+    "skip": 6,
+    "duration": 303930.136292,
+    "durationUnit": "ms",
+    "command": "node --test --test-concurrency=4 test/*.test.mjs"
+  },
+  "model": {
+    "status": "PASS",
+    "total": 1824,
+    "pass": 1824,
+    "fail": 0,
+    "skip": 0,
+    "duration": 256806.58325,
+    "durationUnit": "ms",
+    "cwd": "packages/barocss-cad-model",
+    "command": "TEST_CONCURRENCY=4 node scripts/test.mjs"
+  },
+  "studio": {
+    "status": "PASS",
+    "total": 365,
+    "pass": 365,
+    "fail": 0,
+    "skip": 0,
+    "duration": 23568.789167,
+    "durationUnit": "ms",
+    "cwd": "apps/cad-studio",
+    "command": "TEST_CONCURRENCY=4 node scripts/test.mjs"
+  },
+  "generated": {
+    "agentTools": "PASS unchanged",
+    "refusals": "PASS unchanged",
+    "apiInventory": "SCOPED_PASS unchanged, six named rules only",
+    "docs": {
+      "status": "PASS",
+      "pages": 68,
+      "shots": 53,
+      "labels": 852
+    }
+  },
+  "notRun": [
+    "Model and Studio type checks",
+    "browser flow",
+    "literal stored B-rep closure and mass",
+    "native SI accuracy",
+    "Part/provider/API/Model/Studio wrap integration"
+  ],
+  "performance": {
+    "pairedRuns": 15,
+    "wrapFingerprintComparisons": "all SAME",
+    "additionalGeneralRuns": 7,
+    "generalFingerprintComparisons": "all SAME",
+    "newCompleteAsymmetric": {
+      "runs": 15,
+      "median": 24,
+      "unit": "ms",
+      "fingerprint": "659784c1d1276574",
+      "before": "BUDGET, no successful old complete timing"
+    }
+  },
+  "push": false,
+  "pullRequest": false,
+  "release": false,
+  "dependencyChange": false,
+  "sourceChecksumPin": false,
+  "whitespace": {
+    "status": "PASS for code, tests, scripts and prose",
+    "excludedRawReceipt": "focused-id-mismatch.tap",
+    "reason": "Preserve original failure output, including two blank diff lines with spaces."
+  }
+}

@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: Presenter replacement keeps only active owned geometry, then empty and dispose retain none
+ok 1 - Presenter replacement keeps only active owned geometry, then empty and dispose retain none
+  ---
+  duration_ms: 3.291458
+  type: 'test'
+  ...
+# Subtest: triangles, lines and dots release every owned buffer once, preserve shared UVs and update dot size with the camera
+ok 2 - triangles, lines and dots release every owned buffer once, preserve shared UVs and update dot size with the camera
+  ---
+  duration_ms: 1.140791
+  type: 'test'
+  ...
+# Subtest: Core explicit geometry stays reusable across two meshes, removal, Presenter changes and caller disposal
+ok 3 - Core explicit geometry stays reusable across two meshes, removal, Presenter changes and caller disposal
+  ---
+  duration_ms: 0.231167
+  type: 'test'
+  ...
+# Subtest: source arrays remain unchanged and in-place edits are copied into a new prepared geometry
+ok 4 - source arrays remain unchanged and in-place edits are copied into a new prepared geometry
+  ---
+  duration_ms: 0.165458
+  type: 'test'
+  ...
+# Subtest: an actual Mesh construction failure frees the new Geometry and retains the existing partial-show policy
+ok 5 - an actual Mesh construction failure frees the new Geometry and retains the existing partial-show policy
+  ---
+  duration_ms: 0.512958
+  type: 'test'
+  ...
+# Subtest: failure after Geometry creation preserves the original error and does not dispose caller textures
+ok 6 - failure after Geometry creation preserves the original error and does not dispose caller textures
+  ---
+  duration_ms: 0.350292
+  type: 'test'
+  ...
+# Subtest: public Viewer.clear removes only the Presenter scene geometry
+ok 7 - public Viewer.clear removes only the Presenter scene geometry
+  ---
+  duration_ms: 0.949459
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 500.192958

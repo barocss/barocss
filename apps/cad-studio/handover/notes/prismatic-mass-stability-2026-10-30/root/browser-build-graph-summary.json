@@ -1,0 +1,18 @@
+[
+  {
+    "name": "seed-generator",
+    "analyzedInputs": 723,
+    "kernelSrc": 435,
+    "kernelDist": 0,
+    "modelSrc": 287,
+    "scope": "Esbuild analyzed inputs, not proof that all modules execute. Virtual stdin saved separately."
+  },
+  {
+    "name": "native-inspector",
+    "analyzedInputs": 723,
+    "kernelSrc": 435,
+    "kernelDist": 0,
+    "modelSrc": 287,
+    "scope": "Esbuild analyzed inputs, not proof that all modules execute. Virtual stdin saved separately."
+  }
+]

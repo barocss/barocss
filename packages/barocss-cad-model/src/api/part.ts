@@ -1,7 +1,7 @@
 // R7 (cad-model's facade): the one part (@barocss/cad/api's Part) over the studio document, with its studio backend
 // (./studio), with studio-only authoring and a material by its library id for mass. `.doc` is the StudioDoc the
 // agent's tools, the studio, save/open and the fingerprints use. Assemblies, variants and rows come as the layer grows.
-import { BarocssError, Part, Sketch, bracketedCode, refuse, studioSpec, type BodyQuery, type Density, type FaceQuery, type Vec3, type Dim } from '@barocss/cad/api';
+import { BarocssError, Part, Sketch, bracketedCode, refuse, studioSpec, type BodyQuery, type Density, type FaceQuery, type Vec3, type Dim, type PlaneData } from '@barocss/cad/api';
 import { sha256Hex } from '../util/digest';
 import { loadPersonRows } from '../chat/rows';
 import { receivePersonRowFiles } from '../engine/rowFiles';
@@ -19,8 +19,10 @@ import { withLibraryPart, type LibraryPartInput } from './library';
 import { refOf } from '../app/bodyRef';
 import { buildDraft, buildFaceFillet, buildFaceThread, buildFullRound, type Values } from '../app/commands';
 import { resolveNames } from '../chat/names';
+import { cylindricalWrapCarrier } from '../engine/cylindricalWrap';
 import { captureSignatures } from '../engine/references';
 import { bindParameter } from '../engine/parameters';
+import { fontSourceError, type FontSource } from '../engine/font/source';
 
 /** A closed sketch at a legacy height or in an explicit world-mm section frame, never both. */
 export type StudioLoftSection = { readonly sketch: Sketch } & (
@@ -64,7 +66,107 @@ export interface StudioRectangularReliefOptions {
   readonly depth: Dim; readonly mode: 'emboss' | 'engrave';
 }
 
+/** A standalone text extrusion: em size, positive height, chord tolerance and optional scalar spacing/plane. */
+export interface StudioTextOptions {
+  readonly size: Dim;
+  readonly h: Dim;
+  readonly tolerance?: number;
+  readonly tracking?: Dim;
+  readonly plane?: PlaneData;
+}
+const TEXT_OPTIONS = new Set(['size', 'h', 'tolerance', 'tracking', 'plane']);
+
+/** World-XY baseline on one supported +Z top; the selected solid is embossed or engraved. */
+export interface StudioTextReliefOptions {
+  readonly size: Dim;
+  readonly depth: Dim;
+  readonly at: readonly [Dim, Dim];
+  readonly mode: 'emboss' | 'engrave';
+  readonly tolerance?: number;
+  readonly tracking?: Dim;
+}
+const TEXT_RELIEF_OPTIONS = new Set(['size', 'depth', 'at', 'mode', 'tolerance', 'tracking']);
+
+/** Original native UV rectangle on the +Y wall's first quarter; height must equal the cylinder radius. */
+export interface StudioCylindricalWrapOptions { readonly u0: number; readonly u1: number; readonly v0: number; readonly v1: number; readonly height: Dim }
+const CYLINDRICAL_WRAP_OPTIONS = new Set(['u0', 'u1', 'v0', 'v1', 'height']);
+
 export class StudioPart extends Part<StudioDoc> {
+  /** Select the cylinder wall; wrap its fixed original +Y half's first native quarter. */
+  cylindricalWrap(faces: (body: BodyQuery) => FaceQuery, options: StudioCylindricalWrapOptions): this {
+    if (!options || typeof options !== 'object' || Array.isArray(options) || Reflect.ownKeys(options).some(key => typeof key !== 'string' || !CYLINDRICAL_WRAP_OPTIONS.has(key)) || [...CYLINDRICAL_WRAP_OPTIONS].some(key => !Object.hasOwn(options, key))) throw refuse('VALUE', 'cylindrical wrap takes u0, u1, v0, v1 and height');
+    let given: StudioCylindricalWrapOptions;
+    try { given = structuredClone(options); } catch { throw refuse('VALUE', 'cylindrical wrap options must be copied plain values'); }
+    const doc = this.document, before = bodiesOf(doc), body = before.find(b => b.key === this.target());
+    if (!body) throw refuse('NO_BODY', 'cylindrical wrap needs one selected body');
+    if (typeof faces !== 'function') throw refuse('VALUE', 'cylindrical wrap takes a face selector');
+    const picked = faces(this.select());
+    if (!picked || typeof picked.names !== 'function') throw refuse('VALUE', 'cylindrical wrap takes a face query');
+    if (picked.count !== 1) throw refuse(picked.count ? 'VALUE' : 'SELECTION_EMPTY', 'cylindrical wrap needs exactly one face');
+    const names = picked.names(); let name = names[0];
+    if (names.length !== 1 || typeof name !== 'string' || name.includes('+')) throw refuse('VALUE', 'cylindrical wrap needs one exact individual face name');
+    if (body.mesh.faces.filter(face => face.name === name).length !== 1) throw refuse('SELECTION_UNKNOWN', `no exact individual face named ${name} on the selected body`);
+    name = cylindricalWrapCarrier(body.mesh.faces.find(face => face.name === name)!).name;
+    const node: ModelNode = { kind: 'cylindrical-wrap', parent: refOf(body), faces: [name], rectangle: { u: [given.u0, given.u1], v: [given.v0, given.v1] }, height: given.height };
+    const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
+    if (why) throw refuse('VALUE', `the cylindrical wrap: ${why}`);
+    const index = doc.nodes.length, next = captureSignatures(withNode(doc, node), [body]);
+    bodiesOf(next);
+    return this.next(next, bodyKey({ node: index, side: 'solid' }, next.nodes));
+  }
+
+  /** One authored output from original font bytes; separated glyph components may remain several physical bodies. */
+  text(font: FontSource, text: string, options: StudioTextOptions): this {
+    if (!options || typeof options !== 'object' || Array.isArray(options) || !Object.hasOwn(options, 'size') || !Object.hasOwn(options, 'h')) throw refuse('VALUE', 'text takes required size and h options');
+    for (const key of Reflect.ownKeys(options)) if (typeof key !== 'string' || !TEXT_OPTIONS.has(key)) throw refuse('VALUE', 'text options are size, h, tolerance, tracking and plane');
+    const sourceProblem = fontSourceError(font);
+    if (sourceProblem) throw refuse('VALUE', `the text font: ${sourceProblem}`);
+    let copied: { font: FontSource; options: StudioTextOptions };
+    try { copied = structuredClone({ font, options }); }
+    catch { throw refuse('VALUE', 'text source and options must be copied plain values'); }
+    const given = copied.options, doc = this.document;
+    const node = { kind: 'text', text, font: copied.font, size: given.size, height: given.h,
+      tolerance: given.tolerance === undefined ? 0.01 : given.tolerance,
+      ...(given.tracking === undefined ? {} : { tracking: given.tracking }),
+      ...(given.plane === undefined ? {} : { plane: given.plane }) };
+    const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
+    if (why) throw refuse('VALUE', `the text: ${why}`);
+    const index = doc.nodes.length, next = withNode(doc, node as ModelNode);
+    bodiesOf(next);
+    return this.next(next, bodyKey({ node: index, side: 'solid' }, next.nodes));
+  }
+
+  /** Modify one selected +Z top from original outlines; the bounded native profile contract rejects unsupported targets. */
+  textRelief(faces: (body: BodyQuery) => FaceQuery, font: FontSource, text: string, options: StudioTextReliefOptions): this {
+    if (!options || typeof options !== 'object' || Array.isArray(options) || !Object.hasOwn(options, 'size') || !Object.hasOwn(options, 'depth') || !Object.hasOwn(options, 'at') || !Object.hasOwn(options, 'mode')) throw refuse('VALUE', 'text relief takes required size, depth, at and mode options');
+    for (const key of Reflect.ownKeys(options)) if (typeof key !== 'string' || !TEXT_RELIEF_OPTIONS.has(key)) throw refuse('VALUE', 'text relief options are size, depth, at, mode, tolerance and tracking');
+    const sourceProblem = fontSourceError(font);
+    if (sourceProblem) throw refuse('VALUE', `the text relief font: ${sourceProblem}`);
+    let copied: { font: FontSource; options: StudioTextReliefOptions };
+    try { copied = structuredClone({ font, options }); }
+    catch { throw refuse('VALUE', 'text relief source and options must be copied plain values'); }
+    const given = copied.options, doc = this.document, before = bodiesOf(doc), target = this.target(), body = before.find(b => b.key === target);
+    if (!body) throw refuse('NO_BODY', 'text relief needs one selected body');
+    if (typeof faces !== 'function') throw refuse('VALUE', 'text relief takes a face selector');
+    const picked = faces(this.select());
+    if (!picked || typeof picked.names !== 'function') throw refuse('VALUE', 'text relief takes a face query from the selected body');
+    if (picked.count !== 1) throw refuse(picked.count ? 'VALUE' : 'SELECTION_EMPTY', 'text relief needs exactly one face');
+    const names = picked.names(), name = names[0];
+    if (names.length !== 1 || typeof name !== 'string' || name.includes('+')) throw refuse('VALUE', 'text relief needs one exact individual face name');
+    if (body.mesh.faces.filter(face => face.name === name).length !== 1) throw refuse('SELECTION_UNKNOWN', `no exact individual face named ${name} on the selected body`);
+    const { unknown } = resolveNames([body], { faces: [name] });
+    if (unknown.length) throw refuse('SELECTION_UNKNOWN', `no face named ${unknown.join(', ')} on the selected body`);
+    const node = { kind: 'text-relief', parent: refOf(body), faces: [name] as [string], text, font: copied.font,
+      size: given.size, at: given.at, depth: given.depth, mode: given.mode,
+      tolerance: given.tolerance === undefined ? 0.01 : given.tolerance,
+      ...(given.tracking === undefined ? {} : { tracking: given.tracking }) };
+    const why = checkNode(node, doc.nodes, doc.parameters, doc.frames?.sections, doc.instances ?? []);
+    if (why) throw refuse('VALUE', `the text relief: ${why}`);
+    const index = doc.nodes.length, next = captureSignatures(withNode(doc, node as ModelNode), [body]);
+    bodiesOf(next);
+    return this.next(next, bodyKey({ node: index, side: 'solid' }, next.nodes));
+  }
+
   /** One line-only upright slab only; no text, general faces or curved embossing. */
   rectangularRelief(options: StudioRectangularReliefOptions): this {
     const keys = ['min', 'max', 'depth', 'mode'];

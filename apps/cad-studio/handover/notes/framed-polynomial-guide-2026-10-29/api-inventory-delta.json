@@ -1,0 +1,12 @@
+[
+  {
+    "path": "$.exposures[3850].variants[0].shape.type",
+    "old": "(s: Pick<DrawingSettings, \"section\" | \"sections\">) => DrawingSection[]",
+    "new": "(s: Pick<DrawingSettings, \"sections\" | \"section\">) => DrawingSection[]"
+  },
+  {
+    "path": "$.exposures[3850].variants[0].shape.callSignatures[0]",
+    "old": "(s: Pick<DrawingSettings, \"section\" | \"sections\">) => DrawingSection[]",
+    "new": "(s: Pick<DrawingSettings, \"sections\" | \"section\">) => DrawingSection[]"
+  }
+]

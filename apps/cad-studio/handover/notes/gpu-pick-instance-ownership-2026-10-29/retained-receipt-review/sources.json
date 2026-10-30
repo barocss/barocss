@@ -1,0 +1,17 @@
+{
+  "rootScope": "Read supplied source/retained-author-receipt review and register existing roadmap evidence. No independent runtime or artifact re-audit, product mutation, issue reopening or cross-chat reply.",
+  "files": [
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/d324-gpu-pick-receipt-review.md",
+      "copy": "d324-gpu-pick-receipt-review.md",
+      "bytes": 9801,
+      "sha256": "3df6aee9286209e6a4dbc3f217db8b616f85438ef305173818b5e146113b4ad8"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/verification/d324-gpu-pick-receipt-review.json",
+      "copy": "d324-gpu-pick-receipt-review.json",
+      "bytes": 24444,
+      "sha256": "e501c91e676d1f21b15fb38263d768f66c1e1ea78cc28d8cdfa50a33cf609a6d"
+    }
+  ]
+}

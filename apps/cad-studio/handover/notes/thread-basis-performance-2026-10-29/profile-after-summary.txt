@@ -1,0 +1,57 @@
+total s 10.66
+   1.62s  15.2%  (anon) math.js:251
+   1.27s  11.9%  basisInto math.js:115
+   0.94s   8.8%  (garbage collector) :0
+   0.79s   7.4%  nearBoundary brep-mass-quadrature.js:1008
+   0.50s   4.7%  invert brep-tessellate.js:1181
+   0.27s   2.6%  wholePatch brep-mass-quadrature.js:951
+   0.26s   2.4%  (anon) analytic-boolean.js:399
+   0.20s   1.9%  newton analytic-boolean.js:83
+   0.19s   1.8%  intersectPatches surface-intersection.js:158
+   0.19s   1.8%  tessellate brep-tessellate.js:383
+   0.14s   1.3%  triangulatePolygonWithHoles brep-tessellate.js:216
+   0.13s   1.2%  segmentKey brep-tessellate.js:379
+   0.11s   1.0%  to3Extended analytic-boolean.js:166
+   0.11s   1.0%  nurbsParam analytic-boolean.js:82
+   0.11s   1.0%  (anon) math.js:224
+   0.10s   1.0%  brepQuadratureIntegrals brep-mass-quadrature.js:160
+   0.10s   0.9%  rayHits analytic-boolean.js:1887
+   0.10s   0.9%  fp perf-bench.mjs:17
+   0.10s   0.9%  gridTriangles surface-intersection.js:134
+   0.09s   0.8%  validateCurve math.js:42
+   0.09s   0.8%  len vec3.js:6
+   0.09s   0.8%  index brep-tessellate.js:466
+   0.08s   0.8%  compileSourceTextModule utils:344
+   0.08s   0.7%  crossingsAt curved-arrangement.js:1038
+   0.08s   0.7%  (anon) analytic-boolean.js:459
+   0.07s   0.6%  intersectSegments curved-arrangement.js:398
+   0.07s   0.6%  at analytic-boolean.js:1163
+   0.06s   0.6%  build analytic-boolean.js:329
+   0.06s   0.5%  rate analytic-boolean.js:344
+   0.06s   0.5%  paramOf curved-arrangement.js:210
+   0.06s   0.5%  read :0
+   0.05s   0.5%  to2 analytic-boolean.js:140
+   0.05s   0.4%  goldenNearest curved-arrangement.js:199
+   0.05s   0.4%  surfaceTriangles brep-tessellate.js:1251
+   0.04s   0.4%  basisD1 derivatives.js:8
+   0.04s   0.4%  validateSurface math.js:53
+   0.04s   0.4%  polylineLength brep-mass-quadrature.js:992
+   0.04s   0.4%  checkBrep brep-core.js:180
+   0.04s   0.4%  size brep-tessellate.js:1335
+   0.04s   0.4%  quadratureOf solid-mass.js:73
+wholePatch total s 1.48
+   0.79s  53.0%  nearBoundary:1008
+   0.27s  18.5%  (self)
+   0.26s  17.2%  sidePoint:1000 > (anon):251
+   0.09s   5.8%  (anon):224 > basisInto:115
+   0.04s   2.9%  polylineLength:992
+   0.01s   0.7%  curveEvaluator:217 > validateCurve:42
+   0.01s   0.5%  sidePoint:1000
+   0.01s   0.4%  surfaceDomain:97 > validateSurface:53
+   0.00s   0.2%  surfaceEvaluator:242 > validateSurface:53
+   0.00s   0.2%  surfaceEvaluator:242
+   0.00s   0.2%  curveDomain:93 > validateCurve:42
+   0.00s   0.1%  surfaceEvaluator:242 > (anon):245
+   0.00s   0.1%  curveEvaluator:217
+   0.00s   0.1%  sidePoint:1000 > basisInto:115
+   0.00s   0.0%  surfaceDomain:97

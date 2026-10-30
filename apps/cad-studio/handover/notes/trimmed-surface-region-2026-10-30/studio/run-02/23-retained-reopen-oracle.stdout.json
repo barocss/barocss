@@ -1,0 +1,197 @@
+{
+  "status": "PASS",
+  "expectedExactRectangleComponents": [
+    {
+      "areaWorld": {
+        "numerator": "243388915243820004554970369097725",
+        "denominator": "10141204801825835211973625643008",
+        "value": 23.999999999999996
+      },
+      "centroidWorld": [
+        {
+          "numerator": "450359962737049605",
+          "denominator": "18014398509481984",
+          "value": 25.0
+        },
+        {
+          "numerator": "22517998136852477",
+          "denominator": "2251799813685248",
+          "value": 9.999999999999998
+        },
+        {
+          "numerator": "3",
+          "denominator": "1",
+          "value": 3.0
+        }
+      ]
+    }
+  ],
+  "actualStoredComponents": [
+    {
+      "id": "obj_3",
+      "areaWorld": {
+        "numerator": "243388915243820004554970369097725",
+        "denominator": "10141204801825835211973625643008",
+        "value": 23.999999999999996
+      },
+      "centroidWorld": [
+        {
+          "numerator": "450359962737049605",
+          "denominator": "18014398509481984",
+          "value": 25.0
+        },
+        {
+          "numerator": "22517998136852477",
+          "denominator": "2251799813685248",
+          "value": 9.999999999999998
+        },
+        {
+          "numerator": "3",
+          "denominator": "1",
+          "value": 3.0
+        }
+      ]
+    }
+  ],
+  "slabLevelsIncludingPerpendicularBoundarySwitches": 20,
+  "probes": [
+    {
+      "world": [
+        18,
+        11.25,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        32,
+        11.25,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        25,
+        6.25,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        25,
+        11.25,
+        3
+      ],
+      "inCrop": true,
+      "expectedMaterial": true,
+      "owners": [
+        "obj_3"
+      ]
+    },
+    {
+      "world": [
+        25,
+        3,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        13,
+        -3,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        44,
+        19,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        23,
+        9,
+        3
+      ],
+      "inCrop": true,
+      "expectedMaterial": true,
+      "owners": [
+        "obj_3"
+      ]
+    },
+    {
+      "world": [
+        18.5,
+        10.75,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        31.5,
+        10.75,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        42,
+        2,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        18,
+        10,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        25,
+        10,
+        3
+      ],
+      "inCrop": true,
+      "expectedMaterial": true,
+      "owners": [
+        "obj_3"
+      ]
+    }
+  ],
+  "tolerance": 1e-07,
+  "scope": "Independent exact Fraction rectangle sweep and stored Green moments/ray parity; no CAD or production predicates"
+}

@@ -1,0 +1,114 @@
+{
+  "README.md": {
+    "bytes": 4459,
+    "sha256": "deef4630d66228a14e131be29605bdb9a1357059ebaaac676e12a3e0a41c225d"
+  },
+  "exits-final.tsv": {
+    "bytes": 16,
+    "sha256": "3a80057a1c16e6d19aabeaa3c504144ce65a2dd94c84d9929846d16524fc171d"
+  },
+  "exits-first.tsv": {
+    "bytes": 16,
+    "sha256": "068929444c488c5d381feaac623882c780017e79a3d4facaaec5fc319c12cfb0"
+  },
+  "final-run/290a-d318-polyline-ui.png": {
+    "bytes": 97386,
+    "sha256": "8d668a0f41aff650f3aa62b0518aaea2692a5beec5955b17ea69ad000537a247"
+  },
+  "final-run/d318-followers-edited-saved.bcad": {
+    "bytes": 2663,
+    "sha256": "7001df4139bdbf6d593daa1c9daa7407e451b5976c70a81008e750cb0b39fc35"
+  },
+  "final-run/d318-followers-edited.png": {
+    "bytes": 298839,
+    "sha256": "5097c6c012962772adc8038beaff86f7616911571121c9551e3848e9a3a4dfe8"
+  },
+  "final-run/d318-followers-length-40.json": {
+    "bytes": 806,
+    "sha256": "ba706a064f9ef0d5464746713337d509cccece7ba15b3cfe6d7370ad625bcafa"
+  },
+  "final-run/d318-followers-length-50.json": {
+    "bytes": 851,
+    "sha256": "f7e3c0cfb05137a0e8111260dd8d5255043d845e582b9f5e92c65b2e64aaeee7"
+  },
+  "final-run/d318-followers-reopened.png": {
+    "bytes": 299242,
+    "sha256": "5c1cbfeef84b07860882a4bba4e86bda5aae1ea2a98a452d709209149e6614db"
+  },
+  "final-run/d318-polyline-ui-saved.bcad": {
+    "bytes": 1071,
+    "sha256": "025220bce327e089feb23db73dc024c2a3f8323120966771ce6cfc46344f580e"
+  },
+  "final-run/d318-shared-followers-input.bcad": {
+    "bytes": 1008,
+    "sha256": "01390eb14aad7b0206bb8f52b054d532d628fb49aa67820a5016bbfcb507ca8c"
+  },
+  "final-run/d318-single-point-fresh-open.png": {
+    "bytes": 262200,
+    "sha256": "fbde10768c480c7cabc66dae7d9c497b9ce4d44a54ec5403f4bf09a015d59ce3"
+  },
+  "final-run/d318-single-point-saved.bcad": {
+    "bytes": 299,
+    "sha256": "f11a89877454ba83333af9bd2a575f886c775c1475679f9c22a5437dd660454e"
+  },
+  "final-run/display.json": {
+    "bytes": 161,
+    "sha256": "52cf6d93babdc65bf357a917e2b25b91a79aece76fca76fe1f0c7a7223475c95"
+  },
+  "first-run/290-d318-authored-skeleton-files-open-in-fresh-contexts-retain-ids-and-update-shared-frame-followers.png": {
+    "bytes": 75019,
+    "sha256": "54b8f1a21b4f4e02b888d8cc9b8908dae54740551277f6376523b1e3bd22e9a0"
+  },
+  "first-run/290a-d318-polyline-ui.png": {
+    "bytes": 97363,
+    "sha256": "e33a1a53ed38feaa6a6b6c96b2521ef0e5adec19083f6f57c6a178ca11b2c618"
+  },
+  "first-run/d318-polyline-ui-saved.bcad": {
+    "bytes": 1071,
+    "sha256": "025220bce327e089feb23db73dc024c2a3f8323120966771ce6cfc46344f580e"
+  },
+  "first-run/d318-shared-followers-input.bcad": {
+    "bytes": 861,
+    "sha256": "10ca5c82d6a34cd359a8d1c2bb725ed3e3fa8d9a932e3215644fbb150b1a1abb"
+  },
+  "first-run/d318-single-point-fresh-open.png": {
+    "bytes": 262200,
+    "sha256": "fbde10768c480c7cabc66dae7d9c497b9ce4d44a54ec5403f4bf09a015d59ce3"
+  },
+  "first-run/d318-single-point-saved.bcad": {
+    "bytes": 299,
+    "sha256": "f11a89877454ba83333af9bd2a575f886c775c1475679f9c22a5437dd660454e"
+  },
+  "first-run/display.json": {
+    "bytes": 161,
+    "sha256": "52cf6d93babdc65bf357a917e2b25b91a79aece76fca76fe1f0c7a7223475c95"
+  },
+  "flow-final.txt": {
+    "bytes": 314,
+    "sha256": "80d5898c33bc04368d4536c5c504d3e06f91f479f51151f882436f88b603c5d5"
+  },
+  "flow-first-failure.txt": {
+    "bytes": 886,
+    "sha256": "13596245852ea1ad56caf167fb5ee1f665c4e3a7bb36f5077fe40a1d0e8a0f7e"
+  },
+  "gate-final.txt": {
+    "bytes": 45,
+    "sha256": "f700f94fc74b9414f52cc062da8e5dbef01cb7b045e2523cbd36e8c10d49379b"
+  },
+  "gate-first.txt": {
+    "bytes": 45,
+    "sha256": "e5c0f57c3fcf14fa08165f316f8759b32e65c0f3916503b9a79183e358e48715"
+  },
+  "syntax-final.txt": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "syntax-first.txt": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "validation.json": {
+    "bytes": 4511,
+    "sha256": "8f3bdb7f1af13656ed6d3d6545ac2f384c8a5d4f0e81a21f0cc9f4ec3ed73469"
+  }
+}

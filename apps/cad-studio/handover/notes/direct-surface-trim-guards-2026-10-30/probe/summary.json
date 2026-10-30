@@ -1,0 +1,43 @@
+{
+  "status": "PRE_FIX_CONFIRMED_SIX_CONSUMERS",
+  "head": "1fb2d11e9e4713bac3bfbc1131fc45302aa558f3",
+  "afterHead": "1fb2d11e9e4713bac3bfbc1131fc45302aa558f3",
+  "node": "v22.19.0",
+  "listedInputs": 496,
+  "matchingInputs": 496,
+  "statusUnchanged": true,
+  "inputFixtureUnchanged": true,
+  "witnessUnchanged": true,
+  "gateReleased": true,
+  "gateReleaseEvidence": "run.sh EXIT trap; subsequent gate show holder:none",
+  "runtimeExitCode": 0,
+  "cases": {
+    "reverse": {
+      "status": "CONFIRMED_RETURNED_WITH_TRIM_MATERIAL_LOSS",
+      "rawStatus": "RETURNED"
+    },
+    "split": {
+      "status": "CONFIRMED_RETURNED_WITH_TRIM_MATERIAL_LOSS",
+      "rawStatus": "RETURNED"
+    },
+    "region": {
+      "status": "CONFIRMED_RETURNED_WITH_TRIM_MATERIAL_LOSS",
+      "rawStatus": "RETURNED"
+    },
+    "extend": {
+      "status": "CONFIRMED_RETURNED_WITH_TRIM_MATERIAL_LOSS",
+      "rawStatus": "RETURNED"
+    },
+    "iges": {
+      "status": "CONFIRMED_RETURNED_WITH_TRIM_MATERIAL_LOSS",
+      "rawStatus": "RETURNED"
+    },
+    "intersection": {
+      "status": "CONFIRMED_CURVE_INSIDE_REMOVED_MATERIAL",
+      "rawStatus": "RETURNED"
+    }
+  },
+  "thickenUI": "NOT_PROVEN",
+  "browser": "NOT_RUN",
+  "nativeBcadRoundtrip": "NOT_RUN"
+}

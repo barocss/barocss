@@ -1,0 +1,23 @@
+{
+  "rootScope": "Read report and parsed child/parent verification; register existing roadmap only. No independent runtime/artifact/sourcegraph/raw-byte re-audit or cross-chat reply.",
+  "files": [
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/gpu-006-instance-recovery-104421.md",
+      "copy": "gpu-006-instance-recovery-104421.md",
+      "bytes": 6952,
+      "sha256": "2fd5c6066134081aeb19ddc6f1232c755fe1741036a724731d8d71ba87c8f8f4"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/gpu-006-instance-recovery-20261029T104421/verification.json",
+      "copy": "verification.json",
+      "bytes": 37547,
+      "sha256": "d20c572db318e2cd6f9421eff99d53ad57c217f3ab39000d9d4745a7ea305c9d"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/verification/gpu-006-instance-recovery-parent-104421.json",
+      "copy": "gpu-006-instance-recovery-parent-104421.json",
+      "bytes": 1995,
+      "sha256": "0f0d5a8c7be0c26656899ae2a1cfa0a897b30df53648880135dd4033936d7c95"
+    }
+  ]
+}

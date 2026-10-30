@@ -1,3 +1,4 @@
+import { fillPatternDocumentProblem } from '../engine/fillFeaturePattern';
 // Shared part definitions: instances placing the same part (inserted once, then duplicated) share its
 // definition, so a new revision accepted for it is every one of theirs; a copy made independent gets a
 // definition of its own. A new revision is loaded on purpose and waits beside the assembly until it is
@@ -5,6 +6,7 @@
 import type { PartInstance, StudioDoc } from '../engine/doc';
 import { nextRevision } from '../drawing/types';
 import { nextFreeId } from '../util/ids';
+import { curvePatternDocumentProblem } from '../engine/curveFeaturePattern';
 
 /** A definition id not yet used by any instance or pending revision. */
 export function freshPartId(doc: StudioDoc): string {
@@ -28,6 +30,8 @@ export function makeIndependent(doc: StudioDoc, instance: string): StudioDoc {
  * placed one, else the next after it. Refused when the file is the part as placed.
  */
 export function offerRevision(doc: StudioDoc, id: string, part: StudioDoc, name: string): { doc: StudioDoc } | { error: string } {
+  const pathProblem = fillPatternDocumentProblem(part) ?? curvePatternDocumentProblem({ instances: [{ doc: part }] });
+  if (pathProblem) return { error: pathProblem };
   const placed = sharing(doc, id)[0]; if (!placed?.part) return { error: 'That part is not placed any more.' };
   const strip = (d: StudioDoc) => JSON.stringify({ ...d, render: undefined, direct: undefined, drawing: undefined });
   if (strip(part) === strip(placed.doc)) return { error: `This file is ${placed.name} as it is placed (Rev ${placed.part.rev}): nothing to update.` };

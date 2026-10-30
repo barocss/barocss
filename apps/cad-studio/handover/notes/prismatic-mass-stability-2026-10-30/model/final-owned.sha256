@@ -1,0 +1,5 @@
+dcd035d18bf4c549b345f0e7054422b021a200e1c835fcb567f528b758bbaafc  packages/barocss-cad-model/src/app/nativeOffsetFace.ts
+aad1c22a62db43d503f9dbe12f09c621048f69a9f40a4ee3fc8387e3835d8c31  packages/barocss-cad-model/test/native-offset-face.test.ts
+4692ffcb6a13cbdc40310dedcfb0441c3e0f4816640eee17acf321baf6a22b8c  packages/barocss-cad-model/test/offset-face-native.test.ts
+e025ae574c1fd17050236dee21ecef5452ab51117492e4ad3fc96db75057a018  packages/barocss-cad-model/test/mass-longitudinal.test.ts
+7facd870e00f61fe2f524f1111342cc5cf3a1aee192e9b67d61feeaf56f9c686  apps/cad-studio/test/prismatic-mass-stability-browser.mjs

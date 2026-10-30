@@ -1,0 +1,20 @@
+{
+  "source": "Prior D342 receipts, not D343 reproduction",
+  "files": [
+    {
+      "path": "/tmp/d342-nearfull/original-nearfull-result.json",
+      "sha256": "90fb1270ca3d4d058ff03cdae2dd89fde9866ef2a6251a5b42c564f3675e043b",
+      "bytes": 15527
+    },
+    {
+      "path": "/tmp/d342-nearfull/receipt.md",
+      "sha256": "059af7e8b384231ade13be3e32e4f11cda33920695e572c194413b5a5375aba7",
+      "bytes": 8664
+    },
+    {
+      "path": "/tmp/d342-model/nearfull-result.json",
+      "sha256": "90fb1270ca3d4d058ff03cdae2dd89fde9866ef2a6251a5b42c564f3675e043b",
+      "bytes": 15527
+    }
+  ]
+}

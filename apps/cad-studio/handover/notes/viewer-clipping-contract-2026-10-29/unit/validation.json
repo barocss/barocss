@@ -1,0 +1,68 @@
+{
+  "runtime": "Node22.19.0",
+  "gpuBuildInitial": 0,
+  "gpuBuildFinal": 0,
+  "gpuTypesInitial": 0,
+  "gpuTypesFinal": 0,
+  "sdkTypes": 0,
+  "scopedLintInitial": 0,
+  "admissionScopedLint": 0,
+  "gpuNormalFirst": {
+    "pass": 355,
+    "fail": 2,
+    "skip": 0,
+    "tests": 357,
+    "exit": 1,
+    "reason": "viewer-display test owner lacks Camera: Cannot read properties of undefined (reading 'autoClip')",
+    "raw": "d325-gpu-test.log"
+  },
+  "gpuDisplayAfterFixtureRepair": {
+    "pass": 26,
+    "fail": 0,
+    "skip": 0,
+    "exit": 0,
+    "overlapsNormal": true,
+    "raw": "d325-gpu-display-final.log"
+  },
+  "gpuCameraAfterFinalAdmission": {
+    "pass": 29,
+    "fail": 0,
+    "skip": 0,
+    "exit": 0,
+    "overlapsNormal": true,
+    "raw": "d325-gpu-camera-final.log"
+  },
+  "sdkFirst": {
+    "pass": 8,
+    "fail": 2,
+    "exit": 1,
+    "reason": "Test background setter bypassed actual normalization: background.top is not iterable",
+    "raw": "d325-sdk-test-first.log"
+  },
+  "sdkAfterActualBackgroundSetter": {
+    "pass": 10,
+    "fail": 0,
+    "exit": 0,
+    "raw": "d325-sdk-test-final.log"
+  },
+  "sdkFinalWithAdmission": {
+    "pass": 11,
+    "fail": 0,
+    "skip": 0,
+    "exit": 0,
+    "raw": "d325-sdk-test-11.log"
+  },
+  "nativeHarnessInitialLint": {
+    "exit": 1,
+    "reason": "Unexpected aliasing of this to local variable; holder-object repair retained under consumers/final-preflight"
+  },
+  "scope": "First full GPU runner retained; only affected display and camera files rerun after test fixture/manual admission edits. Related counts overlap normal, not extra unique pass total. No final full normal runner claimed. SDK script registers only new clipping CPU tests; affected-ci-run does not execute package runtime tests.",
+  "notRun": [
+    "remoteCI",
+    "fullKernel",
+    "fullModel",
+    "fullStudio",
+    "fullGPUbrowser",
+    "performance"
+  ]
+}

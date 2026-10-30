@@ -1,0 +1,19 @@
+{
+  "profile": "Prepared final D321 browser driver, captured before second execution",
+  "sourceFiles": [
+    {
+      "source": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/browser-flow.mjs",
+      "sourceSHA256": "04ca6556f405850275f70a13085f00828e4ce0bc09963531b2f0fc852c4b92cf",
+      "bytes": 960412,
+      "gzip": "browser-flow.mjs.gz",
+      "gzipSHA256": "2745126b88a1c1c6d35256c751c8b64866fc2e0dc6844fc723de8cecb6462141"
+    },
+    {
+      "source": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/stop-work-native-worker.mjs",
+      "sourceSHA256": "752e73f84a1a0d7d05e88ce7299f5f43aa9f5dddf485caabeec503c6682e5dc2",
+      "bytes": 3160,
+      "gzip": "stop-work-native-worker.mjs.gz",
+      "gzipSHA256": "7f6bd7303f2c3f9933a934eb53ecd1585ebebd00f7c1f833185683de7438902c"
+    }
+  ]
+}

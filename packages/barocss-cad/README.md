@@ -37,6 +37,56 @@ errors and verification commands. Existing low-level exports and legacy file
 readers below remain compatibility interfaces; new authors do not choose a v1/v2
 facade or supply topology incident-use identities.
 
+## Whole-surface snapshot thicken facade
+
+The document facade `@barocss/cad/api` provides `part().thicken(surface, { t, side })`.
+It creates one new body from a copied whole, untrimmed `RawNurbsSurface`:
+
+```ts
+import { part, param } from '@barocss/cad/api';
+const surface = {
+  degreeU: 1, degreeV: 1,
+  knotsU: [0, 0, 1, 1], knotsV: [0, 0, 1, 1],
+  controlPoints: [[[0, 0, 0], [0, 10, 0]], [[20, 0, 0], [20, 10, 0]]],
+  weights: [[1, 1], [1, 1]],
+} as const;
+const plate = part('plate').parameter('T', 2).thicken(surface, { t: param('T'), side: 'both' });
+const thicker = plate.withParameters({ T: 3 });
+```
+
+`t` is the total thickness in mm, finite, positive and at most 10000.
+Only `t` can bind to a parameter. `side` is `normal` (the default, du×dv),
+`reverse`, or `both` (half the thickness on each side). Curved results use the
+existing faceted approximation and native fold refusals.
+The surface must have exactly the six shown fields, with plain dense numeric
+arrays. Native identity, trim metadata, wrappers and source references refuse
+with `VALUE`. Accepted geometry owns its coefficients; later caller or source
+edits do not change the body. A second body preserves the current body choice;
+use `.body(newBodyName)` to query the new body in a part with several bodies.
+
+## Whole-surface snapshot sew facade
+
+`part().sew(surfaces, { tol: 0.01 })` copies 2 to 64 whole, untrimmed
+`RawNurbsSurface` values in caller order and creates one new closed body.
+The outer list must be a plain dense array. Each surface uses the same strict
+six-field admission as `thicken`. Source edits do not change accepted snapshots.
+The API does not hide source objects. Existing bodies and the chosen body remain;
+use `.body(newBodyName)` to query the new body.
+
+`SewOptions.tol` is a number in mm. Omission or 0 selects the existing native
+automatic tolerance, `max(1e-6, maxAbsControlCoordinate * 1e-3)`. An explicit value
+must be finite, positive and at most 1. Invalid values refuse with `VALUE`;
+values are never clamped. Tolerance cannot bind to a parameter.
+`sewSpec(surfaces, options)` returns the shared owned recipe with numeric
+`values.tol`, including 0 for automatic tolerance.
+
+Sew uses the existing natural-boundary matching and outward orientation algorithm.
+It retains source surface coefficients, uses sampled edge fitting and volume
+orientation, and refuses open, nonmanifold or disconnected shells. Input order
+sets face names and the first paired edge's boundary authority. The facade does
+not sort, deduplicate, reorient, trim or heal surfaces. Planar box checks do not
+certify arbitrary curved surface intersections or exact tolerance-gap repair.
+
 ## Mounting-plate through-hole
 
 A direct origin-aligned rectangular extrusion can author
@@ -11585,3 +11635,23 @@ displacement; they are not claimed unchanged. Pcurves are regenerated under the
 existing whole UV policy, without sampled cross-copy D1 bit identity. The pivot
 branch retains its original failure cause and completed-work report. No fusion,
 persistent naming, mass, STL, editor, GPU or manufacturing acceptance is added.
+
+## Reference-point fill CUT pattern
+
+`part.fillFeaturePattern({ region: { points }, anchor: [x, y], spacing, count, spacing2, count2 })`
+repeats the current active, unsuppressed difference's original tool in world XY. The region is an owned numeric
+snapshot of one simple straight polygon with 3..16 distinct finite vertices, implicit closure, either winding,
+and coordinates within ±10000 mm. Concave outlines are supported. Holes, curves, live region references, repeated
+vertices and self-touching or crossing boundaries are refused. The explicit reference anchor has the same coordinate bound.
+
+Counts include the original cut. Each count is 1..64 and their product must be at most 64 **before** masking.
+The grid has offsets `[i * spacing, j * spacing2, 0]`, in row-major order. The original cut stays even if its
+reference is outside the region. Additional cuts are admitted when the authored anchor plus the represented offset
+is inside or exactly on the boundary. The sum and polygon tests use exact rational predicates without rounding the
+sum to a Number. This tests reference points; a cutter can cross the boundary. It does not clip cutter geometry.
+
+The public spacings are positive and at most 10000 mm. The Kernel document also accepts signed nonzero spacings
+with absolute value at most 10000 mm, as rectangular CUT patterns do. Only the two spacings can bind parameters;
+counts cannot. No cumulative offset cap is added. Surviving cell names use their original `@i,j` indices. The
+recipe, source history, region snapshot and anchor survive native Save/Open without a schema change. One-cell,
+empty-tool and zero-additional-placement cases keep the seed and still validate the recipe and source.

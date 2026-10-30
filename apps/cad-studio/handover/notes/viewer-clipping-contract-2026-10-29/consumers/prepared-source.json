@@ -1,0 +1,26 @@
+{
+  "status": "SOURCE_PREPARED_CHECKS_AND_ACTUAL_NOT_RUN",
+  "baseline": "d85558ce0031d812341d5871743f8535520eb8d4",
+  "sources": [
+    {
+      "path": "packages/barocss-viewer/src/index.ts",
+      "sha256": "ec81a4222a69b3859fbe16203c07cc1606fa99aa504c8fa521a3ea0c3f114a91"
+    },
+    {
+      "path": "packages/barocss-viewer/src/presenter.ts",
+      "sha256": "96ce81cb3be6bc06060a7114a518a0b9925f139c7ce71ce9e7fab3ca0a8a3892"
+    },
+    {
+      "path": "packages/barocss-gpu/src/viewer/viewer.ts",
+      "sha256": "1c1df2143fe714569fe40b7aa27e6772faca9f44c9c50a9cca56194467b052a8"
+    },
+    {
+      "path": "packages/barocss-gpu/src/viewer/scene.ts",
+      "sha256": "f7e17275a2efb6c8b9d5bf73c89e61902f94a9f01541476ce07c79baf59954d5"
+    },
+    {
+      "path": "packages/barocss-viewer/tests/clipping-contract-browser.test.mjs",
+      "sha256": "fe4241e00a198c970e179b5b1550dcefa468768432f33d9a311b95535094fee4"
+    }
+  ]
+}

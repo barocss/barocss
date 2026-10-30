@@ -1,0 +1,39 @@
+{
+  "source": "8ecc692bccdcfc12f263f27ca963d47ba85578fd",
+  "node": "22.19.0",
+  "firstBuild": "PASS",
+  "firstChangedLint": "PASS",
+  "focused": {
+    "pass": 63,
+    "fail": 0,
+    "duration_ms": 3405.949208
+  },
+  "kernel": {
+    "tests": 2109.0,
+    "pass": 2103.0,
+    "fail": 0.0,
+    "skipped": 6.0,
+    "duration_ms": 247350.96925
+  },
+  "codeShape": "PASS",
+  "tools": "PASS",
+  "refusals": "PASS",
+  "apiInventory": "unchanged six-rule SCOPED_PASS",
+  "docs": {
+    "pages": 68,
+    "shots": 53,
+    "shotKB": 4488,
+    "labels": 852
+  },
+  "selectedD300Receipts": "four complete receipts/counts unchanged",
+  "model": "NOT_RUN; last D2991824/1824 plus types",
+  "studio": "NOT_RUN; last D299365/365 plus types",
+  "browser": "NOT_RUN",
+  "performanceBenchmark": "NOT_RUN",
+  "sideEmbedding": "CERTIFIED in exact actual stored coefficient model only",
+  "physicalSolid": "NOT_QUALIFIED",
+  "productWrap": "NOT_IMPLEMENTED",
+  "push": "NOT_RUN",
+  "pr": "NOT_RUN",
+  "release": "NOT_RUN"
+}

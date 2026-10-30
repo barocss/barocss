@@ -1,0 +1,9 @@
+First review harness failed after source collection, candidate generation and exact one-member delta validation, before expected adoption.
+Tool-reported assertion (not a product/API-policy failure):
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
++ actual - expected
+
++ 'SCOPED_PASS'
+- 'PASS'
+
+The inventory policy returns SCOPED_PASS on successful bounded checks. api-expected-before.json and api-candidate.json remain unchanged.

@@ -1,0 +1,3 @@
+{"name":"curved3","work":{"operations":69273,"maximumIntegerBits":281,"speedEvaluations":166,"subdivisions":68,"integrationDepth":7,"inverseIterations":80},"offsets":3,"length":{"lower":32.46290306616174,"upper":32.4663284965327,"estimate":32.46461578134722}}
+{"name":"curved64","work":{"operations":196882,"maximumIntegerBits":285,"speedEvaluations":609,"subdivisions":106,"integrationDepth":7,"inverseIterations":289},"offsets":64,"length":{"lower":32.464504757394025,"upper":32.464504859198314,"estimate":32.46450480829617}}
+{"name":"legacy63pole","work":{"operations":28477,"maximumIntegerBits":81,"speedEvaluations":0,"subdivisions":0,"integrationDepth":0,"inverseIterations":0},"offsets":64,"length":{"lower":31,"upper":31.000000000028194,"estimate":31}}

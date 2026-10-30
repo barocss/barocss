@@ -51,7 +51,8 @@ export function solidMassFromIntegrals(I: readonly number[], density: number, me
 export function prismaticMassProperties(solid: PrismaticSolid, density: number): MassProperties {
   const I = Array(10).fill(0) as number[];
   for (const s of solid.slabs) {
-    const h = s.z1 - s.z0, h2 = (s.z1 * s.z1 - s.z0 * s.z0) / 2, h3 = (s.z1 ** 3 - s.z0 ** 3) / 3;
+    const h = s.z1 - s.z0;
+    const h2 = h * (s.z0 / 2 + s.z1 / 2), h3 = h * (s.z0 * s.z0 + s.z0 * s.z1 + s.z1 * s.z1) / 3;
     for (const r of s.regions) {
       const [A, Sx, Sy, Sxx, Syy, Sxy] = regionMoments(r);
       I[0] += A * h; I[1] += Sx * h; I[2] += Sy * h; I[3] += A * h2; I[4] += Sxx * h; I[5] += Syy * h; I[6] += A * h3; I[7] += Sxy * h; I[8] += Sx * h2; I[9] += Sy * h2;

@@ -1,0 +1,17 @@
+{
+  "receipt.json": {
+    "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/viewer-design-asserted-20261029T063545/receipt.json",
+    "bytes": 4413,
+    "sha256": "4da67ad1fe14be0ff2236ecd016c7790e09c6f649c094f08580490b60e44f5fb"
+  },
+  "result.json": {
+    "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/viewer-design-asserted-20261029T063545/result.json",
+    "bytes": 2890,
+    "sha256": "2a71a331e1ce156c9d878b9c7c21b83050f977f879c06053ac78cbdc09eaaa65"
+  },
+  "review-and-design-latest.md": {
+    "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/viewer-app-review-and-design.md",
+    "bytes": 12086,
+    "sha256": "6a6b3318bb2b11858fe7bc980b730ce73bf4b96385d6bb5e6653cfff1891b292"
+  }
+}

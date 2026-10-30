@@ -34,6 +34,11 @@ A file that can't be read leaves your part unchanged. A file whose extension Ope
 program's `.cad`, is refused as **Can't open** with its name, and the toast lists what Open reads. A file with no
 extension is tried as a model.
 
+STEP checks declared SI length prefixes before opening solids or meshes. An unsupported prefix, such as
+NANO, is refused with `NOT_READ`; it is not treated as an undeclared millimetre file. A supported declaration
+elsewhere in the file does not hide that refusal. The accepted part and its edits remain unchanged. Supported
+unit scaling and the millimetre fallback for files with no declared length unit retain their existing behavior.
+
 A STEP file that holds only meshes (AP242 tessellated, from scans or other systems) is read like an STL. A mesh that
 isn't closed and clean goes through the **mesh repair** dialog before it opens:
 
@@ -74,9 +79,12 @@ is kept in the project instead.
 | Export | What it writes |
 |---|---|
 | **Export STEP** | Exact solids and mesh bodies in the selected STEP representation |
-| **Export IGES** | The visible curves and surfaces, when the part has some |
+| **Export IGES** | Visible curves and untrimmed surfaces; a visible trimmed surface refuses the whole export |
 | **Export STL** | Triangles in millimetres, one file per body, with no colours, names or exact curves |
 | **Export 3MF** | For a slicer: bodies, materials, colours and the print orientation |
+
+Hidden trimmed surfaces do not block IGES export of the other visible geometry.
+Use **Untrim** only when you intend to remove a surface's trims.
 
 ### Choose how STEP writes mesh bodies
 

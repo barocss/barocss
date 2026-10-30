@@ -1,0 +1,22 @@
+{
+  "status": "SOURCE_PREPARED_INTEGRATION_PENDING",
+  "checks": {
+    "typescriptParse": "PASS",
+    "runtimeTests": "NOT_RUN",
+    "types": "NOT_RUN",
+    "build": "NOT_RUN",
+    "browser": "NOT_RUN"
+  },
+  "testsPrepared": 8,
+  "sharedAPI": "planCurveFeaturePatternPath(raw, spacing, count)",
+  "numericAuthority": "Complete shared plan for every three-pole quadratic admission; estimate is informational only. Other legacy families retain the original numeric leaf.",
+  "ownership": "Raw fields, array indices and points copied from own data descriptors before numeric inspection; no authored getter invoked.",
+  "compatibilityPending": "Some old unsupported three-pole refusal text can change to the shared query error. Existing tests have not been weakened. Valid old straight outputs require the retained integration suite.",
+  "oldEngineSHA256": "9721677e953caf6df5bf5e69b9ec43be8891a81785f6bc968b5b5aac2ef67d60",
+  "sourceSHA256": {
+    "packages/barocss-cad-model/src/engine/curveFeaturePattern.ts": "b924b8dd0467ee5a39e8d35f3d44c887cc06e8371285a5d513a0279729a63acf",
+    "packages/barocss-cad-model/src/app/commands.ts": "40038af0c928b749618a8a7f35273cf5e78fb0c01e484f9394c79a755735926c",
+    "packages/barocss-cad-model/test/quadratic-feature-pattern.test.ts": "6ebe042a59a14fd93ed8ef39b8a715078f0c80fd8914dc44169e6bb99c48f285"
+  },
+  "driver": "Previously frozen 4aee791d5ea9eb56686f5424c9d0718a40f2b81944442812a7a3d94a179a9a58; unchanged and fail-closed while numeric contract is pending."
+}

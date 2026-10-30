@@ -1,0 +1,15 @@
+{
+  "download.step": "54a5c923c10d03418d190ad0d4f73b9b5fa43ad8e029e2d17cc13f5a4a4385c4",
+  "first.log": "edc8f460d9d406536c1b3cb73ad9d6c4f99c0bdac790665a30e9b2371f468f11",
+  "gate.log": "f1381839084f260359c3449ca90bef7ae87594dd79c7f47aa771e56ced11d160",
+  "probe-first.mjs": "96bd0433f6754a1a410fe3cc5f80de033521aa7d1f880f825a5c596c643d8df2",
+  "probe.mjs": "984223d565313c1d67761e2958ca0627c84c8110637eb78cfb27b13a9bcdd5c3",
+  "rational-boundary-proof.json": "316fe7e5b0e3db7ce20b6ddf85b18fe08d193db2396b8db97188790b0e33e52e",
+  "raw-cartesian-points.json": "857c8dd26b7bf4848e2b91e37afa26ef17f43e914a8d0e63054f2cb6ad1194c1",
+  "receipt.md": "e995374fcab798d9824acaafabac31428b212baad8e44f5c58f8384de889033d",
+  "result.json": "97c45074383a183b33c7186c32e76ace3088a135ad6c9b2c082282412063aefd",
+  "second.log": "0ea7bfb0b621b152a8648d940697e47024c45411a245b896dec971927052a22f",
+  "source-after.json": "af6a5d4afbe22b279e61b040129e9b364b498b096ae2241475622397863c2d24",
+  "source-before.json": "f7e8d6f6cd6e16635fbb27bb785df98bb5b93ef3ea78a8afd45de1e94d86ecbf",
+  "source-import-curve-comparison.json": "23cdd78cd5c8a8153a706091377a446cebed161c510226633ddb81dab1cbf162"
+}

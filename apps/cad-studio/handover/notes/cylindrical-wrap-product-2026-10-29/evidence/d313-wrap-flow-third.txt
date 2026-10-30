@@ -1,0 +1,8 @@
+flow display: {"requestedDpr":1,"renderer":"webgpu","devicePixelRatio":1,"cssWidth":1140,"cssHeight":900,"backingWidth":1140,"backingHeight":900}
+page.waitForSelector: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('.hud[aria-label="Edit Cylindrical wrap"]') to be visible[22m
+
+ok 1 starter plate loads
+FAIL 36 CG1 cylindrical wrap: native quarter preview, apply, undo, edit and portable Save/Open — page.waitForSelector: Timeout 30000ms exceeded.
+screenshots: /tmp/d313-wrap-flow-third

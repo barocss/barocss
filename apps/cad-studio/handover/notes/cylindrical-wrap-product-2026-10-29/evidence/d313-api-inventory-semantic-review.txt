@@ -1,0 +1,47 @@
+('@barocss/cad', '.', 'CadPartFeature', 'type')
+added members=['rectangle'] removed=[]
+type insert  => ; readonly expect?: Readonly<Record<string, CadPartNameSignature>> | undefined; } | { readonly kind: \"cylindrical-wrap\"; readonly target: string; readonly faces: readonly string[]; readonly rectangle: { readonly u: rea
+declarationSignatures insert  => ;\n    readonly expect?: Readonly<Record<string, CadPartNameSignature>>;\n} | {\n    readonly kind: \"cylindrical-wrap\";\n    readonly target: string;\n    readonly faces: readonly string[];\n    readonly rectangle: {\n
+('@barocss/cad', '.', 'CadPartOutput', 'type')
+added members=['cylindricalWrap'] removed=[]
+('@barocss/cad', '.', 'CadPartSnapshot', 'type')
+added members=[] removed=[]
+changed member features : {'name': 'features', 'kind': 'property', 'optional': False, 'readonly': True, 'type': 'readonly { readonly id: string; readonly kind: "shell" | "union" | "difference" | "sweep" | "key" | "hole" | "split" | "mesh" | "revolve" | "fillet" | "chamfer" | "extrude" | "frame" | "subd" | "worm" | "shaft" | "sketch" | "intersect" | "rib" | "rectangular-relief" | "profile-relief" | "cylindrical-wrap" | "full-round" | "face-thread" | "face-fillet" | "transl
+('@barocss/cad', './api', 'FeatureSpec', 'type')
+added members=[] removed=[]
+('@barocss/cad', './api', 'KernelPart', 'type+value')
+added members=['cylindricalWrap'] removed=[]
+('@barocss/cad', './api', 'Part', 'type+value')
+added members=['cylindricalWrap'] removed=[]
+('@barocss/cad-model', './api', 'StudioPart', 'type+value')
+added members=['cylindricalWrap'] removed=[]
+('@barocss/cad-model', './api/index', 'StudioPart', 'type+value')
+added members=['cylindricalWrap'] removed=[]
+('@barocss/cad-model', './api/part', 'StudioPart', 'type+value')
+added members=['cylindricalWrap'] removed=[]
+('@barocss/cad-model', './engine/doc', 'ModelNode', 'type')
+added members=['rectangle'] removed=[]
+('@barocss/cad-model', './engine/doc', 'isSolidNode', 'value')
+added members=[] removed=[]
+type insert  => Node & NodeExtras) | (CylindricalWrap
+callSignatures insert  => Node & NodeExtras) | (CylindricalWrap
+('@barocss/cad-model', './engine/evaluate', 'BodyResult', 'type')
+added members=['cylindricalWrap'] removed=[]
+('@barocss/cad-model', './engine/mesh', 'DisplayFace', 'type')
+added members=['nativeFaces'] removed=[]
+('@barocss/cad-model', './engine/meshWire', 'WireBody', 'type')
+added members=['cylindricalWrap'] removed=[]
+('@barocss/cad-model', './engine/nativeMassWire', 'MassFields', 'type')
+added members=[] removed=[]
+type insert  => : number | null; mass
+type delete mass: number | null;  => 
+('@barocss/cad-model', './engine/references', 'Ref', 'type')
+added members=['nativeFace'] removed=[]
+('@barocss/cad-model', './engine/rematch', 'signaturesOf', 'value')
+added members=[] removed=[]
+type insert  => , nativeFaces?: boolean
+callSignatures insert  => , nativeFaces?: boolean
+('@barocss/cad-model', './team/team', 'VerifierView', 'type')
+added members=[] removed=[]
+type replace check => mas
+type replace mas => check

@@ -1,0 +1,45 @@
+{
+  "status": "DECIMAL80_CROSSCHECK_PASS_PRODUCT_NOT_RUN",
+  "python": "3.13.5",
+  "productImports": 0,
+  "certifiedReferenceOriginal": "/tmp/d346-plan/oracle-final.json",
+  "certifiedReferenceSha256": "ad12d0f8256de8eee448c277baf8d14b4f66701ea887939673210221d2fb4359",
+  "independentMethod": "Decimal80 closed-form integral sqrt(A*t*t+B*t+C), bisection; exact represented binary64 input decode, no production math calls",
+  "quality": "High-precision cross-check is not a certified Decimal interval; certified balls are separate High-owned rigorous evidence",
+  "observations": {
+    "ordinaryCases": 3,
+    "insideCertifiedLengthBounds": 3,
+    "insideCertifiedPointBalls": 6,
+    "allCalculatedDistances": [
+      8,
+      10,
+      12,
+      16,
+      20,
+      24
+    ],
+    "translationControl": "same represented derivative coefficients, length and relative positions",
+    "spacing12Distances": [
+      12,
+      24
+    ],
+    "spacing12Certification": "Decimal cross-check only; no certified ball claimed at these new distances"
+  },
+  "firstExecution": "PASS_NO_ERRORS",
+  "firstSourcePreservation": "Exact first source reconstructed by removing the later material-guide-only addition; first stdout is preserved unchanged",
+  "runs": [
+    "decimal-crosscheck-first.log",
+    "decimal-crosscheck-with-guides.log"
+  ],
+  "productBuild": "NOT_RUN",
+  "productTests": "NOT_RUN",
+  "browser": "NOT_RUN",
+  "heavy": "NOT_RUN",
+  "driverNumericalContract": "PENDING_HIGH_ERROR_WORK_PROOF; fail-closed preflight before generation/browser",
+  "sourceHashes": {
+    "decimal-crosscheck-first.py": "3696c36894af518eed131e35a78d267c312db89f16aaf92879831ec4415e5efb",
+    "decimal-crosscheck.py": "34efe482456183e118fe03d1fb4bee6201243c241e09de6fb979f8f1bf15effe",
+    "curve-oracle-source.py": "57281994fead57c41b429d84250154679f1e489680f6cd3cea9e8f3a40addf99",
+    "decimal-crosscheck.json": "9ed3951be279d804f9e14e3db3d0228e25393fa3979a278bb2482cd00a401dd8"
+  }
+}

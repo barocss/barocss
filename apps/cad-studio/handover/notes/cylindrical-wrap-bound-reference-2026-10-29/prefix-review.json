@@ -1,0 +1,16 @@
+{
+  "status": "PASS",
+  "nativeCompleteResultIncludingAllBitsAndCounts": "SAME",
+  "formalRawPublicSourceIntervalsMetadataBits": "SAME",
+  "formalChangedCounter": [
+    {
+      "path": ".results[0].result.counts.work.$float64",
+      "before": 60142.0,
+      "after": 60132.0,
+      "reason": "global ORDER is immutable at module initialization; first-request-only structural traversal removed"
+    }
+  ],
+  "formalSecondReceiptIncludingCounts": "SAME",
+  "nativeSIAccuracy": "NOT_CERTIFIED",
+  "physicalProduct": "NOT_QUALIFIED"
+}

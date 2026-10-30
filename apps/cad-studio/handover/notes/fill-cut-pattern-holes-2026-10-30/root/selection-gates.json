@@ -1,0 +1,11 @@
+{
+  "source": "283b48afb",
+  "exit": 0,
+  "checks": {
+    "Studio types": "PASS",
+    "Studio Vite": "PASS",
+    "App + driver lint": "PASS_0_ERRORS_1_CONSOLE_WARNING",
+    "Studio chat": "23PASS_0FAIL"
+  },
+  "receipt": "Root exec session24542 completed exit0 under heavy gate; serial set-e checks"
+}

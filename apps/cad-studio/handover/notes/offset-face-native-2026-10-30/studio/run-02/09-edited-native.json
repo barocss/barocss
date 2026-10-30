@@ -1,0 +1,4382 @@
+{
+  "label": "09-edited",
+  "sourceRecipeHash": "4a270ff503facd04d8717799bf2a67b601a083e49e381094d8e1830df5b057c1",
+  "bodies": [
+    {
+      "key": "b3",
+      "ref": {
+        "node": 3,
+        "side": "solid"
+      },
+      "brep": {
+        "format": "barocss-brep",
+        "version": 0,
+        "lengthUnit": "mm",
+        "source": {
+          "family": "prismatic-solid",
+          "id": "n3"
+        },
+        "bodies": [
+          {
+            "id": "n3_b0",
+            "kind": "solid",
+            "shells": [
+              "n3_b0/n3_b0_s0"
+            ]
+          }
+        ],
+        "shells": [
+          {
+            "id": "n3_b0/n3_b0_s0",
+            "body": "n3_b0",
+            "faces": [
+              "n3_b0/n3_b0_s0/n3_w0_0_0_0",
+              "n3_b0/n3_b0_s0/n3_w0_0_0_1",
+              "n3_b0/n3_b0_s0/n3_w0_0_0_2",
+              "n3_b0/n3_b0_s0/n3_w0_0_0_3",
+              "n3_b0/n3_b0_s0/n3_d0_0",
+              "n3_b0/n3_b0_s0/n3_u1_0"
+            ],
+            "closed": true
+          }
+        ],
+        "faces": [
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_0",
+            "shell": "n3_b0/n3_b0_s0",
+            "surface": {
+              "kind": "surface",
+              "id": "n3_w0_0_0_0",
+              "degreeU": 1,
+              "degreeV": 1,
+              "knotsU": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "knotsV": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  [
+                    80,
+                    -3,
+                    1
+                  ],
+                  [
+                    80,
+                    -3,
+                    6
+                  ]
+                ],
+                [
+                  [
+                    92,
+                    -3,
+                    1
+                  ],
+                  [
+                    92,
+                    -3,
+                    6
+                  ]
+                ]
+              ],
+              "weights": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            },
+            "sense": "forward",
+            "loops": [
+              "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0"
+            ],
+            "name": "n3.side0"
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_1",
+            "shell": "n3_b0/n3_b0_s0",
+            "surface": {
+              "kind": "surface",
+              "id": "n3_w0_0_0_1",
+              "degreeU": 1,
+              "degreeV": 1,
+              "knotsU": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "knotsV": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  [
+                    92,
+                    -3,
+                    1
+                  ],
+                  [
+                    92,
+                    -3,
+                    6
+                  ]
+                ],
+                [
+                  [
+                    92,
+                    4,
+                    1
+                  ],
+                  [
+                    92,
+                    4,
+                    6
+                  ]
+                ]
+              ],
+              "weights": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            },
+            "sense": "forward",
+            "loops": [
+              "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0"
+            ],
+            "name": "n3.side1"
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_2",
+            "shell": "n3_b0/n3_b0_s0",
+            "surface": {
+              "kind": "surface",
+              "id": "n3_w0_0_0_2",
+              "degreeU": 1,
+              "degreeV": 1,
+              "knotsU": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "knotsV": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  [
+                    92,
+                    4,
+                    1
+                  ],
+                  [
+                    92,
+                    4,
+                    6
+                  ]
+                ],
+                [
+                  [
+                    80,
+                    4,
+                    1
+                  ],
+                  [
+                    80,
+                    4,
+                    6
+                  ]
+                ]
+              ],
+              "weights": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            },
+            "sense": "forward",
+            "loops": [
+              "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0"
+            ],
+            "name": "n3.side2"
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_3",
+            "shell": "n3_b0/n3_b0_s0",
+            "surface": {
+              "kind": "surface",
+              "id": "n3_w0_0_0_3",
+              "degreeU": 1,
+              "degreeV": 1,
+              "knotsU": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "knotsV": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  [
+                    80,
+                    -3,
+                    1
+                  ],
+                  [
+                    80,
+                    -3,
+                    6
+                  ]
+                ],
+                [
+                  [
+                    80,
+                    4,
+                    1
+                  ],
+                  [
+                    80,
+                    4,
+                    6
+                  ]
+                ]
+              ],
+              "weights": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            },
+            "sense": "reversed",
+            "loops": [
+              "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0"
+            ],
+            "name": "n3.side3"
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_d0_0",
+            "shell": "n3_b0/n3_b0_s0",
+            "surface": {
+              "kind": "surface",
+              "id": "n3_d0_0",
+              "degreeU": 1,
+              "degreeV": 1,
+              "knotsU": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "knotsV": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  [
+                    80,
+                    -3,
+                    1
+                  ],
+                  [
+                    92,
+                    -3,
+                    1
+                  ]
+                ],
+                [
+                  [
+                    80,
+                    4,
+                    1
+                  ],
+                  [
+                    92,
+                    4,
+                    1
+                  ]
+                ]
+              ],
+              "weights": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            },
+            "sense": "forward",
+            "loops": [
+              "n3_b0/n3_b0_s0/n3_d0_0/l0"
+            ],
+            "name": "n3.bottom"
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_u1_0",
+            "shell": "n3_b0/n3_b0_s0",
+            "surface": {
+              "kind": "surface",
+              "id": "n3_u1_0",
+              "degreeU": 1,
+              "degreeV": 1,
+              "knotsU": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "knotsV": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  [
+                    80,
+                    -3,
+                    6
+                  ],
+                  [
+                    80,
+                    4,
+                    6
+                  ]
+                ],
+                [
+                  [
+                    92,
+                    -3,
+                    6
+                  ],
+                  [
+                    92,
+                    4,
+                    6
+                  ]
+                ]
+              ],
+              "weights": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            },
+            "sense": "forward",
+            "loops": [
+              "n3_b0/n3_b0_s0/n3_u1_0/l0"
+            ],
+            "name": "n3.top"
+          }
+        ],
+        "loops": [
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0",
+            "face": "n3_b0/n3_b0_s0/n3_w0_0_0_0",
+            "kind": "outer",
+            "coedges": [
+              "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0/c0",
+              "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0/c1",
+              "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0/c2",
+              "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0/c3"
+            ]
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0",
+            "face": "n3_b0/n3_b0_s0/n3_w0_0_0_1",
+            "kind": "outer",
+            "coedges": [
+              "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0/c0",
+              "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0/c1",
+              "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0/c2",
+              "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0/c3"
+            ]
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0",
+            "face": "n3_b0/n3_b0_s0/n3_w0_0_0_2",
+            "kind": "outer",
+            "coedges": [
+              "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0/c0",
+              "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0/c1",
+              "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0/c2",
+              "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0/c3"
+            ]
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0",
+            "face": "n3_b0/n3_b0_s0/n3_w0_0_0_3",
+            "kind": "outer",
+            "coedges": [
+              "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0/c0",
+              "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0/c1",
+              "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0/c2",
+              "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0/c3"
+            ]
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_d0_0/l0",
+            "face": "n3_b0/n3_b0_s0/n3_d0_0",
+            "kind": "outer",
+            "coedges": [
+              "n3_b0/n3_b0_s0/n3_d0_0/l0/c0",
+              "n3_b0/n3_b0_s0/n3_d0_0/l0/c1",
+              "n3_b0/n3_b0_s0/n3_d0_0/l0/c2",
+              "n3_b0/n3_b0_s0/n3_d0_0/l0/c3"
+            ]
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_u1_0/l0",
+            "face": "n3_b0/n3_b0_s0/n3_u1_0",
+            "kind": "outer",
+            "coedges": [
+              "n3_b0/n3_b0_s0/n3_u1_0/l0/c0",
+              "n3_b0/n3_b0_s0/n3_u1_0/l0/c1",
+              "n3_b0/n3_b0_s0/n3_u1_0/l0/c2",
+              "n3_b0/n3_b0_s0/n3_u1_0/l0/c3"
+            ]
+          }
+        ],
+        "coedges": [
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0/c0",
+            "edge": "n3_e0",
+            "sense": "forward",
+            "loop": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0",
+            "next": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0/c1",
+            "prev": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0/c3",
+            "twin": "n3_b0/n3_b0_s0/n3_d0_0/l0/c3",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0/c1",
+            "edge": "n3_e1",
+            "sense": "forward",
+            "loop": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0",
+            "next": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0/c2",
+            "prev": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0/c0",
+            "twin": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0/c3",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0/c2",
+            "edge": "n3_e2",
+            "sense": "reversed",
+            "loop": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0",
+            "next": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0/c3",
+            "prev": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0/c1",
+            "twin": "n3_b0/n3_b0_s0/n3_u1_0/l0/c0",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0/c3",
+            "edge": "n3_e3",
+            "sense": "reversed",
+            "loop": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0",
+            "next": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0/c0",
+            "prev": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0/c2",
+            "twin": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0/c1",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0/c0",
+            "edge": "n3_e4",
+            "sense": "forward",
+            "loop": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0",
+            "next": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0/c1",
+            "prev": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0/c3",
+            "twin": "n3_b0/n3_b0_s0/n3_d0_0/l0/c2",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0/c1",
+            "edge": "n3_e5",
+            "sense": "forward",
+            "loop": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0",
+            "next": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0/c2",
+            "prev": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0/c0",
+            "twin": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0/c3",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0/c2",
+            "edge": "n3_e6",
+            "sense": "reversed",
+            "loop": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0",
+            "next": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0/c3",
+            "prev": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0/c1",
+            "twin": "n3_b0/n3_b0_s0/n3_u1_0/l0/c1",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0/c3",
+            "edge": "n3_e1",
+            "sense": "reversed",
+            "loop": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0",
+            "next": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0/c0",
+            "prev": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0/c2",
+            "twin": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0/c1",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0/c0",
+            "edge": "n3_e7",
+            "sense": "forward",
+            "loop": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0",
+            "next": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0/c1",
+            "prev": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0/c3",
+            "twin": "n3_b0/n3_b0_s0/n3_d0_0/l0/c1",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0/c1",
+            "edge": "n3_e8",
+            "sense": "forward",
+            "loop": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0",
+            "next": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0/c2",
+            "prev": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0/c0",
+            "twin": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0/c3",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0/c2",
+            "edge": "n3_e9",
+            "sense": "reversed",
+            "loop": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0",
+            "next": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0/c3",
+            "prev": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0/c1",
+            "twin": "n3_b0/n3_b0_s0/n3_u1_0/l0/c2",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0/c3",
+            "edge": "n3_e5",
+            "sense": "reversed",
+            "loop": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0",
+            "next": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0/c0",
+            "prev": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0/c2",
+            "twin": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0/c1",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0/c0",
+            "edge": "n3_e10",
+            "sense": "reversed",
+            "loop": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0",
+            "next": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0/c1",
+            "prev": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0/c3",
+            "twin": "n3_b0/n3_b0_s0/n3_d0_0/l0/c0",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0/c1",
+            "edge": "n3_e3",
+            "sense": "forward",
+            "loop": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0",
+            "next": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0/c2",
+            "prev": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0/c0",
+            "twin": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0/c3",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0/c2",
+            "edge": "n3_e11",
+            "sense": "forward",
+            "loop": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0",
+            "next": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0/c3",
+            "prev": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0/c1",
+            "twin": "n3_b0/n3_b0_s0/n3_u1_0/l0/c3",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0/c3",
+            "edge": "n3_e8",
+            "sense": "reversed",
+            "loop": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0",
+            "next": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0/c0",
+            "prev": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0/c2",
+            "twin": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0/c1",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_d0_0/l0/c0",
+            "edge": "n3_e10",
+            "sense": "forward",
+            "loop": "n3_b0/n3_b0_s0/n3_d0_0/l0",
+            "next": "n3_b0/n3_b0_s0/n3_d0_0/l0/c1",
+            "prev": "n3_b0/n3_b0_s0/n3_d0_0/l0/c3",
+            "twin": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0/c0",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_d0_0/l0/c1",
+            "edge": "n3_e7",
+            "sense": "reversed",
+            "loop": "n3_b0/n3_b0_s0/n3_d0_0/l0",
+            "next": "n3_b0/n3_b0_s0/n3_d0_0/l0/c2",
+            "prev": "n3_b0/n3_b0_s0/n3_d0_0/l0/c0",
+            "twin": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0/c0",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  1,
+                  1,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_d0_0/l0/c2",
+            "edge": "n3_e4",
+            "sense": "reversed",
+            "loop": "n3_b0/n3_b0_s0/n3_d0_0/l0",
+            "next": "n3_b0/n3_b0_s0/n3_d0_0/l0/c3",
+            "prev": "n3_b0/n3_b0_s0/n3_d0_0/l0/c1",
+            "twin": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0/c0",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_d0_0/l0/c3",
+            "edge": "n3_e0",
+            "sense": "reversed",
+            "loop": "n3_b0/n3_b0_s0/n3_d0_0/l0",
+            "next": "n3_b0/n3_b0_s0/n3_d0_0/l0/c0",
+            "prev": "n3_b0/n3_b0_s0/n3_d0_0/l0/c2",
+            "twin": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0/c0",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_u1_0/l0/c0",
+            "edge": "n3_e2",
+            "sense": "forward",
+            "loop": "n3_b0/n3_b0_s0/n3_u1_0/l0",
+            "next": "n3_b0/n3_b0_s0/n3_u1_0/l0/c1",
+            "prev": "n3_b0/n3_b0_s0/n3_u1_0/l0/c3",
+            "twin": "n3_b0/n3_b0_s0/n3_w0_0_0_0/l0/c2",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_u1_0/l0/c1",
+            "edge": "n3_e6",
+            "sense": "forward",
+            "loop": "n3_b0/n3_b0_s0/n3_u1_0/l0",
+            "next": "n3_b0/n3_b0_s0/n3_u1_0/l0/c2",
+            "prev": "n3_b0/n3_b0_s0/n3_u1_0/l0/c0",
+            "twin": "n3_b0/n3_b0_s0/n3_w0_0_0_1/l0/c2",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_u1_0/l0/c2",
+            "edge": "n3_e9",
+            "sense": "forward",
+            "loop": "n3_b0/n3_b0_s0/n3_u1_0/l0",
+            "next": "n3_b0/n3_b0_s0/n3_u1_0/l0/c3",
+            "prev": "n3_b0/n3_b0_s0/n3_u1_0/l0/c1",
+            "twin": "n3_b0/n3_b0_s0/n3_w0_0_0_2/l0/c2",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  1,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n3_b0/n3_b0_s0/n3_u1_0/l0/c3",
+            "edge": "n3_e11",
+            "sense": "reversed",
+            "loop": "n3_b0/n3_b0_s0/n3_u1_0/l0",
+            "next": "n3_b0/n3_b0_s0/n3_u1_0/l0/c0",
+            "prev": "n3_b0/n3_b0_s0/n3_u1_0/l0/c2",
+            "twin": "n3_b0/n3_b0_s0/n3_w0_0_0_3/l0/c2",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "n3_e0",
+            "curve": {
+              "kind": "curve",
+              "id": "n3_e0",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  80,
+                  -3,
+                  1
+                ],
+                [
+                  92,
+                  -3,
+                  1
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n3_v0",
+              "n3_v1"
+            ],
+            "tolerance": 1e-7,
+            "name": "n3.bottom|n3.side0"
+          },
+          {
+            "id": "n3_e1",
+            "curve": {
+              "kind": "curve",
+              "id": "n3_e1",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  92,
+                  -3,
+                  1
+                ],
+                [
+                  92,
+                  -3,
+                  6
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n3_v1",
+              "n3_v2"
+            ],
+            "tolerance": 1e-7,
+            "name": "n3.side0|n3.side1"
+          },
+          {
+            "id": "n3_e2",
+            "curve": {
+              "kind": "curve",
+              "id": "n3_e2",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  80,
+                  -3,
+                  6
+                ],
+                [
+                  92,
+                  -3,
+                  6
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n3_v3",
+              "n3_v2"
+            ],
+            "tolerance": 1e-7,
+            "name": "n3.side0|n3.top"
+          },
+          {
+            "id": "n3_e3",
+            "curve": {
+              "kind": "curve",
+              "id": "n3_e3",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  80,
+                  -3,
+                  1
+                ],
+                [
+                  80,
+                  -3,
+                  6
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n3_v0",
+              "n3_v3"
+            ],
+            "tolerance": 1e-7,
+            "name": "n3.side0|n3.side3"
+          },
+          {
+            "id": "n3_e4",
+            "curve": {
+              "kind": "curve",
+              "id": "n3_e4",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  92,
+                  -3,
+                  1
+                ],
+                [
+                  92,
+                  4,
+                  1
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n3_v1",
+              "n3_v4"
+            ],
+            "tolerance": 1e-7,
+            "name": "n3.bottom|n3.side1"
+          },
+          {
+            "id": "n3_e5",
+            "curve": {
+              "kind": "curve",
+              "id": "n3_e5",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  92,
+                  4,
+                  1
+                ],
+                [
+                  92,
+                  4,
+                  6
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n3_v4",
+              "n3_v5"
+            ],
+            "tolerance": 1e-7,
+            "name": "n3.side1|n3.side2"
+          },
+          {
+            "id": "n3_e6",
+            "curve": {
+              "kind": "curve",
+              "id": "n3_e6",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  92,
+                  -3,
+                  6
+                ],
+                [
+                  92,
+                  4,
+                  6
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n3_v2",
+              "n3_v5"
+            ],
+            "tolerance": 1e-7,
+            "name": "n3.side1|n3.top"
+          },
+          {
+            "id": "n3_e7",
+            "curve": {
+              "kind": "curve",
+              "id": "n3_e7",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  92,
+                  4,
+                  1
+                ],
+                [
+                  80,
+                  4,
+                  1
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n3_v4",
+              "n3_v6"
+            ],
+            "tolerance": 1e-7,
+            "name": "n3.bottom|n3.side2"
+          },
+          {
+            "id": "n3_e8",
+            "curve": {
+              "kind": "curve",
+              "id": "n3_e8",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  80,
+                  4,
+                  1
+                ],
+                [
+                  80,
+                  4,
+                  6
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n3_v6",
+              "n3_v7"
+            ],
+            "tolerance": 1e-7,
+            "name": "n3.side2|n3.side3"
+          },
+          {
+            "id": "n3_e9",
+            "curve": {
+              "kind": "curve",
+              "id": "n3_e9",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  92,
+                  4,
+                  6
+                ],
+                [
+                  80,
+                  4,
+                  6
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n3_v5",
+              "n3_v7"
+            ],
+            "tolerance": 1e-7,
+            "name": "n3.side2|n3.top"
+          },
+          {
+            "id": "n3_e10",
+            "curve": {
+              "kind": "curve",
+              "id": "n3_e10",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  80,
+                  -3,
+                  1
+                ],
+                [
+                  80,
+                  4,
+                  1
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n3_v0",
+              "n3_v6"
+            ],
+            "tolerance": 1e-7,
+            "name": "n3.bottom|n3.side3"
+          },
+          {
+            "id": "n3_e11",
+            "curve": {
+              "kind": "curve",
+              "id": "n3_e11",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  80,
+                  -3,
+                  6
+                ],
+                [
+                  80,
+                  4,
+                  6
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n3_v3",
+              "n3_v7"
+            ],
+            "tolerance": 1e-7,
+            "name": "n3.side3|n3.top"
+          }
+        ],
+        "vertices": [
+          {
+            "id": "n3_v0",
+            "point": [
+              80,
+              -3,
+              1
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n3_v1",
+            "point": [
+              92,
+              -3,
+              1
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n3_v2",
+            "point": [
+              92,
+              -3,
+              6
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n3_v3",
+            "point": [
+              80,
+              -3,
+              6
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n3_v4",
+            "point": [
+              92,
+              4,
+              1
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n3_v5",
+            "point": [
+              92,
+              4,
+              6
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n3_v6",
+            "point": [
+              80,
+              4,
+              1
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n3_v7",
+            "point": [
+              80,
+              4,
+              6
+            ],
+            "tolerance": 1e-7
+          }
+        ]
+      },
+      "mass": {
+        "volume": 420,
+        "mass": 0.42,
+        "centroid": [
+          86,
+          0.5,
+          3.5
+        ],
+        "method": "planar-exact",
+        "inertia": [
+          [
+            2.59,
+            0,
+            0
+          ],
+          [
+            0,
+            5.915,
+            0
+          ],
+          [
+            0,
+            0,
+            6.755
+          ]
+        ]
+      },
+      "area": 358,
+      "check": {
+        "valid": true,
+        "issues": [],
+        "counts": {
+          "bodies": 1,
+          "shells": 1,
+          "faces": 6,
+          "loops": 6,
+          "coedges": 24,
+          "edges": 12,
+          "vertices": 8
+        },
+        "topology": [
+          {
+            "body": "n3_b0",
+            "vertices": 8,
+            "edges": 12,
+            "faces": 6,
+            "loops": 6,
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "maximumVertexGap": 0,
+        "maximumPcurveGap": 0,
+        "maximumEdgeSurfaceGap": 0
+      },
+      "structure": {
+        "bodyKinds": [
+          "solid"
+        ],
+        "nativeSolidCount": 1,
+        "nativeShellCount": 1,
+        "nativeClosedShellCount": 1
+      },
+      "publicMass": {
+        "volume": 420.0000000000001,
+        "mass": 0.4200000000000001,
+        "centroid": [
+          85.99999999999996,
+          0.4999999999999998,
+          3.5
+        ],
+        "inertia": [
+          [
+            2.5900000000000007,
+            -4.001776687800884e-14,
+            0
+          ],
+          [
+            -4.001776687800884e-14,
+            5.915000000002795,
+            0
+          ],
+          [
+            0,
+            0,
+            6.755000000002794
+          ]
+        ]
+      },
+      "publicNames": [
+        "n3.bottom",
+        "n3.side0",
+        "n3.side1",
+        "n3.side2",
+        "n3.side3",
+        "n3.top"
+      ],
+      "publicFaces": [
+        {
+          "name": "n3.side0",
+          "kind": "plane",
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "centroid": [
+            86,
+            -3,
+            3.5
+          ],
+          "area": 60,
+          "edges": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "name": "n3.side1",
+          "kind": "plane",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "centroid": [
+            92,
+            0.5,
+            3.5
+          ],
+          "area": 35,
+          "edges": [
+            1,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "name": "n3.side2",
+          "kind": "plane",
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "centroid": [
+            86,
+            4,
+            3.5
+          ],
+          "area": 60,
+          "edges": [
+            5,
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "name": "n3.side3",
+          "kind": "plane",
+          "normal": [
+            -1,
+            0,
+            0
+          ],
+          "centroid": [
+            80,
+            0.5,
+            3.5
+          ],
+          "area": 35,
+          "edges": [
+            3,
+            8,
+            10,
+            11
+          ]
+        },
+        {
+          "name": "n3.bottom",
+          "kind": "plane",
+          "normal": [
+            0,
+            0,
+            -1
+          ],
+          "centroid": [
+            86,
+            0.5,
+            1
+          ],
+          "area": 84,
+          "edges": [
+            0,
+            4,
+            7,
+            10
+          ]
+        },
+        {
+          "name": "n3.top",
+          "kind": "plane",
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "centroid": [
+            86,
+            0.5,
+            6
+          ],
+          "area": 84,
+          "edges": [
+            2,
+            6,
+            9,
+            11
+          ]
+        }
+      ],
+      "nativeNames": [
+        "n3.side0",
+        "n3.side1",
+        "n3.side2",
+        "n3.side3",
+        "n3.bottom",
+        "n3.top"
+      ],
+      "displayBodyIndex": 0,
+      "displayFaces": [
+        {
+          "index": 0,
+          "name": "n3.side0",
+          "kind": "plane",
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "centroid": [
+            86,
+            -3,
+            3.5
+          ]
+        },
+        {
+          "index": 1,
+          "name": "n3.side1",
+          "kind": "plane",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "centroid": [
+            92,
+            0.5,
+            3.5
+          ]
+        },
+        {
+          "index": 2,
+          "name": "n3.side2",
+          "kind": "plane",
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "centroid": [
+            86,
+            4,
+            3.5
+          ]
+        },
+        {
+          "index": 3,
+          "name": "n3.side3",
+          "kind": "plane",
+          "normal": [
+            -1,
+            0,
+            0
+          ],
+          "centroid": [
+            80,
+            0.5,
+            3.5
+          ]
+        },
+        {
+          "index": 4,
+          "name": "n3.bottom",
+          "kind": "plane",
+          "normal": [
+            0,
+            0,
+            -1
+          ],
+          "centroid": [
+            86,
+            0.5,
+            1
+          ]
+        },
+        {
+          "index": 5,
+          "name": "n3.top",
+          "kind": "plane",
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "centroid": [
+            86,
+            0.5,
+            6
+          ]
+        }
+      ]
+    },
+    {
+      "key": "b6",
+      "ref": {
+        "node": 6,
+        "side": "solid"
+      },
+      "brep": {
+        "format": "barocss-brep",
+        "version": 0,
+        "lengthUnit": "mm",
+        "source": {
+          "family": "prismatic-solid",
+          "id": "n6"
+        },
+        "bodies": [
+          {
+            "id": "n6_b0",
+            "kind": "solid",
+            "shells": [
+              "n6_b0/n6_b0_s0"
+            ]
+          }
+        ],
+        "shells": [
+          {
+            "id": "n6_b0/n6_b0_s0",
+            "body": "n6_b0",
+            "faces": [
+              "n6_b0/n6_b0_s0/n6_w0_0_0_0",
+              "n6_b0/n6_b0_s0/n6_w0_0_0_1",
+              "n6_b0/n6_b0_s0/n6_w0_0_0_2",
+              "n6_b0/n6_b0_s0/n6_w0_0_0_3",
+              "n6_b0/n6_b0_s0/n6_d0_0",
+              "n6_b0/n6_b0_s0/n6_u1_0"
+            ],
+            "closed": true
+          }
+        ],
+        "faces": [
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_0",
+            "shell": "n6_b0/n6_b0_s0",
+            "surface": {
+              "kind": "surface",
+              "id": "n6_w0_0_0_0",
+              "degreeU": 1,
+              "degreeV": 1,
+              "knotsU": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "knotsV": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  [
+                    0.1234567,
+                    -0.2345678,
+                    0.3456789
+                  ],
+                  [
+                    0.1234567,
+                    -0.2345678,
+                    8.3456789
+                  ]
+                ],
+                [
+                  [
+                    20.123486699999997,
+                    -0.2345678,
+                    0.3456789
+                  ],
+                  [
+                    20.123486699999997,
+                    -0.2345678,
+                    8.3456789
+                  ]
+                ]
+              ],
+              "weights": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            },
+            "sense": "forward",
+            "loops": [
+              "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0"
+            ],
+            "name": "n1.side0"
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_1",
+            "shell": "n6_b0/n6_b0_s0",
+            "surface": {
+              "kind": "surface",
+              "id": "n6_w0_0_0_1",
+              "degreeU": 1,
+              "degreeV": 1,
+              "knotsU": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "knotsV": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  [
+                    20.123486699999997,
+                    -0.2345678,
+                    0.3456789
+                  ],
+                  [
+                    20.123486699999997,
+                    -0.2345678,
+                    8.3456789
+                  ]
+                ],
+                [
+                  [
+                    20.123486699999997,
+                    9.7654322,
+                    0.3456789
+                  ],
+                  [
+                    20.123486699999997,
+                    9.7654322,
+                    8.3456789
+                  ]
+                ]
+              ],
+              "weights": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            },
+            "sense": "forward",
+            "loops": [
+              "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0"
+            ],
+            "name": "n1.side1"
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_2",
+            "shell": "n6_b0/n6_b0_s0",
+            "surface": {
+              "kind": "surface",
+              "id": "n6_w0_0_0_2",
+              "degreeU": 1,
+              "degreeV": 1,
+              "knotsU": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "knotsV": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  [
+                    20.123486699999997,
+                    9.7654322,
+                    0.3456789
+                  ],
+                  [
+                    20.123486699999997,
+                    9.7654322,
+                    8.3456789
+                  ]
+                ],
+                [
+                  [
+                    0.1234567,
+                    9.7654322,
+                    0.3456789
+                  ],
+                  [
+                    0.1234567,
+                    9.7654322,
+                    8.3456789
+                  ]
+                ]
+              ],
+              "weights": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            },
+            "sense": "forward",
+            "loops": [
+              "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0"
+            ],
+            "name": "n1.side2"
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_3",
+            "shell": "n6_b0/n6_b0_s0",
+            "surface": {
+              "kind": "surface",
+              "id": "n6_w0_0_0_3",
+              "degreeU": 1,
+              "degreeV": 1,
+              "knotsU": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "knotsV": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  [
+                    0.1234567,
+                    -0.2345678,
+                    0.3456789
+                  ],
+                  [
+                    0.1234567,
+                    -0.2345678,
+                    8.3456789
+                  ]
+                ],
+                [
+                  [
+                    0.1234567,
+                    9.7654322,
+                    0.3456789
+                  ],
+                  [
+                    0.1234567,
+                    9.7654322,
+                    8.3456789
+                  ]
+                ]
+              ],
+              "weights": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            },
+            "sense": "reversed",
+            "loops": [
+              "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0"
+            ],
+            "name": "n1.side3"
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_d0_0",
+            "shell": "n6_b0/n6_b0_s0",
+            "surface": {
+              "kind": "surface",
+              "id": "n6_d0_0",
+              "degreeU": 1,
+              "degreeV": 1,
+              "knotsU": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "knotsV": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  [
+                    0.1234567,
+                    -0.2345678,
+                    0.3456789
+                  ],
+                  [
+                    20.123486699999997,
+                    -0.2345678,
+                    0.3456789
+                  ]
+                ],
+                [
+                  [
+                    0.1234567,
+                    9.7654322,
+                    0.3456789
+                  ],
+                  [
+                    20.123486699999997,
+                    9.7654322,
+                    0.3456789
+                  ]
+                ]
+              ],
+              "weights": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            },
+            "sense": "forward",
+            "loops": [
+              "n6_b0/n6_b0_s0/n6_d0_0/l0"
+            ],
+            "name": "n1.bottom"
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_u1_0",
+            "shell": "n6_b0/n6_b0_s0",
+            "surface": {
+              "kind": "surface",
+              "id": "n6_u1_0",
+              "degreeU": 1,
+              "degreeV": 1,
+              "knotsU": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "knotsV": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  [
+                    0.1234567,
+                    -0.2345678,
+                    8.3456789
+                  ],
+                  [
+                    0.1234567,
+                    9.7654322,
+                    8.3456789
+                  ]
+                ],
+                [
+                  [
+                    20.123486699999997,
+                    -0.2345678,
+                    8.3456789
+                  ],
+                  [
+                    20.123486699999997,
+                    9.7654322,
+                    8.3456789
+                  ]
+                ]
+              ],
+              "weights": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            },
+            "sense": "forward",
+            "loops": [
+              "n6_b0/n6_b0_s0/n6_u1_0/l0"
+            ],
+            "name": "n5.top"
+          }
+        ],
+        "loops": [
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0",
+            "face": "n6_b0/n6_b0_s0/n6_w0_0_0_0",
+            "kind": "outer",
+            "coedges": [
+              "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0/c0",
+              "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0/c1",
+              "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0/c2",
+              "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0/c3"
+            ]
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0",
+            "face": "n6_b0/n6_b0_s0/n6_w0_0_0_1",
+            "kind": "outer",
+            "coedges": [
+              "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0/c0",
+              "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0/c1",
+              "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0/c2",
+              "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0/c3"
+            ]
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0",
+            "face": "n6_b0/n6_b0_s0/n6_w0_0_0_2",
+            "kind": "outer",
+            "coedges": [
+              "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0/c0",
+              "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0/c1",
+              "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0/c2",
+              "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0/c3"
+            ]
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0",
+            "face": "n6_b0/n6_b0_s0/n6_w0_0_0_3",
+            "kind": "outer",
+            "coedges": [
+              "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0/c0",
+              "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0/c1",
+              "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0/c2",
+              "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0/c3"
+            ]
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_d0_0/l0",
+            "face": "n6_b0/n6_b0_s0/n6_d0_0",
+            "kind": "outer",
+            "coedges": [
+              "n6_b0/n6_b0_s0/n6_d0_0/l0/c0",
+              "n6_b0/n6_b0_s0/n6_d0_0/l0/c1",
+              "n6_b0/n6_b0_s0/n6_d0_0/l0/c2",
+              "n6_b0/n6_b0_s0/n6_d0_0/l0/c3"
+            ]
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_u1_0/l0",
+            "face": "n6_b0/n6_b0_s0/n6_u1_0",
+            "kind": "outer",
+            "coedges": [
+              "n6_b0/n6_b0_s0/n6_u1_0/l0/c0",
+              "n6_b0/n6_b0_s0/n6_u1_0/l0/c1",
+              "n6_b0/n6_b0_s0/n6_u1_0/l0/c2",
+              "n6_b0/n6_b0_s0/n6_u1_0/l0/c3"
+            ]
+          }
+        ],
+        "coedges": [
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0/c0",
+            "edge": "n6_e0",
+            "sense": "forward",
+            "loop": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0",
+            "next": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0/c1",
+            "prev": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0/c3",
+            "twin": "n6_b0/n6_b0_s0/n6_d0_0/l0/c3",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0/c1",
+            "edge": "n6_e1",
+            "sense": "forward",
+            "loop": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0",
+            "next": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0/c2",
+            "prev": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0/c0",
+            "twin": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0/c3",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0/c2",
+            "edge": "n6_e2",
+            "sense": "reversed",
+            "loop": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0",
+            "next": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0/c3",
+            "prev": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0/c1",
+            "twin": "n6_b0/n6_b0_s0/n6_u1_0/l0/c0",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0/c3",
+            "edge": "n6_e3",
+            "sense": "reversed",
+            "loop": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0",
+            "next": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0/c0",
+            "prev": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0/c2",
+            "twin": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0/c1",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0/c0",
+            "edge": "n6_e4",
+            "sense": "forward",
+            "loop": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0",
+            "next": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0/c1",
+            "prev": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0/c3",
+            "twin": "n6_b0/n6_b0_s0/n6_d0_0/l0/c2",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0/c1",
+            "edge": "n6_e5",
+            "sense": "forward",
+            "loop": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0",
+            "next": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0/c2",
+            "prev": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0/c0",
+            "twin": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0/c3",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0/c2",
+            "edge": "n6_e6",
+            "sense": "reversed",
+            "loop": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0",
+            "next": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0/c3",
+            "prev": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0/c1",
+            "twin": "n6_b0/n6_b0_s0/n6_u1_0/l0/c1",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0/c3",
+            "edge": "n6_e1",
+            "sense": "reversed",
+            "loop": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0",
+            "next": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0/c0",
+            "prev": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0/c2",
+            "twin": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0/c1",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0/c0",
+            "edge": "n6_e7",
+            "sense": "forward",
+            "loop": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0",
+            "next": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0/c1",
+            "prev": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0/c3",
+            "twin": "n6_b0/n6_b0_s0/n6_d0_0/l0/c1",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0/c1",
+            "edge": "n6_e8",
+            "sense": "forward",
+            "loop": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0",
+            "next": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0/c2",
+            "prev": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0/c0",
+            "twin": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0/c3",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0/c2",
+            "edge": "n6_e9",
+            "sense": "reversed",
+            "loop": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0",
+            "next": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0/c3",
+            "prev": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0/c1",
+            "twin": "n6_b0/n6_b0_s0/n6_u1_0/l0/c2",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0/c3",
+            "edge": "n6_e5",
+            "sense": "reversed",
+            "loop": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0",
+            "next": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0/c0",
+            "prev": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0/c2",
+            "twin": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0/c1",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0/c0",
+            "edge": "n6_e10",
+            "sense": "reversed",
+            "loop": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0",
+            "next": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0/c1",
+            "prev": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0/c3",
+            "twin": "n6_b0/n6_b0_s0/n6_d0_0/l0/c0",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0/c1",
+            "edge": "n6_e3",
+            "sense": "forward",
+            "loop": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0",
+            "next": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0/c2",
+            "prev": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0/c0",
+            "twin": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0/c3",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0/c2",
+            "edge": "n6_e11",
+            "sense": "forward",
+            "loop": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0",
+            "next": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0/c3",
+            "prev": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0/c1",
+            "twin": "n6_b0/n6_b0_s0/n6_u1_0/l0/c3",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0/c3",
+            "edge": "n6_e8",
+            "sense": "reversed",
+            "loop": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0",
+            "next": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0/c0",
+            "prev": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0/c2",
+            "twin": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0/c1",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_d0_0/l0/c0",
+            "edge": "n6_e10",
+            "sense": "forward",
+            "loop": "n6_b0/n6_b0_s0/n6_d0_0/l0",
+            "next": "n6_b0/n6_b0_s0/n6_d0_0/l0/c1",
+            "prev": "n6_b0/n6_b0_s0/n6_d0_0/l0/c3",
+            "twin": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0/c0",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_d0_0/l0/c1",
+            "edge": "n6_e7",
+            "sense": "reversed",
+            "loop": "n6_b0/n6_b0_s0/n6_d0_0/l0",
+            "next": "n6_b0/n6_b0_s0/n6_d0_0/l0/c2",
+            "prev": "n6_b0/n6_b0_s0/n6_d0_0/l0/c0",
+            "twin": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0/c0",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  1,
+                  1,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_d0_0/l0/c2",
+            "edge": "n6_e4",
+            "sense": "reversed",
+            "loop": "n6_b0/n6_b0_s0/n6_d0_0/l0",
+            "next": "n6_b0/n6_b0_s0/n6_d0_0/l0/c3",
+            "prev": "n6_b0/n6_b0_s0/n6_d0_0/l0/c1",
+            "twin": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0/c0",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_d0_0/l0/c3",
+            "edge": "n6_e0",
+            "sense": "reversed",
+            "loop": "n6_b0/n6_b0_s0/n6_d0_0/l0",
+            "next": "n6_b0/n6_b0_s0/n6_d0_0/l0/c0",
+            "prev": "n6_b0/n6_b0_s0/n6_d0_0/l0/c2",
+            "twin": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0/c0",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_u1_0/l0/c0",
+            "edge": "n6_e2",
+            "sense": "forward",
+            "loop": "n6_b0/n6_b0_s0/n6_u1_0/l0",
+            "next": "n6_b0/n6_b0_s0/n6_u1_0/l0/c1",
+            "prev": "n6_b0/n6_b0_s0/n6_u1_0/l0/c3",
+            "twin": "n6_b0/n6_b0_s0/n6_w0_0_0_0/l0/c2",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  0,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_u1_0/l0/c1",
+            "edge": "n6_e6",
+            "sense": "forward",
+            "loop": "n6_b0/n6_b0_s0/n6_u1_0/l0",
+            "next": "n6_b0/n6_b0_s0/n6_u1_0/l0/c2",
+            "prev": "n6_b0/n6_b0_s0/n6_u1_0/l0/c0",
+            "twin": "n6_b0/n6_b0_s0/n6_w0_0_0_1/l0/c2",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_u1_0/l0/c2",
+            "edge": "n6_e9",
+            "sense": "forward",
+            "loop": "n6_b0/n6_b0_s0/n6_u1_0/l0",
+            "next": "n6_b0/n6_b0_s0/n6_u1_0/l0/c3",
+            "prev": "n6_b0/n6_b0_s0/n6_u1_0/l0/c1",
+            "twin": "n6_b0/n6_b0_s0/n6_w0_0_0_2/l0/c2",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  1,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          },
+          {
+            "id": "n6_b0/n6_b0_s0/n6_u1_0/l0/c3",
+            "edge": "n6_e11",
+            "sense": "reversed",
+            "loop": "n6_b0/n6_b0_s0/n6_u1_0/l0",
+            "next": "n6_b0/n6_b0_s0/n6_u1_0/l0/c0",
+            "prev": "n6_b0/n6_b0_s0/n6_u1_0/l0/c2",
+            "twin": "n6_b0/n6_b0_s0/n6_w0_0_0_3/l0/c2",
+            "pcurve": {
+              "kind": "curve",
+              "id": "pcurve",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "n6_e0",
+            "curve": {
+              "kind": "curve",
+              "id": "n6_e0",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0.1234567,
+                  -0.2345678,
+                  0.3456789
+                ],
+                [
+                  20.123486699999997,
+                  -0.2345678,
+                  0.3456789
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n6_v0",
+              "n6_v1"
+            ],
+            "tolerance": 1e-7,
+            "name": "n1.bottom|n1.side0"
+          },
+          {
+            "id": "n6_e1",
+            "curve": {
+              "kind": "curve",
+              "id": "n6_e1",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  20.123486699999997,
+                  -0.2345678,
+                  0.3456789
+                ],
+                [
+                  20.123486699999997,
+                  -0.2345678,
+                  8.3456789
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n6_v1",
+              "n6_v2"
+            ],
+            "tolerance": 1e-7,
+            "name": "n1.side0|n1.side1"
+          },
+          {
+            "id": "n6_e2",
+            "curve": {
+              "kind": "curve",
+              "id": "n6_e2",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0.1234567,
+                  -0.2345678,
+                  8.3456789
+                ],
+                [
+                  20.123486699999997,
+                  -0.2345678,
+                  8.3456789
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n6_v3",
+              "n6_v2"
+            ],
+            "tolerance": 1e-7,
+            "name": "n1.side0|n5.top"
+          },
+          {
+            "id": "n6_e3",
+            "curve": {
+              "kind": "curve",
+              "id": "n6_e3",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0.1234567,
+                  -0.2345678,
+                  0.3456789
+                ],
+                [
+                  0.1234567,
+                  -0.2345678,
+                  8.3456789
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n6_v0",
+              "n6_v3"
+            ],
+            "tolerance": 1e-7,
+            "name": "n1.side0|n1.side3"
+          },
+          {
+            "id": "n6_e4",
+            "curve": {
+              "kind": "curve",
+              "id": "n6_e4",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  20.123486699999997,
+                  -0.2345678,
+                  0.3456789
+                ],
+                [
+                  20.123486699999997,
+                  9.7654322,
+                  0.3456789
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n6_v1",
+              "n6_v4"
+            ],
+            "tolerance": 1e-7,
+            "name": "n1.bottom|n1.side1"
+          },
+          {
+            "id": "n6_e5",
+            "curve": {
+              "kind": "curve",
+              "id": "n6_e5",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  20.123486699999997,
+                  9.7654322,
+                  0.3456789
+                ],
+                [
+                  20.123486699999997,
+                  9.7654322,
+                  8.3456789
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n6_v4",
+              "n6_v5"
+            ],
+            "tolerance": 1e-7,
+            "name": "n1.side1|n1.side2"
+          },
+          {
+            "id": "n6_e6",
+            "curve": {
+              "kind": "curve",
+              "id": "n6_e6",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  20.123486699999997,
+                  -0.2345678,
+                  8.3456789
+                ],
+                [
+                  20.123486699999997,
+                  9.7654322,
+                  8.3456789
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n6_v2",
+              "n6_v5"
+            ],
+            "tolerance": 1e-7,
+            "name": "n1.side1|n5.top"
+          },
+          {
+            "id": "n6_e7",
+            "curve": {
+              "kind": "curve",
+              "id": "n6_e7",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  20.123486699999997,
+                  9.7654322,
+                  0.3456789
+                ],
+                [
+                  0.1234567,
+                  9.7654322,
+                  0.3456789
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n6_v4",
+              "n6_v6"
+            ],
+            "tolerance": 1e-7,
+            "name": "n1.bottom|n1.side2"
+          },
+          {
+            "id": "n6_e8",
+            "curve": {
+              "kind": "curve",
+              "id": "n6_e8",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0.1234567,
+                  9.7654322,
+                  0.3456789
+                ],
+                [
+                  0.1234567,
+                  9.7654322,
+                  8.3456789
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n6_v6",
+              "n6_v7"
+            ],
+            "tolerance": 1e-7,
+            "name": "n1.side2|n1.side3"
+          },
+          {
+            "id": "n6_e9",
+            "curve": {
+              "kind": "curve",
+              "id": "n6_e9",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  20.123486699999997,
+                  9.7654322,
+                  8.3456789
+                ],
+                [
+                  0.1234567,
+                  9.7654322,
+                  8.3456789
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n6_v5",
+              "n6_v7"
+            ],
+            "tolerance": 1e-7,
+            "name": "n1.side2|n5.top"
+          },
+          {
+            "id": "n6_e10",
+            "curve": {
+              "kind": "curve",
+              "id": "n6_e10",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0.1234567,
+                  -0.2345678,
+                  0.3456789
+                ],
+                [
+                  0.1234567,
+                  9.7654322,
+                  0.3456789
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n6_v0",
+              "n6_v6"
+            ],
+            "tolerance": 1e-7,
+            "name": "n1.bottom|n1.side3"
+          },
+          {
+            "id": "n6_e11",
+            "curve": {
+              "kind": "curve",
+              "id": "n6_e11",
+              "degree": 1,
+              "knots": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  0.1234567,
+                  -0.2345678,
+                  8.3456789
+                ],
+                [
+                  0.1234567,
+                  9.7654322,
+                  8.3456789
+                ]
+              ],
+              "weights": [
+                1,
+                1
+              ]
+            },
+            "vertices": [
+              "n6_v3",
+              "n6_v7"
+            ],
+            "tolerance": 1e-7,
+            "name": "n1.side3|n5.top"
+          }
+        ],
+        "vertices": [
+          {
+            "id": "n6_v0",
+            "point": [
+              0.1234567,
+              -0.2345678,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n6_v1",
+            "point": [
+              20.123486699999997,
+              -0.2345678,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n6_v2",
+            "point": [
+              20.123486699999997,
+              -0.2345678,
+              8.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n6_v3",
+            "point": [
+              0.1234567,
+              -0.2345678,
+              8.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n6_v4",
+            "point": [
+              20.123486699999997,
+              9.7654322,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n6_v5",
+            "point": [
+              20.123486699999997,
+              9.7654322,
+              8.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n6_v6",
+            "point": [
+              0.1234567,
+              9.7654322,
+              0.3456789
+            ],
+            "tolerance": 1e-7
+          },
+          {
+            "id": "n6_v7",
+            "point": [
+              0.1234567,
+              9.7654322,
+              8.3456789
+            ],
+            "tolerance": 1e-7
+          }
+        ]
+      },
+      "mass": {
+        "volume": 1600.0023999999996,
+        "mass": 1.6000023999999997,
+        "centroid": [
+          10.1234717,
+          4.7654322,
+          4.3456789
+        ],
+        "method": "planar-exact",
+        "inertia": [
+          [
+            21.86669946666664,
+            1.4551915228366852e-14,
+            1.4551915228366852e-14
+          ],
+          [
+            1.4551915228366852e-14,
+            61.866919467026584,
+            7.275957614183426e-15
+          ],
+          [
+            1.4551915228366852e-14,
+            7.275957614183426e-15,
+            66.66692666702659
+          ]
+        ]
+      },
+      "area": 880.0010799999997,
+      "check": {
+        "valid": true,
+        "issues": [],
+        "counts": {
+          "bodies": 1,
+          "shells": 1,
+          "faces": 6,
+          "loops": 6,
+          "coedges": 24,
+          "edges": 12,
+          "vertices": 8
+        },
+        "topology": [
+          {
+            "body": "n6_b0",
+            "vertices": 8,
+            "edges": 12,
+            "faces": 6,
+            "loops": 6,
+            "shells": 1,
+            "genus": 0
+          }
+        ],
+        "maximumVertexGap": 0,
+        "maximumPcurveGap": 0,
+        "maximumEdgeSurfaceGap": 0
+      },
+      "structure": {
+        "bodyKinds": [
+          "solid"
+        ],
+        "nativeSolidCount": 1,
+        "nativeShellCount": 1,
+        "nativeClosedShellCount": 1
+      },
+      "publicMass": {
+        "volume": 1600.0024,
+        "mass": 1.6000024000000002,
+        "centroid": [
+          10.123471699999996,
+          4.765432199999999,
+          4.345678899999999
+        ],
+        "inertia": [
+          [
+            21.866699466666677,
+            0,
+            -1.4551915228366852e-14
+          ],
+          [
+            0,
+            61.86691946702669,
+            0
+          ],
+          [
+            -1.4551915228366852e-14,
+            0,
+            66.66692666702667
+          ]
+        ]
+      },
+      "publicNames": [
+        "n1.bottom",
+        "n1.side0",
+        "n1.side1",
+        "n1.side2",
+        "n1.side3",
+        "n5.top"
+      ],
+      "publicFaces": [
+        {
+          "name": "n1.side0",
+          "kind": "plane",
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "centroid": [
+            10.1234717,
+            -0.2345678,
+            4.345678899999999
+          ],
+          "area": 160.00023999999996,
+          "edges": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "name": "n1.side1",
+          "kind": "plane",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "centroid": [
+            20.123486699999997,
+            4.765432199999999,
+            4.345678899999999
+          ],
+          "area": 79.99999999999999,
+          "edges": [
+            1,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "name": "n1.side2",
+          "kind": "plane",
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "centroid": [
+            10.1234717,
+            9.7654322,
+            4.345678899999999
+          ],
+          "area": 160.00023999999996,
+          "edges": [
+            5,
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "name": "n1.side3",
+          "kind": "plane",
+          "normal": [
+            -1,
+            0,
+            0
+          ],
+          "centroid": [
+            0.12345670000000002,
+            4.765432199999999,
+            4.345678899999999
+          ],
+          "area": 79.99999999999999,
+          "edges": [
+            3,
+            8,
+            10,
+            11
+          ]
+        },
+        {
+          "name": "n1.bottom",
+          "kind": "plane",
+          "normal": [
+            0,
+            0,
+            -1
+          ],
+          "centroid": [
+            10.123471699999998,
+            4.765432199999999,
+            0.34567889999999996
+          ],
+          "area": 200.00029999999998,
+          "edges": [
+            0,
+            4,
+            7,
+            10
+          ]
+        },
+        {
+          "name": "n5.top",
+          "kind": "plane",
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "centroid": [
+            10.123471699999998,
+            4.765432199999999,
+            8.3456789
+          ],
+          "area": 200.00029999999998,
+          "edges": [
+            2,
+            6,
+            9,
+            11
+          ]
+        }
+      ],
+      "nativeNames": [
+        "n1.side0",
+        "n1.side1",
+        "n1.side2",
+        "n1.side3",
+        "n1.bottom",
+        "n5.top"
+      ],
+      "displayBodyIndex": 1,
+      "displayFaces": [
+        {
+          "index": 0,
+          "name": "n1.side0",
+          "kind": "plane",
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "centroid": [
+            10.1234717,
+            -0.2345678,
+            4.345678899999999
+          ]
+        },
+        {
+          "index": 1,
+          "name": "n1.side1",
+          "kind": "plane",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "centroid": [
+            20.123486699999997,
+            4.765432199999999,
+            4.345678899999999
+          ]
+        },
+        {
+          "index": 2,
+          "name": "n1.side2",
+          "kind": "plane",
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "centroid": [
+            10.1234717,
+            9.7654322,
+            4.345678899999999
+          ]
+        },
+        {
+          "index": 3,
+          "name": "n1.side3",
+          "kind": "plane",
+          "normal": [
+            -1,
+            0,
+            0
+          ],
+          "centroid": [
+            0.12345670000000002,
+            4.765432199999999,
+            4.345678899999999
+          ]
+        },
+        {
+          "index": 4,
+          "name": "n1.bottom",
+          "kind": "plane",
+          "normal": [
+            0,
+            0,
+            -1
+          ],
+          "centroid": [
+            10.123471699999998,
+            4.765432199999999,
+            0.34567889999999996
+          ]
+        },
+        {
+          "index": 5,
+          "name": "n5.top",
+          "kind": "plane",
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "centroid": [
+            10.123471699999998,
+            4.765432199999999,
+            8.3456789
+          ]
+        }
+      ]
+    }
+  ]
+}

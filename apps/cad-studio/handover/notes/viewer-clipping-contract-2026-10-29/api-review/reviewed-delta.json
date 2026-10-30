@@ -1,0 +1,52 @@
+{
+  "baseline": "d85558ce0031d812341d5871743f8535520eb8d4",
+  "beforeSHA256": "59ff7b47a074cda811aff9055a7cd301a5a79e76bb44acc3bf3ed6b082c2d356",
+  "issues": [],
+  "originalCheck": "FAIL",
+  "generation": {
+    "status": "GENERATED_FOR_REVIEW",
+    "file": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/handover/notes/viewer-clipping-contract-2026-10-29/api-review/candidate.json",
+    "notProven": [
+      "SCOPED_PASS covers only EX001/EX002/EX003/DA001/IV001/IV002.",
+      "DA001 covers two direct core-result anchors, not every nested JSON boundary.",
+      "Helper throws, immutability, numeric units, runtime behaviour and full conventions §§1–12 are NOT_PROVEN.",
+      "Facade/resource/Error/callback/native labels are observations, never blanket exceptions.",
+      "Native SI and R7.3d legacy surfaces are catalogued without conversion or retirement."
+    ]
+  },
+  "changes": [
+    {
+      "path": "/exposures/5704/variants/0/shape/members/autoClip",
+      "before": null,
+      "after": {
+        "name": "autoClip",
+        "kind": "property",
+        "optional": false,
+        "readonly": false,
+        "type": "boolean"
+      }
+    },
+    {
+      "path": "/exposures/6210/variants/0/shape/members/autoClip",
+      "before": null,
+      "after": {
+        "name": "autoClip",
+        "kind": "property",
+        "optional": false,
+        "readonly": false,
+        "type": "boolean"
+      }
+    },
+    {
+      "path": "/exposures/6684/variants/0/shape/members/autoClip",
+      "before": null,
+      "after": {
+        "name": "autoClip",
+        "kind": "property",
+        "optional": false,
+        "readonly": false,
+        "type": "boolean"
+      }
+    }
+  ]
+}

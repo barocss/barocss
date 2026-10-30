@@ -1,0 +1,8 @@
+native-bound-asymmetric-pad       21 ms 659784c1d1276574
+closed-reference-pad              22 ms 3dc47a62fa4c37a6
+formal-pad-mass                    6 ms 4ee49b3a32aa9a46
+native-bound-pad                  18 ms 37a018051624ef8e
+SAME native-bound-asymmetric-pad       27 →      21 ms (-22.2%)
+SAME closed-reference-pad              25 →      22 ms (-12.0%)
+SAME formal-pad-mass                    7 →       6 ms (-14.3%)
+SAME native-bound-pad                  22 →      18 ms (-18.2%)

@@ -1,0 +1,11 @@
+# D323 canonical project version snapshots
+
+Final selected qualification: **SCOPED_PASS**. See qualification.json and separate unit/consumer lanes.
+
+At27500e219 the original permitted nextId omission fails through actual Model versions and Studio memoryStore project persistence, while the existing dedicated snapshot codec control passes. Connect only version snapshot write/read to those existing codecs with their original key. Ordinary Save/part/autosave/Open normalization stays. No new format, API, migration or dependency is introduced.
+
+Unique related12 pass:7 unchanged storage checks retained from the first after batch and5 new snapshot checks pass at final source. First fixture types3 fail, then only fixtures are corrected; final types/test lint pass and production lint is reused. Original baseline/type failures remain. Schema3 and genuine route-bundle schema4/binary mesh preserve admitted omission/false/0/empty and original canonical document/version identities. Missing/corrupt keys refuse; existing files remain write-once/read-only. Domain version-key checks exercise the actual functional log contract, not a brittle source checksum oracle. Two selected binary re-encode byte matches are observations, not a general raw-byte guarantee.
+
+Actual existing CG6 project UI selected1 plus separate starter1 passes on Chrome/WebGPU/DPR1: Save/two versions/Compare/Restore/reload/project reopen/version reread/autosave Restore through native OPFS folder-picker fixture. Root views compare/versions PNG2. This positive UI case does not create the rare omitted-nextId input. Its folder removal is awaited, without separate absence probe; owned browser/server/gate cleanup completes. Native bytes are not exported, and the browser context is reloaded rather than replaced.
+
+Generated/API/docs pass:68 pages/55shots/4811KiB/860labels. Full Studio/Model/Kernel/Viewer/browser suites and wider native rare-input/external-folder/crash/performance proof are NOT_RUN. #2236 fresh read remains CLOSED with0comments from prior transfer; no issue mutation is made. Incoming Viewer asserted static7 proof is attached separately and remains a draft, without task switch. Next D324 is existing A07/#2237 delayed GPU readback ownership. Normal feature push authorized; no PR/release.

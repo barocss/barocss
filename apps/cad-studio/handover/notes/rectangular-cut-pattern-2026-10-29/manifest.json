@@ -1,0 +1,883 @@
+{
+  "algorithm": "SHA-256",
+  "excludes": [
+    "manifest.json"
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 5082,
+      "sha256": "9b871ca7b64c22d072f68bf35a705e602ce5387e78c286c246b2e128d1ebe58f"
+    },
+    {
+      "path": "evidence/kernel/api-index-after.sha256",
+      "bytes": 83,
+      "sha256": "bd42a40424bca6a9182c4d0f5e0f917eb0ece4d0781f23387d4175f2c0a0a726"
+    },
+    {
+      "path": "evidence/kernel/api-index-before.sha256",
+      "bytes": 83,
+      "sha256": "bd42a40424bca6a9182c4d0f5e0f917eb0ece4d0781f23387d4175f2c0a0a726"
+    },
+    {
+      "path": "evidence/kernel/build-2.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "evidence/kernel/build-2.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/kernel/build.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "evidence/kernel/build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/kernel/final-candidate.json",
+      "bytes": 3060,
+      "sha256": "3c839b2fe0dcca9a1dac531b954be3f2233d19e7985365790b70fdbf864eb7b9"
+    },
+    {
+      "path": "evidence/kernel/final-candidate.sha256",
+      "bytes": 1603,
+      "sha256": "4fced0485a901e5c8f083102384f7465caa1babfd8f52a0503987b9292428ec5"
+    },
+    {
+      "path": "evidence/kernel/focused-2.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "evidence/kernel/focused-2.log",
+      "bytes": 212537,
+      "sha256": "b25dd2192b7760204ee5dffc102dffd88eb3677a8d592a652d3900c210d3a15a"
+    },
+    {
+      "path": "evidence/kernel/focused-3.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "evidence/kernel/focused-3.log",
+      "bytes": 3097,
+      "sha256": "cd907d402182f94e739797666590e2b9f17ad1f10cfeddb1681f3b4c246e1c17"
+    },
+    {
+      "path": "evidence/kernel/focused.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "evidence/kernel/focused.log",
+      "bytes": 2486,
+      "sha256": "e961765476b85732a2fbbbcf807ad0d5d564d6ed20c1afa8f6eb2dd568287a37"
+    },
+    {
+      "path": "evidence/model/after-gate-hashes.json",
+      "bytes": 4574,
+      "sha256": "6d58e4dbf7b880b9386c3d777f0bdc587252b02ecfc274d649dc5d1f85e62561"
+    },
+    {
+      "path": "evidence/model/before-gate-hashes.json",
+      "bytes": 4275,
+      "sha256": "29d41d6cbbf9f66885022f81f7369b99174e1389983431f6dacc716531f4153d"
+    },
+    {
+      "path": "evidence/model/chat-features-before.ts",
+      "bytes": 50161,
+      "sha256": "30dec3fbb9ab0f15ff3a105c3065a7e0100183834b935e6bbbffe13c0ed51643"
+    },
+    {
+      "path": "evidence/model/chat-features-restore.diff",
+      "bytes": 2348,
+      "sha256": "a19d918b85f4b125edcce824e54c66b3fe66191893d5a048041ed657d12ba8ad"
+    },
+    {
+      "path": "evidence/model/chat-features-restored.ts",
+      "bytes": 50484,
+      "sha256": "01138bd2883b4a679ec177b0d23d51334fb83403d0135a3c3ea437b9758f0da0"
+    },
+    {
+      "path": "evidence/model/focused-pattern-tests.log",
+      "bytes": 4205,
+      "sha256": "26035d26344e8a29c215991b4fb52d32f5b59d1fe8dfab1a05dc3b7785b2fb3e"
+    },
+    {
+      "path": "evidence/model/frozen-owned-hashes.json",
+      "bytes": 1583,
+      "sha256": "1b05cd53a5c5604c1df1eebdb913ebdc1ffc600e1c88c5ede84d990ef6a9085c"
+    },
+    {
+      "path": "evidence/model/gate-receipt.json",
+      "bytes": 303,
+      "sha256": "beae2709a5d49cdf81d220654ce9816c68422ded27eb0d8c6cbbda68ee4f5fca"
+    },
+    {
+      "path": "evidence/model/model-typecheck.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/model/scoped-lint.log",
+      "bytes": 3271,
+      "sha256": "7c4f8d6eb33fea46e51802ab71b400b3e6bcffbbaa9da40a3b6455e179422556"
+    },
+    {
+      "path": "evidence/review/chat-admission-repro.mjs",
+      "bytes": 1328,
+      "sha256": "b5a4b26ff20c4eb4a7d6608d80ec62331096921305d3906e737f2f621edbee96"
+    },
+    {
+      "path": "evidence/review/chat-admission-stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/review/chat-admission-stdout.txt",
+      "bytes": 642,
+      "sha256": "d472f3c6dfa3758c7a83775fc56aaac4bc02ee3f654e7b1c33ef65c6f4cb328d"
+    },
+    {
+      "path": "evidence/review/command.txt",
+      "bytes": 187,
+      "sha256": "59361197d5c5ed8dfb7474b61cd87bcc2459c342fece5a33a0dc1cc85612c5e2"
+    },
+    {
+      "path": "evidence/review/final/chat-admission-stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/review/final/chat-admission-stdout.txt",
+      "bytes": 167,
+      "sha256": "66cf9c97ec23a2fa6393e9910b03b7d0300b825691cfa022e252911807c91b16"
+    },
+    {
+      "path": "evidence/review/final/check-chat.mjs",
+      "bytes": 3417,
+      "sha256": "95ec790851c12cc0c2526dbb23d85f33a418e1efb1ff5a0f1aabcc0a12810ce9"
+    },
+    {
+      "path": "evidence/review/final/command.txt",
+      "bytes": 206,
+      "sha256": "c19b901b871a9fcc5f98966d7f22fd74ad4d2268502ed029791193796e8ad696"
+    },
+    {
+      "path": "evidence/review/final/report.md",
+      "bytes": 2607,
+      "sha256": "4bc2f5dfd7c9fbc5ba0db611e43c54196ed5271e4a090b9c30d7609ba42b6a91"
+    },
+    {
+      "path": "evidence/review/final/source-hashes.json",
+      "bytes": 7869,
+      "sha256": "6383a9d4ef1a3544c1a6865029b9268589d30dc56a3a3c38a6b048b5e7d9dfc1"
+    },
+    {
+      "path": "evidence/review/final/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/review/final/stdout.txt",
+      "bytes": 426,
+      "sha256": "b4f741d9ec72c6fae83d90d040ed5c79767636b824a4102e5292ccedc5db2f9f"
+    },
+    {
+      "path": "evidence/review/report.md",
+      "bytes": 7075,
+      "sha256": "c008acb3a40fb546a7a1c63eb0eef405ff34bb54eb205063b82453ad7382feac"
+    },
+    {
+      "path": "evidence/review/reproduce.mjs",
+      "bytes": 6021,
+      "sha256": "cf1cc30c4693058efcc2a7a8d5e20fb33b5a0806bda3165b57a813cb9aa07a85"
+    },
+    {
+      "path": "evidence/review/reviewed-hashes.json",
+      "bytes": 2536,
+      "sha256": "29c572cf0e4885fde5c731a30723e91a8283d2d242b599512bcd283aafc2af36"
+    },
+    {
+      "path": "evidence/review/source-changes-during-controls.json",
+      "bytes": 3,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "path": "evidence/review/source-hashes.json",
+      "bytes": 2415,
+      "sha256": "77804350d1a151a12a30481d53d614acafc2924f02f7a93f6cd209d2b97c295b"
+    },
+    {
+      "path": "evidence/review/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/review/stdout.txt",
+      "bytes": 276,
+      "sha256": "d943fb6ca77afd29f8af2fd1f3fbd4abf96267cc84ae9263443b16d0323783a4"
+    },
+    {
+      "path": "evidence/root/agent-tools-check.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "evidence/root/agent-tools-check.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/root/api-adoption.json",
+      "bytes": 459,
+      "sha256": "4ed2a788bf33eab03139f7852f6847a58815944302709137b1ae93de83afac60"
+    },
+    {
+      "path": "evidence/root/api-candidate.json.gz",
+      "bytes": 907994,
+      "sha256": "0f7507122fc7407b79f66eebabca49bdb3bc6e185f13ed1bb36773c759ae9751"
+    },
+    {
+      "path": "evidence/root/api-check.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "evidence/root/api-check.json",
+      "bytes": 626,
+      "sha256": "6561af8f83cd992da89fd6c17e5651c6cc77ff471ff0beeae8530a6d29d7f6af"
+    },
+    {
+      "path": "evidence/root/api-delta.diff",
+      "bytes": 177373,
+      "sha256": "fafc2c4841f84d3e2404bdafc8e5471e953dd9f4f2addded9c1346c567f4c843"
+    },
+    {
+      "path": "evidence/root/api-delta.json",
+      "bytes": 1869,
+      "sha256": "d0a74bdb74ad55700b700110ab3232907e5b9c9a060f63ea19c75e052fa1d257"
+    },
+    {
+      "path": "evidence/root/api-expected-before.json.gz",
+      "bytes": 907383,
+      "sha256": "10dff72c698961e7aadc00806e68b6c2b491d7f392399654b239c7095dae2477"
+    },
+    {
+      "path": "evidence/root/api-generate.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "evidence/root/api-generate.txt",
+      "bytes": 564,
+      "sha256": "9d3cbd52a0cdd10e61550a547d8b0b49e727e31512f903d7ca0a90160dc66413"
+    },
+    {
+      "path": "evidence/root/api-member-delta.json",
+      "bytes": 8680,
+      "sha256": "6e76896fe7d38f72b1e1b96c200ca0484306f3f65569d02eba47ee210062f44c"
+    },
+    {
+      "path": "evidence/root/api-semantic-delta.json",
+      "bytes": 10387,
+      "sha256": "6226ec436a4c1b5e7f0576b06c123baf49efc24dbf204b380fa38ef5399833f1"
+    },
+    {
+      "path": "evidence/root/candidate-source/apps__cad-studio__test__chat.test.ts.gz",
+      "bytes": 19972,
+      "sha256": "593d3c72eb3af5e42bc73d8d96c6af557cd0ac04844b034b24c836d64ecd5591"
+    },
+    {
+      "path": "evidence/root/candidate-source/packages__barocss-cad-model__README.md.gz",
+      "bytes": 2739,
+      "sha256": "8dac69dc40a2d999d79794081ff51eb84064af628d7e4273acbb1082280400c0"
+    },
+    {
+      "path": "evidence/root/candidate-source/packages__barocss-cad-model__src__api__index.ts.gz",
+      "bytes": 692,
+      "sha256": "8c2dd7f5d2e9b94eb65ecb63b1001e937db721f52c83c5594cb5c88616a2c9a1"
+    },
+    {
+      "path": "evidence/root/candidate-source/packages__barocss-cad-model__src__api__studio.ts.gz",
+      "bytes": 3181,
+      "sha256": "7bc2cde2ca3139daba79eaefe8ac6c4ca31180b7ce5e94e6088f5ca1b48dbbb5"
+    },
+    {
+      "path": "evidence/root/candidate-source/packages__barocss-cad-model__src__app__commands.ts.gz",
+      "bytes": 22728,
+      "sha256": "30c7eba335e4e310ffc4759e054b4e7c257241c6c299f5acababc68875285b54"
+    },
+    {
+      "path": "evidence/root/candidate-source/packages__barocss-cad-model__src__app__editFields.ts.gz",
+      "bytes": 13383,
+      "sha256": "d1ce9784e2d5c4c6074b0a9e69bc200a4510b41f7451d6814a32bb4bff7d05fd"
+    },
+    {
+      "path": "evidence/root/candidate-source/packages__barocss-cad-model__src__chat__features.ts.gz",
+      "bytes": 15228,
+      "sha256": "0142bab433827c899959d2f4ce73cc47cc822a8b07ced4749b409cfbff2bfed6"
+    },
+    {
+      "path": "evidence/root/candidate-source/packages__barocss-cad-model__src__chat__part__features.ts.gz",
+      "bytes": 18858,
+      "sha256": "3035798dd54a5624afad42751a204c10bec70bc1027f5c25a9b727332b3e9fc3"
+    },
+    {
+      "path": "evidence/root/candidate-source/packages__barocss-cad-model__src__engine__doc.ts.gz",
+      "bytes": 33651,
+      "sha256": "c67b3e51e6c8913735bb26f709ff6e2c39b6b4cb331ff16701f264a0d838331d"
+    },
+    {
+      "path": "evidence/root/candidate-source/packages__barocss-cad-model__src__engine__migrate.ts.gz",
+      "bytes": 4872,
+      "sha256": "f5cc9e7b8ba5f8c43f3589a96ae442dbc5243343e836ced4637d4606dd90c0ee"
+    },
+    {
+      "path": "evidence/root/candidate-source/packages__barocss-cad-model__src__engine__part.ts.gz",
+      "bytes": 20732,
+      "sha256": "71fd2cd848d7c043ab6626d9838ab97fa98219292ffa651c12c2d273586526d8"
+    },
+    {
+      "path": "evidence/root/candidate-source/packages__barocss-cad-model__test__api-rectangular-feature-pattern.test.ts.gz",
+      "bytes": 3368,
+      "sha256": "fe01c139c97ffab39c522b91125aaab8bb7b307253ed7fb3724c9442caea65db"
+    },
+    {
+      "path": "evidence/root/candidate-source/packages__barocss-cad-model__test__rectangular-feature-pattern-command.test.ts.gz",
+      "bytes": 1897,
+      "sha256": "c8f10e3c43deda05f933a426185e75059659ce0af6fdfffeffa6f4dfc656f2ad"
+    },
+    {
+      "path": "evidence/root/candidate-source/packages__barocss-cad__src__api__index.ts.gz",
+      "bytes": 744,
+      "sha256": "2bf34e3225b2896848fbb7aaecc169af705536127e9ed799ca66ff24b51d9c85"
+    },
+    {
+      "path": "evidence/root/candidate-source/packages__barocss-cad__src__api__kernel.ts.gz",
+      "bytes": 4360,
+      "sha256": "49063d68ec4f9f7aee2094ff6168a0dc48da0e0598870a70e193d220f16b5037"
+    },
+    {
+      "path": "evidence/root/candidate-source/packages__barocss-cad__src__api__part.ts.gz",
+      "bytes": 6176,
+      "sha256": "c204f45620c6dbcfecf774515115c461c1fccd215f47c57a095b2c913a872cde"
+    },
+    {
+      "path": "evidence/root/candidate-source/packages__barocss-cad__src__api__spec.ts.gz",
+      "bytes": 5281,
+      "sha256": "fb923daef7e6708acfd82207ac3bfb996f3bfdcc7ad40f3a1615e36c1ece8571"
+    },
+    {
+      "path": "evidence/root/candidate-source/packages__barocss-cad__src__brep__brep-transform.ts.gz",
+      "bytes": 1463,
+      "sha256": "ea2570959ca08315d1153eec8e8b756331de40b1af741fe7604bbed158b3dcbb"
+    },
+    {
+      "path": "evidence/root/candidate-source/packages__barocss-cad__src__features__prismatic-solid.ts.gz",
+      "bytes": 10924,
+      "sha256": "7c004a5813f2ea33d3730969dcfc6634b4e66d6a431d6f27f25983bf8d70e2fb"
+    },
+    {
+      "path": "evidence/root/candidate-source/packages__barocss-cad__src__part__part-model.ts.gz",
+      "bytes": 124153,
+      "sha256": "7137c68d95a7cb5ee9e31c8b28514ff75e21ada97d94edf793d5ba9aa540b45c"
+    },
+    {
+      "path": "evidence/root/candidate-source/packages__barocss-cad__test__rectangular-cut-pattern.test.mjs.gz",
+      "bytes": 3768,
+      "sha256": "829b737bc5fcf5975e17439498a2441ebf75a566d3909d868fc386b1c1b27baf"
+    },
+    {
+      "path": "evidence/root/candidate-source/profile.json",
+      "bytes": 7320,
+      "sha256": "fe0186a400d0971aef177342413b0b0ef79ba35b6728762fe1147f07b53b7e39"
+    },
+    {
+      "path": "evidence/root/consumer-acquire.txt",
+      "bytes": 44,
+      "sha256": "eb20e30faef9135468bf87886b748f01b42212d7c4abeb631641956ffcede12d"
+    },
+    {
+      "path": "evidence/root/consumer-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/root/docs-acquire.txt",
+      "bytes": 44,
+      "sha256": "602e340b838f6d995e003b3f3f2af15c7f0052320a5309bfc151a4ad6eb73b39"
+    },
+    {
+      "path": "evidence/root/docs-final.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "evidence/root/docs-final.txt",
+      "bytes": 68,
+      "sha256": "311d9938df550c33b29d042bfd9e0824929872dd7f60d4e002305addf2e68041"
+    },
+    {
+      "path": "evidence/root/docs-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/root/features.ts.changed.gz",
+      "bytes": 15171,
+      "sha256": "e5c96fef2b03954655376d6393f153729e2c04e9aa8dbd16f07f4090d308177d"
+    },
+    {
+      "path": "evidence/root/final-source/apps__cad-studio__test__chat.test.ts.gz",
+      "bytes": 19972,
+      "sha256": "0d4fd3a8fb0f78270807212122fc1b19416d48e96902390cafc117acd554f311"
+    },
+    {
+      "path": "evidence/root/final-source/apps__cad-studio__test__rectangular-cut-pattern-browser.mjs.gz",
+      "bytes": 5924,
+      "sha256": "0a677a1b936cede140a8525e553e17eb96c437eecb1ec1293cc7279d039ac5e8"
+    },
+    {
+      "path": "evidence/root/final-source/packages__barocss-cad-model__README.md.gz",
+      "bytes": 2739,
+      "sha256": "a20d3940412fff720668ab1af512254f4a00211d2dc9b7c21822a9b02a13ff0f"
+    },
+    {
+      "path": "evidence/root/final-source/packages__barocss-cad-model__src__api__index.ts.gz",
+      "bytes": 692,
+      "sha256": "c99afd6c10c496a865c1da53a852916d5ca1e9b0a8b76103de892e5e1585740e"
+    },
+    {
+      "path": "evidence/root/final-source/packages__barocss-cad-model__src__api__studio.ts.gz",
+      "bytes": 3181,
+      "sha256": "e196abf9e5b1eca206fc9c9da0d773749f84299ba296b1f637cd7a8460948c21"
+    },
+    {
+      "path": "evidence/root/final-source/packages__barocss-cad-model__src__app__commands.ts.gz",
+      "bytes": 22728,
+      "sha256": "7a8159c6dc044308547da28f0568f9423731a1314ff8c1b8cbb0c94b2dc02be0"
+    },
+    {
+      "path": "evidence/root/final-source/packages__barocss-cad-model__src__app__editFields.ts.gz",
+      "bytes": 13383,
+      "sha256": "53a8fb09a2135f14c6aa09fd7c6dfed9fdd1e2b3b12164b6824d540963077e22"
+    },
+    {
+      "path": "evidence/root/final-source/packages__barocss-cad-model__src__chat__features.ts.gz",
+      "bytes": 15228,
+      "sha256": "daefc0822e24681a1badfd92e8647eb8e47b85dd4fa8eda15f1513637c9c4d9c"
+    },
+    {
+      "path": "evidence/root/final-source/packages__barocss-cad-model__src__chat__part__features.ts.gz",
+      "bytes": 18858,
+      "sha256": "933745fa47f637d76cf83c54378dbf87a2022834ebdb58434068c0966744211a"
+    },
+    {
+      "path": "evidence/root/final-source/packages__barocss-cad-model__src__engine__doc.ts.gz",
+      "bytes": 33651,
+      "sha256": "c5c9512df07ca98d2daf156fe85abcd685b787ede251e27045a86f1a1fcd8f44"
+    },
+    {
+      "path": "evidence/root/final-source/packages__barocss-cad-model__src__engine__migrate.ts.gz",
+      "bytes": 4872,
+      "sha256": "23aa9ed0461798d16d3bcd322d114358944c0f0ca7356ae991f9f545ccd800f3"
+    },
+    {
+      "path": "evidence/root/final-source/packages__barocss-cad-model__src__engine__part.ts.gz",
+      "bytes": 20732,
+      "sha256": "64fee7ce8f4750a67ab683d4ff73d5402b0768214dd7a1570588ad3e91adcd5e"
+    },
+    {
+      "path": "evidence/root/final-source/packages__barocss-cad-model__test__api-rectangular-feature-pattern.test.ts.gz",
+      "bytes": 3368,
+      "sha256": "a2169b54418522ed4311cbcf924cd8a7319adf62e60952c3a93b349f20e00e86"
+    },
+    {
+      "path": "evidence/root/final-source/packages__barocss-cad-model__test__rectangular-feature-pattern-command.test.ts.gz",
+      "bytes": 1897,
+      "sha256": "6ccafaa00a225f0e90cbfef4516cee5e59153c09fd179095b1a259976db31e01"
+    },
+    {
+      "path": "evidence/root/final-source/packages__barocss-cad__src__api__index.ts.gz",
+      "bytes": 744,
+      "sha256": "3234dee1bd7b97f6e2a2a38aa331f6a05dd64c83445695c3f0b2abccbda9df3a"
+    },
+    {
+      "path": "evidence/root/final-source/packages__barocss-cad__src__api__kernel.ts.gz",
+      "bytes": 4360,
+      "sha256": "183cf9e111cc4dee109f6ad34e10a88997e6cc8129e8382ededd475eb0080a89"
+    },
+    {
+      "path": "evidence/root/final-source/packages__barocss-cad__src__api__part.ts.gz",
+      "bytes": 6176,
+      "sha256": "2b01190ffaca0d611e8de61c5aa45477d50a4af8549d8726b6e607b4e113facf"
+    },
+    {
+      "path": "evidence/root/final-source/packages__barocss-cad__src__api__spec.ts.gz",
+      "bytes": 5281,
+      "sha256": "d7dd19b5b8363a2149e534226791d0647250f0cb41c90bbb6e2bb923a7aec4a6"
+    },
+    {
+      "path": "evidence/root/final-source/packages__barocss-cad__src__brep__brep-transform.ts.gz",
+      "bytes": 1463,
+      "sha256": "b17f24d3bd1594ecdd8f02719703e9753b27e3a849ccea4d91b8028baff446f2"
+    },
+    {
+      "path": "evidence/root/final-source/packages__barocss-cad__src__features__prismatic-solid.ts.gz",
+      "bytes": 10924,
+      "sha256": "69526a0f14c7fdf84a0d2b23b2d6423767f409b5ea17bb0e49084ab801a1b2c8"
+    },
+    {
+      "path": "evidence/root/final-source/packages__barocss-cad__src__part__part-model.ts.gz",
+      "bytes": 124153,
+      "sha256": "5522e462eba107b7fa4219be9e9cbd5b98ac787d149e8e6b6a4e976ee2ae1218"
+    },
+    {
+      "path": "evidence/root/final-source/packages__barocss-cad__test__rectangular-cut-pattern.test.mjs.gz",
+      "bytes": 3768,
+      "sha256": "de4338af4305e2b4a764e6b80f89f072dc79758efb376d3a3dec8fbe27a80b47"
+    },
+    {
+      "path": "evidence/root/final-source/profile-before-editor-driver.json",
+      "bytes": 7703,
+      "sha256": "5cf9b6a1b34c2cd9507c2c380a22eff346631e4b2b5c465a9af1cf5519a34ae8"
+    },
+    {
+      "path": "evidence/root/final-source/profile.json",
+      "bytes": 7779,
+      "sha256": "52f222a74d529a30cef28168509575f532049ab74232a97e04d0d6604c0f3a29"
+    },
+    {
+      "path": "evidence/root/final-source/rectangular-cut-pattern.before-editor-driver.mjs.gz",
+      "bytes": 4912,
+      "sha256": "5ffff9152954ba8eb852ec1e3fdc7406c8b567896ab58089115b19b58435d279"
+    },
+    {
+      "path": "evidence/root/kernel-acquire.txt",
+      "bytes": 44,
+      "sha256": "8ad3683b469362816bdac16f8fb3e7492080c94a67eeafbe2359a4a866393a57"
+    },
+    {
+      "path": "evidence/root/kernel-all.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "evidence/root/kernel-all.txt",
+      "bytes": 721369,
+      "sha256": "61d5541fbde6051347a992de169c8037a5ff5241c686516db9ff5d46881b3537"
+    },
+    {
+      "path": "evidence/root/kernel-build.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "evidence/root/kernel-build.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/root/kernel-driver-lint.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "evidence/root/kernel-driver-lint.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/root/kernel-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/root/model-related.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "evidence/root/model-related.txt",
+      "bytes": 20320,
+      "sha256": "c2b23fd0b1110cfbf8069420f9d2a89ae8d41efbd19f9f46203bc1898ecaa7f5"
+    },
+    {
+      "path": "evidence/root/native-acquire.txt",
+      "bytes": 44,
+      "sha256": "cac35f0a3203f17a14a7efdafacbf757e1aee361c6a55ee7c5aa5f5442dde86a"
+    },
+    {
+      "path": "evidence/root/native-edit-retake/10-edited-fresh-open.png",
+      "bytes": 276180,
+      "sha256": "df511a3e3eb90c37c019958beab8b44bdfea7efeda599bfa9d01cd18233a2ca8"
+    },
+    {
+      "path": "evidence/root/native-edit-retake/11-reeditable.png",
+      "bytes": 277937,
+      "sha256": "03c4f76b3a081986ab71de800dec3a18bc507d5d4ea9657b52ee106c4ae7f22e"
+    },
+    {
+      "path": "evidence/root/native-edit-retake/edit-first-count.png",
+      "bytes": 275926,
+      "sha256": "4c9da342622b7a21493e03d6293963a8ca88d1be53812081a11a82ad7a3b3eae"
+    },
+    {
+      "path": "evidence/root/native-edit-retake/edit-second-spacing.png",
+      "bytes": 281675,
+      "sha256": "8b22485cad27ba02d8277f43db3603778c680e773606c1603e31d3f6bc678812"
+    },
+    {
+      "path": "evidence/root/native-edit-retake/edited.bcad",
+      "bytes": 1876,
+      "sha256": "3318d3b405fce376ec71639c6445e1349effb326ce376c20df075bef9528376f"
+    },
+    {
+      "path": "evidence/root/native-edit-retake/receipt.json",
+      "bytes": 24535,
+      "sha256": "87ecd8c7796b5322b6b6cfed59091af4906b2d5092a83d7aa45a26efb77cc918"
+    },
+    {
+      "path": "evidence/root/native-edit-retake/resume-original-accepted.png",
+      "bytes": 281982,
+      "sha256": "8799152a1fb7d3d607f28edff036c991f62121f2f8ecb58921d91c0d8b286594"
+    },
+    {
+      "path": "evidence/root/native-edit-retake.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "evidence/root/native-edit-retake.txt",
+      "bytes": 245,
+      "sha256": "0279b4732b7cb9f52974e7058402e4df0dbf016405de25cfe85eb15be2cdc205"
+    },
+    {
+      "path": "evidence/root/native-first/01-open-seed.png",
+      "bytes": 268602,
+      "sha256": "a293e691ad00b33ea6b55d06f36f14e6a805c243b76be83d3a11d562600f20f5"
+    },
+    {
+      "path": "evidence/root/native-first/02-valid-preview.png",
+      "bytes": 274777,
+      "sha256": "b7ce3a4e49b89158eab20298cf88eb602dae888b0121e01aaa79f09c0c2bbb75"
+    },
+    {
+      "path": "evidence/root/native-first/03-same-axis-refused.png",
+      "bytes": 267847,
+      "sha256": "daa479be32e3f9f4f6d55efd6dfecac9f1772e5e16ea0ac82cb51eb39ff0d18f"
+    },
+    {
+      "path": "evidence/root/native-first/03b-cancel-preserves-seed.png",
+      "bytes": 268604,
+      "sha256": "2998b41fd994f8cd4721a4bf96eac2b7128ccde1e78b3f8e4fa8188da539f976"
+    },
+    {
+      "path": "evidence/root/native-first/04-product-refused.png",
+      "bytes": 270156,
+      "sha256": "a78a189e0e01045cd3bf0dd6c835b9c1f45c7787fe3c265131bf65bdb1e47626"
+    },
+    {
+      "path": "evidence/root/native-first/05-repaired-preview.png",
+      "bytes": 274914,
+      "sha256": "93b473a67a62d1795f35b283d9f4dc38d5564cc761efb620e7e2b0fc6ae20754"
+    },
+    {
+      "path": "evidence/root/native-first/06-applied.png",
+      "bytes": 281323,
+      "sha256": "4b65e2eb4b4f5f68c1a57287a3a733cb6682da06d2051e73f3a974e8e5ac2102"
+    },
+    {
+      "path": "evidence/root/native-first/07-undo.png",
+      "bytes": 248900,
+      "sha256": "1ba39ab89f072bce5fbe1ac775566faba3d6820745e7c5e75137590bbb67dc7f"
+    },
+    {
+      "path": "evidence/root/native-first/08-redo.png",
+      "bytes": 261851,
+      "sha256": "475e558ad9e3037bdb6c3544322c8906132aef6b51a20060d54275ecbc34b24f"
+    },
+    {
+      "path": "evidence/root/native-first/09-fresh-open.png",
+      "bytes": 282000,
+      "sha256": "d082dcf05499447a62d3908cb046fb334921758e49d7b0ba901fd032c9207b8a"
+    },
+    {
+      "path": "evidence/root/native-first/accepted.bcad",
+      "bytes": 1876,
+      "sha256": "ff80362274bb554c67dbdb8e5901a6b7a370436a7115885a61eda39b0e262075"
+    },
+    {
+      "path": "evidence/root/native-first/edit-second-spacing.png",
+      "bytes": 271367,
+      "sha256": "0697611110387b11a428c3bba1c3631c138fe51543e903beee84a0186b8b5c3a"
+    },
+    {
+      "path": "evidence/root/native-first/failure.png",
+      "bytes": 281574,
+      "sha256": "67955e1024f86b3e5326180d0860b1afa57a20ec6b4b4b5cd6c92a102cbee436"
+    },
+    {
+      "path": "evidence/root/native-first/receipt.json",
+      "bytes": 50312,
+      "sha256": "e166cb3b6b16a36380960d6421a3a737f673f5e60081c4e2acc41923bf88ff1d"
+    },
+    {
+      "path": "evidence/root/native-first/seed-generator-metafile.json",
+      "bytes": 804725,
+      "sha256": "f09a2f6b2a259042d06238a7413bdf14b5c7042fd7fd210af7546237c80a8210"
+    },
+    {
+      "path": "evidence/root/native-first/seed-generator.mjs.gz",
+      "bytes": 1377033,
+      "sha256": "cf6d278e66030d563b94b5e88285bc49e226fd2f4de6b94799fe5492f5ee8096"
+    },
+    {
+      "path": "evidence/root/native-first/seed-generator.stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/root/native-first/seed-generator.stdout.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/root/native-first/seed-generator.ts",
+      "bytes": 1041,
+      "sha256": "138cbf2903667ba2b1ae2cf4f0c4a69a01c26cf46d3ce9bad88e893ded96d320"
+    },
+    {
+      "path": "evidence/root/native-first/seed.bcad",
+      "bytes": 1613,
+      "sha256": "eab2047664f370b1cb3a3e01a542cfdd063db9ee5125c0c0e34608498da9266d"
+    },
+    {
+      "path": "evidence/root/native-first.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "evidence/root/native-first.txt",
+      "bytes": 1012,
+      "sha256": "98b6401097004b53d5fe1cd7d4315e83554c2ca28d749feec5b7196d350f31ef"
+    },
+    {
+      "path": "evidence/root/native-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/root/native-source-after.txt",
+      "bytes": 65,
+      "sha256": "1a390387ee2b457cc1f272780328de34451b8e857228b723accfa76d46bbc724"
+    },
+    {
+      "path": "evidence/root/native-source-before.txt",
+      "bytes": 65,
+      "sha256": "1a390387ee2b457cc1f272780328de34451b8e857228b723accfa76d46bbc724"
+    },
+    {
+      "path": "evidence/root/refusals-check.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "evidence/root/refusals-check.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/root/retake-acquire.txt",
+      "bytes": 44,
+      "sha256": "e4ac40e15bd215fdb304e9a332704cd4eb0734fa5105fcf9fcc4d311f2c537ac"
+    },
+    {
+      "path": "evidence/root/retake-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/root/retake-source-after.txt",
+      "bytes": 65,
+      "sha256": "1a390387ee2b457cc1f272780328de34451b8e857228b723accfa76d46bbc724"
+    },
+    {
+      "path": "evidence/root/retake-source-before.txt",
+      "bytes": 65,
+      "sha256": "1a390387ee2b457cc1f272780328de34451b8e857228b723accfa76d46bbc724"
+    },
+    {
+      "path": "evidence/root/source-watch/events.jsonl",
+      "bytes": 18518,
+      "sha256": "66ccea06d0d7225f791498217000ae494bac60d09e804bb0d382d9ecff81c91a"
+    },
+    {
+      "path": "evidence/root/studio-build.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "evidence/root/studio-build.txt",
+      "bytes": 19003,
+      "sha256": "e39057fecb9935477ef3d7192b5d94ac68beab602a2547eb5a86136462f0f5be"
+    },
+    {
+      "path": "evidence/root/studio-chat.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "evidence/root/studio-chat.txt",
+      "bytes": 6643,
+      "sha256": "409d18a1ba1cc2f41f88b26bd6c561d9d385eca4c282b68f3ddd8a5116d1d238"
+    },
+    {
+      "path": "evidence/root/studio-types.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "evidence/root/studio-types.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "evidence/root/verify.py",
+      "bytes": 330,
+      "sha256": "756b37eee06af4dee8237d22f41a9be0be5baaff50389dc2262c3ba3dbc6bc3b"
+    },
+    {
+      "path": "evidence/root/watch-source.py",
+      "bytes": 780,
+      "sha256": "ee42151eacda6d6aa67519361396107db53d67336bdbca7c0518650ab8a25d80"
+    },
+    {
+      "path": "evidence/root/watcher-pid.json",
+      "bytes": 102,
+      "sha256": "f0910dee7cce083d5b395489ed8ff685cdd7d369a5844e90d98f8ba96132b426"
+    },
+    {
+      "path": "evidence/root/watcher-stopped-for-driver-change.json",
+      "bytes": 295,
+      "sha256": "4fd52f8c9153d97680e39baeecd56404f49d10296ea017cdfdac5d934ffed536"
+    },
+    {
+      "path": "qualification.json",
+      "bytes": 6969,
+      "sha256": "f624293bed80984f2ef08da75aa4dd33db6ca3e894a1ef87b19f439c7eceffd0"
+    },
+    {
+      "path": "source-provenance.json",
+      "bytes": 70687,
+      "sha256": "805df57522a42d21eea84041b536fec9ee9d0fbdca7357857fdaedee74606d80"
+    }
+  ]
+}

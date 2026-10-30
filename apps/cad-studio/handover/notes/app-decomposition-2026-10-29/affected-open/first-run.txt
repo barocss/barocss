@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: D326 late Open ownership: project-to-B
+ok 1 - D326 late Open ownership: project-to-B
+  ---
+  duration_ms: 12364.584375
+  type: 'test'
+  ...
+# Subtest: D326 late Open ownership: project-to-new
+ok 2 - D326 late Open ownership: project-to-new
+  ---
+  duration_ms: 15416.713208
+  type: 'test'
+  ...
+# Subtest: D326 late Open ownership: project-to-close
+ok 3 - D326 late Open ownership: project-to-close
+  ---
+  duration_ms: 11912.997083
+  type: 'test'
+  ...
+# Subtest: D326 late Open ownership: file-to-new
+ok 4 - D326 late Open ownership: file-to-new
+  ---
+  duration_ms: 12225.430667
+  type: 'test'
+  ...
+# Subtest: D326 late Open ownership: file-to-project-B
+ok 5 - D326 late Open ownership: file-to-project-B
+  ---
+  duration_ms: 12612.9415
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 64931.515958

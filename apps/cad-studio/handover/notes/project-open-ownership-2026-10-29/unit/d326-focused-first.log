@@ -1,0 +1,162 @@
+TAP version 13
+# Subtest: document receipts preserve dirty/recovery for ABA, old render, mismatched document and renamed file
+ok 1 - document receipts preserve dirty/recovery for ABA, old render, mismatched document and renamed file
+  ---
+  duration_ms: 0.685083
+  type: 'test'
+  ...
+# Subtest: out-of-order success cannot move a current file tag backwards
+ok 2 - out-of-order success cannot move a current file tag backwards
+  ---
+  duration_ms: 0.119709
+  type: 'test'
+  ...
+# Subtest: actual hook: late Save retains newer recovery, advances its tag, and keeps saved-equal checkpoint hidden
+ok 3 - actual hook: late Save retains newer recovery, advances its tag, and keeps saved-equal checkpoint hidden
+  ---
+  duration_ms: 5.222666
+  type: 'test'
+  ...
+# Subtest: actual hook: close invalidates a held Save receipt and preserves the next file binding
+ok 4 - actual hook: close invalidates a held Save receipt and preserves the next file binding
+  ---
+  duration_ms: 0.688584
+  type: 'test'
+  ...
+# Subtest: actual hook: detach invalidates a held Save receipt and preserves the next file binding
+ok 5 - actual hook: detach invalidates a held Save receipt and preserves the next file binding
+  ---
+  duration_ms: 0.705792
+  type: 'test'
+  ...
+# Subtest: actual hook: use invalidates a held Save receipt and preserves the next file binding
+ok 6 - actual hook: use invalidates a held Save receipt and preserves the next file binding
+  ---
+  duration_ms: 1.149417
+  type: 'test'
+  ...
+# Subtest: actual hook: openPart invalidates a held Save receipt and preserves the next file binding
+ok 7 - actual hook: openPart invalidates a held Save receipt and preserves the next file binding
+  ---
+  duration_ms: 1.025417
+  type: 'test'
+  ...
+# Subtest: actual hook: session change during versions read suppresses stale log errors and completion
+ok 8 - actual hook: session change during versions read suppresses stale log errors and completion
+  ---
+  duration_ms: 0.748542
+  type: 'test'
+  ...
+# Subtest: actual hook: detach during parts refresh suppresses stale completion and permits the next Save
+ok 9 - actual hook: detach during parts refresh suppresses stale completion and permits the next Save
+  ---
+  duration_ms: 1.220292
+  type: 'test'
+  ...
+# Subtest: project Open unchanged control publishes the requested document, log and autosave offer
+ok 10 - project Open unchanged control publishes the requested document, log and autosave offer
+  ---
+  duration_ms: 6.589
+  type: 'test'
+  ...
+# Subtest: delayed project Open A cannot replace a newer close owner
+ok 11 - delayed project Open A cannot replace a newer close owner
+  ---
+  duration_ms: 1.877625
+  type: 'test'
+  ...
+# {"action":"close","oldOpenAccepted":false,"callbacks":[],"current":{"L":30},"errors":[]}
+# Subtest: delayed project Open A cannot replace a newer New owner
+ok 12 - delayed project Open A cannot replace a newer New owner
+  ---
+  duration_ms: 1.427541
+  type: 'test'
+  ...
+# {"action":"New","oldOpenAccepted":false,"callbacks":[],"current":{"L":30},"errors":[]}
+# Subtest: delayed project Open A cannot replace a newer Open B owner
+ok 13 - delayed project Open A cannot replace a newer Open B owner
+  ---
+  duration_ms: 1.03575
+  type: 'test'
+  ...
+# {"action":"Open B","oldOpenAccepted":false,"callbacks":["b.bcad"],"current":{"L":20},"errors":[]}
+# Subtest: Open B retains current metadata after superseded A finishes its versions await
+ok 14 - Open B retains current metadata after superseded A finishes its versions await
+  ---
+  duration_ms: 2.485375
+  type: 'test'
+  ...
+# {"stage":"versions","oldOpenAccepted":false,"callbacks":["a.bcad","b.bcad"],"head":"B","offered":{"L":202},"linked":[],"errors":[]}
+# Subtest: Open B retains current metadata after superseded A finishes its autosave await
+ok 15 - Open B retains current metadata after superseded A finishes its autosave await
+  ---
+  duration_ms: 1.079458
+  type: 'test'
+  ...
+# {"stage":"autosave","oldOpenAccepted":false,"callbacks":["a.bcad","b.bcad"],"head":"B","offered":{"L":202},"linked":[],"errors":[]}
+# Subtest: Open B retains current metadata after superseded A finishes its linked await
+ok 16 - Open B retains current metadata after superseded A finishes its linked await
+  ---
+  duration_ms: 1.685417
+  type: 'test'
+  ...
+# {"stage":"linked","oldOpenAccepted":false,"callbacks":["a.bcad","b.bcad"],"head":"B","offered":{"L":202},"linked":[],"errors":[]}
+# Subtest: a late folder project cannot replace a newer accepted folder/path
+ok 17 - a late folder project cannot replace a newer accepted folder/path
+  ---
+  duration_ms: 0.600709
+  type: 'test'
+  ...
+# {"origin":"folder","oldFiles":[],"current":{"L":30},"errors":[]}
+# Subtest: close supersedes a pending folder project selection
+ok 18 - close supersedes a pending folder project selection
+  ---
+  duration_ms: 1.483917
+  type: 'test'
+  ...
+# Subtest: a superseded folder selection error cannot replace the newer folder's status
+ok 19 - a superseded folder selection error cannot replace the newer folder's status
+  ---
+  duration_ms: 1.416042
+  type: 'test'
+  ...
+# Subtest: a late browser project cannot replace a newer accepted folder/path
+ok 20 - a late browser project cannot replace a newer accepted folder/path
+  ---
+  duration_ms: 0.475667
+  type: 'test'
+  ...
+# {"origin":"browser","oldFiles":[],"current":{"L":30},"errors":[]}
+# Subtest: close supersedes a pending browser project selection
+ok 21 - close supersedes a pending browser project selection
+  ---
+  duration_ms: 0.079833
+  type: 'test'
+  ...
+# Subtest: a superseded browser selection error cannot replace the newer folder's status
+ok 22 - a superseded browser selection error cannot replace the newer folder's status
+  ---
+  duration_ms: 0.180375
+  type: 'test'
+  ...
+# Subtest: a stale folder refresh error cannot replace the current folder or its error status
+ok 23 - a stale folder refresh error cannot replace the current folder or its error status
+  ---
+  duration_ms: 0.332333
+  type: 'test'
+  ...
+# Subtest: cancelled folder picker preserves the already accepted document/path and its next Save
+ok 24 - cancelled folder picker preserves the already accepted document/path and its next Save
+  ---
+  duration_ms: 0.321584
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 113.444459

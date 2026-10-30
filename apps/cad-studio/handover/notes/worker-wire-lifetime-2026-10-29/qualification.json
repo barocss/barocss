@@ -1,0 +1,152 @@
+{
+  "status": "QUALIFIED_BOUNDED_WORKER_WIRE_LIFETIME",
+  "baseline": "3420adb4fde2c10a6537e4371fa301249a5e2038",
+  "sourceCommit": "2ae76183101af2d07688e0bade97cd44e29484e3",
+  "apiAndDriverCommit": "e88e6af9f9a923a6e8529eed549c45f80919fe90",
+  "productionProfile": "final-source/profile.json",
+  "baselineUnit": {
+    "model": {
+      "pass": 0,
+      "fail": 2,
+      "skip": 0,
+      "exit": 1
+    },
+    "studio": {
+      "pass": 2,
+      "fail": 8,
+      "skip": 0,
+      "exit": 1
+    }
+  },
+  "focusedUnit": {
+    "model": {
+      "pass": 12,
+      "fail": 0,
+      "skip": 0,
+      "exit": 0
+    },
+    "studio": {
+      "pass": 17,
+      "fail": 0,
+      "skip": 0,
+      "exit": 0
+    },
+    "overlapsFullSuites": true
+  },
+  "fullSuites": {
+    "cadModel": {
+      "pass": 1853,
+      "fail": 0,
+      "skip": 0,
+      "exit": 0
+    },
+    "studio": {
+      "pass": 476,
+      "fail": 0,
+      "skip": 0,
+      "exit": 0
+    }
+  },
+  "buildIncludingStudioTypes": {
+    "exit": 0,
+    "existingBundlerWarningsRetained": true
+  },
+  "modelTypes": {
+    "exit": 0
+  },
+  "firstTypes": {
+    "modelExit": 0,
+    "studioExit": 0
+  },
+  "scopedLint": {
+    "exit": 0
+  },
+  "nativeDriverLint": {
+    "exit": 0
+  },
+  "api": {
+    "before": "FAIL",
+    "after": "SCOPED_PASS",
+    "added": "WireSender.dispose(): void",
+    "otherChanges": 0,
+    "checkedRules": [
+      "EX001",
+      "EX002",
+      "EX003",
+      "DA001",
+      "IV001",
+      "IV002"
+    ],
+    "scopeLimits": "api-reviewed-check.json",
+    "firstHarnessFailure": "api-review-first-failure.txt",
+    "firstHarnessFailureProvenance": "Root-preserved explanatory excerpt; original complete tool log is not available in this bundle. Incorrect harness expectation PASS versus actual SCOPED_PASS; not a product or policy failure.",
+    "secondExit": 0,
+    "candidateDuplicate": "api-candidate.json equals api-candidate-reviewed.json byte-for-byte; only reviewed copy retained, gzip encoded."
+  },
+  "native": {
+    "serial": true,
+    "lifecycle": {
+      "pass": 1,
+      "fail": 0,
+      "skip": 0,
+      "exit": 0,
+      "committedMountUnmountCycles": 3,
+      "controlledFailureAndPublicRetry": true,
+      "unusedConstructionNoNativeWorker": true
+    },
+    "importStageRegression": {
+      "pass": 2,
+      "fail": 0,
+      "skip": 0,
+      "exit": 0,
+      "cases": [
+        "step-stage-stop",
+        "mesh-diagnose-stop-retry"
+      ]
+    },
+    "mainRegression": {
+      "selected": 2,
+      "starter": 1,
+      "passIncludingStarter": 3,
+      "fail": 0,
+      "exit": 0,
+      "flows": [
+        55,
+        322
+      ]
+    },
+    "uniqueSelectedPass": 5,
+    "starterPass": 1,
+    "cleanup": "Lifecycle and stage receipts report context/browser/server CLOSED. Root reports all three browser invocations were sequential.",
+    "boundary": "Real App committed root; native Worker subclass delegates constructor and terminate. ErrorEvent is controlled. Import gates delay original native returns, without fabricated bytes or results. Finite observation does not prove general promise completion or driver memory release."
+  },
+  "sourceWatch": {
+    "events": 21,
+    "allMatch": true,
+    "scopedProductionFiles": 3,
+    "scopedExecutedDriversAndFixture": 4,
+    "postRunChecks": 3,
+    "scope": "Metadata watcher plus hashes for listed files only, not the full dependency graph or product checksum testing."
+  },
+  "sourceReview": {
+    "claim": "Root reports final source review separately. No raw review receipt is present; this bundle makes no independent formal review PASS claim."
+  },
+  "docs": {
+    "exit": 0,
+    "pages": 68,
+    "shots": 55,
+    "shotKB": 4811,
+    "labels": 860,
+    "receiptBoundary": "Existing /tmp/d330/docs-final receipt collected before this evidence note was assembled; no post-note docs gate rerun."
+  },
+  "notQualified": [
+    "React StrictMode effect replay",
+    "Natural worker/OS/driver crash",
+    "OOM or heap/RSS/performance improvement",
+    "Full kernel, GPU, Viewer or browser suites",
+    "Remote CI",
+    "Every A05 asynchronous path or full A06 resource lifetime",
+    "General blob GC or native driver allocation release"
+  ],
+  "artifacts": "manifest.json"
+}

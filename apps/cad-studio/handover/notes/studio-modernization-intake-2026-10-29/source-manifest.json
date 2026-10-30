@@ -1,0 +1,30 @@
+{
+  "kind": "Read-only proposal intake; exact incoming document copies, no product execution",
+  "copiedAtUTC": "2026-10-29T07:46:10.700251+00:00",
+  "sources": [
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/studio-modernization-20261029/review.md",
+      "copy": "sources/review.md",
+      "sha256": "6064fbbea8035923c9ec57a2a7c133321879430ee12edc3b20a976190e63adea",
+      "bytes": 12736,
+      "lines": 108,
+      "fullyRead": true
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/studio-modernization-20261029/source-review.md",
+      "copy": "sources/source-review.md",
+      "sha256": "9a766889f913ee22a31c0d72d7f3a41e428d010b539c63a787c59c305084ca1e",
+      "bytes": 21314,
+      "lines": 185,
+      "fullyRead": true
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/studio-modernization-20261029/runtime-evidence.json",
+      "copy": "sources/runtime-evidence.json",
+      "sha256": "32656bc45647ea5bdbfc51b72ad70d2c6c8be14cb9de7937284656ab456cc7c8",
+      "bytes": 6836,
+      "lines": 152,
+      "fullyRead": true
+    }
+  ]
+}

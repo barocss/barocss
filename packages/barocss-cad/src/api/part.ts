@@ -8,10 +8,10 @@
 // body that body is meant. The choice is the facade's view of the document, never written into it: `.doc` is the same
 // with or without it. It follows the body through the verbs that replace it (a fillet's result is the filleted body).
 import {
-  booleanSpec, boxSpec, chamferSpec, circularPatternSpec, cylinderSpec, extrudeSpec, filletSpec, holeSpec, linearFeaturePatternSpec, linearPatternSpec, mirrorSpec, moveSpec, revolveSpec, rotateSpec, scaleSpec, shellSpec, splitSpec,
-  type BooleanCommand, type BoxOptions, type ChamferOptions, type CircularPatternOptions, type CylinderOptions, type ExtrudeOptions, type FeatureSpec, type FilletOptions,
-  type HoleOptions, type LinearPatternOptions, type MirrorOptions, type RevolveOptions, type ScaleOptions, type ShellOptions, type SplitOptions,
-  type Bound, type Resolved, isParam,
+  sewSpec, thickenSpec, booleanSpec, cylindricalWrapSpec, boxSpec, chamferSpec, circularPatternSpec, fillFeaturePatternSpec, curveFeaturePatternSpec, cylinderSpec, extrudeSpec, filletSpec, holeSpec, linearFeaturePatternSpec, rectangularFeaturePatternSpec, linearPatternSpec, mirrorSpec, moveSpec, revolveSpec, rotateSpec, scaleSpec, shellSpec, splitSpec,
+  type BooleanCommand, type CylindricalWrapOptions, type BoxOptions, type ChamferOptions, type CircularPatternOptions, type CylinderOptions, type ExtrudeOptions, type FeatureSpec, type FilletOptions,
+  type HoleOptions, type RectangularFeaturePatternOptions, type FillFeaturePatternOptions, type CurveFeaturePatternOptions, type LinearPatternOptions, type MirrorOptions, type RevolveOptions, type ScaleOptions, type ShellOptions, type SplitOptions,
+  type RawNurbsSurface, type SewOptions, type ThickenOptions, type Bound, type Resolved, isParam,
 } from './spec.js';
 import type { BodyQuery, EdgeQuery, FaceQuery } from './select.js';
 import { Location, type Sketch } from './sketch.js';
@@ -148,6 +148,12 @@ export class Part<D> {
   /** `revolve`: a finished sketch turned about its plane's Y axis (or X), a body of its own. */
   revolve(profile: Sketch, options?: RevolveOptions): this { return this.#make(this.#spec(options ?? {}, o => revolveSpec(profile, o))); }
 
+  /** `sew`: copy ordered whole surfaces into a new closed body, retaining the current body choice. */
+  sew(surfaces: readonly RawNurbsSurface[], options: SewOptions = {}): this { return this.#make(this.#spec(options, o => sewSpec(surfaces, o))); }
+
+  /** `thicken`: copy one whole surface into a new body, retaining the current body choice. */
+  thicken(surface: RawNurbsSurface, options: ThickenOptions): this { return this.#make(this.#spec(options, o => thickenSpec(surface, o))); }
+
   /** `hole`: a round hole into the one flat face a selector picks, at (x, y) on that face's plane; through unless blind. */
   hole(face: (body: BodyQuery) => FaceQuery, options: HoleOptions): this {
     const picked = face(this.select());
@@ -163,6 +169,15 @@ export class Part<D> {
       const picked = edges(this.select()), spec = filletSpec(picked.names(), o, picked.list());
       if (o.endRadius !== undefined && (isParam(options.radius) || (o.endRadius === o.radius && isParam(options.endRadius)))) throw refuse('PARAMETER_UNBINDABLE', 'an explicit fillet endRadius can bind only while varying; its start radius must be numeric');
       return spec;
+    }));
+  }
+
+  /** Add a tolerance-qualified closed-reference pad over one strict original-UV rectangle. */
+  cylindricalWrap(faces: (body: BodyQuery) => FaceQuery, options: CylindricalWrapOptions): this {
+    return this.#act(this.#spec(options, o => {
+      const picked = faces(this.select());
+      if (picked.count !== 1) throw refuse('SELECTION_ONE', 'cylindrical wrap needs exactly one original positive-Y cylinder wall');
+      return cylindricalWrapSpec(picked.names()[0], o);
     }));
   }
 
@@ -190,6 +205,12 @@ export class Part<D> {
   linearPattern(options: LinearPatternOptions): this { return this.#act(this.#spec(options, o => linearPatternSpec(o))); }
   /** Repeat the current difference's cut along an axis, including the original cut. */
   linearFeaturePattern(options: LinearPatternOptions): this { return this.#act(this.#spec(options, o => linearFeaturePatternSpec(o))); }
+  /** Repeat the current difference's cut on two distinct global axes. */
+  rectangularFeaturePattern(options: RectangularFeaturePatternOptions): this { return this.#act(this.#spec(options, o => rectangularFeaturePatternSpec(o))); }
+  /** Repeat the original CUT tool on a finite XY grid, masked by reference points in a region snapshot. */
+  fillFeaturePattern(options: FillFeaturePatternOptions): this { return this.#act(this.#spec(options, o => fillFeaturePatternSpec(o))); }
+  /** Repeat a difference's cut along an open polyline without rotating its tool. */
+  curveFeaturePattern(options: CurveFeaturePatternOptions): this { return this.#act(this.#spec(options, o => curveFeaturePatternSpec(o))); }
   /** `circular-pattern`: copies of the body round an axis, joined into one body. */
   circularPattern(options: CircularPatternOptions): this { return this.#act(this.#spec(options, o => circularPatternSpec(o))); }
 

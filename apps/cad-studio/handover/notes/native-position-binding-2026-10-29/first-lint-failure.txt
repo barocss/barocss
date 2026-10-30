@@ -1,0 +1,6 @@
+
+/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/cylindrical-wrap-native-position.test.mjs
+  46:207  error  Parsing error: ')' expected
+
+✖ 1 problem (1 error, 0 warnings)
+

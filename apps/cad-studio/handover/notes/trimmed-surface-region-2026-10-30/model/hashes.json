@@ -1,0 +1,35 @@
+{
+  "status": "MODEL_FOCUSED_TYPES_LINT_PASS_SOURCE_FROZEN",
+  "files": [
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/src/engine/direct.ts",
+      "sha256": "640e2305b0501b62fe8683df67c3fe70f28cac2ee280cebfd9876a4bacafe1cf",
+      "bytes": 44809
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/README.md",
+      "sha256": "58d4b9ff93ee11eae53be9aadea74147225b21a06a80a436d8f2d25f761dd381",
+      "bytes": 13718
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/test/direct-trim-region.test.ts",
+      "sha256": "02d54df6d6fb2ec4bb29e7537de202bad00daec73082b945c1f0faeb517c8111",
+      "bytes": 18863
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/test/direct-trim-guards.test.ts",
+      "sha256": "e6032e55dcfe80d2c625473cf08ffaa6e0cce9fe895ca8ac93fb328002bf5242",
+      "bytes": 7481
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/test/direct-trim-split.test.ts",
+      "sha256": "2a5384d7616a7eef89a6eb85432422e3eb479a4417c1a3f57823d37820181c0d",
+      "bytes": 16761
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/test/helpers/trimSplitOracle.ts",
+      "sha256": "b23882d5b38580e3db7dc914f9a2a7f7c1a8bcc5672c510a61bac93595b086d3",
+      "bytes": 8164
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: unsupported STEP length declarations refuse reference admission before evaluation and preserve accepted state
+ok 1 - unsupported STEP length declarations refuse reference admission before evaluation and preserve accepted state
+  ---
+  duration_ms: 24.11975
+  type: 'test'
+  ...
+# Subtest: supported STEP references keep exact source text and physical scale through the document codec
+ok 2 - supported STEP references keep exact source text and physical scale through the document codec
+  ---
+  duration_ms: 13.122917
+  type: 'test'
+  ...
+# Subtest: STEP length units: millimetres, metres, inches, none declared
+ok 3 - STEP length units: millimetres, metres, inches, none declared
+  ---
+  duration_ms: 0.984792
+  type: 'test'
+  ...
+# Subtest: PDF: characters its standard fonts cannot show are found
+ok 4 - PDF: characters its standard fonts cannot show are found
+  ---
+  duration_ms: 0.131667
+  type: 'test'
+  ...
+# Subtest: STEP supported prefixes and no-prefix declarations retain their exact factors in either entity order
+ok 5 - STEP supported prefixes and no-prefix declarations retain their exact factors in either entity order
+  ---
+  duration_ms: 0.1995
+  type: 'test'
+  ...
+# Subtest: STEP declared unsupported SI length prefixes are typed refusals even beside supported length declarations
+ok 6 - STEP declared unsupported SI length prefixes are typed refusals even beside supported length declarations
+  ---
+  duration_ms: 0.552041
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 175.982417

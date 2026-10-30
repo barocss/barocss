@@ -1,0 +1,241 @@
+{
+  "boundary": "Kernel public Curve160 samples and new public helper; actual Model trimByCurve producer is separate forthcoming evidence",
+  "results": {
+    "inside": {
+      "componentCounts": {
+        "lower": 1,
+        "upper": 2
+      },
+      "comparisons": [
+        {
+          "side": "lower",
+          "expected": [
+            {
+              "numerator": "5404319552844595825",
+              "denominator": "36028797018963968"
+            },
+            {
+              "numerator": "194711132195056058443776561122377725",
+              "denominator": "7788445287802242343515669967929344"
+            },
+            {
+              "numerator": "693658408444887311626615841934553",
+              "denominator": "243388915243820073234864686497792"
+            }
+          ],
+          "actualStoredPolygon": [
+            {
+              "numerator": "5404319552844595825",
+              "denominator": "36028797018963968"
+            },
+            {
+              "numerator": "194711132195056058443776561122377725",
+              "denominator": "7788445287802242343515669967929344"
+            },
+            {
+              "numerator": "693658408444887311626615841934553",
+              "denominator": "243388915243820073234864686497792"
+            }
+          ],
+          "absoluteGaps": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "side": "upper",
+          "expected": [
+            {
+              "numerator": "405323966463344625",
+              "denominator": "9007199254740992"
+            },
+            {
+              "numerator": "288230376151711745",
+              "denominator": "9007199254740992"
+            },
+            {
+              "numerator": "12666373951979521",
+              "denominator": "1125899906842624"
+            }
+          ],
+          "actualStoredPolygon": [
+            {
+              "numerator": "405323966463344625",
+              "denominator": "9007199254740992"
+            },
+            {
+              "numerator": "288230376151711745",
+              "denominator": "9007199254740992"
+            },
+            {
+              "numerator": "12666373951979521",
+              "denominator": "1125899906842624"
+            }
+          ],
+          "absoluteGaps": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "side": "upper",
+          "expected": [
+            {
+              "numerator": "1621295865853378575",
+              "denominator": "36028797018963968"
+            },
+            {
+              "numerator": "648518346341351425",
+              "denominator": "36028797018963968"
+            },
+            {
+              "numerator": "12666373951979521",
+              "denominator": "1125899906842624"
+            }
+          ],
+          "actualStoredPolygon": [
+            {
+              "numerator": "1621295865853378575",
+              "denominator": "36028797018963968"
+            },
+            {
+              "numerator": "648518346341351425",
+              "denominator": "36028797018963968"
+            },
+            {
+              "numerator": "12666373951979521",
+              "denominator": "1125899906842624"
+            }
+          ],
+          "absoluteGaps": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "maximumWorldBoundaryBound": 8.881784197001252e-16,
+      "status": "PASS_SCOPED_KERNEL_STORED_MATERIAL"
+    },
+    "outside": {
+      "componentCounts": {
+        "lower": 2,
+        "upper": 1
+      },
+      "comparisons": [
+        {
+          "side": "lower",
+          "expected": [
+            {
+              "numerator": "720575940379279375",
+              "denominator": "36028797018963968"
+            },
+            {
+              "numerator": "900719925474099205",
+              "denominator": "36028797018963968"
+            },
+            {
+              "numerator": "7036874417766401",
+              "denominator": "1125899906842624"
+            }
+          ],
+          "actualStoredPolygon": [
+            {
+              "numerator": "720575940379279375",
+              "denominator": "36028797018963968"
+            },
+            {
+              "numerator": "900719925474099205",
+              "denominator": "36028797018963968"
+            },
+            {
+              "numerator": "7036874417766401",
+              "denominator": "1125899906842624"
+            }
+          ],
+          "absoluteGaps": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "side": "lower",
+          "expected": [
+            {
+              "numerator": "104145741382942725",
+              "denominator": "281474976710656"
+            },
+            {
+              "numerator": "134545038867693575",
+              "denominator": "4165829655317709"
+            },
+            {
+              "numerator": "-3739569270673273356715553927987",
+              "denominator": "9380614441688898021435566456832"
+            }
+          ],
+          "actualStoredPolygon": [
+            {
+              "numerator": "104145741382942725",
+              "denominator": "281474976710656"
+            },
+            {
+              "numerator": "134545038867693575",
+              "denominator": "4165829655317709"
+            },
+            {
+              "numerator": "-3739569270673273356715553927987",
+              "denominator": "9380614441688898021435566456832"
+            }
+          ],
+          "absoluteGaps": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "side": "upper",
+          "expected": [
+            {
+              "numerator": "20536414300809460525",
+              "denominator": "36028797018963968"
+            },
+            {
+              "numerator": "911248098672862195520511314730418185",
+              "denominator": "29596092093648515702801256339734528"
+            },
+            {
+              "numerator": "15223976648500943280965046433008821",
+              "denominator": "924877877926516115712539260616704"
+            }
+          ],
+          "actualStoredPolygon": [
+            {
+              "numerator": "20536414300809460525",
+              "denominator": "36028797018963968"
+            },
+            {
+              "numerator": "911248098672862195520511314730418185",
+              "denominator": "29596092093648515702801256339734528"
+            },
+            {
+              "numerator": "15223976648500943280965046433008821",
+              "denominator": "924877877926516115712539260616704"
+            }
+          ],
+          "absoluteGaps": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "maximumWorldBoundaryBound": 8.881784197001252e-16,
+      "status": "PASS_SCOPED_KERNEL_STORED_MATERIAL"
+    }
+  }
+}

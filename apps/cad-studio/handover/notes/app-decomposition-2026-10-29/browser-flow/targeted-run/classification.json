@@ -1,0 +1,11 @@
+{
+  "pass": 5,
+  "fail": 1,
+  "skip": 0,
+  "exit": 1,
+  "production45Unchanged": true,
+  "passed": "starter + hole + feature edit + mesh repair + full STEP mesh/large-file control",
+  "remainingFailure": "locator('.hint-bar .hint-title') absent; actual reopened Sketch Select + length60 observed in PNG. Original1266 App has no hint-bar/hint-title path either. Use real SketchPanel title; rerun full sketch case before acceptance.",
+  "rootViewed": "25 sketch failure PNG with actual Select and length60; no pending toast after readiness repair",
+  "cleanup": "Driver finally awaited own browser/server closure, shell exit/trap released gate"
+}

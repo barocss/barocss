@@ -28,11 +28,15 @@ import { addParameters, bindParameter, parameterUses, PARAMETER_CODES, removePar
 /** Commands the chat can run (the ones that build; sketch-mode and measure UI actions are tools of their own). */
 // (Loft takes sketches picked in the studio, Align a face clicked there; chat writes a loft node with
 // add_features, and moves with move or rotate, instead.)
-// (Not loft, align or a sweep along a curve: they need sketches, faces or curves picked in the viewport.)
-export const CHAT_COMMANDS = commands.filter(c => c.build && c.id !== 'loft' && c.id !== 'align' && c.id !== 'sweep-curve').map(c => c.id);
+// (Not loft, align, a sweep along a curve, thicken or sew: their picked-source contexts are not tool arguments.
+// Surface snapshots can be supplied as checked nodes through features.add or through the public Part API.)
+export const CHAT_COMMANDS = commands.filter(c => c.build && c.id !== 'loft' && c.id !== 'align' && c.id !== 'sweep-curve' && c.id !== 'thicken' && c.id !== 'sew').map(c => c.id);
 
 /** What each command needs selected and what its values mean. */
 export const COMMAND_DOCS: Record<string, { selection: string; values: Record<string, string> }> = {
+  text: { selection: 'none: creates a standalone solid', values: { text: 'one scalar run, without shaping or kerning', font: 'JSON FontSource descriptor of an already loaded static TTF, prepared by fontFromBytes or the Studio font chooser', size: 'em height in model units', height: 'positive extrusion height', tolerance: 'explicit quadratic-to-chord deviation', tracking: 'extra spacing between scalars' } },
+  'cylindrical-wrap': { selection: 'faces: [one selected merged cylinder wall]; the operation binds its original +Y native half and uses its first quarter', values: { u0: 'native U start, strictly above 0', u1: 'native U end, strictly below 0.5 and above u0', v0: 'native V start, strictly above 0', v1: 'native V end, strictly below 1 and above v0', height: 'positive outward height, must equal the source radius; one rectangle only, no text or holes' } },
+  'text-relief': { selection: 'faces: [one uniquely named flat +Z top face of one supported upright solid]', values: { text: 'one scalar run without shaping or kerning', font: 'JSON FontSource of an already loaded static TTF', size: 'em height', depth: 'positive relief depth; engrave keeps a bottom web', tolerance: 'quadratic chord deviation, also added to boundary clearance', tracking: 'extra scalar spacing', x: 'world X of the baseline', y: 'world Y of the baseline', mode: 'emboss | engrave' } },
   extrude: { selection: 'none: the newest finished sketch no feature uses yet', values: { h: 'distance along the sketch normal', draft: 'wall draft degrees (0: straight)', op: 'join | new | cut (only for a sketch drawn on a body face)', depth: 'distance | through (a cut only)' } },
   revolve: { selection: 'none: the newest finished sketch no feature uses yet', values: { axis: 'y | x: the sketch axis to turn about', deg: 'angle, up to 360', op: 'join | new | cut (sketch on a body face)' } },
   pipe: { selection: 'none: the newest finished sketch no feature uses yet', values: { h: 'straight run before and after the bend', bend: 'bend radius', bendAngle: 'bend angle', toward: 'x | -x | y | -y', op: 'join | new | cut (sketch on a body face)' } },
@@ -103,6 +107,9 @@ export const COMMAND_DOCS: Record<string, { selection: string; values: Record<st
   duplicate: { selection: 'bodies: [one body]', values: { dx: 'copy offset X', dy: 'copy offset Y', dz: 'copy offset Z' } },
   mirror: { selection: 'bodies: [one body]', values: { plane: 'yz | xz | xy; keeps the original', at: 'where the plane crosses its axis (yz: X; 0: through the origin)' } },
   'linear-pattern': { selection: 'bodies: [one body]', values: { axis: 'x | y | z', spacing: 'mm between copies', count: 'copies including the original', result: 'one (joined) | separate (each its own body)' } },
+  'fill-feature-pattern': { selection: 'bodies: [one current unsuppressed subtract result]', values: { region: 'stable sketch index to capture one closed straight world XY region snapshot; later sketch edits do not change it', anchorX: 'authored reference X', anchorY: 'authored reference Y', spacing: 'positive X distance at most 10000', count: 'columns 1–64', spacing2: 'positive Y distance at most 10000', count2: 'rows 1–64; count × count2 at most 64 including original' } },
+  'curve-feature-pattern': { selection: 'bodies: [one current unsuppressed subtract result]', values: { path: 'stable direct curve object id (open polyline or straight quadratic spans; fixed orientation)', spacing: 'positive distance at most 10000; total distance must fit the current path', count: 'whole number 1–64 including original' } },
+  'rectangular-feature-pattern': { selection: 'bodies: [one current unsuppressed subtract result]', values: { axis: 'x | y | z (first global direction)', spacing: 'positive distance between cuts (at most 10000)', count: 'whole number 1–64', axis2: 'x | y | z (different from axis)', spacing2: 'positive distance between cuts (at most 10000)', count2: 'whole number 1–64; count × count2 at most 64 including original' } },
   'linear-feature-pattern': { selection: 'bodies: [one current unsuppressed subtract result]', values: { axis: 'x | y | z', spacing: 'positive mm between cuts (at most 10000)', count: 'whole number 2–64, including the original cut' } },
   'circular-pattern': { selection: 'bodies: [one body]', values: { axis: 'z | x | y (quarter turns)', count: 'copies including the original', span: 'degrees the copies spread over about Z (360: an even full turn)', px: 'Z axis position X (default 0)', py: 'Z axis position Y (default 0)', result: 'one (joined) | separate (each its own body)' } },
   hollow: { selection: 'none: the part (one body): the kernel\u2019s exact closed shell first, else (planar faces) a voxel cavity; the print direction (axis-aligned) decides its bottom, where the drains go', values: { t: 'wall thickness', h: 'voxel size of the depth field: the drains\u2019 placement, and the cavity when the shell refuses (at most t/2)', drain: 'drain hole diameter, one into each cavity from the bottom' } },
@@ -156,7 +163,8 @@ async function runCommandTool(state: ChatState, args: Record<string, unknown>, e
   // (A command's own refusal — its build throws it — comes back as the tool's, the part unchanged; O14's typed ones among them.)
   let next: StudioDoc;
   try { next = cmd.build(ctx, values); } catch (e) { return fail(state, `${cmd.label}: ${e instanceof Error ? e.message : String(e)}`); }
-  const shown = Object.fromEntries(shownFields(fields, values).map(f => [f.key, values[f.key]]));
+  const shown: Values = {};
+  for (const field of shownFields(fields, values)) shown[field.key] = field.kind === 'file' ? field.filename(values[field.key]) ?? 'Font file' : values[field.key];
   // (O14: a mount reports its row's source and its output axis — for a concentric mate, or set_frames as it is.)
   if (cmd.id === 'mount') {
     const row = mountRowsOf(state.doc).get(String(values.row))!, f = selection.faces[0], face = state.bodies[f.body].mesh.faces[f.face], k = [0, 1, 2].find(i => Math.abs(Math.abs(face.normal[i]) - 1) < 1e-6)!;
@@ -199,7 +207,7 @@ async function editFeatureTool(state: ChatState, args: Record<string, unknown>, 
     next = nodes.map((n, i) => i === index ? { ...withFollowed(state.doc, args.feature as ModelNode), id: n.id } : n);
   } else {
     // (O167, F6: a part-scoped edit offers what the bearing command offers — the draft's context and its fit tables.)
-    const fields = editFields(nodes, index, undefined, undefined, { context: bearingContextOf(state.doc), fits: state.doc.fits }), given = isObj(args.values) ? args.values : {};
+    const fields = editFields(nodes, index, undefined, undefined, { context: bearingContextOf(state.doc), fits: state.doc.fits, doc: state.doc }), given = isObj(args.values) ? args.values : {};
     if (!Object.keys(given).length) return fail(state, `Pass "values" or a whole "feature". Feature ${index}'s values: ${fields.map(f => `${f.key} (${f.label} = ${String(f.get(nodes))})`).join(', ') || 'none — replace it with "feature"'}.`);
     next = [...nodes];
     for (const [key, v] of Object.entries(given)) {

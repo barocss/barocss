@@ -1,0 +1,406 @@
+TAP version 13
+# Subtest: one bound reference contains both complete actual child results under one final ledger
+ok 1 - one bound reference contains both complete actual child results under one final ledger
+  ---
+  duration_ms: 186.414375
+  type: 'test'
+  ...
+# Subtest: clockwise and rotated starts derive actual rectangle min/max without assuming native ID rotation
+ok 2 - clockwise and rotated starts derive actual rectangle min/max without assuming native ID rotation
+  ---
+  duration_ms: 110.509416
+  type: 'test'
+  ...
+# Subtest: exact total reservation succeeds and total minus one refuses without changing caller data
+ok 3 - exact total reservation succeeds and total minus one refuses without changing caller data
+  ---
+  duration_ms: 123.850208
+  type: 'test'
+  ...
+# Subtest: owned frozen results do not freeze or alias the original Part, ring or options
+ok 4 - owned frozen results do not freeze or alias the original Part, ring or options
+  ---
+  duration_ms: 30.775875
+  type: 'test'
+  ...
+# Subtest: fresh source checking refuses changed coefficients and metadata after an earlier successful request
+ok 5 - fresh source checking refuses changed coefficients and metadata after an earlier successful request
+  ---
+  duration_ms: 32.014792
+  type: 'test'
+  ...
+# Subtest: getters, inherited options and caller authority flags cannot supply wrapper inputs
+ok 6 - getters, inherited options and caller authority flags cannot supply wrapper inputs
+  ---
+  duration_ms: 11.371667
+  type: 'test'
+  ...
+# Subtest: original native and formal refusals propagate with their namespace and wording
+ok 7 - original native and formal refusals propagate with their namespace and wording
+  ---
+  duration_ms: 50.247958
+  type: 'test'
+  ...
+# Subtest: the separately measured Z0 reference pad accepts both complete source checks without a prefix deduction
+ok 8 - the separately measured Z0 reference pad accepts both complete source checks without a prefix deduction
+  ---
+  duration_ms: 30.733958
+  type: 'test'
+  ...
+# Subtest: fresh cap/whole-reference/mass proofs pass independent exact oracles, including signed cross inertia
+ok 9 - fresh cap/whole-reference/mass proofs pass independent exact oracles, including signed cross inertia
+  ---
+  duration_ms: 375.72575
+  type: 'test'
+  ...
+# Subtest: one actual source execution preserves all prior native geometry and formal numerical values
+ok 10 - one actual source execution preserves all prior native geometry and formal numerical values
+  ---
+  duration_ms: 89.404958
+  type: 'test'
+  ...
+# Subtest: clockwise and shifted start inputs retain the same closed region and mass
+ok 11 - clockwise and shifted start inputs retain the same closed region and mass
+  ---
+  duration_ms: 107.330083
+  type: 'test'
+  ...
+# Subtest: the final total cap passes and one fewer operation refuses after the actual prefix
+ok 12 - the final total cap passes and one fewer operation refuses after the actual prefix
+  ---
+  duration_ms: 81.421875
+  type: 'test'
+  ...
+# Subtest: an arithmetic-only budget can pass formal mass yet fail the complete geometric mass audit
+ok 13 - an arithmetic-only budget can pass formal mass yet fail the complete geometric mass audit
+  ---
+  duration_ms: 48.728833
+  type: 'test'
+  ...
+# Subtest: cap coefficients, orientations, ownership and original seam mutations fail their actual predicates
+ok 14 - cap coefficients, orientations, ownership and original seam mutations fail their actual predicates
+  ---
+  duration_ms: 54.755375
+  type: 'test'
+  ...
+# Subtest: the wrapped reference requires reciprocal uses, original rectangle parameters and outward sides
+ok 15 - the wrapped reference requires reciprocal uses, original rectangle parameters and outward sides
+  ---
+  duration_ms: 29.225208
+  type: 'test'
+  ...
+# Subtest: the final entry rejects supplied proof flags and never executes caller getters
+ok 16 - the final entry rejects supplied proof flags and never executes caller getters
+  ---
+  duration_ms: 4.073292
+  type: 'test'
+  ...
+# Subtest: actual affine caps: centered, off-center, anisotropic and Chrome one-ulp rectangles retain exact frames and whole-disk error
+ok 17 - actual affine caps: centered, off-center, anisotropic and Chrome one-ulp rectangles retain exact frames and whole-disk error
+  ---
+  duration_ms: 96.962584
+  type: 'test'
+  ...
+# Subtest: actual affine caps reject inverted spans, skew, wrong Z, wrong transpose, weights and orientation without rewriting inputs
+ok 18 - actual affine caps reject inverted spans, skew, wrong Z, wrong transpose, weights and orientation without rewriting inputs
+  ---
+  duration_ms: 0.916375
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap: public feature owns one nine-face reference and audits independent asymmetric mass at each density
+ok 19 - cylindrical wrap: public feature owns one nine-face reference and audits independent asymmetric mass at each density
+  ---
+  duration_ms: 282.685083
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap: document save/load and reevaluation restore owned provider; output copies supply no mass authority
+ok 20 - cylindrical wrap: document save/load and reevaluation restore owned provider; output copies supply no mass authority
+  ---
+  duration_ms: 120.79775
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap: native face and strict UV bounds refuse atomically without remapping
+ok 21 - cylindrical wrap: native face and strict UV bounds refuse atomically without remapping
+  ---
+  duration_ms: 178.812417
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap: shared public facade writes the same bounded recipe and preserves typed refusal
+ok 22 - cylindrical wrap: shared public facade writes the same bounded recipe and preserves typed refusal
+  ---
+  duration_ms: 362.097875
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap: actual display triangles retain the strict outer trim, source hole and outward side orientation
+ok 23 - cylindrical wrap: actual display triangles retain the strict outer trim, source hole and outward side orientation
+  ---
+  duration_ms: 45.866584
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap: public MMGS data is unchanged while native SI authority stays unavailable at both density branches
+ok 24 - cylindrical wrap: public MMGS data is unchanged while native SI authority stays unavailable at both density branches
+  ---
+  duration_ms: 94.449458
+  type: 'test'
+  ...
+# Subtest: actual native rays and all ten source/pad/raw moments enclose an independent complex-polar oracle
+ok 25 - actual native rays and all ten source/pad/raw moments enclose an independent complex-polar oracle
+  ---
+  duration_ms: 45.69225
+  type: 'test'
+  ...
+# Subtest: public MMGS values are audited against exact represented density divided by1000
+ok 26 - public MMGS values are audited against exact represented density divided by1000
+  ---
+  duration_ms: 66.682208
+  type: 'test'
+  ...
+# Subtest: negative source Z and asymmetric V preserve signed mixed moments and central inertia
+ok 27 - negative source Z and asymmetric V preserve signed mixed moments and central inertia
+  ---
+  duration_ms: 24.90575
+  type: 'test'
+  ...
+# Subtest: centered axial pad retains exact zero Z/XZ/YZ and nonzero angular moments
+ok 28 - centered axial pad retains exact zero Z/XZ/YZ and nonzero angular moments
+  ---
+  duration_ms: 20.375375
+  type: 'test'
+  ...
+# Subtest: aggregate limits only tighten, and impossible scalar precision is not widened
+ok 29 - aggregate limits only tighten, and impossible scalar precision is not widened
+  ---
+  duration_ms: 39.267334
+  type: 'test'
+  ...
+# Subtest: overflow, underflow, nonfinite input, invalid ranges, and radius overrides refuse
+ok 30 - overflow, underflow, nonfinite input, invalid ranges, and radius overrides refuse
+  ---
+  duration_ms: 40.874625
+  type: 'test'
+  ...
+# Subtest: all scalar budgets must be explicit positive finite values
+ok 31 - all scalar budgets must be explicit positive finite values
+  ---
+  duration_ms: 17.394416
+  type: 'test'
+  ...
+# Subtest: getters never supply authority and input/output snapshots do not alias
+ok 32 - getters never supply authority and input/output snapshots do not alias
+  ---
+  duration_ms: 11.645125
+  type: 'test'
+  ...
+# Subtest: actual rays around the diagonal exercise the bounded three-step angle reduction
+ok 33 - actual rays around the diagonal exercise the bounded three-step angle reduction
+  ---
+  duration_ms: 9.436875
+  type: 'test'
+  ...
+# Subtest: changed actual source coefficients or native metadata cannot borrow formal-circle authority
+ok 34 - changed actual source coefficients or native metadata cannot borrow formal-circle authority
+  ---
+  duration_ms: 8.464084
+  type: 'test'
+  ...
+# Subtest: tiny valid source refuses the overflowing existing native SI density intermediate
+ok 35 - tiny valid source refuses the overflowing existing native SI density intermediate
+  ---
+  duration_ms: 1.759167
+  type: 'test'
+  ...
+# Subtest: all returned raw midpoint Number bits equal generic nearest on positive, negative and zero moments
+ok 36 - all returned raw midpoint Number bits equal generic nearest on positive, negative and zero moments
+  ---
+  duration_ms: 20.488458
+  type: 'test'
+  ...
+# Subtest: exact per-face quotient bounds cover independent tensor derivatives without a native D1 call
+ok 37 - exact per-face quotient bounds cover independent tensor derivatives without a native D1 call
+  ---
+  duration_ms: 7.068417
+  type: 'test'
+  ...
+# Subtest: both actual native five-row half-walls retain full-domain Lipschitz bounds across the repeated knot
+ok 38 - both actual native five-row half-walls retain full-domain Lipschitz bounds across the repeated knot
+  ---
+  duration_ms: 14.723
+  type: 'test'
+  ...
+# Subtest: native cap residual matches an independent exact affine oracle for top and swapped bottom bases
+ok 39 - native cap residual matches an independent exact affine oracle for top and swapped bottom bases
+  ---
+  duration_ms: 7.603875
+  type: 'test'
+  ...
+# Subtest: affine residual is maximum per-pole L1 and unchanged exact canonical basis is mandatory
+ok 40 - affine residual is maximum per-pole L1 and unchanged exact canonical basis is mandatory
+  ---
+  duration_ms: 0.7915
+  type: 'test'
+  ...
+# Subtest: pcurve range uses exact hulls, actual rounded slack endpoints and exact zero Z
+ok 41 - pcurve range uses exact hulls, actual rounded slack endpoints and exact zero Z
+  ---
+  duration_ms: 0.370166
+  type: 'test'
+  ...
+# Subtest: slack alone cannot forgive the exact outside-domain clamp counterexample
+ok 42 - slack alone cannot forgive the exact outside-domain clamp counterexample
+  ---
+  duration_ms: 0.27475
+  type: 'test'
+  ...
+# Subtest: inflation includes both independent D0 terms and exact UV-to-world propagation once
+ok 43 - inflation includes both independent D0 terms and exact UV-to-world propagation once
+  ---
+  duration_ms: 0.258625
+  type: 'test'
+  ...
+# Subtest: endpoint point gaps honor the exact supplied entity tolerance including tiny equality
+ok 44 - endpoint point gaps honor the exact supplied entity tolerance including tiny equality
+  ---
+  duration_ms: 0.254584
+  type: 'test'
+  ...
+# Subtest: prepared faces are owned by one host context and inputs or error rationals stay immutable
+ok 45 - prepared faces are owned by one host context and inputs or error rationals stay immutable
+  ---
+  duration_ms: 0.619334
+  type: 'test'
+  ...
+# Subtest: unsupported source nets, affine violations and malformed own data refuse explicitly
+ok 46 - unsupported source nets, affine violations and malformed own data refuse explicitly
+  ---
+  duration_ms: 1.01825
+  type: 'test'
+  ...
+# Subtest: all helper exact and structural work shares the supplied native ledger and existing budgets
+ok 47 - all helper exact and structural work shares the supplied native ledger and existing budgets
+  ---
+  duration_ms: 0.385959
+  type: 'test'
+  ...
+# Subtest: identical finite endpoint axes retain a fresh normalized bound without caller aliasing
+ok 48 - identical finite endpoint axes retain a fresh normalized bound without caller aliasing
+  ---
+  duration_ms: 0.074167
+  type: 'test'
+  ...
+# Subtest: all four actual spans match independent generic Bernstein products at multiple native radii
+ok 49 - all four actual spans match independent generic Bernstein products at multiple native radii
+  ---
+  duration_ms: 58.242834
+  type: 'test'
+  ...
+# Subtest: the cycle is derived from actual directed endpoints, independent of span list order
+ok 50 - the cycle is derived from actual directed endpoints, independent of span list order
+  ---
+  duration_ms: 5.156709
+  type: 'test'
+  ...
+# Subtest: nonclosed, branched, reversed, angularly singular and unsupported operands refuse
+ok 51 - nonclosed, branched, reversed, angularly singular and unsupported operands refuse
+  ---
+  duration_ms: 13.609792
+  type: 'test'
+  ...
+# Subtest: a changed admitted lower weight produces its own exact proof instead of borrowing the upper quarter
+ok 52 - a changed admitted lower weight produces its own exact proof instead of borrowing the upper quarter
+  ---
+  duration_ms: 7.110125
+  type: 'test'
+  ...
+# Subtest: the actual fresh native/formal prefix stays identical and its complete cost is retained
+ok 53 - the actual fresh native/formal prefix stays identical and its complete cost is retained
+  ---
+  duration_ms: 161.438792
+  type: 'test'
+  ...
+# Subtest: the complete operation total succeeds, one less refuses, and the former prefix cap cannot fund new work
+ok 54 - the complete operation total succeeds, one less refuses, and the former prefix cap cannot fund new work
+  ---
+  duration_ms: 132.227209
+  type: 'test'
+  ...
+# Subtest: the distinct Z0 original reference request fits with all four spans and unchanged physical exclusions
+ok 55 - the distinct Z0 original reference request fits with all four spans and unchanged physical exclusions
+  ---
+  duration_ms: 39.897625
+  type: 'test'
+  ...
+# Subtest: native SI lookup preserves the public MMGS cube and actual density
+ok 56 - native SI lookup preserves the public MMGS cube and actual density
+  ---
+  duration_ms: 1.189333
+  type: 'test'
+  ...
+# Subtest: native SI applies the former density coefficient before rounding to MMGS
+ok 57 - native SI applies the former density coefficient before rounding to MMGS
+  ---
+  duration_ms: 0.095375
+  type: 'test'
+  ...
+# Subtest: invalid density and volume keep the existing typed refusal
+ok 58 - invalid density and volume keep the existing typed refusal
+  ---
+  duration_ms: 0.308125
+  type: 'test'
+  ...
+# Subtest: a clone or fabricated mass result cannot claim native SI provenance
+ok 59 - a clone or fabricated mass result cannot claim native SI provenance
+  ---
+  duration_ms: 0.074958
+  type: 'test'
+  ...
+# Subtest: combined public mass remains physical and reports its unsupported SI order explicitly
+ok 60 - combined public mass remains physical and reports its unsupported SI order explicitly
+  ---
+  duration_ms: 1.603458
+  type: 'test'
+  ...
+# Subtest: part mass passes integral provenance while a transformed exact result is explicit
+ok 61 - part mass passes integral provenance while a transformed exact result is explicit
+  ---
+  duration_ms: 13.456
+  type: 'test'
+  ...
+# Subtest: revolved mass is not silently reinterpreted as an integral result
+ok 62 - revolved mass is not silently reinterpreted as an integral result
+  ---
+  duration_ms: 32.505584
+  type: 'test'
+  ...
+# Subtest: package source and emitted internal entries share the same mass module
+ok 63 - package source and emitted internal entries share the same mass module
+  ---
+  duration_ms: 2.252125
+  type: 'test'
+  ...
+# Subtest: native SI: pure translation preserves the integral tensor and density before MMGS rounding
+ok 64 - native SI: pure translation preserves the integral tensor and density before MMGS rounding
+  ---
+  duration_ms: 23.032
+  type: 'test'
+  ...
+# Subtest: native SI: rotation, identity rotation, scale and mirror remain unsupported after translation
+ok 65 - native SI: rotation, identity rotation, scale and mirror remain unsupported after translation
+  ---
+  duration_ms: 7.279209
+  type: 'test'
+  ...
+# Subtest: native SI: translating revolved and difference sources does not promote unsupported provenance
+ok 66 - native SI: translating revolved and difference sources does not promote unsupported provenance
+  ---
+  duration_ms: 37.688708
+  type: 'test'
+  ...
+1..66
+# tests 66
+# suites 0
+# pass 66
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1412.204125

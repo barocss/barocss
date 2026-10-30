@@ -1,0 +1,32 @@
+{
+ "quadratic-path-cut-3": {
+  "valid": true,
+  "bodies": 1,
+  "faces": 18,
+  "edges": 48,
+  "vertices": 32,
+  "volume": 23550,
+  "centroid": [
+   30.23826890560373,
+   20.15848976855281,
+   5
+  ],
+  "names": "stock.bottom,stock.side0,stock.side1,stock.side2,stock.side3,stock.top,tool.side0,tool.side0@1,tool.side0@2,tool.side1,tool.side1@1,tool.side1@2,tool.side2,tool.side2@1,tool.side2@2,tool.side3,tool.side3@1,tool.side3@2|stock.bottom|stock.side0,stock.bottom|stock.side1,stock.bottom|stock.side2,stock.bottom|stock.side3,stock.bottom|tool.side0,stock.bottom|tool.side0@1,stock.bottom|tool.side0@2,stock.bottom|tool.side1,stock.bottom|tool.side1@1,stock.bottom|tool.side1@2,stock.bottom|tool.side2,stock.bottom|tool.side2@1,stock.bottom|tool.side2@2,stock.bottom|tool.side3,stock.bottom|tool.side3@1,stock.bottom|tool.side3@2,stock.side0|stock.side1,stock.side0|stock.side3,stock.side0|stock.top,stock.side1|stock.side2,stock.side1|stock.top,stock.side2|stock.side3,stock.side2|stock.top,stock.side3|stock.top,stock.top|tool.side0,stock.top|tool.side0@1,stock.top|tool.side0@2,stock.top|tool.side1,stock.top|tool.side1@1,stock.top|tool.side1@2,stock.top|tool.side2,stock.top|tool.side2@1,stock.top|tool.side2@2,stock.top|tool.side3,stock.top|tool.side3@1,stock.top|tool.side3@2,tool.side0@1|tool.side1@1,tool.side0@1|tool.side3@1,tool.side0@2|tool.side1@2,tool.side0@2|tool.side3@2,tool.side0|tool.side1,tool.side0|tool.side3,tool.side1@1|tool.side2@1,tool.side1@2|tool.side2@2,tool.side1|tool.side2,tool.side2@1|tool.side3@1,tool.side2@2|tool.side3@2,tool.side2|tool.side3",
+  "ms": 29
+ },
+ "straight-path-cut-3": {
+  "valid": true,
+  "bodies": 1,
+  "faces": 18,
+  "edges": 48,
+  "vertices": 32,
+  "volume": 23550,
+  "centroid": [
+   30.27571208002805,
+   20.08462927748028,
+   5
+  ],
+  "names": "stock.bottom,stock.side0,stock.side1,stock.side2,stock.side3,stock.top,tool.side0,tool.side0@1,tool.side0@2,tool.side1,tool.side1@1,tool.side1@2,tool.side2,tool.side2@1,tool.side2@2,tool.side3,tool.side3@1,tool.side3@2|stock.bottom|stock.side0,stock.bottom|stock.side1,stock.bottom|stock.side2,stock.bottom|stock.side3,stock.bottom|tool.side0,stock.bottom|tool.side0@1,stock.bottom|tool.side0@2,stock.bottom|tool.side1,stock.bottom|tool.side1@1,stock.bottom|tool.side1@2,stock.bottom|tool.side2,stock.bottom|tool.side2@1,stock.bottom|tool.side2@2,stock.bottom|tool.side3,stock.bottom|tool.side3@1,stock.bottom|tool.side3@2,stock.side0|stock.side1,stock.side0|stock.side3,stock.side0|stock.top,stock.side1|stock.side2,stock.side1|stock.top,stock.side2|stock.side3,stock.side2|stock.top,stock.side3|stock.top,stock.top|tool.side0,stock.top|tool.side0@1,stock.top|tool.side0@2,stock.top|tool.side1,stock.top|tool.side1@1,stock.top|tool.side1@2,stock.top|tool.side2,stock.top|tool.side2@1,stock.top|tool.side2@2,stock.top|tool.side3,stock.top|tool.side3@1,stock.top|tool.side3@2,tool.side0@1|tool.side1@1,tool.side0@1|tool.side3@1,tool.side0@2|tool.side1@2,tool.side0@2|tool.side3@2,tool.side0|tool.side1,tool.side0|tool.side3,tool.side1@1|tool.side2@1,tool.side1@2|tool.side2@2,tool.side1|tool.side2,tool.side2@1|tool.side3@1,tool.side2@2|tool.side3@2,tool.side2|tool.side3",
+  "ms": 8
+ }
+}

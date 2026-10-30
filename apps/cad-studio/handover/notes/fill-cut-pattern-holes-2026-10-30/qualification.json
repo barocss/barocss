@@ -1,0 +1,84 @@
+{
+  "decision": "D345",
+  "status": "BOUNDED_QUALIFIED",
+  "scope": "Bounded straight world-XY polygon-hole reference-point fill CUT mask",
+  "sourceCommits": [
+    "eaa1ec299",
+    "b22f7ba2e",
+    "283b48afb"
+  ],
+  "kernel": {
+    "new": 9,
+    "related": 22,
+    "status": "PASS"
+  },
+  "model": {
+    "new": 6,
+    "related": 87,
+    "status": "PASS"
+  },
+  "api": {
+    "added": 0,
+    "removed": 0,
+    "changedExposures": 3,
+    "meaning": "One optional readonly holes field in existing shared region type"
+  },
+  "heldFailures": [
+    "run-01: wrapped label with mm suffix locator mismatch",
+    "run-02: consumed target selection aliases unrelated witness after successful Fill",
+    "first docs command omitted Node22 PATH: default Node18.10.0 path argument error; exact log retained, Node22 retake required"
+  ],
+  "fullKernel": "NOT_RUN_FOR_D345",
+  "fullModel": "NOT_RUN",
+  "fullStudio": "NOT_RUN",
+  "performance": "NOT_RUN_NO_PERFORMANCE_CLAIM",
+  "remoteCI": "NOT_READ",
+  "release": "NOT_RUN",
+  "browser": {
+    "status": "PASS_RUN_03",
+    "chromeProcesses": 1,
+    "serialContexts": 4,
+    "observations": 15,
+    "nativeReads": 8,
+    "independentOracles": 6,
+    "nativeDownloads": 2,
+    "guards": [
+      {
+        "kind": "actual17vertexSourcePickerExclusion",
+        "index": 7,
+        "totalVertices": 17,
+        "holes": 4,
+        "optionCount": 0
+      }
+    ],
+    "sourceCounts": [
+      9,
+      976,
+      976,
+      976
+    ],
+    "errors": 0,
+    "consoleErrors": 0,
+    "watchChanges": 0,
+    "cleanup": [
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "CONTEXT_CLOSED",
+      "BROWSER_CLOSED",
+      "SERVER_CLOSED"
+    ]
+  },
+  "visual": {
+    "status": "SCOPED_PASS",
+    "images": 6
+  },
+  "postfixStudio": {
+    "types": "PASS",
+    "vite": "PASS",
+    "lint": "0errors_1consoleWarning",
+    "chat": "23PASS_0FAIL"
+  },
+  "documentation": "PASS_NODE22_CHECK_DOCS_68PAGES_55SHOTS_861LABELS_LIBRARY_STRUCTURE_SCOPE",
+  "publication": "Normal push after documentation commit; exact remote proof retained separately"
+}

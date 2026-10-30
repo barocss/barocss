@@ -1,0 +1,2066 @@
+{
+  "status": "PASS_BOUNDED_TWO_INSTANCE_RECOVERY_PUBLIC_REORDER",
+  "sourceCommit": "5168183e88c29d70468628b18bb91e5f7a10dbda",
+  "endObservedHead": "5168183e88c29d70468628b18bb91e5f7a10dbda",
+  "endDirty": "?? .claude/\n",
+  "profileCount": 1,
+  "attempts": 1,
+  "assertions": 43,
+  "allAssertionsPass": true,
+  "assertionDetails": [
+    {
+      "name": "before:mapped-dimensions",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "before:original-material-mesh-geometry",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "before:two-owned-matrix-copies-order",
+      "status": "PASS",
+      "details": {
+        "logical": {
+          "publicInstanceCount": 2,
+          "ownedMatrixCopies": [
+            [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              -0.8,
+              0,
+              0,
+              1
+            ],
+            [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0.8,
+              0,
+              0,
+              1
+            ]
+          ],
+          "packedCPUBytes": [
+            0,
+            0,
+            128,
+            63,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            128,
+            63,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            128,
+            63,
+            0,
+            0,
+            0,
+            0,
+            205,
+            204,
+            76,
+            191,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            128,
+            63,
+            255,
+            255,
+            255,
+            255,
+            0,
+            0,
+            128,
+            63,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            128,
+            63,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            128,
+            63,
+            0,
+            0,
+            0,
+            0,
+            205,
+            204,
+            76,
+            63,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            128,
+            63,
+            255,
+            255,
+            255,
+            255
+          ],
+          "observation": "@internal owned CPU matrices/data read-only; not a public snapshot API"
+        },
+        "expectedMatrices": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          -0.8,
+          0,
+          0,
+          1,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0.8,
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "name": "before:target0-original-red-policy",
+      "status": "PASS",
+      "details": [
+        255,
+        64,
+        32,
+        255
+      ]
+    },
+    {
+      "name": "before:target0-indexed-owner",
+      "status": "PASS",
+      "details": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": 0,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          -0.7916351938838435,
+          -0.009099255102113114,
+          4.975408472310373e-07
+        ],
+        "depth": 0.778640627861023
+      }
+    },
+    {
+      "name": "before:target0-finite-point-depth",
+      "status": "PASS",
+      "details": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": 0,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          -0.7916351938838435,
+          -0.009099255102113114,
+          4.975408472310373e-07
+        ],
+        "depth": 0.778640627861023
+      }
+    },
+    {
+      "name": "before:target1-original-red-policy",
+      "status": "PASS",
+      "details": [
+        255,
+        64,
+        32,
+        255
+      ]
+    },
+    {
+      "name": "before:target1-indexed-owner",
+      "status": "PASS",
+      "details": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": 1,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.7916351938838438,
+          -0.009099255102113114,
+          4.975408472310373e-07
+        ],
+        "depth": 0.778640627861023
+      }
+    },
+    {
+      "name": "before:target1-finite-point-depth",
+      "status": "PASS",
+      "details": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": 1,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.7916351938838438,
+          -0.009099255102113114,
+          4.975408472310373e-07
+        ],
+        "depth": 0.778640627861023
+      }
+    },
+    {
+      "name": "before:background",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "baseline-diagnostics-empty",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "owned-device-lost-promise",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "supported-loss-normal-recovery",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "distinct-replacement-state",
+      "status": "PASS",
+      "details": {
+        "distinctDevice": true,
+        "ready": true,
+        "recoveryCleared": true,
+        "lossesBefore": 0,
+        "lossesAfter": 1,
+        "recoverCalls": 1
+      }
+    },
+    {
+      "name": "after:mapped-dimensions",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "after:original-material-mesh-geometry",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "after:two-owned-matrix-copies-order",
+      "status": "PASS",
+      "details": {
+        "logical": {
+          "publicInstanceCount": 2,
+          "ownedMatrixCopies": [
+            [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              -0.8,
+              0,
+              0,
+              1
+            ],
+            [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0.8,
+              0,
+              0,
+              1
+            ]
+          ],
+          "packedCPUBytes": [
+            0,
+            0,
+            128,
+            63,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            128,
+            63,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            128,
+            63,
+            0,
+            0,
+            0,
+            0,
+            205,
+            204,
+            76,
+            191,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            128,
+            63,
+            255,
+            255,
+            255,
+            255,
+            0,
+            0,
+            128,
+            63,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            128,
+            63,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            128,
+            63,
+            0,
+            0,
+            0,
+            0,
+            205,
+            204,
+            76,
+            63,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            128,
+            63,
+            255,
+            255,
+            255,
+            255
+          ],
+          "observation": "@internal owned CPU matrices/data read-only; not a public snapshot API"
+        },
+        "expectedMatrices": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          -0.8,
+          0,
+          0,
+          1,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0.8,
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "name": "after:target0-original-red-policy",
+      "status": "PASS",
+      "details": [
+        255,
+        64,
+        32,
+        255
+      ]
+    },
+    {
+      "name": "after:target0-indexed-owner",
+      "status": "PASS",
+      "details": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": 0,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          -0.7916351938838435,
+          -0.009099255102113114,
+          4.975408472310373e-07
+        ],
+        "depth": 0.778640627861023
+      }
+    },
+    {
+      "name": "after:target0-finite-point-depth",
+      "status": "PASS",
+      "details": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": 0,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          -0.7916351938838435,
+          -0.009099255102113114,
+          4.975408472310373e-07
+        ],
+        "depth": 0.778640627861023
+      }
+    },
+    {
+      "name": "after:target1-original-red-policy",
+      "status": "PASS",
+      "details": [
+        255,
+        64,
+        32,
+        255
+      ]
+    },
+    {
+      "name": "after:target1-indexed-owner",
+      "status": "PASS",
+      "details": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": 1,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.7916351938838438,
+          -0.009099255102113114,
+          4.975408472310373e-07
+        ],
+        "depth": 0.778640627861023
+      }
+    },
+    {
+      "name": "after:target1-finite-point-depth",
+      "status": "PASS",
+      "details": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": 1,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.7916351938838438,
+          -0.009099255102113114,
+          4.975408472310373e-07
+        ],
+        "depth": 0.778640627861023
+      }
+    },
+    {
+      "name": "after:background",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "recovery-full-RGBA-channel<=3",
+      "status": "PASS",
+      "details": {
+        "maxDelta": 0,
+        "differentBytes": 0,
+        "bytes": 307200
+      }
+    },
+    {
+      "name": "two-pick-point-continuity<=.05",
+      "status": "PASS",
+      "details": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "name": "owned-logical-state-contents-survive-recovery",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "no-setInstances-or-material-reassign-to-mask-recovery",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "reordered:mapped-dimensions",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "reordered:original-material-mesh-geometry",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "reordered:two-owned-matrix-copies-order",
+      "status": "PASS",
+      "details": {
+        "logical": {
+          "publicInstanceCount": 2,
+          "ownedMatrixCopies": [
+            [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0.8,
+              0,
+              0,
+              1
+            ],
+            [
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              -0.8,
+              0,
+              0,
+              1
+            ]
+          ],
+          "packedCPUBytes": [
+            0,
+            0,
+            128,
+            63,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            128,
+            63,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            128,
+            63,
+            0,
+            0,
+            0,
+            0,
+            205,
+            204,
+            76,
+            63,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            128,
+            63,
+            255,
+            255,
+            255,
+            255,
+            0,
+            0,
+            128,
+            63,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            128,
+            63,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            128,
+            63,
+            0,
+            0,
+            0,
+            0,
+            205,
+            204,
+            76,
+            191,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            128,
+            63,
+            255,
+            255,
+            255,
+            255
+          ],
+          "observation": "@internal owned CPU matrices/data read-only; not a public snapshot API"
+        },
+        "expectedMatrices": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0.8,
+          0,
+          0,
+          1,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          -0.8,
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "name": "reordered:target0-original-red-policy",
+      "status": "PASS",
+      "details": [
+        255,
+        64,
+        32,
+        255
+      ]
+    },
+    {
+      "name": "reordered:target0-indexed-owner",
+      "status": "PASS",
+      "details": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": 1,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          -0.7916351938838435,
+          -0.009099255102113114,
+          4.975408472310373e-07
+        ],
+        "depth": 0.778640627861023
+      }
+    },
+    {
+      "name": "reordered:target0-finite-point-depth",
+      "status": "PASS",
+      "details": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": 1,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          -0.7916351938838435,
+          -0.009099255102113114,
+          4.975408472310373e-07
+        ],
+        "depth": 0.778640627861023
+      }
+    },
+    {
+      "name": "reordered:target1-original-red-policy",
+      "status": "PASS",
+      "details": [
+        255,
+        64,
+        32,
+        255
+      ]
+    },
+    {
+      "name": "reordered:target1-indexed-owner",
+      "status": "PASS",
+      "details": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": 0,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.7916351938838438,
+          -0.009099255102113114,
+          4.975408472310373e-07
+        ],
+        "depth": 0.778640627861023
+      }
+    },
+    {
+      "name": "reordered:target1-finite-point-depth",
+      "status": "PASS",
+      "details": {
+        "sameMesh": true,
+        "sameGeometry": true,
+        "instance": 0,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.7916351938838438,
+          -0.009099255102113114,
+          4.975408472310373e-07
+        ],
+        "depth": 0.778640627861023
+      }
+    },
+    {
+      "name": "reordered:background",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "fresh-GPU-index-owner-changes-with-reorder",
+      "status": "PASS",
+      "details": {
+        "before": [
+          0,
+          1
+        ],
+        "after": [
+          1,
+          0
+        ]
+      }
+    },
+    {
+      "name": "unchanged-occupancy-pixels-after-reorder",
+      "status": "PASS",
+      "details": {
+        "maxDelta": 0,
+        "differentBytes": 0,
+        "bytes": 307200
+      }
+    },
+    {
+      "name": "reorder-stable-position-pick-continuity",
+      "status": "PASS",
+      "details": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "name": "exact-owned-public-call-counts",
+      "status": "PASS",
+      "details": null
+    },
+    {
+      "name": "no-unexpected-diagnostics",
+      "status": "PASS",
+      "details": null
+    }
+  ],
+  "hookCalls": 1,
+  "postRecoverySetInstancesCalls": 1,
+  "constructorInitialInstancesInput": 1,
+  "meshAddCalls": 1,
+  "geometryCreateCalls": 1,
+  "materialReassignments": 0,
+  "callCountBoundary": "fixture public calls plus initial constructor input; not prototype instrumentation/native buffer metrics",
+  "samples": {
+    "before": {
+      "width": 320,
+      "height": 240,
+      "picks": [
+        {
+          "declaredWorldTarget": [
+            -0.8,
+            0,
+            0
+          ],
+          "cssPoint": [
+            116.04036128872605,
+            120
+          ],
+          "pixel": [
+            255,
+            64,
+            32,
+            255
+          ],
+          "hit": {
+            "sameMesh": true,
+            "sameGeometry": true,
+            "instance": 0,
+            "triangle": 0,
+            "face": 71,
+            "point": [
+              -0.7916351938838435,
+              -0.009099255102113114,
+              4.975408472310373e-07
+            ],
+            "depth": 0.778640627861023
+          }
+        },
+        {
+          "declaredWorldTarget": [
+            0.8,
+            0,
+            0
+          ],
+          "cssPoint": [
+            203.95963871127395,
+            120
+          ],
+          "pixel": [
+            255,
+            64,
+            32,
+            255
+          ],
+          "hit": {
+            "sameMesh": true,
+            "sameGeometry": true,
+            "instance": 1,
+            "triangle": 0,
+            "face": 71,
+            "point": [
+              0.7916351938838438,
+              -0.009099255102113114,
+              4.975408472310373e-07
+            ],
+            "depth": 0.778640627861023
+          }
+        }
+      ],
+      "logical": {
+        "publicInstanceCount": 2,
+        "ownedMatrixCopies": [
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            -0.8,
+            0,
+            0,
+            1
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0.8,
+            0,
+            0,
+            1
+          ]
+        ],
+        "packedCPUBytes": [
+          0,
+          0,
+          128,
+          63,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          128,
+          63,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          128,
+          63,
+          0,
+          0,
+          0,
+          0,
+          205,
+          204,
+          76,
+          191,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          128,
+          63,
+          255,
+          255,
+          255,
+          255,
+          0,
+          0,
+          128,
+          63,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          128,
+          63,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          128,
+          63,
+          0,
+          0,
+          0,
+          0,
+          205,
+          204,
+          76,
+          63,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          128,
+          63,
+          255,
+          255,
+          255,
+          255
+        ],
+        "observation": "@internal owned CPU matrices/data read-only; not a public snapshot API"
+      },
+      "sameMaterial": true,
+      "sameGeometry": true,
+      "geometryDisposed": false,
+      "sameSceneMesh": true,
+      "cornerRGBA": [
+        32,
+        32,
+        32,
+        255
+      ],
+      "rawPixels": {
+        "path": "before.rgba",
+        "bytes": 307200,
+        "sha256": "2176d6e981737c93a6ac4768c4eb35181c626385580454da49e9d4728677164a",
+        "layout": "RGBA8 top-to-bottom"
+      }
+    },
+    "after": {
+      "width": 320,
+      "height": 240,
+      "picks": [
+        {
+          "declaredWorldTarget": [
+            -0.8,
+            0,
+            0
+          ],
+          "cssPoint": [
+            116.04036128872605,
+            120
+          ],
+          "pixel": [
+            255,
+            64,
+            32,
+            255
+          ],
+          "hit": {
+            "sameMesh": true,
+            "sameGeometry": true,
+            "instance": 0,
+            "triangle": 0,
+            "face": 71,
+            "point": [
+              -0.7916351938838435,
+              -0.009099255102113114,
+              4.975408472310373e-07
+            ],
+            "depth": 0.778640627861023
+          }
+        },
+        {
+          "declaredWorldTarget": [
+            0.8,
+            0,
+            0
+          ],
+          "cssPoint": [
+            203.95963871127395,
+            120
+          ],
+          "pixel": [
+            255,
+            64,
+            32,
+            255
+          ],
+          "hit": {
+            "sameMesh": true,
+            "sameGeometry": true,
+            "instance": 1,
+            "triangle": 0,
+            "face": 71,
+            "point": [
+              0.7916351938838438,
+              -0.009099255102113114,
+              4.975408472310373e-07
+            ],
+            "depth": 0.778640627861023
+          }
+        }
+      ],
+      "logical": {
+        "publicInstanceCount": 2,
+        "ownedMatrixCopies": [
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            -0.8,
+            0,
+            0,
+            1
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0.8,
+            0,
+            0,
+            1
+          ]
+        ],
+        "packedCPUBytes": [
+          0,
+          0,
+          128,
+          63,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          128,
+          63,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          128,
+          63,
+          0,
+          0,
+          0,
+          0,
+          205,
+          204,
+          76,
+          191,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          128,
+          63,
+          255,
+          255,
+          255,
+          255,
+          0,
+          0,
+          128,
+          63,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          128,
+          63,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          128,
+          63,
+          0,
+          0,
+          0,
+          0,
+          205,
+          204,
+          76,
+          63,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          128,
+          63,
+          255,
+          255,
+          255,
+          255
+        ],
+        "observation": "@internal owned CPU matrices/data read-only; not a public snapshot API"
+      },
+      "sameMaterial": true,
+      "sameGeometry": true,
+      "geometryDisposed": false,
+      "sameSceneMesh": true,
+      "cornerRGBA": [
+        32,
+        32,
+        32,
+        255
+      ],
+      "rawPixels": {
+        "path": "after.rgba",
+        "bytes": 307200,
+        "sha256": "2176d6e981737c93a6ac4768c4eb35181c626385580454da49e9d4728677164a",
+        "layout": "RGBA8 top-to-bottom"
+      }
+    },
+    "reordered": {
+      "width": 320,
+      "height": 240,
+      "picks": [
+        {
+          "declaredWorldTarget": [
+            -0.8,
+            0,
+            0
+          ],
+          "cssPoint": [
+            116.04036128872605,
+            120
+          ],
+          "pixel": [
+            255,
+            64,
+            32,
+            255
+          ],
+          "hit": {
+            "sameMesh": true,
+            "sameGeometry": true,
+            "instance": 1,
+            "triangle": 0,
+            "face": 71,
+            "point": [
+              -0.7916351938838435,
+              -0.009099255102113114,
+              4.975408472310373e-07
+            ],
+            "depth": 0.778640627861023
+          }
+        },
+        {
+          "declaredWorldTarget": [
+            0.8,
+            0,
+            0
+          ],
+          "cssPoint": [
+            203.95963871127395,
+            120
+          ],
+          "pixel": [
+            255,
+            64,
+            32,
+            255
+          ],
+          "hit": {
+            "sameMesh": true,
+            "sameGeometry": true,
+            "instance": 0,
+            "triangle": 0,
+            "face": 71,
+            "point": [
+              0.7916351938838438,
+              -0.009099255102113114,
+              4.975408472310373e-07
+            ],
+            "depth": 0.778640627861023
+          }
+        }
+      ],
+      "logical": {
+        "publicInstanceCount": 2,
+        "ownedMatrixCopies": [
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0.8,
+            0,
+            0,
+            1
+          ],
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            -0.8,
+            0,
+            0,
+            1
+          ]
+        ],
+        "packedCPUBytes": [
+          0,
+          0,
+          128,
+          63,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          128,
+          63,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          128,
+          63,
+          0,
+          0,
+          0,
+          0,
+          205,
+          204,
+          76,
+          63,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          128,
+          63,
+          255,
+          255,
+          255,
+          255,
+          0,
+          0,
+          128,
+          63,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          128,
+          63,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          128,
+          63,
+          0,
+          0,
+          0,
+          0,
+          205,
+          204,
+          76,
+          191,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          128,
+          63,
+          255,
+          255,
+          255,
+          255
+        ],
+        "observation": "@internal owned CPU matrices/data read-only; not a public snapshot API"
+      },
+      "sameMaterial": true,
+      "sameGeometry": true,
+      "geometryDisposed": false,
+      "sameSceneMesh": true,
+      "cornerRGBA": [
+        32,
+        32,
+        32,
+        255
+      ],
+      "rawPixels": {
+        "path": "reordered.rgba",
+        "bytes": 307200,
+        "sha256": "2176d6e981737c93a6ac4768c4eb35181c626385580454da49e9d4728677164a",
+        "layout": "RGBA8 top-to-bottom"
+      }
+    }
+  },
+  "recoveryFullRGBA": {
+    "maxDelta": 0,
+    "differentBytes": 0,
+    "bytes": 307200
+  },
+  "recoveryPointDelta": [
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ],
+  "reorderFullRGBA": {
+    "maxDelta": 0,
+    "differentBytes": 0,
+    "bytes": 307200
+  },
+  "reorderPointDelta": [
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0
+    ]
+  ],
+  "indexContrast": {
+    "before": [
+      0,
+      1
+    ],
+    "after": [
+      1,
+      0
+    ]
+  },
+  "logicalStateBoundary": "Public instanceCount and actual public GPU pick owner index assert behavior; @internal owned CPU matrices/data observed read-only as source-bound evidence, not public snapshot/identity API. No input object identity asserted.",
+  "oldDeviceLoss": {
+    "reason": "destroyed",
+    "message": "Device was destroyed."
+  },
+  "replacement": {
+    "distinctDevice": true,
+    "ready": true,
+    "recoveryCleared": true,
+    "lossesBefore": 0,
+    "lossesAfter": 1,
+    "recoverCalls": 1
+  },
+  "actualOldOwnedDeviceAdapterInfo": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "",
+    "description": ""
+  },
+  "replacementAdapterInfo": "UNKNOWN_NOT_RECORDED",
+  "fallbackIdentity": "UNKNOWN",
+  "snapshotFiles": 2237,
+  "allSnapshotSha256AndGitBlobsMatch": true,
+  "sourceManifestSha256": "c814d6465b07da011ad7c772f767c2da295686e0a1f1a70c8936cd91152dbf65",
+  "actualBuildInputs": 452,
+  "productInputsByPackage": {
+    "barocss-gpu": 38,
+    "barocss-cad": 413
+  },
+  "ownFixtureInputs": 1,
+  "thirdPartyBrowserInputs": 0,
+  "externalImports": 0,
+  "acceptanceSha256": "4f9119564ce39d4e859e6b00da441ea463f28e29130b5a4902a8bc6eaf9cbe1a",
+  "acceptanceAndHarnessUnchanged": true,
+  "originalFixtureSha256": "5939c7d77118ecceaacfa99c76bdd9fd7b1a63eeec65c447bc880d41490d8213",
+  "pixelPolicy": "original target R>G+80; recovery/reorder whole320x240 RGBA307200 maxchannel<=3; backgroundchannel<=3",
+  "pointPolicy": "finite baseline/current3D point and depth; beforeaftercomponentdelta<=.05; no absolute worldpoint accuracy oracle",
+  "events": [
+    {
+      "type": "before:requestRender",
+      "at": 345.2000000476837
+    },
+    {
+      "type": "before:frame-complete",
+      "at": 353.59999990463257
+    },
+    {
+      "type": "before:capture-complete",
+      "at": 358.2999999523163
+    },
+    {
+      "type": "supported-hook-call",
+      "at": 2510
+    },
+    {
+      "type": "old-device-lost-observed",
+      "at": 2511.7999999523163
+    },
+    {
+      "type": "onRecover",
+      "at": 2538.0999999046326
+    },
+    {
+      "type": "after:requestRender",
+      "at": 3669.399999856949
+    },
+    {
+      "type": "after:frame-complete",
+      "at": 3671.0999999046326
+    },
+    {
+      "type": "after:capture-complete",
+      "at": 3673.0999999046326
+    },
+    {
+      "type": "one-public-same-count-reorder",
+      "at": 8531.799999952316
+    },
+    {
+      "type": "reordered:requestRender",
+      "at": 9711
+    },
+    {
+      "type": "reordered:frame-complete",
+      "at": 9715.399999856949
+    },
+    {
+      "type": "reordered:capture-complete",
+      "at": 9719
+    }
+  ],
+  "firstFailure": null,
+  "errors": [],
+  "diagnostics": [],
+  "recoveryErrors": [],
+  "viewerCleanup": {
+    "disposed": true,
+    "ready": false,
+    "deviceNull": true
+  },
+  "runtimeCleanup": {
+    "page": "CLOSED",
+    "context": "CLOSED",
+    "browser": "CLOSED",
+    "server": "CLOSED"
+  },
+  "exits": {
+    "gate": 0,
+    "syntax-browser": 0,
+    "syntax-runner": 0,
+    "probe": 0,
+    "release": 0
+  },
+  "actualPNGsViewed": [
+    "capture-before.png",
+    "capture-after.png",
+    "capture-reordered.png"
+  ],
+  "notRun": [
+    "delayed readback race",
+    "matrix scale/reflection",
+    "normal maps",
+    "custom shader/PBR combos",
+    "SDK/App",
+    "natural driver failure",
+    "OOM/VRAM/performance",
+    "general instancing matrix",
+    "general geometric precision",
+    "input object identity contract",
+    "pipeline/native buffer allocation count",
+    "Three.js parity"
+  ],
+  "productMutation": false,
+  "priorEvidenceMutation": false,
+  "nextCheckpoint": "Parent records bounded two-translation instance resource recovery plus one public reorder PASS; remaining profiles and SDK/natural failures stay separate"
+}

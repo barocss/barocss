@@ -1,0 +1,10 @@
+{
+  "path": "apps/cad-studio/src/App.tsx",
+  "sha256": "09e402caf8e6fa163f4ec8b181ff872c8369f9969298b046e66d34dd1a02bf7c",
+  "bytes": 383031,
+  "artifact": "source-at-second-browser.ts.gz",
+  "artifactSha256": "13ea95ab62a83ccd60648616bae68f9cdbe26719dfa28e9d6b8de1a2d8ba6507",
+  "actualResult": "Stop rollback/fresh/new epoch/mass/recovery passed; Redo wait for D1 timed out, screenshot retained one body and Redo became disabled.",
+  "baselineCommit": "e1f2b05d62b8011412a1d8ee9c1cc73256737177",
+  "postRedoRawDocumentTrace": "NOT_RETAINED"
+}

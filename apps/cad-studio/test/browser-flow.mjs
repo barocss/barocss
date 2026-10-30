@@ -5,7 +5,7 @@
 // The viewport draws with WebGPU when the browser has it; FLOW_RENDERER=webgl2 runs the WebGL2 fallback.
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createServer as createNetServer } from 'node:net';
@@ -87,11 +87,12 @@ const preview = async mode => { const b = page.locator(`[aria-label="Preview: ${
 /** The first body's volume from its properties (a click on its row selects it, or takes it out of the selection: until the body's panel shows). */
 // (The inspector and the context panels are read as `.props:not([aria-label$=" panel"])`: the first .props card that is not
 // a toolbar card left open across steps — the Variants, Rebuild, BOM, Library and Parameters panels, each "… panel".)
+// Static gravity can precede BODY: find the volume across the visible inspector cards.
 async function bodyVolume() {
   for (let k = 0; k < 3; k++) {
     await page.locator('.outliner .ol').first().click();
     // (O18: read in the same check that sees it, the masses there — "Volume …" is a state of its own while they come.)
-    try { const got = await page.waitForFunction(() => { const m = /Volume\s*([\d,]+) mm³/.exec(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''); return m && window.__studioBodies?.().massReady !== false ? m[1] : false; }, null, { timeout: 15000 }); return Number((await got.jsonValue()).replace(/,/g, '')); } catch { /* clicked off: again */ }
+    try { const got = await page.waitForFunction(() => { const m = /Volume\s*([\d,]+) mm³/.exec([...document.querySelectorAll('.props:not([aria-label$=" panel"])')].map(panel => panel.textContent ?? '').join('\n')); return m && window.__studioBodies?.().massReady !== false ? m[1] : false; }, null, { timeout: 15000 }); return Number((await got.jsonValue()).replace(/,/g, '')); } catch { /* clicked off: again */ }
   }
   return NaN;
 }
@@ -104,6 +105,44 @@ async function openModel(file, nodes, timeout = 30000) {
   await page.evaluate(() => { window.__flowLastDoc = window.__studioDoc; });
   await page.setInputFiles('input[aria-label="Model file"]', file);
   await page.waitForFunction(n => window.__studioDoc !== window.__flowLastDoc && window.__studioDoc.nodes.length === n && window.__studioFresh === true, nodes, { timeout });
+}
+async function textReady(text, nodes, expected = null) {
+  await page.waitForFunction(({ text, nodes, expected }) => {
+    const state = window.__studioBodies?.(), document = window.__studioDoc;
+    if (document?.nodes.length !== nodes || document.nodes[0]?.text !== text || !state?.fresh || state.massReady !== true) return false;
+    let body;
+    for (const candidate of state.bodies) if (candidate.key === 'b0') body = candidate;
+    return !!body && (expected === null ? body.volume > 0 : Math.abs(body.volume - expected) < 1e-7);
+  }, { text, nodes, expected }, { timeout: 30000 });
+}
+async function reliefReady(text, mode, expected) {
+  await page.waitForFunction(({ text, mode, expected }) => {
+    const state = window.__studioBodies?.(), node = window.__studioDoc?.nodes[2];
+    if (node?.kind !== 'text-relief' || node.text !== text || node.mode !== mode || !state?.fresh || state.massReady !== true || state.bodies.length !== 1) return false;
+    return state.bodies[0].key === 'b2' && (expected === null ? state.bodies[0].volume > 0 : Math.abs(state.bodies[0].volume - expected) < 1e-7);
+  }, { text, mode, expected }, { timeout: 30000 });
+}
+/** Independent annular-sector oracle from native quarter endpoint rays; no generated mesh supplies the expected volume. */
+function cylindricalWrapVolume(u0) {
+  if (u0 === null) return Math.PI * 100 * 30;
+  const rayAngle = u => {
+    const t = 2 * u, s = 1 - t, w = Math.SQRT1_2;
+    return Math.atan2(2 * w * s * t + t * t, s * s + 2 * w * s * t);
+  };
+  return Math.PI * 100 * 30 + 150 * (rayAngle(0.4) - rayAngle(u0)) * (30 * (0.7 - 0.2));
+}
+async function cylindricalWrapReady(u0) {
+  const expected = cylindricalWrapVolume(u0);
+  await page.waitForFunction(({ u0, expected }) => {
+    const state = window.__studioBodies?.(), doc = window.__studioDoc;
+    if (!state?.fresh || state.massReady !== true || state.bodies.length !== 1) return false;
+    const body = state.bodies[0];
+    if (!Number.isFinite(body.volume) || Math.abs(body.volume - expected) >= 1e-7) return false;
+    return u0 === null ? doc.nodes.length === 2 : doc.nodes[2]?.kind === 'cylindrical-wrap' && doc.nodes[2].rectangle.u[0] === u0;
+  }, { u0, expected }, { timeout: 30000 });
+  const state = await page.evaluate(() => window.__studioBodies());
+  assert.equal(state.bodies.length, 1); assert.ok(Math.abs(state.bodies[0].volume - expected) < 1e-7);
+  assert.equal(await page.locator('.vp-error').count(), 0); assert.match(await outliner(), /1 body/);
 }
 const history = () => page.locator('.history').innerText().catch(() => '');
 // (O18: and the bodies' masses, which the worker posts after its reply — every step that reads a volume waits here.)
@@ -170,27 +209,27 @@ try {
   await check('hole on a supported plate', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
     await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
-    await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.locator('.history .hs[aria-label="Box 64×32×8"]').waitFor({ timeout: 15000 });
     await page.click('.views button:text-is("Top")'); await page.waitForTimeout(300);
     const [cx, cy] = await canvasCenter(); await page.mouse.move(cx, cy); await page.mouse.click(cx, cy);
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''));
     await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
     await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
   });
 
   await check('feature editor changes the sketch a feature is made from', async () => {
-    const bounds = () => page.locator('.props:not([aria-label$=" panel"])').innerText();
-    await page.locator('.history .hs', { hasText: 'Box 64' }).click();
+    const bounds = () => page.locator('[aria-label="Selection"]').innerText();
+    await page.locator('.history .hs[aria-label^="Box 64"]').click();
     const ed = (label) => page.locator('.node-editor .field', { has: page.locator(`span:text-is("${label}")`) }).locator('input, select');
     assert.equal(await ed('Width').inputValue(), '64');
     await ed('Width').fill(''); await ed('Width').fill('80');
     await page.locator('.node-editor button', { hasText: 'Apply' }).click(); await idle();
     await page.locator('.outliner .ol').nth(0).click();
-    await page.waitForFunction(() => /80 × 32 × 8/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /80 × 32 × 8/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 15000 });
     assert.match(await outliner(), /Hole Ø8/);
     await press('Escape'); await press('Meta+z'); await idle(); await page.locator('.outliner .ol').nth(0).click();
-    await page.waitForFunction(() => /64 × 32 × 8/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => /64 × 32 × 8/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 15000 });
     assert.ok(!/80 ×/.test(await bounds()));
   });
 
@@ -628,12 +667,14 @@ try {
     const [cx, cy] = await canvasCenter();
     for (const [dx, dy] of [[-150, -80], [150, -80], [130, 80], [-160, 90], [-150, -80]]) await clickAt(cx + dx, cy + dy);
     await page.fill('#sk-len0', '60'); await page.evaluate(() => document.activeElement?.blur());
-    await press('Enter'); await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
+    await press('Enter');
+    await page.waitForFunction(() => window.__studioDoc?.nodes[0]?.kind === 'sketch' && window.__studioFresh === true && window.__studioBodies?.().massReady === true, null, { timeout: 15000 });
+    await press('e'); await hudReady(); await page.waitForTimeout(300); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
-    await page.locator('.history .hs', { hasText: 'Extrude' }).last().click();
+    await page.locator('.history .hs[aria-label^="Extrude"]').last().click();
     await page.click('[aria-label="Edit sketch"]');
     assert.match(await page.locator('.sk-panel [role=list]').innerText(), /Length\s*edge 1 = 60/);
-    assert.match(await page.locator('.hint-bar .hint-title').innerText(), /Select/);
+    assert.match(await page.locator('.sk-panel .card-title').filter({ hasText: /^SKETCH · / }).innerText(), /SKETCH · Select/);
     await page.fill('#sk-len0', '45'); await page.evaluate(() => document.activeElement?.blur());
     await press('Enter');
     await page.waitForFunction(() => window.__studioDoc?.nodes[0]?.outline?.lengths?.[0] === 45, null, { timeout: 15000 });
@@ -738,7 +779,8 @@ try {
     await clickAt(cx - 60, cy - 60); await clickAt(cx + 60, cy + 60); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 1, null, { timeout: 5000 });
     await press('s'); await page.fill('[aria-label="Plane offset"]', '20');
-    await page.waitForFunction(() => /SKETCH · Z 20/.test(document.querySelector('.sk-panel')?.textContent ?? ''));
+    await page.waitForFunction(() => /SKETCH · .+ · Z 20/.test(document.querySelector('.sk-panel')?.textContent ?? ''));
+    await page.locator('[aria-label="Plane offset"]').blur();
     await press('c'); [cx, cy] = await canvasCenter();
     await clickAt(cx, cy); await page.mouse.move(cx + 30, cy); await page.mouse.move(cx + 40, cy); await page.mouse.click(cx + 40, cy); await press('Enter');
     await page.waitForFunction(() => window.__studioDoc.nodes.length === 2, null, { timeout: 5000 });
@@ -747,8 +789,421 @@ try {
     await page.waitForFunction(() => document.querySelectorAll('.history .hs.sketch.picked').length === 2, null, { timeout: 5000 });
     await press(' '); await page.locator('.palette input').fill('loft'); await press('Enter'); await hudReady(); await page.waitForTimeout(300);
     await page.locator('.hud button', { hasText: 'Apply' }).click();
-    await page.waitForFunction(() => /Loft 2 sections/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 20000 });
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'loft' && /Loft 2 sections/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 });
     const d = await doc(), last = d.nodes.at(-1); assert.equal(last.kind, 'loft'); assert.deepEqual(last.sections.map(x => x.z), [0, 20]); assert.deepEqual(last.from, [0, 1]); await iso();
+  });
+
+  await check('CG1.3: Loft with a copied multi-span guide previews, applies, undoes and reopens', async () => {
+    // Authored fixture input; the command, worker, rendering and file controls run in the real Studio.
+    const source = `@model guided { version: 0; length-unit: mm;
+      @curve #g { type: nurbs; degree: 2; knots: [0,0,0,0.5,1,1,1];
+        control-points: [[0,0,0],[6,0,5],[6,0,15],[0,0,20]]; weights: [1,1,1,1]; }
+    }`;
+    const nodes = [[0, 0], [6, 10], [0, 20]].map(([x, z], i) => ({ id: `n${i}`, kind: 'sketch', profile: 'rectangle', min: [x, 0], max: [x + 10, 10], plane: { origin: [0, 0, z], normal: [0, 0, 1], xAxis: [1, 0, 0] } }));
+    const input = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes, outputs: {}, nextId: 3,
+      direct: { sources: { src_0: source }, objects: [{ id: 'obj_0', name: 'Bowed guide', source: 'src_0', geometry: 'g' }] } };
+    const fixture = join(out, 'cg13-input.bcad'); writeFileSync(fixture, JSON.stringify(input));
+    await openModel(fixture, 3); await idle();
+    for (const i of [0, 1, 2]) await page.locator('.history .hs.sketch').nth(i).click({ modifiers: i ? ['Shift'] : [] });
+    await page.waitForFunction(() => document.querySelectorAll('.history .hs.sketch.picked').length === 3);
+    await press(' '); await page.locator('.palette input').fill('loft'); await press('Enter'); await hudReady();
+    await field('Guide (copied)').selectOption('obj_0'); await hudReady();
+    assert.match(await page.locator('.hud').innerText(), /must pass through a vertex of each section/);
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 20000 });
+    await snap('cg13-preview'); await page.locator('.hud button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'loft' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
+    const accepted = await doc(), node = accepted.nodes.at(-1);
+    assert.equal(node.guide.kind, 'nurbs'); assert.deepEqual(node.sections.map(section => section.z), [0, 10, 20]);
+    assert.deepEqual(node.from, [0, 1, 2]); assert.equal(await bodyVolume(), 2000);
+    await iso(); await snap('cg13-applied');
+    await press('Escape'); await press('Meta+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 3, null, { timeout: 10000 });
+    await press('Meta+Shift+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'loft', null, { timeout: 10000 }); await idle();
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 10000 }), page.click('[aria-label="Save"]')]);
+    const file = join(out, 'cg13-saved.bcad'); await saved.saveAs(file);
+    await page.click('[aria-label="New part"]'); await openModel(file, accepted.nodes.length); await idle();
+    assert.deepEqual((await doc()).nodes, accepted.nodes); assert.equal(await bodyVolume(), 2000);
+    await iso(); await snap('cg13-reopened');
+  });
+
+  for (const count of [17, 64]) await check(`D315: copied cubic guide with ${count} controls previews, applies, undoes and reopens`, async () => {
+    // Authored polynomial curve: count is the control count, not the span count.
+    const knots = [0, 0, 0, 0, ...Array.from({ length: count - 4 }, (_, i) => (i + 1) / (count - 3)), 1, 1, 1, 1];
+    const controlPoints = Array.from({ length: count }, (_, i) => [0, 0, i / (count - 1)]);
+    const weights = Array(count).fill(1);
+    const source = `@model guided { version: 0; length-unit: mm;
+      @curve #g { type: nurbs; degree: 3; knots: ${JSON.stringify(knots)};
+        control-points: ${JSON.stringify(controlPoints)}; weights: ${JSON.stringify(weights)}; }
+    }`;
+    const nodes = [0, 1].map((z, i) => ({ id: `n${i}`, kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [i + 1, i + 1],
+      plane: { origin: [0, 0, z], normal: [0, 0, 1], xAxis: [1, 0, 0] } }));
+    const input = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes, outputs: {}, nextId: 2,
+      direct: { sources: { src_0: source }, objects: [{ id: 'obj_0', name: `Cubic guide, ${count} controls`, source: 'src_0', geometry: 'g' }] } };
+    const fixture = join(out, `d315-${count}-input.bcad`); writeFileSync(fixture, JSON.stringify(input));
+    await openModel(fixture, 2); await idle(); await iso();
+    const before = await page.evaluate(() => window.__studioFrame(48));
+    for (const i of [0, 1]) await page.locator('.history .hs.sketch').nth(i).click({ modifiers: i ? ['Shift'] : [] });
+    await page.waitForFunction(() => document.querySelectorAll('.history .hs.sketch.picked').length === 2);
+    await press(' '); await page.locator('.palette input').fill('loft'); await press('Enter'); await hudReady();
+    await field('Guide (copied)').selectOption('obj_0'); await hudReady();
+    assert.match(await page.locator('.hud').innerText(), /must pass through a vertex of each section/);
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    assert.equal(await page.locator('.vp-error').count(), 0);
+    await iso();
+    const preview = await page.evaluate(() => window.__studioFrame(48));
+    assert.ok(before && preview && preview.length === before.length, 'the renderer returns actual frames');
+    let changed = 0;
+    for (let i = 0; i < preview.length; i += 3) if (Math.abs(preview[i] - before[i]) + Math.abs(preview[i + 1] - before[i + 1]) + Math.abs(preview[i + 2] - before[i + 2]) > 48) changed++;
+    assert.ok(changed > 48 * 48 * 0.005, 'the solid preview changes the sketch-only frame');
+    await snap(`d315-${count}-preview`);
+    await page.locator('.hud button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'loft', null, { timeout: 30000 });
+    const accepted = await doc(), producer = accepted.nodes.length - 1, node = accepted.nodes[producer];
+    assert.deepEqual(node.guide, { kind: 'nurbs', degree: 3, knots, controlPoints });
+    assert.deepEqual(node.from, [0, 1]); assert.deepEqual(node.sections.map(section => section.z), [0, 1]);
+    assert.deepEqual(accepted.direct, input.direct, 'the authored source retains every control, knot and weight');
+    // The square side is 1 + z: integral from 0 to 1 of (1 + z)^2 is 7/3.
+    const ready = async () => {
+      await page.waitForFunction(({ producer, count }) => {
+        const state = window.__studioBodies?.(), node = window.__studioDoc.nodes[producer];
+        if (!state?.fresh || state.massReady !== true || state.bodies.length !== 1 || node?.guide?.controlPoints.length !== count) return false;
+        const body = state.bodies[0];
+        return body.key === `b${producer}` && Number.isFinite(body.volume) && Math.abs(body.volume - 7 / 3) < 1e-9;
+      }, { producer, count }, { timeout: 30000 });
+      const state = await page.evaluate(() => window.__studioBodies());
+      assert.equal(state.bodies.length, 1); assert.equal(state.bodies[0].key, `b${producer}`);
+      assert.ok(Math.abs(state.bodies[0].volume - 7 / 3) < 1e-9);
+      assert.ok(state.bodies[0].centroid?.every((v, i) => Math.abs(v - [45 / 56, 45 / 56, 17 / 28][i]) < 1e-9));
+      assert.equal(await page.locator('.vp-error').count(), 0); assert.match(await outliner(), /1 body/);
+    };
+    await ready(); await iso(); await snap(`d315-${count}-applied`);
+    await press('Escape'); await press('Meta+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && window.__studioBodies?.().fresh && window.__studioBodies().bodies.length === 0, null, { timeout: 30000 });
+    assert.deepEqual((await doc()).direct, input.direct);
+    await press('Meta+Shift+z'); await ready();
+    assert.deepEqual((await doc()).nodes, accepted.nodes);
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+    const file = join(out, `d315-${count}-saved.bcad`); await saved.saveAs(file);
+    const savedDoc = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readFileSync(file)));
+    assert.deepEqual(savedDoc, JSON.parse(JSON.stringify(accepted)), 'asset-free Save preserves the complete current-schema JSON document');
+    await page.click('[aria-label="New part"]');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 0 && window.__studioBodies?.().fresh && window.__studioBodies().bodies.length === 0, null, { timeout: 30000 });
+    await openModel(file, accepted.nodes.length); await ready();
+    assert.deepEqual(await doc(), accepted);
+    await iso(); await snap(`d315-${count}-reopened`);
+  });
+
+  for (const [sections, count, degree] of [[2, 17, 2], [8, 64, 3]]) await check(`D316: raw framed polynomial guide with ${sections} sections and ${count} controls opens, edits and reopens`, async () => {
+    // Existing raw document route and generic profile editor; no frame/guide authoring HUD is assumed.
+    const knots = [...Array(degree + 1).fill(0), ...Array.from({ length: count - degree - 1 }, (_, i) => (i + 1) / (count - degree)), ...Array(degree + 1).fill(1)];
+    const controlPoints = Array.from({ length: count }, (_, i) => {
+      let t = 0;
+      for (let j = 1; j <= degree; j++) t += knots[i + j];
+      return [-2 + t / degree, 3, 4];
+    });
+    const input = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2,
+      nodes: [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [1, 1] },
+        { id: 'n1', kind: 'loft', from: Array(sections).fill(0),
+          sections: Array.from({ length: sections }, (_, i) => ({ sketch: 0, frame: { origin: [-2 + i / (sections - 1), 3, 4], xAxis: [0, 1, 0], yAxis: [0, 0, 1] } })),
+          guide: { kind: 'nurbs', degree, knots, controlPoints } }], outputs: { b1: { node: 1, side: 'solid' } } };
+    const fixture = join(out, `d316-${sections}-${count}-input.bcad`); writeFileSync(fixture, JSON.stringify(input));
+    const ready = async (width, depth) => {
+      await page.waitForFunction(({ width, depth, sections, count }) => {
+        const state = window.__studioBodies?.(), doc = window.__studioDoc, loft = doc?.nodes[1];
+        if (!state?.fresh || state.massReady !== true || state.bodies.length !== 1 || loft?.kind !== 'loft' || loft.sections.length !== sections || loft.guide?.controlPoints.length !== count) return false;
+        const body = state.bodies[0];
+        return body.key === 'b1' && Number.isFinite(body.volume) && Math.abs(body.volume - width * depth) < 1e-9
+          && doc.nodes[0].max[0] === width && doc.nodes[0].max[1] === depth;
+      }, { width, depth, sections, count }, { timeout: 30000 });
+      const state = await page.evaluate(() => window.__studioBodies());
+      assert.equal(state.bodies.length, 1); assert.equal(state.bodies[0].key, 'b1');
+      assert.ok(state.bodies[0].centroid?.every((v, i) => Math.abs(v - [-1.5, 3 + width / 2, 4 + depth / 2][i]) < 1e-9));
+      assert.equal(await page.locator('.vp-error').count(), 0); assert.match(await outliner(), /1 body/);
+      assert.deepEqual((await doc()).nodes[1], input.nodes[1], 'generic profile edits retain every frame and original guide coefficient');
+    };
+    await openModel(fixture, 2); await ready(1, 1); await iso(); await snap(`d316-${sections}-${count}-opened`);
+    await page.locator('.history .hs[data-node-index="1"]').click();
+    const editor = page.locator('.node-editor'); await editor.waitFor();
+    assert.equal(await editor.locator('input[aria-label="Section 1 · Width"]').inputValue(), '1');
+    assert.equal(await editor.locator('input[aria-label="Section 1 · Depth"]').inputValue(), '1');
+    await editor.locator('input[aria-label="Section 1 · Width"]').fill('2');
+    await editor.locator('input[aria-label="Section 1 · Depth"]').fill('3');
+    await editor.locator('button', { hasText: 'Apply' }).click(); await ready(2, 3);
+    await iso(); await snap(`d316-${sections}-${count}-edited`);
+    const accepted = await doc(); assert.deepEqual(accepted.nodes[0].min, [0, 0]);
+    await press('Escape'); await press('Meta+z'); await ready(1, 1);
+    await press('Meta+Shift+z'); await ready(2, 3); assert.deepEqual(await doc(), accepted);
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+    const file = join(out, `d316-${sections}-${count}-saved.bcad`); await saved.saveAs(file);
+    assert.deepEqual(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readFileSync(file))), JSON.parse(JSON.stringify(accepted)));
+    await page.click('[aria-label="New part"]');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 0 && window.__studioBodies?.().fresh && window.__studioBodies().bodies.length === 0, null, { timeout: 30000 });
+    await openModel(file, 2); await ready(2, 3); assert.deepEqual(await doc(), accepted);
+    await page.locator('.history .hs[data-node-index="1"]').click(); await editor.waitFor();
+    assert.equal(await editor.locator('input[aria-label="Section 1 · Width"]').inputValue(), '2');
+    assert.equal(await editor.locator('input[aria-label="Section 1 · Depth"]').inputValue(), '3');
+    await iso(); await snap(`d316-${sections}-${count}-reopened`);
+    await page.click('[aria-label="Close editor"]');
+  });
+
+  await check('CG1 freeform: Face fillet on a quintic guided loft previews, applies and reopens', async () => {
+    const input = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [20, 20] },
+      { id: 'n1', kind: 'loft', from: [0, 0], sections: [{ sketch: 0, z: 0 }, { sketch: 0, z: 20 }],
+        guide: { kind: 'nurbs', degree: 5, knots: [0,0,0,0,0,0,1,1,1,1,1,1],
+          controlPoints: [[0,0,0],[0,0,4],[2,0,8],[-2,0,12],[0,0,16],[0,0,20]] } },
+    ], outputs: { b1: { node: 1, side: 'solid' } }, nextId: 2 };
+    const fixture = join(out, 'polynomial-face-fillet-input.bcad'); writeFileSync(fixture, JSON.stringify(input));
+    await openModel(fixture, 2); await idle();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.side1')));
+    await page.click('.views button:text-is("Front")'); await press('f'); await page.waitForTimeout(400);
+    const front = await page.evaluate(() => window.__studioScreenOf([10, 0, 10]));
+    await page.keyboard.down('Shift'); await page.mouse.click(...front); await page.keyboard.up('Shift');
+    await press(' '); await page.locator('.palette input').fill('face fillet'); await press('Enter'); await hudReady();
+    await field('Radius').fill('0.5'); await field('Radius').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await snap('polynomial-face-fillet-preview'); await page.locator('.hud button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'face-fillet' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 30000 }); await idle();
+    const accepted = await doc(), node = accepted.nodes.at(-1);
+    assert.deepEqual([...node.faces].sort(), ['n1.side0', 'n1.side1']); assert.equal(node.radius, 0.5);
+    assert.ok(node.faces.every(name => node.sigs?.[name])); assert.equal(await bodyVolume(), 7999);
+    await iso(); await snap('polynomial-face-fillet-applied');
+    await press('Escape'); await press('Meta+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2, null, { timeout: 10000 }); await idle();
+    assert.equal(await bodyVolume(), 8000);
+    await press('Meta+Shift+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'face-fillet', null, { timeout: 30000 }); await idle();
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 10000 }), page.click('[aria-label="Save"]')]);
+    const file = join(out, 'polynomial-face-fillet-saved.bcad'); await saved.saveAs(file);
+    await page.click('[aria-label="New part"]'); await openModel(file, 3); await idle();
+    assert.deepEqual((await doc()).nodes, JSON.parse(JSON.stringify(accepted.nodes))); assert.equal(await bodyVolume(), 7999);
+    await iso(); await snap('polynomial-face-fillet-reopened');
+  });
+
+  await check('CG1 freeform replacement: Face fillet replaces a smaller round and reopens', async () => {
+    const input = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nodes: [
+      { id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [20, 20] },
+      { id: 'n1', kind: 'loft', from: [0, 0], sections: [{ sketch: 0, z: 0 }, { sketch: 0, z: 20 }],
+        guide: { kind: 'nurbs', degree: 5, knots: [0,0,0,0,0,0,1,1,1,1,1,1],
+          controlPoints: [[0,0,0],[0,0,4],[2,0,8],[-2,0,12],[0,0,16],[0,0,20]] } },
+      { id: 'n2', kind: 'face-fillet', parent: { node: 1, side: 'solid' }, faces: ['n1.side0', 'n1.side1'], radius: 0.25 },
+    ], outputs: { b2: { node: 2, side: 'solid' } }, nextId: 3 };
+    const fixture = join(out, 'polynomial-replacement-input.bcad'); writeFileSync(fixture, JSON.stringify(input));
+    await openModel(fixture, 3); await idle(); const before = await doc();
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.side1')));
+    await page.click('.views button:text-is("Front")'); await press('f'); await page.waitForTimeout(400);
+    const front = await page.evaluate(() => window.__studioScreenOf([10, 0, 10]));
+    await page.keyboard.down('Shift'); await page.mouse.click(...front); await page.keyboard.up('Shift');
+    await press(' '); await page.locator('.palette input').fill('face fillet'); await press('Enter'); await hudReady();
+    await field('Radius').fill('0.5'); await field('Radius').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await snap('polynomial-replacement-preview'); await page.locator('.hud button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 4 && window.__studioDoc.nodes.at(-1)?.radius === 0.5 && window.__studioFresh === true, null, { timeout: 30000 }); await idle();
+    const accepted = await doc(), node = accepted.nodes.at(-1);
+    assert.equal(node.kind, 'face-fillet'); assert.equal(node.parent.node, 2);
+    assert.deepEqual([...node.faces].sort(), ['n1.side0', 'n1.side1']); assert.ok(node.faces.every(name => node.sigs?.[name]));
+    assert.equal(await bodyVolume(), 7999); await iso(); await snap('polynomial-replacement-applied');
+    await press('Escape'); await press('Meta+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 3 && window.__studioFresh === true, null, { timeout: 30000 }); await idle();
+    assert.deepEqual((await doc()).nodes, before.nodes); assert.equal(await bodyVolume(), 8000);
+    await press('Meta+Shift+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 4 && window.__studioDoc.nodes.at(-1)?.radius === 0.5 && window.__studioFresh === true, null, { timeout: 30000 }); await idle();
+    const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 10000 }), page.click('[aria-label="Save"]')]);
+    const file = join(out, 'polynomial-replacement-saved.bcad'); await saved.saveAs(file);
+    await page.click('[aria-label="New part"]'); await openModel(file, 4); await idle();
+    assert.deepEqual((await doc()).nodes, JSON.parse(JSON.stringify(accepted.nodes))); assert.equal(await bodyVolume(), 7999);
+    await iso(); await snap('polynomial-replacement-reopened');
+  });
+
+  await check('CG1 text: original font upload, native chooser, editing, undo and portable Save/Open', async () => {
+    const font = join(root, 'test/fixtures/fonts/abeezee/ABeeZee-Regular.ttf'), aVolume = 148797 * 0.01 ** 2 * 2;
+    await page.click('[aria-label="New part"]');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 0 && window.__studioFresh === true); await idle();
+    await press(' '); await page.locator('.palette input').fill('Text'); await press('Enter'); await hudReady();
+    await field('Text').fill(' A '); await field('Font file').setInputFiles(font); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview');
+    assert.match(await page.locator('.hud').innerText(), /ABeeZee-Regular.ttf/);
+    assert.doesNotMatch(await page.locator('.hud').innerText(), /"blob"|[a-f0-9]{64}/);
+    // Native file-input Enter may open a chooser; it must never Apply the prepared text.
+    const chooserPromise = page.waitForEvent('filechooser', { timeout: 1000 }).catch(() => null);
+    await field('Font file').press('Enter'); const chooser = await chooserPromise;
+    assert.equal((await doc()).nodes.length, 0);
+    if (chooser) { await chooser.setFiles(font); await hudReady(); }
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview');
+    await field('Text').evaluate(input => input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, isComposing: true })));
+    assert.equal((await doc()).nodes.length, 0, 'an injected composing Enter leaves the HUD open');
+    await field('Font file').setInputFiles({ name: 'broken.ttf', mimeType: 'font/ttf', buffer: Buffer.from([0, 1, 2, 3]) });
+    await page.waitForFunction(() => /Could not read the font/.test(document.querySelector('.hud .hud-error')?.textContent ?? ''));
+    await field('Em size').fill('11'); await field('Em size').blur(); await page.waitForTimeout(200);
+    assert.equal(await page.locator('.hud .status').innerText(), 'refused');
+    assert.ok(await page.locator('.hud button', { hasText: 'Apply' }).isDisabled()); assert.equal((await doc()).nodes.length, 0);
+    await field('Em size').fill('10'); await field('Font file').setInputFiles(font); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview'); await iso(); await snap('text-preview');
+    await page.locator('.hud button', { hasText: 'Apply' }).click(); await textReady(' A ', 1, aVolume); await idle();
+    const original = await doc(); assert.equal(original.nodes[0].kind, 'text'); assert.equal(original.nodes[0].font.filename, 'ABeeZee-Regular.ttf');
+    await iso(); await snap('text-applied');
+    // Keep later authored features while changing this earlier recipe in the History.
+    await press('Escape'); await press('b'); await hudReady();
+    await field('Width X').fill('2'); await field('Depth Y').fill('2'); await field('Height Z').fill('1');
+    await field('At X').fill('30'); await field('At Y').fill('0'); await field('At Z').fill('0'); await field('At Z').blur(); await hudReady();
+    await page.locator('.hud button', { hasText: 'Apply' }).click(); await textReady(' A ', 3, aVolume); await idle();
+    const withBox = await doc(); await press('Escape');
+    await page.locator('.history button[data-node-index="0"]').click();
+    await page.waitForSelector('.hud[aria-label="Edit Text"]'); await field('Text').fill(' AA '); await field('Text').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview');
+    await page.locator('.hud button', { hasText: 'Apply' }).click(); await textReady(' AA ', 3, 2 * aVolume); await idle();
+    const edited = await doc(); assert.equal(edited.nodes[0].id, original.nodes[0].id);
+    assert.deepEqual(edited.nodes[0].font, original.nodes[0].font); assert.deepEqual(edited.nodes.slice(1), JSON.parse(JSON.stringify(withBox.nodes.slice(1))));
+    await press('Escape'); await press('Meta+z'); await textReady(' A ', 3, aVolume); await idle();
+    await press('Meta+Shift+z'); await textReady(' AA ', 3, 2 * aVolume); await idle();
+    const [download] = await Promise.all([page.waitForEvent('download'), page.click('[aria-label="Save"]')]);
+    const saved = join(out, 'text-original-font-saved.bcad'); await download.saveAs(saved);
+    assert.equal(readFileSync(saved).subarray(0, 8).toString(), 'BCADPACK');
+    await page.click('[aria-label="New part"]'); await openModel(saved, 3); await textReady(' AA ', 3, 2 * aVolume); await idle();
+    assert.deepEqual((await doc()).nodes, JSON.parse(JSON.stringify(edited.nodes)));
+    await page.locator('.history button[data-node-index="0"]').click(); await page.waitForSelector('.hud[aria-label="Edit Text"]');
+    await field('Text').fill(' A '); await field('Text').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview');
+    await page.locator('.hud button', { hasText: 'Apply' }).click(); await textReady(' A ', 3, aVolume); await idle();
+    await page.click('[aria-label="New from a template"]'); await page.locator('input[aria-label="Template name"]').fill('Font source stays portable');
+    await page.click('[aria-label="Save as a template"]');
+    await page.waitForFunction(() => /font files/.test(document.querySelector('[role="status"]')?.textContent ?? '') || /font files/.test(document.body.textContent ?? ''));
+    assert.equal((await doc()).nodes[0].text, ' A '); await iso(); await snap('text-reopened-edited');
+  });
+
+  await check('CG1 text Korean: both selected Korean originals create and reopen the same scalar text', async () => {
+    for (const filename of ['nanum-gothic/NanumGothic-Regular.ttf', 'nanum-myeongjo/NanumMyeongjo-Regular.ttf']) {
+      await page.click('[aria-label="New part"]');
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 0 && window.__studioFresh === true); await idle();
+      await press(' '); await page.locator('.palette input').fill('Text'); await press('Enter'); await hudReady();
+      await field('Text').fill('가한'); await field('Em size').fill('20'); await field('Curve tolerance').fill('0.002');
+      await field('Font file').setInputFiles(join(root, 'test/fixtures/fonts', filename)); await hudReady();
+      await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+      await page.locator('.hud button', { hasText: 'Apply' }).click(); await textReady('가한', 1); await idle();
+      const accepted = await doc(); assert.equal(accepted.nodes[0].font.filename, filename.split('/').at(-1));
+      const [download] = await Promise.all([page.waitForEvent('download'), page.click('[aria-label="Save"]')]);
+      const saved = join(out, filename.startsWith('nanum-gothic') ? 'text-korean-gothic.bcad' : 'text-korean-myeongjo.bcad'); await download.saveAs(saved);
+      assert.equal(readFileSync(saved).subarray(0, 8).toString(), 'BCADPACK');
+      await page.click('[aria-label="New part"]'); await openModel(saved, 1); await textReady('가한', 1); await idle();
+      assert.deepEqual((await doc()).nodes, JSON.parse(JSON.stringify(accepted.nodes)));
+      await iso(); await snap(filename.startsWith('nanum-gothic') ? 'text-korean-gothic-reopened' : 'text-korean-myeongjo-reopened');
+    }
+  });
+
+  await check('CG1 cylindrical wrap: native quarter preview, apply, undo, edit and portable Save/Open', async () => {
+    await page.click('[aria-label="New part"]'); await press(' '); await page.locator('.palette input').fill('Cylinder'); await press('Enter'); await hudReady();
+    await field('Radius').fill('10'); await field('Height').fill('30');
+    await field('Centre X').fill('0'); await field('Centre Y').fill('0'); await field('At Z').fill('0'); await field('At Z').blur(); await hudReady();
+    await page.locator('.hud button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && window.__studioFresh === true); await idle(); await press('Escape');
+    await cylindricalWrapReady(null);
+    const base = await doc(); assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.side0')));
+    await press(' '); await page.locator('.palette input').fill('Cylindrical wrap'); await press('Enter'); await hudReady();
+    assert.match(await page.locator('.hud').innerText(), /first native quarter/);
+    await field('U start (native)').fill('0.1'); await field('U end (native)').fill('0.4');
+    await field('V start (native)').fill('0.2'); await field('V end (native)').fill('0.7');
+    await field('Height (must equal radius)').fill('10'); await field('Height (must equal radius)').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 }); await iso(); await snap('cylindrical-wrap-preview');
+    await field('Height (must equal radius)').fill('9'); await field('Height (must equal radius)').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent !== 'preview');
+    assert.deepEqual((await doc()).nodes, base.nodes); assert.equal(await page.locator('.hud button', { hasText: 'Apply' }).isDisabled(), true);
+    await field('Height (must equal radius)').fill('10'); await field('Height (must equal radius)').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await page.locator('.hud button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.at(-1)?.kind === 'cylindrical-wrap' && window.__studioFresh === true); await idle();
+    await cylindricalWrapReady(0.1);
+    const applied = await doc(); assert.deepEqual(applied.nodes[2].faces, ['n1.side0#2']); assert.ok(applied.nodes[2].sigs['n1.side0#2']); await iso(); await snap('cylindrical-wrap-applied');
+    await press('Meta+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && window.__studioFresh === true); assert.deepEqual((await doc()).nodes, base.nodes); await cylindricalWrapReady(null);
+    await press('Meta+Shift+z'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 3 && window.__studioFresh === true); await cylindricalWrapReady(0.1);
+    await press('Escape'); await page.locator('.history button[data-node-index="2"]').click(); await page.waitForSelector('.hud[aria-label="Edit Cylindrical wrap"]');
+    await field('U start (native)').fill('0.15'); await field('U start (native)').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    await page.locator('.hud button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => window.__studioDoc.nodes[2]?.rectangle?.u[0] === 0.15 && window.__studioFresh === true); await idle();
+    await cylindricalWrapReady(0.15);
+    const edited = await doc(); assert.deepEqual(edited.nodes[2].sigs, applied.nodes[2].sigs); assert.equal(edited.nodes[2].id, applied.nodes[2].id);
+    const [download] = await Promise.all([page.waitForEvent('download'), page.click('[aria-label="Save"]')]);
+    const saved = join(out, 'cylindrical-wrap-saved.bcad'); await download.saveAs(saved);
+    // This asset-free recipe follows the existing plain-JSON Save branch.
+    const savedDoc = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readFileSync(saved)));
+    assert.equal(savedDoc.format, 'barocss-cad-model'); assert.equal(savedDoc.schema, edited.schema);
+    assert.deepEqual(savedDoc, JSON.parse(JSON.stringify(edited)));
+    await page.click('[aria-label="New part"]'); await openModel(saved, 3); await idle(); await cylindricalWrapReady(0.15);
+    assert.deepEqual((await doc()).nodes, edited.nodes); await iso(); await snap('cylindrical-wrap-reopened');
+    await page.locator('.history button[data-node-index="2"]').click(); await page.waitForSelector('.hud[aria-label="Edit Cylindrical wrap"]');
+    assert.equal(Number(await field('U start (native)').inputValue()), 0.15); await press('Escape');
+  });
+
+  await check('CG1 text relief: supported emboss, refused outside stroke, history edit, undo and portable Save/Open', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    await field('Width X').fill('40'); await field('Depth Y').fill('30'); await field('Height Z').fill('10');
+    await field('At X').fill('0'); await field('At Y').fill('0'); await field('At Z').fill('0'); await field('At Z').blur(); await hudReady();
+    await page.locator('.hud button', { hasText: 'Apply' }).click();
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && window.__studioFresh === true); await idle();
+    const base = await doc(); await press('Escape');
+    assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+    await press(' '); await page.locator('.palette input').fill('Text relief'); await press('Enter'); await hudReady();
+    await field('Text').fill('A'); await field('Em size').fill('10'); await field('Depth').fill('2');
+    await field('Curve tolerance').fill('0.002'); await field('Baseline X').fill('5'); await field('Baseline Y').fill('5');
+    await field('Font file').setInputFiles(join(root, 'test/fixtures/fonts/abeezee/ABeeZee-Regular.ttf')); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+    assert.doesNotMatch(await page.locator('.hud').innerText(), /"blob"|[a-f0-9]{64}/);
+    // One outside stroke must refuse the whole candidate, preserving the accepted base.
+    await field('Baseline X').fill('39'); await field('Baseline X').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'refused');
+    assert.ok(await page.locator('.hud button', { hasText: 'Apply' }).isDisabled()); assert.deepEqual((await doc()).nodes, base.nodes);
+    await field('Baseline X').fill('5'); await field('Baseline X').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview'); await iso(); await snap('text-relief-emboss-preview');
+    await page.locator('.hud button', { hasText: 'Apply' }).click(); await reliefReady('A', 'emboss', 12029.7594); await idle();
+    const embossed = await doc(); assert.equal(embossed.nodes[2].sigs['n1.top'].k, 'plane');
+    assert.deepEqual(embossed.nodes[2].faces, ['n1.top']); await iso(); await snap('text-relief-emboss-applied');
+    await press('Escape'); await press('Meta+z');
+    await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && window.__studioFresh === true); await idle(); assert.deepEqual((await doc()).nodes, base.nodes);
+    await press('Meta+Shift+z'); await reliefReady('A', 'emboss', 12029.7594); await idle();
+    await press('Escape'); await page.locator('.history button[data-node-index="2"]').click(); await page.waitForSelector('.hud[aria-label="Edit Text relief"]');
+    await field('Operation').selectOption('engrave'); await field('Depth').fill('1.5'); await field('Depth').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview');
+    await page.locator('.hud button', { hasText: 'Apply' }).click(); await reliefReady('A', 'engrave', 11977.68045); await idle();
+    const engraved = await doc(); assert.equal(engraved.nodes[2].id, embossed.nodes[2].id); assert.deepEqual(engraved.nodes[2].font, embossed.nodes[2].font);
+    assert.deepEqual(engraved.nodes[2].sigs, embossed.nodes[2].sigs); await iso(); await snap('text-relief-engrave-applied');
+    const [download] = await Promise.all([page.waitForEvent('download'), page.click('[aria-label="Save"]')]);
+    const saved = join(out, 'text-relief-original-font-saved.bcad'); await download.saveAs(saved); assert.equal(readFileSync(saved).subarray(0, 8).toString(), 'BCADPACK');
+    await page.click('[aria-label="New part"]'); await openModel(saved, 3); await reliefReady('A', 'engrave', 11977.68045); await idle();
+    assert.deepEqual((await doc()).nodes, JSON.parse(JSON.stringify(engraved.nodes)));
+    await page.locator('.history button[data-node-index="2"]').click(); await page.waitForSelector('.hud[aria-label="Edit Text relief"]');
+    assert.equal(await field('Font file').inputValue(), ''); assert.match(await page.locator('.hud').innerText(), /ABeeZee-Regular.ttf/);
+    await field('Depth').fill('2'); await field('Depth').blur(); await hudReady();
+    await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview');
+    await page.locator('.hud button', { hasText: 'Apply' }).click(); await reliefReady('A', 'engrave', 11970.2406); await idle(); await iso(); await snap('text-relief-reopened-edited');
+  });
+
+  await check('CG1 text relief Korean: both selected originals preserve separated strokes and counters through engrave and reopen', async () => {
+    for (const font of ['nanum-gothic/NanumGothic-Regular.ttf', 'nanum-myeongjo/NanumMyeongjo-Regular.ttf']) {
+      await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+      await field('Width X').fill('40'); await field('Depth Y').fill('30'); await field('Height Z').fill('10');
+      await field('At X').fill('0'); await field('At Y').fill('0'); await field('At Z').fill('0'); await field('At Z').blur(); await hudReady();
+      await page.locator('.hud button', { hasText: 'Apply' }).click();
+      await page.waitForFunction(() => window.__studioDoc.nodes.length === 2 && window.__studioFresh === true); await idle(); await press('Escape');
+      assert.ok(await page.evaluate(() => window.__studioSelectFace('n1.top')));
+      await press(' '); await page.locator('.palette input').fill('Text relief'); await press('Enter'); await hudReady();
+      await field('Text').fill('가한'); await field('Em size').fill('10'); await field('Depth').fill('2');
+      await field('Curve tolerance').fill('0.01'); await field('Baseline X').fill('5'); await field('Baseline Y').fill('5');
+      await field('Font file').setInputFiles(join(root, 'test/fixtures/fonts', font)); await hudReady();
+      await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+      await page.locator('.hud button', { hasText: 'Apply' }).click(); await reliefReady('가한', 'emboss', null); await idle();
+      const raised = await page.evaluate(() => window.__studioBodies().bodies[0].volume); assert.ok(raised > 12000);
+      const original = await doc(); await iso(); await snap(font.startsWith('nanum-gothic') ? 'text-relief-gothic-emboss' : 'text-relief-myeongjo-emboss');
+      await press('Escape'); await page.locator('.history button[data-node-index="2"]').click(); await page.waitForSelector('.hud[aria-label="Edit Text relief"]');
+      await field('Operation').selectOption('engrave'); await hudReady();
+      await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 30000 });
+      await page.locator('.hud button', { hasText: 'Apply' }).click(); await reliefReady('가한', 'engrave', 24000 - raised); await idle();
+      const accepted = await doc(); assert.deepEqual(accepted.nodes[2].font, original.nodes[2].font);
+      const [download] = await Promise.all([page.waitForEvent('download'), page.click('[aria-label="Save"]')]);
+      const saved = join(out, font.startsWith('nanum-gothic') ? 'text-relief-gothic.bcad' : 'text-relief-myeongjo.bcad'); await download.saveAs(saved);
+      await page.click('[aria-label="New part"]'); await openModel(saved, 3); await reliefReady('가한', 'engrave', 24000 - raised); await idle();
+      assert.deepEqual((await doc()).nodes, JSON.parse(JSON.stringify(accepted.nodes))); await iso(); await snap(font.startsWith('nanum-gothic') ? 'text-relief-gothic-reopened' : 'text-relief-myeongjo-reopened');
+    }
   });
 
   await check('fillet a box top edge from the palette', async () => {
@@ -986,7 +1441,7 @@ try {
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
     assert.match(await page.locator('.toast').innerText(), /STL opened[\s\S]*7,000 mm³/);
     await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /40 × 20 × 10/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /40 × 20 × 10/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     // (F0: a new import is facet faces, its regions named by the mesh.)
     assert.equal((await doc()).nodes[0].representation, 'facets');
     await snap('stl-open');
@@ -1032,6 +1487,128 @@ try {
     await page.waitForFunction(() => /Stopped/.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 5000 });
     assert.deepEqual((await doc()).nodes.map(n => n.id), before.nodes.map(n => n.id));
     await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 });
+  });
+
+  await check('D321: Stop rolls back its owned Box while pending Render and Drawing edits refuse', async () => {
+    const { installD321NativeWorkerHold } = await import('./stop-work-native-worker.mjs');
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
+    await page.addInitScript(installD321NativeWorkerHold); expectLoad(); await page.reload(); await idle();
+    if (await page.locator('[aria-label="Recover unsaved work"]').count()) throw new Error('D321 must start without a prior recovery offer');
+    await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
+    const states = [], observations = {};
+    const snapshot = async label => {
+      const value = await page.evaluate(label => ({ label, doc: window.__studioDoc, bodies: window.__studioBodies?.(), fresh: window.__studioFresh,
+        trace: window.__d321Worker.snapshot(), recovery: localStorage.getItem('studio.recovery'), history: document.querySelector('.history')?.textContent,
+        dirty: !!document.querySelector('[aria-label="Unsaved changes"]'), name: document.querySelector('.doc-tab input')?.value,
+        feedback: [...document.querySelectorAll('.toast')].map(element => element.textContent), eye: window.__studioEye?.() }), label);
+      states.push(value); writeFileSync(join(out, 'd321-states.json'), JSON.stringify({ states, observations }, null, 2)); return value;
+    };
+    const ready = async (nodes, count, volume) => {
+      await page.waitForFunction(({ nodes, count, volume }) => {
+        const state = window.__studioBodies?.(); return window.__studioDoc.nodes.length === nodes && state?.fresh && state.massReady === true
+          && state.bodies.length === count && state.bodies.every(body => Number.isFinite(body.volume))
+          && Math.abs(state.bodies.reduce((sum, body) => sum + body.volume, 0) - volume) < 1e-7;
+      }, { nodes, count, volume }, { timeout: 30000 }).catch(async error => {
+        await snapshot(`readiness-failure-${nodes}-${count}-${volume}`); throw error;
+      });
+      assert.equal(await page.locator('.vp-error').count(), 0);
+    };
+    const recovery = async nodes => {
+      await page.waitForFunction(nodes => { const raw = localStorage.getItem('studio.recovery'); return raw && JSON.parse(raw).doc.nodes.length === nodes; }, nodes, { timeout: 15000 });
+    };
+    const previewBox = async (x, width = 10) => {
+      await page.click('.mode button:text-is("Model")'); await press('b'); await hudReady();
+      await field('Width X').fill(String(width)); await field('Depth Y').fill('10'); await field('Height Z').fill('10');
+      await field('At X').fill(String(x)); await field('At Y').fill('0'); await hudReady();
+      await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 20000 });
+    };
+    const heldApply = async nodes => {
+      await page.evaluate(() => window.__d321Worker.arm()); await page.locator('.hud button', { hasText: 'Apply' }).click();
+      await page.waitForFunction(nodes => {
+        const trace = window.__d321Worker.snapshot(), claim = trace.claimed;
+        return window.__studioDoc.nodes.length === nodes && claim && trace.events.some(event => event.kind === 'held' && event.key === claim.key && event.id === claim.id && event.resultOK === true)
+          && trace.events.some(event => event.kind === 'held' && event.key === claim.key && event.masses);
+      }, nodes, { timeout: 20000 });
+      await page.waitForSelector('[aria-label="Cancel the computation"]', { timeout: 15000 });
+    };
+    const checkDiscard = trace => {
+      const claim = trace.claimed, terminated = trace.events.find(event => event.kind === 'terminate' && event.key === claim.key);
+      assert.ok(terminated?.discardedHeld >= 2, 'termination discards the real held result and mass messages');
+      const claimed = trace.events.find(event => event.kind === 'claimed' && event.key === claim.key && event.id === claim.id);
+      assert.equal(trace.events.filter(event => event.kind === 'delivery-to-client' && event.key === claim.key && event.sequence > claimed.sequence).length, 0, 'no held old-native event is delivered or replayed');
+    };
+    const refusal = async () => {
+      await page.waitForSelector('.toast', { timeout: 5000 });
+      const text = await page.locator('.toast').innerText();
+      assert.match(text, /Change not applied/); assert.match(text, /Wait for the computation to finish, or stop it, before changing the document\./); return text;
+    };
+    await previewBox(0); await page.locator('.hud button', { hasText: 'Apply' }).click(); await ready(2, 1, 1000); await iso();
+    const d0 = await snapshot('D0-computed');
+    await previewBox(20); await heldApply(4); await recovery(4);
+    const d1 = await snapshot('D1-native-complete-client-pending'); assert.equal(d1.dirty, true); assert.deepEqual(JSON.parse(d1.recovery).doc, d1.doc);
+    await page.click('.views button:text-is("Top")');
+    await page.waitForFunction(eye => JSON.stringify(window.__studioEye?.()) !== JSON.stringify(eye), d1.eye);
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('.render-panel');
+    await page.locator('.render-panel [role="tab"]', { hasText: 'Scene' }).click();
+    const grid = page.locator('.render-panel [role="checkbox"][aria-label="Grid"], .render-panel input[aria-label="Grid"]');
+    const renderPending = await snapshot('Render-workspace-pending'); assert.deepEqual(renderPending.doc, d1.doc);
+    for (let attempt = 0; attempt < 2; attempt++) {
+      if (await page.locator('.toast [aria-label="Dismiss"]').count()) await page.locator('.toast [aria-label="Dismiss"]').click();
+      await grid.click(); await refusal();
+      const blocked = await snapshot(`Grid-refused-${attempt + 1}`);
+      assert.deepEqual(blocked.doc, d1.doc); assert.equal(blocked.history, renderPending.history); assert.equal(blocked.recovery, d1.recovery); assert.equal(blocked.dirty, true);
+    }
+    await page.click('.mode button:text-is("Drawing")');
+    const paper = page.locator('[aria-label="Sheet size"]');
+    try { await paper.waitFor({ timeout: 10000 }); }
+    catch (error) { if (error.name !== 'TimeoutError') throw error; observations.drawing = { status: 'NOT_RUN', reason: 'Sheet size was not available while native client delivery was pending.' }; }
+    if (!observations.drawing) {
+      if (!await paper.isEnabled()) observations.drawing = { status: 'NOT_RUN', reason: 'Sheet size was disabled by local drawing readiness while pending.' };
+      else {
+        if (await page.locator('.toast [aria-label="Dismiss"]').count()) await page.locator('.toast [aria-label="Dismiss"]').click();
+        const drawingPending = await snapshot('Drawing-workspace-pending');
+        const prior = await paper.inputValue(); await paper.selectOption(prior === 'A3' ? 'A4' : 'A3');
+        observations.drawing = { status: 'PASS', refusal: await refusal() };
+        const blocked = await snapshot('Drawing-setting-refused'); assert.deepEqual(blocked.doc, d1.doc); assert.equal(blocked.history, drawingPending.history); assert.equal(blocked.recovery, d1.recovery);
+      }
+    }
+    await page.click('.mode button:text-is("Model")');
+    const modelPending = await snapshot('Model-history-after-refusals'); assert.equal(modelPending.history, d1.history); assert.deepEqual(modelPending.doc, d1.doc);
+    await page.click('.mode button:text-is("Render")'); await page.waitForSelector('.render-panel');
+    const beforeStop = await snapshot('before-Stop'); assert.deepEqual(beforeStop.doc, d1.doc); assert.deepEqual(beforeStop.trace.claimed, d1.trace.claimed);
+    await snap('d321-refused-before-stop');
+    await page.click('[aria-label="Cancel the computation"]'); await ready(2, 1, 1000); await recovery(2);
+    const stopped = await snapshot('Stop-owned-D1-restores-D0'); assert.deepEqual(stopped.doc, d0.doc); assert.equal(stopped.dirty, true); assert.deepEqual(JSON.parse(stopped.recovery).doc, d0.doc); checkDiscard(stopped.trace);
+    const old = stopped.trace.claimed, terminated = stopped.trace.events.find(event => event.kind === 'terminate' && event.key === old.key);
+    const freshSubmit = stopped.trace.events.find(event => event.kind === 'submit' && event.type === 'evaluate' && event.sequence > terminated.sequence && event.key !== old.key);
+    assert.ok(freshSubmit?.nativeSource?.epoch > old.nativeSource.epoch, 'owned Stop evaluates D0 on a new native backend epoch');
+    assert.equal(freshSubmit.sourceNodeCount, d0.doc.nodes.length); assert.deepEqual(freshSubmit.sourceNodes.map(node => node.id), d0.doc.nodes.map(node => node.id));
+    assert.ok(stopped.trace.events.some(event => event.kind === 'delivery-to-client' && event.key === freshSubmit.key && event.id === freshSubmit.id && event.resultOK === true));
+    observations.newBackend = { submit: freshSubmit, bodies: stopped.bodies, viewportExactProvenance: 'NOT_EXPOSED' };
+    await snap('d321-owned-stop');
+    await page.click('[aria-label="Redo"]'); await ready(4, 2, 2000); assert.deepEqual(await doc(), d1.doc);
+    await page.locator('.render-panel [role="tab"]', { hasText: 'Scene' }).click();
+    const evaluationsBeforeGrid = await page.evaluate(() => window.__d321Worker.snapshot().events.filter(event => event.kind === 'submit' && event.type === 'evaluate').length);
+    await grid.setChecked(!(await grid.isChecked())); await page.waitForFunction(() => !!window.__studioDoc.render);
+    const gridDoc = await doc();
+    await page.click('[aria-label="Undo"]'); await ready(4, 2, 2000); assert.deepEqual(await doc(), d1.doc);
+    await page.click('[aria-label="Redo"]'); await ready(4, 2, 2000); assert.deepEqual(await doc(), gridDoc);
+    await page.click('[aria-label="Undo"]'); await ready(4, 2, 2000); assert.deepEqual(await doc(), d1.doc);
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    const evaluationsAfterGrid = await page.evaluate(() => window.__d321Worker.snapshot().events.filter(event => event.kind === 'submit' && event.type === 'evaluate').length);
+    assert.equal(evaluationsAfterGrid, evaluationsBeforeGrid, 'normal Grid and its Undo/Redo do not submit unnecessary model evaluation');
+    observations.normalGrid = { evaluationsBeforeGrid, evaluationsAfterGrid };
+    await snapshot('normal-Grid-and-Undo');
+
+    await previewBox(40); await heldApply(6); const third = await snapshot('normal-no-Grid-D2-pending');
+    await page.click('[aria-label="Cancel the computation"]'); await ready(4, 2, 2000); assert.deepEqual(await doc(), d1.doc);
+    const noGrid = await snapshot('normal-no-Grid-Stop'); checkDiscard(noGrid.trace);
+    await page.click('[aria-label="Redo"]'); await ready(6, 3, 3000); assert.deepEqual(await doc(), third.doc);
+    await page.click('[aria-label="Undo"]'); await ready(4, 2, 2000); assert.deepEqual(await doc(), d1.doc);
+    await previewBox(60, 12); await page.locator('.hud button', { hasText: 'Apply' }).click(); await ready(6, 3, 3200);
+    await page.click('[aria-label="Undo"]'); await ready(4, 2, 2000); assert.deepEqual(await doc(), d1.doc);
+    const final = await snapshot('normal-Box-Apply-and-Undo'); checkDiscard(final.trace);
+    await iso(); await snap('d321-normal-work-after-stop');
   });
 
   await check('a mesh saved as the container opens again the same; unsaved, its copy (blobs in IndexedDB) comes back after a reload', async () => {
@@ -1108,7 +1685,7 @@ try {
     await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'import' && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 });
     // (The same body: its volume as before, 4022 mm³.)
     await page.locator('.outliner .ol').first().click();
-    await page.waitForFunction(() => /4022 mm³/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''), null, { timeout: 5000 });
+    await page.waitForFunction(() => /4022 mm³/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''), null, { timeout: 5000 });
     // Size caps (D49): past 32 MiB in its meshes it still opens, and past 64 MiB (the owner's 128 MiB); past 128 MiB
     // it is refused, pointing to .bcad (the coordinates list padded with spaces; in memory below Playwright's 50 MB,
     // else a file removed once read).
@@ -1132,6 +1709,76 @@ try {
     await page.waitForSelector('[aria-label="Repair report"]', { timeout: 15000 });
     await page.locator('[aria-label="Mesh repair"] button', { hasText: 'Apply the repair' }).click();
     await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'mesh' && window.__studioDoc.nodes[0].repair?.report.closed, null, { timeout: 15000 });
+  });
+
+  await check('D317: unsupported STEP length declarations preserve accepted B-rep and AP242 Open state', async () => {
+    const { evaluateCadPart, exportStep, tessellateBrep, facetBrepFromTriangles } = await import('../../../packages/barocss-cad/dist/index.js');
+    const cube = evaluateCadPart({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [
+      { id: 's', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [1000, 1000] }, { id: 'cube', kind: 'extrude', sketch: 's', height: 1000 },
+    ] }).outputs[0].brep;
+    const triangles = tessellateBrep(cube), mesh = facetBrepFromTriangles(triangles.positions, triangles.indices, { id: 'cube' });
+    const sources = { brep: exportStep([cube], { name: '1000 cube' }), ap242: exportStep([mesh], { name: '1000 cube mesh', meshes: 'tessellated' }) };
+    assert.match(sources.ap242, /TRIANGULATED_FACE/); assert.doesNotMatch(sources.ap242, /ADVANCED_FACE/);
+    for (const [route, source] of Object.entries(sources)) {
+      assert.equal(source.split('SI_UNIT(.MILLI.,.METRE.)').length, 2);
+      writeFileSync(join(out, `d317-${route}-milli.step`), source);
+      writeFileSync(join(out, `d317-${route}-nano.step`), source.replace('SI_UNIT(.MILLI.,.METRE.)', 'SI_UNIT(.NANO.,.METRE.)'));
+    }
+    const acceptedInput = { format: 'barocss-cad-model', schema: 3, units: 'mm', parameters: {}, nextId: 2,
+      nodes: [{ id: 'n0', kind: 'sketch', profile: 'rectangle', min: [0, 0], max: [10, 10] }, { id: 'n1', kind: 'extrude', sketch: 0, height: 10 }], outputs: { b1: { node: 1, side: 'solid' } } };
+    const file = join(out, 'd317-accepted.bcad'); writeFileSync(file, JSON.stringify(acceptedInput)); await openModel(file, 2); await idle();
+    await page.locator('.history .hs[data-node-index="1"]').click();
+    await page.locator('.node-editor input[aria-label="Width"]').fill('12');
+    await page.locator('.node-editor button', { hasText: 'Apply' }).click();
+    const ready = volume => page.waitForFunction(volume => { const b = window.__studioBodies?.(); return b?.fresh && b.massReady === true && b.bodies.length === 1 && Math.abs(b.bodies[0].volume - volume) < 1e-7; }, volume, { timeout: 30000 });
+    await ready(1200); await press('Escape');
+    const state = async () => ({ doc: await doc(), bodies: await page.evaluate(() => window.__studioBodies()), history: await history(),
+      name: await page.locator('.doc-tab input').inputValue(), dirty: await page.locator('[aria-label="Unsaved changes"]').count(),
+      undoDisabled: await page.locator('[aria-label="Undo"]').isDisabled(), redoDisabled: await page.locator('[aria-label="Redo"]').isDisabled() });
+    for (const route of ['brep', 'ap242']) {
+      if (route === 'ap242') {
+        const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+        await saved.saveAs(join(out, 'd317-accepted-saved.bcad'));
+        await page.waitForSelector('[aria-label="Unsaved changes"]', { state: 'detached' });
+      }
+      if (await page.locator('.toast [aria-label="Dismiss"]').count()) await page.locator('.toast [aria-label="Dismiss"]').click();
+      const before = await state(); assert.equal(before.dirty, route === 'brep' ? 1 : 0); assert.equal(before.undoDisabled, false);
+      await page.setInputFiles('input[aria-label="Model file"]', join(out, `d317-${route}-nano.step`));
+      await page.waitForFunction(() => /\[NOT_READ\].*unsupported SI length prefix NANO/.test(document.querySelector('.toast')?.textContent ?? ''), null, { timeout: 15000 });
+      assert.match(await page.locator('.toast').innerText(), /Could not open this file/);
+      assert.deepEqual(await state(), before, 'refusal preserves document, body, history, filename, dirty state and Undo/Redo availability');
+      assert.equal(await page.locator('[aria-label="Mesh repair"]').count(), 0); assert.equal(await page.locator('.vp-error').count(), 0);
+      await iso(); await snap(`d317-${route}-nano-refused`);
+      await page.locator('.toast [aria-label="Dismiss"]').click();
+      await press('Meta+z'); await ready(1000); assert.deepEqual((await doc()).nodes, acceptedInput.nodes);
+      await press('Meta+Shift+z'); await ready(1200); assert.deepEqual((await doc()).nodes, before.doc.nodes);
+    }
+    // Supported scaling and undeclared fallback use the same genuine public-exported coordinates.
+    const micro = sources.brep.replace('SI_UNIT(.MILLI.,.METRE.)', 'SI_UNIT(.MICRO.,.METRE.)');
+    // Remove the length entity and its global context/uncertainty references; geometry entities are untouched.
+    const undeclared = sources.ap242.replace(/^#\d+=\(LENGTH_UNIT\(\)[^;]*;\r?\n/gm, '')
+      .replace(/^#\d+=UNCERTAINTY_MEASURE_WITH_UNIT[^;]*;\r?\n/gm, '')
+      .replace(/GLOBAL_UNIT_ASSIGNED_CONTEXT\(\([^)]*\)\)/g, '').replace(/GLOBAL_UNCERTAINTY_ASSIGNED_CONTEXT\(\([^)]*\)\)/g, '');
+    assert.doesNotMatch(undeclared, /LENGTH_UNIT/);
+    for (const [name, source, side, volume, message] of [['micro-brep', micro, 1, 1, /micrometres.*scaled ×0.001/], ['undeclared-ap242', undeclared, 1000, 1e9, /no length unit declared \(read as millimetres\)/]]) {
+      const step = join(out, `d317-${name}.step`); writeFileSync(step, source);
+      await page.setInputFiles('input[aria-label="Model file"]', step);
+      await page.waitForFunction(({ source, volume }) => { const b = window.__studioBodies?.(), d = window.__studioDoc; return d.nodes[0]?.kind === 'import' && d.nodes[0].step === source && b?.fresh && b.massReady === true && b.bodies.length === 1 && Number.isFinite(b.bodies[0].volume) && Math.abs(b.bodies[0].volume - volume) <= Math.max(1e-7, volume * 1e-9); }, { source, volume }, { timeout: 30000 });
+      assert.match(await page.locator('.toast').innerText(), message);
+      assert.ok((await page.evaluate(() => window.__studioBodies())).bodies[0].centroid.every(v => Math.abs(v - side / 2) < Math.max(1e-7, side * 1e-9)));
+      assert.equal(await page.locator('.vp-error').count(), 0); assert.match(await outliner(), /1 body/);
+      assert.match((await page.locator('.props').allInnerTexts()).join('\n'), side === 1 ? /Bounds\s*1 × 1 × 1/ : /Bounds\s*1,?000 × 1,?000 × 1,?000/);
+      await iso(); await snap(`d317-${name}-opened`);
+      const accepted = await doc(); assert.equal(accepted.nodes[0].step, source);
+      const [saved] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Save"]')]);
+      const savedFile = join(out, `d317-${name}-saved.bcad`); await saved.saveAs(savedFile);
+      assert.deepEqual(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(readFileSync(savedFile))), JSON.parse(JSON.stringify(accepted)));
+      await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0, null, { timeout: 15000 });
+      await openModel(savedFile, accepted.nodes.length); await idle();
+      assert.deepEqual(await doc(), accepted); assert.equal((await doc()).nodes[0].step, source);
+      const body = (await page.evaluate(() => window.__studioBodies())).bodies[0]; assert.ok(Number.isFinite(body.volume) && Math.abs(body.volume - volume) <= Math.max(1e-7, volume * 1e-9));
+      assert.equal(await page.locator('.vp-error').count(), 0); await iso(); await snap(`d317-${name}-reopened`);
+    }
   });
 
   await check('open a STEP file as a new part', async () => {
@@ -5697,14 +6344,31 @@ try {
   await check('R14.1: Auto-dimension places overall sizes, the hole position and its callout; a hand-placed one is kept', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
     await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
-    await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => {
+      const nodes = window.__studioDoc?.nodes, sketch = nodes?.[0], extrude = nodes?.[1], state = window.__studioBodies?.(), body = state?.bodies[0];
+      return nodes?.length === 2 && sketch.kind === 'sketch' && sketch.profile === 'rectangle' &&
+        JSON.stringify(sketch.min) === '[0,0]' && JSON.stringify(sketch.max) === '[64,32]' &&
+        extrude.kind === 'extrude' && extrude.sketch === 0 && extrude.height === 8 && (extrude.from ?? 0) === 0 &&
+        window.__studioFresh === true && state.fresh && state.massReady === true && state.bodies.length === 1 &&
+        body.key === 'b1' && Math.abs(body.volume - 16384) < 1e-8 &&
+        body.centroid?.every((value, axis) => Math.abs(value - [32, 16, 4][axis]) < 1e-8);
+    }, null, { timeout: 15000 });
     const ext = (await doc()).nodes.length - 1;
     await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`));
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''));
     await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
-    await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => {
+      const nodes = window.__studioDoc?.nodes, hole = nodes?.at(-1), state = window.__studioBodies?.(), body = state?.bodies[0];
+      return nodes?.length === 3 && hole.kind === 'hole' && hole.parent.node === 1 && hole.parent.side === 'solid' &&
+        hole.radius === 4 && JSON.stringify(hole.center) === '[32,16]' && (hole.axis ?? 'z') === 'z' &&
+        hole.depth === undefined && hole.countersink === undefined && hole.pattern === undefined && hole.thread === undefined &&
+        window.__studioFresh === true && state?.fresh && state.massReady === true && state.bodies.length === 1 &&
+        // The exact through-hole design volume; the existing analytic-volume flow tolerance is 1e-7 mm³.
+        Math.abs(body.volume - (64 * 32 * 8 - Math.PI * 4 * 4 * 8)) < 1e-7 &&
+        body.centroid?.every((value, axis) => Math.abs(value - [32, 16, 4][axis]) < 1e-7);
+    }, null, { timeout: 15000 });
     try {
       await page.click('.mode button:text-is("Drawing")');
       await page.waitForFunction(() => window.__studioDrawing?.()?.hidden, null, { timeout: 20000 });
@@ -5734,14 +6398,31 @@ try {
   await check('R14.2: the issue list names what is missing and what repeats; Fix all and a single fix clear them', async () => {
     await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
     await field('Width X').fill('64'); await field('Depth Y').fill('32'); await field('Height Z').fill('8'); await hudReady(); await page.waitForTimeout(400); await press('Enter');
-    await page.waitForFunction(() => /Box 64×32×8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => {
+      const nodes = window.__studioDoc?.nodes, sketch = nodes?.[0], extrude = nodes?.[1], state = window.__studioBodies?.(), body = state?.bodies[0];
+      return nodes?.length === 2 && sketch.kind === 'sketch' && sketch.profile === 'rectangle' &&
+        JSON.stringify(sketch.min) === '[0,0]' && JSON.stringify(sketch.max) === '[64,32]' &&
+        extrude.kind === 'extrude' && extrude.sketch === 0 && extrude.height === 8 && (extrude.from ?? 0) === 0 &&
+        window.__studioFresh === true && state.fresh && state.massReady === true && state.bodies.length === 1 &&
+        body.key === 'b1' && Math.abs(body.volume - 16384) < 1e-8 &&
+        body.centroid?.every((value, axis) => Math.abs(value - [32, 16, 4][axis]) < 1e-8);
+    }, null, { timeout: 15000 });
     const ext = (await doc()).nodes.length - 1;
     await page.waitForFunction(() => /Box/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     assert.ok(await page.evaluate(n => window.__studioSelectFace(n), `n${ext}.top`));
-    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('.props:not([aria-label$=" panel"])')?.textContent ?? ''));
+    await page.waitForFunction(() => /SELECTION · FACE/.test(document.querySelector('[aria-label="Selection"]')?.textContent ?? ''));
     await press('h'); await hudReady(); await field('Diameter').fill('8'); await field('Centre X').fill('32'); await field('Centre Y').fill('16');
     await page.waitForFunction(() => document.querySelector('.hud .status')?.textContent === 'preview', null, { timeout: 15000 }); await press('Enter');
-    await page.waitForFunction(() => /Hole Ø8/.test(document.querySelector('.history')?.textContent ?? ''), null, { timeout: 15000 });
+    await page.waitForFunction(() => {
+      const nodes = window.__studioDoc?.nodes, hole = nodes?.at(-1), state = window.__studioBodies?.(), body = state?.bodies[0];
+      return nodes?.length === 3 && hole.kind === 'hole' && hole.parent.node === 1 && hole.parent.side === 'solid' &&
+        hole.radius === 4 && JSON.stringify(hole.center) === '[32,16]' && (hole.axis ?? 'z') === 'z' &&
+        hole.depth === undefined && hole.countersink === undefined && hole.pattern === undefined && hole.thread === undefined &&
+        window.__studioFresh === true && state?.fresh && state.massReady === true && state.bodies.length === 1 &&
+        // The exact through-hole design volume; the existing analytic-volume flow tolerance is 1e-7 mm³.
+        Math.abs(body.volume - (64 * 32 * 8 - Math.PI * 4 * 4 * 8)) < 1e-7 &&
+        body.centroid?.every((value, axis) => Math.abs(value - [32, 16, 4][axis]) < 1e-7);
+    }, null, { timeout: 15000 });
     const issues = async () => (await page.evaluate(() => window.__studioDrawing())).issues.map(x => x.code).sort();
     try {
       await page.click('.mode button:text-is("Drawing")');
@@ -6490,7 +7171,10 @@ try {
     await page.setInputFiles('input[aria-label="Model file"]', file);
     await page.waitForFunction(() => window.__studioDoc?.nodes?.length === 2 && /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 20000 }); await idle();
     await snap('a6-4-drafts');
-    const [dl] = await Promise.all([page.waitForEvent('download', { timeout: 15000 }), page.click('[aria-label="Export STL"]')]);
+    await page.click('[aria-label="Export STL"]');
+    const dialog = page.getByRole('dialog', { name: 'STL export', exact: true });
+    await dialog.waitFor();
+    const [dl] = await Promise.all([page.waitForEvent('download', { predicate: d => d.suggestedFilename().endsWith('.stl'), timeout: 15000 }), dialog.getByRole('button', { name: 'Export', exact: true }).click()]);
     await dl.cancel().catch(() => {});
     await page.waitForFunction(() => /This part is a draft: 1 dimension/.test(document.querySelector('.toast[role="alert"]')?.textContent ?? ''), null, { timeout: 10000 });
   });
@@ -7734,6 +8418,111 @@ try {
     console.log(`  G16 turn (${renderer}): ${JSON.stringify(turned)}`);
     assert.ok(turned.moved > 2 && turned.toAfter < turned.toBefore / 4, `mid-drag drawn as turned ${JSON.stringify(turned)}`);
     await snap('g16-turned');
+  });
+
+  await check('D318: authored skeleton files open in fresh contexts, retain IDs and update shared frame followers', async () => {
+    const panel = 'aside[aria-label="3D sketch"]';
+    const begin = async () => {
+      await page.click('[aria-label="New part"]'); await page.waitForFunction(() => window.__studioDoc.nodes.length === 0);
+      await page.click('.views button:text-is("Top")'); await page.waitForTimeout(300);
+      await press(' '); await page.locator('.palette input').fill('3d sketch'); await press('Enter'); await page.waitForSelector(panel);
+    };
+    const draw = async points => { for (const point of points) { const q = await page.evaluate(p => window.__studioScreenOf(p), point); await page.mouse.move(...q, { steps: 2 }); await page.mouse.click(...q); await page.waitForTimeout(120); } };
+    const save = async (target, name) => {
+      const [download] = await Promise.all([target.waitForEvent('download', { timeout: 15000 }), target.click('[aria-label="Save"]')]);
+      const file = join(out, name); await download.saveAs(file);
+      return file;
+    };
+    const freshOpen = async file => {
+      // A separate browser context has no saved local state, recovery record or original page's module instances.
+      const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: flowDpr });
+      const target = await context.newPage(); target.on('dialog', d => d.accept());
+      target.on('pageerror', e => errors.push(`D318 fresh context: ${e.stack ?? e}`));
+      target.on('console', m => { if (m.type() === 'error') errors.push(`D318 fresh context: ${m.text()}`); });
+      await target.goto(url); await target.waitForFunction(() => !!window.__studioDoc && window.__studioFresh === true, null, { timeout: 30000 });
+      await target.setInputFiles('input[aria-label="Model file"]', file);
+      const expected = JSON.parse(readFileSync(file, 'utf8'));
+      await target.waitForFunction(expected => window.__studioDoc?.nodes[0]?.kind === 'skeleton' && window.__studioDoc.nodes[0].id === expected.nodes[0].id && window.__studioDoc.nodes.length === expected.nodes.length && window.__studioFresh === true, expected, { timeout: 30000 });
+      assert.deepEqual(await target.evaluate(() => window.__studioDoc), expected);
+      return { context, target, expected };
+    };
+    const edit = async target => {
+      await target.locator('.history .hs[data-node-index="0"]').click({ button: 'right' });
+      await target.locator('.ctx-item', { hasText: 'Edit in 3D sketch' }).click(); await target.waitForSelector(panel);
+    };
+    await begin(); await draw([[0, 0, 0]]);
+    await page.click(`${panel} [aria-label="Apply 3D sketch"]`);
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'skeleton');
+    const single = await doc(); assert.equal(single.nodes[0].points.length, 1); assert.deepEqual(single.nodes[0].segments, []);
+    const singleFile = await save(page, 'd318-single-point-saved.bcad');
+    const one = await freshOpen(singleFile);
+    try {
+      assert.deepEqual(await one.target.evaluate(() => window.__studioDoc), single);
+      await edit(one.target); assert.match(await one.target.locator(panel).innerText(), /1 points · 0 segments/);
+      await one.target.click(`${panel} [aria-label="Apply 3D sketch"]`);
+      await one.target.waitForSelector(panel, { state: 'detached' });
+      assert.equal((await one.target.evaluate(() => window.__studioDoc)).nodes[0].id, single.nodes[0].id);
+      await one.target.screenshot({ path: join(out, 'd318-single-point-fresh-open.png') });
+    } finally { await one.context.close(); }
+
+    await begin(); await draw([[0, 0, 0], [40, 0, 0], [40, 20, 0]]); await press('s');
+    const svg = await page.locator('.vp-overlay').boundingBox();
+    const pointAt = i => page.evaluate(i => { const p = document.querySelector(`.vp-overlay [aria-label="3D sketch"] circle[data-point="${i}"]`); return [+p.getAttribute('cx'), +p.getAttribute('cy')]; }, i);
+    const pick = async i => { const a = await pointAt(i), b = await pointAt(i + 1); await page.mouse.click(svg.x + (a[0] + b[0]) / 2, svg.y + (a[1] + b[1]) / 2); await page.waitForTimeout(100); };
+    const add = name => page.click(`${panel} [aria-label="Add ${name}"]`);
+    const origin = await pointAt(0); await page.mouse.click(svg.x + origin[0], svg.y + origin[1]); await add('Fix');
+    await pick(0); await add('Along X'); await pick(0); await add('Length');
+    await page.fill(`${panel} [aria-label="Constraint 3 value"]`, '40'); await press('Enter');
+    await pick(1); await add('Along Y'); await pick(1); await add('Length');
+    await page.fill(`${panel} [aria-label="Constraint 5 value"]`, '20'); await press('Enter');
+    await page.waitForFunction(() => document.querySelector('.vp-overlay [aria-label="3D sketch"]')?.dataset.status === 'well');
+    await snap('d318-polyline-ui'); await page.click(`${panel} [aria-label="Apply 3D sketch"]`);
+    await page.waitForFunction(() => window.__studioDoc.nodes[0]?.kind === 'skeleton');
+    const authored = await doc(), skeleton = authored.nodes[0];
+    assert.deepEqual(skeleton.segments, [[0, 1], [1, 2]]); assert.equal(skeleton.constraints.length, 5); assert.ok(skeleton.id);
+    const authoredFile = await save(page, 'd318-polyline-ui-saved.bcad');
+    assert.deepEqual(JSON.parse(readFileSync(authoredFile, 'utf8')), JSON.parse(JSON.stringify(authored)));
+    // Two ordinary authored frame followers reuse the real UI-saved skeleton. This is a file input, not hook staging.
+    const followers = JSON.parse(readFileSync(authoredFile, 'utf8'));
+    for (const width of [10, 20]) followers.nodes.push({ id: `n${followers.nextId++}`, kind: 'frame', follows: { skeleton: 0 },
+      points: followers.nodes[0].points.map(point => [...point]), segments: followers.nodes[0].segments.map(segment => [...segment]),
+      section: { kind: 'rect-tube', width, height: width, wall: 1, outerRadius: 0 }, corners: { default: 'none' } });
+    followers.outputs = { b1_part0: { node: 1, side: 'part0' }, b1_part1: { node: 1, side: 'part1' },
+      b2_part0: { node: 2, side: 'part0' }, b2_part1: { node: 2, side: 'part1' } };
+    const fixture = join(out, 'd318-shared-followers-input.bcad'); writeFileSync(fixture, JSON.stringify(followers));
+    const opened = await freshOpen(fixture), target = opened.target;
+    const read = () => target.evaluate(() => window.__studioDoc);
+    const ready = async length => {
+      await target.waitForFunction(length => {
+        const state = window.__studioBodies?.(); if (!state?.fresh || state.massReady !== true || state.bodies.length !== 4) return false;
+        return state.bodies.every(body => Number.isFinite(body.volume)) && Math.abs(state.bodies.reduce((sum, body) => sum + body.volume, 0) - (36 + 76) * (length + 20)) < 1e-6;
+      }, length, { timeout: 30000 });
+      const state = await target.evaluate(() => window.__studioBodies());
+      for (const [i, area] of [36, 76].entries()) {
+        const group = state.bodies.filter(body => body.key === `b${i + 1}` || body.key.startsWith(`b${i + 1}_`));
+        assert.ok(group.length > 0); assert.ok(Math.abs(group.reduce((sum, body) => sum + body.volume, 0) - area * (length + 20)) < 1e-6);
+      }
+      assert.equal(await target.locator('.vp-error').count(), 0);
+      writeFileSync(join(out, `d318-followers-length-${length}.json`), JSON.stringify(state, null, 2));
+    };
+    try {
+      await ready(40); assert.deepEqual(await read(), followers);
+      await edit(target); await target.fill(`${panel} [aria-label="Constraint 3 value"]`, '50'); await target.keyboard.press('Enter');
+      await target.click(`${panel} [aria-label="Apply 3D sketch"]`); await ready(50);
+      const accepted = await read(); assert.equal(accepted.nodes[0].id, skeleton.id);
+      assert.deepEqual(accepted.nodes.slice(1), followers.nodes.slice(1)); assert.equal(accepted.nextId, followers.nextId);
+      assert.equal(accepted.nodes[0].constraints[2].value, 50); assert.equal(accepted.nodes[0].constraints.length, 5);
+      await target.click('.views button:text-is("Iso")'); await target.keyboard.press('f'); await target.waitForTimeout(400);
+      await target.screenshot({ path: join(out, 'd318-followers-edited.png') });
+      await target.keyboard.press('Meta+z'); await ready(40); assert.deepEqual(await read(), followers);
+      await target.keyboard.press('Meta+Shift+z'); await ready(50); assert.deepEqual(await read(), accepted);
+      const saved = await save(target, 'd318-followers-edited-saved.bcad');
+      assert.deepEqual(JSON.parse(readFileSync(saved, 'utf8')), JSON.parse(JSON.stringify(accepted)));
+      await target.click('[aria-label="New part"]'); await target.waitForFunction(() => window.__studioDoc.nodes.length === 0);
+      await target.setInputFiles('input[aria-label="Model file"]', saved); await ready(50); assert.deepEqual(await read(), accepted);
+      await target.click('.views button:text-is("Iso")'); await target.keyboard.press('f'); await target.waitForTimeout(400);
+      await target.screenshot({ path: join(out, 'd318-followers-reopened.png') });
+    } finally { await opened.context.close(); }
   });
 
   // ---- G17: the 3D skeleton sketch in the viewport ---------------------------------------------------------------------
@@ -9123,6 +9912,49 @@ try {
     await slide('Exposure', 1);
     await page.selectOption('.render-panel [aria-label="Studio environment"]', '');
     await page.click('.mode button:text-is("Model")');
+  });
+  await check('D327: extracted STL dialog resets quality, cancels before export and writes a literal box with its source record', async () => {
+    await page.click('[aria-label="New part"]'); await press('b'); await hudReady();
+    for (const [label, value] of [['Width X', '12'], ['Depth Y', '13'], ['Height Z', '14']]) await field(label).fill(value);
+    await hudReady(); await press('Enter');
+    await page.waitForFunction(() => {
+      const node = window.__studioDoc?.nodes[1], state = window.__studioBodies?.();
+      return node?.made?.values?.w === 12 && node.made.values.d === 13 && node.height === 14
+        && state?.fresh && state.massReady && state.bodies.length === 1 && Math.abs(state.bodies[0].volume - 2184) < 1e-6;
+    }, null, { timeout: 30000 });
+    await page.locator('.doc-tab input').fill('D327-exports');
+    const downloads = [], record = download => downloads.push(download);
+    page.on('download', record);
+    try {
+      await page.click('[aria-label="Export STL"]');
+      const dialog = page.locator('[role="dialog"][aria-label="STL export"]');
+      await dialog.waitFor(); await dialog.locator('select').selectOption('32');
+      await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+      await dialog.waitFor({ state: 'hidden' }); assert.equal(downloads.length, 0, 'cancelled option selection starts no export');
+      await page.click('[aria-label="Export STL"]'); await dialog.waitFor();
+      assert.equal(await dialog.locator('select').inputValue(), 'automatic', 'opening the dialog resets its prior quality');
+      await dialog.locator('select').selectOption('8');
+      const pair = Promise.all([
+        page.waitForEvent('download', { predicate: d => d.suggestedFilename().endsWith('.stl'), timeout: 30000 }),
+        page.waitForEvent('download', { predicate: d => d.suggestedFilename().endsWith('.source.json'), timeout: 30000 }),
+      ]);
+      await dialog.getByRole('button', { name: 'Export', exact: true }).click();
+      const [stl, sidecar] = await pair, bytes = readFileSync(await stl.path()), sourceBytes = readFileSync(await sidecar.path());
+      writeFileSync(join(out, stl.suggestedFilename()), bytes); writeFileSync(join(out, sidecar.suggestedFilename()), sourceBytes);
+      const triangles = bytes.readUInt32LE(80); assert.ok(triangles > 0); assert.equal(bytes.length, 84 + 50 * triangles);
+      let volume = 0;
+      for (let i = 0; i < triangles; i++) {
+        const at = 84 + 50 * i + 12, p = new Array(9);
+        for (let k = 0; k < 9; k++) p[k] = bytes.readFloatLE(at + 4 * k);
+        assert.ok(p.every(Number.isFinite));
+        volume += p[0] * (p[4] * p[8] - p[5] * p[7]) - p[1] * (p[3] * p[8] - p[5] * p[6]) + p[2] * (p[3] * p[7] - p[4] * p[6]);
+      }
+      volume /= 6; assert.ok(Math.abs(volume - 2184) < 1e-5 * 2184, `literal STL volume ${volume} vs2184`);
+      const source = JSON.parse(sourceBytes); assert.equal(source.format, 'barocss-source'); assert.deepEqual(source.files, [stl.suggestedFilename()]);
+      await dialog.waitFor({ state: 'hidden' }); assert.match(await page.locator('.toast').innerText(), /STL written: 1 file/);
+      assert.equal(downloads.length, 2);
+      writeFileSync(join(out, 'd327-stl-observation.json'), JSON.stringify({ triangles, volume, expectedVolume: 2184, downloads: downloads.map(d => d.suggestedFilename()), source, pendingCancellation: 'NOT_RUN; only option dialog cancellation tested' }, null, 2));
+    } finally { page.off('download', record); }
   });
 } finally {
   await browser.close(); await server.close();

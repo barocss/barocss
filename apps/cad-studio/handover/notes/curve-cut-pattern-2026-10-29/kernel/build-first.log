@@ -1,0 +1,24 @@
+src/part/part-model.ts(2098,72): error TS2352: Conversion of type 'RawNurbsPath' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'RawNurbsPath'.
+node:internal/errors:983
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /Users/user/Library/pnpm/nodejs/22.19.0/bin/node /Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/bin/tsc -p tsconfig.json
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:915:11)
+    at execFileSync (node:child_process:951:15)
+    at file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/scripts/tool.mjs:20:3
+    at ModuleJob.run (node:internal/modules/esm/module_job:345:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:651:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  status: 2,
+  signal: null,
+  output: [ null, null, null ],
+  pid: 21073,
+  stdout: null,
+  stderr: null
+}
+
+Node.js v22.19.0

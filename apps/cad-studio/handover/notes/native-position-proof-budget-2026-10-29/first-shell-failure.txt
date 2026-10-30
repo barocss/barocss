@@ -1,0 +1,2 @@
+GATE: go after 0 s (load 14.19, slot 1 of 3)
+zsh:5: read-only variable: status

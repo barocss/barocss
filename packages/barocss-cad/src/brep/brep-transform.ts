@@ -8,7 +8,8 @@ import { transformFacetPatch } from '../mesh/facet-patch.js';
 /** x' = M·x + t with M row-major 3×3. */
 export interface BrepAffine { readonly matrix: readonly [number, number, number, number, number, number, number, number, number]; readonly offset?: readonly [number, number, number] }
 
-export function transformBrep(brep: Brep, map: BrepAffine, rename?: (name: string) => string): Brep {
+/** A string rename appends a suffix; a function maps each persistent name. */
+export function transformBrep(brep: Brep, map: BrepAffine, rename?: ((name: string) => string) | string): Brep {
   const m = map.matrix, t = map.offset ?? [0, 0, 0];
   const det = m[0] * (m[4] * m[8] - m[5] * m[7]) - m[1] * (m[3] * m[8] - m[5] * m[6]) + m[2] * (m[3] * m[7] - m[4] * m[6]);
   if (!(Number.isFinite(det) && det !== 0)) throw new BrepError('INPUT', 'an invertible finite affine map is required');
@@ -17,7 +18,7 @@ export function transformBrep(brep: Brep, map: BrepAffine, rename?: (name: strin
   // (A facet patch: its positions mapped into new arrays, shared untouched by an identity map — a rename.)
   const identity = m[0] === 1 && m[1] === 0 && m[2] === 0 && m[3] === 0 && m[4] === 1 && m[5] === 0 && m[6] === 0 && m[7] === 0 && m[8] === 1 && t[0] === 0 && t[1] === 0 && t[2] === 0;
   const surface = (s: Surface | FacetPatch): Surface | FacetPatch => s.kind === 'facets' ? (identity ? s : transformFacetPatch(s, m, t)) : { ...s, controlPoints: s.controlPoints.map(row => row.map(at)) };
-  const flip = det < 0, nameOf = <T extends { name?: string }>(x: T) => rename && x.name !== undefined ? { name: rename(x.name) } : {};
+  const flip = det < 0, nameOf = <T extends { name?: string }>(x: T) => rename && x.name !== undefined ? { name: typeof rename === 'string' ? x.name + rename : rename(x.name) } : {};
   const loops: BrepLoop[] = brep.loops.map(l => flip ? { ...l, coedges: [...l.coedges].reverse() } : l);
   const coedges: BrepCoedge[] = brep.coedges.map(c => flip ? { ...c, sense: c.sense === 'forward' ? 'reversed' : 'forward', next: c.prev, prev: c.next } : c);
   const faces: BrepFace[] = brep.faces.map(f => ({ ...f, surface: surface(f.surface), ...(flip ? { sense: f.sense === 'forward' ? 'reversed' as const : 'forward' as const } : {}), ...nameOf(f) }));

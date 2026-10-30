@@ -1,0 +1,431 @@
+{
+  "status": "FINAL_NATIVE_SELECTED_PASS",
+  "selectedTests": {
+    "total": 1,
+    "pass": 1,
+    "fail": 0,
+    "skip": 0
+  },
+  "sdkObservations": 12,
+  "execution": {
+    "exit": 0,
+    "duration": 4735.360666,
+    "testDuration": 4667.71325,
+    "timeUnit": "ms"
+  },
+  "browser": "156.0.8078.48",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "devicePixelRatio": 1,
+  "sourceProfile": "final-first/source-profile.json",
+  "bundleProfile": "final-first/receipt.json bundle field",
+  "sourceAndDriverHashesUnchangedAfterRun": true,
+  "sdk": [
+    {
+      "scale": 1,
+      "label": "control",
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "pick": {
+        "ref": {
+          "modelId": "audit",
+          "surfaceId": "audit_patch"
+        },
+        "triangleIndex": 0,
+        "distanceScene": 6,
+        "positionScene": [
+          0,
+          0,
+          0
+        ],
+        "parameterUV": [
+          0.5,
+          0.5
+        ],
+        "approximate": true,
+        "ambiguous": true
+      }
+    },
+    {
+      "scale": 1,
+      "label": "near-excludes",
+      "covered": 0,
+      "centerRGBA": [
+        9,
+        14,
+        23,
+        255
+      ],
+      "pick": null
+    },
+    {
+      "scale": 1,
+      "label": "far-excludes",
+      "covered": 0,
+      "centerRGBA": [
+        9,
+        14,
+        23,
+        255
+      ],
+      "pick": null
+    },
+    {
+      "scale": 1,
+      "label": "closed-near",
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "pick": {
+        "ref": {
+          "modelId": "audit",
+          "surfaceId": "audit_patch"
+        },
+        "triangleIndex": 0,
+        "distanceScene": 6,
+        "positionScene": [
+          0,
+          0,
+          0
+        ],
+        "parameterUV": [
+          0.5,
+          0.5
+        ],
+        "approximate": true,
+        "ambiguous": true
+      }
+    },
+    {
+      "scale": 1,
+      "label": "closed-far",
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "pick": {
+        "ref": {
+          "modelId": "audit",
+          "surfaceId": "audit_patch"
+        },
+        "triangleIndex": 0,
+        "distanceScene": 6,
+        "positionScene": [
+          0,
+          0,
+          0
+        ],
+        "parameterUV": [
+          0.5,
+          0.5
+        ],
+        "approximate": true,
+        "ambiguous": true
+      }
+    },
+    {
+      "scale": 1,
+      "label": "restored",
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "pick": {
+        "ref": {
+          "modelId": "audit",
+          "surfaceId": "audit_patch"
+        },
+        "triangleIndex": 0,
+        "distanceScene": 6,
+        "positionScene": [
+          0,
+          0,
+          0
+        ],
+        "parameterUV": [
+          0.5,
+          0.5
+        ],
+        "approximate": true,
+        "ambiguous": true
+      }
+    },
+    {
+      "scale": 0.001,
+      "label": "control",
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "pick": {
+        "ref": {
+          "modelId": "audit",
+          "surfaceId": "audit_patch"
+        },
+        "triangleIndex": 0,
+        "distanceScene": 6,
+        "positionScene": [
+          0,
+          0,
+          0
+        ],
+        "parameterUV": [
+          0.5,
+          0.5
+        ],
+        "approximate": true,
+        "ambiguous": true
+      }
+    },
+    {
+      "scale": 0.001,
+      "label": "near-excludes",
+      "covered": 0,
+      "centerRGBA": [
+        9,
+        14,
+        23,
+        255
+      ],
+      "pick": null
+    },
+    {
+      "scale": 0.001,
+      "label": "far-excludes",
+      "covered": 0,
+      "centerRGBA": [
+        9,
+        14,
+        23,
+        255
+      ],
+      "pick": null
+    },
+    {
+      "scale": 0.001,
+      "label": "closed-near",
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "pick": {
+        "ref": {
+          "modelId": "audit",
+          "surfaceId": "audit_patch"
+        },
+        "triangleIndex": 0,
+        "distanceScene": 6,
+        "positionScene": [
+          0,
+          0,
+          0
+        ],
+        "parameterUV": [
+          0.5,
+          0.5
+        ],
+        "approximate": true,
+        "ambiguous": true
+      }
+    },
+    {
+      "scale": 0.001,
+      "label": "closed-far",
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "pick": {
+        "ref": {
+          "modelId": "audit",
+          "surfaceId": "audit_patch"
+        },
+        "triangleIndex": 0,
+        "distanceScene": 6,
+        "positionScene": [
+          0,
+          0,
+          0
+        ],
+        "parameterUV": [
+          0.5,
+          0.5
+        ],
+        "approximate": true,
+        "ambiguous": true
+      }
+    },
+    {
+      "scale": 0.001,
+      "label": "restored",
+      "covered": 9600,
+      "centerRGBA": [
+        51,
+        138,
+        201,
+        255
+      ],
+      "pick": {
+        "ref": {
+          "modelId": "audit",
+          "surfaceId": "audit_patch"
+        },
+        "triangleIndex": 0,
+        "distanceScene": 6,
+        "positionScene": [
+          0,
+          0,
+          0
+        ],
+        "parameterUV": [
+          0.5,
+          0.5
+        ],
+        "approximate": true,
+        "ambiguous": true
+      }
+    }
+  ],
+  "core": {
+    "automatic": {
+      "mesh": "duplicates",
+      "face": 71,
+      "instance": 0,
+      "triangle": 0,
+      "depth": 0.7525126338005066,
+      "point": [
+        0.00909925576940297,
+        -0.00909925576940281,
+        5.753363863446035e-08
+      ]
+    },
+    "manual": {
+      "mesh": "duplicates",
+      "face": 71,
+      "instance": 0,
+      "triangle": 0,
+      "depth": 0,
+      "point": [
+        0.009099255856655188,
+        -0.009099255856655025,
+        0
+      ]
+    },
+    "automaticCamera": {
+      "near": 4.51507575950825,
+      "farValue": "Infinity",
+      "farFinite": false,
+      "autoClip": true
+    },
+    "camera": {
+      "near": 3,
+      "far": 6,
+      "autoClip": false
+    }
+  },
+  "nativeCameraGuard": {
+    "before": {
+      "near": 3,
+      "far": 6,
+      "autoClip": false
+    },
+    "afterToggle": {
+      "near": 3,
+      "far": 6,
+      "autoClip": true
+    },
+    "held": {
+      "fulfilled": true,
+      "released": false,
+      "unmaps": 0,
+      "arguments": [
+        1
+      ]
+    },
+    "delayed": null,
+    "afterDelayed": {
+      "fulfilled": true,
+      "released": true,
+      "unmaps": 1,
+      "arguments": [
+        1
+      ]
+    },
+    "fresh": {
+      "mesh": "duplicates",
+      "face": 71,
+      "instance": 0,
+      "triangle": 0,
+      "depth": 0,
+      "point": [
+        0.009099255856655188,
+        -0.009099255856655025,
+        0
+      ]
+    },
+    "afterFresh": {
+      "fulfilled": true,
+      "released": true,
+      "unmaps": 2,
+      "arguments": [
+        1
+      ]
+    }
+  },
+  "pageErrors": [],
+  "cleanup": {
+    "runnerProcess": 68402,
+    "runnerExited": true,
+    "resources": "OWN_VIEWER_CONTEXT_BROWSER_SERVER_CLOSED",
+    "gate": "holder:none after exit"
+  },
+  "directVisualReview": [
+    "final-first/scene-near-excludes.png",
+    "final-first/scaled-closed-far.png",
+    "final-first/core-exact-far.png"
+  ],
+  "boundaries": [
+    "Normal SDK base raster; supported manual finite near/far closed interval",
+    "Literal geometry millimetres converted at scales1/0.001; authored camera scene-unit clipping remains unchanged",
+    "SDK public CPU pick and Core public native GPU pick separately recorded",
+    "Core exact far rawdepth0 observed, not synthesized or clamped",
+    "Duplicate equal instances first-hit0 in original automatic and manual finite mode",
+    "Only native mapAsync fulfilled return held; original receiver/args/results and GPU readback bytes unchanged",
+    "Automatic far observed as String Infinity with farFinite false; no JSON-null inference",
+    "One selected test, not one unique test per sample/group"
+  ],
+  "notRun": [
+    "Unsupported effects/refusal browser cases",
+    "Complete cap/probe/mask/manual postprocessing combinations",
+    "Two-square front-outside/back-inside native scene",
+    "Other browser/adapter/DPR",
+    "Whole suites by this consumer"
+  ],
+  "baseline": "Original baseline-first remains immutable, selected1FAIL product mismatch plus positive control; final run is a separate source-bound repair result."
+}

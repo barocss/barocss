@@ -1,0 +1,2577 @@
+{
+  "scope": "fresh single-source closed-reference geometry and mass; literal stored shell and product excluded",
+  "results": [
+    {
+      "label": "Z0-reference-standard",
+      "status": "returned",
+      "result": {
+        "closure": {
+          "authority": "original-wall-radial-graph-prism-union-scale2-uv-rectangle",
+          "sourceSurface": "post_w0_0_0_0",
+          "rectangle": {
+            "u": [
+              0.0625,
+              0.3125
+            ],
+            "v": [
+              0.25,
+              0.75
+            ]
+          },
+          "caps": {
+            "caps": [
+              "post_b0/post_b0_s0/post_d0_0",
+              "post_b0/post_b0_s0/post_u1_0"
+            ],
+            "uses": [
+              {
+                "bottom": "post_b0/post_b0_s0/post_d0_0/l0/c1",
+                "top": "post_b0/post_b0_s0/post_u1_0/l0/c0",
+                "edge": "post_e2"
+              },
+              {
+                "bottom": "post_b0/post_b0_s0/post_d0_0/l0/c0",
+                "top": "post_b0/post_b0_s0/post_u1_0/l0/c1",
+                "edge": "post_e5"
+              }
+            ],
+            "seams": [
+              "post_e1",
+              "post_e3"
+            ],
+            "normalizedCycle": {
+              "spans": [
+                {
+                  "face": "post_b0/post_b0_s0/post_u1_0",
+                  "span": 0,
+                  "sense": "forward",
+                  "minimumWeight": {
+                    "numerator": "6369051672525773",
+                    "denominator": "9007199254740992"
+                  },
+                  "radialDefectCoefficients": [
+                    {
+                      "numerator": "0",
+                      "denominator": "1"
+                    },
+                    {
+                      "numerator": "0",
+                      "denominator": "1"
+                    },
+                    {
+                      "numerator": "5545866846675497",
+                      "denominator": "121694457621910022543683507716096"
+                    },
+                    {
+                      "numerator": "0",
+                      "denominator": "1"
+                    },
+                    {
+                      "numerator": "0",
+                      "denominator": "1"
+                    }
+                  ],
+                  "angularCoefficients": [
+                    {
+                      "numerator": "6369051672525773",
+                      "denominator": "4503599627370496"
+                    },
+                    {
+                      "numerator": "1",
+                      "denominator": "1"
+                    },
+                    {
+                      "numerator": "6369051672525773",
+                      "denominator": "4503599627370496"
+                    }
+                  ],
+                  "halfPlane": {
+                    "normal": [
+                      1,
+                      1
+                    ],
+                    "minimum": {
+                      "numerator": "1",
+                      "denominator": "1"
+                    }
+                  },
+                  "radial": {
+                    "numerator": "11091733693350994",
+                    "denominator": "121694457621910039181284047742587"
+                  }
+                },
+                {
+                  "face": "post_b0/post_b0_s0/post_u1_0",
+                  "span": 1,
+                  "sense": "forward",
+                  "minimumWeight": {
+                    "numerator": "6369051672525773",
+                    "denominator": "9007199254740992"
+                  },
+                  "radialDefectCoefficients": [
+                    {
+                      "numerator": "0",
+                      "denominator": "1"
+                    },
+                    {
+                      "numerator": "0",
+                      "denominator": "1"
+                    },
+                    {
+                      "numerator": "19409726422935857756122486075161573648413830970449942570760125249397102503643",
+                      "denominator": "16687398718132110018711107079449625895333629080911349765211262561111091607661254297054391304192"
+                    },
+                    {
+                      "numerator": "5736731747818099846019821453527",
+                      "denominator": "182687704666362864775460604089535377456991567872"
+                    },
+                    {
+                      "numerator": "1",
+                      "denominator": "20282409603651670423947251286016"
+                    }
+                  ],
+                  "angularCoefficients": [
+                    {
+                      "numerator": "129179714808990449216847948084408620038196150487",
+                      "denominator": "91343852333181432387730302044767688728495783936"
+                    },
+                    {
+                      "numerator": "1",
+                      "denominator": "1"
+                    },
+                    {
+                      "numerator": "581773715477596305121487624783637573996837184319758916603232041",
+                      "denominator": "411376139330301510538742295639337626245683966408394965837152256"
+                    }
+                  ],
+                  "halfPlane": {
+                    "normal": [
+                      -1,
+                      1
+                    ],
+                    "minimum": {
+                      "numerator": "1",
+                      "denominator": "1"
+                    }
+                  },
+                  "radial": {
+                    "numerator": "900719925474099",
+                    "denominator": "14341829369545252799575389896704"
+                  }
+                },
+                {
+                  "face": "post_b0/post_b0_s0/post_u1_0",
+                  "span": 0,
+                  "sense": "reversed",
+                  "minimumWeight": {
+                    "numerator": "3184525836262887",
+                    "denominator": "4503599627370496"
+                  },
+                  "radialDefectCoefficients": [
+                    {
+                      "numerator": "1",
+                      "denominator": "20282409603651670423947251286016"
+                    },
+                    {
+                      "numerator": "-14341829369545245497797694793291",
+                      "denominator": "91343852333181432387730302044767688728495783936"
+                    },
+                    {
+                      "numerator": "-226992740013743677855063554161483544275947857415",
+                      "denominator": "617064208995452265808113443459006439368525949612592448755728384"
+                    },
+                    {
+                      "numerator": "-9553577508788661",
+                      "denominator": "20282409603651670423947251286016"
+                    },
+                    {
+                      "numerator": "0",
+                      "denominator": "1"
+                    }
+                  ],
+                  "angularCoefficients": [
+                    {
+                      "numerator": "7170914684772624341161765528089",
+                      "denominator": "5070602400912917605986812821504"
+                    },
+                    {
+                      "numerator": "1",
+                      "denominator": "1"
+                    },
+                    {
+                      "numerator": "3184525836262887",
+                      "denominator": "2251799813685248"
+                    }
+                  ],
+                  "halfPlane": {
+                    "normal": [
+                      1,
+                      -1
+                    ],
+                    "minimum": {
+                      "numerator": "4503599627370495",
+                      "denominator": "4503599627370496"
+                    }
+                  },
+                  "radial": {
+                    "numerator": "1",
+                    "denominator": "1061508612087629"
+                  }
+                },
+                {
+                  "face": "post_b0/post_b0_s0/post_u1_0",
+                  "span": 1,
+                  "sense": "reversed",
+                  "minimumWeight": {
+                    "numerator": "3184525836262887",
+                    "denominator": "4503599627370496"
+                  },
+                  "radialDefectCoefficients": [
+                    {
+                      "numerator": "1",
+                      "denominator": "20282409603651670423947251286016"
+                    },
+                    {
+                      "numerator": "-32294928702247611638082640115916521273771325957",
+                      "denominator": "205688069665150755269371147819668813122841983204197482918576128"
+                    },
+                    {
+                      "numerator": "-270970054299887389510264789399893846099709645705970589881543218283311957490663",
+                      "denominator": "3128887259649770628508332577396804855375055452670878080977111730208329676436485180697698369536"
+                    },
+                    {
+                      "numerator": "-4302548810863577152317728327163",
+                      "denominator": "45671926166590716193865151022383844364247891968"
+                    },
+                    {
+                      "numerator": "1",
+                      "denominator": "20282409603651670423947251286016"
+                    }
+                  ],
+                  "angularCoefficients": [
+                    {
+                      "numerator": "32294928702247618808997324888544046961373116933",
+                      "denominator": "22835963083295358096932575511191922182123945984"
+                    },
+                    {
+                      "numerator": "20282409603651670423947251286017",
+                      "denominator": "20282409603651670423947251286016"
+                    },
+                    {
+                      "numerator": "145443428869399099116334989491268156561131712457495647052465659",
+                      "denominator": "102844034832575377634685573909834406561420991602098741459288064"
+                    }
+                  ],
+                  "halfPlane": {
+                    "normal": [
+                      -1,
+                      -1
+                    ],
+                    "minimum": {
+                      "numerator": "4503599627370495",
+                      "denominator": "4503599627370496"
+                    }
+                  },
+                  "radial": {
+                    "numerator": "10141204801825831609093923746611",
+                    "denominator": "32294928702247623111546135752121199279101444096"
+                  }
+                }
+              ],
+              "cycle": [
+                0,
+                1,
+                3,
+                2
+              ],
+              "radial": {
+                "numerator": "1",
+                "denominator": "1061508612087629"
+              },
+              "radialNormalizationL1": {
+                "numerator": "2",
+                "denominator": "1061508612087629"
+              },
+              "winding": 1,
+              "simpleRadialGraph": true,
+              "projection": "xy",
+              "authority": "exact-stored-rational-coefficients",
+              "nativeEvaluatorCertified": false
+            },
+            "radial": {
+              "numerator": "10",
+              "denominator": "1061508612087629"
+            },
+            "boundaryAndInteriorToSourceL1": {
+              "numerator": "1",
+              "denominator": "562949953421312"
+            },
+            "correspondence": "matched-boundary-parameter-and-radial-disk-extension",
+            "exactReferenceSourceClosed": true,
+            "literalStoredShellClosed": false
+          },
+          "sides": [
+            {
+              "face": "wrap_wa_face16",
+              "boundary": "bottom",
+              "baseToReferenceL1": {
+                "numerator": "11127847250509518289459752720126859",
+                "denominator": "8216497133551320918282353050790893832309309440000"
+              }
+            },
+            {
+              "face": "wrap_wa_face23",
+              "boundary": "right",
+              "baseToReferenceL1": {
+                "numerator": "11127847250509518289459752720126859",
+                "denominator": "8216497133551320918282353050790893832309309440000"
+              }
+            },
+            {
+              "face": "wrap_wa_face30",
+              "boundary": "top",
+              "baseToReferenceL1": {
+                "numerator": "11127847250509518289459752720126859",
+                "denominator": "8216497133551320918282353050790893832309309440000"
+              }
+            },
+            {
+              "face": "wrap_wa_face37",
+              "boundary": "left",
+              "baseToReferenceL1": {
+                "numerator": "11127847250509518289459752720126859",
+                "denominator": "8216497133551320918282353050790893832309309440000"
+              }
+            }
+          ],
+          "faces": [
+            {
+              "face": "post_b0/post_b0_s0/post_w0_0_0_0",
+              "kind": "retained-wall",
+              "exactModelL1": {
+                "numerator": "0",
+                "denominator": "1"
+              },
+              "nativeToReferenceL1": {
+                "numerator": "11702220465288620858442046497",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "face": "post_b0/post_b0_s0/post_w0_0_0_1",
+              "kind": "retained-wall",
+              "exactModelL1": {
+                "numerator": "0",
+                "denominator": "1"
+              },
+              "nativeToReferenceL1": {
+                "numerator": "11702220465288620858442046497",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "face": "post_b0/post_b0_s0/post_d0_0",
+              "kind": "cap-disk",
+              "exactModelL1": {
+                "numerator": "1",
+                "denominator": "562949953421312"
+              },
+              "nativeToReferenceL1": {
+                "numerator": "11702824928198428173029399585",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "face": "post_b0/post_b0_s0/post_u1_0",
+              "kind": "cap-disk",
+              "exactModelL1": {
+                "numerator": "1",
+                "denominator": "562949953421312"
+              },
+              "nativeToReferenceL1": {
+                "numerator": "11702824928198428173029399585",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "face": "wrap_wa_face16",
+              "kind": "radial-side",
+              "exactModelL1": {
+                "numerator": "11127847250509518289459752720126859",
+                "denominator": "4108248566775660459141176525395446916154654720000"
+              },
+              "nativeToReferenceL1": {
+                "numerator": "5337887583591429358279219782729324951156318772458827747653787",
+                "denominator": "155205242680309091747447419962032369986555103858526671508475960360960000"
+              }
+            },
+            {
+              "face": "wrap_wa_face23",
+              "kind": "radial-side",
+              "exactModelL1": {
+                "numerator": "11127847250509518289459752720126859",
+                "denominator": "4108248566775660459141176525395446916154654720000"
+              },
+              "nativeToReferenceL1": {
+                "numerator": "5337887583591429358279219782729324951156318772458827747653787",
+                "denominator": "155205242680309091747447419962032369986555103858526671508475960360960000"
+              }
+            },
+            {
+              "face": "wrap_wa_face30",
+              "kind": "radial-side",
+              "exactModelL1": {
+                "numerator": "11127847250509518289459752720126859",
+                "denominator": "4108248566775660459141176525395446916154654720000"
+              },
+              "nativeToReferenceL1": {
+                "numerator": "5337887583591429358279219782729324951156318772458827747653787",
+                "denominator": "155205242680309091747447419962032369986555103858526671508475960360960000"
+              }
+            },
+            {
+              "face": "wrap_wa_face37",
+              "kind": "radial-side",
+              "exactModelL1": {
+                "numerator": "11127847250509518289459752720126859",
+                "denominator": "4108248566775660459141176525395446916154654720000"
+              },
+              "nativeToReferenceL1": {
+                "numerator": "5337887583591429358279219782729324951156318772458827747653787",
+                "denominator": "155205242680309091747447419962032369986555103858526671508475960360960000"
+              }
+            },
+            {
+              "face": "wrap_wa_face91",
+              "kind": "outer-wall",
+              "exactModelL1": {
+                "numerator": "0",
+                "denominator": "1"
+              },
+              "nativeToReferenceL1": {
+                "numerator": "11702220465288620858442046497",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            }
+          ],
+          "maximumNativeToReferenceL1": {
+            "numerator": "5337887583591429358279219782729324951156318772458827747653787",
+            "denominator": "155205242680309091747447419962032369986555103858526671508475960360960000"
+          },
+          "tolerance": 1e-07,
+          "topology": {
+            "vertices": 12,
+            "edges": 18,
+            "faces": 9,
+            "coedges": 36,
+            "genus": 0
+          },
+          "nativeFaceDomain": "admitted-exact-face-trim-domain",
+          "closedReferenceCertified": true,
+          "referenceFacesMeetOnlyOnPrescribedBoundaries": true,
+          "nativeFaceAssociationCertified": true,
+          "literalStoredBrepClosureCertified": false,
+          "partMassProvider": false,
+          "productFeature": false
+        },
+        "mass": {
+          "authority": "closed-original-radial-reference",
+          "frame": {
+            "zCenter": {
+              "numerator": "15",
+              "denominator": "1"
+            },
+            "coordinates": "x-y-z-minus-source-midheight"
+          },
+          "order": [
+            "V",
+            "X",
+            "Y",
+            "Z",
+            "XX",
+            "YY",
+            "ZZ",
+            "XY",
+            "XZ",
+            "YZ"
+          ],
+          "properties": {
+            "volume": 11244.548522905354,
+            "mass": 11.244548522905355,
+            "centroid": [
+              2.038866746097166,
+              1.3573996763861522,
+              15
+            ],
+            "method": "closed-form",
+            "inertia": [
+              [
+                1104.858173095983,
+                -156.6006453404405,
+                0
+              ],
+              [
+                -156.6006453404405,
+                1235.8196576112682,
+                0
+              ],
+              [
+                0,
+                0,
+                858.7197405117452
+              ]
+            ]
+          },
+          "radial": {
+            "numerator": "8",
+            "denominator": "1061508612087629"
+          },
+          "rawMomentGeometryErrors": [
+            {
+              "numerator": "24619381776029078399828325120",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            {
+              "numerator": "492387635520581939081740876800",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            {
+              "numerator": "492387635520581939081740876800",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            {
+              "numerator": "369290726640436175997424876800",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            {
+              "numerator": "9847752710411646203338305024128",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            {
+              "numerator": "9847752710411646203338305024128",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            {
+              "numerator": "5539360899606542639961373152000",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            {
+              "numerator": "9847752710411646203338305024128",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            {
+              "numerator": "7385814532808729086226113152000",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            {
+              "numerator": "7385814532808729086226113152000",
+              "denominator": "340282366920938463463374607431768211456"
+            }
+          ],
+          "moments": [
+            {
+              "lower": {
+                "numerator": "3826321586331551889880949016544878592517880",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "3826321586331601128644501074701678278995620",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "lower": {
+                "numerator": "7801359842244714060718620279688114478028200",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "7801359842245698835989661443566277959851800",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "lower": {
+                "numerator": "5193847683035337407180464899865789023493200",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "5193847683036322182451506063743952505316800",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "lower": {
+                "numerator": "-369290726640436175997424876800",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "369290726640436175997424876800",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "lower": {
+                "numerator": "184291468031387625106674189402111215235538372",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "184291468031407320612095012694517893553149128",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "lower": {
+                "numerator": "130871778112506757987778024814179247152038372",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "130871778112526453493198848106585925469649128",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "lower": {
+                "numerator": "252142103304674658889097551033862202639779250",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "252142103304685737610896764119142127082723875",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "lower": {
+                "numerator": "63878001583017239631711556529868492544100872",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "63878001583036935137132379822275169155274128",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "lower": {
+                "numerator": "-7385814532808729086226113152000",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "7385814532808729086226113152000",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "lower": {
+                "numerator": "-7385814532808729086226113152000",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "7385814532808729086226113152000",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            }
+          ],
+          "audit": {
+            "volume": {
+              "estimate": 11244.548522905354,
+              "lower": {
+                "numerator": "3826321586331551889880949016544878592517880",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "3826321586331601128644501074701678278995620",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "error": {
+                "numerator": "13687546701213896750123879212819062718464",
+                "denominator": "187072209578355573530071658587684226515959365500928"
+              }
+            },
+            "mass": {
+              "estimate": 11.244548522905355,
+              "lower": {
+                "numerator": "3826321586331551889880949016544878587390",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "3826321586331601128644501074701678285113",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "error": {
+                "numerator": "3468622589350979967832383064005291278336",
+                "denominator": "47890485652059026823698344598447161988085597568237568"
+              }
+            },
+            "centroid": [
+              {
+                "estimate": 2.038866746097166,
+                "lower": {
+                  "numerator": "693790402198287344163875210014112673716",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "upper": {
+                  "numerator": "693790402198383850177118506705991142577",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "error": {
+                  "numerator": "54426567783714666450533949722751353749504",
+                  "denominator": "383123885216472214589586756787577295904684780545900544"
+                }
+              },
+              {
+                "estimate": 1.3573996763861522,
+                "lower": {
+                  "numerator": "461899174738348950562527493568997184049",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "upper": {
+                  "numerator": "461899174738442472499011668878996683107",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "error": {
+                  "numerator": "210899244734784747663848363551506078629888",
+                  "denominator": "1532495540865888858358347027150309183618739122183602176"
+                }
+              },
+              {
+                "estimate": 15,
+                "lower": {
+                  "numerator": "5104235503814044110193932465812781659844",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "upper": {
+                  "numerator": "5104235503814109793707305757140264683836",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "error": {
+                  "numerator": "32841756686645663741511996",
+                  "denominator": "340282366920938463463374607431768211456"
+                }
+              }
+            ],
+            "inertia": [
+              {
+                "estimate": 1104.858173095983,
+                "lower": {
+                  "numerator": "375963754253028233943087576143682416943172",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "upper": {
+                  "numerator": "375963754253061772361666186810551418433099",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "error": {
+                  "numerator": "73759320995780592231832623241218945449984",
+                  "denominator": "1496577676626844588240573268701473812127674924007424"
+                }
+              },
+              {
+                "estimate": 1235.8196576112682,
+                "lower": {
+                  "numerator": "420527638179368592324903827233621891606760",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "upper": {
+                  "numerator": "420527638179403586887666421246280967977404",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "error": {
+                  "numerator": "38526518641298713226046694208172629950464",
+                  "denominator": "748288838313422294120286634350736906063837462003712"
+                }
+              },
+              {
+                "estimate": 858.7197405117452,
+                "lower": {
+                  "numerator": "292207185823047508489796301380862799387965",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "upper": {
+                  "numerator": "292207185823093884027539079818548131438869",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "error": {
+                  "numerator": "102136102802414611224078067625605482938368",
+                  "denominator": "1496577676626844588240573268701473812127674924007424"
+                }
+              },
+              {
+                "estimate": -156.6006453404405,
+                "lower": {
+                  "numerator": "-53288438257803110339096257821000440597090",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "upper": {
+                  "numerator": "-53288438257779934003400945032474761231061",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "error": {
+                  "numerator": "203984870531901063321401796566233011716096",
+                  "denominator": "5986310706507378352962293074805895248510699696029696"
+                }
+              },
+              {
+                "estimate": 0,
+                "lower": {
+                  "numerator": "-8138749114998025439526957274",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "upper": {
+                  "numerator": "8138749114998025439526957274",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "error": {
+                  "numerator": "8138749114998025439526957274",
+                  "denominator": "340282366920938463463374607431768211456"
+                }
+              },
+              {
+                "estimate": 0,
+                "lower": {
+                  "numerator": "-7887089645642914827600395105",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "upper": {
+                  "numerator": "7887089645642914827600395105",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "error": {
+                  "numerator": "7887089645642914827600395105",
+                  "denominator": "340282366920938463463374607431768211456"
+                }
+              }
+            ]
+          },
+          "includesFullRadialGeometryError": true,
+          "actualReturnedNumbersCertified": true,
+          "literalStoredBrepMass": false,
+          "nativeSIAccuracy": false,
+          "partMassProvider": false
+        },
+        "limits": {
+          "exactOperations": 200000,
+          "hardExactOperations": 200000,
+          "integerBits": 8192,
+          "work": 1048576
+        },
+        "meaning": {
+          "closedReferenceCertified": true,
+          "nativeFaceAssociationCertified": true,
+          "referenceMassCertified": true,
+          "literalStoredBrepClosureCertified": false,
+          "literalStoredBrepMass": false,
+          "partMassProvider": false,
+          "productFeature": false
+        },
+        "solidQualified": false,
+        "counts": {
+          "exactOperations": 196425,
+          "priorOperations": 186945,
+          "rationalOperations": 4629,
+          "directOperations": 4851,
+          "work": 424858,
+          "localWork": 35485,
+          "maximumBits": 1187,
+          "localGcdSteps": 3345
+        },
+        "sourceWalls": {
+          "walls": [
+            {
+              "face": "post_b0/post_b0_s0/post_w0_0_0_0",
+              "faceSlot": 0,
+              "sense": "forward",
+              "bottom": {
+                "coedge": "post_b0/post_b0_s0/post_w0_0_0_0/l0/c0",
+                "edge": "post_e0",
+                "vertices": [
+                  "post_v0",
+                  "post_v1"
+                ],
+                "sense": "forward"
+              },
+              "top": {
+                "coedge": "post_b0/post_b0_s0/post_w0_0_0_0/l0/c2",
+                "edge": "post_e2",
+                "vertices": [
+                  "post_v3",
+                  "post_v2"
+                ],
+                "sense": "reversed"
+              }
+            },
+            {
+              "face": "post_b0/post_b0_s0/post_w0_0_0_1",
+              "faceSlot": 1,
+              "sense": "reversed",
+              "bottom": {
+                "coedge": "post_b0/post_b0_s0/post_w0_0_0_1/l0/c0",
+                "edge": "post_e4",
+                "vertices": [
+                  "post_v0",
+                  "post_v1"
+                ],
+                "sense": "reversed"
+              },
+              "top": {
+                "coedge": "post_b0/post_b0_s0/post_w0_0_0_1/l0/c2",
+                "edge": "post_e5",
+                "vertices": [
+                  "post_v3",
+                  "post_v2"
+                ],
+                "sense": "forward"
+              }
+            }
+          ],
+          "cycle": {
+            "spans": [
+              {
+                "face": "post_b0/post_b0_s0/post_w0_0_0_0",
+                "span": 0,
+                "sense": "forward",
+                "minimumWeight": {
+                  "numerator": "6369051672525773",
+                  "denominator": "9007199254740992"
+                },
+                "radialDefectCoefficients": [
+                  {
+                    "numerator": "0",
+                    "denominator": "1"
+                  },
+                  {
+                    "numerator": "0",
+                    "denominator": "1"
+                  },
+                  {
+                    "numerator": "-202246464448361179733353926583488549569549163991",
+                    "denominator": "38566513062215766613007090216187902460532871850787028047233024"
+                  },
+                  {
+                    "numerator": "-375923769462312449726997868317175",
+                    "denominator": "45671926166590716193865151022383844364247891968"
+                  },
+                  {
+                    "numerator": "38560336832142945085266723018321",
+                    "denominator": "102844034832575377634685573909834406561420991602098741459288064"
+                  }
+                ],
+                "angularCoefficients": [
+                  {
+                    "numerator": "179272867119315628149434011079935",
+                    "denominator": "1267650600228229401496703205376"
+                  },
+                  {
+                    "numerator": "100",
+                    "denominator": "1"
+                  },
+                  {
+                    "numerator": "3636085721734977491736478183681369183454466284282516303710466357",
+                    "denominator": "25711008708143844408671393477458601640355247900524685364822016"
+                  }
+                ],
+                "halfPlane": {
+                  "normal": [
+                    1,
+                    1
+                  ],
+                  "minimum": {
+                    "numerator": "10",
+                    "denominator": "1"
+                  }
+                },
+                "radial": {
+                  "numerator": "694394206438535",
+                  "denominator": "421818510868978023516923232256"
+                }
+              },
+              {
+                "face": "post_b0/post_b0_s0/post_w0_0_0_0",
+                "span": 1,
+                "sense": "forward",
+                "minimumWeight": {
+                  "numerator": "6369051672525773",
+                  "denominator": "9007199254740992"
+                },
+                "radialDefectCoefficients": [
+                  {
+                    "numerator": "38560336832142945085266723018321",
+                    "denominator": "102844034832575377634685573909834406561420991602098741459288064"
+                  },
+                  {
+                    "numerator": "-222646037027406673259325441645269852163785674443",
+                    "denominator": "51422017416287688817342786954917203280710495801049370729644032"
+                  },
+                  {
+                    "numerator": "-202246464448361179733353926583488549569549163991",
+                    "denominator": "38566513062215766613007090216187902460532871850787028047233024"
+                  },
+                  {
+                    "numerator": "-89087182071407393735490070383095",
+                    "denominator": "22835963083295358096932575511191922182123945984"
+                  },
+                  {
+                    "numerator": "38560336832142945085266723018321",
+                    "denominator": "25711008708143844408671393477458601640355247900524685364822016"
+                  }
+                ],
+                "angularCoefficients": [
+                  {
+                    "numerator": "3229492870224761428170604021607909602230993942025",
+                    "denominator": "22835963083295358096932575511191922182123945984"
+                  },
+                  {
+                    "numerator": "5142201741628768881734278695491758888407881723050022339687421521",
+                    "denominator": "51422017416287688817342786954917203280710495801049370729644032"
+                  },
+                  {
+                    "numerator": "1818042860867488634545220578137347962064512319506332069962395957",
+                    "denominator": "12855504354071922204335696738729300820177623950262342682411008"
+                  }
+                ],
+                "halfPlane": {
+                  "normal": [
+                    -1,
+                    1
+                  ],
+                  "minimum": {
+                    "numerator": "101412048018258345910039256403191",
+                    "denominator": "10141204801825835211973625643008"
+                  }
+                },
+                "radial": {
+                  "numerator": "202246464448361179733353926583488549569549163991",
+                  "denominator": "192832565311078859428365839733558194347754463077082224803184640"
+                }
+              },
+              {
+                "face": "post_b0/post_b0_s0/post_w0_0_0_1",
+                "span": 0,
+                "sense": "reversed",
+                "minimumWeight": {
+                  "numerator": "3184525836262887",
+                  "denominator": "4503599627370496"
+                },
+                "radialDefectCoefficients": [
+                  {
+                    "numerator": "5422547367020099906138351666889",
+                    "denominator": "1606938044258990275541962092341162602522202993782792835301376"
+                  },
+                  {
+                    "numerator": "-41746131942638736236714298607321506937154958657",
+                    "denominator": "3213876088517980551083924184682325205044405987565585670602752"
+                  },
+                  {
+                    "numerator": "-256716856043715322616810102044409564731829888519",
+                    "denominator": "9641628265553941653251772554046975615133217962696757011808256"
+                  },
+                  {
+                    "numerator": "-47767887543943305",
+                    "denominator": "1267650600228229401496703205376"
+                  },
+                  {
+                    "numerator": "0",
+                    "denominator": "1"
+                  }
+                ],
+                "angularCoefficients": [
+                  {
+                    "numerator": "201843304389047573961456574267156133788675609065",
+                    "denominator": "1427247692705959881058285969449495136382746624"
+                  },
+                  {
+                    "numerator": "100",
+                    "denominator": "1"
+                  },
+                  {
+                    "numerator": "79613145906572175",
+                    "denominator": "562949953421312"
+                  }
+                ],
+                "halfPlane": {
+                  "normal": [
+                    1,
+                    -1
+                  ],
+                  "minimum": {
+                    "numerator": "12676506002282291686330657043677",
+                    "denominator": "1267650600228229401496703205376"
+                  }
+                },
+                "radial": {
+                  "numerator": "8",
+                  "denominator": "1061508612087629"
+                }
+              },
+              {
+                "face": "post_b0/post_b0_s0/post_w0_0_0_1",
+                "span": 1,
+                "sense": "reversed",
+                "minimumWeight": {
+                  "numerator": "3184525836262887",
+                  "denominator": "4503599627370496"
+                },
+                "radialDefectCoefficients": [
+                  {
+                    "numerator": "38560336832142945085266723018321",
+                    "denominator": "25711008708143844408671393477458601640355247900524685364822016"
+                  },
+                  {
+                    "numerator": "-55661509256851667166732686750426304795424173537",
+                    "denominator": "6427752177035961102167848369364650410088811975131171341205504"
+                  },
+                  {
+                    "numerator": "-15954944833510834380093823861800460407137687951",
+                    "denominator": "2410407066388485413312943138511743903783304490674189252952064"
+                  },
+                  {
+                    "numerator": "-34631133350320463733267699461655",
+                    "denominator": "2854495385411919762116571938898990272765493248"
+                  },
+                  {
+                    "numerator": "5422547367020099906138351666889",
+                    "denominator": "1606938044258990275541962092341162602522202993782792835301376"
+                  }
+                ],
+                "angularCoefficients": [
+                  {
+                    "numerator": "807373217556190389826768662646775606724828306075",
+                    "denominator": "5708990770823839524233143877797980545530986496"
+                  },
+                  {
+                    "numerator": "642775217703596110216784836936479501135193251115195472766672187",
+                    "denominator": "6427752177035961102167848369364650410088811975131171341205504"
+                  },
+                  {
+                    "numerator": "113627678804218050541983787851628013406947696675294889984263061",
+                    "denominator": "803469022129495137770981046170581301261101496891396417650688"
+                  }
+                ],
+                "halfPlane": {
+                  "normal": [
+                    -1,
+                    -1
+                  ],
+                  "minimum": {
+                    "numerator": "50706024009129169850171128188151",
+                    "denominator": "5070602400912917605986812821504"
+                  }
+                },
+                "radial": {
+                  "numerator": "2174963252360413",
+                  "denominator": "896364335596578440710950223872"
+                }
+              }
+            ],
+            "cycle": [
+              0,
+              1,
+              3,
+              2
+            ],
+            "radial": {
+              "numerator": "8",
+              "denominator": "1061508612087629"
+            },
+            "radialNormalizationL1": {
+              "numerator": "16",
+              "denominator": "1061508612087629"
+            },
+            "winding": 1,
+            "simpleRadialGraph": true,
+            "projection": "xy",
+            "authority": "exact-stored-rational-coefficients",
+            "nativeEvaluatorCertified": false
+          },
+          "z": [
+            0,
+            30
+          ]
+        },
+        "wallCounts": {
+          "exactOperations": 186945,
+          "referenceOperations": 181746,
+          "rationalOperations": 3399,
+          "directOperations": 1800,
+          "work": 389373,
+          "localWork": 15152,
+          "maximumBits": 1187,
+          "localGcdSteps": 2752
+        },
+        "sharedReference": {
+          "rectangle": {
+            "u": [
+              0.0625,
+              0.3125
+            ],
+            "v": [
+              0.25,
+              0.75
+            ]
+          },
+          "options": {
+            "id": "wrap",
+            "height": 10,
+            "density": 1,
+            "budgets": {
+              "volume": 1e-08,
+              "mass": 1e-10,
+              "centroid": [
+                1e-10,
+                1e-10,
+                1e-10
+              ],
+              "inertia": [
+                1e-07,
+                1e-07,
+                1e-07,
+                1e-07,
+                1e-07,
+                1e-07
+              ]
+            }
+          },
+          "reservations": {
+            "native": 199983,
+            "formal": 39805
+          },
+          "counts": {
+            "exactOperations": 181746,
+            "nativeOperations": 160132,
+            "formalOperations": 21551,
+            "outerDirectOperations": 63,
+            "nativeWork": 325839,
+            "formalWork": 39199,
+            "outerWork": 9183,
+            "work": 374221,
+            "maximumBits": 1187
+          },
+          "limits": {
+            "exactOperations": 200000,
+            "hardExactOperations": 200000,
+            "integerBits": 8192,
+            "work": 1048576
+          },
+          "meaning": {
+            "sourceIdentity": "one-owned-frozen-native-source-live-continuation",
+            "sourceChecks": 1,
+            "sourceCosts": "one-actual-execution-counted-in-native-parent",
+            "nativePositionBindingCertified": true,
+            "formalReferenceMassOnly": true,
+            "closedReferenceCertified": false,
+            "physicalBrepCertified": false,
+            "retainedFaceClosureCertified": false,
+            "representedVolumeCertified": false,
+            "partMassProvider": false,
+            "productFeature": false
+          }
+        },
+        "nativeCounts": {
+          "exactOperations": 160132,
+          "rationalOperations": 56827,
+          "integerOperations": 172,
+          "helperOperations": 103133,
+          "work": 325839,
+          "maximumBits": 1187
+        },
+        "formalCounts": {
+          "sourceOperations": 0,
+          "rationalOperations": 18465,
+          "directOperations": 3086,
+          "totalOperations": 21551,
+          "gcdSteps": 13489,
+          "maximumBits": 1024,
+          "work": 39199
+        }
+      }
+    },
+    {
+      "label": "centered-negative-Z-density",
+      "status": "returned",
+      "result": {
+        "closure": {
+          "authority": "original-wall-radial-graph-prism-union-scale2-uv-rectangle",
+          "sourceSurface": "post_w0_0_0_0",
+          "rectangle": {
+            "u": [
+              0.125,
+              0.375
+            ],
+            "v": [
+              0.25,
+              0.75
+            ]
+          },
+          "caps": {
+            "caps": [
+              "post_b0/post_b0_s0/post_d0_0",
+              "post_b0/post_b0_s0/post_u1_0"
+            ],
+            "uses": [
+              {
+                "bottom": "post_b0/post_b0_s0/post_d0_0/l0/c1",
+                "top": "post_b0/post_b0_s0/post_u1_0/l0/c0",
+                "edge": "post_e2"
+              },
+              {
+                "bottom": "post_b0/post_b0_s0/post_d0_0/l0/c0",
+                "top": "post_b0/post_b0_s0/post_u1_0/l0/c1",
+                "edge": "post_e5"
+              }
+            ],
+            "seams": [
+              "post_e1",
+              "post_e3"
+            ],
+            "normalizedCycle": {
+              "spans": [
+                {
+                  "face": "post_b0/post_b0_s0/post_u1_0",
+                  "span": 0,
+                  "sense": "forward",
+                  "minimumWeight": {
+                    "numerator": "6369051672525773",
+                    "denominator": "9007199254740992"
+                  },
+                  "radialDefectCoefficients": [
+                    {
+                      "numerator": "0",
+                      "denominator": "1"
+                    },
+                    {
+                      "numerator": "0",
+                      "denominator": "1"
+                    },
+                    {
+                      "numerator": "5545866846675497",
+                      "denominator": "121694457621910022543683507716096"
+                    },
+                    {
+                      "numerator": "0",
+                      "denominator": "1"
+                    },
+                    {
+                      "numerator": "0",
+                      "denominator": "1"
+                    }
+                  ],
+                  "angularCoefficients": [
+                    {
+                      "numerator": "6369051672525773",
+                      "denominator": "4503599627370496"
+                    },
+                    {
+                      "numerator": "1",
+                      "denominator": "1"
+                    },
+                    {
+                      "numerator": "6369051672525773",
+                      "denominator": "4503599627370496"
+                    }
+                  ],
+                  "halfPlane": {
+                    "normal": [
+                      1,
+                      1
+                    ],
+                    "minimum": {
+                      "numerator": "1",
+                      "denominator": "1"
+                    }
+                  },
+                  "radial": {
+                    "numerator": "11091733693350994",
+                    "denominator": "121694457621910039181284047742587"
+                  }
+                },
+                {
+                  "face": "post_b0/post_b0_s0/post_u1_0",
+                  "span": 1,
+                  "sense": "forward",
+                  "minimumWeight": {
+                    "numerator": "6369051672525773",
+                    "denominator": "9007199254740992"
+                  },
+                  "radialDefectCoefficients": [
+                    {
+                      "numerator": "0",
+                      "denominator": "1"
+                    },
+                    {
+                      "numerator": "0",
+                      "denominator": "1"
+                    },
+                    {
+                      "numerator": "19409726422935857756122486075161573648413830970449942570760125249397102503643",
+                      "denominator": "16687398718132110018711107079449625895333629080911349765211262561111091607661254297054391304192"
+                    },
+                    {
+                      "numerator": "5736731747818099846019821453527",
+                      "denominator": "182687704666362864775460604089535377456991567872"
+                    },
+                    {
+                      "numerator": "1",
+                      "denominator": "20282409603651670423947251286016"
+                    }
+                  ],
+                  "angularCoefficients": [
+                    {
+                      "numerator": "129179714808990449216847948084408620038196150487",
+                      "denominator": "91343852333181432387730302044767688728495783936"
+                    },
+                    {
+                      "numerator": "1",
+                      "denominator": "1"
+                    },
+                    {
+                      "numerator": "581773715477596305121487624783637573996837184319758916603232041",
+                      "denominator": "411376139330301510538742295639337626245683966408394965837152256"
+                    }
+                  ],
+                  "halfPlane": {
+                    "normal": [
+                      -1,
+                      1
+                    ],
+                    "minimum": {
+                      "numerator": "1",
+                      "denominator": "1"
+                    }
+                  },
+                  "radial": {
+                    "numerator": "900719925474099",
+                    "denominator": "14341829369545252799575389896704"
+                  }
+                },
+                {
+                  "face": "post_b0/post_b0_s0/post_u1_0",
+                  "span": 0,
+                  "sense": "reversed",
+                  "minimumWeight": {
+                    "numerator": "3184525836262887",
+                    "denominator": "4503599627370496"
+                  },
+                  "radialDefectCoefficients": [
+                    {
+                      "numerator": "1",
+                      "denominator": "20282409603651670423947251286016"
+                    },
+                    {
+                      "numerator": "-14341829369545245497797694793291",
+                      "denominator": "91343852333181432387730302044767688728495783936"
+                    },
+                    {
+                      "numerator": "-226992740013743677855063554161483544275947857415",
+                      "denominator": "617064208995452265808113443459006439368525949612592448755728384"
+                    },
+                    {
+                      "numerator": "-9553577508788661",
+                      "denominator": "20282409603651670423947251286016"
+                    },
+                    {
+                      "numerator": "0",
+                      "denominator": "1"
+                    }
+                  ],
+                  "angularCoefficients": [
+                    {
+                      "numerator": "7170914684772624341161765528089",
+                      "denominator": "5070602400912917605986812821504"
+                    },
+                    {
+                      "numerator": "1",
+                      "denominator": "1"
+                    },
+                    {
+                      "numerator": "3184525836262887",
+                      "denominator": "2251799813685248"
+                    }
+                  ],
+                  "halfPlane": {
+                    "normal": [
+                      1,
+                      -1
+                    ],
+                    "minimum": {
+                      "numerator": "4503599627370495",
+                      "denominator": "4503599627370496"
+                    }
+                  },
+                  "radial": {
+                    "numerator": "1",
+                    "denominator": "1061508612087629"
+                  }
+                },
+                {
+                  "face": "post_b0/post_b0_s0/post_u1_0",
+                  "span": 1,
+                  "sense": "reversed",
+                  "minimumWeight": {
+                    "numerator": "3184525836262887",
+                    "denominator": "4503599627370496"
+                  },
+                  "radialDefectCoefficients": [
+                    {
+                      "numerator": "1",
+                      "denominator": "20282409603651670423947251286016"
+                    },
+                    {
+                      "numerator": "-32294928702247611638082640115916521273771325957",
+                      "denominator": "205688069665150755269371147819668813122841983204197482918576128"
+                    },
+                    {
+                      "numerator": "-270970054299887389510264789399893846099709645705970589881543218283311957490663",
+                      "denominator": "3128887259649770628508332577396804855375055452670878080977111730208329676436485180697698369536"
+                    },
+                    {
+                      "numerator": "-4302548810863577152317728327163",
+                      "denominator": "45671926166590716193865151022383844364247891968"
+                    },
+                    {
+                      "numerator": "1",
+                      "denominator": "20282409603651670423947251286016"
+                    }
+                  ],
+                  "angularCoefficients": [
+                    {
+                      "numerator": "32294928702247618808997324888544046961373116933",
+                      "denominator": "22835963083295358096932575511191922182123945984"
+                    },
+                    {
+                      "numerator": "20282409603651670423947251286017",
+                      "denominator": "20282409603651670423947251286016"
+                    },
+                    {
+                      "numerator": "145443428869399099116334989491268156561131712457495647052465659",
+                      "denominator": "102844034832575377634685573909834406561420991602098741459288064"
+                    }
+                  ],
+                  "halfPlane": {
+                    "normal": [
+                      -1,
+                      -1
+                    ],
+                    "minimum": {
+                      "numerator": "4503599627370495",
+                      "denominator": "4503599627370496"
+                    }
+                  },
+                  "radial": {
+                    "numerator": "10141204801825831609093923746611",
+                    "denominator": "32294928702247623111546135752121199279101444096"
+                  }
+                }
+              ],
+              "cycle": [
+                0,
+                1,
+                3,
+                2
+              ],
+              "radial": {
+                "numerator": "1",
+                "denominator": "1061508612087629"
+              },
+              "radialNormalizationL1": {
+                "numerator": "2",
+                "denominator": "1061508612087629"
+              },
+              "winding": 1,
+              "simpleRadialGraph": true,
+              "projection": "xy",
+              "authority": "exact-stored-rational-coefficients",
+              "nativeEvaluatorCertified": false
+            },
+            "radial": {
+              "numerator": "10",
+              "denominator": "1061508612087629"
+            },
+            "boundaryAndInteriorToSourceL1": {
+              "numerator": "1",
+              "denominator": "562949953421312"
+            },
+            "correspondence": "matched-boundary-parameter-and-radial-disk-extension",
+            "exactReferenceSourceClosed": true,
+            "literalStoredShellClosed": false
+          },
+          "sides": [
+            {
+              "face": "wrap_wa_face16",
+              "boundary": "bottom",
+              "baseToReferenceL1": {
+                "numerator": "18111515188321075610644071258455",
+                "denominator": "13435736245365952773222753664768156583879245824"
+              }
+            },
+            {
+              "face": "wrap_wa_face23",
+              "boundary": "right",
+              "baseToReferenceL1": {
+                "numerator": "18111515188321075610644071258455",
+                "denominator": "13435736245365952773222753664768156583879245824"
+              }
+            },
+            {
+              "face": "wrap_wa_face30",
+              "boundary": "top",
+              "baseToReferenceL1": {
+                "numerator": "18111515188321075610644071258455",
+                "denominator": "13435736245365952773222753664768156583879245824"
+              }
+            },
+            {
+              "face": "wrap_wa_face37",
+              "boundary": "left",
+              "baseToReferenceL1": {
+                "numerator": "18111515188321075610644071258455",
+                "denominator": "13435736245365952773222753664768156583879245824"
+              }
+            }
+          ],
+          "faces": [
+            {
+              "face": "post_b0/post_b0_s0/post_w0_0_0_0",
+              "kind": "retained-wall",
+              "exactModelL1": {
+                "numerator": "0",
+                "denominator": "1"
+              },
+              "nativeToReferenceL1": {
+                "numerator": "10866347574910862225696186043",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "face": "post_b0/post_b0_s0/post_w0_0_0_1",
+              "kind": "retained-wall",
+              "exactModelL1": {
+                "numerator": "0",
+                "denominator": "1"
+              },
+              "nativeToReferenceL1": {
+                "numerator": "10866347574910862225696186043",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "face": "post_b0/post_b0_s0/post_d0_0",
+              "kind": "cap-disk",
+              "exactModelL1": {
+                "numerator": "1",
+                "denominator": "562949953421312"
+              },
+              "nativeToReferenceL1": {
+                "numerator": "10866952037820669540283539131",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "face": "post_b0/post_b0_s0/post_u1_0",
+              "kind": "cap-disk",
+              "exactModelL1": {
+                "numerator": "1",
+                "denominator": "562949953421312"
+              },
+              "nativeToReferenceL1": {
+                "numerator": "10866952037820669540283539131",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "face": "wrap_wa_face16",
+              "kind": "radial-side",
+              "exactModelL1": {
+                "numerator": "18111515188321075610644071258455",
+                "denominator": "6717868122682976386611376832384078291939622912"
+              },
+              "nativeToReferenceL1": {
+                "numerator": "16210333744824712800993555024742185012967051634369951610701",
+                "denominator": "507587764142344215348211565723486019120366741547037818010174364844032"
+              }
+            },
+            {
+              "face": "wrap_wa_face23",
+              "kind": "radial-side",
+              "exactModelL1": {
+                "numerator": "18111515188321075610644071258455",
+                "denominator": "6717868122682976386611376832384078291939622912"
+              },
+              "nativeToReferenceL1": {
+                "numerator": "16210333744824712800993555024742185012967051634369951610701",
+                "denominator": "507587764142344215348211565723486019120366741547037818010174364844032"
+              }
+            },
+            {
+              "face": "wrap_wa_face30",
+              "kind": "radial-side",
+              "exactModelL1": {
+                "numerator": "18111515188321075610644071258455",
+                "denominator": "6717868122682976386611376832384078291939622912"
+              },
+              "nativeToReferenceL1": {
+                "numerator": "16210333744824712800993555024742185012967051634369951610701",
+                "denominator": "507587764142344215348211565723486019120366741547037818010174364844032"
+              }
+            },
+            {
+              "face": "wrap_wa_face37",
+              "kind": "radial-side",
+              "exactModelL1": {
+                "numerator": "18111515188321075610644071258455",
+                "denominator": "6717868122682976386611376832384078291939622912"
+              },
+              "nativeToReferenceL1": {
+                "numerator": "16210333744824712800993555024742185012967051634369951610701",
+                "denominator": "507587764142344215348211565723486019120366741547037818010174364844032"
+              }
+            },
+            {
+              "face": "wrap_wa_face91",
+              "kind": "outer-wall",
+              "exactModelL1": {
+                "numerator": "0",
+                "denominator": "1"
+              },
+              "nativeToReferenceL1": {
+                "numerator": "10866347574910862225696186043",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            }
+          ],
+          "maximumNativeToReferenceL1": {
+            "numerator": "16210333744824712800993555024742185012967051634369951610701",
+            "denominator": "507587764142344215348211565723486019120366741547037818010174364844032"
+          },
+          "tolerance": 1e-07,
+          "topology": {
+            "vertices": 12,
+            "edges": 18,
+            "faces": 9,
+            "coedges": 36,
+            "genus": 0
+          },
+          "nativeFaceDomain": "admitted-exact-face-trim-domain",
+          "closedReferenceCertified": true,
+          "referenceFacesMeetOnlyOnPrescribedBoundaries": true,
+          "nativeFaceAssociationCertified": true,
+          "literalStoredBrepClosureCertified": false,
+          "partMassProvider": false,
+          "productFeature": false
+        },
+        "mass": {
+          "authority": "closed-original-radial-reference",
+          "frame": {
+            "zCenter": {
+              "numerator": "10",
+              "denominator": "1"
+            },
+            "coordinates": "x-y-z-minus-source-midheight"
+          },
+          "order": [
+            "V",
+            "X",
+            "Y",
+            "Z",
+            "XX",
+            "YY",
+            "ZZ",
+            "XY",
+            "XZ",
+            "YZ"
+          ],
+          "properties": {
+            "volume": 11262.75409912245,
+            "mass": 88.41261967811124,
+            "centroid": [
+              1.7455122902888633,
+              1.7455122902888633,
+              10
+            ],
+            "method": "closed-form",
+            "inertia": [
+              [
+                9203.115165074894,
+                -1340.1463310352885,
+                0
+              ],
+              [
+                -1340.1463310352885,
+                9203.115165074894,
+                0
+              ],
+              [
+                0,
+                0,
+                6767.5000556161585
+              ]
+            ]
+          },
+          "radial": {
+            "numerator": "8",
+            "denominator": "1061508612087629"
+          },
+          "rawMomentGeometryErrors": [
+            {
+              "numerator": "24619381776029078399828325120",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            {
+              "numerator": "492387635520581939081740876800",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            {
+              "numerator": "492387635520581939081740876800",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            {
+              "numerator": "369290726640436175997424876800",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            {
+              "numerator": "9847752710411646203338305024128",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            {
+              "numerator": "9847752710411646203338305024128",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            {
+              "numerator": "5539360899606542639961373152000",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            {
+              "numerator": "9847752710411646203338305024128",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            {
+              "numerator": "7385814532808729086226113152000",
+              "denominator": "340282366920938463463374607431768211456"
+            },
+            {
+              "numerator": "7385814532808729086226113152000",
+              "denominator": "340282366920938463463374607431768211456"
+            }
+          ],
+          "moments": [
+            {
+              "lower": {
+                "numerator": "3832516622897864686323749564201607220100130",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "3832516622897913925087301622358406906546370",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "lower": {
+                "numerator": "6689704868004143343846795319476167855883200",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "6689704868005128119117836483354331337706800",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "lower": {
+                "numerator": "6689704868004142633160069173887634110038200",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "6689704868005127408431110337765797591861800",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "lower": {
+                "numerator": "-369290726640436175997424876800",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "369290726640436175997424876800",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "lower": {
+                "numerator": "158356002642736298514624434194784945376913372",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "158356002642755994020045257487191623691149128",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "lower": {
+                "numerator": "158356002642736283690527916935687673905663372",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "158356002642755979195948740228094352219899128",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "lower": {
+                "numerator": "252258260240293023822400061302425864406946437",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "252258260240304102544199274387705788849300438",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "lower": {
+                "numerator": "69769722007548375055333629745501722444725872",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "69769722007568070560754453037908399056461628",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "lower": {
+                "numerator": "-7385814532808729086226113152000",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "7385814532808729086226113152000",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            },
+            {
+              "lower": {
+                "numerator": "-7385814532808729086226113152000",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "7385814532808729086226113152000",
+                "denominator": "340282366920938463463374607431768211456"
+              }
+            }
+          ],
+          "audit": {
+            "volume": {
+              "estimate": 11262.75409912245,
+              "lower": {
+                "numerator": "3832516622897864686323749564201607220100130",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "3832516622897913925087301622358406906546370",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "error": {
+                "numerator": "13604918571693003914363665715305786638336",
+                "denominator": "187072209578355573530071658587684226515959365500928"
+              }
+            },
+            "mass": {
+              "estimate": 88.41261967811124,
+              "lower": {
+                "numerator": "30085255489748236426058011039028118024654",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "upper": {
+                "numerator": "30085255489748622950351894695541502451641",
+                "denominator": "340282366920938463463374607431768211456"
+              },
+              "error": {
+                "numerator": "433795589852161227409929032674299609088",
+                "denominator": "748288838313422294120286634350736906063837462003712"
+              }
+            },
+            "centroid": [
+              {
+                "estimate": 1.7455122902888633,
+                "lower": {
+                  "numerator": "593967053629035200702110690063950504338",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "upper": {
+                  "numerator": "593967053629130268225431947270962398951",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "error": {
+                  "numerator": "107229553996232063306429225105165238927360",
+                  "denominator": "766247770432944429179173513575154591809369561091801088"
+                }
+              },
+              {
+                "estimate": 1.7455122902888633,
+                "lower": {
+                  "numerator": "593967053629035137601494278580909544841",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "upper": {
+                  "numerator": "593967053629130205124815535787110745950",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "error": {
+                  "numerator": "107087464039953259667029741226098910298112",
+                  "denominator": "766247770432944429179173513575154591809369561091801088"
+                }
+              },
+              {
+                "estimate": 10,
+                "lower": {
+                  "numerator": "3402823669209351845963817711747683139531",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "upper": {
+                  "numerator": "3402823669209417423303674436887681089589",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "error": {
+                  "numerator": "32788669928362569998975029",
+                  "denominator": "340282366920938463463374607431768211456"
+                }
+              }
+            ],
+            "inertia": [
+              {
+                "estimate": 9203.115165074894,
+                "lower": {
+                  "numerator": "3131657811417533305773810001483605760395807",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "upper": {
+                  "numerator": "3131657811417803048441009597412695303896317",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "error": {
+                  "numerator": "9279893806257834346189577934491359379456",
+                  "denominator": "23384026197294446691258957323460528314494920687616"
+                }
+              },
+              {
+                "estimate": 9203.115165074894,
+                "lower": {
+                  "numerator": "3131657811417533402666922745959151348881522",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "upper": {
+                  "numerator": "3131657811417803145334122341891358134900696",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "error": {
+                  "numerator": "9273235362250711733821989082969948553216",
+                  "denominator": "23384026197294446691258957323460528314494920687616"
+                }
+              },
+              {
+                "estimate": 6767.5000556161585,
+                "lower": {
+                  "numerator": "2302860937062466413669326134774450099125151",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "upper": {
+                  "numerator": "2302860937062831963071477680646057302500335",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "error": {
+                  "numerator": "201042069252470237033257008223154132221952",
+                  "denominator": "374144419156711147060143317175368453031918731001856"
+                }
+              },
+              {
+                "estimate": -1340.1463310352885,
+                "lower": {
+                  "numerator": "-456028165545190872037053952307316387275152",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "upper": {
+                  "numerator": "-456028165545008097335978179371512799212516",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "error": {
+                  "numerator": "402067188729064983594404180462937149800448",
+                  "denominator": "1496577676626844588240573268701473812127674924007424"
+                }
+              },
+              {
+                "estimate": 0,
+                "lower": {
+                  "numerator": "-63038765873567528690186085026",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "upper": {
+                  "numerator": "63038765873567528690186085026",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "error": {
+                  "numerator": "63038765873567528690186085026",
+                  "denominator": "340282366920938463463374607431768211456"
+                }
+              },
+              {
+                "estimate": 0,
+                "lower": {
+                  "numerator": "-63038765873567528152619561463",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "upper": {
+                  "numerator": "63038765873567528152619561463",
+                  "denominator": "340282366920938463463374607431768211456"
+                },
+                "error": {
+                  "numerator": "63038765873567528152619561463",
+                  "denominator": "340282366920938463463374607431768211456"
+                }
+              }
+            ]
+          },
+          "includesFullRadialGeometryError": true,
+          "actualReturnedNumbersCertified": true,
+          "literalStoredBrepMass": false,
+          "nativeSIAccuracy": false,
+          "partMassProvider": false
+        },
+        "limits": {
+          "exactOperations": 200000,
+          "hardExactOperations": 200000,
+          "integerBits": 8192,
+          "work": 1048576
+        },
+        "meaning": {
+          "closedReferenceCertified": true,
+          "nativeFaceAssociationCertified": true,
+          "referenceMassCertified": true,
+          "literalStoredBrepClosureCertified": false,
+          "literalStoredBrepMass": false,
+          "partMassProvider": false,
+          "productFeature": false
+        },
+        "solidQualified": false,
+        "counts": {
+          "exactOperations": 195846,
+          "priorOperations": 186391,
+          "rationalOperations": 4604,
+          "directOperations": 4851,
+          "work": 423416,
+          "localWork": 35366,
+          "maximumBits": 1178,
+          "localGcdSteps": 3317
+        },
+        "sourceWalls": {
+          "walls": [
+            {
+              "face": "post_b0/post_b0_s0/post_w0_0_0_0",
+              "faceSlot": 0,
+              "sense": "forward",
+              "bottom": {
+                "coedge": "post_b0/post_b0_s0/post_w0_0_0_0/l0/c0",
+                "edge": "post_e0",
+                "vertices": [
+                  "post_v0",
+                  "post_v1"
+                ],
+                "sense": "forward"
+              },
+              "top": {
+                "coedge": "post_b0/post_b0_s0/post_w0_0_0_0/l0/c2",
+                "edge": "post_e2",
+                "vertices": [
+                  "post_v3",
+                  "post_v2"
+                ],
+                "sense": "reversed"
+              }
+            },
+            {
+              "face": "post_b0/post_b0_s0/post_w0_0_0_1",
+              "faceSlot": 1,
+              "sense": "reversed",
+              "bottom": {
+                "coedge": "post_b0/post_b0_s0/post_w0_0_0_1/l0/c0",
+                "edge": "post_e4",
+                "vertices": [
+                  "post_v0",
+                  "post_v1"
+                ],
+                "sense": "reversed"
+              },
+              "top": {
+                "coedge": "post_b0/post_b0_s0/post_w0_0_0_1/l0/c2",
+                "edge": "post_e5",
+                "vertices": [
+                  "post_v3",
+                  "post_v2"
+                ],
+                "sense": "forward"
+              }
+            }
+          ],
+          "cycle": {
+            "spans": [
+              {
+                "face": "post_b0/post_b0_s0/post_w0_0_0_0",
+                "span": 0,
+                "sense": "forward",
+                "minimumWeight": {
+                  "numerator": "6369051672525773",
+                  "denominator": "9007199254740992"
+                },
+                "radialDefectCoefficients": [
+                  {
+                    "numerator": "0",
+                    "denominator": "1"
+                  },
+                  {
+                    "numerator": "0",
+                    "denominator": "1"
+                  },
+                  {
+                    "numerator": "-202246464448361179733353926583488549569549163991",
+                    "denominator": "38566513062215766613007090216187902460532871850787028047233024"
+                  },
+                  {
+                    "numerator": "-375923769462312449726997868317175",
+                    "denominator": "45671926166590716193865151022383844364247891968"
+                  },
+                  {
+                    "numerator": "38560336832142945085266723018321",
+                    "denominator": "102844034832575377634685573909834406561420991602098741459288064"
+                  }
+                ],
+                "angularCoefficients": [
+                  {
+                    "numerator": "179272867119315628149434011079935",
+                    "denominator": "1267650600228229401496703205376"
+                  },
+                  {
+                    "numerator": "100",
+                    "denominator": "1"
+                  },
+                  {
+                    "numerator": "3636085721734977491736478183681369183454466284282516303710466357",
+                    "denominator": "25711008708143844408671393477458601640355247900524685364822016"
+                  }
+                ],
+                "halfPlane": {
+                  "normal": [
+                    1,
+                    1
+                  ],
+                  "minimum": {
+                    "numerator": "10",
+                    "denominator": "1"
+                  }
+                },
+                "radial": {
+                  "numerator": "694394206438535",
+                  "denominator": "421818510868978023516923232256"
+                }
+              },
+              {
+                "face": "post_b0/post_b0_s0/post_w0_0_0_0",
+                "span": 1,
+                "sense": "forward",
+                "minimumWeight": {
+                  "numerator": "6369051672525773",
+                  "denominator": "9007199254740992"
+                },
+                "radialDefectCoefficients": [
+                  {
+                    "numerator": "38560336832142945085266723018321",
+                    "denominator": "102844034832575377634685573909834406561420991602098741459288064"
+                  },
+                  {
+                    "numerator": "-222646037027406673259325441645269852163785674443",
+                    "denominator": "51422017416287688817342786954917203280710495801049370729644032"
+                  },
+                  {
+                    "numerator": "-202246464448361179733353926583488549569549163991",
+                    "denominator": "38566513062215766613007090216187902460532871850787028047233024"
+                  },
+                  {
+                    "numerator": "-89087182071407393735490070383095",
+                    "denominator": "22835963083295358096932575511191922182123945984"
+                  },
+                  {
+                    "numerator": "38560336832142945085266723018321",
+                    "denominator": "25711008708143844408671393477458601640355247900524685364822016"
+                  }
+                ],
+                "angularCoefficients": [
+                  {
+                    "numerator": "3229492870224761428170604021607909602230993942025",
+                    "denominator": "22835963083295358096932575511191922182123945984"
+                  },
+                  {
+                    "numerator": "5142201741628768881734278695491758888407881723050022339687421521",
+                    "denominator": "51422017416287688817342786954917203280710495801049370729644032"
+                  },
+                  {
+                    "numerator": "1818042860867488634545220578137347962064512319506332069962395957",
+                    "denominator": "12855504354071922204335696738729300820177623950262342682411008"
+                  }
+                ],
+                "halfPlane": {
+                  "normal": [
+                    -1,
+                    1
+                  ],
+                  "minimum": {
+                    "numerator": "101412048018258345910039256403191",
+                    "denominator": "10141204801825835211973625643008"
+                  }
+                },
+                "radial": {
+                  "numerator": "202246464448361179733353926583488549569549163991",
+                  "denominator": "192832565311078859428365839733558194347754463077082224803184640"
+                }
+              },
+              {
+                "face": "post_b0/post_b0_s0/post_w0_0_0_1",
+                "span": 0,
+                "sense": "reversed",
+                "minimumWeight": {
+                  "numerator": "3184525836262887",
+                  "denominator": "4503599627370496"
+                },
+                "radialDefectCoefficients": [
+                  {
+                    "numerator": "5422547367020099906138351666889",
+                    "denominator": "1606938044258990275541962092341162602522202993782792835301376"
+                  },
+                  {
+                    "numerator": "-41746131942638736236714298607321506937154958657",
+                    "denominator": "3213876088517980551083924184682325205044405987565585670602752"
+                  },
+                  {
+                    "numerator": "-256716856043715322616810102044409564731829888519",
+                    "denominator": "9641628265553941653251772554046975615133217962696757011808256"
+                  },
+                  {
+                    "numerator": "-47767887543943305",
+                    "denominator": "1267650600228229401496703205376"
+                  },
+                  {
+                    "numerator": "0",
+                    "denominator": "1"
+                  }
+                ],
+                "angularCoefficients": [
+                  {
+                    "numerator": "201843304389047573961456574267156133788675609065",
+                    "denominator": "1427247692705959881058285969449495136382746624"
+                  },
+                  {
+                    "numerator": "100",
+                    "denominator": "1"
+                  },
+                  {
+                    "numerator": "79613145906572175",
+                    "denominator": "562949953421312"
+                  }
+                ],
+                "halfPlane": {
+                  "normal": [
+                    1,
+                    -1
+                  ],
+                  "minimum": {
+                    "numerator": "12676506002282291686330657043677",
+                    "denominator": "1267650600228229401496703205376"
+                  }
+                },
+                "radial": {
+                  "numerator": "8",
+                  "denominator": "1061508612087629"
+                }
+              },
+              {
+                "face": "post_b0/post_b0_s0/post_w0_0_0_1",
+                "span": 1,
+                "sense": "reversed",
+                "minimumWeight": {
+                  "numerator": "3184525836262887",
+                  "denominator": "4503599627370496"
+                },
+                "radialDefectCoefficients": [
+                  {
+                    "numerator": "38560336832142945085266723018321",
+                    "denominator": "25711008708143844408671393477458601640355247900524685364822016"
+                  },
+                  {
+                    "numerator": "-55661509256851667166732686750426304795424173537",
+                    "denominator": "6427752177035961102167848369364650410088811975131171341205504"
+                  },
+                  {
+                    "numerator": "-15954944833510834380093823861800460407137687951",
+                    "denominator": "2410407066388485413312943138511743903783304490674189252952064"
+                  },
+                  {
+                    "numerator": "-34631133350320463733267699461655",
+                    "denominator": "2854495385411919762116571938898990272765493248"
+                  },
+                  {
+                    "numerator": "5422547367020099906138351666889",
+                    "denominator": "1606938044258990275541962092341162602522202993782792835301376"
+                  }
+                ],
+                "angularCoefficients": [
+                  {
+                    "numerator": "807373217556190389826768662646775606724828306075",
+                    "denominator": "5708990770823839524233143877797980545530986496"
+                  },
+                  {
+                    "numerator": "642775217703596110216784836936479501135193251115195472766672187",
+                    "denominator": "6427752177035961102167848369364650410088811975131171341205504"
+                  },
+                  {
+                    "numerator": "113627678804218050541983787851628013406947696675294889984263061",
+                    "denominator": "803469022129495137770981046170581301261101496891396417650688"
+                  }
+                ],
+                "halfPlane": {
+                  "normal": [
+                    -1,
+                    -1
+                  ],
+                  "minimum": {
+                    "numerator": "50706024009129169850171128188151",
+                    "denominator": "5070602400912917605986812821504"
+                  }
+                },
+                "radial": {
+                  "numerator": "2174963252360413",
+                  "denominator": "896364335596578440710950223872"
+                }
+              }
+            ],
+            "cycle": [
+              0,
+              1,
+              3,
+              2
+            ],
+            "radial": {
+              "numerator": "8",
+              "denominator": "1061508612087629"
+            },
+            "radialNormalizationL1": {
+              "numerator": "16",
+              "denominator": "1061508612087629"
+            },
+            "winding": 1,
+            "simpleRadialGraph": true,
+            "projection": "xy",
+            "authority": "exact-stored-rational-coefficients",
+            "nativeEvaluatorCertified": false
+          },
+          "z": [
+            -5,
+            25
+          ]
+        },
+        "wallCounts": {
+          "exactOperations": 186391,
+          "referenceOperations": 181192,
+          "rationalOperations": 3399,
+          "directOperations": 1800,
+          "work": 388050,
+          "localWork": 15152,
+          "maximumBits": 1178,
+          "localGcdSteps": 2752
+        },
+        "sharedReference": {
+          "rectangle": {
+            "u": [
+              0.125,
+              0.375
+            ],
+            "v": [
+              0.25,
+              0.75
+            ]
+          },
+          "options": {
+            "id": "wrap",
+            "height": 10,
+            "density": 7.85,
+            "budgets": {
+              "volume": 1e-08,
+              "mass": 1e-10,
+              "centroid": [
+                1e-10,
+                1e-10,
+                1e-10
+              ],
+              "inertia": [
+                1e-07,
+                1e-07,
+                1e-07,
+                1e-07,
+                1e-07,
+                1e-07
+              ]
+            }
+          },
+          "reservations": {
+            "native": 199983,
+            "formal": 40349
+          },
+          "counts": {
+            "exactOperations": 181192,
+            "nativeOperations": 159588,
+            "formalOperations": 21541,
+            "outerDirectOperations": 63,
+            "nativeWork": 324561,
+            "formalWork": 39154,
+            "outerWork": 9183,
+            "work": 372898,
+            "maximumBits": 1178
+          },
+          "limits": {
+            "exactOperations": 200000,
+            "hardExactOperations": 200000,
+            "integerBits": 8192,
+            "work": 1048576
+          },
+          "meaning": {
+            "sourceIdentity": "one-owned-frozen-native-source-live-continuation",
+            "sourceChecks": 1,
+            "sourceCosts": "one-actual-execution-counted-in-native-parent",
+            "nativePositionBindingCertified": true,
+            "formalReferenceMassOnly": true,
+            "closedReferenceCertified": false,
+            "physicalBrepCertified": false,
+            "retainedFaceClosureCertified": false,
+            "representedVolumeCertified": false,
+            "partMassProvider": false,
+            "productFeature": false
+          }
+        },
+        "nativeCounts": {
+          "exactOperations": 159588,
+          "rationalOperations": 56893,
+          "integerOperations": 173,
+          "helperOperations": 102522,
+          "work": 324561,
+          "maximumBits": 1178
+        },
+        "formalCounts": {
+          "sourceOperations": 0,
+          "rationalOperations": 18448,
+          "directOperations": 3093,
+          "totalOperations": 21541,
+          "gcdSteps": 13454,
+          "maximumBits": 1024,
+          "work": 39154
+        }
+      }
+    },
+    {
+      "label": "asymmetric-negative-Z-budget-frontier",
+      "status": "refused",
+      "code": "BUDGET",
+      "source": "cylindrical-wrap-formal-mass",
+      "message": "Formal pad mass: the aggregate source, rational, direct, or work limit was exceeded"
+    }
+  ],
+  "retention": "Actual closure, mass, source-wall and aggregate receipts; repeated native/source B-rep arrays omitted. Use the adjacent measurement script to regenerate full results."
+}

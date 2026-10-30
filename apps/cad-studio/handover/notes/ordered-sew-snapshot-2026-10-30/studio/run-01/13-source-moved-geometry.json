@@ -1,0 +1,1078 @@
+{
+  "label": "13-source-moved",
+  "bodies": [
+    {
+      "key": "b1",
+      "mass": {
+        "volume": 420.0000000000001,
+        "mass": 0.4200000000000001,
+        "centroid": [
+          85.99999999999996,
+          0.4999999999999998,
+          3.5
+        ],
+        "inertia": [
+          [
+            2.5900000000000007,
+            -4.001776687800884e-14,
+            0
+          ],
+          [
+            -4.001776687800884e-14,
+            5.915000000002795,
+            0
+          ],
+          [
+            0,
+            0,
+            6.755000000002794
+          ]
+        ]
+      },
+      "publicNames": [
+        "n1.bottom",
+        "n1.side0",
+        "n1.side1",
+        "n1.side2",
+        "n1.side3",
+        "n1.top"
+      ],
+      "faces": [
+        {
+          "name": "n1.side0",
+          "kind": "plane",
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "centroid": [
+            86,
+            -3,
+            3.5
+          ],
+          "area": 60,
+          "edges": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "name": "n1.side1",
+          "kind": "plane",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "centroid": [
+            92,
+            0.5,
+            3.5
+          ],
+          "area": 35,
+          "edges": [
+            1,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "name": "n1.side2",
+          "kind": "plane",
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "centroid": [
+            86,
+            4,
+            3.5
+          ],
+          "area": 60,
+          "edges": [
+            5,
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "name": "n1.side3",
+          "kind": "plane",
+          "normal": [
+            -1,
+            0,
+            0
+          ],
+          "centroid": [
+            80,
+            0.5,
+            3.5
+          ],
+          "area": 35,
+          "edges": [
+            3,
+            8,
+            10,
+            11
+          ]
+        },
+        {
+          "name": "n1.bottom",
+          "kind": "plane",
+          "normal": [
+            0,
+            0,
+            -1
+          ],
+          "centroid": [
+            86,
+            0.5,
+            1
+          ],
+          "area": 84,
+          "edges": [
+            0,
+            4,
+            7,
+            10
+          ]
+        },
+        {
+          "name": "n1.top",
+          "kind": "plane",
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "centroid": [
+            86,
+            0.5,
+            6
+          ],
+          "area": 84,
+          "edges": [
+            2,
+            6,
+            9,
+            11
+          ]
+        }
+      ],
+      "nativeNames": [
+        "n1.bottom",
+        "n1.side0",
+        "n1.side1",
+        "n1.side2",
+        "n1.side3",
+        "n1.top"
+      ],
+      "nativeFaces": [
+        {
+          "name": "n1.side0",
+          "sense": "forward",
+          "surface": {
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  80,
+                  -3,
+                  1
+                ],
+                [
+                  80,
+                  -3,
+                  6
+                ]
+              ],
+              [
+                [
+                  92,
+                  -3,
+                  1
+                ],
+                [
+                  92,
+                  -3,
+                  6
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          }
+        },
+        {
+          "name": "n1.side1",
+          "sense": "forward",
+          "surface": {
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  92,
+                  -3,
+                  1
+                ],
+                [
+                  92,
+                  -3,
+                  6
+                ]
+              ],
+              [
+                [
+                  92,
+                  4,
+                  1
+                ],
+                [
+                  92,
+                  4,
+                  6
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          }
+        },
+        {
+          "name": "n1.side2",
+          "sense": "forward",
+          "surface": {
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  92,
+                  4,
+                  1
+                ],
+                [
+                  92,
+                  4,
+                  6
+                ]
+              ],
+              [
+                [
+                  80,
+                  4,
+                  1
+                ],
+                [
+                  80,
+                  4,
+                  6
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          }
+        },
+        {
+          "name": "n1.side3",
+          "sense": "reversed",
+          "surface": {
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  80,
+                  -3,
+                  1
+                ],
+                [
+                  80,
+                  -3,
+                  6
+                ]
+              ],
+              [
+                [
+                  80,
+                  4,
+                  1
+                ],
+                [
+                  80,
+                  4,
+                  6
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          }
+        },
+        {
+          "name": "n1.bottom",
+          "sense": "forward",
+          "surface": {
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  80,
+                  -3,
+                  1
+                ],
+                [
+                  92,
+                  -3,
+                  1
+                ]
+              ],
+              [
+                [
+                  80,
+                  4,
+                  1
+                ],
+                [
+                  92,
+                  4,
+                  1
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          }
+        },
+        {
+          "name": "n1.top",
+          "sense": "forward",
+          "surface": {
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  80,
+                  -3,
+                  6
+                ],
+                [
+                  80,
+                  4,
+                  6
+                ]
+              ],
+              [
+                [
+                  92,
+                  -3,
+                  6
+                ],
+                [
+                  92,
+                  4,
+                  6
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          }
+        }
+      ],
+      "topology": {
+        "bodies": 1,
+        "shells": 1,
+        "closedShells": 1,
+        "vertices": 8,
+        "edges": 12,
+        "faces": 6,
+        "euler": 2
+      },
+      "bounds": {
+        "min": [
+          80,
+          -3,
+          1
+        ],
+        "max": [
+          92,
+          4,
+          6
+        ]
+      },
+      "closed": true,
+      "valid": true,
+      "issues": []
+    },
+    {
+      "key": "b2",
+      "mass": {
+        "volume": 14400,
+        "mass": 14.4,
+        "centroid": [
+          30,
+          9,
+          9
+        ],
+        "inertia": [
+          [
+            1252.8000000000002,
+            0,
+            0
+          ],
+          [
+            0,
+            2092.8,
+            0
+          ],
+          [
+            0,
+            0,
+            3000
+          ]
+        ]
+      },
+      "publicNames": [
+        "n2.surface0",
+        "n2.surface1",
+        "n2.surface2",
+        "n2.surface3",
+        "n2.surface4",
+        "n2.surface5"
+      ],
+      "faces": [
+        {
+          "name": "n2.surface0",
+          "kind": "plane",
+          "normal": [
+            0,
+            0,
+            -1
+          ],
+          "centroid": [
+            30,
+            9,
+            3
+          ],
+          "area": 1200,
+          "edges": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "name": "n2.surface1",
+          "kind": "plane",
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "centroid": [
+            30,
+            9,
+            15
+          ],
+          "area": 1200,
+          "edges": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "name": "n2.surface2",
+          "kind": "plane",
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "centroid": [
+            30,
+            -6,
+            9
+          ],
+          "area": 480,
+          "edges": [
+            3,
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "name": "n2.surface3",
+          "kind": "plane",
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "centroid": [
+            30,
+            24,
+            9
+          ],
+          "area": 480,
+          "edges": [
+            1,
+            5,
+            10,
+            11
+          ]
+        },
+        {
+          "name": "n2.surface4",
+          "kind": "plane",
+          "normal": [
+            -1,
+            0,
+            0
+          ],
+          "centroid": [
+            10,
+            9,
+            9
+          ],
+          "area": 360,
+          "edges": [
+            0,
+            4,
+            9,
+            11
+          ]
+        },
+        {
+          "name": "n2.surface5",
+          "kind": "plane",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "centroid": [
+            50,
+            9,
+            9
+          ],
+          "area": 360,
+          "edges": [
+            2,
+            6,
+            8,
+            10
+          ]
+        }
+      ],
+      "nativeNames": [
+        "n2.surface0",
+        "n2.surface1",
+        "n2.surface2",
+        "n2.surface3",
+        "n2.surface4",
+        "n2.surface5"
+      ],
+      "nativeFaces": [
+        {
+          "name": "n2.surface0",
+          "sense": "forward",
+          "surface": {
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              -2,
+              -2,
+              6,
+              6
+            ],
+            "knotsV": [
+              1,
+              1,
+              7,
+              7
+            ],
+            "controlPoints": [
+              [
+                [
+                  10,
+                  -6,
+                  3
+                ],
+                [
+                  50,
+                  -6,
+                  3
+                ]
+              ],
+              [
+                [
+                  10,
+                  24,
+                  3
+                ],
+                [
+                  50,
+                  24,
+                  3
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          }
+        },
+        {
+          "name": "n2.surface1",
+          "sense": "reversed",
+          "surface": {
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              -2,
+              -2,
+              6,
+              6
+            ],
+            "knotsV": [
+              1,
+              1,
+              7,
+              7
+            ],
+            "controlPoints": [
+              [
+                [
+                  10,
+                  -6,
+                  15
+                ],
+                [
+                  50,
+                  -6,
+                  15
+                ]
+              ],
+              [
+                [
+                  10,
+                  24,
+                  15
+                ],
+                [
+                  50,
+                  24,
+                  15
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          }
+        },
+        {
+          "name": "n2.surface2",
+          "sense": "forward",
+          "surface": {
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              -2,
+              -2,
+              6,
+              6
+            ],
+            "knotsV": [
+              1,
+              1,
+              7,
+              7
+            ],
+            "controlPoints": [
+              [
+                [
+                  10,
+                  -6,
+                  3
+                ],
+                [
+                  10,
+                  -6,
+                  15
+                ]
+              ],
+              [
+                [
+                  50,
+                  -6,
+                  3
+                ],
+                [
+                  50,
+                  -6,
+                  15
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          }
+        },
+        {
+          "name": "n2.surface3",
+          "sense": "reversed",
+          "surface": {
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              -2,
+              -2,
+              6,
+              6
+            ],
+            "knotsV": [
+              1,
+              1,
+              7,
+              7
+            ],
+            "controlPoints": [
+              [
+                [
+                  10,
+                  24,
+                  3
+                ],
+                [
+                  10,
+                  24,
+                  15
+                ]
+              ],
+              [
+                [
+                  50,
+                  24,
+                  3
+                ],
+                [
+                  50,
+                  24,
+                  15
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          }
+        },
+        {
+          "name": "n2.surface4",
+          "sense": "reversed",
+          "surface": {
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              -2,
+              -2,
+              6,
+              6
+            ],
+            "knotsV": [
+              1,
+              1,
+              7,
+              7
+            ],
+            "controlPoints": [
+              [
+                [
+                  10,
+                  -6,
+                  3
+                ],
+                [
+                  10,
+                  -6,
+                  15
+                ]
+              ],
+              [
+                [
+                  10,
+                  24,
+                  3
+                ],
+                [
+                  10,
+                  24,
+                  15
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          }
+        },
+        {
+          "name": "n2.surface5",
+          "sense": "forward",
+          "surface": {
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              -2,
+              -2,
+              6,
+              6
+            ],
+            "knotsV": [
+              1,
+              1,
+              7,
+              7
+            ],
+            "controlPoints": [
+              [
+                [
+                  50,
+                  -6,
+                  3
+                ],
+                [
+                  50,
+                  -6,
+                  15
+                ]
+              ],
+              [
+                [
+                  50,
+                  24,
+                  3
+                ],
+                [
+                  50,
+                  24,
+                  15
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          }
+        }
+      ],
+      "topology": {
+        "bodies": 1,
+        "shells": 1,
+        "closedShells": 1,
+        "vertices": 8,
+        "edges": 12,
+        "faces": 6,
+        "euler": 2
+      },
+      "bounds": {
+        "min": [
+          10,
+          -6,
+          3
+        ],
+        "max": [
+          50,
+          24,
+          15
+        ]
+      },
+      "closed": true,
+      "valid": true,
+      "issues": []
+    }
+  ],
+  "geometryTolerance": 1e-7,
+  "volumeTolerance": 0.000001,
+  "route": "Public Model Part mass/faces/meshes and partBreps/checkBrep native read"
+}

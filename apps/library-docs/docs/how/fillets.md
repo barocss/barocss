@@ -127,6 +127,24 @@ and tori about one axis are revolved; a plane along a cylinder and two parallel 
 sections takes goes to the rolling ball of the sections above: faces that meet, by every edge they share; faces apart, once the corner
 between them has been restored (what lies there removed or filled).
 
+An open rolling-ball chain can also run past a polynomial Bezier face end (degree 2–5, one clamped span in that
+direction). Its solve surface carries the same polynomial one quarter of the parameter range beyond each end;
+the body's original surfaces and trims stay intact, and the trim/contact tolerances do not grow. A quintic guided
+loft's meeting plane and curved side are covered, including native and Studio save/open.
+
+A bounded non-adjacent path can replace a smaller round between one planar support and one polynomial translational
+support (linear across, one degree2–5 Bezier span along the guide). The charts must pass exact coefficient and
+orientation checks. The corner must be convex and square, with a simple regular guide and two flat end caps normal
+to its end tangents. Its old bridge must be one disk strip, without holes or branches, bounded by alternating
+side/cap/side/cap chains. The new tool must touch only the selected pair. Conservative Boolean input-face tracing
+must show that every old bridge face is gone. Other faces retain their represented surfaces and oriented trims;
+uniquely matched protected vertex representatives keep their original coordinates within existing bounds. Both the
+raw Boolean and final body pass the existing strict checks. An ambiguous trace or unmatched trim is refused.
+The quintic loft's r0.25→r0.5 replacement is covered by an independent volume oracle and Studio Save/Open.
+
+General free-form pairs, concave replacement, rational/multi-span end extension and rolling onto another face
+remain outside this bounded path. Existing typed solve/fit refusals still apply.
+
 ## Where it is in the code
 
 | File | Responsibility |

@@ -1,0 +1,34 @@
+{
+  "checks": {
+    "tests-1": {
+      "exit": 0,
+      "log": "/tmp/d339-visual-fix/tests-1.log",
+      "status": "PASS"
+    },
+    "studio-types-1": {
+      "exit": 0,
+      "log": "/tmp/d339-visual-fix/studio-types-1.log",
+      "status": "PASS"
+    },
+    "lint-1": {
+      "exit": 0,
+      "log": "/tmp/d339-visual-fix/lint-1.log",
+      "status": "PASS"
+    },
+    "vite-build-1": {
+      "exit": 0,
+      "log": "/tmp/d339-visual-fix/vite-build-1.log",
+      "status": "PASS"
+    }
+  },
+  "newFocusedTests": 3,
+  "relatedDirectTests": 7,
+  "firstFailures": [],
+  "sourceChangedAfterReady": false,
+  "heavy": "RELEASED",
+  "browser": "NOT_RUN by worker; root serial visual verification pending",
+  "viteWarnings": [
+    "SWR module-level use client directive",
+    "existing ineffective dynamic imports in chat tools/outputs"
+  ]
+}

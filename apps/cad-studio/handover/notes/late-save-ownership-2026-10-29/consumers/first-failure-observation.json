@@ -1,0 +1,9 @@
+{
+  "classification": "SETUP_OR_SCHEDULE_FAILURE, not product reproduction",
+  "nativeScheduleReached": "Save A committed and native close return held; B document accepted, but completed autosave condition was not actually awaited; no release/after-release safe assertions reached.",
+  "diagnosis": "Installed Playwright coreBundle.js23886 calls const success=predicate(); without awaiting a Promise. Async waitForFunction predicate returned a truthy Promise even when its resolved native-record result was false.",
+  "localPrimarySource": "/Users/user/.cache/barocss-playwright/node_modules/playwright-core/lib/coreBundle.js:23860-23902",
+  "repair": "Await page.evaluate native file records in Node loop, proceed only on complete document semantic equality; null checkpoint is an explicit assert after snapshot persistence.",
+  "originalDriverCapsules": "first-run/source-profile.json and both unchanged gzip files",
+  "rerun": "Only after parent conditional second-baseline approval, one current-source case."
+}

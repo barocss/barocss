@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "tests": 2331,
+  "pass": 2325,
+  "fail": 0,
+  "skip": 6,
+  "skipScope": "Existing skip cases; new cap identity and mass tests have no SKIP.",
+  "durationMs": 250509.062917,
+  "build": "High second-build on frozen cap source; root confirmed dist exact predicate before full suite.",
+  "sourceFiles": {
+    "packages/barocss-cad/src/brep/solid-mass.ts": "19ec118c7f6096f738d246e5ca46095b42dd9bf7f67e341bcc6f735690141eac",
+    "packages/barocss-cad/src/features/prismatic-solid.ts": "17f2b70b5ecbe0b1ab7912636d780fa1594469804f4af7fb48365212bc802f5a",
+    "packages/barocss-cad/test/prismatic-mass-stability.test.mjs": "e2a35eae04287ebcc639b27477e1c579a2380a7a4d16b272e0c92aca7e14022e",
+    "packages/barocss-cad/test/helpers/prismatic-mass-oracle.mjs": "f13d49a735e1c124adedb550c4bed4b3301eb81406dcc6de35d3865a70d8a07b",
+    "packages/barocss-cad/test/prismatic-cap-identity.test.mjs": "01fbec53bd5d2b4c7423d75e7f186f0d93848155ea44d95c034f98a824923dbc"
+  },
+  "command": "node --test --test-concurrency=4 test/*.test.mjs",
+  "node": "22.19.0",
+  "priorFull": "2317PASS/6SKIP is pre-cap source context; this fresh run qualifies cap identity source too."
+}

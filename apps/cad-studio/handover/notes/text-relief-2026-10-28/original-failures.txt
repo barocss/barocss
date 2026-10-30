@@ -1,0 +1,223 @@
+/tmp/barocss-text-relief-kernel-focused-first.log
+not ok 1 - test/profile-relief.test.mjs
+  ---
+  duration_ms: 293.766875
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/profile-relief.test.mjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 298.316875
+
+/tmp/barocss-text-relief-kernel-focused-second.log
+not ok 9 - profile relief: non-XY sketch frames, arcs and multiple outer regions refuse; an XY translation preserves area
+  ---
+  duration_ms: 8.574958
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/profile-relief.test.mjs:147:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The validation function is expected to return "true". Received false
+    
+    Caught error:
+    
+    CadPartError: relief: profile relief needs 3..1024 line edges per loop
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    refused (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/profile-relief.test.mjs:25:10)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/profile-relief.test.mjs:155:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+
+/tmp/barocss-text-relief-model-types-first.log
+src/app/textReliefCommand.ts(50,46): error TS2345: Argument of type '"TEXT_RELIEF_PICK"' is not assignable to parameter of type 'CadModelCode'.
+test/text-relief-command.test.ts(77,229): error TS2345: Argument of type '{ mode: string; depth?: undefined; x?: undefined; y?: undefined; text?: undefined; font?: undefined; } | { depth: number; mode?: undefined; x?: undefined; y?: undefined; text?: undefined; font?: undefined; } | { ...; } | { ...; } | { ...; } | { ...; }' is not assignable to parameter of type 'Values'.
+  Type '{ mode: string; depth?: undefined; x?: undefined; y?: undefined; text?: undefined; font?: undefined; }' is not assignable to type 'Values'.
+    Property 'depth' is incompatible with index signature.
+      Type 'undefined' is not assignable to type 'string | number'.
+
+/tmp/barocss-text-relief-model-focused-first.log
+not ok 33 - precomposed Korean components and local holes all seat into one physical base
+  ---
+  duration_ms: 39.206291
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-imTc9i/text-relief-engine.test.mjs:97051:1'
+  failureType: 'testCodeFailure'
+  error: 'n2: profile relief: Exact rational operation budget exceeded'
+  code: 'INPUT'
+  name: 'CadPartError'
+  stack: |-
+    Context.fail22 [as fail] (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-imTc9i/text-relief-engine.test.mjs:49285:13)
+    SectionRationalContext.exactFailure [as fail] (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-imTc9i/text-relief-engine.test.mjs:39343:45)
+    SectionRationalContext.work (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-imTc9i/text-relief-engine.test.mjs:5027:43)
+    SectionRationalContext.multiply (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-imTc9i/text-relief-engine.test.mjs:5037:14)
+    SectionRationalContext.add (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-imTc9i/text-relief-engine.test.mjs:5100:91)
+    SectionRationalContext.sub (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-imTc9i/text-relief-engine.test.mjs:5108:21)
+    orient3 (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-imTc9i/text-relief-engine.test.mjs:39021:69)
+    inRing2 (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-imTc9i/text-relief-engine.test.mjs:39029:52)
+    inPolygon (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-imTc9i/text-relief-engine.test.mjs:39035:8)
+    inside3 (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-imTc9i/text-relief-engine.test.mjs:39042:9)
+  ...
+
+/tmp/barocss-text-relief-model-focused-second.log
+not ok 33 - precomposed Korean components and local holes all seat into one physical base
+  ---
+  duration_ms: 42.882
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-wWf1vN/text-relief-engine.test.mjs:97062:1'
+  failureType: 'testCodeFailure'
+  error: 'n2: profile relief: Exact rational operation budget exceeded'
+  code: 'INPUT'
+  name: 'CadPartError'
+  stack: |-
+    Context.fail22 [as fail] (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-wWf1vN/text-relief-engine.test.mjs:49296:13)
+    SectionRationalContext.exactFailure [as fail] (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-wWf1vN/text-relief-engine.test.mjs:39354:45)
+    SectionRationalContext.work (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-wWf1vN/text-relief-engine.test.mjs:5027:43)
+    SectionRationalContext.gcd (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-wWf1vN/text-relief-engine.test.mjs:5044:16)
+    SectionRationalContext.rat (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-wWf1vN/text-relief-engine.test.mjs:5062:30)
+    SectionRationalContext.add (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-wWf1vN/text-relief-engine.test.mjs:5100:21)
+    area (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-wWf1vN/text-relief-engine.test.mjs:38963:18)
+    component (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-wWf1vN/text-relief-engine.test.mjs:39127:59)
+    profileRelief (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-wWf1vN/text-relief-engine.test.mjs:39291:19)
+    file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-wWf1vN/text-relief-engine.test.mjs:49789:50
+  ...
+
+/tmp/barocss-text-relief-model-focused-third.log
+not ok 33 - precomposed Korean components and local holes all seat into one physical base
+  ---
+  duration_ms: 89.705833
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-f50bEH/text-relief-engine.test.mjs:97069:1'
+  failureType: 'testCodeFailure'
+  error: 'n2: profile relief exceeds its boundary/Boolean work budget'
+  code: 'INPUT'
+  name: 'CadPartError'
+  stack: |-
+    Context.fail22 [as fail] (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-f50bEH/text-relief-engine.test.mjs:49303:13)
+    Context.charge (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-f50bEH/text-relief-engine.test.mjs:39363:93)
+    nativeBoolean (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-f50bEH/text-relief-engine.test.mjs:39274:7)
+    profileRelief (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-f50bEH/text-relief-engine.test.mjs:39313:22)
+    file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-f50bEH/text-relief-engine.test.mjs:49796:50
+    file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-f50bEH/text-relief-engine.test.mjs:49152:12
+    evaluateWith (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-f50bEH/text-relief-engine.test.mjs:49389:29)
+    evaluateCadPart (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-f50bEH/text-relief-engine.test.mjs:49268:12)
+    native13 (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-f50bEH/text-relief-engine.test.mjs:96996:55)
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-f50bEH/text-relief-engine.test.mjs:97071:134)
+  ...
+
+/tmp/barocss-text-relief-model-focused-fourth.log
+not ok 33 - precomposed Korean components and local holes all seat into one physical base
+  ---
+  duration_ms: 100.4005
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-ABbTMH/text-relief-engine.test.mjs:97184:1'
+  failureType: 'testCodeFailure'
+  error: 'n2: profile relief exceeds its boundary/Boolean work budget'
+  code: 'INPUT'
+  name: 'CadPartError'
+  stack: |-
+    Context.fail22 [as fail] (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-ABbTMH/text-relief-engine.test.mjs:49418:13)
+    Context.charge (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-ABbTMH/text-relief-engine.test.mjs:39478:93)
+    covered (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-ABbTMH/text-relief-engine.test.mjs:39342:9)
+    sameBoundary (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-ABbTMH/text-relief-engine.test.mjs:39358:31)
+    profileRelief (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-ABbTMH/text-relief-engine.test.mjs:39417:10)
+    file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-ABbTMH/text-relief-engine.test.mjs:49911:50
+    file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-ABbTMH/text-relief-engine.test.mjs:49267:12
+    evaluateWith (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-ABbTMH/text-relief-engine.test.mjs:49504:29)
+    evaluateCadPart (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-ABbTMH/text-relief-engine.test.mjs:49383:12)
+    native13 (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-ABbTMH/text-relief-engine.test.mjs:97111:55)
+  ...
+
+/tmp/barocss-text-relief-model-focused-fifth.log
+not ok 33 - precomposed Korean components and local holes all seat into one physical base
+  ---
+  duration_ms: 568.659791
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-UlszEQ/text-relief-engine.test.mjs:97202:1'
+  failureType: 'testCodeFailure'
+  error: 'n2: profile relief exceeds its boundary/Boolean work budget'
+  code: 'INPUT'
+  name: 'CadPartError'
+  stack: |-
+    Context.fail22 [as fail] (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-UlszEQ/text-relief-engine.test.mjs:49436:13)
+    Context.charge (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-UlszEQ/text-relief-engine.test.mjs:39496:93)
+    pocketRegions (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-UlszEQ/text-relief-engine.test.mjs:39324:7)
+    profileRelief (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-UlszEQ/text-relief-engine.test.mjs:39445:17)
+    file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-UlszEQ/text-relief-engine.test.mjs:49929:50
+    file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-UlszEQ/text-relief-engine.test.mjs:49285:12
+    evaluateWith (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-UlszEQ/text-relief-engine.test.mjs:49522:29)
+    evaluateCadPart (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-UlszEQ/text-relief-engine.test.mjs:49401:12)
+    native13 (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-UlszEQ/text-relief-engine.test.mjs:97129:55)
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-UlszEQ/text-relief-engine.test.mjs:97204:130)
+  ...
+
+/tmp/barocss-text-relief-model-focused-sixth.log
+not ok 33 - precomposed Korean components and local holes all seat into one physical base
+  ---
+  duration_ms: 572.521583
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-F3Pue2/text-relief-engine.test.mjs:97202:1'
+  failureType: 'testCodeFailure'
+  error: 'n2: profile relief exceeds its boundary/Boolean work budget'
+  code: 'INPUT'
+  name: 'CadPartError'
+  stack: |-
+    Context.fail22 [as fail] (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-F3Pue2/text-relief-engine.test.mjs:49436:13)
+    Context.charge (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-F3Pue2/text-relief-engine.test.mjs:39496:93)
+    pocketRegions (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-F3Pue2/text-relief-engine.test.mjs:39324:7)
+    profileRelief (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-F3Pue2/text-relief-engine.test.mjs:39445:17)
+    file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-F3Pue2/text-relief-engine.test.mjs:49929:50
+    file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-F3Pue2/text-relief-engine.test.mjs:49285:12
+    evaluateWith (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-F3Pue2/text-relief-engine.test.mjs:49522:29)
+    evaluateCadPart (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-F3Pue2/text-relief-engine.test.mjs:49401:12)
+    native13 (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-F3Pue2/text-relief-engine.test.mjs:97129:55)
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-F3Pue2/text-relief-engine.test.mjs:97204:130)
+  ...
+
+/tmp/barocss-text-relief-kernel-focused-batch.log
+not ok 15 - profile relief: component and aggregate work budgets refuse generic large requests
+  ---
+  duration_ms: 442.976666
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/profile-relief.test.mjs:174:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected exception.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    refused (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/profile-relief.test.mjs:25:10)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/profile-relief.test.mjs:178:3)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+
+/tmp/barocss-text-relief-refusals-first.log
+docs/reference/_refusals.md differs from the sources: run node scripts/refusals.mjs
+
+/tmp/barocss-text-relief-docs-final.log
+studio/features.md: the label **Baseline X/Y** is not in the studio's sources
+
+/tmp/barocss-text-relief-api-inventory-review-first-native-branch-assumption.log
+Review script first pass: Error: Expected union branch absent: {readonly kind:"profile-relief";readonly target:string;readonly faces:readonly string[];readonly sketches:readonly string[];readonly depth:CadPartDim;readonly mode:"emboss"|"engrave";readonly clearance?:number;readonly expect?:Readonly<Record<string,CadPartNameSignature>>;}
+The declared alias omits explicit undefined on optional properties, but TypeScript inferred shape.type includes it. Both forms are now matched explicitly at their respective fields. Candidate/source unchanged.

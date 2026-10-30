@@ -1,0 +1,6260 @@
+{
+  "states": [
+    {
+      "label": "D0-computed",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              10,
+              10
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "nextId": 2
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": 1000.0000000000001,
+            "centroid": [
+              4.999999999999999,
+              4.999999999999999,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "fresh": true,
+      "trace": {
+        "armed": false,
+        "claimed": null,
+        "timeUnit": "ms",
+        "events": [
+          {
+            "sequence": 0,
+            "time": 545.0999999046326,
+            "kind": "construct",
+            "key": 1,
+            "relevant": true,
+            "url": "http://127.0.0.1:52031/src/engine/engine.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 1,
+            "time": 545.8999998569489,
+            "kind": "construct",
+            "key": 2,
+            "relevant": false,
+            "url": "http://127.0.0.1:52031/src/assembly/faces.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 2,
+            "time": 591.3999998569489,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 1,
+            "revision": 1,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 1,
+              "revision": 1,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 3,
+            "sourceNodes": [
+              {
+                "wireId": 1,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 2,
+                "id": "n1",
+                "kind": "extrude"
+              },
+              {
+                "wireId": 3,
+                "id": "n2",
+                "kind": "hole"
+              }
+            ]
+          },
+          {
+            "sequence": 3,
+            "time": 1036.1999998092651,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 1,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 4,
+            "time": 1036.1999998092651,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 1,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 5,
+            "time": 1137.7999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 2,
+            "revision": 2,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 2,
+              "revision": 2,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 0,
+            "sourceNodes": []
+          },
+          {
+            "sequence": 6,
+            "time": 1180.0999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 2,
+            "progress": null,
+            "masses": false,
+            "revision": 2,
+            "resultOK": true,
+            "bodyCount": 0
+          },
+          {
+            "sequence": 7,
+            "time": 1180.0999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 2,
+            "progress": null,
+            "masses": false,
+            "revision": 2,
+            "resultOK": true,
+            "bodyCount": 0
+          },
+          {
+            "sequence": 8,
+            "time": 1306.5999999046326,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 3,
+            "revision": 3,
+            "nativeSource": null,
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 4,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 5,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 9,
+            "time": 1309.5999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 3,
+            "progress": null,
+            "masses": false,
+            "revision": 3,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 10,
+            "time": 1309.5999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 3,
+            "progress": null,
+            "masses": false,
+            "revision": 3,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 11,
+            "time": 1718.2999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 4,
+            "revision": 4,
+            "nativeSource": null,
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 6,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 7,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 12,
+            "time": 1719.8999998569489,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 4,
+            "progress": null,
+            "masses": false,
+            "revision": 4,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 13,
+            "time": 1719.8999998569489,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 4,
+            "progress": null,
+            "masses": false,
+            "revision": 4,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 14,
+            "time": 1873.6999998092651,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 5,
+            "revision": 5,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 5,
+              "revision": 5,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 8,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 9,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 15,
+            "time": 1917.5,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 5,
+            "progress": null,
+            "masses": false,
+            "revision": 5,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 16,
+            "time": 1917.5,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 5,
+            "progress": null,
+            "masses": false,
+            "revision": 5,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 17,
+            "time": 2081.0999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 18,
+            "time": 2081.0999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          }
+        ]
+      },
+      "recovery": null,
+      "history": "short_text",
+      "dirty": true,
+      "name": "Untitled",
+      "feedback": [],
+      "eye": [
+        20.6629105980726,
+        -19.680797855793205,
+        26.23777826805338
+      ]
+    },
+    {
+      "label": "D1-native-complete-client-pending",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              10,
+              10
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              20,
+              0
+            ],
+            "max": [
+              30,
+              10
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 20,
+                "y": 0,
+                "z": 0
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          },
+          "b3": {
+            "node": 3,
+            "side": "solid"
+          }
+        },
+        "nextId": 4
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          },
+          {
+            "key": "b3",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "fresh": false,
+      "trace": {
+        "armed": false,
+        "claimed": {
+          "key": 1,
+          "id": 8,
+          "revision": 8,
+          "nativeSource": {
+            "epoch": 1,
+            "requestId": 8,
+            "revision": 8,
+            "slot": "evaluate"
+          },
+          "sourceNodeCount": 4
+        },
+        "timeUnit": "ms",
+        "events": [
+          {
+            "sequence": 0,
+            "time": 545.0999999046326,
+            "kind": "construct",
+            "key": 1,
+            "relevant": true,
+            "url": "http://127.0.0.1:52031/src/engine/engine.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 1,
+            "time": 545.8999998569489,
+            "kind": "construct",
+            "key": 2,
+            "relevant": false,
+            "url": "http://127.0.0.1:52031/src/assembly/faces.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 2,
+            "time": 591.3999998569489,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 1,
+            "revision": 1,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 1,
+              "revision": 1,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 3,
+            "sourceNodes": [
+              {
+                "wireId": 1,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 2,
+                "id": "n1",
+                "kind": "extrude"
+              },
+              {
+                "wireId": 3,
+                "id": "n2",
+                "kind": "hole"
+              }
+            ]
+          },
+          {
+            "sequence": 3,
+            "time": 1036.1999998092651,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 1,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 4,
+            "time": 1036.1999998092651,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 1,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 5,
+            "time": 1137.7999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 2,
+            "revision": 2,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 2,
+              "revision": 2,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 0,
+            "sourceNodes": []
+          },
+          {
+            "sequence": 6,
+            "time": 1180.0999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 2,
+            "progress": null,
+            "masses": false,
+            "revision": 2,
+            "resultOK": true,
+            "bodyCount": 0
+          },
+          {
+            "sequence": 7,
+            "time": 1180.0999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 2,
+            "progress": null,
+            "masses": false,
+            "revision": 2,
+            "resultOK": true,
+            "bodyCount": 0
+          },
+          {
+            "sequence": 8,
+            "time": 1306.5999999046326,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 3,
+            "revision": 3,
+            "nativeSource": null,
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 4,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 5,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 9,
+            "time": 1309.5999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 3,
+            "progress": null,
+            "masses": false,
+            "revision": 3,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 10,
+            "time": 1309.5999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 3,
+            "progress": null,
+            "masses": false,
+            "revision": 3,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 11,
+            "time": 1718.2999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 4,
+            "revision": 4,
+            "nativeSource": null,
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 6,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 7,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 12,
+            "time": 1719.8999998569489,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 4,
+            "progress": null,
+            "masses": false,
+            "revision": 4,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 13,
+            "time": 1719.8999998569489,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 4,
+            "progress": null,
+            "masses": false,
+            "revision": 4,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 14,
+            "time": 1873.6999998092651,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 5,
+            "revision": 5,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 5,
+              "revision": 5,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 8,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 9,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 15,
+            "time": 1917.5,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 5,
+            "progress": null,
+            "masses": false,
+            "revision": 5,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 16,
+            "time": 1917.5,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 5,
+            "progress": null,
+            "masses": false,
+            "revision": 5,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 17,
+            "time": 2081.0999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 18,
+            "time": 2081.0999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 19,
+            "time": 2626,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 6,
+            "revision": 6,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 10,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 11,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 20,
+            "time": 2627.2999999523163,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 6,
+            "progress": null,
+            "masses": false,
+            "revision": 6,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 21,
+            "time": 2627.2999999523163,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 6,
+            "progress": null,
+            "masses": false,
+            "revision": 6,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 22,
+            "time": 3031.399999856949,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 7,
+            "revision": 7,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 12,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 13,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 23,
+            "time": 3032.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 7,
+            "progress": null,
+            "masses": false,
+            "revision": 7,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 24,
+            "time": 3032.699999809265,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 7,
+            "progress": null,
+            "masses": false,
+            "revision": 7,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 25,
+            "time": 3148.0999999046326,
+            "kind": "arm"
+          },
+          {
+            "sequence": 26,
+            "time": 3190.7999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 8,
+            "revision": 8,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 8,
+              "revision": 8,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 14,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 15,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 27,
+            "time": 3190.7999999523163,
+            "kind": "claimed",
+            "key": 1,
+            "id": 8,
+            "revision": 8,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 8,
+              "revision": 8,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 4
+          },
+          {
+            "sequence": 28,
+            "time": 3234.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 8,
+            "progress": null,
+            "masses": false,
+            "revision": 8,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 29,
+            "time": 3234.7999999523163,
+            "kind": "held",
+            "key": 1,
+            "id": 8,
+            "progress": null,
+            "masses": false,
+            "revision": 8,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 30,
+            "time": 3397.7999999523163,
+            "kind": "native-receive",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 31,
+            "time": 3397.7999999523163,
+            "kind": "held",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          }
+        ]
+      },
+      "recovery": "{\"fileName\":\"Untitled\",\"savedAt\":1793252700975,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[10,10],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":10,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":10,\"d\":10,\"h\":10,\"x\":0,\"y\":0,\"z\":0}}},{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[20,0],\"max\":[30,10],\"id\":\"n2\"},{\"kind\":\"extrude\",\"sketch\":2,\"height\":10,\"id\":\"n3\",\"made\":{\"command\":\"box\",\"values\":{\"w\":10,\"d\":10,\"h\":10,\"x\":20,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"},\"b3\":{\"node\":3,\"side\":\"solid\"}},\"nextId\":4}}",
+      "history": "short_text",
+      "dirty": true,
+      "name": "Untitled",
+      "feedback": [],
+      "eye": [
+        20.6629105980726,
+        -19.680797855793205,
+        26.23777826805338
+      ]
+    },
+    {
+      "label": "Render-workspace-pending",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              10,
+              10
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              20,
+              0
+            ],
+            "max": [
+              30,
+              10
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 20,
+                "y": 0,
+                "z": 0
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          },
+          "b3": {
+            "node": 3,
+            "side": "solid"
+          }
+        },
+        "nextId": 4
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          },
+          {
+            "key": "b3",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "fresh": false,
+      "trace": {
+        "armed": false,
+        "claimed": {
+          "key": 1,
+          "id": 8,
+          "revision": 8,
+          "nativeSource": {
+            "epoch": 1,
+            "requestId": 8,
+            "revision": 8,
+            "slot": "evaluate"
+          },
+          "sourceNodeCount": 4
+        },
+        "timeUnit": "ms",
+        "events": [
+          {
+            "sequence": 0,
+            "time": 545.0999999046326,
+            "kind": "construct",
+            "key": 1,
+            "relevant": true,
+            "url": "http://127.0.0.1:52031/src/engine/engine.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 1,
+            "time": 545.8999998569489,
+            "kind": "construct",
+            "key": 2,
+            "relevant": false,
+            "url": "http://127.0.0.1:52031/src/assembly/faces.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 2,
+            "time": 591.3999998569489,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 1,
+            "revision": 1,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 1,
+              "revision": 1,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 3,
+            "sourceNodes": [
+              {
+                "wireId": 1,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 2,
+                "id": "n1",
+                "kind": "extrude"
+              },
+              {
+                "wireId": 3,
+                "id": "n2",
+                "kind": "hole"
+              }
+            ]
+          },
+          {
+            "sequence": 3,
+            "time": 1036.1999998092651,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 1,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 4,
+            "time": 1036.1999998092651,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 1,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 5,
+            "time": 1137.7999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 2,
+            "revision": 2,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 2,
+              "revision": 2,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 0,
+            "sourceNodes": []
+          },
+          {
+            "sequence": 6,
+            "time": 1180.0999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 2,
+            "progress": null,
+            "masses": false,
+            "revision": 2,
+            "resultOK": true,
+            "bodyCount": 0
+          },
+          {
+            "sequence": 7,
+            "time": 1180.0999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 2,
+            "progress": null,
+            "masses": false,
+            "revision": 2,
+            "resultOK": true,
+            "bodyCount": 0
+          },
+          {
+            "sequence": 8,
+            "time": 1306.5999999046326,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 3,
+            "revision": 3,
+            "nativeSource": null,
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 4,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 5,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 9,
+            "time": 1309.5999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 3,
+            "progress": null,
+            "masses": false,
+            "revision": 3,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 10,
+            "time": 1309.5999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 3,
+            "progress": null,
+            "masses": false,
+            "revision": 3,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 11,
+            "time": 1718.2999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 4,
+            "revision": 4,
+            "nativeSource": null,
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 6,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 7,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 12,
+            "time": 1719.8999998569489,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 4,
+            "progress": null,
+            "masses": false,
+            "revision": 4,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 13,
+            "time": 1719.8999998569489,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 4,
+            "progress": null,
+            "masses": false,
+            "revision": 4,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 14,
+            "time": 1873.6999998092651,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 5,
+            "revision": 5,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 5,
+              "revision": 5,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 8,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 9,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 15,
+            "time": 1917.5,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 5,
+            "progress": null,
+            "masses": false,
+            "revision": 5,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 16,
+            "time": 1917.5,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 5,
+            "progress": null,
+            "masses": false,
+            "revision": 5,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 17,
+            "time": 2081.0999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 18,
+            "time": 2081.0999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 19,
+            "time": 2626,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 6,
+            "revision": 6,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 10,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 11,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 20,
+            "time": 2627.2999999523163,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 6,
+            "progress": null,
+            "masses": false,
+            "revision": 6,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 21,
+            "time": 2627.2999999523163,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 6,
+            "progress": null,
+            "masses": false,
+            "revision": 6,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 22,
+            "time": 3031.399999856949,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 7,
+            "revision": 7,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 12,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 13,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 23,
+            "time": 3032.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 7,
+            "progress": null,
+            "masses": false,
+            "revision": 7,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 24,
+            "time": 3032.699999809265,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 7,
+            "progress": null,
+            "masses": false,
+            "revision": 7,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 25,
+            "time": 3148.0999999046326,
+            "kind": "arm"
+          },
+          {
+            "sequence": 26,
+            "time": 3190.7999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 8,
+            "revision": 8,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 8,
+              "revision": 8,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 14,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 15,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 27,
+            "time": 3190.7999999523163,
+            "kind": "claimed",
+            "key": 1,
+            "id": 8,
+            "revision": 8,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 8,
+              "revision": 8,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 4
+          },
+          {
+            "sequence": 28,
+            "time": 3234.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 8,
+            "progress": null,
+            "masses": false,
+            "revision": 8,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 29,
+            "time": 3234.7999999523163,
+            "kind": "held",
+            "key": 1,
+            "id": 8,
+            "progress": null,
+            "masses": false,
+            "revision": 8,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 30,
+            "time": 3397.7999999523163,
+            "kind": "native-receive",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 31,
+            "time": 3397.7999999523163,
+            "kind": "held",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          }
+        ]
+      },
+      "recovery": "{\"fileName\":\"Untitled\",\"savedAt\":1793252700975,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[10,10],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":10,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":10,\"d\":10,\"h\":10,\"x\":0,\"y\":0,\"z\":0}}},{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[20,0],\"max\":[30,10],\"id\":\"n2\"},{\"kind\":\"extrude\",\"sketch\":2,\"height\":10,\"id\":\"n3\",\"made\":{\"command\":\"box\",\"values\":{\"w\":10,\"d\":10,\"h\":10,\"x\":20,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"},\"b3\":{\"node\":3,\"side\":\"solid\"}},\"nextId\":4}}",
+      "dirty": true,
+      "name": "Untitled",
+      "feedback": [],
+      "eye": [
+        15,
+        4.978264182561731,
+        74.18725347267105
+      ]
+    },
+    {
+      "label": "Grid-refused-1",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              10,
+              10
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              20,
+              0
+            ],
+            "max": [
+              30,
+              10
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 20,
+                "y": 0,
+                "z": 0
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          },
+          "b3": {
+            "node": 3,
+            "side": "solid"
+          }
+        },
+        "nextId": 4
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          },
+          {
+            "key": "b3",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "fresh": false,
+      "trace": {
+        "armed": false,
+        "claimed": {
+          "key": 1,
+          "id": 8,
+          "revision": 8,
+          "nativeSource": {
+            "epoch": 1,
+            "requestId": 8,
+            "revision": 8,
+            "slot": "evaluate"
+          },
+          "sourceNodeCount": 4
+        },
+        "timeUnit": "ms",
+        "events": [
+          {
+            "sequence": 0,
+            "time": 545.0999999046326,
+            "kind": "construct",
+            "key": 1,
+            "relevant": true,
+            "url": "http://127.0.0.1:52031/src/engine/engine.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 1,
+            "time": 545.8999998569489,
+            "kind": "construct",
+            "key": 2,
+            "relevant": false,
+            "url": "http://127.0.0.1:52031/src/assembly/faces.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 2,
+            "time": 591.3999998569489,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 1,
+            "revision": 1,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 1,
+              "revision": 1,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 3,
+            "sourceNodes": [
+              {
+                "wireId": 1,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 2,
+                "id": "n1",
+                "kind": "extrude"
+              },
+              {
+                "wireId": 3,
+                "id": "n2",
+                "kind": "hole"
+              }
+            ]
+          },
+          {
+            "sequence": 3,
+            "time": 1036.1999998092651,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 1,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 4,
+            "time": 1036.1999998092651,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 1,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 5,
+            "time": 1137.7999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 2,
+            "revision": 2,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 2,
+              "revision": 2,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 0,
+            "sourceNodes": []
+          },
+          {
+            "sequence": 6,
+            "time": 1180.0999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 2,
+            "progress": null,
+            "masses": false,
+            "revision": 2,
+            "resultOK": true,
+            "bodyCount": 0
+          },
+          {
+            "sequence": 7,
+            "time": 1180.0999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 2,
+            "progress": null,
+            "masses": false,
+            "revision": 2,
+            "resultOK": true,
+            "bodyCount": 0
+          },
+          {
+            "sequence": 8,
+            "time": 1306.5999999046326,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 3,
+            "revision": 3,
+            "nativeSource": null,
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 4,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 5,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 9,
+            "time": 1309.5999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 3,
+            "progress": null,
+            "masses": false,
+            "revision": 3,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 10,
+            "time": 1309.5999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 3,
+            "progress": null,
+            "masses": false,
+            "revision": 3,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 11,
+            "time": 1718.2999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 4,
+            "revision": 4,
+            "nativeSource": null,
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 6,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 7,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 12,
+            "time": 1719.8999998569489,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 4,
+            "progress": null,
+            "masses": false,
+            "revision": 4,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 13,
+            "time": 1719.8999998569489,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 4,
+            "progress": null,
+            "masses": false,
+            "revision": 4,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 14,
+            "time": 1873.6999998092651,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 5,
+            "revision": 5,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 5,
+              "revision": 5,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 8,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 9,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 15,
+            "time": 1917.5,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 5,
+            "progress": null,
+            "masses": false,
+            "revision": 5,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 16,
+            "time": 1917.5,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 5,
+            "progress": null,
+            "masses": false,
+            "revision": 5,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 17,
+            "time": 2081.0999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 18,
+            "time": 2081.0999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 19,
+            "time": 2626,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 6,
+            "revision": 6,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 10,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 11,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 20,
+            "time": 2627.2999999523163,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 6,
+            "progress": null,
+            "masses": false,
+            "revision": 6,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 21,
+            "time": 2627.2999999523163,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 6,
+            "progress": null,
+            "masses": false,
+            "revision": 6,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 22,
+            "time": 3031.399999856949,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 7,
+            "revision": 7,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 12,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 13,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 23,
+            "time": 3032.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 7,
+            "progress": null,
+            "masses": false,
+            "revision": 7,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 24,
+            "time": 3032.699999809265,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 7,
+            "progress": null,
+            "masses": false,
+            "revision": 7,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 25,
+            "time": 3148.0999999046326,
+            "kind": "arm"
+          },
+          {
+            "sequence": 26,
+            "time": 3190.7999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 8,
+            "revision": 8,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 8,
+              "revision": 8,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 14,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 15,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 27,
+            "time": 3190.7999999523163,
+            "kind": "claimed",
+            "key": 1,
+            "id": 8,
+            "revision": 8,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 8,
+              "revision": 8,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 4
+          },
+          {
+            "sequence": 28,
+            "time": 3234.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 8,
+            "progress": null,
+            "masses": false,
+            "revision": 8,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 29,
+            "time": 3234.7999999523163,
+            "kind": "held",
+            "key": 1,
+            "id": 8,
+            "progress": null,
+            "masses": false,
+            "revision": 8,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 30,
+            "time": 3397.7999999523163,
+            "kind": "native-receive",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 31,
+            "time": 3397.7999999523163,
+            "kind": "held",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          }
+        ]
+      },
+      "recovery": "{\"fileName\":\"Untitled\",\"savedAt\":1793252700975,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[10,10],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":10,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":10,\"d\":10,\"h\":10,\"x\":0,\"y\":0,\"z\":0}}},{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[20,0],\"max\":[30,10],\"id\":\"n2\"},{\"kind\":\"extrude\",\"sketch\":2,\"height\":10,\"id\":\"n3\",\"made\":{\"command\":\"box\",\"values\":{\"w\":10,\"d\":10,\"h\":10,\"x\":20,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"},\"b3\":{\"node\":3,\"side\":\"solid\"}},\"nextId\":4}}",
+      "dirty": true,
+      "name": "Untitled",
+      "feedback": [
+        "infoChange not appliedWait for the computation to finish, or stop it, before changing the document.close"
+      ],
+      "eye": [
+        15,
+        4.978264182561731,
+        74.18725347267105
+      ]
+    },
+    {
+      "label": "Grid-refused-2",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              10,
+              10
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              20,
+              0
+            ],
+            "max": [
+              30,
+              10
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 20,
+                "y": 0,
+                "z": 0
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          },
+          "b3": {
+            "node": 3,
+            "side": "solid"
+          }
+        },
+        "nextId": 4
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          },
+          {
+            "key": "b3",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "fresh": false,
+      "trace": {
+        "armed": false,
+        "claimed": {
+          "key": 1,
+          "id": 8,
+          "revision": 8,
+          "nativeSource": {
+            "epoch": 1,
+            "requestId": 8,
+            "revision": 8,
+            "slot": "evaluate"
+          },
+          "sourceNodeCount": 4
+        },
+        "timeUnit": "ms",
+        "events": [
+          {
+            "sequence": 0,
+            "time": 545.0999999046326,
+            "kind": "construct",
+            "key": 1,
+            "relevant": true,
+            "url": "http://127.0.0.1:52031/src/engine/engine.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 1,
+            "time": 545.8999998569489,
+            "kind": "construct",
+            "key": 2,
+            "relevant": false,
+            "url": "http://127.0.0.1:52031/src/assembly/faces.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 2,
+            "time": 591.3999998569489,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 1,
+            "revision": 1,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 1,
+              "revision": 1,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 3,
+            "sourceNodes": [
+              {
+                "wireId": 1,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 2,
+                "id": "n1",
+                "kind": "extrude"
+              },
+              {
+                "wireId": 3,
+                "id": "n2",
+                "kind": "hole"
+              }
+            ]
+          },
+          {
+            "sequence": 3,
+            "time": 1036.1999998092651,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 1,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 4,
+            "time": 1036.1999998092651,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 1,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 5,
+            "time": 1137.7999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 2,
+            "revision": 2,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 2,
+              "revision": 2,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 0,
+            "sourceNodes": []
+          },
+          {
+            "sequence": 6,
+            "time": 1180.0999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 2,
+            "progress": null,
+            "masses": false,
+            "revision": 2,
+            "resultOK": true,
+            "bodyCount": 0
+          },
+          {
+            "sequence": 7,
+            "time": 1180.0999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 2,
+            "progress": null,
+            "masses": false,
+            "revision": 2,
+            "resultOK": true,
+            "bodyCount": 0
+          },
+          {
+            "sequence": 8,
+            "time": 1306.5999999046326,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 3,
+            "revision": 3,
+            "nativeSource": null,
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 4,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 5,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 9,
+            "time": 1309.5999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 3,
+            "progress": null,
+            "masses": false,
+            "revision": 3,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 10,
+            "time": 1309.5999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 3,
+            "progress": null,
+            "masses": false,
+            "revision": 3,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 11,
+            "time": 1718.2999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 4,
+            "revision": 4,
+            "nativeSource": null,
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 6,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 7,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 12,
+            "time": 1719.8999998569489,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 4,
+            "progress": null,
+            "masses": false,
+            "revision": 4,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 13,
+            "time": 1719.8999998569489,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 4,
+            "progress": null,
+            "masses": false,
+            "revision": 4,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 14,
+            "time": 1873.6999998092651,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 5,
+            "revision": 5,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 5,
+              "revision": 5,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 8,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 9,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 15,
+            "time": 1917.5,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 5,
+            "progress": null,
+            "masses": false,
+            "revision": 5,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 16,
+            "time": 1917.5,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 5,
+            "progress": null,
+            "masses": false,
+            "revision": 5,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 17,
+            "time": 2081.0999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 18,
+            "time": 2081.0999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 19,
+            "time": 2626,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 6,
+            "revision": 6,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 10,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 11,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 20,
+            "time": 2627.2999999523163,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 6,
+            "progress": null,
+            "masses": false,
+            "revision": 6,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 21,
+            "time": 2627.2999999523163,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 6,
+            "progress": null,
+            "masses": false,
+            "revision": 6,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 22,
+            "time": 3031.399999856949,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 7,
+            "revision": 7,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 12,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 13,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 23,
+            "time": 3032.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 7,
+            "progress": null,
+            "masses": false,
+            "revision": 7,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 24,
+            "time": 3032.699999809265,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 7,
+            "progress": null,
+            "masses": false,
+            "revision": 7,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 25,
+            "time": 3148.0999999046326,
+            "kind": "arm"
+          },
+          {
+            "sequence": 26,
+            "time": 3190.7999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 8,
+            "revision": 8,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 8,
+              "revision": 8,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 14,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 15,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 27,
+            "time": 3190.7999999523163,
+            "kind": "claimed",
+            "key": 1,
+            "id": 8,
+            "revision": 8,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 8,
+              "revision": 8,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 4
+          },
+          {
+            "sequence": 28,
+            "time": 3234.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 8,
+            "progress": null,
+            "masses": false,
+            "revision": 8,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 29,
+            "time": 3234.7999999523163,
+            "kind": "held",
+            "key": 1,
+            "id": 8,
+            "progress": null,
+            "masses": false,
+            "revision": 8,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 30,
+            "time": 3397.7999999523163,
+            "kind": "native-receive",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 31,
+            "time": 3397.7999999523163,
+            "kind": "held",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          }
+        ]
+      },
+      "recovery": "{\"fileName\":\"Untitled\",\"savedAt\":1793252700975,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[10,10],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":10,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":10,\"d\":10,\"h\":10,\"x\":0,\"y\":0,\"z\":0}}},{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[20,0],\"max\":[30,10],\"id\":\"n2\"},{\"kind\":\"extrude\",\"sketch\":2,\"height\":10,\"id\":\"n3\",\"made\":{\"command\":\"box\",\"values\":{\"w\":10,\"d\":10,\"h\":10,\"x\":20,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"},\"b3\":{\"node\":3,\"side\":\"solid\"}},\"nextId\":4}}",
+      "dirty": true,
+      "name": "Untitled",
+      "feedback": [
+        "infoChange not appliedWait for the computation to finish, or stop it, before changing the document.close"
+      ],
+      "eye": [
+        15,
+        4.978264182561731,
+        74.18725347267105
+      ]
+    },
+    {
+      "label": "Drawing-workspace-pending",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              10,
+              10
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              20,
+              0
+            ],
+            "max": [
+              30,
+              10
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 20,
+                "y": 0,
+                "z": 0
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          },
+          "b3": {
+            "node": 3,
+            "side": "solid"
+          }
+        },
+        "nextId": 4
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          },
+          {
+            "key": "b3",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "fresh": false,
+      "trace": {
+        "armed": false,
+        "claimed": {
+          "key": 1,
+          "id": 8,
+          "revision": 8,
+          "nativeSource": {
+            "epoch": 1,
+            "requestId": 8,
+            "revision": 8,
+            "slot": "evaluate"
+          },
+          "sourceNodeCount": 4
+        },
+        "timeUnit": "ms",
+        "events": [
+          {
+            "sequence": 0,
+            "time": 545.0999999046326,
+            "kind": "construct",
+            "key": 1,
+            "relevant": true,
+            "url": "http://127.0.0.1:52031/src/engine/engine.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 1,
+            "time": 545.8999998569489,
+            "kind": "construct",
+            "key": 2,
+            "relevant": false,
+            "url": "http://127.0.0.1:52031/src/assembly/faces.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 2,
+            "time": 591.3999998569489,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 1,
+            "revision": 1,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 1,
+              "revision": 1,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 3,
+            "sourceNodes": [
+              {
+                "wireId": 1,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 2,
+                "id": "n1",
+                "kind": "extrude"
+              },
+              {
+                "wireId": 3,
+                "id": "n2",
+                "kind": "hole"
+              }
+            ]
+          },
+          {
+            "sequence": 3,
+            "time": 1036.1999998092651,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 1,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 4,
+            "time": 1036.1999998092651,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 1,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 5,
+            "time": 1137.7999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 2,
+            "revision": 2,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 2,
+              "revision": 2,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 0,
+            "sourceNodes": []
+          },
+          {
+            "sequence": 6,
+            "time": 1180.0999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 2,
+            "progress": null,
+            "masses": false,
+            "revision": 2,
+            "resultOK": true,
+            "bodyCount": 0
+          },
+          {
+            "sequence": 7,
+            "time": 1180.0999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 2,
+            "progress": null,
+            "masses": false,
+            "revision": 2,
+            "resultOK": true,
+            "bodyCount": 0
+          },
+          {
+            "sequence": 8,
+            "time": 1306.5999999046326,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 3,
+            "revision": 3,
+            "nativeSource": null,
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 4,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 5,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 9,
+            "time": 1309.5999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 3,
+            "progress": null,
+            "masses": false,
+            "revision": 3,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 10,
+            "time": 1309.5999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 3,
+            "progress": null,
+            "masses": false,
+            "revision": 3,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 11,
+            "time": 1718.2999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 4,
+            "revision": 4,
+            "nativeSource": null,
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 6,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 7,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 12,
+            "time": 1719.8999998569489,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 4,
+            "progress": null,
+            "masses": false,
+            "revision": 4,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 13,
+            "time": 1719.8999998569489,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 4,
+            "progress": null,
+            "masses": false,
+            "revision": 4,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 14,
+            "time": 1873.6999998092651,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 5,
+            "revision": 5,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 5,
+              "revision": 5,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 8,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 9,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 15,
+            "time": 1917.5,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 5,
+            "progress": null,
+            "masses": false,
+            "revision": 5,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 16,
+            "time": 1917.5,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 5,
+            "progress": null,
+            "masses": false,
+            "revision": 5,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 17,
+            "time": 2081.0999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 18,
+            "time": 2081.0999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 19,
+            "time": 2626,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 6,
+            "revision": 6,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 10,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 11,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 20,
+            "time": 2627.2999999523163,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 6,
+            "progress": null,
+            "masses": false,
+            "revision": 6,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 21,
+            "time": 2627.2999999523163,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 6,
+            "progress": null,
+            "masses": false,
+            "revision": 6,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 22,
+            "time": 3031.399999856949,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 7,
+            "revision": 7,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 12,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 13,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 23,
+            "time": 3032.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 7,
+            "progress": null,
+            "masses": false,
+            "revision": 7,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 24,
+            "time": 3032.699999809265,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 7,
+            "progress": null,
+            "masses": false,
+            "revision": 7,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 25,
+            "time": 3148.0999999046326,
+            "kind": "arm"
+          },
+          {
+            "sequence": 26,
+            "time": 3190.7999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 8,
+            "revision": 8,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 8,
+              "revision": 8,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 14,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 15,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 27,
+            "time": 3190.7999999523163,
+            "kind": "claimed",
+            "key": 1,
+            "id": 8,
+            "revision": 8,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 8,
+              "revision": 8,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 4
+          },
+          {
+            "sequence": 28,
+            "time": 3234.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 8,
+            "progress": null,
+            "masses": false,
+            "revision": 8,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 29,
+            "time": 3234.7999999523163,
+            "kind": "held",
+            "key": 1,
+            "id": 8,
+            "progress": null,
+            "masses": false,
+            "revision": 8,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 30,
+            "time": 3397.7999999523163,
+            "kind": "native-receive",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 31,
+            "time": 3397.7999999523163,
+            "kind": "held",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 32,
+            "time": 6126.199999809265,
+            "kind": "submit",
+            "key": 1,
+            "type": "part",
+            "id": 9,
+            "revision": 1,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 9,
+              "revision": 1,
+              "slot": "part:read"
+            },
+            "sourceNodeCount": 4,
+            "sourceNodes": []
+          },
+          {
+            "sequence": 33,
+            "time": 6126.299999952316,
+            "kind": "submit",
+            "key": 1,
+            "type": "drawing",
+            "id": 10,
+            "revision": null,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": []
+          },
+          {
+            "sequence": 34,
+            "time": 6151.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 9,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 35,
+            "time": 6151.699999809265,
+            "kind": "held",
+            "key": 1,
+            "id": 9,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 36,
+            "time": 6151.899999856949,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 10,
+            "progress": null,
+            "masses": false,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 37,
+            "time": 6151.899999856949,
+            "kind": "held",
+            "key": 1,
+            "id": 10,
+            "progress": null,
+            "masses": false,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          }
+        ]
+      },
+      "recovery": "{\"fileName\":\"Untitled\",\"savedAt\":1793252700975,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[10,10],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":10,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":10,\"d\":10,\"h\":10,\"x\":0,\"y\":0,\"z\":0}}},{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[20,0],\"max\":[30,10],\"id\":\"n2\"},{\"kind\":\"extrude\",\"sketch\":2,\"height\":10,\"id\":\"n3\",\"made\":{\"command\":\"box\",\"values\":{\"w\":10,\"d\":10,\"h\":10,\"x\":20,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"},\"b3\":{\"node\":3,\"side\":\"solid\"}},\"nextId\":4}}",
+      "history": "short_text",
+      "dirty": true,
+      "name": "Untitled",
+      "feedback": [],
+      "eye": [
+        15,
+        4.978264182561731,
+        74.18725347267105
+      ]
+    },
+    {
+      "label": "Drawing-setting-refused",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              10,
+              10
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              20,
+              0
+            ],
+            "max": [
+              30,
+              10
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 20,
+                "y": 0,
+                "z": 0
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          },
+          "b3": {
+            "node": 3,
+            "side": "solid"
+          }
+        },
+        "nextId": 4
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          },
+          {
+            "key": "b3",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "fresh": false,
+      "trace": {
+        "armed": false,
+        "claimed": {
+          "key": 1,
+          "id": 8,
+          "revision": 8,
+          "nativeSource": {
+            "epoch": 1,
+            "requestId": 8,
+            "revision": 8,
+            "slot": "evaluate"
+          },
+          "sourceNodeCount": 4
+        },
+        "timeUnit": "ms",
+        "events": [
+          {
+            "sequence": 0,
+            "time": 545.0999999046326,
+            "kind": "construct",
+            "key": 1,
+            "relevant": true,
+            "url": "http://127.0.0.1:52031/src/engine/engine.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 1,
+            "time": 545.8999998569489,
+            "kind": "construct",
+            "key": 2,
+            "relevant": false,
+            "url": "http://127.0.0.1:52031/src/assembly/faces.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 2,
+            "time": 591.3999998569489,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 1,
+            "revision": 1,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 1,
+              "revision": 1,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 3,
+            "sourceNodes": [
+              {
+                "wireId": 1,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 2,
+                "id": "n1",
+                "kind": "extrude"
+              },
+              {
+                "wireId": 3,
+                "id": "n2",
+                "kind": "hole"
+              }
+            ]
+          },
+          {
+            "sequence": 3,
+            "time": 1036.1999998092651,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 1,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 4,
+            "time": 1036.1999998092651,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 1,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 5,
+            "time": 1137.7999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 2,
+            "revision": 2,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 2,
+              "revision": 2,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 0,
+            "sourceNodes": []
+          },
+          {
+            "sequence": 6,
+            "time": 1180.0999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 2,
+            "progress": null,
+            "masses": false,
+            "revision": 2,
+            "resultOK": true,
+            "bodyCount": 0
+          },
+          {
+            "sequence": 7,
+            "time": 1180.0999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 2,
+            "progress": null,
+            "masses": false,
+            "revision": 2,
+            "resultOK": true,
+            "bodyCount": 0
+          },
+          {
+            "sequence": 8,
+            "time": 1306.5999999046326,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 3,
+            "revision": 3,
+            "nativeSource": null,
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 4,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 5,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 9,
+            "time": 1309.5999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 3,
+            "progress": null,
+            "masses": false,
+            "revision": 3,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 10,
+            "time": 1309.5999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 3,
+            "progress": null,
+            "masses": false,
+            "revision": 3,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 11,
+            "time": 1718.2999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 4,
+            "revision": 4,
+            "nativeSource": null,
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 6,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 7,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 12,
+            "time": 1719.8999998569489,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 4,
+            "progress": null,
+            "masses": false,
+            "revision": 4,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 13,
+            "time": 1719.8999998569489,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 4,
+            "progress": null,
+            "masses": false,
+            "revision": 4,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 14,
+            "time": 1873.6999998092651,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 5,
+            "revision": 5,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 5,
+              "revision": 5,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 8,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 9,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 15,
+            "time": 1917.5,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 5,
+            "progress": null,
+            "masses": false,
+            "revision": 5,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 16,
+            "time": 1917.5,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 5,
+            "progress": null,
+            "masses": false,
+            "revision": 5,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 17,
+            "time": 2081.0999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 18,
+            "time": 2081.0999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 19,
+            "time": 2626,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 6,
+            "revision": 6,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 10,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 11,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 20,
+            "time": 2627.2999999523163,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 6,
+            "progress": null,
+            "masses": false,
+            "revision": 6,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 21,
+            "time": 2627.2999999523163,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 6,
+            "progress": null,
+            "masses": false,
+            "revision": 6,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 22,
+            "time": 3031.399999856949,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 7,
+            "revision": 7,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 12,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 13,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 23,
+            "time": 3032.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 7,
+            "progress": null,
+            "masses": false,
+            "revision": 7,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 24,
+            "time": 3032.699999809265,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 7,
+            "progress": null,
+            "masses": false,
+            "revision": 7,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 25,
+            "time": 3148.0999999046326,
+            "kind": "arm"
+          },
+          {
+            "sequence": 26,
+            "time": 3190.7999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 8,
+            "revision": 8,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 8,
+              "revision": 8,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 14,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 15,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 27,
+            "time": 3190.7999999523163,
+            "kind": "claimed",
+            "key": 1,
+            "id": 8,
+            "revision": 8,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 8,
+              "revision": 8,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 4
+          },
+          {
+            "sequence": 28,
+            "time": 3234.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 8,
+            "progress": null,
+            "masses": false,
+            "revision": 8,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 29,
+            "time": 3234.7999999523163,
+            "kind": "held",
+            "key": 1,
+            "id": 8,
+            "progress": null,
+            "masses": false,
+            "revision": 8,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 30,
+            "time": 3397.7999999523163,
+            "kind": "native-receive",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 31,
+            "time": 3397.7999999523163,
+            "kind": "held",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 32,
+            "time": 6126.199999809265,
+            "kind": "submit",
+            "key": 1,
+            "type": "part",
+            "id": 9,
+            "revision": 1,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 9,
+              "revision": 1,
+              "slot": "part:read"
+            },
+            "sourceNodeCount": 4,
+            "sourceNodes": []
+          },
+          {
+            "sequence": 33,
+            "time": 6126.299999952316,
+            "kind": "submit",
+            "key": 1,
+            "type": "drawing",
+            "id": 10,
+            "revision": null,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": []
+          },
+          {
+            "sequence": 34,
+            "time": 6151.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 9,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 35,
+            "time": 6151.699999809265,
+            "kind": "held",
+            "key": 1,
+            "id": 9,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 36,
+            "time": 6151.899999856949,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 10,
+            "progress": null,
+            "masses": false,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 37,
+            "time": 6151.899999856949,
+            "kind": "held",
+            "key": 1,
+            "id": 10,
+            "progress": null,
+            "masses": false,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          }
+        ]
+      },
+      "recovery": "{\"fileName\":\"Untitled\",\"savedAt\":1793252700975,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[10,10],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":10,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":10,\"d\":10,\"h\":10,\"x\":0,\"y\":0,\"z\":0}}},{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[20,0],\"max\":[30,10],\"id\":\"n2\"},{\"kind\":\"extrude\",\"sketch\":2,\"height\":10,\"id\":\"n3\",\"made\":{\"command\":\"box\",\"values\":{\"w\":10,\"d\":10,\"h\":10,\"x\":20,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"},\"b3\":{\"node\":3,\"side\":\"solid\"}},\"nextId\":4}}",
+      "history": "short_text",
+      "dirty": true,
+      "name": "Untitled",
+      "feedback": [
+        "infoChange not appliedWait for the computation to finish, or stop it, before changing the document.close"
+      ],
+      "eye": [
+        15,
+        4.978264182561731,
+        74.18725347267105
+      ]
+    },
+    {
+      "label": "Model-history-after-refusals",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              10,
+              10
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              20,
+              0
+            ],
+            "max": [
+              30,
+              10
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 20,
+                "y": 0,
+                "z": 0
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          },
+          "b3": {
+            "node": 3,
+            "side": "solid"
+          }
+        },
+        "nextId": 4
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          },
+          {
+            "key": "b3",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "fresh": false,
+      "trace": {
+        "armed": false,
+        "claimed": {
+          "key": 1,
+          "id": 8,
+          "revision": 8,
+          "nativeSource": {
+            "epoch": 1,
+            "requestId": 8,
+            "revision": 8,
+            "slot": "evaluate"
+          },
+          "sourceNodeCount": 4
+        },
+        "timeUnit": "ms",
+        "events": [
+          {
+            "sequence": 0,
+            "time": 545.0999999046326,
+            "kind": "construct",
+            "key": 1,
+            "relevant": true,
+            "url": "http://127.0.0.1:52031/src/engine/engine.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 1,
+            "time": 545.8999998569489,
+            "kind": "construct",
+            "key": 2,
+            "relevant": false,
+            "url": "http://127.0.0.1:52031/src/assembly/faces.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 2,
+            "time": 591.3999998569489,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 1,
+            "revision": 1,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 1,
+              "revision": 1,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 3,
+            "sourceNodes": [
+              {
+                "wireId": 1,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 2,
+                "id": "n1",
+                "kind": "extrude"
+              },
+              {
+                "wireId": 3,
+                "id": "n2",
+                "kind": "hole"
+              }
+            ]
+          },
+          {
+            "sequence": 3,
+            "time": 1036.1999998092651,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 1,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 4,
+            "time": 1036.1999998092651,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 1,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 5,
+            "time": 1137.7999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 2,
+            "revision": 2,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 2,
+              "revision": 2,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 0,
+            "sourceNodes": []
+          },
+          {
+            "sequence": 6,
+            "time": 1180.0999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 2,
+            "progress": null,
+            "masses": false,
+            "revision": 2,
+            "resultOK": true,
+            "bodyCount": 0
+          },
+          {
+            "sequence": 7,
+            "time": 1180.0999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 2,
+            "progress": null,
+            "masses": false,
+            "revision": 2,
+            "resultOK": true,
+            "bodyCount": 0
+          },
+          {
+            "sequence": 8,
+            "time": 1306.5999999046326,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 3,
+            "revision": 3,
+            "nativeSource": null,
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 4,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 5,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 9,
+            "time": 1309.5999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 3,
+            "progress": null,
+            "masses": false,
+            "revision": 3,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 10,
+            "time": 1309.5999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 3,
+            "progress": null,
+            "masses": false,
+            "revision": 3,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 11,
+            "time": 1718.2999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 4,
+            "revision": 4,
+            "nativeSource": null,
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 6,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 7,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 12,
+            "time": 1719.8999998569489,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 4,
+            "progress": null,
+            "masses": false,
+            "revision": 4,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 13,
+            "time": 1719.8999998569489,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 4,
+            "progress": null,
+            "masses": false,
+            "revision": 4,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 14,
+            "time": 1873.6999998092651,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 5,
+            "revision": 5,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 5,
+              "revision": 5,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 8,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 9,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 15,
+            "time": 1917.5,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 5,
+            "progress": null,
+            "masses": false,
+            "revision": 5,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 16,
+            "time": 1917.5,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 5,
+            "progress": null,
+            "masses": false,
+            "revision": 5,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 17,
+            "time": 2081.0999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 18,
+            "time": 2081.0999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 19,
+            "time": 2626,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 6,
+            "revision": 6,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 10,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 11,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 20,
+            "time": 2627.2999999523163,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 6,
+            "progress": null,
+            "masses": false,
+            "revision": 6,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 21,
+            "time": 2627.2999999523163,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 6,
+            "progress": null,
+            "masses": false,
+            "revision": 6,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 22,
+            "time": 3031.399999856949,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 7,
+            "revision": 7,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 12,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 13,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 23,
+            "time": 3032.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 7,
+            "progress": null,
+            "masses": false,
+            "revision": 7,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 24,
+            "time": 3032.699999809265,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 7,
+            "progress": null,
+            "masses": false,
+            "revision": 7,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 25,
+            "time": 3148.0999999046326,
+            "kind": "arm"
+          },
+          {
+            "sequence": 26,
+            "time": 3190.7999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 8,
+            "revision": 8,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 8,
+              "revision": 8,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 14,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 15,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 27,
+            "time": 3190.7999999523163,
+            "kind": "claimed",
+            "key": 1,
+            "id": 8,
+            "revision": 8,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 8,
+              "revision": 8,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 4
+          },
+          {
+            "sequence": 28,
+            "time": 3234.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 8,
+            "progress": null,
+            "masses": false,
+            "revision": 8,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 29,
+            "time": 3234.7999999523163,
+            "kind": "held",
+            "key": 1,
+            "id": 8,
+            "progress": null,
+            "masses": false,
+            "revision": 8,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 30,
+            "time": 3397.7999999523163,
+            "kind": "native-receive",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 31,
+            "time": 3397.7999999523163,
+            "kind": "held",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 32,
+            "time": 6126.199999809265,
+            "kind": "submit",
+            "key": 1,
+            "type": "part",
+            "id": 9,
+            "revision": 1,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 9,
+              "revision": 1,
+              "slot": "part:read"
+            },
+            "sourceNodeCount": 4,
+            "sourceNodes": []
+          },
+          {
+            "sequence": 33,
+            "time": 6126.299999952316,
+            "kind": "submit",
+            "key": 1,
+            "type": "drawing",
+            "id": 10,
+            "revision": null,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": []
+          },
+          {
+            "sequence": 34,
+            "time": 6151.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 9,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 35,
+            "time": 6151.699999809265,
+            "kind": "held",
+            "key": 1,
+            "id": 9,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 36,
+            "time": 6151.899999856949,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 10,
+            "progress": null,
+            "masses": false,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 37,
+            "time": 6151.899999856949,
+            "kind": "held",
+            "key": 1,
+            "id": 10,
+            "progress": null,
+            "masses": false,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          }
+        ]
+      },
+      "recovery": "{\"fileName\":\"Untitled\",\"savedAt\":1793252700975,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[10,10],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":10,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":10,\"d\":10,\"h\":10,\"x\":0,\"y\":0,\"z\":0}}},{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[20,0],\"max\":[30,10],\"id\":\"n2\"},{\"kind\":\"extrude\",\"sketch\":2,\"height\":10,\"id\":\"n3\",\"made\":{\"command\":\"box\",\"values\":{\"w\":10,\"d\":10,\"h\":10,\"x\":20,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"},\"b3\":{\"node\":3,\"side\":\"solid\"}},\"nextId\":4}}",
+      "history": "short_text",
+      "dirty": true,
+      "name": "Untitled",
+      "feedback": [
+        "infoChange not appliedWait for the computation to finish, or stop it, before changing the document.close"
+      ],
+      "eye": [
+        15,
+        4.978264182561731,
+        74.18725347267105
+      ]
+    },
+    {
+      "label": "before-Stop",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              10,
+              10
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              20,
+              0
+            ],
+            "max": [
+              30,
+              10
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 20,
+                "y": 0,
+                "z": 0
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          },
+          "b3": {
+            "node": 3,
+            "side": "solid"
+          }
+        },
+        "nextId": 4
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          },
+          {
+            "key": "b3",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "fresh": false,
+      "trace": {
+        "armed": false,
+        "claimed": {
+          "key": 1,
+          "id": 8,
+          "revision": 8,
+          "nativeSource": {
+            "epoch": 1,
+            "requestId": 8,
+            "revision": 8,
+            "slot": "evaluate"
+          },
+          "sourceNodeCount": 4
+        },
+        "timeUnit": "ms",
+        "events": [
+          {
+            "sequence": 0,
+            "time": 545.0999999046326,
+            "kind": "construct",
+            "key": 1,
+            "relevant": true,
+            "url": "http://127.0.0.1:52031/src/engine/engine.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 1,
+            "time": 545.8999998569489,
+            "kind": "construct",
+            "key": 2,
+            "relevant": false,
+            "url": "http://127.0.0.1:52031/src/assembly/faces.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 2,
+            "time": 591.3999998569489,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 1,
+            "revision": 1,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 1,
+              "revision": 1,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 3,
+            "sourceNodes": [
+              {
+                "wireId": 1,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 2,
+                "id": "n1",
+                "kind": "extrude"
+              },
+              {
+                "wireId": 3,
+                "id": "n2",
+                "kind": "hole"
+              }
+            ]
+          },
+          {
+            "sequence": 3,
+            "time": 1036.1999998092651,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 1,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 4,
+            "time": 1036.1999998092651,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 1,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 5,
+            "time": 1137.7999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 2,
+            "revision": 2,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 2,
+              "revision": 2,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 0,
+            "sourceNodes": []
+          },
+          {
+            "sequence": 6,
+            "time": 1180.0999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 2,
+            "progress": null,
+            "masses": false,
+            "revision": 2,
+            "resultOK": true,
+            "bodyCount": 0
+          },
+          {
+            "sequence": 7,
+            "time": 1180.0999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 2,
+            "progress": null,
+            "masses": false,
+            "revision": 2,
+            "resultOK": true,
+            "bodyCount": 0
+          },
+          {
+            "sequence": 8,
+            "time": 1306.5999999046326,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 3,
+            "revision": 3,
+            "nativeSource": null,
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 4,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 5,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 9,
+            "time": 1309.5999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 3,
+            "progress": null,
+            "masses": false,
+            "revision": 3,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 10,
+            "time": 1309.5999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 3,
+            "progress": null,
+            "masses": false,
+            "revision": 3,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 11,
+            "time": 1718.2999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 4,
+            "revision": 4,
+            "nativeSource": null,
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 6,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 7,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 12,
+            "time": 1719.8999998569489,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 4,
+            "progress": null,
+            "masses": false,
+            "revision": 4,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 13,
+            "time": 1719.8999998569489,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 4,
+            "progress": null,
+            "masses": false,
+            "revision": 4,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 14,
+            "time": 1873.6999998092651,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 5,
+            "revision": 5,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 5,
+              "revision": 5,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 8,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 9,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 15,
+            "time": 1917.5,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 5,
+            "progress": null,
+            "masses": false,
+            "revision": 5,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 16,
+            "time": 1917.5,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 5,
+            "progress": null,
+            "masses": false,
+            "revision": 5,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 17,
+            "time": 2081.0999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 18,
+            "time": 2081.0999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 19,
+            "time": 2626,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 6,
+            "revision": 6,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 10,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 11,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 20,
+            "time": 2627.2999999523163,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 6,
+            "progress": null,
+            "masses": false,
+            "revision": 6,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 21,
+            "time": 2627.2999999523163,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 6,
+            "progress": null,
+            "masses": false,
+            "revision": 6,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 22,
+            "time": 3031.399999856949,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 7,
+            "revision": 7,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 12,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 13,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 23,
+            "time": 3032.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 7,
+            "progress": null,
+            "masses": false,
+            "revision": 7,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 24,
+            "time": 3032.699999809265,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 7,
+            "progress": null,
+            "masses": false,
+            "revision": 7,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 25,
+            "time": 3148.0999999046326,
+            "kind": "arm"
+          },
+          {
+            "sequence": 26,
+            "time": 3190.7999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 8,
+            "revision": 8,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 8,
+              "revision": 8,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 14,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 15,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 27,
+            "time": 3190.7999999523163,
+            "kind": "claimed",
+            "key": 1,
+            "id": 8,
+            "revision": 8,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 8,
+              "revision": 8,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 4
+          },
+          {
+            "sequence": 28,
+            "time": 3234.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 8,
+            "progress": null,
+            "masses": false,
+            "revision": 8,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 29,
+            "time": 3234.7999999523163,
+            "kind": "held",
+            "key": 1,
+            "id": 8,
+            "progress": null,
+            "masses": false,
+            "revision": 8,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 30,
+            "time": 3397.7999999523163,
+            "kind": "native-receive",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 31,
+            "time": 3397.7999999523163,
+            "kind": "held",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 32,
+            "time": 6126.199999809265,
+            "kind": "submit",
+            "key": 1,
+            "type": "part",
+            "id": 9,
+            "revision": 1,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 9,
+              "revision": 1,
+              "slot": "part:read"
+            },
+            "sourceNodeCount": 4,
+            "sourceNodes": []
+          },
+          {
+            "sequence": 33,
+            "time": 6126.299999952316,
+            "kind": "submit",
+            "key": 1,
+            "type": "drawing",
+            "id": 10,
+            "revision": null,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": []
+          },
+          {
+            "sequence": 34,
+            "time": 6151.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 9,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 35,
+            "time": 6151.699999809265,
+            "kind": "held",
+            "key": 1,
+            "id": 9,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 36,
+            "time": 6151.899999856949,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 10,
+            "progress": null,
+            "masses": false,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 37,
+            "time": 6151.899999856949,
+            "kind": "held",
+            "key": 1,
+            "id": 10,
+            "progress": null,
+            "masses": false,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          }
+        ]
+      },
+      "recovery": "{\"fileName\":\"Untitled\",\"savedAt\":1793252700975,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[10,10],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":10,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":10,\"d\":10,\"h\":10,\"x\":0,\"y\":0,\"z\":0}}},{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[20,0],\"max\":[30,10],\"id\":\"n2\"},{\"kind\":\"extrude\",\"sketch\":2,\"height\":10,\"id\":\"n3\",\"made\":{\"command\":\"box\",\"values\":{\"w\":10,\"d\":10,\"h\":10,\"x\":20,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"},\"b3\":{\"node\":3,\"side\":\"solid\"}},\"nextId\":4}}",
+      "dirty": true,
+      "name": "Untitled",
+      "feedback": [
+        "infoChange not appliedWait for the computation to finish, or stop it, before changing the document.close"
+      ],
+      "eye": [
+        15,
+        4.978264182561731,
+        74.18725347267105
+      ]
+    },
+    {
+      "label": "Stop-owned-D1-restores-D0",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              10,
+              10
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 10,
+                "d": 10,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "nextId": 2
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": 1000.0000000000001,
+            "centroid": [
+              4.999999999999999,
+              4.999999999999999,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "fresh": true,
+      "trace": {
+        "armed": false,
+        "claimed": {
+          "key": 1,
+          "id": 8,
+          "revision": 8,
+          "nativeSource": {
+            "epoch": 1,
+            "requestId": 8,
+            "revision": 8,
+            "slot": "evaluate"
+          },
+          "sourceNodeCount": 4
+        },
+        "timeUnit": "ms",
+        "events": [
+          {
+            "sequence": 0,
+            "time": 545.0999999046326,
+            "kind": "construct",
+            "key": 1,
+            "relevant": true,
+            "url": "http://127.0.0.1:52031/src/engine/engine.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 1,
+            "time": 545.8999998569489,
+            "kind": "construct",
+            "key": 2,
+            "relevant": false,
+            "url": "http://127.0.0.1:52031/src/assembly/faces.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 2,
+            "time": 591.3999998569489,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 1,
+            "revision": 1,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 1,
+              "revision": 1,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 3,
+            "sourceNodes": [
+              {
+                "wireId": 1,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 2,
+                "id": "n1",
+                "kind": "extrude"
+              },
+              {
+                "wireId": 3,
+                "id": "n2",
+                "kind": "hole"
+              }
+            ]
+          },
+          {
+            "sequence": 3,
+            "time": 1036.1999998092651,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 1,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 4,
+            "time": 1036.1999998092651,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 1,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 5,
+            "time": 1137.7999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 2,
+            "revision": 2,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 2,
+              "revision": 2,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 0,
+            "sourceNodes": []
+          },
+          {
+            "sequence": 6,
+            "time": 1180.0999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 2,
+            "progress": null,
+            "masses": false,
+            "revision": 2,
+            "resultOK": true,
+            "bodyCount": 0
+          },
+          {
+            "sequence": 7,
+            "time": 1180.0999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 2,
+            "progress": null,
+            "masses": false,
+            "revision": 2,
+            "resultOK": true,
+            "bodyCount": 0
+          },
+          {
+            "sequence": 8,
+            "time": 1306.5999999046326,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 3,
+            "revision": 3,
+            "nativeSource": null,
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 4,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 5,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 9,
+            "time": 1309.5999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 3,
+            "progress": null,
+            "masses": false,
+            "revision": 3,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 10,
+            "time": 1309.5999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 3,
+            "progress": null,
+            "masses": false,
+            "revision": 3,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 11,
+            "time": 1718.2999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 4,
+            "revision": 4,
+            "nativeSource": null,
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 6,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 7,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 12,
+            "time": 1719.8999998569489,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 4,
+            "progress": null,
+            "masses": false,
+            "revision": 4,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 13,
+            "time": 1719.8999998569489,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 4,
+            "progress": null,
+            "masses": false,
+            "revision": 4,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 14,
+            "time": 1873.6999998092651,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 5,
+            "revision": 5,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 5,
+              "revision": 5,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 8,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 9,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 15,
+            "time": 1917.5,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 5,
+            "progress": null,
+            "masses": false,
+            "revision": 5,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 16,
+            "time": 1917.5,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 5,
+            "progress": null,
+            "masses": false,
+            "revision": 5,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 17,
+            "time": 2081.0999999046326,
+            "kind": "native-receive",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 18,
+            "time": 2081.0999999046326,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 19,
+            "time": 2626,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 6,
+            "revision": 6,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 10,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 11,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 20,
+            "time": 2627.2999999523163,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 6,
+            "progress": null,
+            "masses": false,
+            "revision": 6,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 21,
+            "time": 2627.2999999523163,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 6,
+            "progress": null,
+            "masses": false,
+            "revision": 6,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 22,
+            "time": 3031.399999856949,
+            "kind": "submit",
+            "key": 1,
+            "type": "preview",
+            "id": 7,
+            "revision": 7,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 12,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 13,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 23,
+            "time": 3032.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 7,
+            "progress": null,
+            "masses": false,
+            "revision": 7,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 24,
+            "time": 3032.699999809265,
+            "kind": "delivery-to-client",
+            "key": 1,
+            "id": 7,
+            "progress": null,
+            "masses": false,
+            "revision": 7,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 25,
+            "time": 3148.0999999046326,
+            "kind": "arm"
+          },
+          {
+            "sequence": 26,
+            "time": 3190.7999999523163,
+            "kind": "submit",
+            "key": 1,
+            "type": "evaluate",
+            "id": 8,
+            "revision": 8,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 8,
+              "revision": 8,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 4,
+            "sourceNodes": [
+              {
+                "wireId": 14,
+                "id": "n2",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 15,
+                "id": "n3",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 27,
+            "time": 3190.7999999523163,
+            "kind": "claimed",
+            "key": 1,
+            "id": 8,
+            "revision": 8,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 8,
+              "revision": 8,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 4
+          },
+          {
+            "sequence": 28,
+            "time": 3234.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 8,
+            "progress": null,
+            "masses": false,
+            "revision": 8,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 29,
+            "time": 3234.7999999523163,
+            "kind": "held",
+            "key": 1,
+            "id": 8,
+            "progress": null,
+            "masses": false,
+            "revision": 8,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 30,
+            "time": 3397.7999999523163,
+            "kind": "native-receive",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 31,
+            "time": 3397.7999999523163,
+            "kind": "held",
+            "key": 1,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 32,
+            "time": 6126.199999809265,
+            "kind": "submit",
+            "key": 1,
+            "type": "part",
+            "id": 9,
+            "revision": 1,
+            "nativeSource": {
+              "epoch": 1,
+              "requestId": 9,
+              "revision": 1,
+              "slot": "part:read"
+            },
+            "sourceNodeCount": 4,
+            "sourceNodes": []
+          },
+          {
+            "sequence": 33,
+            "time": 6126.299999952316,
+            "kind": "submit",
+            "key": 1,
+            "type": "drawing",
+            "id": 10,
+            "revision": null,
+            "nativeSource": null,
+            "sourceNodeCount": 4,
+            "sourceNodes": []
+          },
+          {
+            "sequence": 34,
+            "time": 6151.699999809265,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 9,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 35,
+            "time": 6151.699999809265,
+            "kind": "held",
+            "key": 1,
+            "id": 9,
+            "progress": null,
+            "masses": false,
+            "revision": 1,
+            "resultOK": true,
+            "bodyCount": 2
+          },
+          {
+            "sequence": 36,
+            "time": 6151.899999856949,
+            "kind": "native-receive",
+            "key": 1,
+            "id": 10,
+            "progress": null,
+            "masses": false,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 37,
+            "time": 6151.899999856949,
+            "kind": "held",
+            "key": 1,
+            "id": 10,
+            "progress": null,
+            "masses": false,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 38,
+            "time": 6480.199999809265,
+            "kind": "terminate",
+            "key": 1,
+            "discardedHeld": 4
+          },
+          {
+            "sequence": 39,
+            "time": 6480.299999952316,
+            "kind": "construct",
+            "key": 3,
+            "relevant": true,
+            "url": "http://127.0.0.1:52031/src/engine/engine.worker.ts?worker_file&type=module"
+          },
+          {
+            "sequence": 40,
+            "time": 6503.599999904633,
+            "kind": "submit",
+            "key": 3,
+            "type": "evaluate",
+            "id": 11,
+            "revision": 9,
+            "nativeSource": {
+              "epoch": 2,
+              "requestId": 11,
+              "revision": 9,
+              "slot": "evaluate"
+            },
+            "sourceNodeCount": 2,
+            "sourceNodes": [
+              {
+                "wireId": 1,
+                "id": "n0",
+                "kind": "sketch"
+              },
+              {
+                "wireId": 2,
+                "id": "n1",
+                "kind": "extrude"
+              }
+            ]
+          },
+          {
+            "sequence": 41,
+            "time": 6868.699999809265,
+            "kind": "native-receive",
+            "key": 3,
+            "id": 11,
+            "progress": null,
+            "masses": false,
+            "revision": 9,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 42,
+            "time": 6868.699999809265,
+            "kind": "delivery-to-client",
+            "key": 3,
+            "id": 11,
+            "progress": null,
+            "masses": false,
+            "revision": 9,
+            "resultOK": true,
+            "bodyCount": 1
+          },
+          {
+            "sequence": 43,
+            "time": 7073.699999809265,
+            "kind": "native-receive",
+            "key": 3,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          },
+          {
+            "sequence": 44,
+            "time": 7073.699999809265,
+            "kind": "delivery-to-client",
+            "key": 3,
+            "id": null,
+            "progress": null,
+            "masses": true,
+            "revision": null,
+            "resultOK": null,
+            "bodyCount": null
+          }
+        ]
+      },
+      "recovery": "{\"fileName\":\"Untitled\",\"savedAt\":1793252704287,\"doc\":{\"format\":\"barocss-cad-model\",\"schema\":3,\"units\":\"mm\",\"parameters\":{},\"nodes\":[{\"kind\":\"sketch\",\"profile\":\"rectangle\",\"min\":[0,0],\"max\":[10,10],\"id\":\"n0\"},{\"kind\":\"extrude\",\"sketch\":0,\"height\":10,\"id\":\"n1\",\"made\":{\"command\":\"box\",\"values\":{\"w\":10,\"d\":10,\"h\":10,\"x\":0,\"y\":0,\"z\":0}}}],\"outputs\":{\"b1\":{\"node\":1,\"side\":\"solid\"}},\"nextId\":2}}",
+      "dirty": true,
+      "name": "Untitled",
+      "feedback": [
+        "infoStoppedThe computation was stopped and its change taken back.close"
+      ],
+      "eye": [
+        15,
+        4.978264182561731,
+        74.18725347267105
+      ]
+    }
+  ],
+  "observations": {
+    "drawing": {
+      "status": "PASS",
+      "refusal": "info\nChange not applied\nWait for the computation to finish, or stop it, before changing the document.\nclose"
+    }
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "runtime": "Node v22.19.0",
+  "baseline": {
+    "counts": [
+      {
+        "phase": "initial",
+        "retained": 1,
+        "meshes": 1
+      },
+      {
+        "phase": "32-camera-replacements",
+        "retained": 33,
+        "meshes": 1
+      },
+      {
+        "phase": "empty",
+        "retained": 33,
+        "meshes": 0
+      },
+      {
+        "phase": "disposed",
+        "retained": 0,
+        "meshes": 0
+      }
+    ],
+    "preserved": true,
+    "made": 33,
+    "explicitDisposals": 0,
+    "failedAdd": {
+      "code": "COLOR_INVALID",
+      "message": "[COLOR_INVALID] Not a hex colour: invalid-color",
+      "retained": 1,
+      "meshes": 0
+    }
+  },
+  "after": {
+    "counts": [
+      {
+        "phase": "initial",
+        "retained": 1,
+        "meshes": 1
+      },
+      {
+        "phase": "32-camera-replacements",
+        "retained": 1,
+        "meshes": 1
+      },
+      {
+        "phase": "empty",
+        "retained": 0,
+        "meshes": 0
+      },
+      {
+        "phase": "disposed",
+        "retained": 0,
+        "meshes": 0
+      }
+    ],
+    "preserved": true,
+    "made": 33,
+    "explicitDisposals": 33,
+    "failedAdd": {
+      "code": "COLOR_INVALID",
+      "message": "[COLOR_INVALID] Not a hex colour: invalid-color",
+      "retained": 0,
+      "meshes": 0
+    }
+  },
+  "newTests": {
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0
+  },
+  "relatedTests": {
+    "passed": 40,
+    "failed": 0,
+    "skipped": 0,
+    "duration": 2574.429708,
+    "timeUnit": "ms"
+  },
+  "strengthenedTextureTest": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0
+  },
+  "actualWebGPU": "NOT_RUN_BY_THIS_LANE",
+  "driverAllocationMeasurement": "NOT_RUN",
+  "scope": "Production scene methods/classes with recording buffers; no GPU device"
+}

@@ -1,0 +1,56 @@
+shared {
+  exactOperations: 181746,
+  nativeOperations: 160132,
+  formalOperations: 21551,
+  outerDirectOperations: 63,
+  nativeWork: 325839,
+  formalWork: 39199,
+  outerWork: 9183,
+  work: 374221,
+  maximumBits: 1187
+} formal {
+  sourceOperations: 0,
+  rationalOperations: 18465,
+  directOperations: 3086,
+  totalOperations: 21551,
+  gcdSteps: 13489,
+  maximumBits: 1024,
+  work: 39199
+}
+walls {
+  exactOperations: 186945,
+  referenceOperations: 181746,
+  rationalOperations: 3399,
+  directOperations: 1800,
+  work: 389373,
+  localWork: 15152,
+  maximumBits: 1187,
+  localGcdSteps: 2752
+}
+caps {
+  exactOperations: 191655,
+  priorOperations: 186945,
+  rationalOperations: 2601,
+  directOperations: 2109,
+  work: 398980,
+  localWork: 9607,
+  maximumBits: 1187,
+  localGcdSteps: 1903
+}
+closure {
+  exactOperations: 197502,
+  priorOperations: 186945,
+  rationalOperations: 4393,
+  directOperations: 6164,
+  work: 413880,
+  localWork: 24507,
+  maximumBits: 1187,
+  localGcdSteps: 3345
+}
+refused Cylindrical wrap closed reference: the complete construction and closure/mass proof budget was exceeded local q {
+  operations: 6303,
+  gcdSteps: 5097,
+  floatSearchSteps: 0,
+  floatConversions: 0,
+  maximumObservedBits: 439
+} direct 6763 work 30866

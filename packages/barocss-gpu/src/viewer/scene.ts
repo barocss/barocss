@@ -317,10 +317,11 @@ export class Mesh {
   setInstances(input: InstancesInput | null): void {
     if (input && this.geometry.topology !== 'triangles') throw new ViewerError('INSTANCES_INVALID', 'Only triangle meshes can be instanced');
     const next = input ? { ...packInstances(input), buffer: null, device: null } : null;
+    const changed = this.instances !== null || next !== null;
     this.instances?.buffer?.destroy();
     this.instances = next;
     this.worldBox = undefined;
-    this.owner.sceneMoved();
+    this.owner.sceneMoved(changed ? this : undefined);
     this.owner.requestRender();
   }
   get instanceCount(): number { return this.instances?.count ?? 1; }

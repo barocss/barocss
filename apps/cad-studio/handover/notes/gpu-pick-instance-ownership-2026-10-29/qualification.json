@@ -1,0 +1,110 @@
+{
+  "workId": "D324",
+  "status": "SCOPED_PASS",
+  "baseline": "a5d1acfa7e6834951819eaaeeaf6da314cae9b8f",
+  "issue": {
+    "number": 2237,
+    "freshState": "CLOSED already for transfer",
+    "comments": 0,
+    "source": "issue2237-source.json",
+    "mutated": false
+  },
+  "runtime": "Node22.19.0",
+  "scope": "Pending GPU pick rejects mesh membership or accepted active-instance changes before reconstructing current CPU metadata; camera/clip/canvas/base guards and serial public pick remain",
+  "baselineCPU": {
+    "pass": 1,
+    "fail": 1,
+    "skip": 0,
+    "exit": 1,
+    "error": "Cannot read properties of undefined (reading '0')",
+    "control": "Real pickNow/Camera/Geometry/Mesh plus delayed transport mock; unchanged hit instance1/triangle0/face71/point retained",
+    "cleanup": "Both mapped readbacks unmap once",
+    "log": "unit/baseline.log",
+    "notNative": true
+  },
+  "implementation": {
+    "privateRevision": "Advance after add/remove/nonempty clear and active accepted setInstances replacement; reject changed revision after existing successful unmap",
+    "noChange": "Invalid setter/detached mesh/absent remove/already-null do not advance; valid equal replacement is accepted mutation; instances ABA rejects",
+    "arithmetic": "Existing readback data and CPU reconstruction arithmetic unchanged",
+    "publicDeclaration": "Existing @internal sceneMoved gains optional Mesh argument;3 observed declarations at gpu root/source/viewer intentionally reviewed and expected refreshed;0 added exposures/members",
+    "apiReview": "api-review/reviewed-delta.json, adoption.json; old expected check FAIL/IV001 retained, collection/generation command exit0; final CLI check passes via docs",
+    "dependenciesSchema": "No new runtime dependency/WASM/schema/lockfile"
+  },
+  "normalCPU": {
+    "files": 47,
+    "testPoints": 357,
+    "topLevel": 343,
+    "nested": 14,
+    "pass": 357,
+    "fail": 0,
+    "skip": 0,
+    "newAffectedIncluded": 15,
+    "existing": 342,
+    "newFileRuns": 1,
+    "exit": 0,
+    "duration": 7598.5,
+    "timeUnit": "ms",
+    "registration": "Explicitly added new affected file to normal package test; actual node --run test used, remote CI NOT_RUN",
+    "report": "unit/report.md"
+  },
+  "typesEmit": "GPU tsc build0; same final source/dist bindings reused for native",
+  "lint": "Runtime/CPU test0; native harness0; syntax0 reused",
+  "native": {
+    "selectedTests": 1,
+    "groups": 6,
+    "pass": 1,
+    "fail": 0,
+    "skip": 0,
+    "groupPass": 6,
+    "browser": "Chrome156.0.8078.48",
+    "adapter": "Apple metal-3",
+    "DPR": 1,
+    "control": "Each actual red-pixel scene and public GPU pick instance1/triangle0/face71; held unchanged keeps metadata",
+    "mutations": [
+      "matrix replacement",
+      "reorder",
+      "shrink",
+      "instances null",
+      "mesh removal"
+    ],
+    "stale": "All5 return null without throw after original native map completion return is held",
+    "fresh": "Next public pick has current0/1/null instance or replacement mesh, face71/triangle0, finite point/depth",
+    "cleanup": "Selected buffer unmap1 after held pick then2 after fresh reuse;6 owned viewers disposed; owned context/browser/server closed; runner49501 exited/gate returned",
+    "rootVisual": "Actual native-positive and fresh-after-removal PNG2 directly viewed",
+    "boundary": "Only mapAsync fulfilled Promise return held; original receiver/args/results/readback bytes/depth/id/submit/draw unchanged. Not a fresh-point numerical accuracy/driver memory proof.",
+    "beforeFixNative": "NOT_RUN",
+    "receipt": "consumers/validation.json"
+  },
+  "docs": {
+    "status": "PASS",
+    "pages": 68,
+    "shots": 55,
+    "shotKB": 4811,
+    "labels": 860,
+    "generatedAgentTools": "PASS via check-docs child",
+    "generatedRefusals": "PASS via check-docs child",
+    "apiInventory": "PASS six-rule scoped check after exactly3 reviewed existing internal optional-argument declarations",
+    "log": "root-docs-check.txt"
+  },
+  "notRun": [
+    "native browser before-fix baseline",
+    "other browsers/adapters/DPR",
+    "native ABA/clear/invalid-setter/device-loss/recovery full matrix",
+    "whole Model/Kernel/Studio/Viewer suites and full browser or remote CI",
+    "all scene/material/visibility/geometry mutation ownership",
+    "driverbytes/VRAM/OOM/performance benchmark or speedup",
+    "complete imported source graph audit beyond4 critical source/dist bindings"
+  ],
+  "externalReview": "D322 exact27500 and D321 exacta386 source/author-receipt reviews retained, independent runtime NOT_RUN. D321 missing Render-history keys are excluded from actual preservation PASS and added to existing follow-up evidence condition; no new product regression or task switch.",
+  "sourceHashes": {
+    "packages/barocss-gpu/src/viewer/viewer.ts": "1c1df2143fe714569fe40b7aa27e6772faca9f44c9c50a9cca56194467b052a8",
+    "packages/barocss-gpu/src/viewer/scene.ts": "f7e17275a2efb6c8b9d5bf73c89e61902f94a9f01541476ce07c79baf59954d5",
+    "packages/barocss-gpu/package.json": "bdbb24facbd051018037667576248c75b7a3c0bd8713d22c2375f14794f21fb1",
+    "packages/barocss-gpu/tests/pick-instance-readback.test.mjs": "471f03427c52724fca953434e2db52bbb32267a16b658222c0f40ebc217fed5b",
+    "packages/barocss-gpu/tests/pick-instance-readback-browser.test.mjs": "5939c7d77118ecceaacfa99c76bdd9fd7b1a63eeec65c447bc880d41490d8213",
+    "apps/library-docs/scripts/api-inventory.expected.json": "59ff7b47a074cda811aff9055a7cd301a5a79e76bb44acc3bf3ed6b082c2d356"
+  },
+  "hashMeaning": "Source/dist/artifact provenance, not source checksum acceptance tests",
+  "nextPriority": "D325/A08/#2239 actual display/public CPU pick clipping mismatch under05/V1/V2; then remaining correctness gates and07\u219208\u219209",
+  "publication": "Normal per-feature push authorized; no PR/release"
+}

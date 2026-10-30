@@ -1,0 +1,108 @@
+{
+  "added": [
+    {
+      "key": [
+        "@barocss/cad",
+        "./api",
+        "CurveFeaturePatternPathPlan"
+      ],
+      "after": {
+        "package": "@barocss/cad",
+        "subpath": "./api",
+        "exportName": "CurveFeaturePatternPathPlan",
+        "space": "type",
+        "observedRole": "facade-exposure; immutability NOT_PROVEN",
+        "variants": [
+          {
+            "conditions": [
+              [
+                "import"
+              ],
+              [
+                "types"
+              ]
+            ],
+            "target": {
+              "package": "@barocss/cad",
+              "file": "src/api/curve-feature-pattern-plan.ts",
+              "name": "CurveFeaturePatternPathPlan",
+              "kind": "type"
+            },
+            "shape": {
+              "type": "CurveCutPathPlan",
+              "declarationSignatures": [
+                {
+                  "kind": "TypeAliasDeclaration",
+                  "definition": "CurveCutPathPlan"
+                }
+              ],
+              "members": [
+                {
+                  "name": "length",
+                  "kind": "property",
+                  "optional": false,
+                  "readonly": true,
+                  "type": "{ readonly lower: number; readonly upper: number; readonly estimate: number; }"
+                },
+                {
+                  "name": "offsets",
+                  "kind": "property",
+                  "optional": false,
+                  "readonly": true,
+                  "type": "Point[]"
+                }
+              ],
+              "indexSignatures": []
+            }
+          }
+        ]
+      }
+    },
+    {
+      "key": [
+        "@barocss/cad",
+        "./api",
+        "planCurveFeaturePatternPath"
+      ],
+      "after": {
+        "package": "@barocss/cad",
+        "subpath": "./api",
+        "exportName": "planCurveFeaturePatternPath",
+        "space": "value",
+        "observedRole": "facade-exposure; immutability NOT_PROVEN",
+        "variants": [
+          {
+            "conditions": [
+              [
+                "import"
+              ],
+              [
+                "types"
+              ]
+            ],
+            "target": {
+              "package": "@barocss/cad",
+              "file": "src/api/curve-feature-pattern-plan.ts",
+              "name": "planCurveFeaturePatternPath",
+              "kind": "function"
+            },
+            "shape": {
+              "type": "(raw: RawNurbsPath, spacing: number, count: number) => CurveCutPathPlan",
+              "declarationSignatures": [
+                {
+                  "kind": "FunctionDeclaration"
+                }
+              ],
+              "callSignatures": [
+                "(raw: RawNurbsPath, spacing: number, count: number) => CurveCutPathPlan"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "removed": [],
+  "changed": [],
+  "metadata": {}
+}

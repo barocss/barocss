@@ -6,6 +6,7 @@ import { massOf, meshOf, outputsOf, selectionOf, stepOf, stlOf } from './core.js
 import { Part, type PartBackend } from './part.js';
 import type { FeatureSpec } from './spec.js';
 import { refuse } from './refusal.js';
+import type { RawNurbsPath } from '../features/curve-cut-pattern.js';
 
 const emptyDocument = (): CadPartDocument => ({ format: 'barocss-cad-part', version: 1, units: 'mm', parameters: {}, features: [] });
 
@@ -44,6 +45,10 @@ function featuresOf(doc: CadPartDocument, spec: FeatureSpec, body: string | null
       const sketch = nextId(doc, 'sketch'), { h, draft } = spec.values;
       return [{ id: sketch, kind: 'sketch', ...spec.sketch } as CadPartFeature, { id: nextId(doc, 'extrude'), kind: 'extrude', sketch, height: h, ...(draft ? { draft } : {}) }];
     }
+    case 'sew':
+      return [{ id: nextId(doc, 'sew'), kind: 'sew', surfaces: spec.surfaces, ...(spec.values.tol ? { tolerance: spec.values.tol } : {}) }];
+    case 'thicken':
+      return [{ id: nextId(doc, 'thicken'), kind: 'thicken', surface: spec.surface, thickness: spec.values.t, ...(spec.values.side ? { side: spec.values.side } : {}) }];
     case 'revolve': {
       const sketch = nextId(doc, 'sketch'), { axis, deg } = spec.values;
       return [{ id: sketch, kind: 'sketch', ...spec.sketch } as CadPartFeature, { id: nextId(doc, 'revolve'), kind: 'revolve', sketch, axis: { origin: [0, 0], direction: axis }, angle: deg }];
@@ -68,6 +73,10 @@ function featuresOf(doc: CadPartDocument, spec: FeatureSpec, body: string | null
     }
     case 'chamfer':
       return [{ id: nextId(doc, 'chamfer'), kind: 'chamfer', target: target(), edges: [...spec.edges], distance: spec.values.distance }];
+    case 'cylindrical-wrap': {
+      const { u0, u1, v0, v1, height } = spec.values;
+      return [{ id: nextId(doc, 'cylindrical-wrap'), kind: 'cylindrical-wrap', target: target(), faces: [spec.face], rectangle: { u: [u0, u1], v: [v0, v1] }, height }];
+    }
     case 'shell':
       return [{ id: nextId(doc, 'shell'), kind: 'shell', target: target(), thickness: spec.values.t, ...(spec.faces.length ? { open: [...spec.faces] } : {}) }];
     case 'union': case 'difference': case 'intersect':
@@ -79,6 +88,19 @@ function featuresOf(doc: CadPartDocument, spec: FeatureSpec, body: string | null
     case 'linear-feature-pattern': {
       const { axis, spacing, count } = spec.values;
       return [{ id: nextId(doc, 'linear-feature-pattern'), kind: 'linear-feature-pattern', target: target(), axis, spacing, count }];
+    }
+    case 'rectangular-feature-pattern': {
+      const { axis, spacing, count, axis2, spacing2, count2 } = spec.values;
+      return [{ id: nextId(doc, 'rectangular-feature-pattern'), kind: 'rectangular-feature-pattern', target: target(), axis, spacing, count, axis2, spacing2, count2 }];
+    }
+    case 'fill-feature-pattern': {
+      const { spacing, count, spacing2, count2 } = spec.values;
+      return [{ id: nextId(doc, 'fill-feature-pattern'), kind: 'fill-feature-pattern', target: target(), region: spec.region, anchor: spec.anchor, spacing, count, spacing2, count2 }];
+    }
+    case 'curve-feature-pattern': {
+      const { spacing, count } = spec.values;
+      // The evaluator gives a typed CAPABILITY refusal for a direct reference: the kernel has no direct sources.
+      return [{ id: nextId(doc, 'curve-feature-pattern'), kind: 'curve-feature-pattern', target: target(), path: spec.path as RawNurbsPath, spacing, count }];
     }
     case 'circular-pattern': {
       const { axis, count, span, px, py } = spec.values;
@@ -125,8 +147,13 @@ const BINDS: Record<string, Record<string, readonly [feature: number, path: read
   fillet: { radius: [0, ['radius']] },
   chamfer: { distance: [0, ['distance']] },
   shell: { t: [0, ['thickness']] },
+  thicken: { t: [0, ['thickness']] },
+  'cylindrical-wrap': { height: [0, ['height']] },
   'linear-pattern': { spacing: [0, ['spacing']] },
   'linear-feature-pattern': { spacing: [0, ['spacing']] },
+  'rectangular-feature-pattern': { spacing: [0, ['spacing']], spacing2: [0, ['spacing2']] },
+  'fill-feature-pattern': { spacing: [0, ['spacing']], spacing2: [0, ['spacing2']] },
+  'curve-feature-pattern': { spacing: [0, ['spacing']] },
   split: { at: [0, ['at']] },
 };
 

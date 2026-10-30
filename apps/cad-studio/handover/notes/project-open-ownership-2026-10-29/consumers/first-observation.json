@@ -1,0 +1,21 @@
+{
+  "classification": "SETUP_OR_SCHEDULE_FAILURE",
+  "productReproduction": "NOT_REACHED",
+  "exit": 1,
+  "syntax": 0,
+  "lint": 0,
+  "firstFailure": {
+    "phase": "author genuine saved A and B project versions",
+    "message": "The expression evaluated to a falsy value:\n\n  assert.ok(Math.abs(control.body.bodies[0].volume - 2184) < 1e-8)\n",
+    "stack": "AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(Math.abs(control.body.bodies[0].volume - 2184) < 1e-8)\n\n    at TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/project-open-ownership-browser.mjs:98:93)\n    at async Test.run (node:internal/test_runner/test:1054:7)\n    at async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)"
+  },
+  "observed": "Normal B document/name/active B path/version B/actual history div and Box dimensions were correct, but body massReady false/volume null at captured checkpoint. A hold not armed.",
+  "likelyCause": "readiness awaited immediately after click accepted the prior fresh body; asynchronous Open/evaluate subsequently invalidated its mass before snapshot. This is a driver observation race, not evidence of wrong geometry.",
+  "proposedRepair": "After version B is visibly loaded, wait actual current B document plus fresh/massReady and expected independent V2184 together before snapshot. Apply same current-result readiness to the later B-before-release checkpoint. Preserve all safe ownership assertions.",
+  "cleanup": {
+    "namespace": "REMOVED_AND_ABSENT",
+    "resources": "OWN_CONTEXT_BROWSER_SERVER_CLOSED"
+  },
+  "gate": "Own slot released; unrelated cad-material-public holder not touched",
+  "rerun": "NOT_AUTHORIZED; no source edited after first failure"
+}

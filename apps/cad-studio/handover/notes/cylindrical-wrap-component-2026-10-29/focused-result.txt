@@ -1,0 +1,352 @@
+TAP version 13
+# Subtest: complete projected outer and clockwise hole use one ledger and preserve owned canonical data
+ok 1 - complete projected outer and clockwise hole use one ledger and preserve owned canonical data
+  ---
+  duration_ms: 7.236333
+  type: 'test'
+  ...
+# Subtest: two sibling holes have mutual zero winding after every cross-ring pair is separated
+ok 2 - two sibling holes have mutual zero winding after every cross-ring pair is separated
+  ---
+  duration_ms: 3.975458
+  type: 'test'
+  ...
+# Subtest: outer hint is an individual-ring witness and may lie in a hole without claiming material placement
+ok 3 - outer hint is an individual-ring witness and may lie in a hole without claiming material placement
+  ---
+  duration_ms: 2.618167
+  type: 'test'
+  ...
+# Subtest: wrong orientation, outside holes and nested holes in either input order cannot certify roles
+ok 4 - wrong orientation, outside holes and nested holes in either input order cannot certify roles
+  ---
+  duration_ms: 8.99025
+  type: 'test'
+  ...
+# Subtest: touching/crossing boundaries and a bow tie never yield a partial component certificate
+ok 5 - touching/crossing boundaries and a bow tie never yield a partial component certificate
+  ---
+  duration_ms: 4.114416
+  type: 'test'
+  ...
+# Subtest: cycle closure, unique complete ownership and minimum ring length are exact input boundaries
+ok 6 - cycle closure, unique complete ownership and minimum ring length are exact input boundaries
+  ---
+  duration_ms: 3.600625
+  type: 'test'
+  ...
+# Subtest: boundary and exterior hints, unknown options, getters and late tightened budget are atomic refusals
+ok 7 - boundary and exterior hints, unknown options, getters and late tightened budget are atomic refusals
+  ---
+  duration_ms: 4.307541
+  type: 'test'
+  ...
+# Subtest: native original quarter diagonal triangle connects without asserting native trim or physical solid binding
+ok 8 - native original quarter diagonal triangle connects without asserting native trim or physical solid binding
+  ---
+  duration_ms: 35.587708
+  type: 'test'
+  ...
+# Subtest: independent linear projection and endpoint-factor formula gives exact integer cone coefficients
+ok 9 - independent linear projection and endpoint-factor formula gives exact integer cone coefficients
+  ---
+  duration_ms: 3.427792
+  type: 'test'
+  ...
+# Subtest: all explicit endpoint choices preserve canonical curve direction and exact coefficient reversal
+ok 10 - all explicit endpoint choices preserve canonical curve direction and exact coefficient reversal
+  ---
+  duration_ms: 2.197667
+  type: 'test'
+  ...
+# Subtest: opposite represented normal candidates reverse signs without changing the projected relation
+ok 11 - opposite represented normal candidates reverse signs without changing the projected relation
+  ---
+  duration_ms: 1.141083
+  type: 'test'
+  ...
+# Subtest: equal world endpoints with different weights are compared by exact projected ratios
+ok 12 - equal world endpoints with different weights are compared by exact projected ratios
+  ---
+  duration_ms: 0.469334
+  type: 'test'
+  ...
+# Subtest: curved whole-edge sectors with varying Z remain strictly in opposite projected half-planes
+ok 13 - curved whole-edge sectors with varying Z remain strictly in opposite projected half-planes
+  ---
+  duration_ms: 0.301375
+  type: 'test'
+  ...
+# Subtest: large exact coefficient integers use a finite bounded tangent hint instead of overflowing Number ratios
+ok 14 - large exact coefficient integers use a finite bounded tangent hint instead of overflowing Number ratios
+  ---
+  duration_ms: 1.29425
+  type: 'test'
+  ...
+# Subtest: equal projections at different radial points and nearly equal endpoints cannot be sewn
+ok 15 - equal projections at different radial points and nearly equal endpoints cannot be sewn
+  ---
+  duration_ms: 1.064
+  type: 'test'
+  ...
+# Subtest: same outgoing ray, zero normal and zero functional coefficients remain unresolved
+ok 16 - same outgoing ray, zero normal and zero functional coefficients remain unresolved
+  ---
+  duration_ms: 1.036209
+  type: 'test'
+  ...
+# Subtest: malformed hints, endpoint indices and foreign context curves have typed refusals
+ok 17 - malformed hints, endpoint indices and foreign context curves have typed refusals
+  ---
+  duration_ms: 1.662583
+  type: 'test'
+  ...
+# Subtest: the one shared exact/direct request budget can only tighten and bounds cone work
+ok 18 - the one shared exact/direct request budget can only tighten and bounds cone work
+  ---
+  duration_ms: 0.5515
+  type: 'test'
+  ...
+# Subtest: owned frozen certificates cannot alias or change caller geometry and normal arrays
+ok 19 - owned frozen certificates cannot alias or change caller geometry and normal arrays
+  ---
+  duration_ms: 0.415584
+  type: 'test'
+  ...
+# Subtest: projected pair wrapper admits separated lines with bounded owned receipts and explicit false options
+ok 20 - projected pair wrapper admits separated lines with bounded owned receipts and explicit false options
+  ---
+  duration_ms: 2.645292
+  type: 'test'
+  ...
+# Subtest: shared endpoint selection certifies only the common projected point, preserving canonical directions
+ok 21 - shared endpoint selection certifies only the common projected point, preserving canonical directions
+  ---
+  duration_ms: 2.284458
+  type: 'test'
+  ...
+# Subtest: original native quarter diagonal curves connect to projected separation and a shared-corner cone
+ok 22 - original native quarter diagonal curves connect to projected separation and a shared-corner cone
+  ---
+  duration_ms: 41.929625
+  type: 'test'
+  ...
+# Subtest: pair options, budgets, source getters and duplicate identifiers have typed refusal boundaries
+ok 23 - pair options, budgets, source getters and duplicate identifiers have typed refusal boundaries
+  ---
+  duration_ms: 1.061916
+  type: 'test'
+  ...
+# Subtest: two actual curved cubics separate after exact subdivision although both initial ratio boxes overlap
+ok 24 - two actual curved cubics separate after exact subdivision although both initial ratio boxes overlap
+  ---
+  duration_ms: 8.435833
+  type: 'test'
+  ...
+# Subtest: an initial strict ratio gap needs one complete leaf and omits optional witnesses by default
+ok 25 - an initial strict ratio gap needs one complete leaf and omits optional witnesses by default
+  ---
+  duration_ms: 0.891333
+  type: 'test'
+  ...
+# Subtest: crossing, exact interior tangency, endpoint contact and full overlap never produce a partial certificate
+ok 26 - crossing, exact interior tangency, endpoint contact and full overlap never produce a partial certificate
+  ---
+  duration_ms: 3.285209
+  type: 'test'
+  ...
+# Subtest: curve reversal preserves disjointness and exact original normalized interval coverage
+ok 27 - curve reversal preserves disjointness and exact original normalized interval coverage
+  ---
+  duration_ms: 8.897792
+  type: 'test'
+  ...
+# Subtest: depth uncertainty and resource exhaustion retain different typed refusal codes
+ok 28 - depth uncertainty and resource exhaustion retain different typed refusal codes
+  ---
+  duration_ms: 1.008166
+  type: 'test'
+  ...
+# Subtest: only tighter own options are accepted without running getters or changing source curves
+ok 29 - only tighter own options are accepted without running getters or changing source curves
+  ---
+  duration_ms: 1.991333
+  type: 'test'
+  ...
+# Subtest: foreign or forged chart graphs refuse before access and certificates do not alias caller data
+ok 30 - foreign or forged chart graphs refuse before access and certificates do not alias caller data
+  ---
+  duration_ms: 1.406458
+  type: 'test'
+  ...
+# Subtest: independent rectangle orientation and reversed uses preserve canonical data and signed winding
+ok 31 - independent rectangle orientation and reversed uses preserve canonical data and signed winding
+  ---
+  duration_ms: 4.296083
+  type: 'test'
+  ...
+# Subtest: maximum-q vertices and vertical boundaries are rejected before the half-open crossing rule
+ok 32 - maximum-q vertices and vertical boundaries are rejected before the half-open crossing rule
+  ---
+  duration_ms: 1.582083
+  type: 'test'
+  ...
+# Subtest: local q extrema and endpoint crossings follow the independent upward-ray sign convention
+ok 33 - local q extrema and endpoint crossings follow the independent upward-ray sign convention
+  ---
+  duration_ms: 1.2155
+  type: 'test'
+  ...
+# Subtest: exact midpoint and non-dyadic unique q roots have strict height receipts without Number evaluation
+ok 34 - exact midpoint and non-dyadic unique q roots have strict height receipts without Number evaluation
+  ---
+  duration_ms: 0.6905
+  type: 'test'
+  ...
+# Subtest: height progress with nonconstant q is explicitly outside the first winding family
+ok 35 - height progress with nonconstant q is explicitly outside the first winding family
+  ---
+  duration_ms: 0.250166
+  type: 'test'
+  ...
+# Subtest: decreasing canonical q roots and reversed traversal use the same exact root with opposite contributions
+ok 36 - decreasing canonical q roots and reversed traversal use the same exact root with opposite contributions
+  ---
+  duration_ms: 0.323083
+  type: 'test'
+  ...
+# Subtest: canonical vertex point construction is independent of use sense and preserves exact ratios
+ok 37 - canonical vertex point construction is independent of use sense and preserves exact ratios
+  ---
+  duration_ms: 0.371625
+  type: 'test'
+  ...
+# Subtest: uses and query points require the same context brand before getters or arithmetic work
+ok 38 - uses and query points require the same context brand before getters or arithmetic work
+  ---
+  duration_ms: 0.30225
+  type: 'test'
+  ...
+# Subtest: own finite query admission, use-count bounds and frozen serializable results preserve callers
+ok 39 - own finite query admission, use-count bounds and frozen serializable results preserve callers
+  ---
+  duration_ms: 0.526166
+  type: 'test'
+  ...
+# Subtest: root-depth uncertainty and cumulative request arithmetic keep their original refusal limits
+ok 40 - root-depth uncertainty and cumulative request arithmetic keep their original refusal limits
+  ---
+  duration_ms: 0.951416
+  type: 'test'
+  ...
+# Subtest: stored cubic homogeneous integers preserve every exact cp*weight and own a frozen snapshot
+ok 41 - stored cubic homogeneous integers preserve every exact cp*weight and own a frozen snapshot
+  ---
+  duration_ms: 2.210375
+  type: 'test'
+  ...
+# Subtest: strict degree-five progress has independent rational derivative values and preserves its sign scale
+ok 42 - strict degree-five progress has independent rational derivative values and preserves its sign scale
+  ---
+  duration_ms: 1.21275
+  type: 'test'
+  ...
+# Subtest: axial progress is an independent fallback and mixed-sign or zero progress remains unresolved
+ok 43 - axial progress is an independent fallback and mixed-sign or zero progress remains unresolved
+  ---
+  duration_ms: 0.834
+  type: 'test'
+  ...
+# Subtest: half subdivision uses a uniform8 scale and matches independent rational de Casteljau controls
+ok 44 - half subdivision uses a uniform8 scale and matches independent rational de Casteljau controls
+  ---
+  duration_ms: 0.609
+  type: 'test'
+  ...
+# Subtest: exact ratio hulls retain negative Z and bound projected descendants without Number division
+ok 45 - exact ratio hulls retain negative Z and bound projected descendants without Number division
+  ---
+  duration_ms: 0.953208
+  type: 'test'
+  ...
+# Subtest: context ownership rejects copied or foreign graphs and source admission rejects unsupported data atomically
+ok 46 - context ownership rejects copied or foreign graphs and source admission rejects unsupported data atomically
+  ---
+  duration_ms: 0.851541
+  type: 'test'
+  ...
+# Subtest: plain own source/options refuse getters, foreign arrays and malformed fields without invoking accessors
+ok 47 - plain own source/options refuse getters, foreign arrays and malformed fields without invoking accessors
+  ---
+  duration_ms: 0.338333
+  type: 'test'
+  ...
+# Subtest: one ledger bounds rational plus direct work and separates depth uncertainty from global exhaustion
+ok 48 - one ledger bounds rational plus direct work and separates depth uncertainty from global exhaustion
+  ---
+  duration_ms: 0.737083
+  type: 'test'
+  ...
+# Subtest: the shared node cap refuses before another child pair and preserves all admitted immutable nodes
+ok 49 - the shared node cap refuses before another child pair and preserves all admitted immutable nodes
+  ---
+  duration_ms: 2.568833
+  type: 'test'
+  ...
+# Subtest: the loop factory directly creates a fresh frozen fixed profile without upgrading pair contexts
+ok 50 - the loop factory directly creates a fresh frozen fixed profile without upgrading pair contexts
+  ---
+  duration_ms: 0.542583
+  type: 'test'
+  ...
+# Subtest: only the fixed loop profile admits32 original curves and refuses33 without changing admitted data
+ok 51 - only the fixed loop profile admits32 original curves and refuses33 without changing admitted data
+  ---
+  duration_ms: 3.92875
+  type: 'test'
+  ...
+# Subtest: loop and pair profiles preserve identical prefix receipts while the loop keeps one exact operation ledger
+ok 52 - loop and pair profiles preserve identical prefix receipts while the loop keeps one exact operation ledger
+  ---
+  duration_ms: 0.672625
+  type: 'test'
+  ...
+# Subtest: loop ownership retains the global256 nodes and the same depth bit and work ceilings
+ok 53 - loop ownership retains the global256 nodes and the same depth bit and work ceilings
+  ---
+  duration_ms: 4.395083
+  type: 'test'
+  ...
+# Subtest: loop options share strict own-data validation and expose no profile or maxCurves knob
+ok 54 - loop options share strict own-data validation and expose no profile or maxCurves knob
+  ---
+  duration_ms: 0.17125
+  type: 'test'
+  ...
+# Subtest: R7.3a: CAD_REFUSAL_CODES is every bracketed code the kernel's string literals carry, and only those
+ok 55 - R7.3a: CAD_REFUSAL_CODES is every bracketed code the kernel's string literals carry, and only those
+  ---
+  duration_ms: 863.173291
+  type: 'test'
+  ...
+# Subtest: R7.3a: CAD_ERROR_CODES holds every code a kernel error class can carry
+ok 56 - R7.3a: CAD_ERROR_CODES holds every code a kernel error class can carry
+  ---
+  duration_ms: 1843.935458
+  type: 'test'
+  ...
+# Subtest: R7.3a batch 2: a part-model refusal carries its message's specific code, its category in details
+ok 57 - R7.3a batch 2: a part-model refusal carries its message's specific code, its category in details
+  ---
+  duration_ms: 1.796666
+  type: 'test'
+  ...
+1..57
+# tests 57
+# suites 0
+# pass 57
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3124.599

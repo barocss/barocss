@@ -1,0 +1,124 @@
+TAP version 13
+# Subtest: Bezier Coons: fixed bowed net, independent points, four boundaries and native D1
+ok 1 - Bezier Coons: fixed bowed net, independent points, four boundaries and native D1
+  ---
+  duration_ms: 4.553959
+  type: 'test'
+  ...
+# Subtest: Bezier Coons: planar boundaries support different U and V degrees without degree elevation
+ok 2 - Bezier Coons: planar boundaries support different U and V degrees without degree elevation
+  ---
+  duration_ms: 1.841166
+  type: 'test'
+  ...
+# Subtest: Bezier Coons: accepted inputs and returned snapshots are isolated across calls and caller edits
+ok 3 - Bezier Coons: accepted inputs and returned snapshots are isolated across calls and caller edits
+  ---
+  duration_ms: 1.706
+  type: 'test'
+  ...
+# Subtest: Bezier Coons: malformed and unsupported boundaries refuse without mutating the request or prior accepted result
+ok 4 - Bezier Coons: malformed and unsupported boundaries refuse without mutating the request or prior accepted result
+  ---
+  duration_ms: 2.597333
+  type: 'test'
+  ...
+# Subtest: collinear segments classify overlap, containment and reversal
+ok 5 - collinear segments classify overlap, containment and reversal
+  ---
+  duration_ms: 1.408
+  type: 'test'
+  ...
+# Subtest: collinear single point, disjoint, vertical and subnormal coordinate cases
+ok 6 - collinear single point, disjoint, vertical and subnormal coordinate cases
+  ---
+  duration_ms: 0.716417
+  type: 'test'
+  ...
+# Subtest: refuse noncollinear and malformed with no getter execution
+ok 7 - refuse noncollinear and malformed with no getter execution
+  ---
+  duration_ms: 0.192125
+  type: 'test'
+  ...
+# Subtest: exact proper crossing and disjoint classification are symmetric under reversals
+ok 8 - exact proper crossing and disjoint classification are symmetric under reversals
+  ---
+  duration_ms: 1.629833
+  type: 'test'
+  ...
+# Subtest: zero orientation explicitly refuses to certify tangency and collinear topology
+ok 9 - zero orientation explicitly refuses to certify tangency and collinear topology
+  ---
+  duration_ms: 0.220375
+  type: 'test'
+  ...
+# Subtest: strict invalid/refusal input does not evaluate host accessor
+ok 10 - strict invalid/refusal input does not evaluate host accessor
+  ---
+  duration_ms: 0.377
+  type: 'test'
+  ...
+# Subtest: C9: geometry operations share the geometry range — all work at 5e5 mm (sampling, split, curvature refused beyond 1e4 before)
+ok 11 - C9: geometry operations share the geometry range — all work at 5e5 mm (sampling, split, curvature refused beyond 1e4 before)
+  ---
+  duration_ms: 86.521333
+  type: 'test'
+  ...
+# Subtest: C9: beyond the geometry range every geometry operation refuses alike
+ok 12 - C9: beyond the geometry range every geometry operation refuses alike
+  ---
+  duration_ms: 0.405375
+  type: 'test'
+  ...
+# Subtest: modeling-range results keep the 1e-7 mm floor; reports name the range used
+ok 13 - modeling-range results keep the 1e-7 mm floor; reports name the range used
+  ---
+  duration_ms: 61.63375
+  type: 'test'
+  ...
+# Subtest: knot / parameter range stays the parameter range (only coordinates widened)
+ok 14 - knot / parameter range stays the parameter range (only coordinates widened)
+  ---
+  duration_ms: 0.323042
+  type: 'test'
+  ...
+# Subtest: policy constants match the values the kernel applies
+ok 15 - policy constants match the values the kernel applies
+  ---
+  duration_ms: 0.445583
+  type: 'test'
+  ...
+# Subtest: C3: integer split positions are exact on every width (no certification needed)
+ok 16 - C3: integer split positions are exact on every width (no certification needed)
+  ---
+  duration_ms: 596.993333
+  type: 'test'
+  ...
+# Subtest: C3: non-representable chart parameters are certified within one rounding, and the parts measure
+ok 17 - C3: non-representable chart parameters are certified within one rounding, and the parts measure
+  ---
+  duration_ms: 270.901291
+  type: 'test'
+  ...
+# Subtest: C4: holes of any radius on an 80 × 40 plate (r = 5 stays exact)
+ok 18 - C4: holes of any radius on an 80 × 40 plate (r = 5 stays exact)
+  ---
+  duration_ms: 497.597583
+  type: 'test'
+  ...
+# Subtest: the stored-solid proof certifies one rounding and refuses anything larger
+ok 19 - the stored-solid proof certifies one rounding and refuses anything larger
+  ---
+  duration_ms: 147.30275
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1814.79225

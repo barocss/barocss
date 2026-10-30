@@ -1,0 +1,11 @@
+{
+  "legacy-before.log": "bad9251ee759e9321ce2434ae04096f386a5b2d1c542eecd79935104871f3b37",
+  "build-first.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "focused-first.log": "d57e61241d60d0f22383906e448ed88428706f6d2283de29ae6c21af7cb125c8",
+  "lint-first.log": "3c562e8828bade2cfd6b382013ce051a6863efcffffd63750511a4275451dc64",
+  "related-first.log": "28fe47d95b63d817d26b283fa006900d52f334493d3830cdebd16de90b98a869",
+  "focused-final.log": "c4ed62eee0cd6442c8d43a5783a0c649c27d314bc714b70dafbc4de1cb052b1e",
+  "material-compare.log": "2978bdd9ee2e3535e29aaf620b0619ba42a128a0fea95626ca6f3a1ff18ef2fe",
+  "independent-material.json": "bdcd6c9368a2434ad07a6cbaeb6fe9a73d48b05f67923bbe927a54fc9c7e60b7",
+  "material-record.json": "acbc5fb117266229c34ede26a43fd500bb4d9fa18dd6ce8d0e47e8da53f23789"
+}

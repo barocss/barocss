@@ -1,0 +1,367 @@
+{
+  "label": "08-thickness3",
+  "bodies": [
+    {
+      "key": "b1",
+      "mass": {
+        "volume": 420.0000000000001,
+        "mass": 0.4200000000000001,
+        "centroid": [
+          85.99999999999996,
+          0.4999999999999998,
+          3.5
+        ],
+        "inertia": [
+          [
+            2.5900000000000007,
+            -4.001776687800884e-14,
+            0
+          ],
+          [
+            -4.001776687800884e-14,
+            5.915000000002795,
+            0
+          ],
+          [
+            0,
+            0,
+            6.755000000002794
+          ]
+        ]
+      },
+      "names": [
+        "n1.bottom",
+        "n1.side0",
+        "n1.side1",
+        "n1.side2",
+        "n1.side3",
+        "n1.top"
+      ],
+      "faces": [
+        {
+          "name": "n1.side0",
+          "kind": "plane",
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "centroid": [
+            86,
+            -3,
+            3.5
+          ],
+          "area": 60,
+          "edges": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "name": "n1.side1",
+          "kind": "plane",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "centroid": [
+            92,
+            0.5,
+            3.5
+          ],
+          "area": 35,
+          "edges": [
+            1,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "name": "n1.side2",
+          "kind": "plane",
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "centroid": [
+            86,
+            4,
+            3.5
+          ],
+          "area": 60,
+          "edges": [
+            5,
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "name": "n1.side3",
+          "kind": "plane",
+          "normal": [
+            -1,
+            0,
+            0
+          ],
+          "centroid": [
+            80,
+            0.5,
+            3.5
+          ],
+          "area": 35,
+          "edges": [
+            3,
+            8,
+            10,
+            11
+          ]
+        },
+        {
+          "name": "n1.bottom",
+          "kind": "plane",
+          "normal": [
+            0,
+            0,
+            -1
+          ],
+          "centroid": [
+            86,
+            0.5,
+            1
+          ],
+          "area": 84,
+          "edges": [
+            0,
+            4,
+            7,
+            10
+          ]
+        },
+        {
+          "name": "n1.top",
+          "kind": "plane",
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "centroid": [
+            86,
+            0.5,
+            6
+          ],
+          "area": 84,
+          "edges": [
+            2,
+            6,
+            9,
+            11
+          ]
+        }
+      ],
+      "bounds": {
+        "min": [
+          80,
+          -3,
+          1
+        ],
+        "max": [
+          92,
+          4,
+          6
+        ]
+      },
+      "closed": true,
+      "valid": true,
+      "issues": []
+    },
+    {
+      "key": "b2",
+      "mass": {
+        "volume": 3600,
+        "mass": 3.6,
+        "centroid": [
+          30,
+          9.000000000000002,
+          4.5
+        ],
+        "inertia": [
+          [
+            272.6999999999999,
+            0,
+            -5.820766091346741e-14
+          ],
+          [
+            0,
+            482.70000000000044,
+            2.9103830456733704e-14
+          ],
+          [
+            -5.820766091346741e-14,
+            2.9103830456733704e-14,
+            750.0000000000003
+          ]
+        ]
+      },
+      "names": [
+        "n2.facet0",
+        "n2.facet1",
+        "n2.facet2+n2.facet6+n2.facet8+n2.facet10+n2.facet12+n2.facet16+n2.facet20+n2.facet24+n2.facet26+n2.facet28+n2.facet30+n2.facet32+n2.facet37+n2.facet40+n2.facet43+n2.facet45+n2.facet47+n2.facet50+n2.facet53+n2.facet57+n2.facet60+n2.facet62",
+        "n2.facet3+n2.facet13+n2.facet17+n2.facet21+n2.facet64+n2.facet66+n2.facet68",
+        "n2.facet4+n2.facet7+n2.facet9+n2.facet11+n2.facet14+n2.facet18+n2.facet22+n2.facet25+n2.facet27+n2.facet29+n2.facet31+n2.facet33+n2.facet38+n2.facet41+n2.facet44+n2.facet46+n2.facet48+n2.facet51+n2.facet54+n2.facet58+n2.facet61+n2.facet63",
+        "n2.facet5+n2.facet15+n2.facet19+n2.facet23+n2.facet34+n2.facet35+n2.facet36+n2.facet39+n2.facet42+n2.facet49+n2.facet52+n2.facet55+n2.facet56+n2.facet59+n2.facet65+n2.facet67+n2.facet69+n2.facet70+n2.facet71+n2.facet72"
+      ],
+      "faces": [
+        {
+          "name": "n2.facet0",
+          "kind": "plane",
+          "normal": [
+            0,
+            0,
+            1
+          ],
+          "centroid": [
+            30,
+            9.000000000000002,
+            6
+          ],
+          "area": 1200,
+          "edges": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "name": "n2.facet1",
+          "kind": "plane",
+          "normal": [
+            0,
+            0,
+            -1
+          ],
+          "centroid": [
+            30,
+            9,
+            3
+          ],
+          "area": 1200,
+          "edges": [
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "name": "n2.facet2+n2.facet6+n2.facet8+n2.facet10+n2.facet12+n2.facet16+n2.facet20+n2.facet24+n2.facet26+n2.facet28+n2.facet30+n2.facet32+n2.facet37+n2.facet40+n2.facet43+n2.facet45+n2.facet47+n2.facet50+n2.facet53+n2.facet57+n2.facet60+n2.facet62",
+          "kind": "plane",
+          "normal": [
+            0,
+            -1,
+            0
+          ],
+          "centroid": [
+            30,
+            -6,
+            4.5
+          ],
+          "area": 120,
+          "edges": [
+            0,
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "name": "n2.facet3+n2.facet13+n2.facet17+n2.facet21+n2.facet64+n2.facet66+n2.facet68",
+          "kind": "plane",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "centroid": [
+            49.99999999999999,
+            8.999999999999996,
+            4.5
+          ],
+          "area": 90.00000000000003,
+          "edges": [
+            1,
+            6,
+            9,
+            11
+          ]
+        },
+        {
+          "name": "n2.facet4+n2.facet7+n2.facet9+n2.facet11+n2.facet14+n2.facet18+n2.facet22+n2.facet25+n2.facet27+n2.facet29+n2.facet31+n2.facet33+n2.facet38+n2.facet41+n2.facet44+n2.facet46+n2.facet48+n2.facet51+n2.facet54+n2.facet58+n2.facet61+n2.facet63",
+          "kind": "plane",
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "centroid": [
+            30,
+            24,
+            4.5
+          ],
+          "area": 120,
+          "edges": [
+            2,
+            5,
+            10,
+            11
+          ]
+        },
+        {
+          "name": "n2.facet5+n2.facet15+n2.facet19+n2.facet23+n2.facet34+n2.facet35+n2.facet36+n2.facet39+n2.facet42+n2.facet49+n2.facet52+n2.facet55+n2.facet56+n2.facet59+n2.facet65+n2.facet67+n2.facet69+n2.facet70+n2.facet71+n2.facet72",
+          "kind": "plane",
+          "normal": [
+            -1,
+            0,
+            0
+          ],
+          "centroid": [
+            10,
+            9,
+            4.499999999999999
+          ],
+          "area": 90,
+          "edges": [
+            3,
+            4,
+            8,
+            10
+          ]
+        }
+      ],
+      "bounds": {
+        "min": [
+          10,
+          -6,
+          3
+        ],
+        "max": [
+          50,
+          24,
+          6
+        ]
+      },
+      "closed": true,
+      "valid": true,
+      "issues": []
+    }
+  ],
+  "tolerance": 1e-7,
+  "route": "Public Model Part mass/faces/meshes and native partBreps/checkBrep read"
+}

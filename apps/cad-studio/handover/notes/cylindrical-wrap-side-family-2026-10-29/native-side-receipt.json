@@ -1,0 +1,874 @@
+{
+  "scope": "D300 projected component plus D301 actual side coefficient proof only; original source/composition/assembly/moments excluded",
+  "fixture": "actual D298 R10 H30 rectangular native assembly, four installed side Surfaces",
+  "priorAssemblyCountsExcluded": {
+    "exactOperations": 67093,
+    "helperOperations": 58149,
+    "rationalOperations": 8772,
+    "integerOperations": 172,
+    "integerMaximumBits": 220,
+    "work": 3507,
+    "horizontalCompositions": 1,
+    "angularCertificates": 1,
+    "verticalCurves": 2,
+    "outerClones": 4
+  },
+  "result": {
+    "original": [
+      {
+        "base": {
+          "kind": "curve",
+          "id": "wrap_wa_curve17",
+          "degree": 3,
+          "knots": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              9.833053684165744,
+              1.819630524121447,
+              7.5
+            ],
+            [
+              9.33590763829821,
+              4.506145007739729,
+              7.5
+            ],
+            [
+              7.825456457829535,
+              6.831379409980179,
+              7.5
+            ],
+            [
+              5.472097533851426,
+              8.369955112186512,
+              7.5
+            ]
+          ],
+          "weights": [
+            0.9359296083845573,
+            0.8627063036811942,
+            0.8382985354467398,
+            0.8627063036811942
+          ]
+        },
+        "outer": {
+          "kind": "curve",
+          "id": "wrap_wa_curve19",
+          "degree": 3,
+          "knots": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              19.666107368331488,
+              3.639261048242894,
+              7.5
+            ],
+            [
+              18.67181527659642,
+              9.012290015479458,
+              7.5
+            ],
+            [
+              15.65091291565907,
+              13.662758819960358,
+              7.5
+            ],
+            [
+              10.944195067702852,
+              16.739910224373023,
+              7.5
+            ]
+          ],
+          "weights": [
+            0.9359296083845573,
+            0.8627063036811942,
+            0.8382985354467398,
+            0.8627063036811942
+          ]
+        },
+        "side": {
+          "kind": "surface",
+          "id": "wrap_wa_surface46",
+          "degreeU": 3,
+          "degreeV": 1,
+          "knotsU": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                9.833053684165744,
+                1.819630524121447,
+                7.5
+              ],
+              [
+                19.666107368331488,
+                3.639261048242894,
+                7.5
+              ]
+            ],
+            [
+              [
+                9.33590763829821,
+                4.506145007739729,
+                7.5
+              ],
+              [
+                18.67181527659642,
+                9.012290015479458,
+                7.5
+              ]
+            ],
+            [
+              [
+                7.825456457829535,
+                6.831379409980179,
+                7.5
+              ],
+              [
+                15.65091291565907,
+                13.662758819960358,
+                7.5
+              ]
+            ],
+            [
+              [
+                5.472097533851426,
+                8.369955112186512,
+                7.5
+              ],
+              [
+                10.944195067702852,
+                16.739910224373023,
+                7.5
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              0.9359296083845573,
+              0.9359296083845573
+            ],
+            [
+              0.8627063036811942,
+              0.8627063036811942
+            ],
+            [
+              0.8382985354467398,
+              0.8382985354467398
+            ],
+            [
+              0.8627063036811942,
+              0.8627063036811942
+            ]
+          ]
+        }
+      },
+      {
+        "base": {
+          "kind": "curve",
+          "id": "wrap_wa_curve24",
+          "degree": 3,
+          "knots": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              5.472097533851426,
+              8.369955112186512,
+              7.5
+            ],
+            [
+              5.472097533851426,
+              8.369955112186512,
+              12.5
+            ],
+            [
+              5.472097533851426,
+              8.369955112186512,
+              17.5
+            ],
+            [
+              5.472097533851426,
+              8.369955112186512,
+              22.5
+            ]
+          ],
+          "weights": [
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "outer": {
+          "kind": "curve",
+          "id": "wrap_wa_curve26",
+          "degree": 3,
+          "knots": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              10.944195067702852,
+              16.739910224373023,
+              7.5
+            ],
+            [
+              10.944195067702852,
+              16.739910224373023,
+              12.5
+            ],
+            [
+              10.944195067702852,
+              16.739910224373023,
+              17.5
+            ],
+            [
+              10.944195067702852,
+              16.739910224373023,
+              22.5
+            ]
+          ],
+          "weights": [
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "side": {
+          "kind": "surface",
+          "id": "wrap_wa_surface56",
+          "degreeU": 3,
+          "degreeV": 1,
+          "knotsU": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                5.472097533851426,
+                8.369955112186512,
+                7.5
+              ],
+              [
+                10.944195067702852,
+                16.739910224373023,
+                7.5
+              ]
+            ],
+            [
+              [
+                5.472097533851426,
+                8.369955112186512,
+                12.5
+              ],
+              [
+                10.944195067702852,
+                16.739910224373023,
+                12.5
+              ]
+            ],
+            [
+              [
+                5.472097533851426,
+                8.369955112186512,
+                17.5
+              ],
+              [
+                10.944195067702852,
+                16.739910224373023,
+                17.5
+              ]
+            ],
+            [
+              [
+                5.472097533851426,
+                8.369955112186512,
+                22.5
+              ],
+              [
+                10.944195067702852,
+                16.739910224373023,
+                22.5
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        }
+      },
+      {
+        "base": {
+          "kind": "curve",
+          "id": "wrap_wa_curve31",
+          "degree": 3,
+          "knots": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              5.472097533851426,
+              8.369955112186512,
+              22.5
+            ],
+            [
+              7.825456457829535,
+              6.831379409980179,
+              22.5
+            ],
+            [
+              9.33590763829821,
+              4.506145007739729,
+              22.5
+            ],
+            [
+              9.833053684165744,
+              1.819630524121447,
+              22.5
+            ]
+          ],
+          "weights": [
+            0.8627063036811942,
+            0.8382985354467398,
+            0.8627063036811942,
+            0.9359296083845573
+          ]
+        },
+        "outer": {
+          "kind": "curve",
+          "id": "wrap_wa_curve33",
+          "degree": 3,
+          "knots": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              10.944195067702852,
+              16.739910224373023,
+              22.5
+            ],
+            [
+              15.65091291565907,
+              13.662758819960358,
+              22.5
+            ],
+            [
+              18.67181527659642,
+              9.012290015479458,
+              22.5
+            ],
+            [
+              19.666107368331488,
+              3.639261048242894,
+              22.5
+            ]
+          ],
+          "weights": [
+            0.8627063036811942,
+            0.8382985354467398,
+            0.8627063036811942,
+            0.9359296083845573
+          ]
+        },
+        "side": {
+          "kind": "surface",
+          "id": "wrap_wa_surface66",
+          "degreeU": 3,
+          "degreeV": 1,
+          "knotsU": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                5.472097533851426,
+                8.369955112186512,
+                22.5
+              ],
+              [
+                10.944195067702852,
+                16.739910224373023,
+                22.5
+              ]
+            ],
+            [
+              [
+                7.825456457829535,
+                6.831379409980179,
+                22.5
+              ],
+              [
+                15.65091291565907,
+                13.662758819960358,
+                22.5
+              ]
+            ],
+            [
+              [
+                9.33590763829821,
+                4.506145007739729,
+                22.5
+              ],
+              [
+                18.67181527659642,
+                9.012290015479458,
+                22.5
+              ]
+            ],
+            [
+              [
+                9.833053684165744,
+                1.819630524121447,
+                22.5
+              ],
+              [
+                19.666107368331488,
+                3.639261048242894,
+                22.5
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              0.8627063036811942,
+              0.8627063036811942
+            ],
+            [
+              0.8382985354467398,
+              0.8382985354467398
+            ],
+            [
+              0.8627063036811942,
+              0.8627063036811942
+            ],
+            [
+              0.9359296083845573,
+              0.9359296083845573
+            ]
+          ]
+        }
+      },
+      {
+        "base": {
+          "kind": "curve",
+          "id": "wrap_wa_curve38",
+          "degree": 3,
+          "knots": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              9.833053684165744,
+              1.819630524121447,
+              22.5
+            ],
+            [
+              9.833053684165744,
+              1.819630524121447,
+              17.5
+            ],
+            [
+              9.833053684165744,
+              1.819630524121447,
+              12.5
+            ],
+            [
+              9.833053684165744,
+              1.819630524121447,
+              7.5
+            ]
+          ],
+          "weights": [
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "outer": {
+          "kind": "curve",
+          "id": "wrap_wa_curve40",
+          "degree": 3,
+          "knots": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              19.666107368331488,
+              3.639261048242894,
+              22.5
+            ],
+            [
+              19.666107368331488,
+              3.639261048242894,
+              17.5
+            ],
+            [
+              19.666107368331488,
+              3.639261048242894,
+              12.5
+            ],
+            [
+              19.666107368331488,
+              3.639261048242894,
+              7.5
+            ]
+          ],
+          "weights": [
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "side": {
+          "kind": "surface",
+          "id": "wrap_wa_surface76",
+          "degreeU": 3,
+          "degreeV": 1,
+          "knotsU": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            1,
+            1,
+            1
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                9.833053684165744,
+                1.819630524121447,
+                22.5
+              ],
+              [
+                19.666107368331488,
+                3.639261048242894,
+                22.5
+              ]
+            ],
+            [
+              [
+                9.833053684165744,
+                1.819630524121447,
+                17.5
+              ],
+              [
+                19.666107368331488,
+                3.639261048242894,
+                17.5
+              ]
+            ],
+            [
+              [
+                9.833053684165744,
+                1.819630524121447,
+                12.5
+              ],
+              [
+                19.666107368331488,
+                3.639261048242894,
+                12.5
+              ]
+            ],
+            [
+              [
+                9.833053684165744,
+                1.819630524121447,
+                7.5
+              ],
+              [
+                19.666107368331488,
+                3.639261048242894,
+                7.5
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        }
+      }
+    ],
+    "bindings": [
+      {
+        "base": "wrap_wa_curve17",
+        "outer": "wrap_wa_curve19",
+        "side": "wrap_wa_surface46",
+        "factor": 2,
+        "parameterDomain": [
+          0,
+          1
+        ],
+        "radialDomain": [
+          0,
+          1
+        ]
+      },
+      {
+        "base": "wrap_wa_curve24",
+        "outer": "wrap_wa_curve26",
+        "side": "wrap_wa_surface56",
+        "factor": 2,
+        "parameterDomain": [
+          0,
+          1
+        ],
+        "radialDomain": [
+          0,
+          1
+        ]
+      },
+      {
+        "base": "wrap_wa_curve31",
+        "outer": "wrap_wa_curve33",
+        "side": "wrap_wa_surface66",
+        "factor": 2,
+        "parameterDomain": [
+          0,
+          1
+        ],
+        "radialDomain": [
+          0,
+          1
+        ]
+      },
+      {
+        "base": "wrap_wa_curve38",
+        "outer": "wrap_wa_curve40",
+        "side": "wrap_wa_surface76",
+        "factor": 2,
+        "parameterDomain": [
+          0,
+          1
+        ],
+        "radialDomain": [
+          0,
+          1
+        ]
+      }
+    ],
+    "componentCover": {
+      "curves": 4,
+      "rings": 1,
+      "adjacent": 4,
+      "disjoint": 2,
+      "totalPairs": 6,
+      "complete": true
+    },
+    "componentCounts": {
+      "rational": {
+        "operations": 3874,
+        "gcdSteps": 2805,
+        "floatSearchSteps": 0,
+        "floatConversions": 0,
+        "maximumObservedBits": 106
+      },
+      "directOperations": 6059,
+      "totalOperations": 9933,
+      "work": 6488,
+      "maximumDirectBits": 444,
+      "curves": 4,
+      "nodes": 4
+    },
+    "startedCounts": {
+      "rational": {
+        "operations": 3874,
+        "gcdSteps": 2805,
+        "floatSearchSteps": 0,
+        "floatConversions": 0,
+        "maximumObservedBits": 106
+      },
+      "directOperations": 6059,
+      "totalOperations": 9933,
+      "work": 6488,
+      "maximumDirectBits": 444,
+      "curves": 4,
+      "nodes": 4
+    },
+    "counts": {
+      "rational": {
+        "operations": 4322,
+        "gcdSteps": 2805,
+        "floatSearchSteps": 0,
+        "floatConversions": 0,
+        "maximumObservedBits": 106
+      },
+      "directOperations": 6347,
+      "totalOperations": 10669,
+      "work": 7616,
+      "maximumDirectBits": 444,
+      "curves": 4,
+      "nodes": 4
+    },
+    "limits": {
+      "operations": 200000,
+      "integerBits": 8192,
+      "work": 1048576,
+      "curves": 32,
+      "nodes": 256,
+      "depth": 8
+    },
+    "budget": {
+      "maxOperations": 200000,
+      "maxDepth": 8
+    },
+    "meaning": {
+      "guarantee": "exact-stored-factor2-radial-side-family-embedding",
+      "projection": "Y-over-X-and-world-Z",
+      "exactCoefficientBinding": true,
+      "sideFamilyEmbeddingCertified": true,
+      "regularSidesCertified": true,
+      "nonadjacentSidesDisjoint": true,
+      "adjacentSidesShareOnlyPrescribedRadialEdge": true,
+      "sourceCarrierCertified": false,
+      "originalNativeUVBindingCertified": false,
+      "retainedFaceClosureCertified": false,
+      "topologyCertified": false,
+      "physicalBrepCertified": false,
+      "solidQualified": false,
+      "representedVolumeCertified": false,
+      "globalNativeEvaluatorErrorCertified": false,
+      "generalTextSupported": false,
+      "combinedConstructionBudgetCertified": false
+    }
+  }
+}

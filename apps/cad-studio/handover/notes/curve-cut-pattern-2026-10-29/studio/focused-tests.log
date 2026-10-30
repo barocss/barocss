@@ -1,0 +1,340 @@
+TAP version 13
+# Subtest: a consumed baked path change is staged while accepted document and stable IDs remain intact
+ok 1 - a consumed baked path change is staged while accepted document and stable IDs remain intact
+  ---
+  duration_ms: 58.922042
+  type: 'test'
+  ...
+# Subtest: unreferenced sources and display edits retain the direct fast path
+ok 2 - unreferenced sources and display edits retain the direct fast path
+  ---
+  duration_ms: 22.793708
+  type: 'test'
+  ...
+# Subtest: missing and short consumed paths refuse before accepted input or IDs change
+ok 3 - missing and short consumed paths refuse before accepted input or IDs change
+  ---
+  duration_ms: 16.665
+  type: 'test'
+  ...
+# Subtest: part insertion refuses live paths before the caller strips direct sources
+ok 4 - part insertion refuses live paths before the caller strips direct sources
+  ---
+  duration_ms: 23.906292
+  type: 'test'
+  ...
+# Subtest: an unused client allocates neither a Worker nor an eviction subscription
+ok 5 - an unused client allocates neither a Worker nor an eviction subscription
+  ---
+  duration_ms: 3.859959
+  type: 'test'
+  ...
+# Subtest: restart releases the old sender subscription and retains only the current sender
+ok 6 - restart releases the old sender subscription and retains only the current sender
+  ---
+  duration_ms: 1.963084
+  type: 'test'
+  ...
+# Subtest: final disposal settles all request families and does not revive the client
+ok 7 - final disposal settles all request families and does not revive the client
+  ---
+  duration_ms: 1.389125
+  type: 'test'
+  ...
+# Subtest: worker error retires the transport without an automatic replacement
+ok 8 - worker error retires the transport without an automatic replacement
+  ---
+  duration_ms: 0.588167
+  type: 'test'
+  ...
+# Subtest: worker messageerror retires the transport without an automatic replacement
+ok 9 - worker messageerror retires the transport without an automatic replacement
+  ---
+  duration_ms: 0.409125
+  type: 'test'
+  ...
+# Subtest: post failure is terminal and the next request cannot use a partially advanced sender
+ok 10 - post failure is terminal and the next request cannot use a partially advanced sender
+  ---
+  duration_ms: 0.271208
+  type: 'test'
+  ...
+# Subtest: pack failure settles earlier requests and requires an explicit restart
+ok 11 - pack failure settles earlier requests and requires an explicit restart
+  ---
+  duration_ms: 0.243625
+  type: 'test'
+  ...
+# Subtest: Worker constructor failure settles the first request and remains failed until explicit restart
+ok 12 - Worker constructor failure settles the first request and remains failed until explicit restart
+  ---
+  duration_ms: 0.134042
+  type: 'test'
+  ...
+# Subtest: a current diagnosis still reaches its caller
+ok 13 - a current diagnosis still reaches its caller
+  ---
+  duration_ms: 0.334959
+  type: 'test'
+  ...
+# Subtest: explicit restart preserves the existing repair Stop envelope
+ok 14 - explicit restart preserves the existing repair Stop envelope
+  ---
+  duration_ms: 0.367542
+  type: 'test'
+  ...
+# Subtest: failure listeners receive one terminal event and can reenter without retained requests
+ok 15 - failure listeners receive one terminal event and can reenter without retained requests
+  ---
+  duration_ms: 0.305542
+  type: 'test'
+  ...
+# Subtest: a failed explicit restart reports failure and cannot report success until acquisition works
+ok 16 - a failed explicit restart reports failure and cannot report success until acquisition works
+  ---
+  duration_ms: 0.165583
+  type: 'test'
+  ...
+# Subtest: a completed request releases its resolver, progress and source bookkeeping
+ok 17 - a completed request releases its resolver, progress and source bookkeeping
+  ---
+  duration_ms: 0.192041
+  type: 'test'
+  ...
+# Subtest: a synthetic handler teardown failure releases requests and blocks an automatic replacement
+ok 18 - a synthetic handler teardown failure releases requests and blocks an automatic replacement
+  ---
+  duration_ms: 0.78775
+  type: 'test'
+  ...
+# Subtest: a synthetic terminate teardown failure releases requests and blocks an automatic replacement
+ok 19 - a synthetic terminate teardown failure releases requests and blocks an automatic replacement
+  ---
+  duration_ms: 0.140833
+  type: 'test'
+  ...
+# Subtest: final disposal still releases its tables when synthetic termination throws
+ok 20 - final disposal still releases its tables when synthetic termination throws
+  ---
+  duration_ms: 0.175708
+  type: 'test'
+  ...
+# Subtest: STL read completion cannot show a question or error after a newer intent
+ok 21 - STL read completion cannot show a question or error after a newer intent
+  ---
+  duration_ms: 0.920042
+  type: 'test'
+  ...
+# Subtest: DWG header completion cannot replace a newer notice
+ok 22 - DWG header completion cannot replace a newer notice
+  ---
+  duration_ms: 0.15775
+  type: 'test'
+  ...
+# Subtest: STEP file read cannot start a worker after Stop or a newer intent
+ok 23 - STEP file read cannot start a worker after Stop or a newer intent
+  ---
+  duration_ms: 0.079542
+  type: 'test'
+  ...
+# Subtest: STEP mesh reply cannot clear a newer stage or start a part read
+ok 24 - STEP mesh reply cannot clear a newer stage or start a part read
+  ---
+  duration_ms: 0.272667
+  type: 'test'
+  ...
+# Subtest: STEP part failure cannot replace a newer notice
+ok 25 - STEP part failure cannot replace a newer notice
+  ---
+  duration_ms: 0.383458
+  type: 'test'
+  ...
+# Subtest: barocad file completion cannot commit or fit after a newer intent
+ok 26 - barocad file completion cannot commit or fit after a newer intent
+  ---
+  duration_ms: 0.105708
+  type: 'test'
+  ...
+# Subtest: barocad commit refusal does not show success or fit
+ok 27 - barocad commit refusal does not show success or fit
+  ---
+  duration_ms: 2.079708
+  type: 'test'
+  ...
+# Subtest: barocad accepted commit keeps its success and fit sequence
+ok 28 - barocad accepted commit keeps its success and fit sequence
+  ---
+  duration_ms: 0.242167
+  type: 'test'
+  ...
+# Subtest: iges file completion cannot commit or fit after a newer intent
+ok 29 - iges file completion cannot commit or fit after a newer intent
+  ---
+  duration_ms: 0.335542
+  type: 'test'
+  ...
+# Subtest: iges commit refusal does not show success or fit
+ok 30 - iges commit refusal does not show success or fit
+  ---
+  duration_ms: 6.460833
+  type: 'test'
+  ...
+# Subtest: iges accepted commit keeps its success and fit sequence
+ok 31 - iges accepted commit keeps its success and fit sequence
+  ---
+  duration_ms: 3.817
+  type: 'test'
+  ...
+# Subtest: current OBJ still offers its unit question
+ok 32 - current OBJ still offers its unit question
+  ---
+  duration_ms: 0.335291
+  type: 'test'
+  ...
+# Subtest: current STEP read failure remains visible
+ok 33 - current STEP read failure remains visible
+  ---
+  duration_ms: 0.108625
+  type: 'test'
+  ...
+# Subtest: STEP diagnosis reply cannot clear a newer stage or show an old repair question
+ok 34 - STEP diagnosis reply cannot clear a newer stage or show an old repair question
+  ---
+  duration_ms: 0.119
+  type: 'test'
+  ...
+# Subtest: rejected STEP file reads cannot show an old error after Stop
+ok 35 - rejected STEP file reads cannot show an old error after Stop
+  ---
+  duration_ms: 0.256167
+  type: 'test'
+  ...
+# Subtest: current STEP file rejection clears its stage and shows an error
+ok 36 - current STEP file rejection clears its stage and shows an error
+  ---
+  duration_ms: 0.083333
+  type: 'test'
+  ...
+# Subtest: current STEP acceptance can change ownership before the success notice
+ok 37 - current STEP acceptance can change ownership before the success notice
+  ---
+  duration_ms: 11.21975
+  type: 'test'
+  ...
+# Subtest: refused STEP acceptance cannot show a success notice
+ok 38 - refused STEP acceptance cannot show a success notice
+  ---
+  duration_ms: 0.196125
+  type: 'test'
+  ...
+# Subtest: client attaches eager part provenance after actual structuredClone and mesh unpack; missing or mismatched envelope stays untracked
+ok 39 - client attaches eager part provenance after actual structuredClone and mesh unpack; missing or mismatched envelope stays untracked
+  ---
+  duration_ms: 22.997875
+  type: 'test'
+  ...
+# Subtest: client rejects old evaluation masses, accepts the exact current body, and rejects a terminated worker after restart
+ok 40 - client rejects old evaluation masses, accepts the exact current body, and rejects a terminated worker after restart
+  ---
+  duration_ms: 7.127125
+  type: 'test'
+  ...
+# Subtest: stale evaluation replies still advance mesh slots but cannot replace or acquire current provenance
+ok 41 - stale evaluation replies still advance mesh slots but cannot replace or acquire current provenance
+  ---
+  duration_ms: 1.947875
+  type: 'test'
+  ...
+# Subtest: client keeps public seconds through real mesh clones, refusals, lost meshes and restart cancellation
+ok 42 - client keeps public seconds through real mesh clones, refusals, lost meshes and restart cancellation
+  ---
+  duration_ms: 4.849416
+  type: 'test'
+  ...
+# Subtest: pending work refuses an independent document edit before caller document, history, dirty or recovery values change
+ok 43 - pending work refuses an independent document edit before caller document, history, dirty or recovery values change
+  ---
+  duration_ms: 1.233916
+  type: 'test'
+  ...
+# Subtest: Stop returns exactly the originating accepted edit and its rollback marker without popping caller history
+ok 44 - Stop returns exactly the originating accepted edit and its rollback marker without popping caller history
+  ---
+  duration_ms: 0.165666
+  type: 'test'
+  ...
+# Subtest: an idle Stop never replays old history and future work is still allowed
+ok 45 - an idle Stop never replays old history and future work is still allowed
+  ---
+  duration_ms: 0.060542
+  type: 'test'
+  ...
+# Subtest: initial, variant and unaccepted parameter evaluations cannot claim an unrelated Undo entry
+ok 46 - initial, variant and unaccepted parameter evaluations cannot claim an unrelated Undo entry
+  ---
+  duration_ms: 0.071584
+  type: 'test'
+  ...
+# Subtest: only the current parameter candidate token authorizes its pre-effect accept closure, and acceptance consumes it
+ok 47 - only the current parameter candidate token authorizes its pre-effect accept closure, and acceptance consumes it
+  ---
+  duration_ms: 0.121625
+  type: 'test'
+  ...
+# Subtest: a candidate or view-only run never borrows an accepted model rollback reservation
+ok 48 - a candidate or view-only run never borrows an accepted model rollback reservation
+  ---
+  duration_ms: 0.052167
+  type: 'test'
+  ...
+# Subtest: same-content document or input ABA and a lookalike history entry do not authorize rollback
+ok 49 - same-content document or input ABA and a lookalike history entry do not authorize rollback
+  ---
+  duration_ms: 0.1345
+  type: 'test'
+  ...
+# Subtest: old completion and finally callbacks cannot release a newer owner or a newer Render reservation
+ok 50 - old completion and finally callbacks cannot release a newer owner or a newer Render reservation
+  ---
+  duration_ms: 0.06825
+  type: 'test'
+  ...
+# Subtest: new Open invalidates ownership even when the old document object is reused; redo gets a new owner
+ok 51 - new Open invalidates ownership even when the old document object is reused; redo gets a new owner
+  ---
+  duration_ms: 0.285667
+  type: 'test'
+  ...
+# Subtest: two Render-only reservations settle normally and cannot attach themselves to a later model computation
+ok 52 - two Render-only reservations settle normally and cannot attach themselves to a later model computation
+  ---
+  duration_ms: 0.300625
+  type: 'test'
+  ...
+# Subtest: a reservation survives a changed evaluated identity until the corresponding work begins
+ok 53 - a reservation survives a changed evaluated identity until the corresponding work begins
+  ---
+  duration_ms: 0.100209
+  type: 'test'
+  ...
+# Subtest: a rejected or throwing pre-accept transition releases its reservation without reserving an unrelated document
+ok 54 - a rejected or throwing pre-accept transition releases its reservation without reserving an unrelated document
+  ---
+  duration_ms: 0.173917
+  type: 'test'
+  ...
+# Subtest: matching completion releases ordinary or hand-off work without a worker request and allows the next edit
+ok 55 - matching completion releases ordinary or hand-off work without a worker request and allows the next edit
+  ---
+  duration_ms: 0.05125
+  type: 'test'
+  ...
+1..55
+# tests 55
+# suites 0
+# pass 55
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 583.613166

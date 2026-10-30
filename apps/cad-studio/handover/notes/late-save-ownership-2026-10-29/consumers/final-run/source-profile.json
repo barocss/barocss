@@ -1,0 +1,44 @@
+{
+  "worktree": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+  "runtime": [
+    {
+      "path": "apps/cad-studio/src/App.tsx",
+      "sha256": "3408486cb5ba46cb87091c9916be0c99ceee09ce7662779d6742adfe982ded35"
+    },
+    {
+      "path": "apps/cad-studio/src/storage/useProject.ts",
+      "sha256": "b137e624895a31f76527efd7183913aec72161d07121cd2ecf3f0000d89ed94a"
+    },
+    {
+      "path": "apps/cad-studio/src/storage/project.ts",
+      "sha256": "df2fefe53a8dc9d5be5fc5d2193583c2b87f3fc58e87fc4788d1b23d7a30ebd1"
+    },
+    {
+      "path": "apps/cad-studio/src/storage/handleStore.ts",
+      "sha256": "73e879642071ec3db0597189946edb952804c523fc4159c0d7b584263b46c2a5"
+    },
+    {
+      "path": "apps/cad-studio/src/app/recovery.ts",
+      "sha256": "56ee708fe832d00f73117e4e9829575b9899ec0a3c011db7a8d2f12ff40de989"
+    },
+    {
+      "path": "apps/cad-studio/src/state/saveOwnership.ts",
+      "sha256": "da2146866d24cefa4ca2caedfaf0784ffc785968d6b8016dda0f5236774003bd"
+    }
+  ],
+  "drivers": [
+    {
+      "path": "apps/cad-studio/test/late-save-ownership-browser.test.mjs",
+      "sha256": "e3a00e5ac1616cfa0d24279bfec08f99a25d8bf77391014af6b1d56e57984a98",
+      "capsule": "late-save-ownership-browser.test.mjs.gz",
+      "gzipSha256": "1941ee9b17ecea900a7c567bf9588c7e03f32a5d009e9687c3d46e961413dfa5"
+    },
+    {
+      "path": "apps/cad-studio/test/late-save-native-scheduler.mjs",
+      "sha256": "3c2d6fb751cdb30577214a71ec95f12471044d7040a23e0c77eb187897802f21",
+      "capsule": "late-save-native-scheduler.mjs.gz",
+      "gzipSha256": "9a6540306ccf728def18a099c957ffe27bbc4e25012609e10db9415ade8383cd"
+    }
+  ],
+  "staleContinuationReview": "useProject awaits writePart, then returns false synchronously if current() false; no stale refresh/metadata/onCurrent. App current callback not called. New/Close require production returned-tag read; same-document also requires actual refresh."
+}

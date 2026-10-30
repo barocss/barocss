@@ -1,0 +1,57 @@
+{
+  "errors": [
+    {
+      "path": "/home/runner/work/barocss/barocss/apps/cad-studio/handover/notes/curve-cut-pattern-2026-10-29/root/review-api.cjs",
+      "error": "##[error]   1:12  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports"
+    },
+    {
+      "path": "/home/runner/work/barocss/barocss/apps/cad-studio/handover/notes/curve-cut-pattern-2026-10-29/root/review-api.cjs",
+      "error": "##[error]   2:12  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports"
+    },
+    {
+      "path": "/home/runner/work/barocss/barocss/apps/cad-studio/handover/notes/drawing-location-ownership-2026-10-29/baseline-valid.mjs",
+      "error": "##[error]  8:7  error  'sources' is assigned a value but never used  @typescript-eslint/no-unused-vars"
+    },
+    {
+      "path": "/home/runner/work/barocss/barocss/apps/cad-studio/handover/notes/fill-cut-pattern-2026-10-30/root/review-api.cjs",
+      "error": "##[error]   1:12  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports"
+    },
+    {
+      "path": "/home/runner/work/barocss/barocss/apps/cad-studio/handover/notes/fill-cut-pattern-2026-10-30/root/review-api.cjs",
+      "error": "##[error]   2:12  error    A `require()` style import is forbidden  @typescript-eslint/no-require-imports"
+    },
+    {
+      "path": "/home/runner/work/barocss/barocss/apps/cad-studio/handover/notes/native-quadrature-conditioning-2026-10-30/step-box/probe-first.mjs",
+      "error": "##[error]  7:140  error    Empty block statement         no-empty"
+    },
+    {
+      "path": "/home/runner/work/barocss/barocss/apps/cad-studio/handover/notes/prismatic-mass-stability-2026-10-30/actual-result/prefix-probe.ts",
+      "error": "##[error]   2:21  error    'rectanglePart' is defined but never used  @typescript-eslint/no-unused-vars"
+    },
+    {
+      "path": "/home/runner/work/barocss/barocss/apps/cad-studio/handover/notes/prismatic-mass-stability-2026-10-30/actual-result/retry-probe.ts",
+      "error": "##[error]   2:21  error    'rectanglePart' is defined but never used  @typescript-eslint/no-unused-vars"
+    },
+    {
+      "path": "/home/runner/work/barocss/barocss/apps/cad-studio/handover/notes/quadratic-cut-pattern-2026-10-30/kernel/counts.mjs",
+      "error": "##[error]  3:110  error    Unexpected aliasing of 'this' to local variable  @typescript-eslint/no-this-alias"
+    },
+    {
+      "path": "/home/runner/work/barocss/barocss/apps/cad-studio/handover/notes/quadratic-cut-pattern-2026-10-30/kernel/public-work-audit.mjs",
+      "error": "##[error]  5:51   error    Unexpected aliasing of 'this' to local variable  @typescript-eslint/no-this-alias"
+    },
+    {
+      "path": "/home/runner/work/barocss/barocss/apps/cad-studio/handover/notes/quadratic-cut-pattern-2026-10-30/root/baseline.mjs",
+      "error": "##[error]   1:10  error    'createRequire' is defined but never used  @typescript-eslint/no-unused-vars"
+    },
+    {
+      "path": "/home/runner/work/barocss/barocss/apps/cad-studio/handover/notes/thread-basis-performance-2026-10-29/perf-bench-snapshot.mjs",
+      "error": "##[error]   47:7    error    'XZ' is assigned a value but never used  @typescript-eslint/no-unused-vars"
+    },
+    {
+      "path": "/home/runner/work/barocss/barocss/apps/cad-studio/handover/notes/trimmed-surface-region-2026-10-30/display/isolate.ts",
+      "error": "##[error]  3:21   error    'keptAt' is defined but never used  @typescript-eslint/no-unused-vars"
+    }
+  ],
+  "allArchivedEvidence": true
+}

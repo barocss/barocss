@@ -1,0 +1,43 @@
+# D342 near-full remaining-target repair
+
+Final helper/test source frozen. Own2files and final hashes in owned-sha256.json. API unchanged. No Kernel/faceProfile/planeOfFace/command-wiring edit by this worker. Root/Medium own subsequent command integration and real Studio proof. No commit/push. Exclusive Node22.19.0 heavy runs use EXITrelease; final holder none.
+
+## Two distinct confirmed numerical boundaries
+1. Supplied translatedbox20.00003×10.00007×5.00009 at[.1234567,−.2345678,.3456789], top coordinate5.3457689/opposite.3456789,distance−5.00009 stores a positive2.220446049250313e−16 gap. Pre-fix actualexisting command build/evaluate succeeds, native one solid/closed shell,V4.4409298461300914e−14, but strictcheckBrep reports four side loops touching/slivers. Model centroid.z=.34375 is outside actualinterval[.3456789,.34567890000000023]. Native centroid.z is.3456789000000001. Original source retained. Supplied original logs/results copied unchanged to original-nearfull-*; independent pre-fix rerun full output is prefix-first.log with helper/test source copies and hashes in source-before.json. prefix-result.json later received a post-guard run from the same harness path; use prefix-first.log or original-nearfull-result.json for immutable pre-fix result.
+2. Additional translatedcircle radius3,height5.00009,sameoffset has the same positive gap. Native strictcheck is VALID but Model centroid.z=.34375 is still outside actualinterval. This second counterexample is preserved in boundary-first.log/boundary-results.json from strict-only guard stage. Curved strict mapper deliberately skips crossing/sliver tests on closed/collapsed charts, so strict validity alone is insufficient as this consumer's numerical admission. No Core validator bug is asserted. Existing prismaticMassProperties uses raw z1²−z0²/z1³−z0³ integrals (solid-mass.ts51-57); cancellation is not repaired here. No general mass certificate is claimed.
+
+## Minimal final repair
+validateNativeOffsetDistance first retains exact positive intended/stored gap, factory ownership and joint footprint+cap-rounding<=old1e−7 checks. It then forms the COMPLETE prospective remaining target from actual world-normal lo=min(opposite,next),hi=max(opposite,next), not |distance| tool or rounded(thickness+distance). Existing prismaticFromProfile+brepFromPrismatic produce it; existing cardinal transform maps it into actual worldaxes. Both actual caplevels must occur. Every native vertex, edge pole and support pole is bound to those levels; complete cap curves/supports stay in their plane. A prospective reconstruction that cannot bind these levels refuses rather than validating a different interval.
+
+Existing checkBrep({strict:true}) enforces its current sliver/loop/tolerance policy. Then existing prismaticMassProperties is evaluated using SAME actual world-normal lo/hi (no recentering). Positive finite volume and finite normal centroid must lie in that actualinterval and bind its exact midpoint under unchanged1e−7. This is a necessary numerical admission for this bounded prism composition, not blanket mass accuracy. Failed geometry or mass admission throws FACE_DISTANCE before existing command appends any node. No new minimum thickness, EPS, tolerance, general engine, fullModel duplicate evaluation or asynchronous state introduced.
+
+One last actual-next witness per trusted current-source cap proof is shared across factory-owned returned copies. All per-request distance/ownership/jointbudget checks happen before witness reuse. Only last success/refusal is kept; dragging does not create an unboundedMap. Mutable callers cannot change deep-frozen profile or private witness.
+
+During expanded ordinary signed-circle controls a reference-only cap reconstruction used from+height and failed to recover an original fractional caplevel. helper-third.log preserves13PASS1FAIL. Footprint reference now uses existing unit-height native circle producer and directly lifts its exact quarter leaves to each original actualcap plane; all4quarters/bothlevels remain fully checked. This avoids an unnecessary reference-chart restriction. The prospective FULL remaining target and its mass STILL use actual worldlo/hi, so cancellation is not hidden. All newly introduced capturing find/filter/map/every callbacks in element/frame paths were replaced by explicit loops/module lookup helpers.
+
+## Final evidence and limits
+- helper-final.log:14PASS0FAIL, including originalbox/circle negative, validretry, repeatedlast-witness refusal/success, all12signed cardinal ordinarysmall-positive targets, all original native authority/ownership/curve-proof checks.
+- types-final.log: fullModel typecheck PASS.
+- lint-final.log: helper/test lint PASS.
+- boundary-source-final-results.json and matching log: actual publiccommand24cases on finalsource. All12nearfull requests refused FACE_DISTANCE before build; all12retaining≈.001 examples succeed with one target nativebody and strictvalid native output. These cover6signedboxcaps and6circlecaps acrossZ/X/Y axes. Circle mass admission is separately distinguished from box strict-geometry admission. Normalcentroids of all ordinary outputs lie in their intendedpositive interval.
+- The arbitrary retained.001 is a TEST CONTROL ONLY, not a new product minimum.
+- Initial source/test11-case receipt is superseded for finalsource by this14-case receipt. Its first no-test harness output was accidentally overwritten by a later wrapper, then restored byte-exactly using its original known output and verified against the already-written prior SHA256manifest; the later13-case output was preserved as helper-second.log here. No product failure was erased. Other first logs remain unchanged.
+- Broader command integration tests/type/lint and actualbrowser/file acceptance must be run/reported by Root/Medium after this final freeze; earlier21+37 Model checks were held and are not promoted to finalsource acceptance here.
+
+Original default builders/checkers intentionally omit the optional strict geometric checks: brep-core.ts173-179 and brep-check-geometry.ts1-4,150-163 establish the contract. Numerical Kernel mass work may be registered separately by root; this slice changes only Offset face admission. No performance claim, new dependency/schema/nativeCore modification, fullsuite, browser, commit or push.
+
+## Subsequent ordinary endpoint regression and final correction
+
+The prior14-test frozen source still produced2real ordinary refusals in Medium's63casecheck(61PASS2FAIL): translatedbox negativeX/negativeY caps outward+2.125. Original complete output is ordinary-binding-original-model.log, independently reproduced before change in ordinary-binding-prefix.log/result.json. Native requestedhi20.123486699999997 was recomputed as20.123486699999994; Yhi9.765502199999998 was recomputed as9.765502199999997. The prospective guard checked a different interval and refused. Tests were not weakened.
+
+Final native input route uses the existing unit-height profile producer ONLY to own its bounded2Dsection. It requires exactlyoneunit slab0..1, onehole-free region and both unitcapSources0/1. The existing PUBLIC PrismaticSolid slab/capSource endpoint fields are copied into an owned input with actual z0=lo,z1=hi and actual capSource.z. No boundarypole is manually rewritten, no extra arrangement/genericengine/normalization/tolerance is added, and exact equality checks remain. Existing brepFromPrismatic consumes those explicit levels directly (prismatic-solid.ts175+) and the SAME solid reaches prismaticMassProperties. Thus ordinaryhi is never rebuilt as lo+(hi-lo), and both nearfull negative boundaries still use actualworldintervals.
+
+Final-after-this-correction evidence supersedes the earlier14-case source freeze:
+- ordinary-binding-helper.log:15PASS0FAIL.
+- ordinary-binding-types.log: fullModeltypesPASS.
+- ordinary-binding-lint.log: helper/testlintPASS.
+- ordinary-binding-after-result.json/log: both actualexisting publiccommands nowSUCCESS, original recipesunchanged, strictnativeonebody/oneshell; Xvolume1106.2791564268873,Yvolume1212.5306439192373.
+- ordinary-binding-boundary-final-results.json/log: finalsource24boundary/ordinarycases againPASS as12FACE_DISTANCE refusals+12SUCCESS/strictnativeonebodyoneshell/normalcentroidsinsideactualtargetinterval.
+- Final15-test source hashes are owned-sha256.json. The previous14-test source hashes/receipt remain in ordinary-binding-prior-owned-sha256.json and receipt-before-ordinary-binding.md.
+
+No fullsuite/browser/Modelintegration63case rerun by this worker. Root/Medium now own final integration after sourcefreeze. HeavyEXITrelease confirmedholdernone.

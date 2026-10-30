@@ -1,0 +1,65 @@
+{
+  "workId": "D317",
+  "status": "SCOPED_PASS",
+  "baseline": "800ff27f9ab65daec84fc7bf0ff11dd482a10b79",
+  "runtime": "Node22.19.0",
+  "unitRegressionBaseline": {
+    "passed": 3,
+    "failed": 1,
+    "error": "Missing expected exception.",
+    "log": "baseline.log"
+  },
+  "focusedModel": {
+    "passed": 6,
+    "failed": 0,
+    "log": "after.log"
+  },
+  "finalReferenceAfterTestTypeRepair": {
+    "passed": 2,
+    "failed": 0,
+    "overlapsFocused": true,
+    "log": "reference-final.log"
+  },
+  "types": {
+    "model": "PASS",
+    "studio": "PASS",
+    "firstFailure": "TS2339: ReferenceSource.step without narrowing; test assertion repaired",
+    "firstFailureLog": "model-types-first-failure.log"
+  },
+  "changedLint": "PASS",
+  "actualStudio": "PASS; first run; Chrome WebGPU DPR1; NANO B-rep dirty/AP242 clean refusal preservation; actual Undo/Redo; MICRO and undeclared physical scale/source/semantic Save/New/Open",
+  "rootActualScreenshotReview": 6,
+  "consumerReceipt": "consumers/validation.json",
+  "docs": {
+    "status": "PASS",
+    "pages": 68,
+    "shots": 55,
+    "shotKB": 4811,
+    "labels": 858,
+    "log": "docs-check-first.txt",
+    "api": "Existing six-rule SCOPED_PASS; no expected inventory change",
+    "generatedAgentTools": "PASS",
+    "generatedRefusals": "PASS after NOT_READ engine producer refresh"
+  },
+  "generatedFirstFailure": "docs/reference/_refusals.md differs from the sources: run node scripts/refusals.mjs",
+  "notRun": [
+    "whole Kernel/Model/Studio suites",
+    "other actual UI prefixes/INCH/FOOT",
+    "other browser/DPR",
+    "general mixed representation contexts",
+    "unknown conversion units",
+    "external STEP-reader conformance",
+    "performance",
+    "worker call-count instrumentation"
+  ],
+  "sourceHashes": {
+    "packages/barocss-cad-model/src/engine/stepUnits.ts": "8c24f0d4847c39fdc62b5a37ab37de8bdfcaf942a9155dd1f744fb30a51dec88",
+    "packages/barocss-cad-model/test/step-units.test.ts": "42d2aec0ea3b293ff100f5fc1e1aedff400f4ef62a7c4df3072055e27b556bb3",
+    "packages/barocss-cad-model/test/step-reference-units.test.ts": "31c91f0d9759ddfae63d0e368670cdd6045c2f741f6c1a69dab1a577aaa48f73",
+    "apps/cad-studio/src/App.tsx": "2ee6565e79125c56905b9418adcbc6fc8286449bee939609cfe7ead6814c3593",
+    "apps/cad-studio/test/browser-flow.mjs": "29aaa52cb146de6044bb29defe42587b0a1327767dfd543369c797f0e22fdf5e"
+  },
+  "hashMeaning": "Provenance and artifact binding only; no source checksum acceptance test",
+  "publication": "Normal per-feature push authorized; no PR/release",
+  "nextPriority": "D318: #2235 skeleton Save/fresh Open/re-edit stable identity, roadmap09/12"
+}

@@ -1,0 +1,9 @@
+{
+  "status": "SOURCE_PREPARED_ACTUAL_NOT_RUN",
+  "driverSyntax": 0,
+  "driverSha256": "9167cfe2ec60b8c56017cb69c7916ab5ff3c7815217d448823da40dd832af8b4",
+  "gzipSha256": "a62b0287ddca3af1cef6507d38f31da7a19151bf24457e8ab28c39aee03de098",
+  "completion": "same-document requires native close return, production returned-tag read AND production project refresh completion; New/Close do not require refresh, pending final producer stale-continuation review.",
+  "priorPreflight": "final-preparation remains immutable; no helper/lint rerun because only completion predicate changed.",
+  "semanticAssertions": "Unchanged"
+}

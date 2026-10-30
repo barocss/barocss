@@ -1,0 +1,60 @@
+{
+  "checkout": "b1a9ed8c9dbbbe463fae1600151041870914937d",
+  "sourceAndBuildInputs": {
+    "packages/barocss-viewer/src/presenter.ts": {
+      "sha256": "3acb1296f52675be808bf62f7853675aa592163390236923388f937edcd6f1ea",
+      "archive": "original-packages__barocss-viewer__src__presenter.ts"
+    },
+    "packages/barocss-viewer/src/index.ts": {
+      "sha256": "ec81a4222a69b3859fbe16203c07cc1606fa99aa504c8fa521a3ea0c3f114a91",
+      "archive": "original-packages__barocss-viewer__src__index.ts"
+    },
+    "packages/barocss-viewer/src/native-backend.ts": {
+      "sha256": "5b7be77f6b73490ec49e3e8543cf28d1a9e2e03bba7beb68d04cfdd51ebbf99c",
+      "archive": "original-packages__barocss-viewer__src__native-backend.ts"
+    },
+    "packages/barocss-viewer/package.json": {
+      "sha256": "7eae9edcf73be3de63de6dff19822866196d9fd6ce62577ff488e6f5a27e64d6",
+      "archive": "original-packages__barocss-viewer__package.json"
+    },
+    "packages/barocss-viewer/tsconfig.json": {
+      "sha256": "5dbdd00a4bc0bc15ad6d2d309253a731f5f31630cb26dbacf07fa07f4d7ef381",
+      "archive": "original-packages__barocss-viewer__tsconfig.json"
+    },
+    "packages/barocss-gpu/src/viewer/viewer.ts": {
+      "sha256": "0b1adf995958122808cd49c6cd440ba623343469dd789d6e87d22057d8f89cb9",
+      "archive": "original-packages__barocss-gpu__src__viewer__viewer.ts"
+    },
+    "packages/barocss-gpu/src/viewer/scene.ts": {
+      "sha256": "3d215f883911a52f3dbc278eb6978622f2f8cdf0ecbad51e06a4b3d3b19939ff",
+      "archive": "original-packages__barocss-gpu__src__viewer__scene.ts"
+    },
+    "packages/barocss-gpu/src/viewer/geometry.ts": {
+      "sha256": "9c77377ef621977c0ccda0e8ed7ef02e8a7eb215d2d9a4f39a3901407a593cc5",
+      "archive": "original-packages__barocss-gpu__src__viewer__geometry.ts"
+    },
+    "packages/barocss-gpu/package.json": {
+      "sha256": "4455c834adaf3a1ae891394376b7bf62c78d283766b35426ba1e1634947d5327",
+      "archive": "original-packages__barocss-gpu__package.json"
+    },
+    "packages/barocss-gpu/tsconfig.json": {
+      "sha256": "97606bdc9b2332f183baae576ea36851ad9f3428c00482dcf793b205a2fb31bd",
+      "archive": "original-packages__barocss-gpu__tsconfig.json"
+    },
+    "package.json": {
+      "sha256": "1d575b89482ff9234d5605033fcd24677eed9c4a32824fe34be156d44ab0496b",
+      "archive": "original-package.json"
+    },
+    "packages/barocss-viewer/dist/presenter.js": {
+      "existed": false
+    },
+    "packages/barocss-gpu/dist/viewer/viewer.js": {
+      "sha256": "4fb9bc5f5a6556b6d476dca2332d075a4292f6b2c72d9889c17e64d4b8e077dd",
+      "archive": "original-packages__barocss-gpu__dist__viewer__viewer.js"
+    },
+    "packages/barocss-gpu/dist/viewer/scene.js": {
+      "sha256": "a4da71f00cb8730b0b2758c1f3e139524b55a470fb74cb32cb2d9e2e198c30af",
+      "archive": "original-packages__barocss-gpu__dist__viewer__scene.js"
+    }
+  }
+}

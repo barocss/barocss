@@ -1,0 +1,159 @@
+{
+  "schema": "barocss-native-iges-import-report",
+  "version": 0,
+  "profile": "barocss-writer-iges53-untransformed-open-126-128",
+  "format": "IGES 5.3 ASCII",
+  "sourceVersion": 0,
+  "sourceId": "d336",
+  "modelName": "d336",
+  "idPrefix": "d336",
+  "lengthUnit": "mm",
+  "modelScale": 1,
+  "entityCount": 2,
+  "curveCount": 0,
+  "surfaceCount": 2,
+  "records": {
+    "S": 1,
+    "G": 3,
+    "D": 4,
+    "P": 6,
+    "T": 1
+  },
+  "inputSizes": {
+    "utf16": 1215,
+    "utf8": 1215
+  },
+  "sourceSizes": {
+    "utf16": 409,
+    "utf8": 409
+  },
+  "fileSizes": {
+    "request": {
+      "utf16": 1352,
+      "utf8": 1352
+    },
+    "result": {
+      "utf16": 8987,
+      "utf8": 8987
+    }
+  },
+  "directoryPointers": [
+    1,
+    3
+  ],
+  "parameterPointers": [
+    1,
+    4
+  ],
+  "nativeIds": [
+    "d336_d1",
+    "d336_d3"
+  ],
+  "duplicateDirectoryLabelCount": 0,
+  "fileNegativeZeroTokenCount": 0,
+  "declaredMaximumCoordinate": 50,
+  "actualMaximumCoordinate": 50,
+  "directCounts": {
+    "recordScanCount": 15,
+    "integerFieldParseCount": 53,
+    "tokenScanCount": 102,
+    "numericParseCount": 89,
+    "hollerithParseCount": 13,
+    "nativeCurveValidationCount": 0,
+    "nativeSurfaceValidationCount": 2,
+    "curveDomainQueryCount": 0,
+    "surfaceDomainQueryCount": 2,
+    "fullSourceCompileCount": 1,
+    "decimalEmissionCount": 52,
+    "curveD0Count": 0,
+    "curveD1AttemptCount": 0,
+    "surfaceD0Count": 0,
+    "surfaceD1AttemptCount": 0,
+    "rationalOperationCount": 0
+  },
+  "preservation": {
+    "completeInputFile": true,
+    "directoryOrderAndOwnership": true,
+    "directoryLabelFields": true,
+    "parsedCoefficientBits": true,
+    "parsedDomains": true,
+    "independentWeights": true,
+    "sourceModelCoefficientBinding": true,
+    "nativeIdsFromDirectoryPointers": true
+  },
+  "losses": {
+    "fileNumberPolicy": "complete-decimal-token-to-finite-binary64",
+    "parsedNegativeZeroBitsPreserved": true,
+    "originalFullNativeIdsRecovered": false,
+    "originalAuthoredZeroSignsRecovered": false,
+    "originalSourceSpellingRecovered": false,
+    "originalFeaturesHistoryRecovered": false,
+    "originalSourceIncluded": false,
+    "directoryLabelsMayBeTruncated": true,
+    "geometryReparameterized": false,
+    "unitsConverted": false,
+    "transformsApplied": false,
+    "sourceMeaning": "new-imported-geometry-not-original-author-intent"
+  },
+  "quality": {
+    "nativeGeometryValidated": true,
+    "sourceCoefficientBinding": true,
+    "geometryOnly": true,
+    "generalIGESConformance": false,
+    "trimmedTopology": false,
+    "topologyCertified": false,
+    "solid": false,
+    "assembly": false,
+    "smoothnessCertified": false,
+    "g1g2Certified": false,
+    "globalBinary64ErrorCertified": false,
+    "manufacturingToleranceCertified": false,
+    "editorDisplayCertified": false,
+    "persistentTopologyBindingCertified": false,
+    "publication": false,
+    "ownership": "independent-copied-cpu-data-gc"
+  },
+  "limits": {
+    "maximumInputUTF16": 1048576,
+    "maximumInputUTF8": 1048576,
+    "maximumRecords": 8192,
+    "recordCharacters": 80,
+    "maximumEntities": 16,
+    "maximumGlobalRecords": 64,
+    "globalTokenCount": 26,
+    "maximumTokens": 18000,
+    "maximumEntityTokens": 1082,
+    "maximumNumericTokenCharacters": 32,
+    "maximumHollerithCharacters": 256,
+    "maximumDegree": 5,
+    "maximumCurvePoles": 64,
+    "maximumCurveKnots": 70,
+    "maximumSurfaceAxisPoles": 16,
+    "maximumSurfacePoles": 256,
+    "maximumSurfaceAxisKnots": 22,
+    "maximumModelObjects": 16,
+    "coordinateAbs": 1000000,
+    "minimumWeight": 0.000001,
+    "maximumWeight": 1000000,
+    "maximumNativeIdCharacters": 48,
+    "maximumModelNameCharacters": 48,
+    "maximumIdPrefixCharacters": 32,
+    "maximumDecimalEmissionCount": 17120,
+    "maximumSourceLiteralCharacters": 350,
+    "sourceUTF16": 262144,
+    "sourceUTF8": 262144,
+    "maximumRequestFileUTF16": 1048576,
+    "maximumRequestFileUTF8": 1048576,
+    "maximumResultFileUTF16": 4194304,
+    "maximumResultFileUTF8": 4194304,
+    "ownValues": 1048576,
+    "ownDepth": 64,
+    "arrayElements": 8192,
+    "recordFields": 64,
+    "keyCharacters": 128,
+    "stringCharacters": 262144,
+    "requestIGESStringCharacters": 1048576
+  },
+  "workScope": "actual-parser-native-validation-domain-and-full-source-compile-calls-inherited-work-excluded",
+  "budgetFailure": "atomic-no-partial-imported-model-or-source"
+}

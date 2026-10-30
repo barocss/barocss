@@ -1,0 +1,60 @@
+{
+  "status": "FINAL_CANDIDATE_AWAITING_ROOT_VERIFICATION",
+  "base": "92256f0dfbdbe66fcead990bb7bc9ba436088353",
+  "paths": [
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/src/api/index.ts",
+      "sha256": "a5cc7bb23964eb281526af185320d88acd4963b7e93eaf2ff5b3e7d0fc8571c2"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/src/api/kernel.ts",
+      "sha256": "cf8d5a45a0a3b3eacac9bd617b656d4ff037ecefa6e2c7408c33a94903541b7f"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/src/api/part.ts",
+      "sha256": "9b57f113729e271c1a114f75b645296fa81683e4eedf9ec5bc6c0235ec86528a"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/src/api/spec.ts",
+      "sha256": "eb98bc7f833dc267d697d8711bd534ac7abfe810cb7938e7c9d513681818398e"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/src/brep/brep-transform.ts",
+      "sha256": "c3ce31f53397f5c8d5c86c7ff65581590f6266932046ce8d93101542eec78414"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/src/features/prismatic-solid.ts",
+      "sha256": "712e2f69536b677cc04e30439fb52923bef45359dc511fcb92957f38dc3ed2d4"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/src/part/part-model.ts",
+      "sha256": "0163716112fab5d4bea1cc0f0edb0c4f3c46ede1f8eb06db5913cda61033b56c"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/rectangular-cut-pattern.test.mjs",
+      "sha256": "62bb5c3ad65a2db85392902cc21fc07d2802c847e521fbfda1776c26905fc1d7"
+    }
+  ],
+  "checks": {
+    "full_build_before_last_matrix_hoist": "PASS build-2.exit=0",
+    "focused_before_last_2_test_cases": "PASS focused-3.exit=0; 11 tests",
+    "final_candidate_focused": "NOT_RUN; two added cases and matrix hoist pending root build/full tests",
+    "full_kernel": "NOT_RUN by this agent; root owns coordinated gate",
+    "git_diff_check": "PASS"
+  },
+  "earlier_failures": [
+    {
+      "receipt": "focused.log",
+      "reason": "missing rectangular export from API index; source cause UNKNOWN; re-added"
+    },
+    {
+      "receipt": "focused-2.log",
+      "reason": "1x1 test incorrectly compared generated Brep IDs across feature IDs; changed assertion to persistent names plus checked topology and geometry"
+    }
+  ],
+  "constraints": [
+    "No commit/push/rebase/reset/stash by this agent",
+    "No writes outside owned Kernel sources/tests except this /tmp receipt",
+    "No further source/test writes after root freeze"
+  ]
+}

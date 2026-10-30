@@ -1,0 +1,1 @@
+First build/focused ran unchanged old product source because a package-relative edit command failed with FileNotFoundError. Logs preserve that baseline. Initial fallback test also expected prism.top instead of the native default prismatic.top; corrected test expectation only. The second build is the actual product candidate.

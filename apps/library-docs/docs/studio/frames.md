@@ -53,6 +53,12 @@ A section is either typed or taken from your library:
 - add constraints and bind values to parameters;
 - **Apply** or **Cancel** the session.
 
+A saved 3D sketch keeps its point and segment arrays, constraints, parameter bindings and feature ID when
+opened again. A single point with no segment is also a valid saved sketch. Re-editing through the 3D sketch
+session keeps the existing ID and metadata; removing all constraints removes them from the stored node.
+Frames that follow the same skeleton retain that reference through edits, Undo/Redo and Save/Open.
+The file reader checks structure without solving or changing the stored points.
+
 When a frame follows a placed part's sketch, the link identifies that instance and the sketch's stable feature ID.
 Its points use the sketch plane, then the instance's rotation and position. A frame inside a placed part can follow
 its own features, but cannot follow a sibling part's sketch. This link accepts straight sketch outlines, not curves.

@@ -1,0 +1,47 @@
+{
+  "status": "ACTUAL_PRODUCT_FAIL_REPRODUCED",
+  "run": "run-02",
+  "failure": "AssertionError [ERR_ASSERTION]: Existing target pick must not alias the unrelated witness after Apply\n    at checkPostApplySelection (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/fill-cut-pattern-holes-browser.mjs:147:10)\n    at async apply (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/fill-cut-pattern-holes-browser.mjs:149:215)\n    at async file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/fill-cut-pattern-holes-browser.mjs:204:20",
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": [
+        0
+      ]
+    },
+    "bodies": 2,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b6",
+        "volume": 420.0000000000001,
+        "centroid": [
+          85.99999999999996,
+          0.4999999999999998,
+          3.5
+        ],
+        "massRef": null
+      },
+      {
+        "key": "b8",
+        "volume": 22949.99999999992,
+        "centroid": [
+          30.277777777777864,
+          20.133986928104637,
+          5
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "visual": "Root viewed failure.png: unrelated420-volume witness highlighted and inspected",
+  "correction": "Clear consumed geometry selection only after successful fill-feature-pattern commit. Cancel/refusal/Undo policy unchanged."
+}

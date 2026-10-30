@@ -1,0 +1,2 @@
+native-bound-pad                  26 ms 37a018051624ef8e
+SAME native-bound-pad                  25 →      26 ms (4.0%)

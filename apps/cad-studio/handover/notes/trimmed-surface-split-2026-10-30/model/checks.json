@@ -1,0 +1,35 @@
+{
+  "status": "MODEL_FOCUSED_TYPES_LINT_PASS_SOURCE_FROZEN",
+  "node": "v22.19.0",
+  "gate": "RELEASED_holder_none_slots_0",
+  "checks": {
+    "focused": {
+      "status": "PASS",
+      "tests": 46,
+      "pass": 46,
+      "fail": 0,
+      "skip": 0,
+      "splitTests": 13,
+      "log": "/tmp/d340-model/focused-first.log"
+    },
+    "types": {
+      "status": "PASS",
+      "log": "/tmp/d340-model/types-first.log"
+    },
+    "ownedLint": {
+      "status": "PASS",
+      "log": "/tmp/d340-model/lint-first.log"
+    },
+    "whitespace": {
+      "status": "PASS"
+    }
+  },
+  "firstFailure": null,
+  "limits": [
+    "No Model whole-suite rerun",
+    "No Studio/browser/product qualification",
+    "No commit/push",
+    "External Python remains an independent qualification artifact; registered tests use native Node BigInt only"
+  ],
+  "files": "/tmp/d340-model/hashes.json"
+}

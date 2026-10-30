@@ -1,0 +1,352 @@
+{
+  "browserVersion": "156.0.8078.48",
+  "errors": [],
+  "result": {
+    "status": "FAIL",
+    "secureContext": true,
+    "origin": "http://127.0.0.1:54391",
+    "namespace": "d320-native-write-ownership",
+    "checks": [
+      {
+        "name": "same-path-overlap",
+        "a": {
+          "ok": true,
+          "value": {
+            "tag": "18-1793250600859"
+          }
+        },
+        "b": {
+          "ok": false,
+          "code": "STORAGE_CHANGED",
+          "name": "BarocssError",
+          "message": "[STORAGE_CHANGED] overlap changed since it was read"
+        },
+        "original": {
+          "tag": "4-1793250600845"
+        },
+        "after": {
+          "bytes": "writer-A-is-longer",
+          "tag": "18-1793250600859",
+          "size": 18
+        },
+        "independent": {
+          "tag": "16-1793250600860"
+        },
+        "readWhileUncommitted": "seed"
+      },
+      {
+        "name": "fresh-and-serial-stale",
+        "follow": {
+          "tag": "29-1793250600875"
+        },
+        "followed": {
+          "bytes": "fresh-followup-is-even-longer",
+          "tag": "29-1793250600875",
+          "size": 29
+        },
+        "stale": {
+          "ok": false,
+          "code": "STORAGE_CHANGED",
+          "name": "BarocssError",
+          "message": "[STORAGE_CHANGED] overlap changed since it was read"
+        }
+      },
+      {
+        "name": "expect-null-create",
+        "a": {
+          "ok": true,
+          "value": {
+            "tag": "13-1793250600883"
+          }
+        },
+        "b": {
+          "ok": false,
+          "code": "STORAGE_CHANGED",
+          "name": "BarocssError",
+          "message": "[STORAGE_CHANGED] created changed since it was read"
+        }
+      },
+      {
+        "name": "unconditional-and-returned-tag",
+        "a": {
+          "ok": true,
+          "value": {
+            "tag": "17-1793250600889"
+          }
+        },
+        "b": {
+          "ok": true,
+          "value": {
+            "tag": "25-1793250600894"
+          }
+        },
+        "nativeA": {
+          "bytes": "tag-writer-A-long",
+          "tag": "17-1793250600889",
+          "size": 17
+        },
+        "nativeB": {
+          "bytes": "unconditional-B-is-longer",
+          "tag": "25-1793250600894",
+          "size": 25
+        }
+      }
+    ],
+    "events": [
+      {
+        "type": "native-stream-admitted",
+        "path": "overlap",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-write",
+        "path": "overlap",
+        "size": 4
+      },
+      {
+        "type": "native-close",
+        "path": "overlap"
+      },
+      {
+        "type": "native-stream-admitted",
+        "path": "overlap",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-stream-admitted",
+        "path": "independent",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-write",
+        "path": "independent",
+        "size": 16
+      },
+      {
+        "type": "native-close",
+        "path": "independent"
+      },
+      {
+        "type": "native-write",
+        "path": "overlap",
+        "size": 18
+      },
+      {
+        "type": "native-close",
+        "path": "overlap"
+      },
+      {
+        "type": "native-stream-admitted",
+        "path": "overlap",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-write",
+        "path": "overlap",
+        "size": 29
+      },
+      {
+        "type": "native-close",
+        "path": "overlap"
+      },
+      {
+        "type": "native-stream-admitted",
+        "path": "created",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-write",
+        "path": "created",
+        "size": 13
+      },
+      {
+        "type": "native-close",
+        "path": "created"
+      },
+      {
+        "type": "native-stream-admitted",
+        "path": "returned-tag",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-write",
+        "path": "returned-tag",
+        "size": 8
+      },
+      {
+        "type": "native-close",
+        "path": "returned-tag"
+      },
+      {
+        "type": "native-stream-admitted",
+        "path": "returned-tag",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-write",
+        "path": "returned-tag",
+        "size": 17
+      },
+      {
+        "type": "native-close",
+        "path": "returned-tag"
+      },
+      {
+        "type": "returned-tag-read-held",
+        "path": "returned-tag"
+      },
+      {
+        "type": "native-stream-admitted",
+        "path": "other",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-write",
+        "path": "other",
+        "size": 14
+      },
+      {
+        "type": "native-close",
+        "path": "other"
+      },
+      {
+        "type": "native-stream-admitted",
+        "path": "returned-tag",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-write",
+        "path": "returned-tag",
+        "size": 25
+      },
+      {
+        "type": "native-close",
+        "path": "returned-tag"
+      },
+      {
+        "type": "native-stream-admitted",
+        "path": "native-error",
+        "arguments": 0,
+        "streamType": "FileSystemWritableFileStream",
+        "observedMode": "siloed"
+      },
+      {
+        "type": "native-aborted-before-write",
+        "path": "native-error"
+      },
+      {
+        "type": "native-write",
+        "path": "native-error",
+        "size": 20
+      },
+      {
+        "type": "native-abort",
+        "path": "native-error"
+      }
+    ],
+    "snapshots": [
+      {
+        "path": "overlap",
+        "tag": "4-1793250600845",
+        "size": 4
+      },
+      {
+        "path": "overlap",
+        "tag": "4-1793250600845",
+        "size": 4
+      },
+      {
+        "path": "independent",
+        "tag": "16-1793250600860",
+        "size": 16
+      },
+      {
+        "path": "overlap",
+        "tag": "4-1793250600845",
+        "size": 4
+      },
+      {
+        "path": "overlap",
+        "tag": "18-1793250600859",
+        "size": 18
+      },
+      {
+        "path": "overlap",
+        "tag": "18-1793250600859",
+        "size": 18
+      },
+      {
+        "path": "overlap",
+        "tag": "18-1793250600859",
+        "size": 18
+      },
+      {
+        "path": "overlap",
+        "tag": "29-1793250600875",
+        "size": 29
+      },
+      {
+        "path": "overlap",
+        "tag": "29-1793250600875",
+        "size": 29
+      },
+      {
+        "path": "created",
+        "tag": "13-1793250600883",
+        "size": 13
+      },
+      {
+        "path": "created",
+        "tag": "13-1793250600883",
+        "size": 13
+      },
+      {
+        "path": "returned-tag",
+        "tag": "8-1793250600887",
+        "size": 8
+      },
+      {
+        "path": "other",
+        "tag": "14-1793250600891",
+        "size": 14
+      },
+      {
+        "path": "returned-tag",
+        "tag": "17-1793250600889",
+        "size": 17
+      },
+      {
+        "path": "returned-tag",
+        "tag": "25-1793250600894",
+        "size": 25
+      }
+    ],
+    "cleanup": {
+      "namespace": "REMOVED",
+      "absenceVerified": true
+    },
+    "error": {
+      "name": "TypeError",
+      "message": "Cannot read properties of undefined (reading 'code')",
+      "stack": "TypeError: Cannot read properties of undefined (reading 'code')\n    at eval (eval at evaluate (:311:30), <anonymous>:8:133)\n    at async eval (eval at evaluate (:311:30), <anonymous>:92:24)\n    at async <anonymous>:337:30"
+    }
+  }
+}

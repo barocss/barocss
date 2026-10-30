@@ -1,0 +1,4 @@
+test/skeleton-reader.test.ts(91,33): error TS2322: Type 'StudioDoc' is not assignable to type '{ nodes: ModelNode[]; nextId: number; format: "barocss-cad-model"; schema: 1 | 2 | 3 | 4; units: "mm"; parameters: Record<string, number>; rowSources?: { version: 1; rows: import("/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/src/engine/rowSource...'.
+  Types of property 'nextId' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.

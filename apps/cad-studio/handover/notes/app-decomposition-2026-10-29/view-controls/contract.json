@@ -1,0 +1,39 @@
+{
+  "status": "SOURCE_EXTRACTED_TYPES_LINT_NATIVE_NOT_RUN",
+  "baseline": "1266cdf24943acc5963bf5e346339e32c9f3da41",
+  "sourceRange": {
+    "start": 3730,
+    "end": 3782
+  },
+  "sourceReview": "Agreed current App full corner-right block copied; original block comparison is source-only, not runtime or mirror-test proof.",
+  "currentBlockEqualsBaseline": true,
+  "component": "ViewDisplayControls",
+  "domains": [
+    "model:{doc,bodies,instancesPlaced}",
+    "viewport:RefObject<ViewportHandle|null>",
+    "cornerRight:RefObject<HTMLDivElement|null>",
+    "display:ViewDisplayState",
+    "view:ViewCameraControls",
+    "section:ViewSectionControls",
+    "analysis:ViewAnalysisControls",
+    "picking:ViewPickingControls",
+    "explodeStore:ValueStore<number>"
+  ],
+  "stateOwnership": "All existing state, effects, refs and derived availability remain in App. Component has no hooks/state/effects/context/memo.",
+  "delegatedAction": "display.clearDisplayModeFailure() must be original ()=>setDisplayModeFailure(null), before setDisplayMode",
+  "preserved": [
+    "Profiler id/onBlockRender; same corner ref and DOM node/classes/aria/order",
+    "MapLegend/MouldLegend/display preview/SectionBar order",
+    "Viewport current ref setView/fit/toggleOrtho commands",
+    "Section start clearSelection(emptySel) then clear facePick then original axisSection calculation",
+    "Display failure/isolation reason and effective/requested attributes",
+    "Analysis/maps cycling and reset order",
+    "Theme/AO/ortho and explode ValueStore subscription unchanged",
+    "Pick/snap cycles and localStorage keys/errors unchanged"
+  ],
+  "newBehavior": "None; no new per-element callbacks beyond copied original block",
+  "file": {
+    "path": "apps/cad-studio/src/ui/ViewDisplayControls.tsx",
+    "sha256": "ac335753af7da7202b16ef7f38b8d785d58f5fe2350f5004f4011e68202cd9b5"
+  }
+}

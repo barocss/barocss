@@ -1,0 +1,8 @@
+{
+  "status": "AUTHORED_COPLANAR_VISIBILITY_REQUIRES_EXPLICIT_USER_HIDE",
+  "image": "/tmp/d339-studio/run-01/23-public-facade-open.png",
+  "observation": "The raw facade fixture deliberately retains six visible Direct supports at the same positions as its independent sewn body; both authored geometries render.",
+  "contract": "Raw surface snapshots carry no Direct source IDs. The facade must preserve unrelated or intentionally visible Direct objects and cannot infer that they should be consumed.",
+  "retake": "Keep the initial raw file/unchanged Direct assertion. Use the actual DirectPanel Hide action, Undo and Redo before Save/fresh Open to inspect the independent body clearly.",
+  "previewRepair": "Selected-source Sew has explicit captured IDs, so only its live candidate display can omit the identified sources without modifying saved visibility."
+}

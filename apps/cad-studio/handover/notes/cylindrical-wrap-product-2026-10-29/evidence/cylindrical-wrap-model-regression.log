@@ -1,0 +1,677 @@
+TAP version 13
+# Subtest: editing returned mesh buffers does not alter the same document core, selection or STEP
+ok 1 - editing returned mesh buffers does not alter the same document core, selection or STEP
+  ---
+  duration_ms: 26.807292
+  type: 'test'
+  ...
+# Subtest: the facade writes the hand-written document, byte for byte
+ok 2 - the facade writes the hand-written document, byte for byte
+  ---
+  duration_ms: 68.474833
+  type: 'test'
+  ...
+# Subtest: …the one the agent's run_command writes for the same three commands
+ok 3 - …the one the agent's run_command writes for the same three commands
+  ---
+  duration_ms: 45.485958
+  type: 'test'
+  ...
+# Subtest: its mass, meshes and STEP are the core functions' on that document, byte for byte
+ok 4 - its mass, meshes and STEP are the core functions' on that document, byte for byte
+  ---
+  duration_ms: 84.303584
+  type: 'test'
+  ...
+# Subtest: every method returns a new part of its own kind and leaves the old one as it was
+ok 5 - every method returns a new part of its own kind and leaves the old one as it was
+  ---
+  duration_ms: 7.289791
+  type: 'test'
+  ...
+# Subtest: typed selectors read the core's edges and faces by their names
+ok 6 - typed selectors read the core's edges and faces by their names
+  ---
+  duration_ms: 7.296583
+  type: 'test'
+  ...
+# Subtest: refusals are typed: the facade's own, and the core's passed through with its code
+ok 7 - refusals are typed: the facade's own, and the core's passed through with its code
+  ---
+  duration_ms: 3.753667
+  type: 'test'
+  ...
+# Subtest: gear and gear-mesh: what run_command writes
+ok 8 - gear and gear-mesh: what run_command writes
+  ---
+  duration_ms: 1310.608958
+  type: 'test'
+  ...
+# Subtest: spring: what run_command writes
+ok 9 - spring: what run_command writes
+  ---
+  duration_ms: 2043.532125
+  type: 'test'
+  ...
+# Subtest: rows from a person's file, then a fastener from them: what load_rows and run_command write
+ok 10 - rows from a person's file, then a fastener from them: what load_rows and run_command write
+  ---
+  duration_ms: 55.966375
+  type: 'test'
+  ...
+# Subtest: a Boolean's tool callback takes several verbs: the body it makes is the one they act on
+ok 11 - a Boolean's tool callback takes several verbs: the body it makes is the one they act on
+  ---
+  duration_ms: 23.158083
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap facade, hand recipe and HUD use the same immutable document and core results
+ok 12 - cylindrical wrap facade, hand recipe and HUD use the same immutable document and core results
+  ---
+  duration_ms: 259.023417
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap history edit preserves its face, signatures and downstream recipe
+ok 13 - cylindrical wrap history edit preserves its face, signatures and downstream recipe
+  ---
+  duration_ms: 95.674584
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap uses the current package and JSON readers with no schema change
+ok 14 - cylindrical wrap uses the current package and JSON readers with no schema change
+  ---
+  duration_ms: 134.980458
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap rejects unsupported UV, height, missing signatures and exact-face changes without mutation
+ok 15 - cylindrical wrap rejects unsupported UV, height, missing signatures and exact-face changes without mutation
+  ---
+  duration_ms: 22.892125
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap agent command equals the facade and refuses unsupported edits atomically
+ok 16 - cylindrical wrap agent command equals the facade and refuses unsupported edits atomically
+  ---
+  duration_ms: 159.469292
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap authority survives the worker mesh and mesh-token paths as plain data
+ok 17 - cylindrical wrap authority survives the worker mesh and mesh-token paths as plain data
+  ---
+  duration_ms: 72.467584
+  type: 'test'
+  ...
+# Subtest: native-half signatures and wrap selection do not depend on viewport quality
+ok 18 - native-half signatures and wrap selection do not depend on viewport quality
+  ---
+  duration_ms: 13.025166
+  type: 'test'
+  ...
+# Subtest: bound wrap height remains authored through history editing and Save/Open admission
+ok 19 - bound wrap height remains authored through history editing and Save/Open admission
+  ---
+  duration_ms: 69.197708
+  type: 'test'
+  ...
+# Subtest: Studio draft: +Z is the default for a side face and builds the old node, without a pull
+ok 20 - Studio draft: +Z is the default for a side face and builds the old node, without a pull
+  ---
+  duration_ms: 19.220042
+  type: 'test'
+  ...
+# Subtest: Studio draft: a face no +Z draft takes defaults to the first pull that takes it, and builds what the API builds
+ok 21 - Studio draft: a face no +Z draft takes defaults to the first pull that takes it, and builds what the API builds
+  ---
+  duration_ms: 73.374792
+  type: 'test'
+  ...
+# Subtest: Studio draft: a pull the picked face is not square to is refused, naming the axis
+ok 22 - Studio draft: a pull the picked face is not square to is refused, naming the axis
+  ---
+  duration_ms: 0.741542
+  type: 'test'
+  ...
+# Subtest: fitting a face outline: lines stay corners, chords on one circle become one arc
+ok 23 - fitting a face outline: lines stay corners, chords on one circle become one arc
+  ---
+  duration_ms: 1.501417
+  type: 'test'
+  ...
+# Subtest: Extrude on a picked flat face: its outline (holes too) is the profile, joined to the body
+ok 24 - Extrude on a picked flat face: its outline (holes too) is the profile, joined to the body
+  ---
+  duration_ms: 73.673291
+  type: 'test'
+  ...
+# Subtest: A rounded corner of a face comes back as its arc
+ok 25 - A rounded corner of a face comes back as its arc
+  ---
+  duration_ms: 8.173125
+  type: 'test'
+  ...
+# Subtest: Extrude on a cylinder top: one circle; a curved face cannot be pulled
+ok 26 - Extrude on a cylinder top: one circle; a curved face cannot be pulled
+  ---
+  duration_ms: 19.942875
+  type: 'test'
+  ...
+# Subtest: Fillet and Chamfer on a picked face: every edge round it
+ok 27 - Fillet and Chamfer on a picked face: every edge round it
+  ---
+  duration_ms: 170.214083
+  type: 'test'
+  ...
+# Subtest: Hole handles: a puck slides the centre on the face (new and edited holes), an arrow sizes it
+ok 28 - Hole handles: a puck slides the centre on the face (new and edited holes), an arrow sizes it
+  ---
+  duration_ms: 8.809583
+  type: 'test'
+  ...
+# Subtest: picking a hole’s wall edits that hole (not the body’s last feature); a later move stops it
+ok 29 - picking a hole’s wall edits that hole (not the body’s last feature); a later move stops it
+  ---
+  duration_ms: 23.309833
+  type: 'test'
+  ...
+# Subtest: a selection follows re-evaluated bodies by name
+ok 30 - a selection follows re-evaluated bodies by name
+  ---
+  duration_ms: 13.798958
+  type: 'test'
+  ...
+# Subtest: deleting a body takes all it was built from; features delete last first
+ok 31 - deleting a body takes all it was built from; features delete last first
+  ---
+  duration_ms: 1.067958
+  type: 'test'
+  ...
+# Subtest: placing a primitive stands it at the pointer: centred, a box by its middle
+ok 32 - placing a primitive stands it at the pointer: centred, a box by its middle
+  ---
+  duration_ms: 1.07075
+  type: 'test'
+  ...
+# Subtest: fields: every document and node field survives carry-over, delete, move, duplicate, replace, save and open
+ok 33 - fields: every document and node field survives carry-over, delete, move, duplicate, replace, save and open
+  ---
+  duration_ms: 5.520584
+  type: 'test'
+  ...
+# Subtest: fields: an instance's node extras survive flattening, their names moved with the ids
+ok 34 - fields: an instance's node extras survive flattening, their names moved with the ids
+  ---
+  duration_ms: 9.008625
+  type: 'test'
+  ...
+# Subtest: fields: a change built on the document itself keeps what it cleared (not carried back from the document)
+ok 35 - fields: a change built on the document itself keeps what it cleared (not carried back from the document)
+  ---
+  duration_ms: 0.25725
+  type: 'test'
+  ...
+# Subtest: linear cut pattern command: the real registry builds one append with original base and tool history intact
+ok 36 - linear cut pattern command: the real registry builds one append with original base and tool history intact
+  ---
+  duration_ms: 53.712625
+  type: 'test'
+  ...
+# Subtest: linear cut pattern command: invalid values and direct, missing, stale or suppressed selections refuse atomically
+ok 37 - linear cut pattern command: invalid values and direct, missing, stale or suppressed selections refuse atomically
+  ---
+  duration_ms: 56.665625
+  type: 'test'
+  ...
+# Subtest: Loft None preserves the fixed legacy authored bytes, including height sections and copied loop profiles
+ok 38 - Loft None preserves the fixed legacy authored bytes, including height sections and copied loop profiles
+  ---
+  duration_ms: 4.39125
+  type: 'test'
+  ...
+# Subtest: framed sections retain pick order and authored profile coordinates, with independent frames and no copied feature ids
+ok 39 - framed sections retain pick order and authored profile coordinates, with independent frames and no copied feature ids
+  ---
+  duration_ms: 0.765292
+  type: 'test'
+  ...
+# Subtest: quadratic and cubic guide commands author copied controls and explicit frames with unique new feature ids
+ok 40 - quadratic and cubic guide commands author copied controls and explicit frames with unique new feature ids
+  ---
+  duration_ms: 0.707209
+  type: 'test'
+  ...
+# Subtest: affine knot intervals and common positive weights keep the controls; baked Direct movement is copied once and stays independent
+ok 41 - affine knot intervals and common positive weights keep the controls; baked Direct movement is copied once and stays independent
+  ---
+  duration_ms: 3.639875
+  type: 'test'
+  ...
+# Subtest: unsupported direct geometry returns explicit reasons without changing the document or silently choosing another curve
+ok 42 - unsupported direct geometry returns explicit reasons without changing the document or silently choosing another curve
+  ---
+  duration_ms: 0.543
+  type: 'test'
+  ...
+# Subtest: Guide choice lists only supported snapshots and its steps describe the chosen copied source rather than a live link
+ok 43 - Guide choice lists only supported snapshots and its steps describe the chosen copied source rather than a live link
+  ---
+  duration_ms: 1.502584
+  type: 'test'
+  ...
+# Subtest: a deleted guide or invalid saved choice is refused without falling back to None or another imported curve
+ok 44 - a deleted guide or invalid saved choice is refused without falling back to None or another imported curve
+  ---
+  duration_ms: 1.054
+  type: 'test'
+  ...
+# Subtest: general guide snapshots retain knots and independent controls; the command authors height sections through each vertex
+ok 45 - general guide snapshots retain knots and independent controls; the command authors height sections through each vertex
+  ---
+  duration_ms: 0.836334
+  type: 'test'
+  ...
+# Subtest: a multi-span guide on three parallel sketches evaluates to the fixed translated-square oracle
+ok 46 - a multi-span guide on three parallel sketches evaluates to the fixed translated-square oracle
+  ---
+  duration_ms: 43.106709
+  type: 'test'
+  ...
+# Subtest: quartic and quintic single spans copy as general guides with their authored knot interval
+ok 47 - quartic and quintic single spans copy as general guides with their authored knot interval
+  ---
+  duration_ms: 1.047542
+  type: 'test'
+  ...
+# Subtest: B12 protocol: a mesh sent once in a slot goes back as a token; the client gives the same mesh back; slots apart; a refusal forgets the slot; a token not held is an error
+ok 48 - B12 protocol: a mesh sent once in a slot goes back as a token; the client gives the same mesh back; slots apart; a refusal forgets the slot; a token not held is an error
+  ---
+  duration_ms: 0.800917
+  type: 'test'
+  ...
+# Subtest: B12 through the worker's path: shared kept meshes, packed and unpacked, equal a plain evaluation every time; an edit to one body sends only that body's mesh
+ok 49 - B12 through the worker's path: shared kept meshes, packed and unpacked, equal a plain evaluation every time; an edit to one body sends only that body's mesh
+  ---
+  duration_ms: 76.944416
+  type: 'test'
+  ...
+# Subtest: B12 slots and volumes: each purpose its own snapshot; a clash probe's volumes without meshes, the same as the full evaluation's
+ok 50 - B12 slots and volumes: each purpose its own snapshot; a clash probe's volumes without meshes, the same as the full evaluation's
+  ---
+  duration_ms: 21.062209
+  type: 'test'
+  ...
+# Subtest: eager structuredClone binds only the exact source/body/fields; public MMGS and default JSON inertia stay identical
+ok 51 - eager structuredClone binds only the exact source/body/fields; public MMGS and default JSON inertia stay identical
+  ---
+  duration_ms: 21.267292
+  type: 'test'
+  ...
+# Subtest: placed tensors retain raw SI in the exact legacy R I R-transpose order, across repeated placements and clones
+ok 52 - placed tensors retain raw SI in the exact legacy R I R-transpose order, across repeated placements and clones
+  ---
+  duration_ms: 2.574833
+  type: 'test'
+  ...
+# Subtest: deferred placed patches require body identity, current epoch/request/revision/ref and unchanged public signatures
+ok 53 - deferred placed patches require body identity, current epoch/request/revision/ref and unchanged public signatures
+  ---
+  duration_ms: 25.019667
+  type: 'test'
+  ...
+# Subtest: malformed, missing and non-JSON provenance never binds; explicit Kernel unavailable remains unavailable
+ok 54 - malformed, missing and non-JSON provenance never binds; explicit Kernel unavailable remains unavailable
+  ---
+  duration_ms: 2.890916
+  type: 'test'
+  ...
+# Subtest: O11 agent: set_inputs is proposed at L1 and L2 (refused, the state the same), applied at L3 and L4 — the master untouched
+ok 55 - O11 agent: set_inputs is proposed at L1 and L2 (refused, the state the same), applied at L3 and L4 — the master untouched
+  ---
+  duration_ms: 34.714041
+  type: 'test'
+  ...
+# Subtest: O11 agent: set_variants is proposed at L1, applied at L2+; "active" switches; a deleted active variant leaves the master active
+ok 56 - O11 agent: set_variants is proposed at L1, applied at L2+; "active" switches; a deleted active variant leaves the master active
+  ---
+  duration_ms: 6.29625
+  type: 'test'
+  ...
+# Subtest: O11 agent: refusals are typed and name what they refer to; the state stays the same
+ok 57 - O11 agent: refusals are typed and name what they refer to; the state stays the same
+  ---
+  duration_ms: 1.949333
+  type: 'test'
+  ...
+# Subtest: O11 agent: query.summary reads the inputs, the variants and the active one; the actions are classified and idempotent
+ok 58 - O11 agent: query.summary reads the inputs, the variants and the active one; the actions are classified and idempotent
+  ---
+  duration_ms: 3.614167
+  type: 'test'
+  ...
+# Subtest: O24 c: revolved sphere and cone, box edges, circular rims and face centres match closed forms
+ok 59 - O24 c: revolved sphere and cone, box edges, circular rims and face centres match closed forms
+  ---
+  duration_ms: 25.026416
+  type: 'test'
+  ...
+# Subtest: O24 c: edge merging preserves open arcs and refuses gaps between straight pieces
+ok 60 - O24 c: edge merging preserves open arcs and refuses gaps between straight pieces
+  ---
+  duration_ms: 0.492875
+  type: 'test'
+  ...
+# Subtest: O24 c: edge classification is invariant under translation and does not flatten a distant arc
+ok 61 - O24 c: edge classification is invariant under translation and does not flatten a distant arc
+  ---
+  duration_ms: 0.081125
+  type: 'test'
+  ...
+# Subtest: O24 c: a flat face with an off-centre circular hole has its analytic area centroid
+ok 62 - O24 c: a flat face with an off-centre circular hole has its analytic area centroid
+  ---
+  duration_ms: 3.805667
+  type: 'test'
+  ...
+# Subtest: O24 c: sphere and cone classification survives a large translation; a torus stays unmateable
+ok 63 - O24 c: sphere and cone classification survives a large translation; a torus stays unmateable
+  ---
+  duration_ms: 8.587041
+  type: 'test'
+  ...
+# Subtest: O24 c: cone/circle concentric, edge/plane coincident and sphere tangency solve without drift
+ok 64 - O24 c: cone/circle concentric, edge/plane coincident and sphere tangency solve without drift
+  ---
+  duration_ms: 7.280083
+  type: 'test'
+  ...
+# Subtest: O24 c: v2 assembly reads new references, adds a mate, saves, reopens and builds its joint tree
+ok 65 - O24 c: v2 assembly reads new references, adds a mate, saves, reopens and builds its joint tree
+  ---
+  duration_ms: 46.485583
+  type: 'test'
+  ...
+# Subtest: signatures: written with a reference from the bodies it was picked on; a re-matched one is not refreshed
+ok 66 - signatures: written with a reference from the bodies it was picked on; a re-matched one is not refreshed
+  ---
+  duration_ms: 65.589375
+  type: 'test'
+  ...
+# Subtest: conformance a1-refs-ambiguous: A mate's signature as near two faces alike (the tops of two boxes): the document opens as it is; the mate is listed as needing a choice, with both.
+ok 67 - conformance a1-refs-ambiguous: A mate's signature as near two faces alike (the tops of two boxes): the document opens as it is; the mate is listed as needing a choice, with both.
+  ---
+  duration_ms: 3.31475
+  type: 'test'
+  ...
+# Subtest: conformance a1-refs-edit-reopen: A fillet's edge after a dimension edit (signatures refreshed by the accepted edit), then reopened: no reference is matched again.
+ok 68 - conformance a1-refs-edit-reopen: A fillet's edge after a dimension edit (signatures refreshed by the accepted edit), then reopened: no reference is matched again.
+  ---
+  duration_ms: 22.886417
+  type: 'test'
+  ...
+# Subtest: conformance a1-refs-gone: A fillet whose stored edge is gone (nothing alike its signature is left): the document still opens, that fillet is held (suppressed, saying why) and listed with its error, and the rest of the part builds.
+ok 69 - conformance a1-refs-gone: A fillet whose stored edge is gone (nothing alike its signature is left): the document still opens, that fillet is held (suppressed, saying why) and listed with its error, and the rest of the part builds.
+  ---
+  duration_ms: 6.384666
+  type: 'test'
+  ...
+# Subtest: conformance a1-refs-jitter: A signature 1e-9 mm off the face it names (a kernel's accuracy changed): the name stands, nothing is matched again.
+ok 70 - conformance a1-refs-jitter: A signature 1e-9 mm off the face it names (a kernel's accuracy changed): the name stands, nothing is matched again.
+  ---
+  duration_ms: 1.5335
+  type: 'test'
+  ...
+# Subtest: conformance a1-refs-mate-renumbered: A mate's stored face name now names another face (as a kernel numbering faces otherwise would), its signature the face it was picked on: on open, with no prior document, it is matched to that face again and marked.
+ok 71 - conformance a1-refs-mate-renumbered: A mate's stored face name now names another face (as a kernel numbering faces otherwise would), its signature the face it was picked on: on open, with no prior document, it is matched to that face again and marked.
+  ---
+  duration_ms: 0.55825
+  type: 'test'
+  ...
+# Subtest: verification preserves only aliases of the same live drawing edge, without accepting other matches
+ok 72 - verification preserves only aliases of the same live drawing edge, without accepting other matches
+  ---
+  duration_ms: 1.121292
+  type: 'test'
+  ...
+# Subtest: the setters change the copy only; untouched nodes are shared; the read-only walk is the document itself
+ok 73 - the setters change the copy only; untouched nodes are shared; the read-only walk is the document itself
+  ---
+  duration_ms: 1.411292
+  type: 'test'
+  ...
+# Subtest: modelHash: kept by the objects it reads, the same value as the whole walk
+ok 74 - modelHash: kept by the objects it reads, the same value as the whole walk
+  ---
+  duration_ms: 0.326625
+  type: 'test'
+  ...
+# Subtest: rematch: a corner inserted before the filleted one renumbers the sides; the fillet follows its corner and says so
+ok 75 - rematch: a corner inserted before the filleted one renumbers the sides; the fillet follows its corner and says so
+  ---
+  duration_ms: 50.433125
+  type: 'test'
+  ...
+# Subtest: rematch: a dimension changed keeps every name (no guessing), and a corner gone into two alike is refused with both
+ok 76 - rematch: a dimension changed keeps every name (no guessing), and a corner gone into two alike is refused with both
+  ---
+  duration_ms: 20.032375
+  type: 'test'
+  ...
+# Subtest: conformance a1-rematch-ambiguous: The filleted corner cut off into two vertical edges as near the old one: refused, naming both.
+ok 77 - conformance a1-rematch-ambiguous: The filleted corner cut off into two vertical edges as near the old one: refused, naming both.
+  ---
+  duration_ms: 8.77775
+  type: 'test'
+  ...
+# Subtest: conformance a1-rematch-dimension: A dimension changed renumbers nothing: the stored names are kept as they are, without matching.
+ok 78 - conformance a1-rematch-dimension: A dimension changed renumbers nothing: the stored names are kept as they are, without matching.
+  ---
+  duration_ms: 14.211542
+  type: 'test'
+  ...
+# Subtest: conformance a1-rematch-sides: A corner inserted into the sketch before a filleted one renumbers the sides (the old edge name now names another corner); the fillet is matched again to its corner by geometry and the substitution reported.
+ok 79 - conformance a1-rematch-sides: A corner inserted into the sketch before a filleted one renumbers the sides (the old edge name now names another corner); the fillet is matched again to its corner by geometry and the substitution reported.
+  ---
+  duration_ms: 11.270416
+  type: 'test'
+  ...
+# Subtest: Text is registered with required serializable text and file values and explicit numeric defaults
+ok 80 - Text is registered with required serializable text and file values and explicit numeric defaults
+  ---
+  duration_ms: 0.942417
+  type: 'test'
+  ...
+# Subtest: Text build preserves the original string and complete font descriptor on one new recipe node
+ok 81 - Text build preserves the original string and complete font descriptor on one new recipe node
+  ---
+  duration_ms: 6.864584
+  type: 'test'
+  ...
+# Subtest: Text edit retains authored ID, extras, plane, raw text, metadata, and unchanged binary64 values
+ok 82 - Text edit retains authored ID, extras, plane, raw text, metadata, and unchanged binary64 values
+  ---
+  duration_ms: 1.406208
+  type: 'test'
+  ...
+# Subtest: Text edit can replace a prepared font without changing other authored fields
+ok 83 - Text edit can replace a prepared font without changing other authored fields
+  ---
+  duration_ms: 0.830167
+  type: 'test'
+  ...
+# Subtest: Text edit preserves later authored nodes, outputs, and the next serial ID
+ok 84 - Text edit preserves later authored nodes, outputs, and the next serial ID
+  ---
+  duration_ms: 0.735709
+  type: 'test'
+  ...
+# Subtest: bound text dimensions remain Dim references and are not offered as numeric edit fields
+ok 85 - bound text dimensions remain Dim references and are not offered as numeric edit fields
+  ---
+  duration_ms: 0.905833
+  type: 'test'
+  ...
+# Subtest: Text edit leaves omitted default tracking absent
+ok 86 - Text edit leaves omitted default tracking absent
+  ---
+  duration_ms: 0.554291
+  type: 'test'
+  ...
+# Subtest: checkValues checks string type, required values, and bounds for both text and file fields
+ok 87 - checkValues checks string type, required values, and bounds for both text and file fields
+  ---
+  duration_ms: 0.177167
+  type: 'test'
+  ...
+# Subtest: Text build refuses malformed, missing, and unloaded font descriptors without echoing JSON
+ok 88 - Text build refuses malformed, missing, and unloaded font descriptors without echoing JSON
+  ---
+  duration_ms: 1.146041
+  type: 'test'
+  ...
+# Subtest: Text build keeps canonical validation for printable content and finite positive dimensions
+ok 89 - Text build keeps canonical validation for printable content and finite positive dimensions
+  ---
+  duration_ms: 1.210375
+  type: 'test'
+  ...
+# Subtest: Text edit refuses a different authored ID at the captured index
+ok 90 - Text edit refuses a different authored ID at the captured index
+  ---
+  duration_ms: 1.385333
+  type: 'test'
+  ...
+# Subtest: prepared font values share the collector UTF-8 bound even with CJK metadata and padding
+ok 91 - prepared font values share the collector UTF-8 bound even with CJK metadata and padding
+  ---
+  duration_ms: 2.44925
+  type: 'test'
+  ...
+# Subtest: Text relief is one selected top-face command with explicit font, placement and mode
+ok 92 - Text relief is one selected top-face command with explicit font, placement and mode
+  ---
+  duration_ms: 25.545459
+  type: 'test'
+  ...
+# Subtest: Text relief refuses absent, side, mixed and merged picks before changing the recipe
+ok 93 - Text relief refuses absent, side, mixed and merged picks before changing the recipe
+  ---
+  duration_ms: 3.310208
+  type: 'test'
+  ...
+# Subtest: Text relief history edit keeps references, later nodes and untouched authored values
+ok 94 - Text relief history edit keeps references, later nodes and untouched authored values
+  ---
+  duration_ms: 3.317625
+  type: 'test'
+  ...
+# Subtest: Text relief history edit preserves bound placement, depth and em dimensions
+ok 95 - Text relief history edit preserves bound placement, depth and em dimensions
+  ---
+  duration_ms: 2.374
+  type: 'test'
+  ...
+# Subtest: Text relief rejects malformed values, unavailable fonts and stale history without mutation
+ok 96 - Text relief rejects malformed values, unavailable fonts and stale history without mutation
+  ---
+  duration_ms: 3.389125
+  type: 'test'
+  ...
+# Subtest: text relief rematches a renamed cap without changing source metadata
+ok 97 - text relief rematches a renamed cap without changing source metadata
+  ---
+  duration_ms: 22.17
+  type: 'test'
+  ...
+# Subtest: text relief refuses an edit when its former cap is ambiguous or gone
+ok 98 - text relief refuses an edit when its former cap is ambiguous or gone
+  ---
+  duration_ms: 3.17675
+  type: 'test'
+  ...
+# Subtest: every handler is classified, nothing reaches outside the document, read handlers change nothing
+ok 99 - every handler is classified, nothing reaches outside the document, read handlers change nothing
+  ---
+  duration_ms: 1.218375
+  type: 'test'
+  ...
+# Subtest: the breaking-change rules: removals and narrowing break, additions do not
+ok 100 - the breaking-change rules: removals and narrowing break, additions do not
+  ---
+  duration_ms: 0.514917
+  type: 'test'
+  ...
+# Subtest: every read tool’s result matches its output schema and changes nothing
+ok 101 - every read tool’s result matches its output schema and changes nothing
+  ---
+  duration_ms: 683.116167
+  type: 'test'
+  ...
+# Subtest: O7 refusals, typed: [FASTENER_SIZE_ROW] for a tapped hole or a fastener with no size row loaded
+ok 102 - O7 refusals, typed: [FASTENER_SIZE_ROW] for a tapped hole or a fastener with no size row loaded
+  ---
+  duration_ms: 38.006958
+  type: 'test'
+  ...
+# v2: 13 tools, tools/list 16345 characters, system prompt 8242; per turn 24587 (cap 25000)
+# Subtest: what a model reads every turn (O105): tools/list and the system prompt, at most 25,000 characters
+ok 103 - what a model reads every turn (O105): tools/list and the system prompt, at most 25,000 characters
+  ---
+  duration_ms: 1.085584
+  type: 'test'
+  ...
+# Subtest: every handler is exactly one v2 action, and the v2 prompt names only v2 tools
+ok 104 - every handler is exactly one v2 action, and the v2 prompt names only v2 tools
+  ---
+  duration_ms: 0.737625
+  type: 'test'
+  ...
+# Subtest: the v2 contract is frozen in tools-v2.json; a breaking change needs v3
+ok 105 - the v2 contract is frozen in tools-v2.json; a breaking change needs v3
+  ---
+  duration_ms: 1.955458
+  type: 'test'
+  ...
+# Subtest: a v2 call is the handler's call: the same result; an unknown or missing action refused with the actions
+ok 106 - a v2 call is the handler's call: the same result; an unknown or missing action refused with the actions
+  ---
+  duration_ms: 125.114416
+  type: 'test'
+  ...
+# Subtest: describe: the tools, a tool's actions, an action's handler schema, a command's values, a feature kind's JSON
+ok 107 - describe: the tools, a tool's actions, an action's handler schema, a command's values, a feature kind's JSON
+  ---
+  duration_ms: 9.9855
+  type: 'test'
+  ...
+# Subtest: the same gates through v2: L2 refuses an addition on a built part; ops naming v2 tools are kept as handler calls and replay
+ok 108 - the same gates through v2: L2 refuses an addition on a built part; ops naming v2 tools are kept as handler calls and replay
+  ---
+  duration_ms: 28.023375
+  type: 'test'
+  ...
+# Subtest: the replay hook: CAD_TOOLS_VIA_V2=1 sends every handler call as its v2 call
+ok 109 - the replay hook: CAD_TOOLS_VIA_V2=1 sends every handler call as its v2 call
+  ---
+  duration_ms: 0.158167
+  type: 'test'
+  ...
+# Subtest: O105b: every string of the model package that names a handler reads, through v2Text, as v2 tool.actions — no underscored handler name, no one-word handler as a tool, every action named real
+ok 110 - O105b: every string of the model package that names a handler reads, through v2Text, as v2 tool.actions — no underscored handler name, no one-word handler as a tool, every action named real
+  ---
+  duration_ms: 105.477333
+  type: 'test'
+  ...
+# Subtest: O105b pass-through: names a user chose that are not handlers' come back unchanged — a part, a parameter and a note with underscores; only a handler's exact name is rewritten (a known limit: a part named "add_part" reads as assembly.add_part)
+ok 111 - O105b pass-through: names a user chose that are not handlers' come back unchanged — a part, a parameter and a note with underscores; only a handler's exact name is rewritten (a known limit: a part named "add_part" reads as assembly.add_part)
+  ---
+  duration_ms: 0.557291
+  type: 'test'
+  ...
+1..111
+# tests 111
+# suites 0
+# pass 111
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 9387.57075

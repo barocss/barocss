@@ -1,0 +1,85 @@
+TAP version 13
+# Subtest: a consumed baked path change is staged while accepted document and stable IDs remain intact
+ok 1 - a consumed baked path change is staged while accepted document and stable IDs remain intact
+  ---
+  duration_ms: 57.099167
+  type: 'test'
+  ...
+# Subtest: unreferenced sources and display edits retain the direct fast path
+ok 2 - unreferenced sources and display edits retain the direct fast path
+  ---
+  duration_ms: 23.752208
+  type: 'test'
+  ...
+# Subtest: missing and short consumed paths refuse before accepted input or IDs change
+ok 3 - missing and short consumed paths refuse before accepted input or IDs change
+  ---
+  duration_ms: 17.544208
+  type: 'test'
+  ...
+# Subtest: part insertion refuses live paths before the caller strips direct sources
+ok 4 - part insertion refuses live paths before the caller strips direct sources
+  ---
+  duration_ms: 15.243709
+  type: 'test'
+  ...
+# Subtest: a new direct path reaches command choices without changing the displayed model input
+not ok 5 - a new direct path reaches command choices without changing the displayed model input
+  ---
+  duration_ms: 15.048041
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-rl3Amo/direct-curve-candidate.test.mjs:103696:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+      [
+        {
+    +     label: 'Path · c1',
+    -     label: 'Path',
+          value: 'obj_1'
+        }
+      ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0:
+      value: 'obj_1'
+      label: 'Path'
+  actual:
+    0:
+      value: 'obj_1'
+      label: 'Path · c1'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-rl3Amo/direct-curve-candidate.test.mjs:103701:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: consumed geometry invalidates the displayed input while direct display and unrelated edits retain it
+ok 6 - consumed geometry invalidates the displayed input while direct display and unrelated edits retain it
+  ---
+  duration_ms: 17.2265
+  type: 'test'
+  ...
+# Subtest: consumers outside the displayed history and suppressed consumers do not invalidate its input
+ok 7 - consumers outside the displayed history and suppressed consumers do not invalidate its input
+  ---
+  duration_ms: 15.725125
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 6
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 292.842542

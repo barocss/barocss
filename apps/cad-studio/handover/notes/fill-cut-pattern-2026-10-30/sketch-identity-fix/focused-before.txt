@@ -1,0 +1,37 @@
+TAP version 13
+# Subtest: Edit sketch then Finish retains source and fill IDs, nextId, captured snapshot and native file identity
+not ok 1 - Edit sketch then Finish retains source and fill IDs, nextId, captured snapshot and native file identity
+  ---
+  duration_ms: 61.541084
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-wGUoKM/sketch-edit-identity.test.mjs:132403:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    undefined !== 'n5'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'n5'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-wGUoKM/sketch-edit-identity.test.mjs:132424:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+# Subtest: Finish a new sketch allocates exactly one new stable ID and preserves all previous features through native read
+ok 2 - Finish a new sketch allocates exactly one new stable ID and preserves all previous features through native read
+  ---
+  duration_ms: 37.443541
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 240.238291

@@ -1,0 +1,119 @@
+[
+  {
+    "path": "apps/cad-studio/test/chat.test.ts",
+    "sha256": "61b3445fdcc911ae642df61ceb98a65437605907fcdf3382b74ed1738d58e19e",
+    "head_sha256": "61b3445fdcc911ae642df61ceb98a65437605907fcdf3382b74ed1738d58e19e",
+    "matchesHEAD": true,
+    "unchanged": true,
+    "mtime_ns": 1793281215779954342,
+    "inode": 1163093391
+  },
+  {
+    "path": "packages/barocss-cad-model/README.md",
+    "sha256": "d7c3c38cec6519e5ebf1cfba36a5c61777a74468cda9f1c085a55de08516daee",
+    "head_sha256": "d7c3c38cec6519e5ebf1cfba36a5c61777a74468cda9f1c085a55de08516daee",
+    "matchesHEAD": true,
+    "unchanged": true,
+    "mtime_ns": 1793281358684485058,
+    "inode": 1064903427
+  },
+  {
+    "path": "packages/barocss-cad-model/src/api/index.ts",
+    "sha256": "1e8ecaabd0f98a744bacce4f95284f9840dac5fb485859de1f5e96ea67bd36ea",
+    "head_sha256": "1e8ecaabd0f98a744bacce4f95284f9840dac5fb485859de1f5e96ea67bd36ea",
+    "matchesHEAD": true,
+    "unchanged": true,
+    "mtime_ns": 1793281305440017711,
+    "inode": 1198086608
+  },
+  {
+    "path": "packages/barocss-cad-model/src/api/studio.ts",
+    "sha256": "654139233bcb5e68eff2c80953e8343c125aa6975164b8f1be06a57d0eff15a5",
+    "head_sha256": "654139233bcb5e68eff2c80953e8343c125aa6975164b8f1be06a57d0eff15a5",
+    "matchesHEAD": true,
+    "unchanged": true,
+    "mtime_ns": 1793281215773939362,
+    "inode": 1073620850
+  },
+  {
+    "path": "packages/barocss-cad-model/src/app/commands.ts",
+    "sha256": "ca73197823b89741e5497dbea2f34b4c73f209ae20e5b4feadf798641a878a65",
+    "head_sha256": "ca73197823b89741e5497dbea2f34b4c73f209ae20e5b4feadf798641a878a65",
+    "matchesHEAD": true,
+    "unchanged": true,
+    "mtime_ns": 1793281215776904040,
+    "inode": 1192697047
+  },
+  {
+    "path": "packages/barocss-cad-model/src/app/editFields.ts",
+    "sha256": "fd09649346e27c6fdff328824d58668351c5bd3ed608bb14d221f7ecb32cbacd",
+    "head_sha256": "fd09649346e27c6fdff328824d58668351c5bd3ed608bb14d221f7ecb32cbacd",
+    "matchesHEAD": true,
+    "unchanged": true,
+    "mtime_ns": 1793281215775362097,
+    "inode": 1075636602
+  },
+  {
+    "path": "packages/barocss-cad-model/src/chat/features.ts",
+    "sha256": "01138bd2883b4a679ec177b0d23d51334fb83403d0135a3c3ea437b9758f0da0",
+    "head_sha256": "01138bd2883b4a679ec177b0d23d51334fb83403d0135a3c3ea437b9758f0da0",
+    "matchesHEAD": true,
+    "unchanged": true,
+    "mtime_ns": 1793281712248597240,
+    "inode": 1192697039
+  },
+  {
+    "path": "packages/barocss-cad-model/src/chat/part/features.ts",
+    "sha256": "f0dcd301b7d1d42dca3ba9febba7e6872c3f95ac6d4702a229fd9a28c4e9598a",
+    "head_sha256": "f0dcd301b7d1d42dca3ba9febba7e6872c3f95ac6d4702a229fd9a28c4e9598a",
+    "matchesHEAD": true,
+    "unchanged": true,
+    "mtime_ns": 1793281215777737614,
+    "inode": 1162930056
+  },
+  {
+    "path": "packages/barocss-cad-model/src/engine/doc.ts",
+    "sha256": "573634ddce98abc8e2d7442aa709a688e8968c8bbd466a95445567f797816d0e",
+    "head_sha256": "573634ddce98abc8e2d7442aa709a688e8968c8bbd466a95445567f797816d0e",
+    "matchesHEAD": true,
+    "unchanged": true,
+    "mtime_ns": 1793281358683862065,
+    "inode": 1197847430
+  },
+  {
+    "path": "packages/barocss-cad-model/src/engine/migrate.ts",
+    "sha256": "212bcfcb326781b53d9f6480b47f623590e460e0350d41b230d2a46ea7aed94f",
+    "head_sha256": "212bcfcb326781b53d9f6480b47f623590e460e0350d41b230d2a46ea7aed94f",
+    "matchesHEAD": true,
+    "unchanged": true,
+    "mtime_ns": 1793281241698289134,
+    "inode": 1197847435
+  },
+  {
+    "path": "packages/barocss-cad-model/src/engine/part.ts",
+    "sha256": "3a32f6ad75662cd5e282a78789b97ca373a28de9a66b507f5097f7cac979b639",
+    "head_sha256": "3a32f6ad75662cd5e282a78789b97ca373a28de9a66b507f5097f7cac979b639",
+    "matchesHEAD": true,
+    "unchanged": true,
+    "mtime_ns": 1793281375282123234,
+    "inode": 1197847436
+  },
+  {
+    "path": "packages/barocss-cad-model/test/api-rectangular-feature-pattern.test.ts",
+    "sha256": "80e76f724fc8c78b5d58b893ae12159bb6998f047b0c09e5f99e844cc4738ede",
+    "head_sha256": "80e76f724fc8c78b5d58b893ae12159bb6998f047b0c09e5f99e844cc4738ede",
+    "matchesHEAD": true,
+    "unchanged": true,
+    "mtime_ns": 1793281395646398635,
+    "inode": 1268988778
+  },
+  {
+    "path": "packages/barocss-cad-model/test/rectangular-feature-pattern-command.test.ts",
+    "sha256": "2ab9032656ef0da5062abd6a9d6a2223da35e0bbe461b0c0ed68a2dcfc022834",
+    "head_sha256": "2ab9032656ef0da5062abd6a9d6a2223da35e0bbe461b0c0ed68a2dcfc022834",
+    "matchesHEAD": true,
+    "unchanged": true,
+    "mtime_ns": 1793281274791496709,
+    "inode": 1268988779
+  }
+]

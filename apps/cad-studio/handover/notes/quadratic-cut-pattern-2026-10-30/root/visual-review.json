@@ -1,0 +1,38 @@
+{
+  "status": "SCOPED_PASS",
+  "reviewer": "root",
+  "images": [
+    {
+      "path": "04-real-quadratic-authored.png",
+      "status": "PASS",
+      "finding": "Direct P1 X20/Y0 controls, degree2 and native curve diagnostics are visible. The Z0 guide stroke is occluded by the stock; this is not full curve-stroke rendering proof."
+    },
+    {
+      "path": "05-preview.png",
+      "status": "PASS",
+      "finding": "Three fixed-orientation cuts, enabled Apply and stable witness visible."
+    },
+    {
+      "path": "07-applied.png",
+      "status": "PASS",
+      "finding": "Three cuts remain and witness has no selected highlight; Part panel replaces the stale witness panel."
+    },
+    {
+      "path": "09-spacing-edited.png",
+      "status": "PASS",
+      "finding": "Three moved cuts visible after spacing12 edit in the isometric fresh-open view."
+    },
+    {
+      "path": "10-live-P1-edit.png",
+      "status": "PASS",
+      "finding": "Live P1 Y5 controls and changed cut positions visible; witness unchanged."
+    },
+    {
+      "path": "13-final-editable.png",
+      "status": "PASS",
+      "finding": "Fresh Open shows three cuts and editable live Path/Spacing12/Count3 fields; witness retained."
+    }
+  ],
+  "numericEvidence": "Separate native/public/Model/actualStudio position/moment oracles; rounded UI values and pixels are not exact numeric evidence",
+  "scope": "Six retained UI views, not universal renderer/curve visibility or count64 browser qualification"
+}

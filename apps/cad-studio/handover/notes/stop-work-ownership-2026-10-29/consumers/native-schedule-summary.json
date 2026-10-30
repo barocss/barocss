@@ -1,0 +1,34 @@
+{
+  "timeUnit": "ms",
+  "measurement": "Native event receipt timing including scheduling/transfer; not isolated kernel CPU timing or natural long computation.",
+  "cases": [
+    {
+      "workerKey": 1,
+      "requestId": 8,
+      "nativeSource": {
+        "epoch": 1,
+        "requestId": 8,
+        "revision": 8,
+        "slot": "evaluate"
+      },
+      "nativeResultReceiptAfterSubmission": 44.799999952316284,
+      "clientHoldAfterNativeResultReceipt": 3294.4000000953674,
+      "discardedHeld": 4,
+      "deliveredOldEventsAfterClaim": 0
+    },
+    {
+      "workerKey": 3,
+      "requestId": 15,
+      "nativeSource": {
+        "epoch": 2,
+        "requestId": 15,
+        "revision": 13,
+        "slot": "evaluate"
+      },
+      "nativeResultReceiptAfterSubmission": 48.60000014305115,
+      "clientHoldAfterNativeResultReceipt": 1487.6999998092651,
+      "discardedHeld": 2,
+      "deliveredOldEventsAfterClaim": 0
+    }
+  ]
+}

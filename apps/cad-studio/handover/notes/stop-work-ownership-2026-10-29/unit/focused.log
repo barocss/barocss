@@ -1,0 +1,112 @@
+TAP version 13
+# Subtest: O9 lanes: the slow older preview comes back stale after the fast newer one; a lone request is its own result, with what it was asked of
+ok 1 - O9 lanes: the slow older preview comes back stale after the fast newer one; a lone request is its own result, with what it was asked of
+  ---
+  duration_ms: 32.369958
+  type: 'test'
+  ...
+# Subtest: O9 lanes: one placed part's bodies do not supersede another's; the same part's newer request does
+ok 2 - O9 lanes: one placed part's bodies do not supersede another's; the same part's newer request does
+  ---
+  duration_ms: 21.103292
+  type: 'test'
+  ...
+# Subtest: O9 lanes: an older reply arriving first is still stale once a newer request was sent; two parts' drawings apart
+ok 3 - O9 lanes: an older reply arriving first is still stale once a newer request was sent; two parts' drawings apart
+  ---
+  duration_ms: 27.134042
+  type: 'test'
+  ...
+# Subtest: R4b lanes: cancel makes every request waiting on its lane come back stale, others untouched; a later request is current
+ok 4 - R4b lanes: cancel makes every request waiting on its lane come back stale, others untouched; a later request is current
+  ---
+  duration_ms: 12.866959
+  type: 'test'
+  ...
+# Subtest: pending work refuses an independent document edit before caller document, history, dirty or recovery values change
+ok 5 - pending work refuses an independent document edit before caller document, history, dirty or recovery values change
+  ---
+  duration_ms: 1.463
+  type: 'test'
+  ...
+# Subtest: Stop returns exactly the originating accepted edit and its rollback marker without popping caller history
+ok 6 - Stop returns exactly the originating accepted edit and its rollback marker without popping caller history
+  ---
+  duration_ms: 0.200292
+  type: 'test'
+  ...
+# Subtest: an idle Stop never replays old history and future work is still allowed
+ok 7 - an idle Stop never replays old history and future work is still allowed
+  ---
+  duration_ms: 0.072791
+  type: 'test'
+  ...
+# Subtest: initial, variant and unaccepted parameter evaluations cannot claim an unrelated Undo entry
+ok 8 - initial, variant and unaccepted parameter evaluations cannot claim an unrelated Undo entry
+  ---
+  duration_ms: 0.085542
+  type: 'test'
+  ...
+# Subtest: only the current parameter candidate token authorizes its pre-effect accept closure, and acceptance consumes it
+ok 9 - only the current parameter candidate token authorizes its pre-effect accept closure, and acceptance consumes it
+  ---
+  duration_ms: 0.131709
+  type: 'test'
+  ...
+# Subtest: a candidate or view-only run never borrows an accepted model rollback reservation
+ok 10 - a candidate or view-only run never borrows an accepted model rollback reservation
+  ---
+  duration_ms: 0.056125
+  type: 'test'
+  ...
+# Subtest: same-content document or input ABA and a lookalike history entry do not authorize rollback
+ok 11 - same-content document or input ABA and a lookalike history entry do not authorize rollback
+  ---
+  duration_ms: 0.143291
+  type: 'test'
+  ...
+# Subtest: old completion and finally callbacks cannot release a newer owner or a newer Render reservation
+ok 12 - old completion and finally callbacks cannot release a newer owner or a newer Render reservation
+  ---
+  duration_ms: 0.073542
+  type: 'test'
+  ...
+# Subtest: new Open invalidates ownership even when the old document object is reused; redo gets a new owner
+ok 13 - new Open invalidates ownership even when the old document object is reused; redo gets a new owner
+  ---
+  duration_ms: 0.299042
+  type: 'test'
+  ...
+# Subtest: two Render-only reservations settle normally and cannot attach themselves to a later model computation
+ok 14 - two Render-only reservations settle normally and cannot attach themselves to a later model computation
+  ---
+  duration_ms: 0.307875
+  type: 'test'
+  ...
+# Subtest: a reservation survives a changed evaluated identity until the corresponding work begins
+ok 15 - a reservation survives a changed evaluated identity until the corresponding work begins
+  ---
+  duration_ms: 0.105291
+  type: 'test'
+  ...
+# Subtest: a rejected or throwing pre-accept transition releases its reservation without reserving an unrelated document
+ok 16 - a rejected or throwing pre-accept transition releases its reservation without reserving an unrelated document
+  ---
+  duration_ms: 0.200333
+  type: 'test'
+  ...
+# Subtest: matching completion releases ordinary or hand-off work without a worker request and allows the next edit
+ok 17 - matching completion releases ordinary or hand-off work without a worker request and allows the next edit
+  ---
+  duration_ms: 0.055375
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 146.621667

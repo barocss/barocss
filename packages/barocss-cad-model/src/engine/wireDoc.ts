@@ -1,3 +1,6 @@
+import { fillPatternDocumentProblem } from './fillFeaturePattern';
+import { curvePatternDocumentProblem } from './curveFeaturePattern';
+import { refusal } from './refusal';
 import { provenanceOfTree, registerShopRowProvenance, resolveShopTree, type ShopTreeProvenance } from './shopRows';
 // The document as the engine worker sees it: what evaluation reads (parameters, nodes, outputs and the
 // placed instances, and the section library and weld records (FRc/FRk2) — not render, drawing, direct geometry, looks, mates or pending revisions), with its
@@ -29,11 +32,15 @@ const PRUNE_EVERY = 64, KEEP_FOR = 256;
 
 /** What evaluation reads of a document (an instance's part likewise). */
 export function evaluatedPart(doc: StudioDoc): StudioDoc {
+  const fillProblem = fillPatternDocumentProblem(doc);
+  if (fillProblem) throw refusal('VALUE', fillProblem);
+  const pathProblem = curvePatternDocumentProblem(doc);
+  if (pathProblem) throw refusal('VALUE', pathProblem);
   doc = resolveShopTree(doc);
   const out: StudioDoc = { format: doc.format, schema: doc.schema, units: doc.units, parameters: doc.parameters, nodes: doc.nodes, outputs: doc.outputs };
   // Ordinary evaluation strips direct geometry. Bundle admission instead needs its metadata
   // and direct sources: keep each field's own presence and value, including invalid values.
-  if (doc.schema === 4 || Object.prototype.hasOwnProperty.call(doc, 'routeBundles')) {
+  if (doc.schema === 4 || Object.prototype.hasOwnProperty.call(doc, 'routeBundles') || doc.nodes.some(n => n.kind === 'curve-feature-pattern' && 'objectId' in n.path)) {
     if (Object.prototype.hasOwnProperty.call(doc, 'routeBundles')) out.routeBundles = doc.routeBundles;
     if (Object.prototype.hasOwnProperty.call(doc, 'direct')) out.direct = doc.direct;
   }
@@ -68,10 +75,19 @@ export class WireSender {
   private sentBlobs = new Set<string>();
   /** Dropped by a sweep since the last pack: forgotten as sent (a blob put back is sent again), and told the worker. */
   private dropped: string[] = [];
-  constructor() { onBlobsEvicted(h => this.forget(h)); }
+  private unsubscribe: (() => void) | null;
+  private disposed = false;
+  constructor() { this.unsubscribe = onBlobsEvicted(h => this.forget(h)); }
+  /** Release this sender's subscription and retained nodes. The shared blob store is unchanged. */
+  dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true; this.unsubscribe?.(); this.unsubscribe = null;
+    this.ids.clear(); this.used.clear(); this.sentBlobs.clear(); this.dropped = [];
+  }
   /** These blobs are gone from the store: not sent any more, and the worker told with the next document. */
-  forget(hashes: readonly string[]): void { for (const h of hashes) if (this.sentBlobs.delete(h)) this.dropped.push(h); }
+  forget(hashes: readonly string[]): void { if (this.disposed) return; for (const h of hashes) if (this.sentBlobs.delete(h)) this.dropped.push(h); }
   pack(doc: StudioDoc): WireDoc {
+    if (this.disposed) throw new Error('The wire sender is disposed.');
     const evaluated = evaluatedPart(doc), context = evaluated.nodes.some(n => !n.suppressed && bearingHousingRef(n)) ? bearingContextOf(evaluated) : undefined;
     const seq = ++this.seq, ids: number[] = [], added: [number, ModelNode][] = [];
     for (const node of doc.nodes) {

@@ -1,0 +1,5 @@
+Root summary reader failed after reading the fractional generated sketch; product probe was unaffected.
+Traceback (most recent call last):
+  File "<stdin>", line 7, in <module>
+KeyError: 'solids'
+The reader assumed a nonexistent Brep.solids field. Author's native receipt remains authoritative.

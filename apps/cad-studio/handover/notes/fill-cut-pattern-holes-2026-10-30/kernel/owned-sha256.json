@@ -1,0 +1,5 @@
+{
+  "packages/barocss-cad/src/features/fill-cut-pattern.ts": "0fec3fd49214621265507db89229fe957cfa6aef2ad0e1ccf42150ebd1e0684f",
+  "packages/barocss-cad/test/fill-cut-pattern-holes.test.mjs": "4d8532335753f13244767c27666c404ebad61122341d65bc2f08c3697ecd5cfe",
+  "packages/barocss-cad/test/helpers/fill-cut-holes-oracle.mjs": "58316e6f154ecdc7014b7b800391a5b51d8517f71a688f42613bb7eebc6a6dd4"
+}

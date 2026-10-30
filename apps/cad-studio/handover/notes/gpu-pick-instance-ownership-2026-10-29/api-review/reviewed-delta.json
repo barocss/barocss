@@ -1,0 +1,46 @@
+{
+  "status": "REVIEWED_INTERNAL_OPTIONAL_ARGUMENT_ONLY",
+  "newPublicMembers": 0,
+  "changes": [
+    {
+      "path": "$.exposures[6054].variants[0].shape.members[45].type",
+      "expected": "() => void",
+      "actual": "(instanceMesh?: Mesh | undefined) => void",
+      "exposure": {
+        "package": "@barocss/gpu",
+        "subpath": ".",
+        "exportName": "Viewer",
+        "space": "type+value",
+        "observedRole": "unclassified-observed; no policy exemption"
+      },
+      "member": "sceneMoved"
+    },
+    {
+      "path": "$.exposures[6560].variants[0].shape.members[45].type",
+      "expected": "() => void",
+      "actual": "(instanceMesh?: Mesh | undefined) => void",
+      "exposure": {
+        "package": "@barocss/gpu",
+        "subpath": "./source",
+        "exportName": "Viewer",
+        "space": "type+value",
+        "observedRole": "unclassified-observed; no policy exemption"
+      },
+      "member": "sceneMoved"
+    },
+    {
+      "path": "$.exposures[6729].variants[0].shape.members[45].type",
+      "expected": "() => void",
+      "actual": "(instanceMesh?: Mesh | undefined) => void",
+      "exposure": {
+        "package": "@barocss/gpu",
+        "subpath": "./viewer",
+        "exportName": "Viewer",
+        "space": "type+value",
+        "observedRole": "unclassified-observed; no policy exemption"
+      },
+      "member": "sceneMoved"
+    }
+  ],
+  "meaning": "Existing @internal method declaration is observable in inventory; this is intentional and not claimed unchanged"
+}

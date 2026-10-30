@@ -1,0 +1,202 @@
+{
+  "status": "FINAL_NATIVE_SELECTED_PASS",
+  "selectedTests": {
+    "total": 5,
+    "pass": 5,
+    "fail": 0,
+    "skip": 0
+  },
+  "execution": {
+    "exit": 0,
+    "duration": 43111.908542,
+    "timeUnit": "ms"
+  },
+  "sourceProfile": "final-first/source-profile.json",
+  "runtimeAndDriverHashesUnchangedAfterRun": true,
+  "preflight": "Root/producer final driver syntax0/scopedlint0 reused; no repeat",
+  "cases": {
+    "project-to-B": {
+      "status": "SAFE_CONTRACT_PASS",
+      "observed": {
+        "liveDocEqualsCurrent": true,
+        "fileName": "B",
+        "activePath": "B.bcad",
+        "versions": [
+          "Version B-version"
+        ],
+        "historyPresent": true,
+        "historyType": "HTMLDivElement"
+      },
+      "currentFresh": true,
+      "currentMassReady": true,
+      "currentVolume": 2184.0000000000005,
+      "dirty": false,
+      "recoveryRetained": true,
+      "recoveryPresent": false,
+      "offeredRetained": true,
+      "nativeSavedBBytesUnchanged": true,
+      "heldABytesEqualOriginalUIAuthoredA": true,
+      "completion": {
+        "nativeReturnObserved": true,
+        "nextTaskAfterMicrotasks": true,
+        "operationPromise": "NOT_EXPOSED",
+        "sourceBoundary": "Asset-free JSON: project readPart decoding drains microtasks then stale guard returns; App input guard returns directly after arrayBuffer. No old metadata tail required."
+      },
+      "staleAMetadataOperationsAfterRelease": [],
+      "cleanup": {
+        "namespace": "REMOVED_AND_ABSENT",
+        "resources": "OWN_CONTEXT_BROWSER_SERVER_CLOSED"
+      }
+    },
+    "project-to-new": {
+      "status": "SAFE_CONTRACT_PASS",
+      "observed": {
+        "liveDocEqualsCurrent": true,
+        "fileName": "C-current",
+        "activePath": null,
+        "versions": [],
+        "historyPresent": true,
+        "historyType": "HTMLDivElement"
+      },
+      "currentFresh": true,
+      "currentMassReady": true,
+      "currentVolume": 792,
+      "dirty": true,
+      "recoveryRetained": true,
+      "recoveryPresent": true,
+      "offeredRetained": true,
+      "nativeSavedBBytesUnchanged": true,
+      "heldABytesEqualOriginalUIAuthoredA": true,
+      "completion": {
+        "nativeReturnObserved": true,
+        "nextTaskAfterMicrotasks": true,
+        "operationPromise": "NOT_EXPOSED",
+        "sourceBoundary": "Asset-free JSON: project readPart decoding drains microtasks then stale guard returns; App input guard returns directly after arrayBuffer. No old metadata tail required."
+      },
+      "staleAMetadataOperationsAfterRelease": [],
+      "cleanup": {
+        "namespace": "REMOVED_AND_ABSENT",
+        "resources": "OWN_CONTEXT_BROWSER_SERVER_CLOSED"
+      }
+    },
+    "project-to-close": {
+      "status": "SAFE_CONTRACT_PASS",
+      "observed": {
+        "liveDocEqualsCurrent": true,
+        "fileName": "B",
+        "activePath": null,
+        "versions": [],
+        "historyPresent": true,
+        "historyType": "HTMLDivElement"
+      },
+      "currentFresh": true,
+      "currentMassReady": true,
+      "currentVolume": 2184.0000000000005,
+      "dirty": false,
+      "recoveryRetained": true,
+      "recoveryPresent": false,
+      "offeredRetained": true,
+      "nativeSavedBBytesUnchanged": true,
+      "heldABytesEqualOriginalUIAuthoredA": true,
+      "completion": {
+        "nativeReturnObserved": true,
+        "nextTaskAfterMicrotasks": true,
+        "operationPromise": "NOT_EXPOSED",
+        "sourceBoundary": "Asset-free JSON: project readPart decoding drains microtasks then stale guard returns; App input guard returns directly after arrayBuffer. No old metadata tail required."
+      },
+      "staleAMetadataOperationsAfterRelease": [],
+      "cleanup": {
+        "namespace": "REMOVED_AND_ABSENT",
+        "resources": "OWN_CONTEXT_BROWSER_SERVER_CLOSED"
+      }
+    },
+    "file-to-new": {
+      "status": "SAFE_CONTRACT_PASS",
+      "observed": {
+        "liveDocEqualsCurrent": true,
+        "fileName": "C-current",
+        "activePath": null,
+        "versions": [],
+        "historyPresent": true,
+        "historyType": "HTMLDivElement"
+      },
+      "currentFresh": true,
+      "currentMassReady": true,
+      "currentVolume": 792,
+      "dirty": true,
+      "recoveryRetained": true,
+      "recoveryPresent": true,
+      "offeredRetained": true,
+      "nativeSavedBBytesUnchanged": true,
+      "heldABytesEqualOriginalUIAuthoredA": true,
+      "completion": {
+        "nativeReturnObserved": true,
+        "nextTaskAfterMicrotasks": true,
+        "operationPromise": "NOT_EXPOSED",
+        "sourceBoundary": "Asset-free JSON: project readPart decoding drains microtasks then stale guard returns; App input guard returns directly after arrayBuffer. No old metadata tail required."
+      },
+      "staleAMetadataOperationsAfterRelease": [],
+      "cleanup": {
+        "namespace": "REMOVED_AND_ABSENT",
+        "resources": "OWN_CONTEXT_BROWSER_SERVER_CLOSED"
+      }
+    },
+    "file-to-project-B": {
+      "status": "SAFE_CONTRACT_PASS",
+      "observed": {
+        "liveDocEqualsCurrent": true,
+        "fileName": "B",
+        "activePath": "B.bcad",
+        "versions": [
+          "Version B-version"
+        ],
+        "historyPresent": true,
+        "historyType": "HTMLDivElement"
+      },
+      "currentFresh": true,
+      "currentMassReady": true,
+      "currentVolume": 2184.0000000000005,
+      "dirty": false,
+      "recoveryRetained": true,
+      "recoveryPresent": false,
+      "offeredRetained": true,
+      "nativeSavedBBytesUnchanged": true,
+      "heldABytesEqualOriginalUIAuthoredA": true,
+      "completion": {
+        "nativeReturnObserved": true,
+        "nextTaskAfterMicrotasks": true,
+        "operationPromise": "NOT_EXPOSED",
+        "sourceBoundary": "Asset-free JSON: project readPart decoding drains microtasks then stale guard returns; App input guard returns directly after arrayBuffer. No old metadata tail required."
+      },
+      "staleAMetadataOperationsAfterRelease": [],
+      "cleanup": {
+        "namespace": "REMOVED_AND_ABSENT",
+        "resources": "OWN_CONTEXT_BROWSER_SERVER_CLOSED"
+      }
+    }
+  },
+  "cleanup": {
+    "runnerProcess": 97413,
+    "runnerExited": true,
+    "gate": "holder:none after run; all five owned namespaces removed/absence verified and owned contexts/browser/server closed"
+  },
+  "directVisualReview": [
+    "final-first/project-to-close/after-A-release.png",
+    "final-first/file-to-new/after-A-release.png",
+    "final-first/file-to-project-B/after-A-release.png"
+  ],
+  "boundaries": [
+    "Original operation Promise is NOT_EXPOSED",
+    "MessageChannel completion qualification is source-bound to actual asset-free JSON finite microtask chain, not arbitrary blob/crypto/linked I/O",
+    "Native File/Blob arrayBuffer values, receivers and arguments unchanged; no App state/Doc/hit substitution",
+    "Actual file input uses original UI-authored saved A bytes; no synthetic fixture document",
+    "History element/type/nonempty BUTTON rows were checked before comparison",
+    "Baseline first setup race and second product FAIL remain separate immutable receipts"
+  ],
+  "notRun": [
+    "Same-context fileA-to-fileB serialization beyond selected file-to-project cross-intent",
+    "Container blob/crypto/mesh/linked/repair stall matrix",
+    "Other tabs/processes/external folders/crash/real file loss",
+    "Additional cases/full suites by consumer"
+  ]
+}

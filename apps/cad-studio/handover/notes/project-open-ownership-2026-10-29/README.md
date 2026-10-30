@@ -1,0 +1,19 @@
+# D326 — Current ownership for project and serialized document Open
+
+The selected source, unit/types/lint and actual Studio gates pass. See [qualification](qualification.json) for final docs and commit status.
+
+At exact f841, the hook baseline has1 control PASS and6 wrong-owner failures. Actual Studio then reproduces the product failure: B has volume2184, filename/path B, B-version and real History; releasing the original native A read return replaces all of them with A/volume1000. Native saved B bytes remain unchanged. The first actual attempt stopped before A was armed because B mass was pending; keep that setup failure separate. Original sources, drivers, native bytes, raw logs and PNGs remain under [consumers](consumers/README.md).
+
+The project hook retains one opaque request through picker, adoption and refresh. Current request/session/store/path and App document scope guard awaited reads, metadata, errors and linked offers. Close/detach invalidate even an empty current binding. Informational Check reads the current scope without creating a new Open intent. Accepted onOpened synchronously hands the post-replacement scope back; its own document dispatch is not mistaken for another request.
+
+App document dispatches invalidate older Open intent. Serialized .bcad/.json/extensionless file reads check ownership after arrayBuffer and readStudioFile, suppress old errors, and bind fit to the accepted scope. Reference verification uses the actual accepted document, opaque scope and captured D322 dispatch token; it checks after each await before problems/dirty/direct update. It does not infer ownership from equal nodes or mutate refs inside a React functional updater.
+
+D321 whole replacement/Stop/Undo and D322 Save receipts/tag handling remain. There is no new dependency, WASM, schema, migration or public telemetry. The type-only private bridge is not a generic async framework. Other STEP/STL/OBJ/IGES/.barocad completions and stage lifetime are existing A05 followups; this bounded feature does not close all Open/linked/version-write ownership paths.
+
+Final focused29 (new project20 plus existing Save9), Studio423/423/0skip, types and scoped lint pass. The focused repeats are included in423. High source-only review found reopen-owner and informational-Check gaps; both were repaired before final validation. [Unit records](unit/validation.json) retain the earlier24-pass checkpoint separately.
+
+Actual Chrome/WebGPU/DPR1 selected5 passes: delayed project A followed by B/NewC/Close, and actual saved A file-input read followed by NewC/projectB. Original native File/ArrayBuffer values are forwarded; only a fulfilled return is held. Doc/name/real History/path/version/offer/dirty/recovery remain current; NewC has volume792 and exact local recovery, B has volume2184 and unchanged saved bytes. Root views baseline PNG2 and final PNG3. Asset-free plain JSON completion uses actual native return, a real MessageChannel task and current fresh/mass/UI observations. The old operation promise is NOT_EXPOSED; this is not general blob/crypto/linked completion proof. All five namespaces are removed and absence confirmed; owned browsers/servers close and gate returns.
+
+Full other-package/browser suites, negative native verify/reopen/manualCheck matrices, external folders/tabs/crash and performance remain NOT_RUN. Original D321 missing Render-history evidence is not retroactively repaired by these Model History observations. Normal push is authorized; no PR/release.
+
+The owner's newest direct priority is D327 App.tsx decomposition. It follows this qualified checkpoint before A06 or optional extensions. Keep document/work/history ownership explicit and extract cohesive private file/workspace/interaction units. Line reduction alone does not establish preserved behavior.

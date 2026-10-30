@@ -1,0 +1,52 @@
+{
+  "status": "MODEL_SCOPED_PASS_STUDIO_PENDING",
+  "runtime": "Node22.19.0",
+  "gate": "RELEASED",
+  "final": {
+    "tests": 97,
+    "pass": 97,
+    "fail": 0,
+    "skip": 0,
+    "new": 8,
+    "related": 89,
+    "modelTypes": "PASS",
+    "narrowLint": "PASS",
+    "lintFiles": 4
+  },
+  "firstRuns": {
+    "new": {
+      "pass": 8,
+      "fail": 0
+    },
+    "related": {
+      "pass": 88,
+      "fail": 1,
+      "classification": "ASSERTION_CONTRACT_DELTA",
+      "detail": "Old two collinear nonmidpoint three-pole fixtures continue to refuse typed VALUE, now the shared noncollinear/cusp reason instead of exact endpoint midpoint."
+    },
+    "types": "FAIL: test glue duplicate spread, findLastIndex library/implicit any",
+    "lint": "FAIL: two unused imports"
+  },
+  "repairs": "Only test glue and two explicitly granted old assertions changed after first runs. Geometry oracle and production source were not weakened. Before source and exact assertion diff are retained.",
+  "compatibility": {
+    "oldValidCancellationAndSubnormal": "Executed and PASS in final97",
+    "getterZero": "Public query, Model Number facade, raw/live resolver and oversized-array checks PASS",
+    "legacyArithmetic": "Production numeric body unchanged outside three-pole shared-query route"
+  },
+  "sourceSHA256": {
+    "packages/barocss-cad-model/src/engine/curveFeaturePattern.ts": "6e8401b33e3c248105d6f17ff220e84845708405816c0faa0ba80e8f7caa8fc8",
+    "packages/barocss-cad-model/src/app/commands.ts": "40038af0c928b749618a8a7f35273cf5e78fb0c01e484f9394c79a755735926c",
+    "packages/barocss-cad-model/test/quadratic-feature-pattern.test.ts": "afca5ac9ea74ffe1e6ed02c0ecd0153fe76a68a2dbe27408e4472c599e4f5abb",
+    "packages/barocss-cad-model/test/api-curve-feature-pattern.test.ts": "b3f91f147672cd44e39e72a867633a86ab7bfc8847999b72047e5532b0297837",
+    "apps/cad-studio/test/quadratic-cut-pattern-browser.mjs": "4aee791d5ea9eb56686f5424c9d0718a40f2b81944442812a7a3d94a179a9a58"
+  },
+  "coreCapsule": "/tmp/d346-kernel/frozen-hashes-v2.json",
+  "runtimeScope": "Public Part/native BRep/Model command, live source edits, independent certified positions and Decimal guide, file/wire and guards. Not actual Studio UI acceptance.",
+  "notRun": [
+    "Studio build/types in this stage",
+    "actual browser",
+    "full Model suite",
+    "Core rebuild in this stage"
+  ],
+  "diagnosticScope": "The new test retained its source-preparation diagnostic about scalar/work codes; final Core scalar/work authority is owned by High focused tests and v2 audit. Model97 does not independently certify all Core work bounds."
+}

@@ -1,0 +1,18 @@
+{
+  "status": "FAIL_ORDINARY_NEGATIVE_CAP_OUTWARD_REGRESSION",
+  "tests": 63,
+  "pass": 61,
+  "fail": 2,
+  "skip": 0,
+  "log": "/tmp/d342-model/focused-guard-final.log",
+  "failedControls": [
+    "translatedboxaxis0sign-1outward2.125",
+    "translatedboxaxis1sign-1outward2.125"
+  ],
+  "error": "FACE_DISTANCE: prospective native target does not bind to stored cap levels",
+  "nearfullPolygonAndCircle": "PASS atomic FACE_DISTANCE +0.001 retry",
+  "typesAfterGuard": "NOT_RUN",
+  "lintAfterGuard": "NOT_RUN",
+  "gate": "RELEASED_holder_none_slots_0",
+  "productionEditsByModelWorkerAfterFailure": 0
+}

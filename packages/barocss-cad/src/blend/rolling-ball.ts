@@ -10,6 +10,7 @@ import { faceGeometry } from '../brep/analytic-boolean.js';
 import { basis, curveDomain, curveEvaluator, evaluateCurve, surfaceDomain, surfaceEvaluator } from '../core/math.js';
 import { add, cross, dot, len, scale, sub, unit } from '../core/vec3.js';
 import type { Curve, Point, Surface } from '../types.js';
+import { polynomialRunSurface } from './polynomial-run.js';
 
 type XY = [number, number];
 /** A face's surface, ready to evaluate: clamped to its domain, its outward side `sense`. */
@@ -500,7 +501,7 @@ export interface FilletReport {
 }
 type Face = Brep['faces'][number];
 /** A face for the solve: its sheet, and its trimmed region in its (u, v) as polygons (outer first). */
-interface Side { readonly face: Face; readonly sheet: Sheet; readonly rings: XY[][] }
+interface Side { readonly face: Face; readonly sheet: Sheet; readonly rings: XY[][]; readonly margin: number }
 /** The surface carried on along each straight direction (degree 1, two rows: a plane, an extrusion, a cone's ruling) by k times its length either way — exactly the same surface, room for a tool running past the face. */
 export function extendedSurface(S: Surface, k = 2): Surface {
   let P = S.controlPoints.map(r => r.map(q => [...q] as Point));
@@ -513,9 +514,14 @@ export function extendedSurface(S: Surface, k = 2): Surface {
  * the face's middle, so the face's region stays clear of it), facing out as the face does; else carried on along its
  * straight directions (extendedSurface).
  */
-function runSheet(body: Brep, face: Face, scaleMM: number): Sheet {
+function runSheet(body: Brep, face: Face, scaleMM: number): { sheet: Sheet; margin: number } {
   const g = faceGeometry(face, scaleMM);
-  if (g.kind !== 'cylinder') return sheetOf(extendedSurface(face.surface as Surface), face.sense);
+  if (g.kind !== 'cylinder') {
+    const original = face.surface as Surface, own = surfaceDomain(original);
+    const sheet = sheetOf(polynomialRunSurface(extendedSurface(original)), face.sense);
+    // A polynomial run must not widen the original trim's inside allowance.
+    return { sheet, margin: 1e-7 * Math.max(own.u[1] - own.u[0], own.v[1] - own.v[0]) };
+  }
   const own = sheetOf(face.surface as Surface, face.sense), mid = pointOn(own, (own.u0 + own.u1) / 2, (own.v0 + own.v1) / 2), a = unit(g.a);
   const d = sub(mid, g.c), radial = sub(d, scale(a, dot(d, a))), e1 = scale(unit(radial), -1), e2 = cross(a, e1), H = 8 * scaleMM + 10, w = Math.SQRT1_2;
   const ring: Point[] = [], wts: number[] = [];
@@ -524,10 +530,13 @@ function runSheet(body: Brep, face: Face, scaleMM: number): Sheet {
   const lo = sub(g.c, scale(a, H)), hi = add(g.c, scale(a, H));
   const S: Surface = { kind: 'surface', id: 'turn', degreeU: 2, degreeV: 1, knotsU: [0, 0, 0, 0.25, 0.25, 0.5, 0.5, 0.75, 0.75, 1, 1, 1], knotsV: [0, 0, 1, 1], controlPoints: ring.map(q => [add(lo, q), add(hi, q)]), weights: wts.map(x => [x, x]) };
   const fwd = sheetOf(S, 'forward'), n = normalOn(fwd, ...invertOn(fwd, mid)), outward = normalOn(own, (own.u0 + own.u1) / 2, (own.v0 + own.v1) / 2);
-  return sheetOf(S, dot(n, outward) > 0 ? 'forward' : 'reversed');
+  const sheet = sheetOf(S, dot(n, outward) > 0 ? 'forward' : 'reversed');
+  // Keep the whole-turn cylinder's existing allowance, independently of its authored knot domain.
+  return { sheet, margin: 1e-7 * Math.max(sheet.u1 - sheet.u0, sheet.v1 - sheet.v0) };
 }
 function sideOf(body: Brep, face: Face, extend = false, scaleMM = 1): Side {
-  const sheet = extend ? runSheet(body, face, scaleMM) : sheetOf(face.surface as Surface, face.sense), loops = new Map(body.loops.map(l => [l.id, l])), coedges = new Map(body.coedges.map(c => [c.id, c])), edges = new Map(body.edges.map(e => [e.id, e]));
+  const run = extend ? runSheet(body, face, scaleMM) : null;
+  const sheet = run?.sheet ?? sheetOf(face.surface as Surface, face.sense), loops = new Map(body.loops.map(l => [l.id, l])), coedges = new Map(body.coedges.map(c => [c.id, c])), edges = new Map(body.edges.map(e => [e.id, e]));
   const rings: XY[][] = [];
   for (const lid of face.loops) {
     const ring: XY[] = []; let hint: XY | undefined;
@@ -537,11 +546,12 @@ function sideOf(body: Brep, face: Face, extend = false, scaleMM = 1): Side {
     }
     rings.push(ring);
   }
-  return { face, sheet, rings };
+  const margin = run?.margin ?? 1e-7 * Math.max(sheet.u1 - sheet.u0, sheet.v1 - sheet.v0);
+  return { face, sheet, rings, margin };
 }
 /** Whether (u, v) lies inside the face's region: inside its rings an odd number of times (even-odd), off them by a margin. */
 function insideFace(side: Side, uv: XY): boolean {
-  const s = side.sheet, margin = 1e-7 * Math.max(s.u1 - s.u0, s.v1 - s.v0);
+  const margin = side.margin;
   let inside = false, near = Infinity;
   for (const ring of side.rings) for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
     const [xi, yi] = ring[i], [xj, yj] = ring[j];

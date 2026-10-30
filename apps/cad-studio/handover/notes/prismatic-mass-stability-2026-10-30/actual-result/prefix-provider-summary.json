@@ -1,0 +1,77 @@
+[
+  {
+    "axis": 0,
+    "status": "COMPOSITION_RETURNED_EMPTY_NATIVE_OUTPUT",
+    "guard": "ACCEPTED",
+    "profile": {
+      "axis": 0,
+      "sign": 1,
+      "coordinate": 5.1235467,
+      "opposite": 0.1234567
+    },
+    "distance": -5.00009,
+    "storedRequestedCoordinate": 0.1234567000000002,
+    "nativeOutputCount": 0,
+    "outputLevels": null,
+    "selectedNativeNormalCoefficients": [
+      {
+        "name": "n1.top",
+        "values": [
+          5.1235467
+        ]
+      }
+    ],
+    "inputUnchanged": true
+  },
+  {
+    "axis": 1,
+    "status": "COMPOSITION_RETURNED_EMPTY_NATIVE_OUTPUT",
+    "guard": "ACCEPTED",
+    "profile": {
+      "axis": 1,
+      "sign": 1,
+      "coordinate": 4.7655222,
+      "opposite": -0.2345678
+    },
+    "distance": -5.00009,
+    "storedRequestedCoordinate": -0.23456779999999977,
+    "nativeOutputCount": 0,
+    "outputLevels": null,
+    "selectedNativeNormalCoefficients": [
+      {
+        "name": "n1.top",
+        "values": [
+          4.7655222
+        ]
+      }
+    ],
+    "inputUnchanged": true
+  },
+  {
+    "axis": 2,
+    "status": "ACTUAL_COMPOSITION_RETURNED",
+    "guard": "ACCEPTED",
+    "profile": {
+      "axis": 2,
+      "sign": 1,
+      "coordinate": 5.3457689,
+      "opposite": 0.3456789
+    },
+    "distance": -5.00009,
+    "storedRequestedCoordinate": 0.34567890000000023,
+    "nativeOutputCount": 1,
+    "outputLevels": [
+      0.3456789,
+      0.34567890000000023
+    ],
+    "selectedNativeNormalCoefficients": [
+      {
+        "name": "n1.top",
+        "values": [
+          5.3457689
+        ]
+      }
+    ],
+    "inputUnchanged": true
+  }
+]

@@ -50,6 +50,8 @@ async function walk(dir: DirHandle, prefix: string, out: StoreEntry[]): Promise<
 }
 
 export function handleStore(root: DirHandle, kind: 'folder' | 'browser'): ProjectStore {
+  // Ownership is local to this adapter and exact validated path. Separate stores/tabs and remove() are outside it.
+  const writes = new Map<string, Promise<void>>();
   return {
     kind, name: root.name || 'Project',
     async list(dir) {
@@ -63,20 +65,31 @@ export function handleStore(root: DirHandle, kind: 'folder' | 'browser'): Projec
       catch (e) { if (missing(e)) return null; return denied(e, `reading ${path}`); }
     },
     async write(path, bytes, o = {}) {
-      const parts = checkPath(path);
-      if (o.expect !== undefined) {
-        const h = await fileOf(root, path), had = h ? tagOf(await h.getFile()) : null;
-        if (had !== o.expect) throw refusal('STORAGE_CHANGED', `${path} changed since it was read`);
-      }
-      const dir = await folderOf(root, parts, true);
-      let h: FileHandle;
-      try { h = await dir!.getFileHandle(parts[parts.length - 1], { create: true }); } catch (e) { return denied(e, `writing ${path}`); }
-      if (!h.createWritable) throw refusal('STORAGE_UNAVAILABLE', 'this browser cannot write files here: export the project instead');
+      const parts = checkPath(path), expect = o.expect, previous = writes.get(path);
+      let release!: () => void;
+      // Completion tokens never reject: an earlier failure must not poison the next request.
+      const done = new Promise<void>(resolve => { release = resolve; });
+      writes.set(path, done);
+      if (previous) await previous;
       try {
-        const w = await h.createWritable();
-        try { await w.write(bytes); await w.close(); } catch (e) { await w.abort?.().catch(() => {}); throw e; }
-      } catch (e) { return denied(e, `writing ${path}`); }
-      return { tag: tagOf(await h.getFile()) };
+        if (expect !== undefined) {
+          const h = await fileOf(root, path), had = h ? tagOf(await h.getFile()) : null;
+          if (had !== expect) throw refusal('STORAGE_CHANGED', `${path} changed since it was read`);
+        }
+        const dir = await folderOf(root, parts, true);
+        let h: FileHandle;
+        try { h = await dir!.getFileHandle(parts[parts.length - 1], { create: true }); } catch (e) { return denied(e, `writing ${path}`); }
+        if (!h.createWritable) throw refusal('STORAGE_UNAVAILABLE', 'this browser cannot write files here: export the project instead');
+        try {
+          const w = await h.createWritable();
+          try { await w.write(bytes); await w.close(); } catch (e) { await w.abort?.().catch(() => {}); throw e; }
+        } catch (e) { return denied(e, `writing ${path}`); }
+        // Read our commit's tag before allowing any later same-path writer to change it.
+        return { tag: tagOf(await h.getFile()) };
+      } finally {
+        if (writes.get(path) === done) writes.delete(path);
+        release();
+      }
     },
     async remove(path) {
       const parts = checkPath(path), dir = await folderOf(root, parts, false);

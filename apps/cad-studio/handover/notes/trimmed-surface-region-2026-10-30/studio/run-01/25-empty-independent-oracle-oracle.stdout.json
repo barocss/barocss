@@ -1,0 +1,90 @@
+{
+  "status": "PASS",
+  "expectedExactRectangleComponents": [],
+  "actualStoredComponents": [],
+  "slabLevelsIncludingPerpendicularBoundarySwitches": 20,
+  "probes": [
+    {
+      "world": [
+        18,
+        11.25,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        32,
+        11.25,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        25,
+        6.25,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        25,
+        11.25,
+        3
+      ],
+      "inCrop": true,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        25,
+        3,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        13,
+        -3,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        44,
+        19,
+        3
+      ],
+      "inCrop": false,
+      "expectedMaterial": false,
+      "owners": []
+    },
+    {
+      "world": [
+        23,
+        9,
+        3
+      ],
+      "inCrop": true,
+      "expectedMaterial": false,
+      "owners": []
+    }
+  ],
+  "tolerance": 1e-07,
+  "scope": "Independent exact Fraction rectangle sweep and stored Green moments/ray parity; no CAD or production predicates"
+}

@@ -1,0 +1,83 @@
+{
+  "status": "PASS_WITH_BOUNDED_BROWSER_COVERAGE",
+  "baseline": "30fa825a3d372cf86f29b304c38d950d427fda13",
+  "app": {
+    "beforeLines": 2308,
+    "afterLines": 2046,
+    "beforeBytes": 214011,
+    "afterBytes": 188513,
+    "newModules": 7,
+    "extractedDomains": 9
+  },
+  "sourceReview": "source-review.md",
+  "buildIncludingTypes": {
+    "exit": 0,
+    "raw": "build-final.txt",
+    "existingBundlerWarningsRetained": true
+  },
+  "productionLint": {
+    "exit": 0,
+    "errors": 0,
+    "warnings": 0
+  },
+  "driverLint": {
+    "exit": 0,
+    "errors": 0,
+    "existingConsoleWarnings": 45
+  },
+  "studio": {
+    "tests": 429,
+    "pass": 429,
+    "fail": 0,
+    "skip": 0,
+    "newTests": 0
+  },
+  "browser": {
+    "renderer": "Chrome WebGPU DPR1",
+    "firstRun": {
+      "pass": 11,
+      "fail": 1,
+      "skip": 0,
+      "exit": 1,
+      "includesMandatoryStarter": true,
+      "selectedPass": 10,
+      "selectedFail": 1
+    },
+    "dxfRerun": {
+      "pass": 2,
+      "fail": 0,
+      "skip": 0,
+      "exit": 0,
+      "includesMandatoryStarter": true,
+      "selectedPass": 1
+    },
+    "uniqueSelectedPassingCases": 11,
+    "starter": "PASS; repeated smoke counted separately",
+    "cause": "A6.4 old driver waited for download immediately after opening STL dialog. Existing baseline requires its Export button. Driver corrected to click Export and await the STL download; no production mutation.",
+    "visualLimit": "The first failed A6.4 leaves an STL dialog open during later positive cases. Keep their domain assertions and captures, but do not claim clean whole-screen visual acceptance from those images. Final isolated A6.4 passes.",
+    "sourceBinding": "frozen/profile.json",
+    "productionUnchanged": true,
+    "firstPostCheckCorrection": "Root first runner used cd ../../.. after browser cleanup, so its relative-path provenance check failed FileNotFoundError. Raw error preserved. Correct-root verification before rerun and after final run confirms all8 production paths unchanged. This is a receipt-command error, not product failure.",
+    "cleanup": "Both owned browser/server runs finished and closed in runner finally; heavy leases released. No source or test edits during actual runs."
+  },
+  "intermediateFailures": {
+    "types": "Wrong tuple index and nullable ProcessProfile input declarations; raw six diagnostics retained in types-first.txt. Fixed types only.",
+    "lint": "Unused App clearanceResult destructure; raw retained in lint-first.txt. Removed destructure only.",
+    "review": "Intermediate eager ref access before declaration fixed before final source freeze."
+  },
+  "notRun": [
+    "Full kernel/cad-model/GPU suites",
+    "Whole browser suite and clean whole-screen visual acceptance",
+    "Remote CI",
+    "Performance comparison",
+    "Unrelated A05/A06 completion",
+    "Repair of prior D321 Render-history evidence gap"
+  ],
+  "docs": {
+    "exit": 0,
+    "pages": 68,
+    "shots": 55,
+    "shotKB": 4811,
+    "labels": 860
+  }
+}

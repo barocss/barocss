@@ -1,0 +1,5 @@
+flow display: {"requestedDpr":1,"renderer":"webgpu","devicePixelRatio":1,"cssWidth":1140,"cssHeight":900,"backingWidth":1140,"backingHeight":900}
+ok 1 starter plate loads
+ok 36 CG1 text relief: supported emboss, refused outside stroke, history edit, undo and portable Save/Open
+ok 37 CG1 text relief Korean: both selected originals preserve separated strokes and counters through engrave and reopen
+screenshots: /tmp/barocss-text-relief-browser

@@ -1,0 +1,30 @@
+{
+  "status": "READY_FOR_ACTUAL_BROWSER",
+  "sourceFiles": {
+    "apps/library-docs/scripts/api-inventory.expected.json": "2d4b24b58064a93e08db672ec073de5b8503a23549357fff2beddc7573bd547b",
+    "apps/cad-studio/test/quadratic-cut-pattern-browser.mjs": "68bfe8a11aea020a2729bee5d8921d65251971da9b659a446008c549320be18a",
+    "packages/barocss-cad-model/src/app/commands.ts": "40038af0c928b749618a8a7f35273cf5e78fb0c01e484f9394c79a755735926c",
+    "packages/barocss-cad-model/src/engine/curveFeaturePattern.ts": "6e8401b33e3c248105d6f17ff220e84845708405816c0faa0ba80e8f7caa8fc8",
+    "packages/barocss-cad-model/test/api-curve-feature-pattern.test.ts": "b3f91f147672cd44e39e72a867633a86ab7bfc8847999b72047e5532b0297837",
+    "packages/barocss-cad-model/test/quadratic-feature-pattern.test.ts": "2f49a33d585e95b7af0ae8e0ff311dca4826489a7ba9569103823918ef05f341",
+    "packages/barocss-cad/scripts/perf-bench.mjs": "eee742a91af488363a70662144026a89052f92290feb5c1dea34daf681977217",
+    "packages/barocss-cad/src/api/index.ts": "46c4e80584ec19603127795e9f28f6cfb5d74d22f815cf27177ddd333b4c5f26",
+    "packages/barocss-cad/src/api/curve-feature-pattern-plan.ts": "8f0e9a43339a78e6803da7ceb94391213928b2e0d99c17593c177ae27f0d93f4",
+    "packages/barocss-cad/src/features/curve-cut-pattern.ts": "aa5a11e8065c516160f6916f8919e233b220f2b2050bf197bf533d4c6fe9f7bd",
+    "packages/barocss-cad/src/features/quadratic-cut-arithmetic.ts": "47fe4a5f2c9b9853828b3315e3f0cdb5f20867e70c6db1c5a290c6e038563563",
+    "packages/barocss-cad/src/features/quadratic-cut-plan.ts": "de244b7826e9424d7b121b95c56275ea1b760956801841d1d280a81dd7c7ef5b",
+    "packages/barocss-cad/test/quadratic-cut-pattern.test.mjs": "a22206400edf0bb0d35b55c3e049c1c0cb3555742a474b9d1294081e90eaa484",
+    "packages/barocss-cad/test/helpers/quadratic-cut-oracle.mjs": "bfc9c3bc8aa02524b11057b8c9c7a3dafca0328d49fbe3b0c9535768c066faf5"
+  },
+  "housekeepingProof": "Exact two-file diff only: lift free failure callback; remove stale test-preparation comments/diagnostic. All test assertions unchanged.",
+  "checks": {
+    "Kernel": "31 unique PASS, root postfix12 PASS after build",
+    "Model": "97 unique PASS, root postfix8 PASS",
+    "Core and Model types": "PASS",
+    "API": "2added/0removed/0existingchanged, adopted and checked",
+    "Studio": "types/build/chat23/driverlint PASS",
+    "generated": "agent-tools/refusals PASS"
+  },
+  "wholeSuites": "NOT_RUN_FOR_D346",
+  "actualBrowser": "NOT_RUN"
+}

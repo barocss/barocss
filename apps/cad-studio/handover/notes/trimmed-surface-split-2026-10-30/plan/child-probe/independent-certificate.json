@@ -1,0 +1,705 @@
+{
+  "scope": "exact arithmetic over captured public-parent outputs; not a product guard or generic embedding proof",
+  "results": [
+    {
+      "name": "translated-tiny-1e-16",
+      "assessment": {
+        "lower": {
+          "allPositiveWeights": true,
+          "jacobianDegree": [
+            2,
+            2
+          ],
+          "jacobianBernsteinCoefficients": [
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            }
+          ],
+          "allJacobianCoefficientsStrictPositive": false,
+          "projectedCornerTurns": [
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            }
+          ],
+          "strictConvexProjectedBoundary": false,
+          "wholeChildL1PositionBound": {
+            "numerator": "2028240960365167",
+            "denominator": "20282409603651670423947251286016"
+          },
+          "positionBoundBelow1e-7": true,
+          "exactAffineFourthPoleDefect": [
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            }
+          ],
+          "exactAffineChild": true
+        },
+        "upper": {
+          "allPositiveWeights": true,
+          "jacobianDegree": [
+            2,
+            2
+          ],
+          "jacobianBernsteinCoefficients": [
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            }
+          ],
+          "allJacobianCoefficientsStrictPositive": true,
+          "projectedCornerTurns": [
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            }
+          ],
+          "strictConvexProjectedBoundary": true,
+          "wholeChildL1PositionBound": {
+            "numerator": "2028240960365167",
+            "denominator": "20282409603651670423947251286016"
+          },
+          "positionBoundBelow1e-7": true,
+          "exactAffineFourthPoleDefect": [
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            }
+          ],
+          "exactAffineChild": true
+        }
+      }
+    },
+    {
+      "name": "translated-MIN_VALUE",
+      "assessment": {
+        "lower": {
+          "allPositiveWeights": true,
+          "jacobianDegree": [
+            2,
+            2
+          ],
+          "jacobianBernsteinCoefficients": [
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            }
+          ],
+          "allJacobianCoefficientsStrictPositive": false,
+          "projectedCornerTurns": [
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            }
+          ],
+          "strictConvexProjectedBoundary": false,
+          "wholeChildL1PositionBound": {
+            "numerator": "1",
+            "denominator": "202402253307310618352495346718917307049556649764142118356901358027430339567995346891960383701437124495187077864316811911389808737385793476867013399940738509921517424276566361364466907742093216341239767678472745068562007483424692698618103355649159556340810056512358769552333414615230502532186327508646006263307707741093494784"
+          },
+          "positionBoundBelow1e-7": true,
+          "exactAffineFourthPoleDefect": [
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            }
+          ],
+          "exactAffineChild": true
+        },
+        "upper": {
+          "allPositiveWeights": true,
+          "jacobianDegree": [
+            2,
+            2
+          ],
+          "jacobianBernsteinCoefficients": [
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            }
+          ],
+          "allJacobianCoefficientsStrictPositive": true,
+          "projectedCornerTurns": [
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            },
+            {
+              "numerator": "1",
+              "denominator": "1"
+            }
+          ],
+          "strictConvexProjectedBoundary": true,
+          "wholeChildL1PositionBound": {
+            "numerator": "1",
+            "denominator": "202402253307310618352495346718917307049556649764142118356901358027430339567995346891960383701437124495187077864316811911389808737385793476867013399940738509921517424276566361364466907742093216341239767678472745068562007483424692698618103355649159556340810056512358769552333414615230502532186327508646006263307707741093494784"
+          },
+          "positionBoundBelow1e-7": true,
+          "exactAffineFourthPoleDefect": [
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            }
+          ],
+          "exactAffineChild": true
+        }
+      }
+    },
+    {
+      "name": "translated-representable-thin-1e-10",
+      "assessment": {
+        "lower": {
+          "allPositiveWeights": true,
+          "jacobianDegree": [
+            2,
+            2
+          ],
+          "jacobianBernsteinCoefficients": [
+            {
+              "numerator": "55",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "55",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "55",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "55",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "55",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "55",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "55",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "55",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "55",
+              "denominator": "549755813888"
+            }
+          ],
+          "allJacobianCoefficientsStrictPositive": true,
+          "projectedCornerTurns": [
+            {
+              "numerator": "55",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "55",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "55",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "55",
+              "denominator": "549755813888"
+            }
+          ],
+          "strictConvexProjectedBoundary": true,
+          "wholeChildL1PositionBound": {
+            "numerator": "3436614009413",
+            "denominator": "77371252455336267181195264"
+          },
+          "positionBoundBelow1e-7": true,
+          "exactAffineFourthPoleDefect": [
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            }
+          ],
+          "exactAffineChild": true
+        },
+        "upper": {
+          "allPositiveWeights": true,
+          "jacobianDegree": [
+            2,
+            2
+          ],
+          "jacobianBernsteinCoefficients": [
+            {
+              "numerator": "549755813833",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "549755813833",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "549755813833",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "549755813833",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "549755813833",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "549755813833",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "549755813833",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "549755813833",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "549755813833",
+              "denominator": "549755813888"
+            }
+          ],
+          "allJacobianCoefficientsStrictPositive": true,
+          "projectedCornerTurns": [
+            {
+              "numerator": "549755813833",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "549755813833",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "549755813833",
+              "denominator": "549755813888"
+            },
+            {
+              "numerator": "549755813833",
+              "denominator": "549755813888"
+            }
+          ],
+          "strictConvexProjectedBoundary": true,
+          "wholeChildL1PositionBound": {
+            "numerator": "3436614009413",
+            "denominator": "77371252455336267181195264"
+          },
+          "positionBoundBelow1e-7": true,
+          "exactAffineFourthPoleDefect": [
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            }
+          ],
+          "exactAffineChild": true
+        }
+      }
+    },
+    {
+      "name": "ordinary-nonunit-slanted-fractional",
+      "assessment": {
+        "lower": {
+          "allPositiveWeights": true,
+          "jacobianDegree": [
+            2,
+            2
+          ],
+          "jacobianBernsteinCoefficients": [
+            {
+              "numerator": "16212958658533785",
+              "denominator": "18014398509481984"
+            },
+            {
+              "numerator": "32425917317067567",
+              "denominator": "36028797018963968"
+            },
+            {
+              "numerator": "8106479329266891",
+              "denominator": "9007199254740992"
+            },
+            {
+              "numerator": "584133396585168070379443967125095",
+              "denominator": "649037107316853453566312041152512"
+            },
+            {
+              "numerator": "584133396585168016336248438679143",
+              "denominator": "649037107316853453566312041152512"
+            },
+            {
+              "numerator": "584133396585167962293052910233191",
+              "denominator": "649037107316853453566312041152512"
+            },
+            {
+              "numerator": "292066698292584027083242654295655",
+              "denominator": "324518553658426726783156020576256"
+            },
+            {
+              "numerator": "292066698292584000061644890072679",
+              "denominator": "324518553658426726783156020576256"
+            },
+            {
+              "numerator": "292066698292583973040047125849703",
+              "denominator": "324518553658426726783156020576256"
+            }
+          ],
+          "allJacobianCoefficientsStrictPositive": true,
+          "projectedCornerTurns": [
+            {
+              "numerator": "292066698292584027083242654295655",
+              "denominator": "324518553658426726783156020576256"
+            },
+            {
+              "numerator": "292066698292583973040047125849703",
+              "denominator": "324518553658426726783156020576256"
+            },
+            {
+              "numerator": "8106479329266891",
+              "denominator": "9007199254740992"
+            },
+            {
+              "numerator": "16212958658533785",
+              "denominator": "18014398509481984"
+            }
+          ],
+          "strictConvexProjectedBoundary": true,
+          "wholeChildL1PositionBound": {
+            "numerator": "7",
+            "denominator": "36028797018963968"
+          },
+          "positionBoundBelow1e-7": true,
+          "exactAffineFourthPoleDefect": [
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "-3",
+              "denominator": "18014398509481984"
+            }
+          ],
+          "exactAffineChild": false
+        },
+        "upper": {
+          "allPositiveWeights": true,
+          "jacobianDegree": [
+            2,
+            2
+          ],
+          "jacobianBernsteinCoefficients": [
+            {
+              "numerator": "681488962682696099223029878987161",
+              "denominator": "324518553658426726783156020576256"
+            },
+            {
+              "numerator": "681488962682696126244627643210137",
+              "denominator": "324518553658426726783156020576256"
+            },
+            {
+              "numerator": "681488962682696153266225407433113",
+              "denominator": "324518553658426726783156020576256"
+            },
+            {
+              "numerator": "1362977925365392236276296627886489",
+              "denominator": "649037107316853453566312041152512"
+            },
+            {
+              "numerator": "1362977925365392290319492156332441",
+              "denominator": "649037107316853453566312041152512"
+            },
+            {
+              "numerator": "1362977925365392344362687684778393",
+              "denominator": "649037107316853453566312041152512"
+            },
+            {
+              "numerator": "37830236869912167",
+              "denominator": "18014398509481984"
+            },
+            {
+              "numerator": "75660473739824337",
+              "denominator": "36028797018963968"
+            },
+            {
+              "numerator": "18915118434956085",
+              "denominator": "9007199254740992"
+            }
+          ],
+          "allJacobianCoefficientsStrictPositive": true,
+          "projectedCornerTurns": [
+            {
+              "numerator": "37830236869912167",
+              "denominator": "18014398509481984"
+            },
+            {
+              "numerator": "18915118434956085",
+              "denominator": "9007199254740992"
+            },
+            {
+              "numerator": "681488962682696153266225407433113",
+              "denominator": "324518553658426726783156020576256"
+            },
+            {
+              "numerator": "681488962682696099223029878987161",
+              "denominator": "324518553658426726783156020576256"
+            }
+          ],
+          "strictConvexProjectedBoundary": true,
+          "wholeChildL1PositionBound": {
+            "numerator": "7",
+            "denominator": "36028797018963968"
+          },
+          "positionBoundBelow1e-7": true,
+          "exactAffineFourthPoleDefect": [
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "0",
+              "denominator": "1"
+            },
+            {
+              "numerator": "3",
+              "denominator": "18014398509481984"
+            }
+          ],
+          "exactAffineChild": false
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+test/direct-curve-candidate.test.ts(86,47): error TS2322: Type '(({ kind: "sketch"; profile: "rectangle"; min: [Dim, Dim]; max: [Dim, Dim]; } & OnPlane & NodeExtras) | ({ kind: "sketch"; profile: "circle"; center: [...]; radius: Dim; } & OnPlane & NodeExtras) | ... 75 more ... | { ...; })[]' is not assignable to type 'ModelNode[]'.
+  Type '({ kind: "sketch"; profile: "rectangle"; min: [Dim, Dim]; max: [Dim, Dim]; } & OnPlane & NodeExtras) | ({ kind: "sketch"; profile: "circle"; center: [...]; radius: Dim; } & OnPlane & NodeExtras) | ... 75 more ... | { ...; }' is not assignable to type 'ModelNode'.
+    Type '{ suppressed: boolean; kind: "curve-feature-pattern"; parent: BodyRef; path: CurveFeaturePatternPath; spacing: Dim; ... 5 more ...; bought?: boolean; }' is not assignable to type 'ModelNode'.
+      Type '{ suppressed: boolean; kind: "curve-feature-pattern"; parent: BodyRef; path: CurveFeaturePatternPath; spacing: Dim; ... 5 more ...; bought?: boolean; }' is not assignable to type '{ kind: "curve-feature-pattern"; parent: BodyRef; path: CurveFeaturePatternPath; spacing: Dim; count: number; } & NodeExtras'.
+        Type '{ suppressed: boolean; kind: "curve-feature-pattern"; parent: BodyRef; path: CurveFeaturePatternPath; spacing: Dim; ... 5 more ...; bought?: boolean; }' is not assignable to type 'NodeExtras'.
+          Types of property 'suppressed' are incompatible.
+            Type 'boolean' is not assignable to type 'true'.
+test/direct-curve-candidate.test.ts(86,90): error TS2322: Type '(({ kind: "sketch"; profile: "rectangle"; min: [Dim, Dim]; max: [Dim, Dim]; } & OnPlane & NodeExtras) | ({ kind: "sketch"; profile: "circle"; center: [...]; radius: Dim; } & OnPlane & NodeExtras) | ... 75 more ... | { ...; })[]' is not assignable to type 'ModelNode[]'.
+  Type '({ kind: "sketch"; profile: "rectangle"; min: [Dim, Dim]; max: [Dim, Dim]; } & OnPlane & NodeExtras) | ({ kind: "sketch"; profile: "circle"; center: [...]; radius: Dim; } & OnPlane & NodeExtras) | ... 75 more ... | { ...; }' is not assignable to type 'ModelNode'.
+    Type '{ suppressed: boolean; kind: "curve-feature-pattern"; parent: BodyRef; path: CurveFeaturePatternPath; spacing: Dim; ... 5 more ...; bought?: boolean; }' is not assignable to type 'ModelNode'.
+      Type '{ suppressed: boolean; kind: "curve-feature-pattern"; parent: BodyRef; path: CurveFeaturePatternPath; spacing: Dim; ... 5 more ...; bought?: boolean; }' is not assignable to type '{ kind: "curve-feature-pattern"; parent: BodyRef; path: CurveFeaturePatternPath; spacing: Dim; count: number; } & NodeExtras'.
+        Type '{ suppressed: boolean; kind: "curve-feature-pattern"; parent: BodyRef; path: CurveFeaturePatternPath; spacing: Dim; ... 5 more ...; bought?: boolean; }' is not assignable to type 'NodeExtras'.
+          Types of property 'suppressed' are incompatible.
+            Type 'boolean' is not assignable to type 'true'.

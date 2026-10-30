@@ -11,8 +11,10 @@ import { sub, cross, dot, len, unit as norm } from './vec3';
 import type { Vec3 } from './vec3';
 export type { Vec3 };
 
+/** Canonical quality-8 geometry of one native member of a merged display face. */
+export interface NativeDisplayFace { name: string; kind: 'plane' | 'curved'; normal: Vec3; centroid: Vec3; area: number; radius?: number }
 /** `radius`: a cylinder's or a sphere's. */
-export interface DisplayFace { index: number; id: string; name: string; kind: 'plane' | 'curved'; normal: Vec3; centroid: Vec3; area: number; radius?: number; /** A mesh region (its triangles are the surface: no chord error, A6.3). */ facet?: true; /** O8: the lump (the B-rep body, 0 first) this face is on — only on a body of two or more lumps. */ lump?: number;
+export interface DisplayFace { nativeFaces?: NativeDisplayFace[]; index: number; id: string; name: string; kind: 'plane' | 'curved'; normal: Vec3; centroid: Vec3; area: number; radius?: number; /** A mesh region (its triangles are the surface: no chord error, A6.3). */ facet?: true; /** O8: the lump (the B-rep body, 0 first) this face is on — only on a body of two or more lumps. */ lump?: number;
   /** The face's exact surface where the kernel knows it (A6.3: datums and measures to rounding, not to the Float32 mesh): a plane (a point, the normal out of the face) or a cylinder (a point on the axis, its direction, the radius). */
   exact?: { kind: 'plane'; o: Vec3; n: Vec3 } | { kind: 'cylinder'; c: Vec3; a: Vec3; r: number };
   /** A curved face of constant curvature along its circles — a cylinder, sphere, cone or torus (A6.3: the edge-sag bound holds, O55). */
@@ -21,6 +23,11 @@ export interface DisplayFace { index: number; id: string; name: string; kind: 'p
   freeform?: string[];
   /** A freeform face's chord depth (mm), measured against its exact surface at sampled points by measureChords (O59). */
   chordDepth?: number }
+/** Native member coordinates belong only to the original unplaced body. */
+export function withoutNativeFaces(face: DisplayFace): DisplayFace {
+  const { nativeFaces, ...display } = face;
+  return nativeFaces ? display : face;
+}
 export interface DisplayEdge { index: number; faces: [number, number]; a: Vec3; b: Vec3; straight: boolean; axis: 'x' | 'y' | 'z' | null; names: string[] }
 export interface DisplayMesh {
   positions: Float32Array; normals: Float32Array; faceOfVertex: Float32Array; indices: Uint32Array;
@@ -59,8 +66,32 @@ const baseName = (name: string | undefined) => (name ?? '').replace(/#\d+$/, '')
 const near = (p: Vec3, q: Vec3) => len(sub(p, q)) < 1e-6 * Math.max(1, len(p));
 const pushSegment = (lines: number[], p: Vec3, q: Vec3) => { lines.push(p[0], p[1], p[2], q[0], q[1], q[2]); };
 
+function nativeFaceMetrics(brep: Brep, mesh: BrepMesh): Map<string, NativeDisplayFace> {
+  const source = new Map<string, BrepFace>(), out = new Map<string, NativeDisplayFace>(), p = mesh.positions;
+  for (const face of brep.faces) source.set(face.id, face);
+  for (const mf of mesh.faces) {
+    const face = source.get(mf.faceId)!;
+    let area = 0; const centroid: Vec3 = [0, 0, 0], normal: Vec3 = [0, 0, 0];
+    for (let t = mf.indexOffset; t < mf.indexOffset + mf.indexCount; t += 3) {
+      const a = mesh.indices[t] * 3, b = mesh.indices[t + 1] * 3, c = mesh.indices[t + 2] * 3;
+      const ab: Vec3 = [p[b] - p[a], p[b + 1] - p[a + 1], p[b + 2] - p[a + 2]], ac: Vec3 = [p[c] - p[a], p[c + 1] - p[a + 1], p[c + 2] - p[a + 2]];
+      const cr = cross(ab, ac), ar = len(cr) / 2; area += ar;
+      for (let k = 0; k < 3; k++) { centroid[k] += (p[a + k] + p[b + k] + p[c + k]) / 3 * ar; normal[k] += cr[k]; }
+    }
+    let radius: number | undefined;
+    if (mf.kind !== 'planar' && mf.kind !== 'facet') {
+      try { const g = faceGeometry(face); if (g.kind === 'cylinder') radius = g.r; } catch { /* General surfaces have no radius. */ }
+      if (radius === undefined && face.surface.kind === 'surface') { const r = revolutionOf(face.surface, 100); if (r?.profile.kind === 'arc' && Math.abs(r.profile.c[0]) < 1e-9 * (1 + r.profile.r)) radius = r.profile.r; }
+    }
+    out.set(face.id, { name: face.name ?? face.id, kind: mf.kind === 'planar' ? 'plane' : 'curved', normal: norm(normal), centroid: area > 0 ? [centroid[0] / area, centroid[1] / area, centroid[2] / area] : [p[mf.vertexOffset * 3], p[mf.vertexOffset * 3 + 1], p[mf.vertexOffset * 3 + 2]], area, ...(radius === undefined ? {} : { radius }) });
+  }
+  return out;
+}
+
 export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMesh {
   const mesh = tessellateBrep(brep, { segmentsPerQuarter: quality });
+  // Native member signatures must not depend on viewport quality.
+  let native: Map<string, NativeDisplayFace> | undefined;
   const nameOf = new Map(brep.faces.map(f => [f.id, f.name ?? f.id]));
   const P = mesh.positions, N = mesh.normals;
   const meshFace = new Map(mesh.faces.map(f => [f.faceId, f]));
@@ -99,6 +130,12 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
     // (A mesh region that is flat shows as a plane: sketches and mates take it; a curved one as curved, no radius.)
     const rootKind = meshFace.get(root)!.kind, flatRegion = rootKind === 'facet' && faceGeometry(faceById.get(root)!).kind === 'plane';
     addFace(b, root, names.length === 1 ? names[0] : members.map(m => nameOf.get(m)!).join('+'), rootKind === 'planar' || flatRegion ? 'plane' : 'curved', pos, nor, idx);
+    if (brep.source.family === 'prismatic-solid' && members.length > 1 && rootKind !== 'planar' && rootKind !== 'facet') {
+      native ??= nativeFaceMetrics(brep, quality === 8 ? mesh : tessellateBrep(brep, { segmentsPerQuarter: 8 }));
+      const memberFaces: NativeDisplayFace[] = [];
+      for (const id of members) memberFaces.push(native.get(id)!);
+      b.faces[b.faces.length - 1].nativeFaces = memberFaces;
+    }
     if (lumps) b.faces[b.faces.length - 1].lump = lumpOf.get(shellBody.get(faceById.get(root)!.shell)!)!;
     if (rootKind === 'facet') b.faces[b.faces.length - 1].facet = true;
     else if (rootKind === 'planar') {

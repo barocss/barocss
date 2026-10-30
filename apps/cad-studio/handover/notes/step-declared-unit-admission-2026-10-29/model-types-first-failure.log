@@ -1,0 +1,2 @@
+test/step-reference-units.test.ts(31,27): error TS2339: Property 'step' does not exist on type 'ReferenceSource'.
+  Property 'step' does not exist on type '{ mesh: { positions: number[]; indices: number[]; }; }'.

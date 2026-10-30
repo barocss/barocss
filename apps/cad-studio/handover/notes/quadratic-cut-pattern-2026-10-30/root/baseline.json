@@ -1,0 +1,52 @@
+{
+  "node": "v22.19.0",
+  "path": {
+    "degree": 2,
+    "knots": [
+      0,
+      0,
+      0,
+      1,
+      1,
+      1
+    ],
+    "controlPoints": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        20,
+        0,
+        0
+      ],
+      [
+        20,
+        20,
+        0
+      ]
+    ],
+    "weights": [
+      1,
+      1,
+      1
+    ]
+  },
+  "spacing": 10,
+  "count": 3,
+  "results": [
+    {
+      "label": "kernel-offsets",
+      "status": "INTENTIONAL_REFUSAL",
+      "code": "CAPABILITY",
+      "message": "quadratic path middle poles must be exact straight-span midpoints"
+    },
+    {
+      "label": "public-part",
+      "status": "INTENTIONAL_REFUSAL",
+      "code": "CAPABILITY",
+      "message": "[CAPABILITY] curve-feature-pattern1: quadratic path middle poles must be exact straight-span midpoints"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "status": "SOURCE_PREPARED_TYPES_LINT_TEST_NOT_RUN",
+  "test": "apps/cad-studio/test/route-editor-ownership.test.ts",
+  "sha256": "5727de301cce682504c96d31cd6bffaab74c33667bf4fa200c5fa8689526f74c",
+  "hook": "Actual useRouteBundleEditor rendered through React react-dom/server.edge",
+  "modelFixture": "Two literal cubic polynomial NURBS direct curves, actual geometryOf copied paths/circle sweeps/createRouteBundle; adapted from Model route-bundle.test.ts",
+  "transport": "Only engine.preview/evaluate Promise timing replaced; typed successful response bodies[]/wallTime0/revision echoed",
+  "cases": [
+    "preview then final ready retains no early accepted document; Apply exact candidate/result once",
+    "discard during preview prevents final evaluation",
+    "discard during final prevents old ready adoption",
+    "same-value docNow clone invalidates final result by owner reference",
+    "blocked owner rejects preview before final evaluation",
+    "active command invalidates held final candidate"
+  ],
+  "completion": "setImmediate task drain only after a known worker response resolves; no elapsed-time acceptance condition",
+  "acceptanceCallback": "Emulates App discardRoute before assigning docNow to exact validated candidate pointer",
+  "observed": [
+    "actual returned actions and hook refs",
+    "worker calls and request doc/revision",
+    "accepted candidate/result pointer and acceptance count",
+    "current accepted doc reference"
+  ],
+  "notObserved": [
+    "SSR state setter rerenders/routePhase/visible HUD/body preview state",
+    "Gizmo or live pointer interaction",
+    "Kernel geometry/mass/numeric acceptance",
+    "Native worker/browser/GPU/App actual integration"
+  ],
+  "proposedCommand": "Node22 node scripts/test.mjs route-editor-ownership in apps/cad-studio, root serial approval required",
+  "scope": "Only this new test and scoped notes; no hook/App/other test/runner edits",
+  "interfaceAdjustment": "Removed only unused doc option after main removed it; actual owner.docNow remains the sole accepted document input."
+}

@@ -1,0 +1,27 @@
+{
+  "status": "POSTFIX_STUDIO_CHECKS_PASS_SOURCE_FROZEN",
+  "node": "v22.19.0",
+  "checks": {
+    "postfix-studio-types": {
+      "status": "PASS",
+      "exitCode": 0,
+      "log": "/tmp/d341-root/postfix-studio-types.log"
+    },
+    "postfix-studio-vite": {
+      "status": "PASS",
+      "exitCode": 0,
+      "log": "/tmp/d341-root/postfix-studio-vite.log"
+    },
+    "postfix-region-browser-lint": {
+      "status": "PASS",
+      "exitCode": 0,
+      "log": "/tmp/d341-root/postfix-region-browser-lint.log"
+    }
+  },
+  "gate": "RELEASED_holder_none_slots_0",
+  "APIChatReuse": "/tmp/d341-root/postfix-api-reuse.md",
+  "firstFailure": null,
+  "browser": "NOT_RUN",
+  "sourceEditsByThisStage": 0,
+  "buildWarnings": "Existing-style module-directive and ineffective dynamic import warnings retained in raw Vite log."
+}

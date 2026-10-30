@@ -1,0 +1,36 @@
+{
+  "runtime": "Node22.19.0",
+  "initialFocused": {
+    "pass": 24,
+    "fail": 0,
+    "skip": 0,
+    "scope": "15 new initial project cases plus9 unchanged Save cases; before final reopen/standaloneCheck review fixes"
+  },
+  "finalFocused": {
+    "pass": 29,
+    "fail": 0,
+    "skip": 0,
+    "scope": "20 project cases plus9 Save cases; original positivecontrol, six reproduced ownership repairs, folder/browser selection/errors/cancellation, Appbridge handoff/externalintent/dispatch/manualCheck cases"
+  },
+  "studioBoundary": {
+    "pass": 423,
+    "fail": 0,
+    "skip": 0,
+    "exit": 0,
+    "includesFinalFocused": true
+  },
+  "types": 0,
+  "scopedLint": 0,
+  "driverSyntax": 0,
+  "counts": "Focused repeats overlap whole Studio423; not additional unique totals. Final whole includes D323 canonical tests that did not require a whole Studio rerun then.",
+  "review": "High source-only review identified missing reopen owner + standaloneCheck external scope; both repaired before final checks. Review did not execute tests.",
+  "notRun": [
+    "fullKernel",
+    "fullModel",
+    "fullGPU",
+    "fullbrowser",
+    "remoteCI",
+    "otherformatOpencompletion/stage",
+    "performance"
+  ]
+}

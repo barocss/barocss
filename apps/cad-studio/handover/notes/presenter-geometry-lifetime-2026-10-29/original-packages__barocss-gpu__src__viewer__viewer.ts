@@ -1,0 +1,2319 @@
+// One WebGPU renderer for a canvas: it owns the device and the canvas context, keeps geometry in long-
+// lived buffers and every pipeline it needs, renders on demand (one frame per animation frame at most),
+// follows the canvas size and pixel ratio, and recreates its device and re-uploads the scene when the
+// device is lost. Meshes carry a transform and a material; lights and the camera are plain data.
+import { ATLAS_CELLS, ATLAS_SIZE, GLYPH_CELL, GlyphAtlas, layoutLabels, type LabelInput } from './glyphs.js';
+import { boxCenter, boxInFrustum, boxRadius, frustumPlanes, growBox, screenRect, transformBox, type Box3 } from './bounds.js';
+import type { PathTraceSession, PathTraceOptions } from './path-trace.js';
+import { Camera } from './camera.js';
+import { OrbitControls, type OrbitOptions } from './controls.js';
+import { clippedRay, clippedRayFull, localPlane, nearestPoint, pointInstances, sceneNear, sceneRay, sceneTree, type SceneTree, prepareGeometry, scalarAt, segmentInstances, contourInstances, lineCount, nearestSegment, type ClippedHit, type GeometryInput } from './geometry.js';
+import { BufferUsage, MapMode, TextureUsage, gpuOf, type BindGroup, type Buffer, type CanvasContext, type Device, type Pipeline, type RenderPass, type Texture } from './gpu.js';
+type View = ReturnType<Texture['createView']>;
+// (R2c: the scene objects are scene.ts's; their public names exported here as before.)
+import { Geometry, ImageTexture, INSTANCE_STRIDE, Mesh, ViewerError, packColorMap, packInstances, type AddMeshOptions, type CapHatch, type ClipPlane, type ColorMap, type InstancesInput, type Material, type ShaderMaterial, type TextureOptions, type TextureSource } from './scene.js';
+export { Geometry, ImageTexture, Mesh, ViewerError, packColorMap };
+export type { AddMeshOptions, CapHatch, ClipPlane, ColorMap, InstancesInput, Material, ShaderMaterial, TextureOptions, TextureSource };
+import { defaultLights, directionalLights, spotLights, pointLights, packFrame, packOutput, parseColor, type Background, type ClipFrame, type Color, type ContactFrame, type Environment, type GridFrame, type Light, type ShadowFrame } from './lights.js';
+import { spotShadowFrame, validateSpotShadowLights } from './spot-shadow.js';
+import { pointShadowFrames, validatePointShadowLights } from './point-shadow.js';
+import { add, cross, dot, identity, invert, lookAt, multiply, normalize, orthographic, scale, srgbToLinear, sub, transformPoint, type Mat4, type Vec3 } from './math.js';
+import { FRAME_BYTES, MAX_CLIP_PLANES, MAX_DIRECTIONAL, MAX_SHADOWS, POINT_SHADOW_START, MAX_OUTLINES, OBJECT_BYTES, OBJECT_STRIDE, OUTPUT_BYTES, bloomWGSL, BLOOM_LEVELS, depthOfFieldWGSL, capProbeSamplesWGSL, envWGSL, ENV_LEVELS, IRRADIANCE_SIZE, BRDF_LUT_SIZE, gridWGSL, labelWGSL, lineWGSL, mipWGSL, oitWGSL, pointWGSL, outputWGSL, pickWGSL, surfaceWGSL } from './shaders.js';
+
+/** The ground grid on the plane across the camera's up axis. */
+export interface GridOptions {
+  visible?: boolean;
+  /** Cell size; by default a power of ten fitted to the view distance. */
+  cell?: number;
+  /** Cells per major line (default 10). */
+  major?: number;
+  color?: Color;
+  /** 0–1 (default 0.5). */
+  opacity?: number;
+  /** Offset of the plane along the up axis (default 0). */
+  height?: number;
+}
+
+export type BackgroundInput = Color | { top: Color; bottom: Color } | 'transparent';
+const backgroundOf = (b: BackgroundInput | undefined): Background => {
+  if (b === 'transparent') return null;
+  if (b && typeof b === 'object' && !Array.isArray(b) && 'top' in b) return { top: parseColor(b.top), bottom: parseColor(b.bottom) };
+  const c = parseColor(b as Color | undefined, [0.12, 0.125, 0.135]);
+  return { top: c, bottom: c };
+};
+
+const pixelRatioOf = (ratio: number): number => {
+  if (!Number.isFinite(ratio) || ratio <= 0) throw new ViewerError('SIZE_INVALID', 'A pixel ratio must be finite and positive');
+  return ratio;
+};
+
+export interface ViewerOptions {
+  /** 4× multisampling (default true). */
+  antialias?: boolean;
+  /** The labels' font (G15), a CSS font family with an optional weight ("500 'IBM Plex Mono', monospace"): one the page already has. */
+  labelFont?: string;
+  /** Canvas background (sRGB): a colour, a vertical gradient, or 'transparent' (the page shows through). */
+  background?: BackgroundInput;
+  /** Device pixels per CSS pixel; default devicePixelRatio, capped at 2. */
+  pixelRatio?: number;
+  /** Orbit controls on the canvas (default true), with options. */
+  controls?: boolean | OrbitOptions;
+  lights?: Light[];
+  environment?: Environment;
+  camera?: Partial<Pick<Camera, 'projection' | 'position' | 'target' | 'up' | 'fovY'>>;
+  /** A ground grid (default none). */
+  grid?: boolean | GridOptions;
+  /** Follow the canvas's CSS size (default true); false: the application sets the backing size with setSize. */
+  autoResize?: boolean;
+  /** GPU errors the browser reports outside any check (default: console.error). */
+  onError?: (message: string) => void;
+  /**
+   * Host-driven frames: the viewer asks the host for a frame (a mesh, light or size changed) instead of scheduling its
+   * own, and the host calls render() once in its own animation frame. An application that renders the viewer in its
+   * frame loop then draws one frame per animation frame, not its own and the viewer's (PERF3 A2).
+   */
+  onRequestRender?: () => void;
+}
+
+export interface PickHit {
+  mesh: Mesh;
+  /** World point under the pixel. */
+  point: Vec3;
+  /** The triangle of the mesh's geometry under the pixel, when a ray finds it. */
+  triangle: number | null;
+  /** That triangle's face id (GeometryInput.faces), when the geometry has them. */
+  face: number | null;
+  /** Which instance, for an instanced mesh. */
+  instance: number | null;
+  /** Reversed depth of the pixel (1 near, 0 far). */
+  depth: number;
+  /** On the clip plane's cap of the mesh (triangle and face are null then). */
+  cap?: boolean;
+  /** On a cap: the index of its clip plane in clipPlanes (G19). */
+  capPlane?: number;
+  /** The mesh's scalar field at the point (G6: its triangle's, or its vertices' interpolated), when it has one; NaN where none. */
+  scalar?: number;
+}
+
+export interface LineHit {
+  mesh: Mesh;
+  /** The segment of the mesh's geometry nearest the point, and its id (GeometryInput.edges). */
+  segment: number; edge: number | null;
+  /** The nearest world point on the segment, and its distance from the point on screen (CSS pixels). */
+  point: Vec3; distance: number;
+}
+
+/**
+ * A text label (G15): its text (lines split at '\n'), where it is, and how it looks. A screen label is `size` CSS pixels
+ * high (default 12) whatever the zoom, placed by `align` (0–1 across and down its box; default its centre) and `offset`
+ * (CSS pixels); with `plane` it lies on a plane in the world (along its right and up), `size` its height in world units.
+ * `background`: a rounded box behind it, `padding` and `radius` in CSS pixels (scaled with a plane label), a 1-pixel border.
+ */
+export interface TextLabel {
+  text: string;
+  at: ArrayLike<number>;
+  size?: number;
+  color?: Color;
+  align?: readonly [number, number];
+  offset?: readonly [number, number];
+  background?: { color: Color; opacity?: number; padding?: number; radius?: number; border?: Color | null } | null;
+  plane?: { right: ArrayLike<number>; up: ArrayLike<number> } | null;
+}
+
+/** A point picked (G8): its mesh, its index (the geometry's element: its vertex, or its entry in indices), where it is, and its distance on screen (CSS pixels). */
+export interface PointHit { mesh: Mesh; index: number; point: Vec3; distance: number }
+
+/** The passes a frame draws meshes in (O10): where a mesh's draws went. Caps include their probes. */
+export type FramePass = 'shadow' | 'surface' | 'transparent' | 'oit' | 'hiddenLines' | 'caps' | 'outlineMask';
+export const FRAME_PASSES: readonly FramePass[] = ['shadow', 'surface', 'transparent', 'oit', 'hiddenLines', 'caps', 'outlineMask'];
+/**
+ * What a mesh cost the last frame drawn while Viewer.costs is on (O10): its draw calls, the primitives they drew, and
+ * its draws by pass. Work counts, not time: a frame's time is FrameStats.cpuTime.
+ */
+export interface MeshCost { draws: number; triangles: number; lines: number; points: number; passes: Record<FramePass, number> }
+const zeroCost = (c: MeshCost): void => { c.draws = 0; c.triangles = 0; c.lines = 0; c.points = 0; const p = c.passes; p.shadow = 0; p.surface = 0; p.transparent = 0; p.oit = 0; p.hiddenLines = 0; p.caps = 0; p.outlineMask = 0; };
+const newCost = (): MeshCost => ({ draws: 0, triangles: 0, lines: 0, points: 0, passes: { shadow: 0, surface: 0, transparent: 0, oit: 0, hiddenLines: 0, caps: 0, outlineMask: 0 } });
+
+/** The viewer's running counts; `cpuTime` is the last frame's CPU time to record and submit it, in milliseconds. */
+export interface FrameStats { frames: number; drawCalls: number; culled: number; triangles: number; lines: number; points: number; deviceLosses: number; cpuTime: number }
+
+/** Built-in pipelines by name; a shader material's are `shader<id>:<variant>`. */
+type PipelineKey = string;
+/** The scene target: linear, half float (blendable and multisampled everywhere). */
+const SCENE_FORMAT = 'rgba16float';
+
+const SAMPLES = 4;
+/** The caps' samples (G9): a triangle's key a sample, 2 bytes (was rgba16float's 8: its depth's bits and a flag). */
+const CAP_SAMPLES_FORMAT = 'r16uint';
+/** Clean object blocks a dirty run may span (writeUniforms). */
+const OBJECT_RUN_GAP = 4;
+/** G11's order-independent transparency: the accumulation (premultiplied colour × weight) and the revealage. */
+const OIT_ACCUM = 'rgba16float', OIT_REVEAL = 'r16float';
+/** Whether a mesh goes through the order-independent pass (G11): a see-through surface (a shadow catcher darkens, it stays). */
+const oitSurface = (m: Mesh): boolean => m.geometry.topology === 'triangles' && m.transparent && !m.material.shadowOnly;
+
+const sortKeys = new Map<Mesh, number>();
+const pipelineIds = new Map<string, number>();
+const pipelineOrder = (key: string): number => { let i = pipelineIds.get(key); if (i === undefined) { i = pipelineIds.size; pipelineIds.set(key, i); } return i; };
+const byPipeline = (a: Mesh, b: Mesh): number => { const x = sortKeys.get(a)!, y = sortKeys.get(b)!; return x < y ? -1 : x > y ? 1 : 0; };
+const farFirst = (a: { d: number }, b: { d: number }): number => b.d - a.d;
+export class Viewer {
+  readonly camera: Camera;
+  readonly controls: OrbitControls | null = null;
+  lights: Light[];
+  environment: Environment;
+  readonly stats: FrameStats = { frames: 0, drawCalls: 0, culled: 0, triangles: 0, lines: 0, points: 0, deviceLosses: 0, cpuTime: 0 };
+  /**
+   * Count each mesh's draws and primitives in the frames drawn (O10; off by default). Read-only: nothing drawn changes,
+   * and off, a draw costs one branch.
+   */
+  costs = false;
+  private costRecords = new Map<Mesh, MeshCost>();
+  /** Counting this frame (costs, as the frame began), and the pass its draws go to. */
+  private counting = false;
+  private costPass: FramePass = 'surface';
+  /** Selection outline width in CSS pixels. */
+  outlineWidth = 2;
+  /** The ground grid (change its fields, then requestRender). */
+  grid: GridOptions = { visible: false };
+  /** Shadow map size (texels per side) for the shadow-casting directional light. */
+  shadowMapSize = 2048;
+  /** Called after a lost device has been replaced and the scene re-uploaded. */
+  onRecover: (() => void) | null = null;
+  /** Called when device recovery fails; the original failure is available as cause. */
+  onRecoverError: ((error: ViewerError & { cause: unknown }) => void) | null = null;
+  private clip: ClipFrame | null = null;
+  /**
+   * The clip plane (G2), or null: the meshes it clips are drawn, shadowed, picked and ray-cast only on its kept side. Read:
+   * the clip as it is (with several planes, `normal` and `offset` are the first's; `planes` all of them).
+   */
+  get clipPlane(): Readonly<ClipFrame> | null { return this.clip; }
+  set clipPlane(p: ClipPlane | null) { this.clipPlanes = p ? [p] : null; }
+  /**
+   * The clip planes (G19), or null: up to MAX_CLIP_PLANES (6), the meshes they clip drawn, shadowed, picked and ray-cast
+   * only in the intersection of their kept sides (a box section: six), capped where they cut; the caps in the first
+   * colour given.
+   */
+  get clipPlanes(): readonly Readonly<{ normal: Vec3; offset: number }>[] | null { return this.clip?.planes ?? null; }
+  set clipPlanes(list: readonly ClipPlane[] | null) {
+    if (!list || !list.length) { this.clip = null; this.requestRender(); return; }
+    if (list.length > MAX_CLIP_PLANES) throw new ViewerError('CLIP_INVALID', `At most ${MAX_CLIP_PLANES} clip planes`);
+    const planes = list.map(p => {
+      const l = Math.hypot(p.normal[0], p.normal[1], p.normal[2]);
+      if (!(l > 0) || !Number.isFinite(l) || !Number.isFinite(p.offset)) throw new ViewerError('CLIP_INVALID', 'A clip plane needs a normal and a finite offset');
+      return { normal: [p.normal[0] / l, p.normal[1] / l, p.normal[2] / l] as Vec3, offset: p.offset / l };
+    });
+    this.clip = { normal: planes[0].normal, offset: planes[0].offset, cap: parseColor(list.find(p => p.cap)?.cap, [0.85, 0.7, 0.35]), planes, cutout: this._cutout };
+    this.requestRender();
+  }
+  /**
+   * Whether the clip planes cut out a corner (G20; default false): the meshes they clip kept on any plane's kept side —
+   * what is removed the intersection of their cut-away sides (two planes a quarter, three an octant) — and capped where
+   * the eye's ray leaves that removed corner inside a solid. False: kept on every plane's kept side (G19).
+   */
+  get clipCutout(): boolean { return this._cutout; }
+  set clipCutout(v: boolean) {
+    if (v === this._cutout) return;
+    this._cutout = v;
+    if (this.clip) this.clip = { ...this.clip, cutout: v };
+    this.requestRender();
+  }
+  private _cutout = false;
+
+  private device!: Device;
+  private context!: CanvasContext;
+  private format = 'bgra8unorm';
+  private pipelines = new Map<PipelineKey, Pipeline>();
+  private frameBuffer!: Buffer;
+  private frameGroup!: BindGroup;
+  private shadowFrameBuffers: Buffer[] = [];
+  private shadowFrameGroups: BindGroup[] = [];
+  /** The caps' probe from the light (G19.4; the shadow map's size, made while the planes cap a caster) and its group. */
+  private lightProbe: Texture | null = null;
+  private shadowCapGroups: (BindGroup | null)[] = [];
+  private shadowSampler!: object;
+  private emptyShadow!: Texture;
+  /** A one-texel nearest front depth (none): what the frame bind groups hold where the caps' prepass target is not bound. */
+  private emptyFront!: Texture;
+  /** A one-pixel MSAA probe, bound when a pass must not sample its own probe attachment. */
+  private emptyFrontSamples!: Texture;
+  /** The frame bind group without the prepass target (for the prepass itself, which draws into it). */
+  private frameGroupBare!: BindGroup;
+  private shadowMap: Texture | null = null;
+  private shadowLayers = 0;
+  private shadowMask = 0;
+  private materialLayout!: object;
+  private surfaceLayout!: object;
+  /** The surface pipeline description for a shader module and variant (lit or not, two-sided, transparent). */
+  private surfaceDescriptor!: (module: object, lit: boolean, two: boolean, transparent: boolean | 'oit', decal?: boolean) => object;
+  /** Shader materials by their WGSL: an id and their module (made on first use). */
+  private shaders = new Map<string, { id: number; module: object | null; device: Device | null }>();
+  /** A shader material's surface WGSL (made once per material: the sort and the draw ask for it per mesh). */
+  private shaderCode = new WeakMap<ShaderMaterial, string>();
+  /** The scene's box while a frame is drawn (asked for by the shadow, occlusion and camera clip). */
+  private frameBox: { box: Box3 | null } | null = null;
+  /** What the shadow map was last drawn from (device, size, light view, each caster), as numbers: unchanged, it is kept. */
+  private shadowCache = Array.from({ length: MAX_SHADOWS }, () => ({ drawn: new Float64Array(0), next: new Float64Array(0), length: -1 }));
+  /** The frame's shadow casters (a list kept from frame to frame). */
+  private casterList: Mesh[] = [];
+  private ids = new WeakMap<object, number>();
+  private nextObjectId = 1;
+  private idOf(o: object): number { let i = this.ids.get(o); if (i === undefined) { i = this.nextObjectId++; this.ids.set(o, i); } return i; }
+  private zeroParams!: Buffer;
+  /** A white texel: the colour map of a material without one. */
+  private white!: { texture: Texture; group: BindGroup };
+  /** The environment map the frame bind groups were made with. */
+  private boundEnv: ImageTexture | null = null;
+  private mipPipelines = new Map<string, Pipeline>();
+  private mipSampler!: object;
+  /** G15b: the environment passes (by entry point), the environment's sampler (mips, wrapping round), the BRDF table. */
+  private envPipelines = new Map<string, Pipeline>();
+  /** G15d.2: the bloom passes' pipelines, by entry point (the device's: made again after a loss). */
+  private bloomPipelines = new Map<string, Pipeline>();
+  private envSampler!: object;
+  private brdfLut!: Texture;
+  /** The colour maps' ramp sampler (G6: linear, clamped). */
+  private rampSampler!: object;
+  private textures = new Set<ImageTexture>();
+  /** The one identity instance plain meshes draw with. */
+  private identityInstance!: Buffer;
+  private objectBuffer!: Buffer;
+  private objectGroup!: BindGroup;
+  private objectCapacity = 0;
+  private objectData = new Float32Array(0);
+  // (Their views made once with them: a frame reuses them.)
+  /** G15d.2: the bloom chain of the targets' size (its levels, each pass's bind group and parameters, the output's group
+   *  reading it), made when bloom is first on. */
+  private bloomChain: { targets: NonNullable<Viewer['targets']>; levels: Texture[]; views: View[]; prefilter: BindGroup; down: BindGroup[]; up: BindGroup[]; params: Buffer[]; output: BindGroup } | null = null;
+  /** (The bloom's threshold and knee this frame, written into each pass's parameters.) */
+  private bloomKnee = new Float32Array(2);
+  private focusPass: { targets: NonNullable<Viewer['targets']>; color: Texture; params: Buffer; group: BindGroup; output: BindGroup; bloom: Texture } | null = null;
+  private focusPipeline: Pipeline | null = null;
+  private focusParams = new Float32Array(20);
+  private black!: Texture;
+  private targets: { width: number; height: number; msaa: Texture | null; scene: Texture; depth: Texture; mask: Texture; maskDepth: Texture; capFront: Texture; capFrontSamples: Texture | null; output: BindGroup; views: { msaa: View | null; scene: View; depth: View; mask: View; maskDepth: View; capFront: View; capFrontSamples: View | null } } | null = null;
+  private outputBuffer!: Buffer;
+  private pickTargets: { width: number; height: number; id: Texture; depth: Texture; z: Texture; instance: Texture; read: Buffer; views: { id: View; z: View; instance: View; depth: View } } | null = null;
+  private meshes: Mesh[] = [];
+  /** The dirty meshes' slots of a frame (writeUniforms), kept from frame to frame. */
+  private dirtySlots = new Int32Array(64);
+  private freeSlots: number[] = [];
+  private nextSlot = 0;
+  private nextId = 1;
+  private geometries = new Set<Geometry>();
+  private scheduled = 0;
+  private waiters: { resolve: () => void; reject: (error: unknown) => void }[] = [];
+  private disposed = false;
+  /** The device, for compute passes beside the drawing (G25, experimental): null before it is ready or once disposed. */
+  get computeDevice(): object | null { return this.ready ? this.device ?? null : null; }
+  private recovering: Promise<void> | null = null;
+  private recoveryFailure: (ViewerError & { cause: unknown }) | null = null;
+  private resizeObserver: ResizeObserver | null = null;
+  private background: Background;
+  private pixelRatio: number;
+
+  private constructor(readonly canvas: HTMLCanvasElement, private readonly options: ViewerOptions) {
+    this.camera = new Camera(options.camera);
+    this.lights = options.lights ?? defaultLights();
+    validateSpotShadowLights(this.lights);
+    validatePointShadowLights(this.lights);
+    this.environment = options.environment ?? {};
+    if (options.grid) this.grid = options.grid === true ? { visible: true } : { visible: true, ...options.grid };
+    this.background = backgroundOf(options.background);
+    this.pixelRatio = pixelRatioOf(options.pixelRatio ?? Math.min(2, (globalThis as { devicePixelRatio?: number }).devicePixelRatio ?? 1));
+    if (options.labelFont) this.atlas = new GlyphAtlas(options.labelFont);
+  }
+
+  /** Open a viewer on a canvas. Throws a ViewerError when WebGPU or a device is not available. */
+  static async create(canvas: HTMLCanvasElement, options: ViewerOptions = {}): Promise<Viewer> {
+    const v = new Viewer(canvas, options);
+    await v.start();
+    if (options.controls !== false) {
+      const opts = typeof options.controls === 'object' ? options.controls : {};
+      (v as { controls: OrbitControls | null }).controls = new OrbitControls(canvas, () => v.camera, () => v.requestRender(), { pointAt: (x, y) => v.pointAt(x, y), ...opts });
+    }
+    if (options.autoResize !== false && typeof ResizeObserver !== 'undefined') {
+      v.resizeObserver = new ResizeObserver(() => v.resize());
+      v.resizeObserver.observe(canvas);
+    }
+    if (options.autoResize !== false) v.resize();
+    return v;
+  }
+
+  private async start(): Promise<void> {
+    const gpu = gpuOf();
+    if (!gpu) throw new ViewerError('WEBGPU_UNAVAILABLE', 'WebGPU is not available in this browser');
+    const adapter = await gpu.requestAdapter({ powerPreference: 'high-performance' });
+    this.alive();
+    if (!adapter) throw new ViewerError('NO_ADAPTER', 'No WebGPU adapter');
+    const device = await adapter.requestDevice();
+    let context: CanvasContext | null = null, configured = false;
+    try {
+      this.alive();
+      context = this.canvas.getContext('webgpu') as unknown as CanvasContext | null;
+      if (!context) throw new ViewerError('NO_CONTEXT', 'The canvas has no WebGPU context (is it used by another context?)');
+      this.device = device; this.context = context; this.format = gpu.getPreferredCanvasFormat();
+      device.onuncapturederror = e => this.report(e.error.message);
+      context.configure({ device, format: this.format, alphaMode: this.background ? 'opaque' : 'premultiplied', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.COPY_SRC });
+      configured = true;
+      await this.createPipelines();
+      this.alive();
+      this.outputBuffer = device.createBuffer({ size: OUTPUT_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer output' });
+      this.frameBuffer = device.createBuffer({ size: FRAME_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer frame' });
+      this.shadowFrameBuffers = Array.from({ length: MAX_SHADOWS }, (_, i) => device.createBuffer({ size: FRAME_BYTES, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: `viewer shadow frame ${i}` }));
+      this.shadowSampler = (device as unknown as { createSampler(d: object): object }).createSampler({ compare: 'less', magFilter: 'linear', minFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
+      this.mipSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear' });
+      this.rampSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
+      this.atlasSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', addressModeU: 'clamp-to-edge', addressModeV: 'clamp-to-edge' });
+      this.mipPipelines.clear();
+      this.envPipelines.clear(); this.bloomPipelines.clear(); this.focusPipeline = null; this.releaseFocus();
+      this.envSampler = device.createSampler({ minFilter: 'linear', magFilter: 'linear', mipmapFilter: 'linear', addressModeU: 'repeat', addressModeV: 'clamp-to-edge' });
+      const white = device.createTexture({ size: [1, 1], format: 'rgba8unorm', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer white' });
+      device.queue.writeTexture({ texture: white }, new Uint8Array([255, 255, 255, 255]), { bytesPerRow: 4 }, [1, 1]);
+      this.black = device.createTexture({ size: [1, 1], format: 'rgba8unorm', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer black' });
+      device.queue.writeTexture({ texture: this.black }, new Uint8Array([0, 0, 0, 0]), { bytesPerRow: 4 }, [1, 1]);
+      this.bloomChain = null;
+      this.zeroParams = device.createBuffer({ size: 64, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer no params' });
+      this.white = { texture: white, group: device.createBindGroup({ layout: this.materialLayout, entries: this.materialEntries(white, this.mipSampler, this.zeroParams, undefined, white) }) };
+      this.identityInstance = device.createBuffer({ size: INSTANCE_STRIDE, usage: BufferUsage.VERTEX | BufferUsage.COPY_DST, label: 'viewer identity instance' });
+      device.queue.writeBuffer(this.identityInstance, 0, new Uint8Array(packInstances({ transforms: identity() }).data));
+      this.emptyShadow = device.createTexture({ size: [1, 1], format: 'depth32float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer no shadow' });
+      this.emptyFront = device.createTexture({ size: [1, 1], format: 'rg32float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer no caps probe' });
+      this.emptyFrontSamples = device.createTexture({ size: [1, 1], format: CAP_SAMPLES_FORMAT, sampleCount: SAMPLES, usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer no caps samples' });
+      this.brdfLut = device.createTexture({ size: [BRDF_LUT_SIZE, BRDF_LUT_SIZE], format: 'rg16float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer BRDF table' });
+      this.envPass('fsLut', this.white.texture, this.brdfLut, 0, 'rg16float', [0, 0, 1, 0]);
+      this.shadowMap = null; this.shadowLayers = 0; this.shadowMask = 0; this.lightProbe = null;
+      this.shadowFrameGroups = []; this.shadowCapGroups = [];
+      for (const cache of this.shadowCache) cache.length = -1;
+      // (The targets were the lost device's: made again, and bound, when next drawn.)
+      this.targets = null; this.pickTargets = null; this.oit = null; this.atlasGpu = null;
+      this.bindFrames();
+      this.objectCapacity = 0; this.growObjects(Math.max(64, this.nextSlot));
+      for (const m of this.meshes) m.dirty = true;
+      device.lost.then(info => { if (!this.disposed && this.device === device) this.lose(info.message); });
+    } catch (error) {
+      // dispose() may already have released a device published before an asynchronous pipeline wait.
+      if (!this.disposed || this.device !== device) {
+        if (configured) try { context?.unconfigure(); } catch { /* Keep the initial error. */ }
+        try { device.destroy(); } catch { /* Keep the initial error. */ }
+      }
+      throw error;
+    }
+  }
+
+  /** The frame bind groups: the scene's samples the shadow map; the shadow pass's must not. */
+  private bindFrames(): void {
+    const layout = this.pipelines.get('lit')!.getBindGroupLayout(0);
+    // The environment map (uploaded with its mips as any map), or the white texel.
+    const env = this.environment.map instanceof ImageTexture && !this.environment.map.disposed ? this.environment.map : null;
+    if (env) this.mapGroup(env);
+    this.boundEnv = env;
+    // (G15b: its reflections prefiltered by roughness and its diffuse light, made once per map; the BRDF table always.)
+    const lighting = env?.gpu ? this.envLighting(env) : null;
+    const envView = lighting ? lighting.specular.createView() : this.white.texture.createView(), envSampler = lighting ? this.envSampler : this.mipSampler;
+    const irradianceView = lighting ? lighting.irradiance.createView() : this.white.texture.createView(), lutView = this.brdfLut.createView();
+    // (The caps' prepass target where the targets exist; the scene's group must not hold it while the prepass draws into it.)
+    const front = this.targets?.capFront ?? this.emptyFront;
+    const group = (buffer: Buffer, map: Texture, depth: Texture, samples = this.emptyFrontSamples) => this.device.createBindGroup({ layout, entries: [{ binding: 0, resource: { buffer } }, { binding: 1, resource: map.createView({ dimension: '2d-array' }) }, { binding: 2, resource: this.shadowSampler }, { binding: 3, resource: envView }, { binding: 4, resource: envSampler }, { binding: 5, resource: depth.createView() }, { binding: 6, resource: samples.createView() }, { binding: 7, resource: irradianceView }, { binding: 8, resource: lutView }] });
+    this.frameGroup = group(this.frameBuffer, this.shadowMap ?? this.emptyShadow, front, this.targets?.capFrontSamples ?? this.emptyFrontSamples);
+    this.frameGroupBare = group(this.frameBuffer, this.shadowMap ?? this.emptyShadow, this.emptyFront);
+    this.shadowFrameGroups = this.shadowFrameBuffers.map(buffer => group(buffer, this.emptyShadow, this.emptyFront));
+    this.shadowCapGroups = this.shadowFrameBuffers.map(buffer => this.lightProbe ? group(buffer, this.emptyShadow, this.lightProbe) : null);
+  }
+
+  private async createPipelines(): Promise<void> {
+    const d = this.device;
+    const modules = { surface: d.createShaderModule({ code: surfaceWGSL(), label: 'viewer surface' }), line: d.createShaderModule({ code: lineWGSL, label: 'viewer line' }), point: d.createShaderModule({ code: pointWGSL, label: 'viewer point' }), label: d.createShaderModule({ code: labelWGSL, label: 'viewer label' }), pick: d.createShaderModule({ code: pickWGSL, label: 'viewer pick' }) };
+    const capModules = this.options.antialias === false ? { surface: modules.surface, probe: modules.pick } : {
+      surface: d.createShaderModule({ code: surfaceWGSL(undefined, true), label: 'viewer cap samples' }),
+      probe: d.createShaderModule({ code: capProbeSamplesWGSL, label: 'viewer cap probe samples' }),
+    };
+    // (Each module checked once: without antialias the caps reuse the surface and pick modules, and a second
+    // getCompilationInfo on one module never settles in Chrome — the viewer then never started.)
+    const checked = new Set<object>();
+    for (const [name, m] of [...Object.entries(modules), ...Object.entries(capModules)]) {
+      if (checked.has(m)) continue;
+      checked.add(m);
+      const errors = (await m.getCompilationInfo()).messages.filter(x => x.type === 'error');
+      if (errors.length) throw new ViewerError('SHADER', `${name} shader: ${errors.map(e => `${e.lineNum}: ${e.message}`).join('; ')}`);
+    }
+    const frameLayout = d.createBindGroupLayout({ entries: [
+      { binding: 0, visibility: 3, buffer: { type: 'uniform' } },
+      { binding: 1, visibility: 2, texture: { sampleType: 'depth', viewDimension: '2d-array' } },
+      { binding: 2, visibility: 2, sampler: { type: 'comparison' } },
+      { binding: 3, visibility: 2, texture: { sampleType: 'float' } }, { binding: 4, visibility: 2, sampler: { type: 'filtering' } },
+      { binding: 5, visibility: 2, texture: { sampleType: 'unfilterable-float' } },
+      { binding: 6, visibility: 2, texture: { sampleType: 'uint', multisampled: true } },
+      { binding: 7, visibility: 2, texture: { sampleType: 'float' } }, { binding: 8, visibility: 2, texture: { sampleType: 'float' } },
+    ] });
+    const objectLayout = d.createBindGroupLayout({ entries: [{ binding: 0, visibility: 3, buffer: { type: 'uniform', hasDynamicOffset: true, minBindingSize: OBJECT_BYTES } }] });
+    const layout = d.createPipelineLayout({ bindGroupLayouts: [frameLayout, objectLayout] });
+    // Surfaces add the material's colour map.
+    this.materialLayout = d.createBindGroupLayout({ entries: [
+      { binding: 0, visibility: 2, texture: { sampleType: 'float' } }, { binding: 1, visibility: 2, sampler: { type: 'filtering' } },
+      { binding: 2, visibility: 2, buffer: { type: 'uniform', minBindingSize: 64 } },
+      ...[3, 5, 7].flatMap(binding => [
+        { binding, visibility: 2, texture: { sampleType: 'float' } },
+        { binding: binding + 1, visibility: 2, sampler: { type: 'filtering' } },
+      ]),
+      { binding: 9, visibility: 2, buffer: { type: 'uniform', minBindingSize: 16 } },
+    ] });
+    const surfaceLayout = this.surfaceLayout = d.createPipelineLayout({ bindGroupLayouts: [frameLayout, objectLayout, this.materialLayout] });
+    // Labels add the glyph atlas (G15).
+    this.atlasLayout = d.createBindGroupLayout({ entries: [{ binding: 0, visibility: 2, texture: { sampleType: 'float' } }, { binding: 1, visibility: 2, sampler: { type: 'filtering' } }] });
+    const labelLayout = d.createPipelineLayout({ bindGroupLayouts: [frameLayout, objectLayout, this.atlasLayout] });
+    const instance = { arrayStride: INSTANCE_STRIDE, stepMode: 'instance', attributes: [
+      ...[0, 1, 2, 3].map(k => ({ shaderLocation: 3 + k, offset: k * 16, format: 'float32x4' })), { shaderLocation: 7, offset: 64, format: 'unorm8x4' },
+    ] };
+    const position = { arrayStride: 12, attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x3' }] };
+    // Surfaces: position, normal, colour, instance. Pick, mask and shadow passes: position, instance.
+    const vertex = (module: object) => ({
+      module, entryPoint: 'vs',
+      buffers: [position, { arrayStride: 12, attributes: [{ shaderLocation: 1, offset: 0, format: 'float32x3' }] }, { arrayStride: 4, attributes: [{ shaderLocation: 2, offset: 0, format: 'unorm8x4' }] }, instance,
+        { arrayStride: 8, attributes: [{ shaderLocation: 8, offset: 0, format: 'float32x2' }] }],
+    });
+    const positionOnly = (module: object) => ({ module, entryPoint: 'vs', buffers: [position, instance] });
+    // Premultiplied colour over the target.
+    const blend = { color: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' }, alpha: { srcFactor: 'one', dstFactor: 'one-minus-src-alpha' } };
+    const ms = { count: this.options.antialias === false ? 1 : SAMPLES };
+    const make = (key: PipelineKey, desc: object) => d.createRenderPipelineAsync({ label: `viewer ${key}`, layout: /^(lit|unlit|catcher|depthOnly|depthCap)/.test(key) ? surfaceLayout : layout, ...desc }).then(p => { this.pipelines.set(key, p); });
+    const jobs: Promise<void>[] = [];
+    d.pushErrorScope('validation');
+    // (G11's order-independent variant: the accumulation summed, the revealage multiplied, in any order.)
+    const oitTargets = [{ format: OIT_ACCUM, blend: { color: { srcFactor: 'one', dstFactor: 'one' }, alpha: { srcFactor: 'one', dstFactor: 'one' } } },
+      { format: OIT_REVEAL, blend: { color: { srcFactor: 'zero', dstFactor: 'one-minus-src' }, alpha: { srcFactor: 'zero', dstFactor: 'one-minus-src' } } }];
+    this.surfaceDescriptor = (module, lit, two, t, decal = false) => ({
+      vertex: vertex(module),
+      fragment: t === 'oit' ? { module, entryPoint: lit ? 'fsLitOit' : 'fsUnlitOit', targets: oitTargets } : { module, entryPoint: lit ? 'fsLit' : 'fsUnlit', targets: [{ format: SCENE_FORMAT, ...(t ? { blend } : {}) }] },
+      primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back', frontFace: 'ccw' },
+      // Faces sit a little behind lines drawn on them (reversed depth: lower is further); a decal a little in front (G12).
+      depthStencil: { format: 'depth32float', depthWriteEnabled: !t, depthCompare: 'greater-equal', depthBias: decal ? 2 : -2, depthBiasSlopeScale: decal ? 1.5 : -1.5 },
+      multisample: ms,
+    });
+    for (const lit of [true, false]) for (const two of [false, true]) for (const t of [false, true, 'oit' as const]) for (const decal of [false, true])
+      jobs.push(make(`${lit ? 'lit' : 'unlit'}${two ? '2' : ''}${t === 'oit' ? 'O' : t ? 'T' : ''}${decal ? 'D' : ''}`, this.surfaceDescriptor(modules.surface, lit, two, t, decal)));
+    // CAD line-only views: keep surface depth, including clipped faces, without painting a colour plane.
+    for (const two of [false, true]) jobs.push(make(two ? 'depthOnly2' : 'depthOnly', {
+      vertex: vertex(modules.surface),
+      fragment: { module: modules.surface, entryPoint: 'fsUnlit', targets: [{ format: SCENE_FORMAT, writeMask: 0 }] },
+      primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back', frontFace: 'ccw' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater-equal', depthBias: -2, depthBiasSlopeScale: -1.5 },
+      multisample: ms,
+    }));
+    const oitModule = d.createShaderModule({ code: oitWGSL, label: 'viewer oit' });
+    jobs.push(d.createRenderPipelineAsync({
+      label: 'viewer oit composite', layout: 'auto',
+      vertex: { module: oitModule, entryPoint: 'vs' },
+      fragment: { module: oitModule, entryPoint: 'fs', targets: [{ format: SCENE_FORMAT, blend }] },
+      primitive: { topology: 'triangle-list' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: 'always' },
+      multisample: ms,
+    }).then(p => { this.pipelines.set('oitComposite', p); }));
+    jobs.push(make('catcher', {
+      vertex: vertex(modules.surface),
+      fragment: { module: modules.surface, entryPoint: 'fsShadow', targets: [{ format: SCENE_FORMAT, blend }] },
+      primitive: { topology: 'triangle-list', cullMode: 'none' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: 'greater-equal' },
+      multisample: ms,
+    }));
+    for (const t of [false, true, 'over' as const, 'hidden' as const]) jobs.push(make(t === 'over' ? 'lineOver' : t === 'hidden' ? 'lineHidden' : t ? 'lineT' : 'line', {
+      vertex: {
+        module: modules.line, entryPoint: 'vs',
+        buffers: [{ arrayStride: 32, stepMode: 'instance', attributes: [
+          { shaderLocation: 0, offset: 0, format: 'float32x3' }, { shaderLocation: 1, offset: 12, format: 'float32x3' },
+          { shaderLocation: 2, offset: 24, format: 'unorm8x4' }, { shaderLocation: 3, offset: 28, format: 'unorm8x4' },
+        ] }],
+      },
+      fragment: { module: modules.line, entryPoint: t === 'hidden' ? 'fsHidden' : 'fs', targets: [{ format: SCENE_FORMAT, ...(t ? { blend } : {}) }] },
+      primitive: { topology: 'triangle-list' },
+      // Lines test depth but do not write it: no occlusion halos around them. (Over the scene: not tested; their hidden
+      // parts: only behind a surface.)
+      depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: t === 'over' ? 'always' : t === 'hidden' ? 'less' : 'greater-equal' },
+      multisample: ms,
+    }));
+    // A curved surface's contour (G8): its triangles an instance each, the segment found in the vertex shader; as lines.
+    for (const t of [false, true, 'over' as const, 'hidden' as const]) jobs.push(make(t === 'over' ? 'contourOver' : t === 'hidden' ? 'contourHidden' : t ? 'contourT' : 'contour', {
+      vertex: {
+        module: modules.line, entryPoint: 'vsContour',
+        buffers: [{ arrayStride: 72, stepMode: 'instance', attributes: [0, 1, 2, 3, 4, 5].map(k => ({ shaderLocation: k, offset: 12 * k, format: 'float32x3' })) }],
+      },
+      fragment: { module: modules.line, entryPoint: t === 'hidden' ? 'fsHidden' : 'fs', targets: [{ format: SCENE_FORMAT, ...(t ? { blend } : {}) }] },
+      primitive: { topology: 'triangle-list' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: t === 'over' ? 'always' : t === 'hidden' ? 'less' : 'greater-equal' },
+      multisample: ms,
+    }));
+    // Points (G8): a screen-space quad each, blended (their edges and borders are coverage); tested like lines, over the
+    // scene, or only behind surfaces (their hidden parts).
+    for (const k of ['point', 'pointOver', 'pointHidden'] as const) jobs.push(make(k, {
+      vertex: {
+        module: modules.point, entryPoint: 'vs',
+        buffers: [{ arrayStride: 16, stepMode: 'instance', attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x3' }, { shaderLocation: 1, offset: 12, format: 'unorm8x4' }] }],
+      },
+      fragment: { module: modules.point, entryPoint: k === 'pointHidden' ? 'fsHidden' : 'fs', targets: [{ format: SCENE_FORMAT, blend }] },
+      primitive: { topology: 'triangle-list' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: k === 'pointOver' ? 'always' : k === 'pointHidden' ? 'less' : 'greater-equal' },
+      multisample: ms,
+    }));
+    // Labels (G15): glyph and box quads, blended; tested like points, over the scene, or only behind surfaces.
+    for (const k of ['label', 'labelOver', 'labelHidden'] as const) jobs.push(d.createRenderPipelineAsync({
+      label: `viewer ${k}`, layout: labelLayout,
+      vertex: {
+        module: modules.label, entryPoint: 'vs',
+        buffers: [{ arrayStride: 80, stepMode: 'instance', attributes: [
+          { shaderLocation: 0, offset: 0, format: 'float32x3' }, { shaderLocation: 1, offset: 12, format: 'unorm8x4' }, { shaderLocation: 2, offset: 16, format: 'float32x4' },
+          { shaderLocation: 3, offset: 32, format: 'float32x4' }, { shaderLocation: 4, offset: 48, format: 'float32x4' }, { shaderLocation: 5, offset: 64, format: 'float32x4' },
+        ] }],
+      },
+      fragment: { module: modules.label, entryPoint: k === 'labelHidden' ? 'fsHidden' : 'fs', targets: [{ format: SCENE_FORMAT, blend }] },
+      primitive: { topology: 'triangle-list' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: k === 'labelOver' ? 'always' : k === 'labelHidden' ? 'less' : 'greater-equal' },
+      multisample: ms,
+    }).then(p => { this.pipelines.set(k, p); }));
+    for (const two of [false, true]) jobs.push(make(two ? 'pick2' : 'pick', {
+      vertex: positionOnly(modules.pick),
+      fragment: { module: modules.pick, entryPoint: 'fs', targets: [{ format: 'r32uint' }, { format: 'r32float' }, { format: 'r32uint' }] },
+      primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
+    }));
+    const gridModule = d.createShaderModule({ code: gridWGSL, label: 'viewer grid' });
+    jobs.push(make('grid', {
+      vertex: { module: gridModule, entryPoint: 'vs' },
+      fragment: { module: gridModule, entryPoint: 'fs', targets: [{ format: SCENE_FORMAT, blend }] },
+      primitive: { topology: 'triangle-list' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: 'greater-equal' },
+      multisample: ms,
+    }));
+    // Colour-mapped surfaces (G6): position, normal, instance, scalar (location 9); one- and two-sided.
+    for (const two of [false, true]) jobs.push(make(two ? 'litMap2' : 'litMap', {
+      vertex: { module: modules.surface, entryPoint: 'vsMap', buffers: [position, { arrayStride: 12, attributes: [{ shaderLocation: 1, offset: 0, format: 'float32x3' }] }, instance, { arrayStride: 4, attributes: [{ shaderLocation: 9, offset: 0, format: 'float32' }] }] },
+      fragment: { module: modules.surface, entryPoint: 'fsMap', targets: [{ format: SCENE_FORMAT }] },
+      primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back', frontFace: 'ccw' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater-equal', depthBias: -2, depthBiasSlopeScale: -1.5 },
+      multisample: ms,
+    }));
+    // Caps (G2): a kept back face seen through the cut, at the plane's depth (written by the fragment).
+    for (const depthOnly of [false, true]) jobs.push(make(depthOnly ? 'depthCap' : 'litCap', {
+      vertex: vertex(capModules.surface),
+      fragment: { module: capModules.surface, entryPoint: 'fsCap', targets: [{ format: SCENE_FORMAT, ...(depthOnly ? { writeMask: 0 } : {}) }] },
+      primitive: { topology: 'triangle-list', cullMode: 'front', frontFace: 'ccw' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater-equal' },
+      multisample: ms,
+    }));
+    // (A see-through mesh's caps, G19.4: in the order-independent pass, tested against the opaque depth, none written.)
+    jobs.push(make('oitCap', {
+      vertex: vertex(capModules.surface),
+      fragment: { module: capModules.surface, entryPoint: 'fsCapOit', targets: oitTargets },
+      primitive: { topology: 'triangle-list', cullMode: 'front', frontFace: 'ccw' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: 'greater-equal' },
+      multisample: ms,
+    }));
+    // (The caps' probe, G19: the capped meshes' faces, both sides, unclipped.)
+    jobs.push(make('capFront', {
+      vertex: positionOnly(modules.pick),
+      fragment: { module: modules.pick, entryPoint: 'fsCapProbe', targets: [{ format: 'rg32float' }] },
+      primitive: { topology: 'triangle-list', cullMode: 'none', frontFace: 'ccw' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
+    }));
+    if (ms.count > 1) jobs.push(make('capFrontSamples', {
+      vertex: positionOnly(capModules.probe),
+      fragment: { module: capModules.probe, entryPoint: 'fsCapProbe', targets: [{ format: CAP_SAMPLES_FORMAT }] },
+      primitive: { topology: 'triangle-list', cullMode: 'none', frontFace: 'ccw' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
+      multisample: ms,
+    }));
+    jobs.push(make('capPick', {
+      vertex: positionOnly(modules.pick),
+      fragment: { module: modules.pick, entryPoint: 'fsCapPick', targets: [{ format: 'r32uint' }, { format: 'r32float' }, { format: 'r32uint' }] },
+      primitive: { topology: 'triangle-list', cullMode: 'front', frontFace: 'ccw' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
+    }));
+    jobs.push(make('capMask', {
+      vertex: positionOnly(modules.pick),
+      fragment: { module: modules.pick, entryPoint: 'fsCapMask', targets: [{ format: 'r32uint' }] },
+      primitive: { topology: 'triangle-list', cullMode: 'front', frontFace: 'ccw' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
+    }));
+    // (G19.4: the caps' probe from the light — the shadow map's depth, nearer smaller — and the caps into the shadow map.)
+    jobs.push(make('shadowProbe', {
+      vertex: positionOnly(modules.pick),
+      fragment: { module: modules.pick, entryPoint: 'fsCapProbe', targets: [{ format: 'rg32float' }], constants: { nearer: -1 } },
+      primitive: { topology: 'triangle-list', cullMode: 'none', frontFace: 'ccw' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'less' },
+    }));
+    jobs.push(make('shadowCap', {
+      vertex: positionOnly(modules.pick),
+      fragment: { module: modules.pick, entryPoint: 'fsCapShadow', targets: [] },
+      primitive: { topology: 'triangle-list', cullMode: 'front', frontFace: 'ccw' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'less' },
+    }));
+    jobs.push(make('shadow', {
+      vertex: positionOnly(modules.pick),
+      // (Depth only; the fragment drops what the clip plane cuts away.)
+      fragment: { module: modules.pick, entryPoint: 'fsDepth', targets: [] },
+      primitive: { topology: 'triangle-list', cullMode: 'none' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'less', depthBias: 2, depthBiasSlopeScale: 2 },
+    }));
+    for (const two of [false, true]) jobs.push(make(two ? 'mask2' : 'mask', {
+      vertex: positionOnly(modules.pick),
+      fragment: { module: modules.pick, entryPoint: 'fsMask', targets: [{ format: 'r32uint' }] },
+      primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back' },
+      depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
+    }));
+    const output = d.createShaderModule({ code: outputWGSL(this.options.antialias !== false), label: 'viewer output' });
+    jobs.push(d.createRenderPipelineAsync({
+      label: 'viewer output', layout: 'auto',
+      vertex: { module: output, entryPoint: 'vs' },
+      fragment: { module: output, entryPoint: 'fs', targets: [{ format: this.format }] },
+      primitive: { topology: 'triangle-list' },
+    }).then(p => { this.pipelines.set('output', p); }));
+    const results = await Promise.allSettled(jobs);
+    const scope = await d.popErrorScope();
+    const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
+    if (failed || scope) throw new ViewerError('PIPELINE', String(failed ? (failed.reason as Error)?.message ?? failed.reason : scope!.message));
+  }
+
+  private growObjects(slots: number): void {
+    if (slots <= this.objectCapacity) return;
+    const cap = Math.max(slots, this.objectCapacity * 2);
+    this.objectBuffer?.destroy();
+    this.objectBuffer = this.device.createBuffer({ size: cap * OBJECT_STRIDE, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer objects' });
+    this.objectGroup = this.device.createBindGroup({ layout: this.pipelines.get('lit')!.getBindGroupLayout(1), entries: [{ binding: 0, resource: { buffer: this.objectBuffer, size: OBJECT_BYTES } }] });
+    const data = new Float32Array((cap * OBJECT_STRIDE) / 4);
+    data.set(this.objectData.subarray(0, Math.min(this.objectData.length, data.length)));
+    this.objectData = data; this.objectCapacity = cap;
+    for (const m of this.meshes) m.dirty = true;
+  }
+
+  // ---- Scene -------------------------------------------------------------------------------------
+
+  /** Upload geometry once; any number of meshes can draw it. */
+  createGeometry(input: GeometryInput): Geometry {
+    this.alive();
+    const g = new Geometry(prepareGeometry(input), this);
+    this.geometries.add(g);
+    return g;
+  }
+
+  /** Add a mesh drawing a geometry (or geometry input) with a material and transform. */
+  add(geometry: Geometry | GeometryInput, options: AddMeshOptions = {}): Mesh {
+    this.alive();
+    const g = geometry instanceof Geometry ? geometry : this.createGeometry(geometry);
+    const m = new Mesh(g, this, this.nextId++, options);
+    m.slot = this.freeSlots.pop() ?? this.nextSlot++;
+    this.growObjects(this.nextSlot);
+    this.meshes.push(m);
+    this.scene = null;
+    this.requestRender();
+    return m;
+  }
+
+  /** @internal A mesh moved (its transform or instances): the scene trees are made again at the next pick (G9). */
+  sceneMoved(): void { this.scene = null; }
+  /**
+   * @internal Picks through the scene trees and large point meshes' hierarchies (G9, default); false: every mesh walked
+   * in order, as before — the same answers (the test compares them), for tests.
+   */
+  accelerate = true;
+  /** The scene trees (G9): the triangle meshes' world boxes (one an instance) for rays; the line and point meshes' for the pointer. */
+  private scene: { rays: SceneTree; rayMesh: Mesh[]; rayInstance: Int32Array; marks: SceneTree; markMesh: Mesh[] } | null = null;
+  private sceneTrees(): NonNullable<Viewer['scene']> {
+    if (this.scene) return this.scene;
+    const rayMesh: Mesh[] = [], rayInstance: number[] = [], rayBoxes: number[] = [], markMesh: Mesh[] = [], markBoxes: number[] = [];
+    for (const m of this.meshes) {
+      const b = m.geometry.data.bounds;
+      if (!b) continue;
+      if (m.geometry.topology === 'triangles') {
+        for (let i = 0; i < m.instanceCount; i++) {
+          const w = transformBox(this.instanceTransform(m, m.instances ? i : null), b);
+          rayMesh.push(m); rayInstance.push(m.instances ? i : -1); rayBoxes.push(...w.min, ...w.max);
+        }
+      } else { const w = transformBox(m.transform, b); markMesh.push(m); markBoxes.push(...w.min, ...w.max); }
+    }
+    this.scene = { rays: sceneTree(Float64Array.from(rayBoxes), rayMesh.length), rayMesh, rayInstance: Int32Array.from(rayInstance), marks: sceneTree(Float64Array.from(markBoxes), markMesh.length), markMesh };
+    return this.scene;
+  }
+  /**
+   * The triangle leaves a world ray may hit before tmax, the earliest first (ties by leaf order): indices into the ray tree,
+   * and for each the least parameter a hit on it can have — where the ray enters its box.
+   */
+  private rayLeaves(origin: Vec3, direction: Vec3, tmax: number): { leaves: number[]; ts: number[]; order: number[] } {
+    // (Caps are not the leaves' — capHit finds them, G19 — so a leaf's least parameter is where the ray enters its box.)
+    const S = this.sceneTrees(), n = sceneRay(S.rays, origin, direction, tmax, candLeaves, candTs), kept = n;
+    candLeaves.length = kept; candTs.length = kept;
+    candOrder.length = kept; for (let i = 0; i < kept; i++) candOrder[i] = i;
+    candOrder.sort(byEntry);
+    return { leaves: candLeaves, ts: candTs, order: candOrder };
+  }
+
+  /**
+   * Each mesh's cost in the last frame drawn while `costs` was on (O10): the records are kept between frames — made when a
+   * mesh is first drawn counting, dropped with it — and zeroed as each counted frame begins (a mesh not drawn: zeros).
+   */
+  meshCosts(): ReadonlyMap<Mesh, MeshCost> { return this.costRecords; }
+  /** One draw of a mesh counted (O10). */
+  private tally(m: Mesh, pass: FramePass, triangles: number, lines: number, points: number): void {
+    let c = m.cost;
+    if (!c) { c = m.cost = newCost(); this.costRecords.set(m, c); }
+    c.draws++; c.triangles += triangles; c.lines += lines; c.points += points; c.passes[pass]++;
+  }
+
+  remove(mesh: Mesh): void {
+    const i = this.meshes.indexOf(mesh);
+    if (i < 0) return;
+    this.meshes.splice(i, 1);
+    this.scene = null;
+    this.freeSlots.push(mesh.slot);
+    mesh.slot = -1;
+    if (mesh.cost) { this.costRecords.delete(mesh); mesh.cost = null; }
+    // Its own GPU buffers go with it (made again should it be drawn again).
+    if (mesh.instances?.buffer) { mesh.instances.buffer.destroy(); mesh.instances.buffer = null; mesh.instances.device = null; }
+    mesh.materialState?.params.destroy(); mesh.materialState?.pbrParams.destroy(); mesh.materialState = null;
+    mesh.mapState?.params.destroy(); mesh.mapState?.texture.destroy(); mesh.mapState = null;
+    this.requestRender();
+  }
+
+  /** @internal A disposed geometry: no longer kept (nor restored after a lost device). */
+  forget(g: Geometry): void { this.geometries.delete(g); }
+
+  /** Remove every mesh and release every geometry. */
+  clear(): void {
+    for (const m of this.meshes) { m.slot = -1; m.cost = null; }
+    this.costRecords.clear();
+    this.meshes = []; this.freeSlots = []; this.nextSlot = 0; this.scene = null;
+    for (const g of this.geometries) g.release();
+    this.geometries.clear();
+    this.requestRender();
+  }
+
+  get meshList(): readonly Mesh[] { return this.meshes; }
+
+  /**
+   * The box the camera's depth range must hold (G19): the scene's, and under clip planes every capped mesh's whole box —
+   * its probe and caps are drawn from its faces cut away too (a box section inside a solid: the solid's far faces).
+   */
+  private depthBounds(): Box3 | null {
+    const b = this.sceneBounds();
+    if (!this.clip) return b;
+    let out: Box3 | null = b ? { min: [b.min[0], b.min[1], b.min[2]], max: [b.max[0], b.max[1], b.max[2]] } : null;
+    for (const m of this.meshes) {
+      if (!m.visible || !m.bounded || m.geometry.disposed || !this.capped(m) || !m.bounds) continue;
+      if (!out) out = { min: [m.bounds.min[0], m.bounds.min[1], m.bounds.min[2]], max: [m.bounds.max[0], m.bounds.max[1], m.bounds.max[2]] }; else growBox(out, m.bounds);
+    }
+    return out;
+  }
+  /** The box around every visible mesh (a clipped mesh's box cut by an axis-aligned clip plane, as a clipped copy's would be). */
+  sceneBounds(): Box3 | null {
+    if (this.frameBox) return this.frameBox.box;
+    // (Grown in one box, G13: no box a mesh.)
+    let b: Box3 | null = null;
+    for (const m of this.meshes) {
+      if (!m.visible || !m.bounded || m.geometry.disposed) continue;
+      const x = this.clip && m.clipped ? clipBox(m.bounds, this.clip) : m.bounds;
+      if (!x) continue;
+      if (!b) b = { min: [x.min[0], x.min[1], x.min[2]], max: [x.max[0], x.max[1], x.max[2]] }; else growBox(b, x);
+    }
+    return b;
+  }
+
+  /** Frame a box (default: the scene) in the view. */
+  fit(box: Box3 | null = this.sceneBounds()): void {
+    if (box) this.camera.fit(box, this.aspect);
+    this.requestRender();
+  }
+
+  /** A new background; switching to or from 'transparent' takes effect after the next device setup. */
+  setBackground(background: BackgroundInput): void { this.background = backgroundOf(background); this.requestRender(); }
+
+  /** A texture from an image, canvas, bitmap or RGBA bytes, for Material.map. */
+  createTexture(source: TextureSource, options: TextureOptions = {}): ImageTexture {
+    this.alive();
+    if (!(source.width > 0 && source.height > 0)) throw new ViewerError('TEXTURE_INVALID', 'A texture needs a width and height');
+    if ('data' in source && source.data.length !== source.width * source.height * 4) throw new ViewerError('TEXTURE_INVALID', 'Texture data must hold width × height RGBA bytes');
+    const t = new ImageTexture(source, { srgb: options.srgb ?? true, mipmaps: options.mipmaps ?? true, wrap: options.wrap ?? 'repeat', filter: options.filter ?? 'linear' }, this);
+    this.textures.add(t);
+    return t;
+  }
+
+  /** Every surface group has data-map defaults, including the white, custom-shader and scalar-ramp groups. */
+  private materialEntries(texture: Texture, sampler: object, params: Buffer, pbr?: { maps: readonly (ImageTexture | null)[]; params: Buffer }, white = this.white?.texture ?? texture): object[] {
+    return [
+      { binding: 0, resource: texture.createView() }, { binding: 1, resource: sampler }, { binding: 2, resource: { buffer: params } },
+      ...[0, 1, 2].flatMap(i => {
+        const gpu = pbr?.maps[i]?.gpu;
+        return [{ binding: 3 + i * 2, resource: (gpu?.texture ?? white).createView() }, { binding: 4 + i * 2, resource: gpu?.sampler ?? this.mipSampler }];
+      }),
+      { binding: 9, resource: { buffer: pbr?.params ?? this.zeroParams } },
+    ];
+  }
+
+  /** The material bind group of a colour map: uploaded (with its mips) on first use and after a device loss. */
+  private mapGroup(map: ImageTexture | null): BindGroup {
+    if (!map || map.disposed) return this.white.group;
+    if (map.gpu && map.gpu.device === this.device) return map.gpu.group;
+    const o = map.options, src = map.source, w = src.width, h = src.height, format = o.srgb ? 'rgba8unorm-srgb' : 'rgba8unorm';
+    const levels = o.mipmaps ? Math.floor(Math.log2(Math.max(w, h))) + 1 : 1;
+    const texture = this.device.createTexture({ size: [w, h], format, mipLevelCount: levels, usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST | TextureUsage.RENDER_ATTACHMENT, label: 'viewer map' });
+    if ('data' in src) this.device.queue.writeTexture({ texture }, src.data, { bytesPerRow: w * 4 }, [w, h]);
+    else this.device.queue.copyExternalImageToTexture({ source: src }, { texture }, [w, h]);
+    if (levels > 1) this.generateMips(texture, format, levels);
+    const sampler = this.device.createSampler({
+      addressModeU: o.wrap === 'repeat' ? 'repeat' : 'clamp-to-edge', addressModeV: o.wrap === 'repeat' ? 'repeat' : 'clamp-to-edge',
+      magFilter: o.filter, minFilter: o.filter, mipmapFilter: o.filter, ...(o.filter === 'linear' && o.mipmaps ? { maxAnisotropy: 8 } : {}),
+    });
+    const group = this.device.createBindGroup({ layout: this.materialLayout, entries: this.materialEntries(texture, sampler, this.zeroParams) });
+    map.gpu = { texture, group, device: this.device, sampler };
+    return group;
+  }
+
+  /** A mesh's material group, with independently sampled linear data maps and custom shader parameters. */
+  private materialGroup(m: Mesh): BindGroup {
+    const mat = m.material, normal = mat.normalMap && !mat.normalMap.disposed ? mat.normalMap : null;
+    const roughness = mat.roughnessMap && !mat.roughnessMap.disposed ? mat.roughnessMap : null, metallic = mat.metallicMap && !mat.metallicMap.disposed ? mat.metallicMap : null;
+    if (!mat.shader && !normal && !roughness && !metallic) {
+      m.materialState?.params.destroy(); m.materialState?.pbrParams.destroy(); m.materialState = null;
+      return this.mapGroup(mat.map ?? null);
+    }
+    const map = mat.map && !mat.map.disposed ? mat.map : null, data = m.shaderParams(), st = m.materialState;
+    const scale = mat.normalScale ?? [1, 1], x = Math.fround(scale[0]), y = Math.fround(scale[1]);
+    if (st && st.device === this.device && st.map === map && st.maps[0] === normal && st.maps[1] === roughness && st.maps[2] === metallic) {
+      if (st.data !== data) { this.device.queue.writeBuffer(st.params, 0, data); st.data = data; }
+      if (st.pbrData[0] !== x || st.pbrData[1] !== y) {
+        st.pbrData[0] = x; st.pbrData[1] = y;
+        this.device.queue.writeBuffer(st.pbrParams, 0, st.pbrData);
+      }
+      return st.group;
+    }
+    st?.params.destroy(); st?.pbrParams.destroy();
+    this.mapGroup(map);
+    const maps = [normal, roughness, metallic];
+    for (const image of maps) if (image) this.mapGroup(image);
+    const params = this.device.createBuffer({ size: 64, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer shader params' });
+    this.device.queue.writeBuffer(params, 0, data);
+    const pbrData = new Float32Array([x, y, 0, 0]);
+    new Uint32Array(pbrData.buffer)[2] = (normal ? 1 : 0) | (roughness ? 2 : 0) | (metallic ? 4 : 0);
+    const pbrParams = this.device.createBuffer({ size: 16, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer material maps' });
+    this.device.queue.writeBuffer(pbrParams, 0, pbrData);
+    const sampler = map?.gpu ? map.gpu.sampler : this.mipSampler;
+    const group = this.device.createBindGroup({ layout: this.materialLayout, entries: this.materialEntries(map?.gpu?.texture ?? this.white.texture, sampler, params, { maps, params: pbrParams }) });
+    m.materialState = { device: this.device, map, params, group, data, maps, pbrParams, pbrData };
+    return group;
+  }
+
+  /** A shader material's pipeline for a variant: its module compiled on first use (errors reported, not thrown). */
+  private shaderPipeline(shader: ShaderMaterial, variant: string): PipelineKey {
+    let code = this.shaderCode.get(shader);
+    if (code === undefined) { code = surfaceWGSL(shader); this.shaderCode.set(shader, code); }
+    let entry = this.shaders.get(code);
+    if (!entry) { entry = { id: this.shaders.size + 1, module: null, device: null }; this.shaders.set(code, entry); }
+    const key = `shader${entry.id}:${variant}`;
+    if (entry.device !== this.device || !entry.module) {
+      entry.module = this.device.createShaderModule({ code, label: `viewer shader material ${entry.id}` });
+      entry.device = this.device;
+      (entry.module as { getCompilationInfo(): Promise<{ messages: readonly { type: string; message: string; lineNum: number }[] }> }).getCompilationInfo().then(info => {
+        const errors = info.messages.filter(x => x.type === 'error');
+        if (errors.length) this.report(`Shader material ${entry!.id}: ${errors.map(e => `${e.lineNum}: ${e.message}`).join('; ')}`);
+      }, () => undefined);
+      for (const k of [...this.pipelines.keys()]) if (k.startsWith(`shader${entry.id}:`)) this.pipelines.delete(k);
+    }
+    if (!this.pipelines.has(key)) {
+      const decal = variant.endsWith('D'), v = decal ? variant.slice(0, -1) : variant;
+      const lit = !v.startsWith('unlit'), two = v.includes('2'), t = v.endsWith('O') ? 'oit' as const : v.endsWith('T');
+      this.pipelines.set(key, (this.device as unknown as { createRenderPipeline(d: object): Pipeline }).createRenderPipeline({ label: `viewer ${key}`, layout: this.surfaceLayout, ...this.surfaceDescriptor(entry.module, lit, two, t, decal) }));
+    }
+    return key;
+  }
+
+  /**
+   * G15b: an environment map's lighting — its reflections prefiltered by GGX, a mip level each from roughness 0 to 1
+   * (ENV_LEVELS, from at most 1024 across), and its diffuse light (IRRADIANCE_SIZE) — made on first use and kept with it.
+   */
+  private envLighting(map: ImageTexture): { specular: Texture; irradiance: Texture } {
+    const gpu = map.gpu!;
+    if (gpu.lighting) return gpu.lighting;
+    const srcW = map.width, srcLevels = Math.floor(Math.log2(Math.max(map.width, map.height))) + 1;
+    const w = Math.max(8, Math.min(1024, 2 ** Math.floor(Math.log2(srcW)))), levels = Math.min(ENV_LEVELS, Math.floor(Math.log2(w / 2)) + 1);
+    const specular = this.device.createTexture({ size: [w, w / 2], format: 'rgba16float', mipLevelCount: levels, usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer environment reflections' });
+    const irradiance = this.device.createTexture({ size: [IRRADIANCE_SIZE[0], IRRADIANCE_SIZE[1]], format: 'rgba16float', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.RENDER_ATTACHMENT, label: 'viewer environment diffuse' });
+    for (let level = 0; level < levels; level++) this.envPass('fsSpecular', gpu.texture, specular, level, 'rgba16float', [levels > 1 ? level / (levels - 1) : 0, srcW, srcLevels, 128]);
+    this.envPass('fsIrradiance', gpu.texture, irradiance, 0, 'rgba16float', [0, srcW, srcLevels, 512]);
+    gpu.lighting = { specular, irradiance };
+    return gpu.lighting;
+  }
+  /** One environment pass: an entry point of envWGSL from a source into a target's level, with its four parameters. */
+  private envPass(entry: string, source: Texture, target: Texture, level: number, format: string, params: readonly number[]): void {
+    const key = `${entry}:${format}`;
+    let pipeline = this.envPipelines.get(key);
+    if (!pipeline) {
+      const module = this.device.createShaderModule({ code: envWGSL, label: 'viewer environment' });
+      pipeline = (this.device as unknown as { createRenderPipeline(d: object): Pipeline }).createRenderPipeline({
+        label: `viewer environment ${entry}`, layout: 'auto', vertex: { module, entryPoint: 'vs' }, fragment: { module, entryPoint: entry, targets: [{ format }] }, primitive: { topology: 'triangle-list' },
+      });
+      this.envPipelines.set(key, pipeline);
+    }
+    // (The BRDF table reads nothing: its pass has no bindings.)
+    const sourced = entry !== 'fsLut', buffer = sourced ? this.device.createBuffer({ size: 16, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer environment parameters' }) : null;
+    if (buffer) this.device.queue.writeBuffer(buffer, 0, new Float32Array(params));
+    const group = buffer ? this.device.createBindGroup({ layout: pipeline.getBindGroupLayout(0), entries: [
+      { binding: 0, resource: source.createView() }, { binding: 1, resource: this.envSampler }, { binding: 2, resource: { buffer } },
+    ] }) : null;
+    const enc = this.device.createCommandEncoder();
+    const pass = enc.beginRenderPass({ label: `viewer environment ${entry}`, colorAttachments: [{ view: target.createView({ baseMipLevel: level, mipLevelCount: 1 }), loadOp: 'clear', storeOp: 'store', clearValue: { r: 0, g: 0, b: 0, a: 0 } }] });
+    pass.setPipeline(pipeline); if (group) pass.setBindGroup(0, group); pass.draw(3); pass.end();
+    this.device.queue.submit([enc.finish()]);
+    buffer?.destroy();
+  }
+
+  /** Fill a texture's mip levels, each a filtered half of the one above. */
+  private generateMips(texture: Texture, format: string, levels: number): void {
+    let pipeline = this.mipPipelines.get(format);
+    if (!pipeline) {
+      const module = this.device.createShaderModule({ code: mipWGSL, label: 'viewer mips' });
+      // (Synchronous creation: mips are made while drawing.)
+      pipeline = (this.device as unknown as { createRenderPipeline(d: object): Pipeline }).createRenderPipeline({
+        label: 'viewer mips', layout: 'auto', vertex: { module, entryPoint: 'vs' }, fragment: { module, entryPoint: 'fs', targets: [{ format }] }, primitive: { topology: 'triangle-list' },
+      });
+      this.mipPipelines.set(format, pipeline);
+    }
+    const enc = this.device.createCommandEncoder();
+    for (let level = 1; level < levels; level++) {
+      const group = this.device.createBindGroup({ layout: pipeline.getBindGroupLayout(0), entries: [
+        { binding: 0, resource: texture.createView({ baseMipLevel: level - 1, mipLevelCount: 1 }) }, { binding: 1, resource: this.mipSampler },
+      ] });
+      const pass = enc.beginRenderPass({ label: 'viewer mip', colorAttachments: [{ view: texture.createView({ baseMipLevel: level, mipLevelCount: 1 }), loadOp: 'clear', storeOp: 'store', clearValue: { r: 0, g: 0, b: 0, a: 0 } }] });
+      pass.setPipeline(pipeline); pass.setBindGroup(0, group); pass.draw(3); pass.end();
+    }
+    this.device.queue.submit([enc.finish()]);
+  }
+
+  // ---- Size and frames ----------------------------------------------------------------------------
+
+  get aspect(): number { return this.canvas.width / Math.max(1, this.canvas.height); }
+
+  /** Match the canvas backing store to its CSS size times the pixel ratio. */
+  resize(pixelRatio = this.pixelRatio): void {
+    pixelRatio = pixelRatioOf(pixelRatio);
+    const ratio = pixelRatio !== this.pixelRatio;
+    if (ratio) for (const m of this.meshes) m.dirty = true;
+    this.pixelRatio = pixelRatio;
+    const max = this.device?.limits.maxTextureDimension2D ?? 8192;
+    const w = Math.max(1, Math.min(max, Math.round((this.canvas.clientWidth || this.canvas.width) * pixelRatio)));
+    const h = Math.max(1, Math.min(max, Math.round((this.canvas.clientHeight || this.canvas.height) * pixelRatio)));
+    const sized = this.canvas.width !== w || this.canvas.height !== h;
+    if (sized) { this.canvas.width = w; this.canvas.height = h; }
+    // (Unchanged, nothing to draw again: a caller that resizes before each render() draws once.)
+    if (sized || ratio) this.requestRender();
+  }
+
+  /** Set the canvas backing size in device pixels (with autoResize false; capped at the device's texture size). */
+  setSize(width: number, height: number): void {
+    const max = this.device?.limits.maxTextureDimension2D ?? 8192;
+    if (!(width >= 1 && height >= 1)) throw new ViewerError('SIZE_INVALID', 'A backing size is at least 1 × 1');
+    const w = Math.min(max, Math.round(width)), h = Math.min(max, Math.round(height));
+    if (this.canvas.width !== w || this.canvas.height !== h) { this.canvas.width = w; this.canvas.height = h; }
+    this.requestRender();
+  }
+
+  /** Whether the viewer can draw: false while disposed, recovering, or after recovery fails. */
+  get ready(): boolean { return !this.disposed && !this.recovering && !this.recoveryFailure; }
+
+  /** The frame callback, made once (not a closure a request; PERF3 C17). */
+  private readonly scheduledRun = (): void => { this.scheduled = 0; this.render(); };
+  /** Draw on the next animation frame (several requests make one frame). */
+  requestRender(): void {
+    if (this.disposed || this.recoveryFailure) return;
+    if (this.options.onRequestRender) { this.options.onRequestRender(); return; }
+    if (this.scheduled) return;
+    const raf = (globalThis as { requestAnimationFrame?: (f: () => void) => number }).requestAnimationFrame;
+    this.scheduled = raf ? raf(this.scheduledRun) : (setTimeout(this.scheduledRun, 0) as unknown as number);
+  }
+
+  private cancelScheduled(): void {
+    if (!this.scheduled) return;
+    const cancel = (globalThis as { cancelAnimationFrame?: (h: number) => void }).cancelAnimationFrame;
+    if ((globalThis as { requestAnimationFrame?: unknown }).requestAnimationFrame && cancel) cancel(this.scheduled); else clearTimeout(this.scheduled);
+    this.scheduled = 0;
+  }
+
+  /** Resolves once the next frame has been drawn and the GPU has finished it. Rejects once device recovery has failed. */
+  frame(): Promise<void> {
+    if (this.disposed) return Promise.reject(new ViewerError('DISPOSED', 'The viewer has been disposed'));
+    if (this.recoveryFailure) return Promise.reject(this.recoveryFailure);
+    return new Promise((resolve, reject) => { this.waiters.push({ resolve, reject }); this.requestRender(); });
+  }
+
+  /** Draw now (a frame already asked for is drawn by this one). */
+  render(): void {
+    if (this.disposed || this.recovering || this.recoveryFailure) return;
+    this.cancelScheduled();
+    const t0 = performance.now();
+    this.draw(null);
+    this.stats.cpuTime = performance.now() - t0;
+    const waiters = this.waiters.splice(0);
+    if (waiters.length) this.device.queue.onSubmittedWorkDone().then(() => waiters.forEach(w => w.resolve()), () => waiters.forEach(w => w.resolve()));
+  }
+
+  private ensureTargets(): NonNullable<Viewer['targets']> {
+    const w = this.canvas.width, h = this.canvas.height, t = this.targets;
+    if (t && t.width === w && t.height === h) return t;
+    t?.msaa?.destroy(); t?.scene.destroy(); t?.depth.destroy(); t?.mask.destroy(); t?.maskDepth.destroy(); t?.capFront.destroy(); t?.capFrontSamples?.destroy();
+    if (t) { this.releaseBloom(); this.releaseFocus(); }
+    const samples = this.options.antialias === false ? 1 : SAMPLES;
+    const msaa = samples > 1 ? this.device.createTexture({ size: [w, h], format: SCENE_FORMAT, sampleCount: samples, usage: TextureUsage.RENDER_ATTACHMENT, label: 'viewer msaa' }) : null;
+    const scene = this.device.createTexture({ size: [w, h], format: SCENE_FORMAT, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer scene' });
+    const depth = this.device.createTexture({ size: [w, h], format: 'depth32float', sampleCount: samples, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer depth' });
+    const mask = this.device.createTexture({ size: [w, h], format: 'r32uint', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer outline mask' });
+    const maskDepth = this.device.createTexture({ size: [w, h], format: 'depth32float', usage: TextureUsage.RENDER_ATTACHMENT, label: 'viewer outline depth' });
+    const capFront = this.device.createTexture({ size: [w, h], format: 'rg32float', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer caps probe' });
+    // The full MSAA probe is allocated only for a capped scene, not for ordinary unsectioned frames.
+    const capFrontSamples = null;
+    const views = { msaa: msaa ? msaa.createView() : null, scene: scene.createView(), depth: depth.createView(), mask: mask.createView(), maskDepth: maskDepth.createView(), capFront: capFront.createView(), capFrontSamples: null as View | null };
+    const output = this.outputGroup(scene, mask, depth, this.black);
+    this.targets = { width: w, height: h, msaa, scene, depth, mask, maskDepth, capFront, capFrontSamples, output, views };
+    // (The frame bind group holds the new prepass target.)
+    this.bindFrames();
+    return this.targets;
+  }
+
+  /** The output pass's bind group: the scene, its block, the outline mask, the depth and the bloom's top level. */
+  private outputGroup(scene: Texture, mask: Texture, depth: Texture, bloom: Texture, focus: Texture = this.black): BindGroup {
+    return this.device.createBindGroup({ layout: this.pipelines.get('output')!.getBindGroupLayout(0), entries: [{ binding: 0, resource: scene.createView() }, { binding: 1, resource: { buffer: this.outputBuffer } },
+      { binding: 2, resource: mask.createView() }, { binding: 3, resource: depth.createView() }, { binding: 4, resource: bloom.createView() }, { binding: 5, resource: this.rampSampler }, { binding: 6, resource: focus.createView() }] });
+  }
+
+  private focusEnabled(): boolean {
+    const f = this.environment.depthOfField;
+    return !!f && Number.isFinite(f.focus) && f.focus > 0 && Number.isFinite(f.blur ?? 8) && (f.blur ?? 8) > 0;
+  }
+
+  private releaseFocus(): void {
+    this.focusPass?.color.destroy(); this.focusPass?.params.destroy(); this.focusPass = null;
+  }
+
+  /** One half-resolution gather from the resolved scene, before the existing tone map, grade and outlines. */
+  private drawFocus(enc: ReturnType<Device['createCommandEncoder']>, t: NonNullable<Viewer['targets']>, bloom: Texture): BindGroup {
+    if (!this.focusPipeline) {
+      const module = this.device.createShaderModule({ code: depthOfFieldWGSL(this.options.antialias !== false), label: 'viewer depth of field' });
+      this.focusPipeline = this.device.createRenderPipeline({ label: 'viewer depth of field', layout: 'auto', vertex: { module, entryPoint: 'vs' }, fragment: { module, entryPoint: 'fs', targets: [{ format: SCENE_FORMAT }] }, primitive: { topology: 'triangle-list' } });
+    }
+    if (!this.focusPass || this.focusPass.targets !== t) {
+      this.releaseFocus();
+      const color = this.device.createTexture({ size: [Math.max(1, Math.ceil(t.width / 2)), Math.max(1, Math.ceil(t.height / 2))], format: SCENE_FORMAT, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer focus half' });
+      const params = this.device.createBuffer({ size: 80, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer focus params' });
+      const group = this.device.createBindGroup({ layout: this.focusPipeline.getBindGroupLayout(0), entries: [{ binding: 0, resource: t.scene.createView() }, { binding: 1, resource: t.depth.createView() }, { binding: 2, resource: { buffer: params } }] });
+      this.focusPass = { targets: t, color, params, group, bloom, output: this.outputGroup(t.scene, t.mask, t.depth, bloom, color) };
+    }
+    const f = this.focusPass;
+    if (f.bloom !== bloom) { f.bloom = bloom; f.output = this.outputGroup(t.scene, t.mask, t.depth, bloom, f.color); }
+    const cfg = this.environment.depthOfField;
+    this.focusParams.set(invert(this.camera.projectionMatrix(this.aspect)));
+    this.focusParams[16] = cfg ? cfg.focus : 1;
+    this.focusParams[17] = cfg ? Math.max(0, Math.min(24, cfg.blur ?? 8)) * this.pixelRatio : 0;
+    this.device.queue.writeBuffer(f.params, 0, this.focusParams);
+    const pass = enc.beginRenderPass({ label: 'viewer depth of field', colorAttachments: [{ view: f.color.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }] });
+    pass.setPipeline(this.focusPipeline); pass.setBindGroup(0, f.group); pass.draw(3); pass.end();
+    return f.output;
+  }
+
+  /** G15d.2: the bloom chain for these targets — levels from half their size down (BLOOM_LEVELS, at least 2 px); made
+   *  again for new targets (a resize), so its first pass never reads a destroyed scene. */
+  private ensureBloom(t: NonNullable<Viewer['targets']>): NonNullable<Viewer['bloomChain']> {
+    const b = this.bloomChain;
+    if (b && b.targets === t) return b;
+    this.releaseBloom();
+    const levels: Texture[] = [], views: View[] = [], params: Buffer[] = [];
+    for (let i = 0, w = Math.max(2, t.width >> 1), h = Math.max(2, t.height >> 1); i < BLOOM_LEVELS && w >= 2 && h >= 2; i++, w >>= 1, h >>= 1) {
+      const level = this.device.createTexture({ size: [w, h], format: SCENE_FORMAT, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: `viewer bloom ${i}` });
+      levels.push(level); views.push(level.createView());
+    }
+    // (Each pass's parameters: its source's texel, then the threshold and knee, written each frame.)
+    const prefilter = this.bloomGroup('fsPrefilter', t.views.scene, params, t.width, t.height);
+    const down: BindGroup[] = [], up: BindGroup[] = [];
+    for (let i = 0; i + 1 < levels.length; i++) down.push(this.bloomGroup('fsDown', views[i], params, levels[i].width, levels[i].height));
+    for (let i = 1; i < levels.length; i++) up.push(this.bloomGroup('fsUp', views[i], params, levels[i].width, levels[i].height));
+    this.bloomChain = { targets: t, levels, views, prefilter, down, up, params, output: this.outputGroup(t.scene, t.mask, t.depth, levels[0]) };
+    return this.bloomChain;
+  }
+  /** A bloom pass's bind group reading `src` (its parameters' buffer added to `params`, its texel set once). */
+  private bloomGroup(entry: string, src: View, params: Buffer[], width: number, height: number): BindGroup {
+    const buffer = this.device.createBuffer({ size: 16, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer bloom parameters' });
+    params.push(buffer);
+    this.device.queue.writeBuffer(buffer, 0, new Float32Array([1 / width, 1 / height, 0, 0]));
+    return this.device.createBindGroup({ layout: this.bloomPipeline(entry).getBindGroupLayout(0), entries: [{ binding: 0, resource: src }, { binding: 1, resource: this.rampSampler }, { binding: 2, resource: { buffer } }] });
+  }
+  private releaseBloom(): void {
+    const b = this.bloomChain;
+    if (!b) return;
+    for (const l of b.levels) l.destroy();
+    for (const p of b.params) p.destroy();
+    this.bloomChain = null;
+  }
+  private bloomPipeline(entry: string): Pipeline {
+    let p = this.bloomPipelines.get(entry);
+    if (!p) {
+      const module = this.device.createShaderModule({ code: bloomWGSL, label: 'viewer bloom' });
+      const add = entry === 'fsUp' ? { blend: { color: { srcFactor: 'one', dstFactor: 'one', operation: 'add' }, alpha: { srcFactor: 'one', dstFactor: 'one', operation: 'add' } } } : {};
+      p = (this.device as unknown as { createRenderPipeline(d: object): Pipeline }).createRenderPipeline({
+        label: `viewer bloom ${entry}`, layout: 'auto', vertex: { module, entryPoint: 'vs' }, fragment: { module, entryPoint: entry, targets: [{ format: SCENE_FORMAT, ...add }] }, primitive: { topology: 'triangle-list' },
+      });
+      this.bloomPipelines.set(entry, p);
+    }
+    return p;
+  }
+  /** G15d.2: the bloom chain drawn from the scene — the prefilter, down the levels, back up adding into each. */
+  private drawBloom(enc: { beginRenderPass(d: object): RenderPass }, t: NonNullable<Viewer['targets']>): BindGroup {
+    // (The threshold is on the light as exposed; the chain reads the scene before its exposure, so it is divided by it.)
+    const b = this.ensureBloom(t), cfg = this.environment.bloom || {}, exposure = Math.max(1e-6, this.environment.exposure ?? 1);
+    const k = this.bloomKnee;
+    k[0] = Math.max(0, cfg.threshold ?? 1) / exposure; k[1] = Math.max(1e-6, cfg.knee ?? (cfg.threshold ?? 1) * 0.25) / exposure;
+    for (const p of b.params) this.device.queue.writeBuffer(p, 8, k);
+    this.bloomPass(enc, b.views[0], 'fsPrefilter', b.prefilter, false);
+    for (let i = 0; i < b.down.length; i++) this.bloomPass(enc, b.views[i + 1], 'fsDown', b.down[i], false);
+    for (let i = b.up.length - 1; i >= 0; i--) this.bloomPass(enc, b.views[i], 'fsUp', b.up[i], true);
+    return b.output;
+  }
+  private bloomPass(enc: { beginRenderPass(d: object): RenderPass }, target: View, entry: string, group: BindGroup, load: boolean): void {
+    const pass = enc.beginRenderPass({ label: 'viewer bloom', colorAttachments: [{ view: target, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: load ? 'load' : 'clear', storeOp: 'store' }] });
+    pass.setPipeline(this.bloomPipeline(entry)); pass.setBindGroup(0, group); pass.draw(3); pass.end();
+  }
+
+  private ensureCapSamples(t: NonNullable<Viewer['targets']>): void {
+    if (this.options.antialias === false || t.capFrontSamples) return;
+    t.capFrontSamples = this.device.createTexture({ size: [t.width, t.height], format: CAP_SAMPLES_FORMAT, sampleCount: SAMPLES, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer caps probe samples' });
+    t.views.capFrontSamples = t.capFrontSamples.createView();
+    this.bindFrames();
+  }
+
+  /**
+   * @internal See-through surfaces through the order-independent pass (G11, default); false: sorted far to near and
+   * blended over, as before (the test compares them).
+   */
+  orderIndependent = true;
+  /** @internal While the order-independent pass draws: transparent surfaces take their 'O' pipelines. */
+  private oitDrawing = false;
+  /** G11's targets: the accumulation and revealage (multisampled when the scene is) and their resolved copies, and the composite's bind group. */
+  private oit: { width: number; height: number; accumMs: Texture | null; revealMs: Texture | null; accum: Texture; reveal: Texture; group: BindGroup; views: { accumMs: View | null; revealMs: View | null; accum: View; reveal: View } } | null = null;
+  private ensureOit(): NonNullable<Viewer['oit']> {
+    const w = this.canvas.width, h = this.canvas.height, o = this.oit;
+    if (o && o.width === w && o.height === h) return o;
+    o?.accumMs?.destroy(); o?.revealMs?.destroy(); o?.accum.destroy(); o?.reveal.destroy();
+    const samples = this.options.antialias === false ? 1 : SAMPLES, ms = samples > 1;
+    const tex = (format: string, count: number, label: string) => this.device.createTexture({ size: [w, h], format, sampleCount: count, usage: TextureUsage.RENDER_ATTACHMENT | (count === 1 ? TextureUsage.TEXTURE_BINDING : 0), label });
+    const accumMs = ms ? tex(OIT_ACCUM, samples, 'viewer oit accum msaa') : null, revealMs = ms ? tex(OIT_REVEAL, samples, 'viewer oit reveal msaa') : null;
+    const accum = tex(OIT_ACCUM, 1, 'viewer oit accum'), reveal = tex(OIT_REVEAL, 1, 'viewer oit reveal');
+    const group = this.device.createBindGroup({ layout: this.pipelines.get('oitComposite')!.getBindGroupLayout(0), entries: [{ binding: 0, resource: accum.createView() }, { binding: 1, resource: reveal.createView() }] });
+    this.oit = { width: w, height: h, accumMs, revealMs, accum, reveal, group, views: { accumMs: accumMs?.createView() ?? null, revealMs: revealMs?.createView() ?? null, accum: accum.createView(), reveal: reveal.createView() } };
+    return this.oit;
+  }
+
+  /** A label geometry laid out against the glyph atlas (again when the atlas changes font, or the device is new). */
+  private uploadLabels(g: Geometry): boolean {
+    if (g.gpu && g.gpu.device === this.device && g.gpu.labels?.atlas === this.atlasVersion) return true;
+    if (g.gpu) { g.gpu.positions.destroy(); g.gpu = null; }
+    const { data, count } = layoutLabels(g.data.labels ?? [], this.atlas, packLabelColor);
+    if (!count) return false;
+    const b = this.device.createBuffer({ size: Math.max(16, data.byteLength), usage: BufferUsage.VERTEX | BufferUsage.COPY_DST, label: 'labels' });
+    this.device.queue.writeBuffer(b, 0, data);
+    g.gpu = { device: this.device, positions: b, normals: null, colors: null, uvs: null, indices: null, labels: { count, atlas: this.atlasVersion } };
+    return true;
+  }
+  /** The labels' font (G15): a new one draws every glyph again, and lays every label out again. */
+  get labelFont(): string { return this.atlas.font; }
+  set labelFont(font: string) {
+    if (font === this.atlas.font) return;
+    this.atlas = new GlyphAtlas(font); this.atlasVersion++; this.atlasGpu = null; this.requestRender();
+  }
+  /** Draw every glyph again in the same font (a web font that has loaded since the first were drawn in its fallback). */
+  redrawGlyphs(): void { this.atlas = new GlyphAtlas(this.atlas.font); this.atlasVersion++; this.atlasGpu = null; this.requestRender(); }
+  private atlas = new GlyphAtlas("500 ui-monospace, 'SF Mono', Menlo, monospace");
+  private atlasVersion = 1;
+  private atlasLayout!: object;
+  private atlasSampler!: object;
+  private atlasGpu: { device: Device; texture: Texture; group: BindGroup; atlas: GlyphAtlas } | null = null;
+  /** The atlas on the GPU: made for this device and atlas, the glyphs added since written into their cells. */
+  private atlasGroup(): BindGroup {
+    let a = this.atlasGpu;
+    if (!a || a.device !== this.device || a.atlas !== this.atlas) {
+      a?.texture.destroy();
+      const texture = this.device.createTexture({ size: [ATLAS_SIZE, ATLAS_SIZE], format: 'r8unorm', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer glyph atlas' });
+      const group = this.device.createBindGroup({ layout: this.atlasLayout, entries: [{ binding: 0, resource: texture.createView() }, { binding: 1, resource: this.atlasSampler }] });
+      a = this.atlasGpu = { device: this.device, texture, group, atlas: this.atlas };
+      // (Every glyph drawn so far, into the new texture.)
+      this.atlas.added = this.atlas.fields.map((_, i) => i);
+    }
+    for (const cell of this.atlas.added) this.device.queue.writeTexture({ texture: a.texture, origin: [(cell % ATLAS_CELLS) * GLYPH_CELL, Math.floor(cell / ATLAS_CELLS) * GLYPH_CELL] }, this.atlas.fields[cell], { bytesPerRow: GLYPH_CELL }, [GLYPH_CELL, GLYPH_CELL]);
+    this.atlas.added.length = 0;
+    return a.group;
+  }
+  /** Labels (G15): text anchored at world points — sized in CSS pixels, or laid on a plane in world units — as one mesh. */
+  addLabels(labels: readonly TextLabel[], options: AddMeshOptions = {}): Mesh {
+    // (White by default: a label shows its own colours.)
+    return this.add({ positions: [], topology: 'labels', labels: labels.map(labelInput) }, { castShadow: false, pickable: false, ...options, material: { unlit: true, color: '#ffffff', ...options.material } });
+  }
+
+  /** Zero texture coordinates for n vertices, one buffer shared by the geometries without their own (G13), grown by doubling. */
+  private zeroUV: { device: Device; buffer: Buffer; vertices: number } | null = null;
+  private zeroUVs(n: number): Buffer {
+    const z = this.zeroUV;
+    if (z && z.device === this.device && z.vertices >= n) return z.buffer;
+    // (A smaller one stays with the geometries bound to it — only the larger is made; zeros on creation.)
+    const vertices = Math.max(65536, 2 ** Math.ceil(Math.log2(Math.max(1, n))));
+    this.zeroUV = { device: this.device, vertices, buffer: this.device.createBuffer({ size: vertices * 8, usage: BufferUsage.VERTEX, label: 'viewer zero uvs' }) };
+    return this.zeroUV.buffer;
+  }
+
+  private upload(g: Geometry): boolean {
+    if (g.disposed) return false;
+    if (g.data.topology === 'labels') return this.uploadLabels(g);
+    if (g.gpu && g.gpu.device === this.device) return true;
+    const d = this.device, data = g.data;
+    const buffer = (src: ArrayBufferView, usage: number, label: string) => {
+      const size = Math.max(4, Math.ceil(src.byteLength / 4) * 4), b = d.createBuffer({ size, usage: usage | BufferUsage.COPY_DST, label });
+      if (src.byteLength % 4) { const padded = new Uint8Array(size); padded.set(new Uint8Array(src.buffer, src.byteOffset, src.byteLength)); d.queue.writeBuffer(b, 0, padded); }
+      else if (src.byteLength) d.queue.writeBuffer(b, 0, src);
+      return b;
+    };
+    g.gpu = data.topology !== 'triangles'
+      ? { device: d, positions: buffer(new Uint8Array(data.topology === 'lines' ? (data.contour ? contourInstances(data) : segmentInstances(data)) : pointInstances(data)), BufferUsage.VERTEX, data.topology), normals: null, colors: null, uvs: null, indices: null }
+      : {
+        device: d,
+        positions: buffer(data.positions, BufferUsage.VERTEX, 'positions'), normals: buffer(data.normals, BufferUsage.VERTEX, 'normals'),
+        colors: buffer(data.colors, BufferUsage.VERTEX, 'colors'), uvs: data.uvs ? buffer(data.uvs, BufferUsage.VERTEX, 'uvs') : this.zeroUVs(data.vertexCount), ownUVs: !!data.uvs, indices: data.indices ? buffer(data.indices, BufferUsage.INDEX, 'indices') : null,
+      };
+    return true;
+  }
+
+  /** The meshes to draw this frame: visible, uploaded and in the frustum; opaque first, then transparent back to front. */
+  private visibleMeshes(viewProjection: Mat4): { opaque: Mesh[]; transparent: Mesh[]; culled: number } {
+    // (The lists and the transparent meshes' entries kept from frame to frame, G13.)
+    const planes = frustumPlanes(viewProjection), opaque = this.visOpaque, transparent = this.visEntries;
+    opaque.length = 0; let entries = 0;
+    let culled = 0;
+    const eye = this.camera.position, forward = this.camera.basis().forward;
+    for (const m of this.meshes) {
+      if (!m.visible || !this.upload(m.geometry) || !m.geometry.data.elementCount) continue;
+      const b = m.bounds;
+      if (b && !boxInFrustum(planes, b)) { culled++; continue; }
+      // (Lines over the scene after everything, transparent or not.)
+      let d = 0;
+      if (m.geometry.topology !== 'triangles' && m.material.lineOver) d = -1e300;
+      else if (m.transparent) d = b ? ((b.min[0] + b.max[0]) / 2 - eye[0]) * forward[0] + ((b.min[1] + b.max[1]) / 2 - eye[1]) * forward[1] + ((b.min[2] + b.max[2]) / 2 - eye[2]) * forward[2] : 0;
+      else { opaque.push(m); continue; }
+      const e = transparent[entries] ??= { m, d }; e.m = m; e.d = d; entries++;
+    }
+    transparent.length = entries;
+    // Opaque surfaces by pipeline (fewer state changes), then lines (they test depth but do not write
+    // it, so they come after the surfaces), then transparent far to near.
+    // (The keys in a map kept for the purpose, and comparators at module level: no closures a frame; PERF3 C17.)
+    // (Numbers, G13: an id a pipeline key, lines and points after the surfaces — no string a mesh a frame.)
+    sortKeys.clear(); for (const m of opaque) sortKeys.set(m, (m.geometry.topology !== 'triangles' ? 1e6 : 0) + pipelineOrder(this.pipelineKey(m, false)));
+    opaque.sort(byPipeline); sortKeys.clear();
+    transparent.sort(farFirst);
+    const list = this.visTransparent; list.length = entries;
+    for (let i = 0; i < entries; i++) list[i] = transparent[i].m;
+    return { opaque, transparent: list, culled };
+  }
+  private visOpaque: Mesh[] = [];
+  private visTransparent: Mesh[] = [];
+  private visEntries: { m: Mesh; d: number }[] = [];
+
+  private pipelineKey(m: Mesh, pick: boolean | 'mask'): PipelineKey {
+    const mat = m.material, two = mat.doubleSided ? '2' : '', t = m.transparent ? (this.oitDrawing ? 'O' : 'T') : '';
+    if (pick === 'mask') return (two ? 'mask2' : 'mask');
+    if (pick) return (two ? 'pick2' : 'pick');
+    if (m.geometry.topology === 'lines') return (m.geometry.data.contour ? 'contour' : 'line') + (mat.lineOver ? 'Over' : t ? 'T' : '');
+    if (m.geometry.topology === 'points') return mat.lineOver ? 'pointOver' : 'point';
+    if (m.geometry.topology === 'labels') return mat.lineOver ? 'labelOver' : 'label';
+    if (!mat.colorWrite) return two ? 'depthOnly2' : 'depthOnly';
+    if (mat.shadowOnly) return 'catcher';
+    if (m.mapped) return two ? 'litMap2' : 'litMap';
+    const variant = `${mat.unlit ? 'unlit' : 'lit'}${two}${t}${mat.decal ? 'D' : ''}`;
+    return mat.shader ? this.shaderPipeline(mat.shader, variant) : variant;
+  }
+
+  /** One directional light's orthographic view of all scene casters, including those outside the camera. */
+  private shadowFrame(light: ReturnType<typeof directionalLights>[number]): ShadowFrame | null {
+    const scene = this.sceneBounds();
+    if (!light || !scene) return null;
+    const r = Math.max(boxRadius(scene), 1e-6), c = boxCenter(scene), d = normalize(light.direction);
+    const up: Vec3 = Math.abs(d[2]) < 0.9 ? [0, 0, 1] : [0, 1, 0], eye = sub(c, scale(d, 2 * r));
+    if (!cross(up, d).some(x => x !== 0)) return null;
+    // (Its depth range holds the capped meshes' whole boxes too, as the camera's does — the caps' probe from the light
+    // reads their faces cut away, G19.4; its breadth is the scene's.)
+    let near = r * 0.9, far = r * 3.1;
+    const deep = this.clip ? this.depthBounds() : null;
+    if (deep) for (let i = 0; i < 8; i++) {
+      const t = ((i & 1 ? deep.max[0] : deep.min[0]) - eye[0]) * d[0] + ((i & 2 ? deep.max[1] : deep.min[1]) - eye[1]) * d[1] + ((i & 4 ? deep.max[2] : deep.min[2]) - eye[2]) * d[2];
+      if (t - r * 0.01 < near) near = Math.max(r * 1e-3, t - r * 0.01); if (t + r * 0.01 > far) far = t + r * 0.01;
+    }
+    const viewProjection = multiply(orthographic(r, r, near, far), lookAt(eye, c, up)), size = this.shadowMapSize;
+    // (G15b: a light of an angular size softens it — the penumbra's uv per unit of map depth: the depth's world range
+    // times the size's tangent, over the map's breadth, 2r.)
+    const soft = this.environment.softShadows ?? 0;
+    const softness = soft > 0 ? ((far - near) * Math.tan((Math.min(soft, 30) * Math.PI) / 180)) / (2 * r) : 0;
+    return { viewProjection, normalOffset: (2 * r / size) * 1.5, texel: 1 / size, bias: 0.0005, eye, direction: d, softness };
+  }
+
+  /** The grid this frame: a power-of-ten cell fitted to the view distance unless one is set. */
+  private gridFrame(): GridFrame | null {
+    const g = this.grid;
+    if (!g.visible) return null;
+    const d = Math.max(this.camera.distance, 1e-9), cell = g.cell ?? Math.pow(10, Math.floor(Math.log10(d / 8)));
+    return { cell, major: g.major ?? 10, fade: d * 6, height: g.height ?? 0, color: parseColor(g.color, [0.55, 0.56, 0.6]), opacity: g.opacity ?? 0.5 };
+  }
+
+  private writeUniforms(viewProjection: Mat4, shadows: readonly (ShadowFrame | null)[] = []): void {
+    // (Into the frame block kept for it, G13.)
+    const vpt = frameViewport; vpt[0] = this.canvas.width; vpt[1] = this.canvas.height; vpt[2] = this.pixelRatio; const sb = this.sceneBounds(); vpt[3] = sb ? boxRadius(sb) : 0.866;
+    const first = shadows.slice(0, MAX_DIRECTIONAL).find(frame => frame !== null) ?? null;
+    this.device.queue.writeBuffer(this.frameBuffer, 0, packFrame(viewProjection, this.camera, this.lights, this.environment, first, vpt, this.gridFrame(), this.clip, frameBlock, shadows));
+    for (let i = 0; i < shadows.length; i++) {
+      const shadow = shadows[i]; if (!shadow) continue;
+      const f = packFrame(shadow.viewProjection, this.camera, NO_LIGHTS, this.environment, null, SHADOW_VIEWPORT, null, this.clip, shadowFrameBlock);
+      // Every encoded light pass owns a distinct buffer: queue writes all precede command submission.
+      if (shadow.eye && shadow.direction) { f[16] = shadow.eye[0]; f[17] = shadow.eye[1]; f[18] = shadow.eye[2]; f[19] = shadow.perspective ? 1 : 0; f[20] = shadow.direction[0]; f[21] = shadow.direction[1]; f[22] = shadow.direction[2]; }
+      this.device.queue.writeBuffer(this.shadowFrameBuffers[i], 0, f);
+    }
+    // (Each run of dirty slots written on its own, G8: one write from the lowest dirty slot to the highest sent every block
+    // between them again — 70 KiB a frame while a section was dragged, two meshes far apart dirty.)
+    let n = 0;
+    for (const m of this.meshes) if (m.dirty) {
+      m.pack(this.objectData, m.slot * OBJECT_STRIDE, this.pixelRatio);
+      m.dirty = false;
+      if (n === this.dirtySlots.length) { const grown = new Int32Array(n * 2); grown.set(this.dirtySlots); this.dirtySlots = grown; }
+      this.dirtySlots[n++] = m.slot;
+    }
+    if (!n) return;
+    const slots = this.dirtySlots.subarray(0, n).sort();
+    let lo = slots[0], hi = lo;
+    for (let i = 1; i <= n; i++) {
+      const slot = i < n ? slots[i] : Infinity;
+      // (A gap of a few clean blocks sent with its run: cheaper than another write.)
+      if (slot - hi <= OBJECT_RUN_GAP) { hi = slot; continue; }
+      this.device.queue.writeBuffer(this.objectBuffer, lo * OBJECT_STRIDE, this.objectData, (lo * OBJECT_STRIDE) / 4, ((hi - lo) * OBJECT_STRIDE + OBJECT_BYTES) / 4);
+      lo = hi = slot;
+    }
+  }
+
+  /** A mesh's instance buffer (uploaded on first use and after a device loss), or the identity instance. */
+  private instanceBuffer(m: Mesh): Buffer {
+    const inst = m.instances;
+    if (!inst) return this.identityInstance;
+    if (!inst.buffer || inst.device !== this.device) {
+      inst.buffer = this.device.createBuffer({ size: inst.data.byteLength, usage: BufferUsage.VERTEX | BufferUsage.COPY_DST, label: 'viewer instances' });
+      this.device.queue.writeBuffer(inst.buffer, 0, new Uint8Array(inst.data));
+      inst.device = this.device;
+    }
+    return inst.buffer;
+  }
+
+  /** Draw a mesh's triangles: surfaces with every attribute, the other passes with positions and instances. */
+  private drawTriangles(pass: RenderPass, m: Mesh, full: boolean): void {
+    const g = m.geometry.gpu!, data = m.geometry.data, n = m.instanceCount;
+    pass.setVertexBuffer(0, g.positions);
+    if (full) {
+      pass.setVertexBuffer(1, g.normals!); pass.setVertexBuffer(2, g.colors!); pass.setVertexBuffer(3, this.instanceBuffer(m)); pass.setVertexBuffer(4, g.uvs!);
+      pass.setBindGroup(2, this.materialGroup(m));
+    }
+    else pass.setVertexBuffer(1, this.instanceBuffer(m));
+    if (g.indices) { pass.setIndexBuffer(g.indices, data.indices instanceof Uint16Array ? 'uint16' : 'uint32'); pass.drawIndexed(data.elementCount, n); }
+    else pass.draw(data.elementCount, n);
+    if (this.counting) this.tally(m, this.costPass, (data.elementCount / 3) * n, 0, 0);
+  }
+
+  private drawMesh(pass: RenderPass, m: Mesh, current: { pipeline?: Pipeline }, pick: boolean | 'mask'): void {
+    const p = this.pipelines.get(this.pipelineKey(m, pick))!, g = m.geometry.gpu!, data = m.geometry.data;
+    if (current.pipeline !== p) { pass.setPipeline(p); current.pipeline = p; }
+    { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
+    if (data.topology === 'lines') { pass.setVertexBuffer(0, g.positions); pass.draw(6, lineCount(data)); if (this.counting) this.tally(m, this.costPass, 0, lineCount(data), 0); return; }
+    if (data.topology === 'points') { pass.setVertexBuffer(0, g.positions); pass.draw(6, data.elementCount); if (this.counting) this.tally(m, this.costPass, 0, 0, data.elementCount); return; }
+    if (data.topology === 'labels') { pass.setBindGroup(2, this.atlasGroup()); pass.setVertexBuffer(0, g.positions); pass.draw(6, g.labels!.count); if (this.counting) this.tally(m, this.costPass, 0, 0, 0); return; }
+    if (!pick && m.mapped && m.material.colorWrite) { this.drawMapped(pass, m); return; }
+    this.drawTriangles(pass, m, !pick);
+  }
+
+  /** A line or point mesh's parts behind the surfaces, faint (Material.lineHidden; G7, G8). */
+  private drawHiddenLines(pass: RenderPass, m: Mesh, current: { pipeline?: Pipeline }): void {
+    const t = m.geometry.topology, points = t === 'points', p = this.pipelines.get(t === 'labels' ? 'labelHidden' : points ? 'pointHidden' : m.geometry.data.contour ? 'contourHidden' : 'lineHidden')!;
+    if (current.pipeline !== p) { pass.setPipeline(p); current.pipeline = p; }
+    if (t === 'labels') { { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); } pass.setBindGroup(2, this.atlasGroup()); pass.setVertexBuffer(0, m.geometry.gpu!.positions); pass.draw(6, m.geometry.gpu!.labels!.count); if (this.counting) this.tally(m, 'hiddenLines', 0, 0, 0); return; }
+    { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
+    const n = points ? m.geometry.data.elementCount : lineCount(m.geometry.data);
+    pass.setVertexBuffer(0, m.geometry.gpu!.positions); pass.draw(6, n);
+    if (this.counting) this.tally(m, 'hiddenLines', 0, points ? 0 : n, points ? n : 0);
+  }
+
+  /** A colour-mapped mesh (G6): its field's buffers (a per-triangle field's own positions and normals, drawn unindexed) and its map's bind group. */
+  private drawMapped(pass: RenderPass, m: Mesh): void {
+    const g = m.geometry, data = g.data, f = data.scalars!, base = g.gpu!, n = m.instanceCount;
+    let s = g.scalarGpu;
+    if (!s || s.device !== this.device) {
+      const buf = (src: Float32Array, label: string) => { const b = this.device.createBuffer({ size: Math.max(4, src.byteLength), usage: BufferUsage.VERTEX | BufferUsage.COPY_DST, label }); this.device.queue.writeBuffer(b, 0, src); return b; };
+      s = g.scalarGpu = { device: this.device, values: buf(f.draw.values, 'scalars'), positions: f.draw.positions ? buf(f.draw.positions, 'scalar positions') : null, normals: f.draw.normals ? buf(f.draw.normals, 'scalar normals') : null };
+    }
+    pass.setVertexBuffer(0, s.positions ?? base.positions); pass.setVertexBuffer(1, s.normals ?? base.normals!); pass.setVertexBuffer(2, this.instanceBuffer(m)); pass.setVertexBuffer(3, s.values);
+    pass.setBindGroup(2, this.mapGroup2(m));
+    if (f.per === 'triangle') pass.draw(data.elementCount, n);
+    else if (base.indices) { pass.setIndexBuffer(base.indices, data.indices instanceof Uint16Array ? 'uint16' : 'uint32'); pass.drawIndexed(data.elementCount, n); }
+    else pass.draw(data.elementCount, n);
+    if (this.counting) this.tally(m, this.costPass, (data.elementCount / 3) * n, 0, 0);
+  }
+  /** A mesh's colour-map bind group: its ramp (sRGB texels, filtered) and its parameters, made when the map or device changes. */
+  private mapGroup2(m: Mesh): BindGroup {
+    const packed = m.packedMap!, st = m.mapState;
+    if (st && st.device === this.device && st.map === packed) return st.group;
+    st?.texture.destroy(); st?.params.destroy();
+    const texture = this.device.createTexture({ size: [256, 1], format: 'rgba8unorm-srgb', usage: TextureUsage.TEXTURE_BINDING | TextureUsage.COPY_DST, label: 'viewer colour map' });
+    this.device.queue.writeTexture({ texture }, packed.ramp, { bytesPerRow: 1024 }, [256, 1]);
+    const params = this.device.createBuffer({ size: 64, usage: BufferUsage.UNIFORM | BufferUsage.COPY_DST, label: 'viewer colour map params' });
+    this.device.queue.writeBuffer(params, 0, packed.params);
+    const group = this.device.createBindGroup({ layout: this.materialLayout, entries: this.materialEntries(texture, this.rampSampler, params) });
+    m.mapState = { device: this.device, map: packed, texture, params, group };
+    return group;
+  }
+
+  /** Whether a mesh's cut is capped this frame: a clip plane, an opaque closed triangle mesh it clips. */
+  private capped(m: Mesh): boolean { return !!this.clip && m.cap && m.clipped && m.geometry.topology === 'triangles' && !m.transparent; }
+  /** Whether any of a list is capped this frame (R2: a loop, not a closure a frame). */
+  private anyCapped(list: readonly Mesh[]): boolean { for (const m of list) if (this.capped(m)) return true; return false; }
+  private anyGhostCapped(list: readonly Mesh[]): boolean { for (const m of list) if (this.ghostCapped(m)) return true; return false; }
+  /** A see-through mesh capped (G19.4, a ghost): its caps in the order-independent pass (none in the sorted one). */
+  private ghostCapped(m: Mesh): boolean { return !!this.clip && this.orderIndependent && m.cap && m.clipped && oitSurface(m); }
+  /** In the caps' probe: the opaque capped meshes and the see-through ones (whose entry it is inside decides either's cap). */
+  private probed(m: Mesh): boolean { return this.capped(m) || this.ghostCapped(m); }
+  /**
+   * The caps' probe (G19, in place of G2's front-depth prepass): the capped meshes' faces, unclipped, the nearest beyond
+   * each pixel's entry into the kept region — its depth and whether a back face, read by the caps: the entry is inside a
+   * solid where that first surface after it is the solid's back face. Only while the planes cap one; `scissor`: the
+   * pick's pixel.
+   */
+  private drawCapFront(enc: ReturnType<Device['createCommandEncoder']>, opaque: readonly Mesh[], transparent: readonly Mesh[], scissor: [number, number] | null): void {
+    if (!this.clip || (!this.anyCapped(opaque) && !this.anyGhostCapped(transparent))) return;
+    this.costPass = 'caps';
+    const t = this.ensureTargets();
+    if (!scissor) this.ensureCapSamples(t);
+    // Keep the single-sample probe for picks and outline masks. Scene caps additionally read their
+    // own sample's probe: a pixel-centre winner cannot describe both sides of a covered back-face edge.
+    for (const samples of [false, true]) {
+      if (samples && (scissor || !t.views.capFrontSamples)) continue;
+      const pass = enc.beginRenderPass({ label: samples ? 'viewer cap front samples' : 'viewer cap front',
+        colorAttachments: [{ view: samples ? t.views.capFrontSamples! : t.views.capFront, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }],
+        depthStencilAttachment: { view: samples ? t.views.depth : t.views.maskDepth, depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'discard' },
+      });
+      if (scissor) pass.setScissorRect(scissor[0], scissor[1], 1, 1);
+      pass.setBindGroup(0, this.frameGroupBare);
+      pass.setPipeline(this.pipelines.get(samples ? 'capFrontSamples' : 'capFront')!);
+      for (let l = 0; l < 2; l++) for (const m of l ? transparent : opaque) {
+        if (!this.probed(m) || !this.upload(m.geometry)) continue;
+        { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
+        this.drawTriangles(pass, m, false);
+      }
+      pass.end();
+    }
+  }
+  /**
+   * The caps' probe from the shadow-casting light (G19.4): as drawCapFront, the capped casters' faces unclipped, the
+   * nearest beyond each texel's entry into the kept region along the light — in the shadow map's depth (cleared and drawn
+   * again by the shadow pass after it), read by the caps drawn into the shadow map.
+   */
+  private drawLightProbe(enc: ReturnType<Device['createCommandEncoder']>, casters: readonly Mesh[], slot: number, layer: number): void {
+    const size = this.shadowMapSize;
+    if (!this.lightProbe || this.lightProbe.width !== size) {
+      this.lightProbe?.destroy();
+      this.lightProbe = this.device.createTexture({ size: [size, size], format: 'rg32float', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer caps probe from the light' });
+      this.bindFrames();
+    }
+    const pass = enc.beginRenderPass({ label: 'viewer light probe',
+      colorAttachments: [{ view: this.lightProbe.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }],
+      depthStencilAttachment: { view: this.shadowLayer(layer), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'discard' },
+    });
+    pass.setBindGroup(0, this.shadowFrameGroups[slot]);
+    pass.setPipeline(this.pipelines.get('shadowProbe')!);
+    for (const m of casters) {
+      if (!this.capped(m) || !this.upload(m.geometry)) continue;
+      { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
+      this.drawTriangles(pass, m, false);
+    }
+    pass.end();
+  }
+  /** The caps of the opaque meshes in a pass ('litCap' in the scene, 'capMask', 'capPick'): their count. */
+  private drawCaps(pass: RenderPass, list: readonly Mesh[], current: { pipeline?: Pipeline }, key: 'litCap' | 'capMask' | 'capPick'): number {
+    if (!this.clip) return 0;
+    let n = 0;
+    const was = this.costPass; this.costPass = key === 'capMask' ? 'outlineMask' : 'caps';
+    for (const m of list) {
+      if (key === 'capPick' ? (!this.probed(m) || (m.pickTransparent ?? m.transparent) || !m.pickable) : !this.capped(m)) continue;
+      const p = this.pipelines.get(key === 'litCap' && !m.material.colorWrite ? 'depthCap' : key)!;
+      if (current.pipeline !== p) { pass.setPipeline(p); current.pipeline = p; }
+      { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
+      this.drawTriangles(pass, m, key === 'litCap');
+      n++;
+    }
+    this.costPass = was;
+    return n;
+  }
+
+  /** The grid, drawn in the main pass after the opaque surfaces. */
+  private drawGrid(pass: RenderPass, current: { pipeline?: Pipeline }): void {
+    pass.setPipeline(this.pipelines.get('grid')!); { dynamicOffset[0] = 0; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); } current.pipeline = undefined; pass.draw(3);
+  }
+  private shadowLayer(layer: number): View {
+    return this.shadowMap!.createView({ dimension: '2d', baseArrayLayer: layer, arrayLayerCount: 1 });
+  }
+  /** Whether the shadow map must be drawn again: the light's view or a caster changed since it was (recorded when so). */
+  private shadowChanged(layer: number, viewProjection: ArrayLike<number>, casters: readonly Mesh[]): boolean {
+    const cache = this.shadowCache[layer];
+    // (The key in a typed array kept from frame to frame, grown when needed — G13: an array of numbers emptied and
+    // filled again each frame was its own new store, 70 KiB a frame for 240 casters.)
+    const need = 3 + 4 + viewProjection.length + casters.length * 20;
+    if (cache.next.length < need) cache.next = new Float64Array(need * 2);
+    const k = cache.next;
+    let n = 0;
+    k[n++] = this.idOf(this.device); k[n++] = this.shadowMapSize;
+    // (The clip plane changes what casts.)
+    if (this.clip) { k[n++] = this.clip.planes.length * (this.clip.cutout ? -1 : 1); for (const p of this.clip.planes) { k[n++] = p.normal[0]; k[n++] = p.normal[1]; k[n++] = p.normal[2]; k[n++] = p.offset; } } else k[n++] = 0;
+    for (let i = 0; i < viewProjection.length; i++) k[n++] = viewProjection[i];
+    for (const m of casters) { k[n++] = m.slot * 2 + (this.capped(m) ? 1 : 0); k[n++] = this.idOf(m.geometry); k[n++] = m.geometry.gpu ? 1 : 0; k[n++] = m.instances ? this.idOf(m.instances) : 0; const t = m.transform; for (let i = 0; i < t.length; i++) k[n++] = t[i]; }
+    const was = cache.drawn;
+    let same = cache.length === n;
+    for (let i = 0; same && i < n; i++) same = was[i] === k[i];
+    if (same) return false;
+    cache.drawn = k; cache.next = was; cache.length = n;
+    return true;
+  }
+  /** Number each distinct outline colour of the frame (up to MAX_OUTLINES; later ones share the last). */
+  private outlineColors(): Vec3[] {
+    const colors: Vec3[] = [];
+    for (const m of this.meshes) {
+      let slot = 0;
+      if (m.outline && m.visible) {
+        const o = m.outline; let i = -1;
+        for (let k = 0; k < colors.length && i < 0; k++) if (colors[k][0] === o[0] && colors[k][1] === o[1] && colors[k][2] === o[2]) i = k;
+        if (i < 0 && colors.length < MAX_OUTLINES) { colors.push(m.outline); i = colors.length - 1; }
+        slot = (i < 0 ? colors.length - 1 : i) + 1;
+      }
+      if (slot !== m.outlineSlot) { m.outlineSlot = slot; m.dirty = true; }
+    }
+    return colors;
+  }
+
+  /**
+   * Where the outlines can be this frame (device pixels): the outlined meshes' screen box, widened by the outline's
+   * reach and a pixel, or null (anywhere) when one reaches behind the eye. The output pass searches the mask only there.
+   */
+  private outlineRect(vp: Mat4): number[] | null {
+    const boxes: Box3[] = [];
+    for (const m of this.meshes) if (m.outlineSlot && m.visible && m.geometry.topology === 'triangles') { const b = m.bounds; if (!b) return null; boxes.push(b); }
+    const r = boxes.length ? screenRect(vp, boxes, this.canvas.width, this.canvas.height) : null;
+    if (!r) return null;
+    const reach = Math.ceil(this.outlineWidth * this.pixelRatio + 0.5) + 2;
+    return [r[0] - reach, r[1] - reach, r[2] + reach, r[3] + reach];
+  }
+  private draw(capture: Buffer | null): void {
+    this.frameBox = null; this.frameBox = { box: this.sceneBounds() };
+    // (O10: the records kept, zeroed as a counted frame begins.)
+    this.counting = this.costs;
+    if (this.counting) for (const c of this.costRecords.values()) zeroCost(c);
+    try { this.drawFrame(capture); } finally { this.frameBox = null; this.counting = false; }
+  }
+  private drawFrame(capture: Buffer | null): void {
+    validateSpotShadowLights(this.lights);
+    validatePointShadowLights(this.lights);
+    const vp = this.prepareCamera();
+    const { opaque, transparent, culled } = this.visibleMeshes(vp);
+    const outlines = this.outlineColors();
+    const outlineArea = outlines.length ? this.outlineRect(vp) : null;
+    const shadows: (ShadowFrame | null)[] = Array(MAX_SHADOWS).fill(null);
+    directionalLights(this.lights).forEach((light, i) => { if (light.castShadow) shadows[i] = this.shadowFrame(light); });
+    const scene = this.sceneBounds(), depth = this.clip ? this.depthBounds() : null;
+    spotLights(this.lights).forEach((light, i) => { if (light.castShadow) shadows[MAX_DIRECTIONAL + i] = spotShadowFrame(light, scene, depth, this.shadowMapSize); });
+    const point = pointLights(this.lights).find(light => light.castShadow);
+    const faces = point ? pointShadowFrames(point, scene, depth, this.shadowMapSize) : null;
+    if (faces) for (let i = 0; i < faces.length; i++) shadows[POINT_SHADOW_START + i] = faces[i];
+    let layers = 0, mask = 0;
+    for (let i = 0; i < shadows.length; i++) if (shadows[i]) { layers++; mask |= 1 << i; }
+    // Metadata slots are stable; the texture layers contain only active lights in slot order.
+    // Changing that order can reuse a layer formerly drawn by another light, so invalidate all slots.
+    if (mask !== this.shadowMask) { for (const cache of this.shadowCache) cache.length = -1; this.shadowMask = mask; }
+    if (layers && (!this.shadowMap || this.shadowMap.width !== this.shadowMapSize || this.shadowLayers < layers)) {
+      this.shadowMap?.destroy();
+      this.shadowLayers = Math.max(layers, this.shadowLayers);
+      this.shadowMap = this.device.createTexture({ size: [this.shadowMapSize, this.shadowMapSize, this.shadowLayers], format: 'depth32float', usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.TEXTURE_BINDING, label: 'viewer shadow maps' });
+      this.bindFrames();
+      for (const cache of this.shadowCache) cache.length = -1;
+    }
+    const env = this.environment.map instanceof ImageTexture && !this.environment.map.disposed ? this.environment.map : null;
+    if (env !== this.boundEnv || (env && !env.gpu)) this.bindFrames();
+    this.writeUniforms(vp, shadows);
+    packOutput(this.environment, outlines, this.outlineWidth * this.pixelRatio, this.background, this.occlusionFrame(), outlineArea, outputBlock, this.contactFrame(), this.focusEnabled() ? { inverseProjection: invert(this.camera.projectionMatrix(this.aspect)), pixelRatio: this.pixelRatio } : null);
+    this.device.queue.writeBuffer(this.outputBuffer, 0, outputBytes);
+    const targets = this.ensureTargets(), out = this.context.getCurrentTexture(), sceneView = targets.views.scene;
+    const enc = this.device.createCommandEncoder();
+    // (The shadow map is drawn again only when the light's view or a caster changed.)
+    const casters = this.casterList; casters.length = 0;
+    if (layers) for (const m of this.meshes) if (m.visible && m.castShadow && !m.transparent && m.geometry.topology === 'triangles') casters.push(m);
+    let layer = 0;
+    for (let i = 0; i < shadows.length; i++) {
+      const shadow = shadows[i];
+      if (!shadow) continue;
+      const physicalLayer = layer++;
+      if (!this.shadowMap || !this.shadowChanged(i, shadow.viewProjection, casters)) continue;
+      // (G19.4: the capped casters' caps too — first the probe from the light, into the shadow map's own depth.)
+      const capping = this.clip ? this.anyCapped(casters) : false;
+      this.costPass = 'shadow';
+      if (capping) this.drawLightProbe(enc, casters, i, physicalLayer);
+      // Every shadow caster, in view or not.
+      const sp = enc.beginRenderPass({ label: `viewer shadow ${i}`, colorAttachments: [], depthStencilAttachment: { view: this.shadowLayer(physicalLayer), depthClearValue: 1, depthLoadOp: 'clear', depthStoreOp: 'store' } });
+      const capGroup = this.shadowCapGroups[i];
+      sp.setBindGroup(0, capping && capGroup ? capGroup : this.shadowFrameGroups[i]);
+      sp.setPipeline(this.pipelines.get('shadow')!);
+      for (const m of casters) {
+        if (!this.upload(m.geometry)) continue;
+        { dynamicOffset[0] = m.slot * OBJECT_STRIDE; sp.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
+        this.drawTriangles(sp, m, false);
+      }
+      if (capping && capGroup) {
+        sp.setPipeline(this.pipelines.get('shadowCap')!);
+        for (const m of casters) {
+          if (!this.capped(m) || !m.geometry.gpu) continue;
+          { dynamicOffset[0] = m.slot * OBJECT_STRIDE; sp.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
+          this.drawTriangles(sp, m, false);
+        }
+      }
+      sp.end();
+    }
+    this.drawCapFront(enc, opaque, transparent, null);
+    // (G11: with a see-through surface in view, three passes — the opaque scene kept multisampled; the see-through
+    // surfaces into the accumulation and revealage, in any order; their composite, then the see-through lines and points
+    // over it. Without one, one pass as before.)
+    let oit = false;
+    if (this.orderIndependent) for (const m of transparent) if (oitSurface(m)) { oit = true; break; }
+    const pass = enc.beginRenderPass({ label: 'viewer surface',
+      colorAttachments: [{ view: targets.views.msaa ?? sceneView, resolveTarget: targets.msaa && !oit ? sceneView : undefined, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: targets.msaa && !oit ? 'discard' : 'store' }],
+      // (The depth is kept for ambient occlusion in the output pass; the background is put in there too.)
+      depthStencilAttachment: { view: targets.views.depth, depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'store' },
+    });
+    pass.setBindGroup(0, this.frameGroup);
+    const current: { pipeline?: Pipeline } = {};
+    let tris = 0, lines = 0, points = 0;
+    // Opaque surfaces and their caps, the grid (tested against them), then lines and transparent meshes over it.
+    let opaqueDone = false, caps = 0;
+    for (let l = 0; l < 2; l++) for (const m of l ? transparent : opaque) {
+      // (In the order-independent frame the transparent list waits for its passes, but for shadow catchers: they darken the ground.)
+      if (oit && l === 1 && !m.material.shadowOnly) continue;
+      if (!opaqueDone && (m.geometry.topology !== 'triangles' || m.transparent)) { caps = this.drawCaps(pass, opaque, current, 'litCap'); if (this.grid.visible) this.drawGrid(pass, current); opaqueDone = true; }
+      this.costPass = l ? 'transparent' : 'surface';
+      this.drawMesh(pass, m, current, false);
+      if (m.geometry.topology !== 'triangles' && (m.material.lineHidden ?? 0) > 0 && !m.material.lineOver) this.drawHiddenLines(pass, m, current);
+      if (m.geometry.topology === 'lines') lines += lineCount(m.geometry.data); else if (m.geometry.topology === 'points') points += m.geometry.data.elementCount; else if (m.geometry.topology === 'triangles') tris += (m.geometry.data.elementCount / 3) * m.instanceCount;
+    }
+    if (!opaqueDone) { caps = this.drawCaps(pass, opaque, current, 'litCap'); if (this.grid.visible) this.drawGrid(pass, current); }
+    pass.end();
+    if (oit) {
+      const o = this.ensureOit();
+      const op = enc.beginRenderPass({ label: 'viewer oit',
+        colorAttachments: [
+          { view: o.views.accumMs ?? o.views.accum, resolveTarget: o.accumMs ? o.views.accum : undefined, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: o.accumMs ? 'discard' : 'store' },
+          { view: o.views.revealMs ?? o.views.reveal, resolveTarget: o.revealMs ? o.views.reveal : undefined, clearValue: { r: 1, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: o.revealMs ? 'discard' : 'store' },
+        ],
+        depthStencilAttachment: { view: targets.views.depth, depthLoadOp: 'load', depthStoreOp: 'store' },
+      });
+      op.setBindGroup(0, this.frameGroup);
+      const cur: { pipeline?: Pipeline } = {};
+      this.oitDrawing = true; this.costPass = 'oit';
+      try { for (const m of transparent) if (oitSurface(m)) { this.drawMesh(op, m, cur, false); tris += (m.geometry.data.elementCount / 3) * m.instanceCount; } } finally { this.oitDrawing = false; }
+      // (G19.4: the see-through meshes' caps, weighted in with their surfaces.)
+      if (this.clip) for (const m of transparent) {
+        if (!this.ghostCapped(m) || !m.geometry.gpu) continue;
+        const p = this.pipelines.get('oitCap')!;
+        if (cur.pipeline !== p) { op.setPipeline(p); cur.pipeline = p; }
+        { dynamicOffset[0] = m.slot * OBJECT_STRIDE; op.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
+        this.drawTriangles(op, m, true);
+        caps++;
+      }
+      op.end();
+      const cp = enc.beginRenderPass({ label: 'viewer oit composite',
+        colorAttachments: [{ view: targets.views.msaa ?? sceneView, resolveTarget: targets.msaa ? sceneView : undefined, loadOp: 'load', storeOp: targets.msaa ? 'discard' : 'store' }],
+        depthStencilAttachment: { view: targets.views.depth, depthLoadOp: 'load', depthStoreOp: 'store' },
+      });
+      cp.setPipeline(this.pipelines.get('oitComposite')!); cp.setBindGroup(0, o.group); cp.draw(3);
+      cp.setBindGroup(0, this.frameGroup);
+      const cc: { pipeline?: Pipeline } = {};
+      this.costPass = 'transparent';
+      for (const m of transparent) {
+        if (m.geometry.topology === 'triangles') continue;
+        this.drawMesh(cp, m, cc, false);
+        if ((m.material.lineHidden ?? 0) > 0 && !m.material.lineOver) this.drawHiddenLines(cp, m, cc);
+        if (m.geometry.topology === 'lines') lines += lineCount(m.geometry.data); else if (m.geometry.topology === 'points') points += m.geometry.data.elementCount;
+      }
+      cp.end();
+    }
+    if (outlines.length) {
+      // The outline mask: every opaque surface hides what is behind it; outlined meshes write their number.
+      const mask = enc.beginRenderPass({ label: 'viewer outline mask',
+        colorAttachments: [{ view: targets.views.mask, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }],
+        depthStencilAttachment: { view: targets.views.maskDepth, depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'discard' },
+      });
+      mask.setBindGroup(0, this.frameGroup);
+      // (G13: only where the outline can be — the output reads the mask within that rectangle alone — so only the
+      // meshes whose screen box meets it, scissored to it.)
+      const W = this.canvas.width, H = this.canvas.height, a = outlineArea;
+      if (a) {
+        const x0 = Math.max(0, Math.floor(a[0])), y0 = Math.max(0, Math.floor(a[1])), x1 = Math.min(W, Math.ceil(a[2]) + 1), y1 = Math.min(H, Math.ceil(a[3]) + 1);
+        if (x1 > x0 && y1 > y0) mask.setScissorRect(x0, y0, x1 - x0, y1 - y0);
+      }
+      const cur: { pipeline?: Pipeline } = {};
+      this.costPass = 'outlineMask';
+      for (let l = 0; l < 2; l++) for (const m of l ? transparent : opaque) {
+        if (m.geometry.topology !== 'triangles' || (m.transparent && !m.outlineSlot)) continue;
+        if (a && !m.outlineSlot && m.bounds && boxMissesRect(vp, m.bounds, a, W, H)) continue;
+        this.drawMesh(mask, m, cur, 'mask');
+      }
+      // (Caps hide what is behind them, and carry their mesh's outline.)
+      this.drawCaps(mask, opaque, cur, 'capMask');
+      mask.end();
+    }
+    // (G15d.2: the bloom from the resolved scene, read by the output pass.)
+    const bloom = this.environment.bloom && (this.environment.bloom.strength ?? 0.05) > 0;
+    let outputGroup = bloom ? this.drawBloom(enc, targets) : targets.output;
+    if (this.focusEnabled()) outputGroup = this.drawFocus(enc, targets, bloom ? this.bloomChain!.levels[0] : this.black);
+    else if (this.focusPass) this.releaseFocus();
+    const show = enc.beginRenderPass({ label: 'viewer output', colorAttachments: [{ view: out.createView(), clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' }] });
+    show.setPipeline(this.pipelines.get('output')!);
+    show.setBindGroup(0, outputGroup);
+    show.draw(3);
+    show.end();
+    if (capture) enc.copyTextureToBuffer({ texture: out }, { buffer: capture, bytesPerRow: Math.ceil((out.width * 4) / 256) * 256 }, [out.width, out.height]);
+    this.device.queue.submit([enc.finish()]);
+    Object.assign(this.stats, { frames: this.stats.frames + 1, drawCalls: opaque.length + transparent.length + caps, culled, triangles: tris, lines, points });
+  }
+
+  /** G15b: the contact shadows' ray toward the shadow-casting light, in view space (none without one or when off). */
+  private contactFrame(): ContactFrame | null {
+    const c = this.environment.contactShadows, scene = this.sceneBounds(), light = c ? directionalLights(this.lights).find(l => l.castShadow) : undefined;
+    if (!c || !scene || !light) return null;
+    const v = this.camera.view(), l = normalize(light.direction), to: Vec3 = [-l[0], -l[1], -l[2]];
+    const dir = normalize([v[0] * to[0] + v[4] * to[1] + v[8] * to[2], v[1] * to[0] + v[5] * to[1] + v[9] * to[2], v[2] * to[0] + v[6] * to[1] + v[10] * to[2]]);
+    // (A blocker is taken to be twice the ray's length thick: a solid seen from above shows only its top in the depth
+    // buffer, so a point beside its wall finds that top well above the ray.)
+    const length = c.length ?? boxRadius(scene) / 40;
+    const projection = this.camera.projectionMatrix(this.aspect);
+    return { projection, inverseProjection: invert(projection), direction: dir, length, strength: c.strength ?? 0.6, thickness: length * 2 };
+  }
+
+  private occlusionFrame() {
+    const ao = this.environment.ambientOcclusion, scene = this.sceneBounds();
+    if (!ao || !scene) return null;
+    const proj = this.camera.projectionMatrix(this.aspect);
+    return { inverseProjection: invert(proj), radius: ao.radius ?? boxRadius(scene) / 12, pixelsPerUnit: proj[5] * this.canvas.height / 2, perspective: this.camera.projection === 'perspective' };
+  }
+
+  private prepareCamera(): Mat4 {
+    this.clipCamera();
+    return this.camera.viewProjection(this.aspect);
+  }
+
+  /** Clip planes around the scene, and out to the grid's fade distance when the grid shows. */
+  private clipCamera(): void {
+    const c = this.camera;
+    c.clip(this.depthBounds());
+    const g = this.gridFrame();
+    if (!g) return;
+    if (c.projection === 'perspective') c.near = Math.min(c.near, Math.max(c.distance * 1e-3, 1e-6));
+    else { c.near = Math.min(c.near, -g.fade); c.far = Math.max(c.far, g.fade); }
+  }
+
+  // ---- Reading back ------------------------------------------------------------------------------
+
+  private readonly pathTraces = new Set<PathTraceSession>();
+  /** Create an offscreen still. After its lazy module loads, scene/camera inputs are frozen before GPU preparation.
+   * Raster controls and rendering remain independent.
+   * Visible bounded triangle surfaces and G15a materials are included. Lines, labels, overlays, raster shadow catchers and raster post effects
+   * (bloom, DOF, SSAO, contact shadows, outlines) are excluded. Section caps and custom shaders are explicitly refused.
+   */
+  async createPathTrace(options: PathTraceOptions = {}): Promise<PathTraceSession> {
+    this.requireDevice(); this.prepareCamera();
+    const device = this.device;
+    const { PathTraceSession: Session } = await import('./path-trace.js');
+    this.alive();
+    if (device !== this.device || this.recovering) throw new ViewerError('DEVICE_LOST', 'Viewer changed device before creating a still');
+    this.prepareCamera();
+    const session = await Session.create(device, { meshes: this.meshes, camera: this.camera, environment: this.environment, lights: this.lights, background: this.background, width: this.canvas.width, height: this.canvas.height, clipped: !!this.clip }, options, disposed => { this.pathTraces.delete(disposed); });
+    if (this.disposed || this.device !== device || this.recovering) { session.dispose(); throw new ViewerError('DEVICE_LOST', 'Viewer changed device while creating a still'); }
+    this.pathTraces.add(session); return session;
+  }
+
+  /** Draw a frame and read it back: RGBA bytes, rows top to bottom. */
+  async capture(): Promise<{ width: number; height: number; data: Uint8Array }> {
+    this.requireDevice();
+    const w = this.canvas.width, h = this.canvas.height, row = Math.ceil((w * 4) / 256) * 256;
+    const buf = this.device.createBuffer({ size: row * h, usage: BufferUsage.MAP_READ | BufferUsage.COPY_DST, label: 'viewer capture' });
+    try {
+      this.draw(buf);
+      await buf.mapAsync(MapMode.READ);
+      const src = new Uint8Array(buf.getMappedRange()), data = new Uint8Array(w * h * 4), bgra = this.format.startsWith('bgra');
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const s = y * row + x * 4, d = (y * w + x) * 4;
+        data[d] = src[s + (bgra ? 2 : 0)]; data[d + 1] = src[s + 1]; data[d + 2] = src[s + (bgra ? 0 : 2)]; data[d + 3] = src[s + 3];
+      }
+      buf.unmap();
+      return { width: w, height: h, data };
+    } finally { buf.destroy(); }
+  }
+
+  /**
+   * What is under a point of the canvas (CSS pixels from its top-left): the mesh, the world point and
+   * the triangle. Draws only that pixel of an id and depth target and reads it back.
+   */
+  pick(x: number, y: number): Promise<PickHit | null> {
+    // One read buffer: picks run one after another.
+    const run = this.picking.then(() => this.pickNow(x, y));
+    this.picking = run.catch(() => undefined);
+    return run;
+  }
+  private picking: Promise<unknown> = Promise.resolve();
+
+  private async pickNow(x: number, y: number): Promise<PickHit | null> {
+    this.requireDevice();
+    const px = Math.floor((x / Math.max(1, this.canvas.clientWidth || this.canvas.width)) * this.canvas.width);
+    const py = Math.floor((y / Math.max(1, this.canvas.clientHeight || this.canvas.height)) * this.canvas.height);
+    if (px < 0 || py < 0 || px >= this.canvas.width || py >= this.canvas.height) return null;
+    const vp = this.prepareCamera();
+    // The GPU depth belongs to this camera and pixel mapping, even while its readback waits.
+    const camera = this.camera, clip = this.clip;
+    const cameraValues = [...camera.position, ...camera.target, ...camera.up,
+      camera.projection, camera.fovY, camera.near, camera.far];
+    const width = this.canvas.width, height = this.canvas.height;
+    const clientWidth = this.canvas.clientWidth, clientHeight = this.canvas.clientHeight, aspect = this.aspect;
+    const { opaque, transparent } = this.visibleMeshes(vp);
+    this.writeUniforms(vp);
+    const t = this.ensurePickTargets(), enc = this.device.createCommandEncoder();
+    this.drawCapFront(enc, opaque, transparent, [px, py]);
+    const pass = enc.beginRenderPass({ label: 'viewer pick',
+      colorAttachments: [
+        { view: t.views.id, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' },
+        { view: t.views.z, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' },
+        { view: t.views.instance, clearValue: { r: 0, g: 0, b: 0, a: 0 }, loadOp: 'clear', storeOp: 'store' },
+      ],
+      depthStencilAttachment: { view: t.views.depth, depthClearValue: 0, depthLoadOp: 'clear', depthStoreOp: 'discard' },
+    });
+    pass.setScissorRect(px, py, 1, 1);
+    pass.setBindGroup(0, this.frameGroup);
+    const current: { pipeline?: Pipeline } = {};
+    const transforms = new Map<Mesh, Mat4>();
+    for (let l = 0; l < 2; l++) for (const m of l ? transparent : opaque) if (m.pickable && m.geometry.topology === 'triangles') {
+      transforms.set(m, m.transform.slice()); this.drawMesh(pass, m, current, true);
+    }
+    this.drawCaps(pass, opaque, current, 'capPick');
+    this.drawCaps(pass, transparent, current, 'capPick');
+    pass.end();
+    enc.copyTextureToBuffer({ texture: t.id, origin: [px, py] }, { buffer: t.read, bytesPerRow: 256 }, [1, 1]);
+    enc.copyTextureToBuffer({ texture: t.z, origin: [px, py] }, { buffer: t.read, offset: 256, bytesPerRow: 256 }, [1, 1]);
+    enc.copyTextureToBuffer({ texture: t.instance, origin: [px, py] }, { buffer: t.read, offset: 512, bytesPerRow: 256 }, [1, 1]);
+    this.device.queue.submit([enc.finish()]);
+    const read = t.read;
+    await read.mapAsync(MapMode.READ);
+    const id = new Uint32Array(read.getMappedRange(0, 4))[0], depth = new Float32Array(read.getMappedRange(256, 4))[0], instance = new Uint32Array(read.getMappedRange(512, 4))[0];
+    read.unmap();
+    // Unmap first, including stale results, so the next queued pick can use the buffer.
+    const currentCameraValues = [...this.camera.position, ...this.camera.target, ...this.camera.up,
+      this.camera.projection, this.camera.fovY, this.camera.near, this.camera.far];
+    if (this.clip !== clip || this.camera !== camera || this.canvas.width !== width || this.canvas.height !== height
+      || this.canvas.clientWidth !== clientWidth || this.canvas.clientHeight !== clientHeight || this.aspect !== aspect
+      || cameraValues.some((value, i) => !Object.is(value, currentCameraValues[i]))) return null;
+    for (const [mesh, transform] of transforms) if (transform.some((value, i) => !Object.is(value, mesh.transform[i]))) return null;
+
+    const mesh = id ? this.meshes.find(m => m.id === id) : undefined;
+    if (!mesh) return null;
+    const ndcX = ((px + 0.5) / this.canvas.width) * 2 - 1, ndcY = 1 - ((py + 0.5) / this.canvas.height) * 2;
+    const point = this.camera.unproject(ndcX, ndcY, depth, this.aspect);
+    // The triangle: a ray through the pixel in the (instance's) own space (on the cap: none).
+    const ray = this.camera.ray(ndcX, ndcY, this.aspect), c = this.capHit(ray.origin, ray.direction);
+    const hit = this.meshRay(mesh, mesh.instances ? instance : null, ray.origin, ray.direction);
+    // A cut-out can keep this mesh's front before its cap. Compare their parameters on the same pixel ray, as
+    // raycast does: the nearer surface wins, a tie is the cap's. The GPU's float32 depth still supplies the point.
+    const onCap = !!c && c.mesh === mesh && (c.instance ?? 0) === (mesh.instances ? instance : 0) && (!hit || c.t <= hit.t);
+    const faces = mesh.geometry.data.faces, tri = !onCap && hit ? hit.triangle : null;
+    return { mesh, point, triangle: tri, face: tri !== null && faces ? faces[tri] : null, instance: mesh.instances ? instance : null, depth, cap: onCap, ...(onCap ? { capPlane: c!.plane } : {}), ...this.scalarHit(mesh, mesh.instances ? instance : null, tri, point) };
+  }
+
+  /**
+   * A world ray against a mesh (or one of its instances): the nearest hit in the clip planes' kept region (caps are
+   * capHit's). Its parameter is the world ray's.
+   */
+  private meshRay(m: Mesh, instance: number | null, origin: Vec3, direction: Vec3): ClippedHit | null {
+    const clip = this.clip && m.clipped ? this.clip : null;
+    // (Cut open, a single-sided mesh without a cap shows no inside: the ray passes its back faces, as the draw culls them.)
+    return clippedRay(m.geometry.data, this.instanceTransform(m, instance), origin, direction, clip, false, !clip || (this.probed(m) && !(m.pickTransparent ?? m.transparent)) || m.material.doubleSided === true);
+  }
+  /**
+   * The cap a world ray meets (G19), as the probe and the cap pass draw it: where the ray comes into the clip planes'
+   * kept region, when the first surface after that among the capped meshes (their faces unclipped, every instance) is a
+   * back face — that mesh's (instance's) cap, on the plane it came in through; a back face wins a tie. Null: none.
+   */
+  private capHit(origin: Vec3, direction: Vec3): { mesh: Mesh; instance: number | null; t: number; plane: number } | null {
+    if (!this.clip) return null;
+    let first: { mesh: Mesh; instance: number | null; t: number; back: boolean; entry: number; plane: number } | null = null;
+    for (const m of this.meshes) {
+      if (!m.visible || m.geometry.disposed || !this.probed(m)) continue;
+      for (let i = 0; i < m.instanceCount; i++) {
+        const instance = m.instances ? i : null, r = clippedRayFull(m.geometry.data, this.instanceTransform(m, instance), origin, direction, this.clip, true, true);
+        if (!r.beyond) continue;
+        const b = r.beyond, tie = first ? Math.abs(b.t - first.t) <= 1e-9 * (1 + Math.abs(b.t)) : false;
+        if (!first || (b.t < first.t && !tie) || (tie && b.back && !first.back)) first = { mesh: m, instance, t: b.t, back: b.back, entry: r.entry, plane: r.plane };
+      }
+    }
+    // (A see-through mesh's cap is drawn, not picked — as its surface in the order-independent pass.)
+    return first && first.back && !(first.mesh.pickTransparent ?? first.mesh.transparent) ? { mesh: first.mesh, instance: first.instance, t: first.entry, plane: first.plane } : null;
+  }
+
+  /** A hit's scalar (G6): the field at the point in the mesh's own space, when it has one and a triangle was hit. */
+  private scalarHit(m: Mesh, instance: number | null, triangle: number | null, point: Vec3): { scalar?: number } {
+    if (!m.geometry.data.scalars || triangle === null) return {};
+    return { scalar: scalarAt(m.geometry.data, triangle, transformPoint(invert(this.instanceTransform(m, instance)), point)) };
+  }
+
+  /** The world transform of a mesh, or of one of its instances. */
+  private instanceTransform(m: Mesh, instance: number | null): Mat4 {
+    return instance === null || !m.instances ? m.transform : multiply(m.transform, m.instances.matrices[instance]);
+  }
+
+  private ensurePickTargets() {
+    const w = this.canvas.width, h = this.canvas.height, t = this.pickTargets;
+    if (t && t.width === w && t.height === h) return t;
+    if (t) { t.id.destroy(); t.depth.destroy(); t.z.destroy(); t.instance.destroy(); t.read.destroy(); }
+    const tex = (format: string, label: string) => this.device.createTexture({ size: [w, h], format, usage: TextureUsage.RENDER_ATTACHMENT | TextureUsage.COPY_SRC, label });
+    const id = tex('r32uint', 'pick id'), z = tex('r32float', 'pick depth'), instance = tex('r32uint', 'pick instance');
+    const depth = this.device.createTexture({ size: [w, h], format: 'depth32float', usage: TextureUsage.RENDER_ATTACHMENT, label: 'pick z-buffer' });
+    this.pickTargets = {
+      width: w, height: h, id, z, instance, depth,
+      read: this.device.createBuffer({ size: 768, usage: BufferUsage.MAP_READ | BufferUsage.COPY_DST, label: 'pick read' }),
+      views: { id: id.createView(), z: z.createView(), instance: instance.createView(), depth: depth.createView() },
+    };
+    return this.pickTargets;
+  }
+
+  /**
+   * What is under a point of the canvas (CSS pixels), found on the CPU at once: a ray against the
+   * triangles of every visible, pickable mesh (pick() reads the GPU instead and waits for it).
+   */
+  raycast(x: number, y: number): PickHit | null {
+    this.alive();
+    const cw = this.canvas.clientWidth || this.canvas.width, ch = this.canvas.clientHeight || this.canvas.height;
+    this.clipCamera();
+    const ray = this.camera.ray((x / cw) * 2 - 1, 1 - (y / ch) * 2, this.aspect);
+    let best: { mesh: Mesh; triangle: number | null; t: number; instance: number | null; cap: boolean; plane?: number; leaf: number } | null = null;
+    if (this.accelerate) {
+      // (Through the scene tree: the leaves the ray enters, nearest entry first, until one starts past the best hit; the
+      // nearest hit, ties to the earliest mesh and instance — the walk's answer.)
+      const S = this.sceneTrees(), { leaves, ts, order } = this.rayLeaves(ray.origin, ray.direction, Infinity);
+      for (const k of order) {
+        if (best && ts[k] > best.t) break;
+        const leaf = leaves[k], m = S.rayMesh[leaf];
+        if (!m.visible || !m.pickable || m.geometry.disposed) continue;
+        const instance = S.rayInstance[leaf] < 0 ? null : S.rayInstance[leaf], hit = this.meshRay(m, instance, ray.origin, ray.direction);
+        if (hit && (!best || hit.t < best.t || (hit.t === best.t && leaf < best.leaf))) best = { mesh: m, triangle: hit.triangle, t: hit.t, instance, cap: hit.cap, plane: hit.plane, leaf };
+      }
+    } else for (const m of this.meshes) {
+      if (!m.visible || !m.pickable || m.geometry.topology !== 'triangles' || m.geometry.disposed) continue;
+      for (let i = 0; i < m.instanceCount; i++) {
+        const instance = m.instances ? i : null, hit = this.meshRay(m, instance, ray.origin, ray.direction);
+        if (hit && (!best || hit.t < best.t)) best = { mesh: m, triangle: hit.triangle, t: hit.t, instance, cap: hit.cap, plane: hit.plane, leaf: 0 };
+      }
+    }
+    // (The cap the ray meets, when nearer: G19 — a tie is the cap's, as the cap pass is drawn after the surfaces.)
+    const cap = this.capHit(ray.origin, ray.direction);
+    if (cap && cap.mesh.pickable && (!best || cap.t <= best.t)) best = { mesh: cap.mesh, triangle: null, t: cap.t, instance: cap.instance, cap: true, plane: cap.plane, leaf: 0 };
+    if (!best) return null;
+    const point = add(ray.origin, scale(ray.direction, best.t)), faces = best.mesh.geometry.data.faces;
+    const v = transformPoint(this.camera.viewProjection(this.aspect), point);
+    return { mesh: best.mesh, point, triangle: best.triangle, face: best.triangle !== null && faces ? faces[best.triangle] : null, instance: best.instance, depth: v[2], cap: best.cap, ...(best.cap ? { capPlane: best.plane ?? 0 } : {}), ...this.scalarHit(best.mesh, best.instance, best.triangle, point) };
+  }
+
+  /**
+   * The line segment drawn nearest a point of the canvas (CSS pixels), within radius pixels. Lines are
+   * thin, so this is a screen-space search, not a pixel read. A segment whose nearest point a surface hides (an opaque
+   * mesh more than about a pixel and a half in front of it along the eye's ray: what the depth test hides) is passed
+   * over for the next nearest (G3); `throughSurfaces` finds it anyway. Only the parts of segments on the clip plane's
+   * kept side are found, and only what the plane keeps hides them. Lines drawn over the scene (Material.lineOver) are
+   * never hidden unless respectSurfaceDepth explicitly keeps surface occlusion for display-only wireframe lines.
+   */
+  pickLine(x: number, y: number, radius = 6, options: { throughSurfaces?: boolean; respectSurfaceDepth?: boolean } = {}): LineHit | null {
+    this.alive();
+    const cw = this.canvas.clientWidth || this.canvas.width, ch = this.canvas.clientHeight || this.canvas.height;
+    this.clipCamera();
+    const vp = this.camera.viewProjection(this.aspect);
+    let best: LineHit | null = null;
+    for (const m of this.markCandidates(vp, x, y, cw, ch, radius, 'lines')) {
+      if (!m.visible || !m.pickable || m.geometry.topology !== 'lines' || m.geometry.data.contour || m.geometry.disposed) continue;
+      const M = multiply(vp, m.transform), g = m.geometry.data, P = g.positions, I = g.indices;
+      // A mesh wholly in front of the eye whose box lands farther than the radius from the point: none of its segments can be nearer.
+      if (g.bounds && screenBoxMisses(M, g.bounds, x, y, cw, ch, radius)) continue;
+      // (Every segment, or for a large geometry those its segment boxes do not rule out: the same answer, ties to the lowest.)
+      // (The clip plane in the mesh's own space: only the kept parts of its segments.)
+      const plane = this.clip && m.clipped ? localPlane(m.transform, this.clip) : null;
+      hiddenSegments.clear();
+      for (let tries = 0; tries < MAX_HIDDEN_SEGMENTS; tries++) {
+        const hit = nearestSegment(g, M, x, y, cw, ch, radius, best ? best.distance : Infinity, plane, hiddenSegments);
+        if (!hit) break;
+        const ia = I ? I[2 * hit.segment] : 2 * hit.segment, ib = I ? I[2 * hit.segment + 1] : 2 * hit.segment + 1;
+        const A = transformPoint(m.transform, [P[3 * ia], P[3 * ia + 1], P[3 * ia + 2]]), B = transformPoint(m.transform, [P[3 * ib], P[3 * ib + 1], P[3 * ib + 2]]);
+        const point = add(A, scale(sub(B, A), hit.s));
+        // (Hidden: the next nearest of this mesh's segments, the hidden one left out.)
+        if (!options.throughSurfaces && (options.respectSurfaceDepth || !m.material.lineOver) && this.hidden(point)) { hiddenSegments.add(hit.segment); continue; }
+        best = { mesh: m, segment: hit.segment, edge: g.edges ? g.edges[hit.segment] : null, point, distance: hit.distance };
+        break;
+      }
+    }
+    return best;
+  }
+
+  /**
+   * The point drawn nearest a position of the canvas (CSS pixels, G8): among the visible, pickable point meshes, the one
+   * whose centre is nearest, within `radius` pixels past the point's own half size. As pickLine: a point an opaque surface
+   * hides is passed over for the next nearest (unless `throughSurfaces`, or its material draws it over the scene), and only
+   * points on the clip plane's kept side are found. A brute-force screen search a mesh, its box checked first.
+   */
+  pickPoint(x: number, y: number, radius = 6, options: { throughSurfaces?: boolean } = {}): PointHit | null {
+    this.alive();
+    const cw = this.canvas.clientWidth || this.canvas.width, ch = this.canvas.clientHeight || this.canvas.height;
+    this.clipCamera();
+    const vp = this.camera.viewProjection(this.aspect);
+    let best: PointHit | null = null;
+    let half = 0;
+    if (this.accelerate) for (const m of this.sceneTrees().markMesh) if (m.geometry.topology === 'points' && m.material.pointSize! / 2 > half) half = m.material.pointSize! / 2;
+    for (const m of this.markCandidates(vp, x, y, cw, ch, radius + half, 'points')) {
+      if (!m.visible || !m.pickable || m.geometry.topology !== 'points' || m.geometry.disposed) continue;
+      const M = multiply(vp, m.transform), g = m.geometry.data, P = g.positions, I = g.indices, reach = radius + m.material.pointSize! / 2;
+      if (g.bounds && screenBoxMisses(M, g.bounds, x, y, cw, ch, reach)) continue;
+      const plane = this.clip && m.clipped ? localPlane(m.transform, this.clip) : null;
+      hiddenSegments.clear();
+      for (let tries = 0; tries < MAX_HIDDEN_SEGMENTS; tries++) {
+        const hit = nearestPoint(g, M, x, y, cw, ch, reach, best ? best.distance : Infinity, plane, hiddenSegments, this.accelerate);
+        if (!hit) break;
+        const a = I ? I[hit.index] : hit.index, point = transformPoint(m.transform, [P[3 * a], P[3 * a + 1], P[3 * a + 2]]);
+        if (!options.throughSurfaces && !m.material.lineOver && this.hidden(point)) { hiddenSegments.add(hit.index); continue; }
+        best = { mesh: m, index: hit.index, point, distance: hit.distance };
+        break;
+      }
+    }
+    return best;
+  }
+
+  /**
+   * The line or point meshes whose box lands within `reach` pixels of (x, y), in the order they were added (G9: through the
+   * scene tree; without acceleration, every mesh) — the per-mesh search then runs on these as before.
+   */
+  private markCandidates(vp: Mat4, x: number, y: number, cw: number, ch: number, reach: number, _kind: 'lines' | 'points'): readonly Mesh[] {
+    if (!this.accelerate) return this.meshes;
+    const S = this.sceneTrees(), n = sceneNear(S.marks, vp, x, y, cw, ch, reach, candLeaves);
+    candLeaves.length = n; candLeaves.sort(ascending);
+    markOut.length = 0; for (let k = 0; k < n; k++) markOut.push(S.markMesh[candLeaves[k]]);
+    return markOut;
+  }
+
+  /**
+   * Whether an opaque surface hides a world point (G3): the eye's ray to it hits a visible, opaque triangle mesh (its
+   * instances, the clip plane's kept side and caps) more than about a pixel and a half before it — lines are drawn over the
+   * surface they lie on, and slightly behind it they still show, as the depth test's bias lets them.
+   */
+  private hidden(p: Vec3): boolean {
+    const v = transformPoint(this.camera.viewProjection(this.aspect), p), ray = this.camera.ray(v[0], v[1], this.aspect);
+    const d = ray.direction, dd = dot(d, d), t = dot(sub(p, ray.origin), d) / dd;
+    // (A pixel in world units at the point's depth, over the ray's length: the slack, in the ray's parameter.)
+    const c = this.camera, h = this.canvas.clientHeight || this.canvas.height;
+    const pixel = (c.projection === 'perspective' ? 2 * Math.tan((c.fovY * Math.PI) / 360) * Math.sqrt(dd) * t : 2 * c.halfHeight) / Math.max(1, h);
+    const before = t - (1.5 * pixel) / Math.sqrt(dd);
+    // (A cap in front of it hides it too, G19.)
+    const cap = this.capHit(ray.origin, d);
+    if (cap && cap.t < before) return true;
+    if (this.accelerate) {
+      const S = this.sceneTrees(), { leaves } = this.rayLeaves(ray.origin, d, before);
+      for (let k = 0; k < leaves.length; k++) {
+        const leaf = leaves[k], m = S.rayMesh[leaf];
+        if (!m.visible || (m.pickTransparent ?? m.transparent) || m.geometry.disposed) continue;
+        const hit = this.meshRay(m, S.rayInstance[leaf] < 0 ? null : S.rayInstance[leaf], ray.origin, d);
+        if (hit && hit.t < before) return true;
+      }
+      return false;
+    }
+    for (const m of this.meshes) {
+      if (!m.visible || (m.pickTransparent ?? m.transparent) || m.geometry.topology !== 'triangles' || m.geometry.disposed) continue;
+      for (let i = 0; i < m.instanceCount; i++) {
+        const hit = this.meshRay(m, m.instances ? i : null, ray.origin, d);
+        if (hit && hit.t < before) return true;
+      }
+    }
+    return false;
+  }
+
+  /** The world point under a pixel, or where the view ray meets the plane through the target (zoom to cursor). */
+  async pointAt(x: number, y: number): Promise<Vec3> {
+    const hit = await this.pick(x, y).catch(() => null);
+    if (hit) return hit.point;
+    const ndcX = (x / Math.max(1, this.canvas.clientWidth || this.canvas.width)) * 2 - 1, ndcY = 1 - (y / Math.max(1, this.canvas.clientHeight || this.canvas.height)) * 2;
+    const ray = this.camera.ray(ndcX, ndcY, this.aspect), n = this.camera.basis().forward;
+    const den = dot(ray.direction, n);
+    if (Math.abs(den) < 1e-9) return this.camera.target;
+    return add(ray.origin, scale(ray.direction, dot(sub(this.camera.target, ray.origin), n) / den));
+  }
+
+  // ---- Device loss and disposal -------------------------------------------------------------------
+
+  private lose(message: string): void {
+    this.stats.deviceLosses++;
+    for (const session of this.pathTraces) session.dispose();
+    this.pathTraces.clear();
+    for (const g of this.geometries) g.gpu = null;
+    // Defer recovery work until after the promise is assigned, even if unconfigure throws synchronously.
+    this.recovering = Promise.resolve().then(async () => {
+      if (this.disposed) { this.recovering = null; return; }
+      try {
+        this.context.unconfigure();
+        await this.start();
+      } catch (cause) {
+        if (this.disposed) return;
+        const detail = `Device lost (${message}) and could not be recreated: ${cause instanceof Error ? cause.message : String(cause)}`;
+        const error = Object.assign(new ViewerError('DEVICE_LOST', detail), { cause });
+        this.recoveryFailure = error;
+        this.cancelScheduled();
+        for (const waiter of this.waiters.splice(0)) waiter.reject(error);
+        try { this.report(detail); } catch (callbackError) { this.reportCallbackError('onError', callbackError); }
+        if (!this.disposed) try { this.onRecoverError?.(error); } catch (callbackError) { this.reportCallbackError('onRecoverError', callbackError); }
+        return;
+      } finally { this.recovering = null; }
+      if (this.disposed) return;
+      try { this.requestRender(); } catch (callbackError) { this.reportCallbackError('onRequestRender', callbackError); }
+      if (!this.disposed) try { this.onRecover?.(); } catch (callbackError) { this.reportCallbackError('onRecover', callbackError); }
+    });
+  }
+
+  /** @internal For tests: wait for a device-loss recovery in progress. */
+  get recovery(): Promise<void> | null { return this.recovering; }
+  /** @internal For tests: destroy the device as a loss would. */
+  loseDeviceForTesting(): void { this.device.destroy(); }
+
+  private report(message: string): void {
+    if (this.options.onError) this.options.onError(message);
+    else console.error('[barocss viewer]', message); // eslint-disable-line no-console
+  }
+
+  private reportCallbackError(callback: string, error: unknown): void {
+    // A host callback must not turn a reported recovery failure into an unhandled rejection.
+    try { console.error(`[barocss viewer] ${callback} callback failed`, error); } catch { /* The host's logger may also throw. */ } // eslint-disable-line no-console
+  }
+
+  private alive(): void { if (this.disposed) throw new ViewerError('DISPOSED', 'The viewer has been disposed'); }
+  private requireDevice(): void {
+    this.alive();
+    if (this.recoveryFailure) throw this.recoveryFailure;
+    if (this.recovering) throw new ViewerError('DEVICE_LOST', 'The viewer is replacing its device');
+  }
+
+  /** Release the device, every buffer and texture, and the canvas listeners. */
+  dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
+    for (const session of this.pathTraces) session.dispose();
+    this.pathTraces.clear();
+    this.controls?.dispose();
+    this.resizeObserver?.disconnect();
+    this.cancelScheduled();
+    for (const g of this.geometries) g.release();
+    for (const m of this.meshes) { m.instances?.buffer?.destroy(); m.materialState?.params.destroy(); m.materialState?.pbrParams.destroy(); m.mapState?.params.destroy(); m.mapState?.texture.destroy(); }
+    this.geometries.clear(); this.meshes = [];
+    this.targets?.msaa?.destroy(); this.targets?.scene.destroy(); this.targets?.depth.destroy();
+    if (this.pickTargets) { this.pickTargets.id.destroy(); this.pickTargets.z.destroy(); this.pickTargets.instance.destroy(); this.pickTargets.depth.destroy(); this.pickTargets.read.destroy(); }
+    this.frameBuffer?.destroy(); this.objectBuffer?.destroy(); this.outputBuffer?.destroy();
+    for (const buffer of this.shadowFrameBuffers) buffer.destroy();
+    this.shadowFrameBuffers = []; this.shadowFrameGroups = []; this.shadowCapGroups = [];
+    this.targets?.mask.destroy(); this.targets?.maskDepth.destroy(); this.targets?.capFront.destroy(); this.targets?.capFrontSamples?.destroy(); this.emptyFront?.destroy(); this.emptyFrontSamples?.destroy(); this.lightProbe?.destroy();
+    this.shadowMap?.destroy(); this.emptyShadow?.destroy(); this.identityInstance?.destroy(); this.white?.texture.destroy(); this.zeroParams?.destroy();
+    this.releaseBloom(); this.releaseFocus(); this.black?.destroy();
+    for (const t of this.textures) t.dispose();
+    this.textures.clear();
+    let cleanupError: unknown, cleanupFailed = false;
+    try { this.context?.unconfigure(); } catch (error) { cleanupError = error; cleanupFailed = true; }
+    try { this.device?.destroy(); } catch (error) { if (!cleanupFailed) { cleanupError = error; cleanupFailed = true; } }
+    for (const waiter of this.waiters.splice(0)) waiter.resolve();
+    if (cleanupFailed) throw cleanupError;
+  }
+}
+
+/** A box cut by a clip plane along an axis (dot(n, p) ≥ offset, n ±x, ±y or ±z); null when it is wholly cut away; as it is for another plane. */
+/** A box cut by the clip planes that are axis-aligned (each of `planes`, else the one); the others leave it. A cut-out leaves it (G20). */
+export function clipBox(b: Box3 | null, c: { normal: ArrayLike<number>; offset: number; planes?: readonly { normal: ArrayLike<number>; offset: number }[]; cutout?: boolean }): Box3 | null {
+  if (!b) return b;
+  const min = [b.min[0], b.min[1], b.min[2]], max = [b.max[0], b.max[1], b.max[2]], list = c.planes ?? [c];
+  // (A cut-out, G20: the box itself — a corner taken off leaves its extent — or none when the removed corner holds all of
+  // it: every corner of the box on every plane's cut-away side, R convex.)
+  if (c.cutout) {
+    for (let i = 0; i < 8; i++) {
+      const x = i & 1 ? max[0] : min[0], y = i & 2 ? max[1] : min[1], z = i & 4 ? max[2] : min[2];
+      if (list.some(p => p.normal[0] * x + p.normal[1] * y + p.normal[2] * z >= p.offset)) return b;
+    }
+    return null;
+  }
+  let cut = false;
+  for (let i = 0; i < list.length; i++) {
+    const n = list[i].normal, k = Math.abs(n[0]) === 1 ? 0 : Math.abs(n[1]) === 1 ? 1 : Math.abs(n[2]) === 1 ? 2 : -1;
+    if (k < 0) continue;
+    cut = true;
+    if (n[k] > 0) min[k] = Math.max(min[k], list[i].offset); else max[k] = Math.min(max[k], -list[i].offset);
+    if (min[k] > max[k]) return null;
+  }
+  // (No axis plane: the box itself.)
+  return cut ? { min: min as unknown as Vec3, max: max as unknown as Vec3 } : b;
+}
+
+ /** The segments of a mesh found hidden during one line pick (kept from pick to pick), and how many are tried. */
+const hiddenSegments = new Set<number>();
+/** A label's colour (sRGB, 0–1, three or four numbers) as linear RGBA8 in one word (G15). */
+function packLabelColor(c: readonly number[] | undefined, alpha: number): number {
+  const r = c ?? [1, 1, 1], a = Math.max(0, Math.min(1, (c && c.length > 3 ? c[3] : 1) * alpha));
+  const byte = (v: number) => Math.max(0, Math.min(255, Math.round(srgbToLinear(v) * 255)));
+  return (byte(r[0]) | (byte(r[1]) << 8) | (byte(r[2]) << 16) | (Math.round(a * 255) << 24)) >>> 0;
+}
+/** A label of the public API (colours as Color) as the layout reads it (sRGB numbers). */
+function labelInput(l: TextLabel): LabelInput {
+  const bg = l.background;
+  return {
+    text: l.text, at: l.at, size: l.size, align: l.align, offset: l.offset, plane: l.plane ?? null,
+    color: l.color === undefined ? undefined : [...parseColor(l.color)],
+    background: bg ? { color: [...parseColor(bg.color)], opacity: bg.opacity, padding: bg.padding, radius: bg.radius, border: bg.border ? [...parseColor(bg.border)] : null } : null,
+  };
+}
+/** Whether a box wholly in front of the eye lands on screen (device pixels, w × h) clear of a rectangle (x0, y0, x1, y1). */
+function boxMissesRect(m: ArrayLike<number>, b: Box3, r: readonly number[], w: number, h: number): boolean {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (let i = 0; i < 8; i++) {
+    const x = i & 1 ? b.max[0] : b.min[0], y = i & 2 ? b.max[1] : b.min[1], z = i & 4 ? b.max[2] : b.min[2];
+    const cw = m[3] * x + m[7] * y + m[11] * z + m[15]; if (!(cw > 1e-9)) return false;
+    const sx = ((m[0] * x + m[4] * y + m[8] * z + m[12]) / cw * 0.5 + 0.5) * w, sy = (0.5 - (m[1] * x + m[5] * y + m[9] * z + m[13]) / cw * 0.5) * h;
+    if (sx < x0) x0 = sx; if (sx > x1) x1 = sx; if (sy < y0) y0 = sy; if (sy > y1) y1 = sy;
+  }
+  return x1 < r[0] || x0 > r[2] || y1 < r[1] || y0 > r[3];
+}
+// (G13: scratch kept across frames — the object block's normal matrix, its 32-bit words, a draw's dynamic offset.)
+const dynamicOffset = new Uint32Array(1), frameBlock = new Float32Array(FRAME_BYTES / 4), frameViewport = [1, 1, 1, 0];
+// (R2: the shadow pass's frame block and the output block, kept from frame to frame like frameBlock; the shadow frame's
+// arguments as constants.)
+const shadowFrameBlock = new Float32Array(FRAME_BYTES / 4), outputBlock = new ArrayBuffer(OUTPUT_BYTES), outputBytes = new Uint8Array(outputBlock);
+const NO_LIGHTS: readonly Light[] = [], SHADOW_VIEWPORT: readonly number[] = [1, 1, 1];
+// (The scene trees' candidates, reused a pick: leaves, where a ray enters them, their order by entry; G9.)
+const candLeaves: number[] = [], candTs: number[] = [], candOrder: number[] = [], markOut: Mesh[] = [];
+const byEntry = (a: number, b: number): number => candTs[a] - candTs[b] || candLeaves[a] - candLeaves[b];
+const ascending = (a: number, b: number): number => a - b;
+/** Whether a box wholly in front of the eye lands on screen farther than `reach` pixels from a point (CSS): nothing in it can be nearer. */
+function screenBoxMisses(M: ArrayLike<number>, bx: Box3, x: number, y: number, cw: number, ch: number, reach: number): boolean {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (let c = 0; c < 8; c++) {
+    const px = c & 1 ? bx.max[0] : bx.min[0], py = c & 2 ? bx.max[1] : bx.min[1], pz = c & 4 ? bx.max[2] : bx.min[2];
+    const w = M[3] * px + M[7] * py + M[11] * pz + M[15]; if (w < 1e-6) return false;
+    const sxp = ((M[0] * px + M[4] * py + M[8] * pz + M[12]) / w * 0.5 + 0.5) * cw, syp = (0.5 - (M[1] * px + M[5] * py + M[9] * pz + M[13]) / w * 0.5) * ch;
+    x0 = Math.min(x0, sxp); x1 = Math.max(x1, sxp); y0 = Math.min(y0, syp); y1 = Math.max(y1, syp);
+  }
+  return x < x0 - reach || x > x1 + reach || y < y0 - reach || y > y1 + reach;
+}
+const MAX_HIDDEN_SEGMENTS = 16;
+
+export const createViewer = (canvas: HTMLCanvasElement, options?: ViewerOptions): Promise<Viewer> => Viewer.create(canvas, options);

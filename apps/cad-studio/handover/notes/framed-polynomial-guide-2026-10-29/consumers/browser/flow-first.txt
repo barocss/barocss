@@ -1,0 +1,5 @@
+flow display: {"requestedDpr":1,"renderer":"webgpu","devicePixelRatio":1,"cssWidth":1140,"cssHeight":900,"backingWidth":1140,"backingHeight":900}
+ok 1 starter plate loads
+ok 34 D316: raw framed polynomial guide with 2 sections and 17 controls opens, edits and reopens
+ok 35 D316: raw framed polynomial guide with 8 sections and 64 controls opens, edits and reopens
+screenshots: /tmp/d316-studio-first

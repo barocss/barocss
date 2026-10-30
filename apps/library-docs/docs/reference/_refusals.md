@@ -272,6 +272,7 @@
 | `[UNKNOWN_LAYER]` | `core/error-codes.ts (declared)` | — |
 | `[UNKNOWN_LINETYPE]` | `core/error-codes.ts (declared)` | — |
 | `[UNKNOWN_STYLE]` | `core/error-codes.ts (declared)` | — |
+| `[UNRESOLVED]` | `core/error-codes.ts (declared)` | — |
 | `[UNSUPPORTED]` | `core/error-codes.ts (declared)` | — |
 | `[UNSUPPORTED_GEAR_KIND]` | `core/error-codes.ts (declared)` | — |
 | `[UNSUPPORTED_PROFILE_SHIFT]` | `core/error-codes.ts (declared)` | — |
@@ -301,7 +302,7 @@
 | `[BAD_KEEPOUT]` | `chat` | …'s solid could not be made |
 | `[BAD_REFERENCE]` | `app`, `chat`, `engine` | Select the current result of an unsuppressed subtract feature. |
 | `[BAD_TRANSITION]` | `team` | … is still …: a baseline follows a decided one |
-| `[BAD_VALUE]` | `chat` | … is a size above 0 mm |
+| `[BAD_VALUE]` | `chat`, `engine` | … is a size above 0 mm |
 | `[BAD_VALUES]` | `chat`, `print`, `robot` | a wall t > 0, a voxel 0 < h ≤ t/2 and a drain Ø > 0 (t …, h …, drain …) |
 | `[BASELINE_FROZEN]` | `team` | … is …: it is never changed; draft a new baseline with … as its parent |
 | `[BEAD_ACCOUNTING_INCOMPLETE]` | `frames` | no complete welded-part quantity: … |
@@ -374,7 +375,7 @@
 | `[DXF_NESTED]` | `sketch` | a loop inside a hole (at (…, …) mm): an island in a hole is a sketch of its own |
 | `[DXF_OPEN]` | `sketch` | the profile is not closed at (…, …) mm: an edge ends there with nothing joining it… |
 | `[DXF_UNSUPPORTED]` | `sketch` | $INSUNITS …: only inches, feet, millimetres, centimetres and metres are read |
-| `[FACE_DISTANCE]` | `app` | Give the face a distance to move: out (+) or in (−). |
+| `[FACE_DISTANCE]` | `app` | The owned native cap has no loop profile. |
 | `[FACE_FILLET_PICK]` | `app` | … |
 | `[FASTENER_GRIP]` | `app` | Give the joint its grip: the thickness the bolt clamps (mm). |
 | `[FASTENER_LENGTH]` | `app` | … … come …–… mm long (…). |
@@ -426,6 +427,7 @@
 | `[JOINT_UNKNOWN]` | `robot` | waypoint …: no moving joint … (joints: …) |
 | `[LIBRARY_ID]` | `library` | … is a built-in library: give yours another id |
 | `[LIBRARY_UNKNOWN]` | `library` | No library … (libraries: …) |
+| `[LIMIT]` | `engine` | Text solid: a component boundary exceeds the native loop budget. |
 | `[LIMITS_BAD]` | `api`, `robot` | motion limits are a record of joint rate settings |
 | `[LIMITS_MISSING]` | `robot` | joint … has no … limits above 0 |
 | `[LOFT_SECTIONS]` | `app` | … |
@@ -457,7 +459,7 @@
 | `[NOT_NEEDED]` | `print` | the part (… mm) fits … as it is |
 | `[NOT_ONE_LOOP]` | `robot` | a planar loop has three moving joints round it besides its pin; this one has … |
 | `[NOT_PLANAR]` | `robot` | … is not a turn about the pin's axis direction |
-| `[NOT_READ]` | `chat` | … could not be read: … |
+| `[NOT_READ]` | `chat`, `engine` | … could not be read: … |
 | `[NO_BASELINE]` | `team` | no baseline …; baselines: … |
 | `[NO_BODY]` | `engine` | … |
 | `[NO_CHANGE]` | `app`, `team` | It is already there. |
@@ -524,6 +526,7 @@
 | `[STOCK_ALLOWANCE]` | `chat/part` | allowance is mm a face, 0 to 100. |
 | `[STOCK_ROW]` | `chat` | row …: an id and a source (where the size comes from: your shop, a page) are needed. |
 | `[SWEEP_PATH]` | `app` | … |
+| `[TEXT_RELIEF_PICK]` | `app` | … |
 | `[THREAD_PICK]` | `app` | … |
 | `[TOO_BIG_TWO_WAYS]` | `print` | no split along one axis makes …'s pieces: the part (… mm) is too big two ways |
 | `[TRIM_CURVE]` | `engine` | The curve does not close: trim by a closed curve (a loop). |

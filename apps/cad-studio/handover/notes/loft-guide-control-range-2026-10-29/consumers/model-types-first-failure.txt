@@ -1,0 +1,2 @@
+test/loft-guide-command.test.ts(315,35): error TS2540: Cannot assign to '0' because it is a read-only property.
+test/loft-guide-command.test.ts(315,44): error TS2542: Index signature in type 'readonly number[]' only permits reading.

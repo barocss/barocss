@@ -1,0 +1,448 @@
+TAP version 13
+# Subtest: bound values: the hand-written CadPartDocument with { parameter } leaves, byte for byte, and the kernel's results on it
+ok 1 - bound values: the hand-written CadPartDocument with { parameter } leaves, byte for byte, and the kernel's results on it
+  ---
+  duration_ms: 122.98125
+  type: 'test'
+  ...
+# Subtest: withParameters: a function over the document, and the part at new values is the part built with them
+ok 2 - withParameters: a function over the document, and the part at new values is the part built with them
+  ---
+  duration_ms: 109.18025
+  type: 'test'
+  ...
+# Subtest: what a CadPartDocument holds as a plain number refuses a parameter, and suppression waits for its flag
+ok 3 - what a CadPartDocument holds as a plain number refuses a parameter, and suppression waits for its flag
+  ---
+  duration_ms: 83.678708
+  type: 'test'
+  ...
+# Subtest: the facade writes the hand-written CadPartDocument, byte for byte
+ok 4 - the facade writes the hand-written CadPartDocument, byte for byte
+  ---
+  duration_ms: 94.153042
+  type: 'test'
+  ...
+# Subtest: its mass, STEP, STL and meshes are the kernel's own on that document, byte for byte
+ok 5 - its mass, STEP, STL and meshes are the kernel's own on that document, byte for byte
+  ---
+  duration_ms: 228.808042
+  type: 'test'
+  ...
+# Subtest: every method returns a new part and leaves the old one as it was
+ok 6 - every method returns a new part and leaves the old one as it was
+  ---
+  duration_ms: 4.5325
+  type: 'test'
+  ...
+# Subtest: typed selectors read the kernel's B-rep by its persistent names, its seams and tangent joints left out
+ok 7 - typed selectors read the kernel's B-rep by its persistent names, its seams and tangent joints left out
+  ---
+  duration_ms: 11.457625
+  type: 'test'
+  ...
+# Subtest: refusals are typed: the facade's own, and the kernel's passed through with its code, once
+ok 8 - refusals are typed: the facade's own, and the kernel's passed through with its code, once
+  ---
+  duration_ms: 12.691625
+  type: 'test'
+  ...
+# Subtest: one bound reference contains both complete actual child results under one final ledger
+ok 9 - one bound reference contains both complete actual child results under one final ledger
+  ---
+  duration_ms: 209.63775
+  type: 'test'
+  ...
+# Subtest: clockwise and rotated starts derive actual rectangle min/max without assuming native ID rotation
+ok 10 - clockwise and rotated starts derive actual rectangle min/max without assuming native ID rotation
+  ---
+  duration_ms: 113.178292
+  type: 'test'
+  ...
+# Subtest: exact total reservation succeeds and total minus one refuses without changing caller data
+ok 11 - exact total reservation succeeds and total minus one refuses without changing caller data
+  ---
+  duration_ms: 105.609125
+  type: 'test'
+  ...
+# Subtest: owned frozen results do not freeze or alias the original Part, ring or options
+ok 12 - owned frozen results do not freeze or alias the original Part, ring or options
+  ---
+  duration_ms: 27.642417
+  type: 'test'
+  ...
+# Subtest: fresh source checking refuses changed coefficients and metadata after an earlier successful request
+ok 13 - fresh source checking refuses changed coefficients and metadata after an earlier successful request
+  ---
+  duration_ms: 29.072125
+  type: 'test'
+  ...
+# Subtest: getters, inherited options and caller authority flags cannot supply wrapper inputs
+ok 14 - getters, inherited options and caller authority flags cannot supply wrapper inputs
+  ---
+  duration_ms: 9.165875
+  type: 'test'
+  ...
+# Subtest: original native and formal refusals propagate with their namespace and wording
+ok 15 - original native and formal refusals propagate with their namespace and wording
+  ---
+  duration_ms: 39.599375
+  type: 'test'
+  ...
+# Subtest: the separately measured Z0 reference pad accepts both complete source checks without a prefix deduction
+ok 16 - the separately measured Z0 reference pad accepts both complete source checks without a prefix deduction
+  ---
+  duration_ms: 24.2905
+  type: 'test'
+  ...
+# Subtest: fresh cap/whole-reference/mass proofs pass independent exact oracles, including signed cross inertia
+ok 17 - fresh cap/whole-reference/mass proofs pass independent exact oracles, including signed cross inertia
+  ---
+  duration_ms: 396.895583
+  type: 'test'
+  ...
+# Subtest: one actual source execution preserves all prior native geometry and formal numerical values
+ok 18 - one actual source execution preserves all prior native geometry and formal numerical values
+  ---
+  duration_ms: 80.388167
+  type: 'test'
+  ...
+# Subtest: clockwise and shifted start inputs retain the same closed region and mass
+ok 19 - clockwise and shifted start inputs retain the same closed region and mass
+  ---
+  duration_ms: 75.92875
+  type: 'test'
+  ...
+# Subtest: the final total cap passes and one fewer operation refuses after the actual prefix
+ok 20 - the final total cap passes and one fewer operation refuses after the actual prefix
+  ---
+  duration_ms: 63.502666
+  type: 'test'
+  ...
+# Subtest: an arithmetic-only budget can pass formal mass yet fail the complete geometric mass audit
+ok 21 - an arithmetic-only budget can pass formal mass yet fail the complete geometric mass audit
+  ---
+  duration_ms: 41.266458
+  type: 'test'
+  ...
+# Subtest: cap coefficients, orientations, ownership and original seam mutations fail their actual predicates
+ok 22 - cap coefficients, orientations, ownership and original seam mutations fail their actual predicates
+  ---
+  duration_ms: 37.330083
+  type: 'test'
+  ...
+# Subtest: the wrapped reference requires reciprocal uses, original rectangle parameters and outward sides
+ok 23 - the wrapped reference requires reciprocal uses, original rectangle parameters and outward sides
+  ---
+  duration_ms: 27.633958
+  type: 'test'
+  ...
+# Subtest: the final entry rejects supplied proof flags and never executes caller getters
+ok 24 - the final entry rejects supplied proof flags and never executes caller getters
+  ---
+  duration_ms: 3.83175
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap: public feature owns one nine-face reference and audits independent asymmetric mass at each density
+ok 25 - cylindrical wrap: public feature owns one nine-face reference and audits independent asymmetric mass at each density
+  ---
+  duration_ms: 334.079458
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap: document save/load and reevaluation restore owned provider; output copies supply no mass authority
+ok 26 - cylindrical wrap: document save/load and reevaluation restore owned provider; output copies supply no mass authority
+  ---
+  duration_ms: 102.864459
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap: native face and strict UV bounds refuse atomically without remapping
+ok 27 - cylindrical wrap: native face and strict UV bounds refuse atomically without remapping
+  ---
+  duration_ms: 144.395
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap: shared public facade writes the same bounded recipe and preserves typed refusal
+ok 28 - cylindrical wrap: shared public facade writes the same bounded recipe and preserves typed refusal
+  ---
+  duration_ms: 309.411333
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap: actual display triangles retain the strict outer trim, source hole and outward side orientation
+ok 29 - cylindrical wrap: actual display triangles retain the strict outer trim, source hole and outward side orientation
+  ---
+  duration_ms: 43.828417
+  type: 'test'
+  ...
+# Subtest: actual native rays and all ten source/pad/raw moments enclose an independent complex-polar oracle
+ok 30 - actual native rays and all ten source/pad/raw moments enclose an independent complex-polar oracle
+  ---
+  duration_ms: 57.46575
+  type: 'test'
+  ...
+# Subtest: public MMGS values are audited against exact represented density divided by1000
+ok 31 - public MMGS values are audited against exact represented density divided by1000
+  ---
+  duration_ms: 76.87625
+  type: 'test'
+  ...
+# Subtest: negative source Z and asymmetric V preserve signed mixed moments and central inertia
+ok 32 - negative source Z and asymmetric V preserve signed mixed moments and central inertia
+  ---
+  duration_ms: 22.023208
+  type: 'test'
+  ...
+# Subtest: centered axial pad retains exact zero Z/XZ/YZ and nonzero angular moments
+ok 33 - centered axial pad retains exact zero Z/XZ/YZ and nonzero angular moments
+  ---
+  duration_ms: 7.183917
+  type: 'test'
+  ...
+# Subtest: aggregate limits only tighten, and impossible scalar precision is not widened
+ok 34 - aggregate limits only tighten, and impossible scalar precision is not widened
+  ---
+  duration_ms: 38.804958
+  type: 'test'
+  ...
+# Subtest: overflow, underflow, nonfinite input, invalid ranges, and radius overrides refuse
+ok 35 - overflow, underflow, nonfinite input, invalid ranges, and radius overrides refuse
+  ---
+  duration_ms: 49.586042
+  type: 'test'
+  ...
+# Subtest: all scalar budgets must be explicit positive finite values
+ok 36 - all scalar budgets must be explicit positive finite values
+  ---
+  duration_ms: 24.688709
+  type: 'test'
+  ...
+# Subtest: getters never supply authority and input/output snapshots do not alias
+ok 37 - getters never supply authority and input/output snapshots do not alias
+  ---
+  duration_ms: 7.370708
+  type: 'test'
+  ...
+# Subtest: actual rays around the diagonal exercise the bounded three-step angle reduction
+ok 38 - actual rays around the diagonal exercise the bounded three-step angle reduction
+  ---
+  duration_ms: 9.784
+  type: 'test'
+  ...
+# Subtest: changed actual source coefficients or native metadata cannot borrow formal-circle authority
+ok 39 - changed actual source coefficients or native metadata cannot borrow formal-circle authority
+  ---
+  duration_ms: 6.769833
+  type: 'test'
+  ...
+# Subtest: tiny valid source refuses the overflowing existing native SI density intermediate
+ok 40 - tiny valid source refuses the overflowing existing native SI density intermediate
+  ---
+  duration_ms: 3.076542
+  type: 'test'
+  ...
+# Subtest: all returned raw midpoint Number bits equal generic nearest on positive, negative and zero moments
+ok 41 - all returned raw midpoint Number bits equal generic nearest on positive, negative and zero moments
+  ---
+  duration_ms: 27.842
+  type: 'test'
+  ...
+# Subtest: exact per-face quotient bounds cover independent tensor derivatives without a native D1 call
+ok 42 - exact per-face quotient bounds cover independent tensor derivatives without a native D1 call
+  ---
+  duration_ms: 7.646125
+  type: 'test'
+  ...
+# Subtest: both actual native five-row half-walls retain full-domain Lipschitz bounds across the repeated knot
+ok 43 - both actual native five-row half-walls retain full-domain Lipschitz bounds across the repeated knot
+  ---
+  duration_ms: 14.440958
+  type: 'test'
+  ...
+# Subtest: native cap residual matches an independent exact affine oracle for top and swapped bottom bases
+ok 44 - native cap residual matches an independent exact affine oracle for top and swapped bottom bases
+  ---
+  duration_ms: 7.11575
+  type: 'test'
+  ...
+# Subtest: affine residual is maximum per-pole L1 and unchanged exact canonical basis is mandatory
+ok 45 - affine residual is maximum per-pole L1 and unchanged exact canonical basis is mandatory
+  ---
+  duration_ms: 0.83725
+  type: 'test'
+  ...
+# Subtest: pcurve range uses exact hulls, actual rounded slack endpoints and exact zero Z
+ok 46 - pcurve range uses exact hulls, actual rounded slack endpoints and exact zero Z
+  ---
+  duration_ms: 0.458291
+  type: 'test'
+  ...
+# Subtest: slack alone cannot forgive the exact outside-domain clamp counterexample
+ok 47 - slack alone cannot forgive the exact outside-domain clamp counterexample
+  ---
+  duration_ms: 0.428125
+  type: 'test'
+  ...
+# Subtest: inflation includes both independent D0 terms and exact UV-to-world propagation once
+ok 48 - inflation includes both independent D0 terms and exact UV-to-world propagation once
+  ---
+  duration_ms: 0.303292
+  type: 'test'
+  ...
+# Subtest: endpoint point gaps honor the exact supplied entity tolerance including tiny equality
+ok 49 - endpoint point gaps honor the exact supplied entity tolerance including tiny equality
+  ---
+  duration_ms: 0.283833
+  type: 'test'
+  ...
+# Subtest: prepared faces are owned by one host context and inputs or error rationals stay immutable
+ok 50 - prepared faces are owned by one host context and inputs or error rationals stay immutable
+  ---
+  duration_ms: 0.653875
+  type: 'test'
+  ...
+# Subtest: unsupported source nets, affine violations and malformed own data refuse explicitly
+ok 51 - unsupported source nets, affine violations and malformed own data refuse explicitly
+  ---
+  duration_ms: 1.033167
+  type: 'test'
+  ...
+# Subtest: all helper exact and structural work shares the supplied native ledger and existing budgets
+ok 52 - all helper exact and structural work shares the supplied native ledger and existing budgets
+  ---
+  duration_ms: 0.535334
+  type: 'test'
+  ...
+# Subtest: identical finite endpoint axes retain a fresh normalized bound without caller aliasing
+ok 53 - identical finite endpoint axes retain a fresh normalized bound without caller aliasing
+  ---
+  duration_ms: 0.074416
+  type: 'test'
+  ...
+# Subtest: all four actual spans match independent generic Bernstein products at multiple native radii
+ok 54 - all four actual spans match independent generic Bernstein products at multiple native radii
+  ---
+  duration_ms: 63.2535
+  type: 'test'
+  ...
+# Subtest: the cycle is derived from actual directed endpoints, independent of span list order
+ok 55 - the cycle is derived from actual directed endpoints, independent of span list order
+  ---
+  duration_ms: 5.970417
+  type: 'test'
+  ...
+# Subtest: nonclosed, branched, reversed, angularly singular and unsupported operands refuse
+ok 56 - nonclosed, branched, reversed, angularly singular and unsupported operands refuse
+  ---
+  duration_ms: 10.292291
+  type: 'test'
+  ...
+# Subtest: a changed admitted lower weight produces its own exact proof instead of borrowing the upper quarter
+ok 57 - a changed admitted lower weight produces its own exact proof instead of borrowing the upper quarter
+  ---
+  duration_ms: 4.619791
+  type: 'test'
+  ...
+# Subtest: the actual fresh native/formal prefix stays identical and its complete cost is retained
+ok 58 - the actual fresh native/formal prefix stays identical and its complete cost is retained
+  ---
+  duration_ms: 179.128417
+  type: 'test'
+  ...
+# Subtest: the complete operation total succeeds, one less refuses, and the former prefix cap cannot fund new work
+ok 59 - the complete operation total succeeds, one less refuses, and the former prefix cap cannot fund new work
+  ---
+  duration_ms: 150.628125
+  type: 'test'
+  ...
+# Subtest: the distinct Z0 original reference request fits with all four spans and unchanged physical exclusions
+ok 60 - the distinct Z0 original reference request fits with all four spans and unchanged physical exclusions
+  ---
+  duration_ms: 27.927
+  type: 'test'
+  ...
+# Subtest: profile relief: independent 12124/11236 volume, counters, separate seated strokes, codec, dimensions and immutable history
+ok 61 - profile relief: independent 12124/11236 volume, counters, separate seated strokes, codec, dimensions and immutable history
+  ---
+  duration_ms: 215.118
+  type: 'test'
+  ...
+# Subtest: profile relief: a raised height may exceed slab thickness; a pocket must keep a bottom web
+ok 62 - profile relief: a raised height may exceed slab thickness; a pocket must keep a bottom web
+  ---
+  duration_ms: 41.089458
+  type: 'test'
+  ...
+# Subtest: profile relief: every component lies in actual material, including target holes and concave notches
+ok 63 - profile relief: every component lies in actual material, including target holes and concave notches
+  ---
+  duration_ms: 47.999209
+  type: 'test'
+  ...
+# Subtest: profile relief: cap/material clearance is strict and a smaller request cannot relax the native policy
+ok 64 - profile relief: cap/material clearance is strict and a smaller request cannot relax the native policy
+  ---
+  duration_ms: 20.910709
+  type: 'test'
+  ...
+# Subtest: profile relief: overlapping, touching and near-contact raw ink components are explicitly outside initial scope
+ok 65 - profile relief: overlapping, touching and near-contact raw ink components are explicitly outside initial scope
+  ---
+  duration_ms: 26.224
+  type: 'test'
+  ...
+# Subtest: profile relief: exact selected trim is checked separately from full material on split coplanar caps
+ok 66 - profile relief: exact selected trim is checked separately from full material on split coplanar caps
+  ---
+  duration_ms: 16.690834
+  type: 'test'
+  ...
+# Subtest: profile relief: selected cap names and stored signatures remain authored references
+ok 67 - profile relief: selected cap names and stored signatures remain authored references
+  ---
+  duration_ms: 29.78625
+  type: 'test'
+  ...
+# Subtest: profile relief: only one physical line-only upright slab is admitted
+ok 68 - profile relief: only one physical line-only upright slab is admitted
+  ---
+  duration_ms: 5.036125
+  type: 'test'
+  ...
+# Subtest: profile relief: non-XY sketch frames, arcs and multiple outer regions refuse; an XY translation preserves area
+ok 69 - profile relief: non-XY sketch frames, arcs and multiple outer regions refuse; an XY translation preserves area
+  ---
+  duration_ms: 17.467542
+  type: 'test'
+  ...
+# Subtest: profile relief: dimensions, references, descriptors and typed arrays have explicit admission boundaries
+ok 70 - profile relief: dimensions, references, descriptors and typed arrays have explicit admission boundaries
+  ---
+  duration_ms: 18.369667
+  type: 'test'
+  ...
+# Subtest: profile relief: 64 separated components fit direct construction; count and aggregate work limits still refuse
+ok 71 - profile relief: 64 separated components fit direct construction; count and aggregate work limits still refuse
+  ---
+  duration_ms: 302.562417
+  type: 'test'
+  ...
+# Subtest: profile relief: zero-area, crossing, outside, nested and touching profile counters refuse
+ok 72 - profile relief: zero-area, crossing, outside, nested and touching profile counters refuse
+  ---
+  duration_ms: 8.893625
+  type: 'test'
+  ...
+# Subtest: profile relief: an unproved native boundary representative refuses instead of weakening the exact mass audit
+ok 73 - profile relief: an unproved native boundary representative refuses instead of weakening the exact mass audit
+  ---
+  duration_ms: 3.453542
+  type: 'test'
+  ...
+1..73
+# tests 73
+# suites 0
+# pass 73
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1259.253334

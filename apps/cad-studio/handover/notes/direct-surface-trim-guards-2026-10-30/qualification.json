@@ -1,0 +1,205 @@
+{
+  "workId": "D336",
+  "date": "2026-10-30",
+  "status": "BOUNDED_QUALIFIED",
+  "scope": "Six existing direct-surface consumers now refuse unsupported trim input. No new trimmed-geometry support or whole08 acceptance.",
+  "source": {
+    "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+    "branch": "local/cad-dev",
+    "preFix": "1fb2d11e9e4713bac3bfbc1131fc45302aa558f3",
+    "repairAndBrowser": "7ab1a23c9ed2aed24d8281430eff04591f118171",
+    "changedProduction": [
+      "packages/barocss-cad-model/src/engine/direct.ts"
+    ],
+    "changes": "Private guard only; no Kernel, Studio production, API signature, schema, runtime dependency, UV mapping or clipping change."
+  },
+  "contract": {
+    "DIRECT_VALUE": [
+      "reverseSurface",
+      "splitSurface",
+      "surfaceRegion",
+      "extendSurface"
+    ],
+    "DIRECT_INTERSECT": "Both selected surface operands resolve before trim admission.",
+    "IGES_EXPORT": "Guard all visible surfaces before writer invocation. Hidden trimmed originals do not block other untrimmed exports.",
+    "admission": "Nonempty trim arrays and defined malformed non-array containers refuse. Empty arrays pass. Explicit Untrim stays intentional and undoable.",
+    "ordering": "Pick/kind resolution precedes guard; guard precedes native work and ID/source allocation. Extend positive-distance validation remains first. Trimmed invalid axis/interval can now refuse trims before native validation."
+  },
+  "checks": {
+    "preFixProbe": {
+      "status": "SIX_WRONG_SUCCESSES_CONFIRMED",
+      "exitCode": 0,
+      "results": "probe/results.json",
+      "report": "probe/report.md",
+      "firstFailure": null,
+      "boundary": "Unsafe returned success is the defect, not a probe failure. Six main cases use exact authored metadata. Separate public projection returns 160 UV samples."
+    },
+    "model": {
+      "status": "PASS",
+      "relatedFirst": {
+        "pass": 24,
+        "fail": 0,
+        "log": "model/tests-first.log"
+      },
+      "focusedAfterMalformedCoverage": {
+        "pass": 7,
+        "fail": 0,
+        "log": "model/tests-focused.log"
+      },
+      "types": "PASS",
+      "lint": "PASS",
+      "diffCheck": "PASS",
+      "firstFailure": null
+    },
+    "sourceReview": {
+      "status": "NO_ACTIONABLE_FINDING",
+      "runtime": "NOT_RUN",
+      "report": "review/review.md"
+    },
+    "studioSource": {
+      "status": "UNCHANGED_EXISTING_CATCH_PATH",
+      "productionAndTestDelta": 0,
+      "report": "studio/assessment.md"
+    },
+    "api": {
+      "status": "SCOPED_PASS",
+      "expectedInventory": "UNCHANGED",
+      "log": "root/api-check-first.txt",
+      "boundary": "Existing six rules only; no new API candidate or expected snapshot."
+    },
+    "studioTypes": {
+      "status": "PASS",
+      "log": "root/studio-types.txt"
+    },
+    "studioBuild": {
+      "status": "PASS",
+      "log": "root/studio-build.txt",
+      "boundary": "Existing bundler warnings retained."
+    },
+    "lint": {
+      "status": "PASS",
+      "errors": 0,
+      "warnings": 1,
+      "log": "root/lint.txt",
+      "boundary": "Existing browser driver console warning."
+    },
+    "agentTools": {
+      "exitCode": 0,
+      "log": "root/agent-tools.txt"
+    },
+    "refusals": {
+      "exitCode": 0,
+      "log": "root/refusals.txt"
+    },
+    "browser": {
+      "status": "FULL_FLOW_PASS",
+      "receipt": "root/native-first/receipt.json",
+      "profiles": 1,
+      "observationalStates": 17,
+      "guardActions": 6,
+      "backend": "Chrome WebGPU",
+      "invocations": 1,
+      "contextsClosed": 4,
+      "downloads": 4,
+      "pageErrors": 0,
+      "consoleErrors": 0,
+      "sourceChanges": 0,
+      "boundary": "17 states are observations, not 17 tests. Three native saves and one positive IGES download. No failed prefix or retake."
+    },
+    "docs": {
+      "status": "PASS",
+      "exit": 0,
+      "metrics": {
+        "pages": 68,
+        "beingWritten": 0,
+        "shots": 55,
+        "shotKB": 4811,
+        "labels": 861
+      },
+      "boundary": "Post-note, decision, roadmap, resume and public guide assembly; only receipt/log/manifest changed afterward."
+    },
+    "kernelWhole": {
+      "status": "NOT_RERUN_UNCHANGED_KERNEL",
+      "priorWorkId": "D335",
+      "priorPass": 2229,
+      "priorSkip": 6,
+      "priorQualification": "../fill-cut-pattern-2026-10-30/qualification.json",
+      "boundary": "Earlier unchanged-Kernel baseline, not a D336 run."
+    }
+  },
+  "independentOracle": {
+    "path": "plan/independent-oracle.json",
+    "method": "Python Fraction, independent of product geometry",
+    "plane": "S(u,v)=[20+5u,-11+5v,3]; u[-2,6],v[1,7]",
+    "holeUV": "[-1,1] x [2,4], keep outside",
+    "materialArea": 1100,
+    "materialCentroid": [
+      "340/11",
+      "104/11",
+      3
+    ],
+    "sampledDisplayArea": 1100.0813802331686,
+    "preFix": {
+      "reverseArea": 1200,
+      "splitAreas": [
+        600,
+        600
+      ],
+      "expectedSplitAreas": [
+        500,
+        600
+      ],
+      "regionArea": 400,
+      "expectedRegionArea": 300,
+      "extendArea": 1350,
+      "expectedExtendArea": 1250,
+      "igesPublicReimportArea": 1200,
+      "intersectionHoleOverlapMM": 10
+    },
+    "witness": {
+      "key": "b1",
+      "volume": 420,
+      "centroid": [
+        86,
+        0.5,
+        3.5
+      ],
+      "tolerance": 1e-07,
+      "names": [
+        "n1.side0",
+        "n1.side1",
+        "n1.side2",
+        "n1.side3",
+        "n1.bottom",
+        "n1.top"
+      ],
+      "boundary": "Tolerance applies to unrelated accepted solid only, not trimmed surface mass."
+    }
+  },
+  "ownershipProof": {
+    "native": "Baseline exact loops, all-six-guards still trimmed, final intentional Untrim/reversed each Save/fresh Open semantically equal.",
+    "undoRedo": "Untrim removes panel.trims only. Reverse hides old untrimmed object and adds new untrimmed object. Two Undo restore Reverse then Untrim and exact original loops; two Redo reproduce.",
+    "positiveIGES": "Actual downloaded 1215-byte file reimports through built public Kernel parser as 2 surfaces, 0 curves. Intentional untrimmed profile only.",
+    "refusals": "Six fresh notices; accepted doc, DOM direct selection and no-download checks pass."
+  },
+  "provenance": {
+    "preFixListedInputs": 496,
+    "preFixBeforeAfterMatch": 496,
+    "browserListedInputs": 11,
+    "browserBeforeAfterGitMatch": 11,
+    "boundary": "Listed inputs only. Hashes prove provenance, not geometry or the complete served graph.",
+    "manifest": "artifact-manifest.json",
+    "decodedHashes": "source-provenance.json"
+  },
+  "notProven": [
+    "Studio thicken action or allowance (NOT_PROVEN)",
+    "UV transport, dual-UV clipping, new trimmed geometry support",
+    "Exact sampled trim-mesh precision",
+    "Full Model/Studio/GPU/Viewer suites",
+    "Natural Boolean failure",
+    "Performance, remote CI, release or commercial acceptance",
+    "Whole08/09/12/13/16 completion",
+    "Async stale-export ownership candidate (SOURCE_ONLY_NOT_REPRODUCED)"
+  ],
+  "next": "D337 investigates the next remaining08 consumer or generality gap. Keep09 after08. Existing12/O9/R4 retains the lower-priority source-only stale-export candidate. Electron15 stays queued. No new queue."
+}

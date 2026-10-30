@@ -1,0 +1,47 @@
+total s 11.41
+   1.70s  14.9%  (anon) math.js:251
+   1.33s  11.7%  basisInto math.js:115
+   1.07s   9.4%  (garbage collector) :0
+   1.07s   9.4%  nearBoundary brep-mass-quadrature.js:1008
+   0.52s   4.6%  invert brep-tessellate.js:1181
+   0.28s   2.5%  (anon) analytic-boolean.js:399
+   0.24s   2.1%  wholePatch brep-mass-quadrature.js:951
+   0.24s   2.1%  newton analytic-boolean.js:83
+   0.20s   1.8%  tessellate brep-tessellate.js:383
+   0.19s   1.7%  intersectPatches surface-intersection.js:158
+   0.16s   1.4%  segmentKey brep-tessellate.js:379
+   0.14s   1.2%  triangulatePolygonWithHoles brep-tessellate.js:216
+   0.12s   1.1%  brepQuadratureIntegrals brep-mass-quadrature.js:160
+   0.11s   1.0%  validateCurve math.js:42
+   0.11s   0.9%  rayHits analytic-boolean.js:1887
+   0.10s   0.9%  fp perf-bench.mjs:17
+   0.09s   0.8%  index brep-tessellate.js:466
+   0.09s   0.8%  to3Extended analytic-boolean.js:166
+   0.09s   0.8%  len vec3.js:6
+   0.08s   0.7%  crossingsAt curved-arrangement.js:1038
+   0.08s   0.7%  compileSourceTextModule utils:344
+   0.08s   0.7%  nurbsParam analytic-boolean.js:82
+   0.07s   0.6%  at analytic-boolean.js:1163
+   0.07s   0.6%  (anon) math.js:224
+   0.06s   0.5%  (anon) analytic-boolean.js:459
+   0.06s   0.5%  paramOf curved-arrangement.js:210
+   0.06s   0.5%  rate analytic-boolean.js:344
+   0.06s   0.5%  goldenNearest curved-arrangement.js:199
+   0.06s   0.5%  gridTriangles surface-intersection.js:134
+   0.06s   0.5%  build analytic-boolean.js:329
+   0.06s   0.5%  intersectSegments curved-arrangement.js:398
+   0.05s   0.5%  surfaceTriangles brep-tessellate.js:1251
+   0.05s   0.5%  checkBrep brep-core.js:180
+   0.05s   0.5%  polylineLength brep-mass-quadrature.js:992
+   0.05s   0.4%  read :0
+   0.05s   0.4%  to2 analytic-boolean.js:140
+   0.05s   0.4%  basisD1 derivatives.js:8
+   0.04s   0.4%  G analytic-boolean.js:1891
+   0.04s   0.4%  samples curved-arrangement.js:55
+   0.04s   0.4%  sub vec3.js:2
+patchIntegrals total s 0.1
+   0.04s  40.4%  spanBases:1084
+   0.03s  34.3%  (self)
+   0.02s  18.7%  patchPoint:1165
+   0.00s   4.0%  surfaceDomain:97 > validateSurface:53
+   0.00s   2.6%  uSums:1138

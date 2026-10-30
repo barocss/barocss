@@ -1,0 +1,11 @@
+Final summary excerpt from the complete kernel TAP. The complete local log is /tmp/barocss-closed-reference-kernel-full.log.
+
+1..2179
+# tests 2179
+# suites 0
+# pass 2173
+# fail 0
+# cancelled 0
+# skipped 6
+# todo 0
+# duration_ms 260893.378583

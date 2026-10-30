@@ -1,0 +1,829 @@
+{
+  "status": "SCHEDULE_OBSERVED",
+  "mode": "controlled",
+  "source": "5463dbf32af5dd10670badd0d334c68504615292",
+  "preflight": {
+    "authorPath": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+    "authorHEAD": "b1a9ed8c9dbbbe463fae1600151041870914937d",
+    "previousComparedHEAD": "73c6085171f7d9b6931c395917742211f0266cbb",
+    "source": [
+      {
+        "file": "apps/cad-studio/src/App.tsx",
+        "sha256": "2ee6565e79125c56905b9418adcbc6fc8286449bee939609cfe7ead6814c3593",
+        "equalTo73c6085": true
+      },
+      {
+        "file": "apps/cad-studio/src/engine/client.ts",
+        "sha256": "56f10abe7acc2c3d528a7fc6096e8dbf0b6b5b1417d41e85dc6752cd76303d6b",
+        "equalTo73c6085": true
+      },
+      {
+        "file": "apps/cad-studio/src/ui/RenderPanel.tsx",
+        "sha256": "5d699ca69d9de904ae858e1d156293db9e3547009a9f130355fed0eebebf544e",
+        "equalTo73c6085": true
+      },
+      {
+        "file": "apps/cad-studio/src/state/useVariants.ts",
+        "sha256": "3cd3dbdc43aedc545e095c1e5344be1f3519b2393b38c17afdb0bd170ba507c9",
+        "equalTo73c6085": true
+      },
+      {
+        "file": "packages/barocss-cad-model/src/engine/evalMemo.ts",
+        "sha256": "f233493294e422ffed1c3919907745f6a712d9e81e14ff1405396f4d07d0e24b",
+        "equalTo73c6085": true
+      }
+    ],
+    "WIP": "Excluded: committed objects only",
+    "executableBaseline": "5463dbf32af5dd10670badd0d334c68504615292",
+    "rootHEADDiff": "Excluded: first command accidentally compared unrelated root checkout HEAD; no source conclusion used it"
+  },
+  "states": [
+    {
+      "label": "D0",
+      "nodes": 2,
+      "grid": "OMITTED",
+      "dirty": true,
+      "fresh": true,
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": 16384,
+            "centroid": [
+              16,
+              16,
+              8
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "undo": {
+        "disabled": false,
+        "tip": "Undo Box 32\u00d732\u00d716",
+        "visible": true
+      },
+      "redo": {
+        "disabled": true,
+        "tip": "Nothing to redo",
+        "visible": true
+      },
+      "stop": null,
+      "recoveryNodes": null,
+      "recoveryGrid": null,
+      "claimed": null,
+      "traceCount": 18
+    },
+    {
+      "label": "D1-pending",
+      "nodes": 4,
+      "grid": "OMITTED",
+      "dirty": true,
+      "fresh": false,
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          },
+          {
+            "key": "b3",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "undo": {
+        "disabled": false,
+        "tip": "Undo Box 32\u00d732\u00d716",
+        "visible": true
+      },
+      "redo": {
+        "disabled": true,
+        "tip": "Nothing to redo",
+        "visible": true
+      },
+      "stop": {
+        "disabled": false,
+        "tip": null,
+        "visible": true
+      },
+      "recoveryNodes": 4,
+      "recoveryGrid": "OMITTED",
+      "claimed": {
+        "key": 1,
+        "id": 6,
+        "revision": 6,
+        "nativeSource": {
+          "epoch": 1,
+          "requestId": 6,
+          "revision": 6,
+          "slot": "evaluate"
+        }
+      },
+      "traceCount": 28
+    },
+    {
+      "label": "D2-grid-pending",
+      "nodes": 4,
+      "grid": true,
+      "dirty": true,
+      "fresh": false,
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          },
+          {
+            "key": "b3",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "undo": {
+        "disabled": false,
+        "tip": "Undo change",
+        "visible": true
+      },
+      "redo": {
+        "disabled": true,
+        "tip": "Nothing to redo",
+        "visible": true
+      },
+      "stop": {
+        "disabled": false,
+        "tip": null,
+        "visible": true
+      },
+      "recoveryNodes": 4,
+      "recoveryGrid": "OMITTED",
+      "claimed": {
+        "key": 1,
+        "id": 6,
+        "revision": 6,
+        "nativeSource": {
+          "epoch": 1,
+          "requestId": 6,
+          "revision": 6,
+          "slot": "evaluate"
+        }
+      },
+      "traceCount": 28
+    },
+    {
+      "label": "after-Stop-immediate",
+      "nodes": 4,
+      "grid": "OMITTED",
+      "dirty": true,
+      "fresh": true,
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          },
+          {
+            "key": "b3",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "undo": {
+        "disabled": false,
+        "tip": "Undo Box 32\u00d732\u00d716",
+        "visible": true
+      },
+      "redo": {
+        "disabled": false,
+        "tip": "Redo change",
+        "visible": true
+      },
+      "stop": null,
+      "recoveryNodes": 4,
+      "recoveryGrid": "OMITTED",
+      "claimed": {
+        "key": 1,
+        "id": 6,
+        "revision": 6,
+        "nativeSource": {
+          "epoch": 1,
+          "requestId": 6,
+          "revision": 6,
+          "slot": "evaluate"
+        }
+      },
+      "traceCount": 30
+    },
+    {
+      "label": "after-Stop-recovery",
+      "nodes": 4,
+      "grid": "OMITTED",
+      "dirty": true,
+      "fresh": true,
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          },
+          {
+            "key": "b3",
+            "volume": null,
+            "centroid": null,
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "undo": {
+        "disabled": false,
+        "tip": "Undo Box 32\u00d732\u00d716",
+        "visible": true
+      },
+      "redo": {
+        "disabled": false,
+        "tip": "Redo change",
+        "visible": true
+      },
+      "stop": null,
+      "recoveryNodes": 4,
+      "recoveryGrid": "OMITTED",
+      "claimed": {
+        "key": 1,
+        "id": 6,
+        "revision": 6,
+        "nativeSource": {
+          "epoch": 1,
+          "requestId": 6,
+          "revision": 6,
+          "slot": "evaluate"
+        }
+      },
+      "traceCount": 30
+    },
+    {
+      "label": "after-Undo",
+      "nodes": 2,
+      "grid": "OMITTED",
+      "dirty": true,
+      "fresh": true,
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": 16384,
+            "centroid": [
+              16,
+              16,
+              8
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "undo": {
+        "disabled": false,
+        "tip": "Undo Box 32\u00d732\u00d716",
+        "visible": true
+      },
+      "redo": {
+        "disabled": false,
+        "tip": "Redo Box 32\u00d732\u00d716",
+        "visible": true
+      },
+      "stop": null,
+      "recoveryNodes": 4,
+      "recoveryGrid": "OMITTED",
+      "claimed": {
+        "key": 1,
+        "id": 6,
+        "revision": 6,
+        "nativeSource": {
+          "epoch": 1,
+          "requestId": 6,
+          "revision": 6,
+          "slot": "evaluate"
+        }
+      },
+      "traceCount": 35
+    },
+    {
+      "label": "after-Redo",
+      "nodes": 4,
+      "grid": "OMITTED",
+      "dirty": true,
+      "fresh": true,
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": 16384,
+            "centroid": [
+              16,
+              16,
+              8
+            ],
+            "massRef": null
+          },
+          {
+            "key": "b3",
+            "volume": 16384.000000000004,
+            "centroid": [
+              63.999999999999964,
+              15.999999999999996,
+              8
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "undo": {
+        "disabled": false,
+        "tip": "Undo Box 32\u00d732\u00d716",
+        "visible": true
+      },
+      "redo": {
+        "disabled": false,
+        "tip": "Redo change",
+        "visible": true
+      },
+      "stop": null,
+      "recoveryNodes": 4,
+      "recoveryGrid": "OMITTED",
+      "claimed": {
+        "key": 1,
+        "id": 6,
+        "revision": 6,
+        "nativeSource": {
+          "epoch": 1,
+          "requestId": 6,
+          "revision": 6,
+          "slot": "evaluate"
+        }
+      },
+      "traceCount": 40
+    },
+    {
+      "label": "small-Grid-edit",
+      "nodes": 4,
+      "grid": true,
+      "dirty": true,
+      "fresh": true,
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": 16384,
+            "centroid": [
+              16,
+              16,
+              8
+            ],
+            "massRef": null
+          },
+          {
+            "key": "b3",
+            "volume": 16384.000000000004,
+            "centroid": [
+              63.999999999999964,
+              15.999999999999996,
+              8
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "undo": {
+        "disabled": false,
+        "tip": "Undo change",
+        "visible": true
+      },
+      "redo": {
+        "disabled": true,
+        "tip": "Nothing to redo",
+        "visible": true
+      },
+      "stop": null,
+      "recoveryNodes": 4,
+      "recoveryGrid": "OMITTED",
+      "claimed": {
+        "key": 1,
+        "id": 6,
+        "revision": 6,
+        "nativeSource": {
+          "epoch": 1,
+          "requestId": 6,
+          "revision": 6,
+          "slot": "evaluate"
+        }
+      },
+      "traceCount": 40
+    },
+    {
+      "label": "small-Grid-Undo",
+      "nodes": 4,
+      "grid": "OMITTED",
+      "dirty": true,
+      "fresh": true,
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": 16384,
+            "centroid": [
+              16,
+              16,
+              8
+            ],
+            "massRef": null
+          },
+          {
+            "key": "b3",
+            "volume": 16384.000000000004,
+            "centroid": [
+              63.999999999999964,
+              15.999999999999996,
+              8
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "undo": {
+        "disabled": false,
+        "tip": "Undo Box 32\u00d732\u00d716",
+        "visible": true
+      },
+      "redo": {
+        "disabled": false,
+        "tip": "Redo change",
+        "visible": true
+      },
+      "stop": null,
+      "recoveryNodes": 4,
+      "recoveryGrid": "OMITTED",
+      "claimed": {
+        "key": 1,
+        "id": 6,
+        "revision": 6,
+        "nativeSource": {
+          "epoch": 1,
+          "requestId": 6,
+          "revision": 6,
+          "slot": "evaluate"
+        }
+      },
+      "traceCount": 40
+    }
+  ],
+  "selectedTrace": [
+    {
+      "seq": 21,
+      "ms": 3238.0999999046326,
+      "kind": "arm"
+    },
+    {
+      "seq": 22,
+      "ms": 3294.0999999046326,
+      "kind": "submit",
+      "key": 1,
+      "type": "evaluate",
+      "id": 6,
+      "revision": 6,
+      "nativeSource": {
+        "epoch": 1,
+        "requestId": 6,
+        "revision": 6,
+        "slot": "evaluate"
+      }
+    },
+    {
+      "seq": 23,
+      "ms": 3294.0999999046326,
+      "kind": "claimed",
+      "key": 1,
+      "id": 6,
+      "revision": 6,
+      "nativeSource": {
+        "epoch": 1,
+        "requestId": 6,
+        "revision": 6,
+        "slot": "evaluate"
+      },
+      "holding": true
+    },
+    {
+      "seq": 24,
+      "ms": 3338.2000000476837,
+      "kind": "native-receive",
+      "key": 1,
+      "id": 6,
+      "progress": null,
+      "masses": false,
+      "revision": 6,
+      "ok": true,
+      "resultKeys": [
+        "ok",
+        "revision",
+        "bodies",
+        "wallTime",
+        "faceTable",
+        "shopRows",
+        "rebuild"
+      ],
+      "bodyCount": 2
+    },
+    {
+      "seq": 25,
+      "ms": 3338.2000000476837,
+      "kind": "held",
+      "key": 1,
+      "id": 6,
+      "progress": null,
+      "masses": false,
+      "revision": 6,
+      "ok": true,
+      "resultKeys": [
+        "ok",
+        "revision",
+        "bodies",
+        "wallTime",
+        "faceTable",
+        "shopRows",
+        "rebuild"
+      ],
+      "bodyCount": 2
+    },
+    {
+      "seq": 26,
+      "ms": 3500,
+      "kind": "native-receive",
+      "key": 1,
+      "id": null,
+      "progress": null,
+      "masses": true,
+      "revision": null,
+      "ok": null,
+      "resultKeys": null,
+      "bodyCount": null
+    },
+    {
+      "seq": 27,
+      "ms": 3500,
+      "kind": "held",
+      "key": 1,
+      "id": null,
+      "progress": null,
+      "masses": true,
+      "revision": null,
+      "ok": null,
+      "resultKeys": null,
+      "bodyCount": null
+    },
+    {
+      "seq": 28,
+      "ms": 5716,
+      "kind": "terminate",
+      "key": 1,
+      "discardedHeld": 2
+    },
+    {
+      "seq": 29,
+      "ms": 5716.099999904633,
+      "kind": "construct",
+      "key": 3,
+      "relevant": true,
+      "url": "http://127.0.0.1:60229/src/engine/engine.worker.ts?worker_file&type=module"
+    },
+    {
+      "seq": 30,
+      "ms": 7022,
+      "kind": "submit",
+      "key": 3,
+      "type": "evaluate",
+      "id": 7,
+      "revision": 7,
+      "nativeSource": {
+        "epoch": 2,
+        "requestId": 7,
+        "revision": 7,
+        "slot": "evaluate"
+      }
+    },
+    {
+      "seq": 31,
+      "ms": 7062.700000047684,
+      "kind": "native-receive",
+      "key": 3,
+      "id": 7,
+      "progress": null,
+      "masses": false,
+      "revision": 7,
+      "ok": true,
+      "resultKeys": [
+        "ok",
+        "revision",
+        "bodies",
+        "wallTime",
+        "faceTable",
+        "shopRows",
+        "rebuild"
+      ],
+      "bodyCount": 1
+    },
+    {
+      "seq": 32,
+      "ms": 7062.700000047684,
+      "kind": "delivery-to-client-event",
+      "key": 3,
+      "id": 7,
+      "progress": null,
+      "masses": false,
+      "revision": 7,
+      "ok": true,
+      "resultKeys": [
+        "ok",
+        "revision",
+        "bodies",
+        "wallTime",
+        "faceTable",
+        "shopRows",
+        "rebuild"
+      ],
+      "bodyCount": 1
+    },
+    {
+      "seq": 33,
+      "ms": 7239.599999904633,
+      "kind": "native-receive",
+      "key": 3,
+      "id": null,
+      "progress": null,
+      "masses": true,
+      "revision": null,
+      "ok": null,
+      "resultKeys": null,
+      "bodyCount": null
+    },
+    {
+      "seq": 34,
+      "ms": 7239.599999904633,
+      "kind": "delivery-to-client-event",
+      "key": 3,
+      "id": null,
+      "progress": null,
+      "masses": true,
+      "revision": null,
+      "ok": null,
+      "resultKeys": null,
+      "bodyCount": null
+    },
+    {
+      "seq": 35,
+      "ms": 7372.799999952316,
+      "kind": "submit",
+      "key": 3,
+      "type": "evaluate",
+      "id": 8,
+      "revision": 8,
+      "nativeSource": {
+        "epoch": 2,
+        "requestId": 8,
+        "revision": 8,
+        "slot": "evaluate"
+      }
+    },
+    {
+      "seq": 36,
+      "ms": 7414.399999856949,
+      "kind": "native-receive",
+      "key": 3,
+      "id": 8,
+      "progress": null,
+      "masses": false,
+      "revision": 8,
+      "ok": true,
+      "resultKeys": [
+        "ok",
+        "revision",
+        "bodies",
+        "wallTime",
+        "faceTable",
+        "shopRows",
+        "rebuild"
+      ],
+      "bodyCount": 2
+    },
+    {
+      "seq": 37,
+      "ms": 7414.399999856949,
+      "kind": "delivery-to-client-event",
+      "key": 3,
+      "id": 8,
+      "progress": null,
+      "masses": false,
+      "revision": 8,
+      "ok": true,
+      "resultKeys": [
+        "ok",
+        "revision",
+        "bodies",
+        "wallTime",
+        "faceTable",
+        "shopRows",
+        "rebuild"
+      ],
+      "bodyCount": 2
+    },
+    {
+      "seq": 38,
+      "ms": 7581.099999904633,
+      "kind": "native-receive",
+      "key": 3,
+      "id": null,
+      "progress": null,
+      "masses": true,
+      "revision": null,
+      "ok": null,
+      "resultKeys": null,
+      "bodyCount": null
+    },
+    {
+      "seq": 39,
+      "ms": 7581.099999904633,
+      "kind": "delivery-to-client-event",
+      "key": 3,
+      "id": null,
+      "progress": null,
+      "masses": true,
+      "revision": null,
+      "ok": null,
+      "resultKeys": null,
+      "bodyCount": null
+    }
+  ],
+  "observed": {
+    "modelEqualsD0": false,
+    "modelEqualsD1": true,
+    "renderEqualsD1": true,
+    "renderEqualsD2": false
+  },
+  "pageErrors": [],
+  "cleanup": [
+    {
+      "name": "context",
+      "status": "closed-owned-only"
+    },
+    {
+      "name": "browser",
+      "status": "closed-owned-only"
+    },
+    {
+      "name": "server",
+      "status": "closed-owned-only"
+    }
+  ],
+  "gateExit": "0",
+  "releaseExit": "0",
+  "probeExit": "0"
+}

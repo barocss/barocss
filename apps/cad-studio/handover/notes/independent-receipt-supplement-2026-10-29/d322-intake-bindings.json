@@ -1,0 +1,20 @@
+{
+  "files": {
+    "d322-review.md": {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/d322-late-save-receipt-review.md",
+      "bytes": 10022,
+      "sha256": "a35029df86428991a3f56a68470e5e5ffeba24368773063b6aa57212bd865e14"
+    },
+    "d322-verification.json": {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/verification/d322-late-save-receipt-review.json",
+      "bytes": 23626,
+      "sha256": "c0625d7f392ff05387d28dd40900fc98f5cdcc1c68ffc38d1886492fba9b7f31"
+    }
+  },
+  "rootCheck": "Only two cited manifest hashes against exact27500 commit, not a repeat of124 artifact checks or runtime tests",
+  "manifestBindings": [
+    "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/qualification-artifacts.json",
+    "apps/cad-studio/handover/notes/late-save-ownership-2026-10-29/consumers/artifact-manifest.json"
+  ],
+  "independentExecution": "NOT_RUN"
+}

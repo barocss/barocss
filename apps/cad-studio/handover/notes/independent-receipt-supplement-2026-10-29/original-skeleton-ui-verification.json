@@ -1,0 +1,28 @@
+{
+  "status": "PASS_COMPLETED_RECEIPTS_VERIFIED_NO_RERUN",
+  "sourceCommit": "b1a9ed8c9dbbbe463fae1600151041870914937d",
+  "fixtureSha256": "09a1e09a23c191b4ea0e0a62688b2bf208cbb16ff3512f02c76635ec9e4c7a98",
+  "savedSha256": "19b02c407c0ba90db56eb7979bf4ebf26f46b3e00c469a11dd63acc574c30ea1",
+  "strictWholeDocumentsVerified": 6,
+  "frozenSourceHashesUnchanged": 1144,
+  "harnessPinsUnchanged": 2,
+  "initialExecutionArtifactsUnchanged": 67,
+  "repairPreparationArtifactsUnchanged": 5,
+  "actualPinnedLoadedSources": 1020,
+  "workspaceResolutionRecords": 381,
+  "loadedRequiredAssets": [
+    "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runtime/b1a-studio-src/packages/barocss-cad-model/samples/rows/fastener-sizes.json",
+    "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runtime/b1a-studio-src/packages/barocss-cad-model/samples/rows/casting-rules.json",
+    "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runtime/b1a-studio-src/packages/barocss-cad-model/samples/rows/mounts.json"
+  ],
+  "invalidProductPaths": [],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "exits": {
+    "gate": 0,
+    "probe": 0,
+    "release": 0
+  },
+  "visualReview": "Separate visual-review.json; all7 actually viewed. Raw result retains pre-review pending label.",
+  "comparisonBoundary": "Pinned b1a execution; current e1f2 matches1143/1144 manifest entries. handleStore.ts differs. Seven relevant non-project UI/reader/skeleton files match. No D320/current-store qualification."
+}

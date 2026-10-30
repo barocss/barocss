@@ -1,0 +1,280 @@
+{
+  "status": "PASS",
+  "expected": {
+    "min": [
+      {
+        "numerator": "4447996384931129",
+        "denominator": "36028797018963968",
+        "value": 0.1234567
+      },
+      {
+        "numerator": "-1056399456673117",
+        "denominator": "4503599627370496",
+        "value": -0.2345678
+      },
+      {
+        "numerator": "1556799365229843",
+        "denominator": "4503599627370496",
+        "value": 0.3456789
+      }
+    ],
+    "max": [
+      {
+        "numerator": "5664257950219695",
+        "denominator": "281474976710656",
+        "value": 20.123486699999997
+      },
+      {
+        "numerator": "1374362400532245",
+        "denominator": "140737488355328",
+        "value": 9.7654322
+      },
+      {
+        "numerator": "9396399096048453",
+        "denominator": "1125899906842624",
+        "value": 8.3456789
+      }
+    ],
+    "volume": {
+      "numerator": "1169203063666686927331057867410654683368338813927723",
+      "denominator": "730750818665451459101842416358141509827966271488",
+      "value": 1600.0023999999996
+    },
+    "centroid": [
+      {
+        "numerator": "729473014013052089",
+        "denominator": "72057594037927936",
+        "value": 10.123471699999998
+      },
+      {
+        "numerator": "42923197360358723",
+        "denominator": "9007199254740992",
+        "value": 4.765432199999999
+      },
+      {
+        "numerator": "39142395749423655",
+        "denominator": "9007199254740992",
+        "value": 4.3456789
+      }
+    ],
+    "surfaceArea": {
+      "numerator": "35697084712431678892083309105223085",
+      "denominator": "40564819207303340847894502572032",
+      "value": 880.0010799999999
+    },
+    "oldCap": {
+      "numerator": "6018699375520581",
+      "denominator": "1125899906842624",
+      "value": 5.3456789
+    }
+  },
+  "nativeStructure": {
+    "bodies": 1,
+    "solidCount": 1,
+    "shellCount": 1,
+    "closedShellCount": 1,
+    "vertices": 8,
+    "edges": 12,
+    "faces": 6
+  },
+  "massPipelines": [
+    {
+      "name": "nativeCore",
+      "actualVolume": 1600.0023999999996,
+      "actualCentroid": [
+        10.1234717,
+        4.7654322,
+        4.3456789
+      ],
+      "sameOriginalNativeEndpointOracle": true,
+      "volumeError": {
+        "numerator": "-69771420887665482000868985022234923",
+        "denominator": "730750818665451459101842416358141509827966271488",
+        "value": -9.54790868590294e-14
+      },
+      "centroidErrors": [
+        {
+          "numerator": "71",
+          "denominator": "72057594037927936",
+          "value": 9.853229343548264e-16
+        },
+        {
+          "numerator": "5",
+          "denominator": "9007199254740992",
+          "value": 5.551115123125783e-16
+        },
+        {
+          "numerator": "1",
+          "denominator": "9007199254740992",
+          "value": 1.1102230246251565e-16
+        }
+      ]
+    },
+    {
+      "name": "publicPart",
+      "actualVolume": 1600.0024,
+      "actualCentroid": [
+        10.123471699999996,
+        4.765432199999999,
+        4.345678899999999
+      ],
+      "sameOriginalNativeEndpointOracle": true,
+      "volumeError": {
+        "numerator": "262535578058563486225082780047851221",
+        "denominator": "730750818665451459101842416358141509827966271488",
+        "value": 3.5926826402743474e-13
+      },
+      "centroidErrors": [
+        {
+          "numerator": "-185",
+          "denominator": "72057594037927936",
+          "value": -2.5673907444456745e-15
+        },
+        {
+          "numerator": "-3",
+          "denominator": "9007199254740992",
+          "value": -3.3306690738754696e-16
+        },
+        {
+          "numerator": "-7",
+          "denominator": "9007199254740992",
+          "value": -7.771561172376096e-16
+        }
+      ]
+    },
+    {
+      "name": "actualStudioModel",
+      "actualVolume": 1600.0024,
+      "actualCentroid": [
+        10.123471699999996,
+        4.765432199999999,
+        4.345678899999999
+      ],
+      "sameOriginalNativeEndpointOracle": true,
+      "volumeError": {
+        "numerator": "262535578058563486225082780047851221",
+        "denominator": "730750818665451459101842416358141509827966271488",
+        "value": 3.5926826402743474e-13
+      },
+      "centroidErrors": [
+        {
+          "numerator": "-185",
+          "denominator": "72057594037927936",
+          "value": -2.5673907444456745e-15
+        },
+        {
+          "numerator": "-3",
+          "denominator": "9007199254740992",
+          "value": -3.3306690738754696e-16
+        },
+        {
+          "numerator": "-7",
+          "denominator": "9007199254740992",
+          "value": -7.771561172376096e-16
+        }
+      ]
+    }
+  ],
+  "studioTargetIdentity": {
+    "key": "b6",
+    "ref": {
+      "node": 6,
+      "side": "solid"
+    }
+  },
+  "faceSupports": [
+    {
+      "id": "n6_b0/n6_b0_s0/n6_w0_0_0_0",
+      "name": "n1.side0",
+      "boundarySupportResidual": {
+        "numerator": "0",
+        "denominator": "1",
+        "value": 0.0
+      },
+      "surfaceSupportResidual": {
+        "numerator": "0",
+        "denominator": "1",
+        "value": 0.0
+      },
+      "oldCapExposed": false
+    },
+    {
+      "id": "n6_b0/n6_b0_s0/n6_w0_0_0_1",
+      "name": "n1.side1",
+      "boundarySupportResidual": {
+        "numerator": "0",
+        "denominator": "1",
+        "value": 0.0
+      },
+      "surfaceSupportResidual": {
+        "numerator": "0",
+        "denominator": "1",
+        "value": 0.0
+      },
+      "oldCapExposed": false
+    },
+    {
+      "id": "n6_b0/n6_b0_s0/n6_w0_0_0_2",
+      "name": "n1.side2",
+      "boundarySupportResidual": {
+        "numerator": "0",
+        "denominator": "1",
+        "value": 0.0
+      },
+      "surfaceSupportResidual": {
+        "numerator": "0",
+        "denominator": "1",
+        "value": 0.0
+      },
+      "oldCapExposed": false
+    },
+    {
+      "id": "n6_b0/n6_b0_s0/n6_w0_0_0_3",
+      "name": "n1.side3",
+      "boundarySupportResidual": {
+        "numerator": "0",
+        "denominator": "1",
+        "value": 0.0
+      },
+      "surfaceSupportResidual": {
+        "numerator": "0",
+        "denominator": "1",
+        "value": 0.0
+      },
+      "oldCapExposed": false
+    },
+    {
+      "id": "n6_b0/n6_b0_s0/n6_d0_0",
+      "name": "n1.bottom",
+      "boundarySupportResidual": {
+        "numerator": "0",
+        "denominator": "1",
+        "value": 0.0
+      },
+      "surfaceSupportResidual": {
+        "numerator": "0",
+        "denominator": "1",
+        "value": 0.0
+      },
+      "oldCapExposed": false
+    },
+    {
+      "id": "n6_b0/n6_b0_s0/n6_u1_0",
+      "name": "n5.top",
+      "boundarySupportResidual": {
+        "numerator": "1",
+        "denominator": "1125899906842624",
+        "value": 8.881784197001252e-16
+      },
+      "surfaceSupportResidual": {
+        "numerator": "1",
+        "denominator": "1125899906842624",
+        "value": 8.881784197001252e-16
+      },
+      "oldCapExposed": false
+    }
+  ],
+  "linearTolerance": 1e-07,
+  "massTolerance": 1e-07,
+  "scope": "Actual stored native original endpoints + represented distance, Fraction arithmetic; native support planes/boundary vertices plus native Core, public Part and accepted Studio Model mass; not display mesh or rounded UI text"
+}

@@ -1,0 +1,11 @@
+Working directory: /Users/user/Documents/ChatGPT/barocss
+Guard acquisition: /Users/user/.claude/local-mods/barocss-lanes-guard/bin/gate.sh acquire heavy 30 cad-readiness-viewer-001
+Guard result: GATE: go after 0 s (load 10.04, slot 1 of 3)
+Owning shell trap: /Users/user/.claude/local-mods/barocss-lanes-guard/bin/gate.sh release on EXIT INT TERM HUP
+Command: CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' PW_DIR='/Users/user/.cache/barocss-playwright/node_modules/playwright' '/Users/user/Library/pnpm/nodejs/22.19.0/bin/node' .omx/research/cad-commercial-readiness-20261029/harness/viewer-readiness.mjs
+stdout: .omx/research/cad-commercial-readiness-20261029/runs/viewer-001/stdout.json
+stderr: .omx/research/cad-commercial-readiness-20261029/runs/viewer-001/stderr.txt
+Owning shell exit: 0
+Browser cleanup: CLOSED
+HTTP server cleanup: CLOSED
+Cleanup errors: []

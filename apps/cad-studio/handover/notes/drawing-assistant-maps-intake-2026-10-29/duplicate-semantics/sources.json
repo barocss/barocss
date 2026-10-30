@@ -1,0 +1,17 @@
+{
+  "rootScope": "Read supplied Sol High review and original FAIL receipt; roadmap registration only. No independent execution or product mutation.",
+  "files": [
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/drawing-assistant-20261029/duplicate-semantics-091150.md",
+      "copy": "duplicate-semantics-091150.md",
+      "bytes": 10157,
+      "sha256": "7c3d03d2068397077c5b02e892eb6c8d495c08fa1304259b5b3f3bf23a9acecf"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/drawing-duplicate-semantics-20261029T091150/receipt.json",
+      "copy": "receipt.json",
+      "bytes": 13999,
+      "sha256": "c4a393c5fe601d7a98e6445da795315f721a6c16533dc156a3e4aab8f67a8009"
+    }
+  ]
+}

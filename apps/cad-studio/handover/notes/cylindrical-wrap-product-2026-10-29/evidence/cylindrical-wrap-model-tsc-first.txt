@@ -1,0 +1,19 @@
+packages/barocss-cad-model/src/app/cylindricalWrapCommand.ts(10,54): error TS1005: ',' expected.
+packages/barocss-cad-model/src/app/cylindricalWrapCommand.ts(10,56): error TS1005: ',' expected.
+packages/barocss-cad-model/src/app/cylindricalWrapCommand.ts(10,65): error TS1005: ',' expected.
+packages/barocss-cad-model/src/app/cylindricalWrapCommand.ts(10,68): error TS1005: ';' expected.
+packages/barocss-cad-model/src/app/cylindricalWrapCommand.ts(10,80): error TS1005: ';' expected.
+packages/barocss-cad-model/src/app/cylindricalWrapCommand.ts(10,96): error TS1003: Identifier expected.
+packages/barocss-cad-model/src/app/cylindricalWrapCommand.ts(10,102): error TS1005: ';' expected.
+packages/barocss-cad-model/src/app/cylindricalWrapCommand.ts(10,112): error TS1005: ';' expected.
+packages/barocss-cad-model/src/app/cylindricalWrapCommand.ts(10,129): error TS1005: ';' expected.
+packages/barocss-cad-model/src/app/cylindricalWrapCommand.ts(10,139): error TS1005: ';' expected.
+packages/barocss-cad-model/src/app/cylindricalWrapCommand.ts(10,148): error TS1005: ';' expected.
+packages/barocss-cad-model/src/app/cylindricalWrapCommand.ts(10,155): error TS1434: Unexpected keyword or identifier.
+packages/barocss-cad-model/src/app/cylindricalWrapCommand.ts(10,160): error TS1434: Unexpected keyword or identifier.
+packages/barocss-cad-model/src/app/cylindricalWrapCommand.ts(10,166): error TS1434: Unexpected keyword or identifier.
+packages/barocss-cad-model/src/app/cylindricalWrapCommand.ts(10,170): error TS1434: Unexpected keyword or identifier.
+packages/barocss-cad-model/src/app/cylindricalWrapCommand.ts(10,190): error TS1005: ';' expected.
+packages/barocss-cad-model/src/app/cylindricalWrapCommand.ts(10,195): error TS1434: Unexpected keyword or identifier.
+packages/barocss-cad-model/src/app/cylindricalWrapCommand.ts(10,204): error TS1003: Identifier expected.
+packages/barocss-cad-model/src/app/cylindricalWrapCommand.ts(10,206): error TS1002: Unterminated string literal.

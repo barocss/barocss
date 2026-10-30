@@ -1,0 +1,154 @@
+TAP version 13
+# Subtest: actual native rays and all ten source/pad/raw moments enclose an independent complex-polar oracle
+ok 1 - actual native rays and all ten source/pad/raw moments enclose an independent complex-polar oracle
+  ---
+  duration_ms: 37.892042
+  type: 'test'
+  ...
+# Subtest: public MMGS values are audited against exact represented density divided by1000
+ok 2 - public MMGS values are audited against exact represented density divided by1000
+  ---
+  duration_ms: 52.174541
+  type: 'test'
+  ...
+# Subtest: negative source Z and asymmetric V preserve signed mixed moments and central inertia
+ok 3 - negative source Z and asymmetric V preserve signed mixed moments and central inertia
+  ---
+  duration_ms: 18.721041
+  type: 'test'
+  ...
+# Subtest: centered axial pad retains exact zero Z/XZ/YZ and nonzero angular moments
+ok 4 - centered axial pad retains exact zero Z/XZ/YZ and nonzero angular moments
+  ---
+  duration_ms: 7.509291
+  type: 'test'
+  ...
+# Subtest: aggregate limits only tighten, and impossible scalar precision is not widened
+ok 5 - aggregate limits only tighten, and impossible scalar precision is not widened
+  ---
+  duration_ms: 29.154166
+  type: 'test'
+  ...
+# Subtest: overflow, underflow, nonfinite input, invalid ranges, and radius overrides refuse
+ok 6 - overflow, underflow, nonfinite input, invalid ranges, and radius overrides refuse
+  ---
+  duration_ms: 32.271
+  type: 'test'
+  ...
+# Subtest: all scalar budgets must be explicit positive finite values
+ok 7 - all scalar budgets must be explicit positive finite values
+  ---
+  duration_ms: 13.197958
+  type: 'test'
+  ...
+# Subtest: getters never supply authority and input/output snapshots do not alias
+ok 8 - getters never supply authority and input/output snapshots do not alias
+  ---
+  duration_ms: 8.690334
+  type: 'test'
+  ...
+# Subtest: actual rays around the diagonal exercise the bounded three-step angle reduction
+ok 9 - actual rays around the diagonal exercise the bounded three-step angle reduction
+  ---
+  duration_ms: 8.654916
+  type: 'test'
+  ...
+# Subtest: changed actual source coefficients or native metadata cannot borrow formal-circle authority
+ok 10 - changed actual source coefficients or native metadata cannot borrow formal-circle authority
+  ---
+  duration_ms: 6.599
+  type: 'test'
+  ...
+# Subtest: tiny valid source refuses the overflowing existing native SI density intermediate
+ok 11 - tiny valid source refuses the overflowing existing native SI density intermediate
+  ---
+  duration_ms: 2.087667
+  type: 'test'
+  ...
+# Subtest: fresh one-pad native binding covers actual63 slots all36 coedges and all36 stronger vertex relations
+ok 12 - fresh one-pad native binding covers actual63 slots all36 coedges and all36 stronger vertex relations
+  ---
+  duration_ms: 72.342083
+  type: 'test'
+  ...
+# Subtest: legacy geometry exact-operation receipts and returned mutability survive private-run factoring
+ok 13 - legacy geometry exact-operation receipts and returned mutability survive private-run factoring
+  ---
+  duration_ms: 49.412417
+  type: 'test'
+  ...
+# Subtest: only the fresh fixed profile is accepted and caller data never becomes a receipt authority
+ok 14 - only the fresh fixed profile is accepted and caller data never becomes a receipt authority
+  ---
+  duration_ms: 13.608208
+  type: 'test'
+  ...
+# Subtest: one complete request honors fresh aggregate reservations and a final-bound refusal is atomic
+ok 15 - one complete request honors fresh aggregate reservations and a final-bound refusal is atomic
+  ---
+  duration_ms: 76.037958
+  type: 'test'
+  ...
+# Subtest: native circle-extrusion source agrees with actual Part output and keeps the original +Y quarter
+ok 16 - native circle-extrusion source agrees with actual Part output and keeps the original +Y quarter
+  ---
+  duration_ms: 46.419708
+  type: 'test'
+  ...
+# Subtest: the other original semicircle retains its distinct weight bit and every protected original record
+ok 17 - the other original semicircle retains its distinct weight bit and every protected original record
+  ---
+  duration_ms: 16.917375
+  type: 'test'
+  ...
+# Subtest: source, cached B-rep, options and returned data do not alias caller data
+ok 18 - source, cached B-rep, options and returned data do not alias caller data
+  ---
+  duration_ms: 16.568875
+  type: 'test'
+  ...
+# Subtest: the original Z slab may be above or below zero without replacing its wall domains
+ok 19 - the original Z slab may be above or below zero without replacing its wall domains
+  ---
+  duration_ms: 43.751583
+  type: 'test'
+  ...
+# Subtest: every original topology/name/sense/pcurve/tolerance or coefficient mismatch is refused
+ok 20 - every original topology/name/sense/pcurve/tolerance or coefficient mismatch is refused
+  ---
+  duration_ms: 24.998041
+  type: 'test'
+  ...
+# Subtest: hollow, cut, multi-slab, displaced and non-native source families refuse atomically
+ok 21 - hollow, cut, multi-slab, displaced and non-native source families refuse atomically
+  ---
+  duration_ms: 8.940375
+  type: 'test'
+  ...
+# Subtest: a radius label or B-rep provenance string alone cannot replace its native source geometry
+ok 22 - a radius label or B-rep provenance string alone cannot replace its native source geometry
+  ---
+  duration_ms: 5.75875
+  type: 'test'
+  ...
+# Subtest: plain own data and bounded extraction options are required without invoking getters
+ok 23 - plain own data and bounded extraction options are required without invoking getters
+  ---
+  duration_ms: 1.793792
+  type: 'test'
+  ...
+# Subtest: native-UV admission owns an original carrier certificate without satisfying a full inverse request
+ok 24 - native-UV admission owns an original carrier certificate without satisfying a full inverse request
+  ---
+  duration_ms: 22.410333
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 446.519541

@@ -1,0 +1,27 @@
+# D336 — Refuse direct-surface trim loss
+
+Six existing consumers now refuse trim input that they cannot preserve. The repair is qualified for the bounded profile in [qualification.json](qualification.json). The final documentation check is recorded there.
+
+Source commit: `7ab1a23c9ed2aed24d8281430eff04591f118171`. The production change is a private guard in Model `direct.ts`. Reverse, Split, Extract region and Extend use existing `DIRECT_VALUE`; intersection checks both operands with `DIRECT_INTERSECT`; visible-surface IGES export uses `IGES_EXPORT`. The guard runs before native output work, ID/source allocation and publication. Extend retains its positive-distance check first. Pick/kind resolution stays first. A trimmed input with an invalid axis or interval can now refuse trims before native validation. Defined non-array trim containers also refuse. Empty arrays and explicit Untrim remain allowed. Hidden trimmed originals do not block other visible untrimmed exports.
+
+## Reproduced defect and independent oracle
+
+The immutable [pre-fix probe](probe/report.md) runs actual Model consumers at `1fb2d11e9e4713bac3bfbc1131fc45302aa558f3`. All six returned unsafe success; runtime exit0 is correct probe completion. Reverse, Split, Region and Extend create visible trim-free results, while the original trimmed object remains stored and hidden. This is no permanent deletion of that source object. Actual IGES bytes and [public reimport](probe/iges-reimport.json) show full-support area1200. Intersection emits12 segments that overlap10mm of the removed hole. The evidence exceeds an IGES entity-count check.
+
+The [independent Fraction oracle](plan/independent-oracle.json) uses `S(u,v)=[20+5u,-11+5v,3]`, u[-2,6],v[1,7], with outside trim UV[-1,1]×[2,4]. Kept area is1100 and centroid[340/11,104/11,3]. The original sampled display area is1100.081380233. No trim-mesh precision repair is claimed. Expected kept Region area300 differs from returned400; Extend1250 differs from1350; Split500+600 differs from600+600; Reverse1100 differs from1200. The six main cases use exact authored trim metadata. A separate public trim producer returns160 UV samples; it is neither the same fixture nor proof of a UI trim-producer flow.
+
+## Validation and actual Studio flow
+
+[Model receipts](model/report.md): first related24PASS; after adding malformed-container coverage, focused7PASS. Types, scoped lint and diff check pass. No first failing run occurred. The [High source review](review/review.md) has no actionable issue; reviewer runtime is NOT_RUN. [Studio source assessment](studio/assessment.md) confirms existing DirectPanel/App catch paths. Studio production and test code have zero delta. No new stale-export helper was introduced.
+
+The actual [Chrome WebGPU receipt](root/native-first/receipt.json) is one clean FULL_FLOW PASS. Its17 states are observations, not17 tests. Six actions show a fresh refusal notice, unchanged accepted document and DOM direct selection, and no download. Native Save/fresh Open preserves exact authored loops at baseline and after all six guards. Explicit Untrim removes only panel.trims. Reverse then succeeds on the untrimmed surface, hides the old object and adds a new untrimmed result. Two Undo restore Reverse and Untrim, including exact loops. Two Redo reproduce them. The final native Save/fresh Open is semantically equal. These checks do not claim raw-byte identity.
+
+There are four observed downloads: three native files and one actual positive IGES. The intentionally untrimmed IGES reimports through the built public Kernel parser as2 surfaces and0 curves. This is no trimmed-export support claim. The unrelated solid retains keyb1, volume420, centroid[86,.5,3.5] and exact names;1e-7 applies to that witness only. All four contexts, browser and server close. Page errors, console errors and source changes are zero. Coordinator viewed authored-trim, IGES-refusal and final-native PNGs.
+
+API six-rule SCOPED_PASS uses the unchanged expected inventory. Studio types/build pass; existing bundler warnings remain. Lint has0errors and1console warning. Agent-tools/refusals exit0. Kernel bytes are unchanged. Earlier D335 whole-Kernel2229PASS/6SKIP remains a prior baseline, not a D336 rerun. No full Model/Studio/GPU/Viewer, performance, remoteCI or release acceptance is claimed.
+
+## Provenance and limits
+
+[Source provenance](source-provenance.json) records original and stored hashes. Large browser HTML, seed bundle and pre-fix bundle are gzip. Decode with `gzip -dc FILE.gz`. Harness sources, bundle metafile, fixture, actual unsafe IGES bytes, read-back, raw logs, native files, all PNGs and receipts are retained. The [manifest](artifact-manifest.json) excludes itself and records stored sizes/hashes. Pre-fix before/after496 listed inputs match. Browser before/after/Git11 listed inputs match at the repair commit. Neither capsule covers the full repository or served graph. Hashes prove provenance, not geometry.
+
+Thicken UI allowance is NOT_PROVEN; a raw Kernel Surface call would not prove Studio behavior. No UV mapping, clipping, new engine, schema, runtime dependency, Kernel or public API signature change was made. This closes wrong success by refusal; it adds no trimmed geometry support and does not complete08. D337 investigates the next remaining08 consumer/generality gap;09 follows08. The source-only async export ownership candidate remains NOT_REPRODUCED under existing12/O9/R4 at lower priority. Electron15 stays queued. No new queue.

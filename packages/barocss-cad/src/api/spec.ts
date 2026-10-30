@@ -5,8 +5,13 @@
 // own command, as the agent's run_command does. The body a spec acts on (the part's one body, or the chosen one) is the
 // backend's argument beside it.
 import { refuse } from './refusal.js';
+import { surfaceSnapshot, surfaceSnapshots } from './surface-snapshot.js';
+import { fillCutSnapshot, type FillFeaturePatternRegion } from '../features/fill-cut-pattern.js';
+export type { FillFeaturePatternRegion } from '../features/fill-cut-pattern.js';
 import { Sketch, type SketchData } from './sketch.js';
 import type { AxisName, EdgeInfo } from './select.js';
+import type { RawNurbsPath } from '../features/curve-cut-pattern.js';
+export type { RawNurbsPath } from '../features/curve-cut-pattern.js';
 
 export type BooleanCommand = 'union' | 'difference' | 'intersect';
 
@@ -27,15 +32,21 @@ export type FeatureSpec = BaseSpec & { readonly bound?: Bound };
 type BaseSpec =
   | { readonly command: 'box'; readonly values: { readonly w: number; readonly d: number; readonly h: number; readonly x: number; readonly y: number; readonly z: number } }
   | { readonly command: 'cylinder'; readonly values: { readonly r: number; readonly h: number; readonly x: number; readonly y: number; readonly z: number } }
+  | { readonly command: 'sew'; readonly surfaces: readonly RawNurbsSurface[]; readonly values: { readonly tol: number } }
+  | { readonly command: 'thicken'; readonly surface: RawNurbsSurface; readonly values: { readonly t: number; readonly side?: 'normal' | 'reverse' | 'both' } }
   | { readonly command: 'extrude'; readonly sketch: SketchData; readonly values: { readonly h: number; readonly draft: number } }
   | { readonly command: 'revolve'; readonly sketch: SketchData; readonly values: { readonly axis: 'x' | 'y'; readonly deg: number } }
   | { readonly command: 'hole'; readonly face: string; readonly values: { readonly type: 'through' | 'blind'; readonly d: number; readonly x: number; readonly y: number; readonly depth?: number } }
   | { readonly command: 'fillet'; readonly edges: readonly string[]; readonly values: { readonly radius: number; readonly endRadius?: number } }
   | { readonly command: 'chamfer'; readonly edges: readonly string[]; readonly values: { readonly distance: number } }
+  | { readonly command: 'cylindrical-wrap'; readonly face: string; readonly values: { readonly u0: number; readonly u1: number; readonly v0: number; readonly v1: number; readonly height: number } }
   | { readonly command: 'shell'; readonly faces: readonly string[]; readonly values: { readonly t: number } }
   | { readonly command: BooleanCommand; readonly tool: string; readonly values: Record<string, never> }
   | { readonly command: 'linear-pattern'; readonly values: { readonly axis: AxisName; readonly spacing: number; readonly count: number } }
   | { readonly command: 'linear-feature-pattern'; readonly values: { readonly axis: AxisName; readonly spacing: number; readonly count: number } }
+  | { readonly command: 'rectangular-feature-pattern'; readonly values: { readonly axis: AxisName; readonly spacing: number; readonly count: number; readonly axis2: AxisName; readonly spacing2: number; readonly count2: number } }
+  | { readonly command: 'fill-feature-pattern'; readonly region: FillFeaturePatternRegion; readonly anchor: readonly [number, number]; readonly values: { readonly spacing: number; readonly count: number; readonly spacing2: number; readonly count2: number } }
+  | { readonly command: 'curve-feature-pattern'; readonly path: CurveFeaturePatternPath; readonly values: { readonly spacing: number; readonly count: number } }
   | { readonly command: 'circular-pattern'; readonly values: { readonly axis: AxisName; readonly count: number; readonly span: number; readonly px: number; readonly py: number } }
   | { readonly command: 'move'; readonly values: { readonly x: number; readonly y: number; readonly z: number } }
   | { readonly command: 'mirror'; readonly values: { readonly plane: 'yz' | 'xz' | 'xy'; readonly at: number } }
@@ -53,6 +64,8 @@ export type StudioCommand = 'gear' | 'gear-mesh' | 'spring' | 'fastener';
  * angles in degrees — so no name carries a unit (owner, 2026-10-24).
  */
 export interface BoxOptions { w: Dim; d: Dim; h: Dim; x?: Dim; y?: Dim; z?: Dim }
+/** One rectangle in the first original native quarter of the unchanged positive-Y cylinder wall. */
+export interface CylindricalWrapOptions { u0: number; u1: number; v0: number; v1: number; height: Dim }
 /** `cylinder`: radius r and height h, standing on z about (x, y). */
 export interface CylinderOptions { r: Dim; h: Dim; x?: Dim; y?: Dim; z?: Dim }
 /** `extrude`: the sketch pulled h along its plane's normal; `draft` leans its walls in (0: straight). */
@@ -68,10 +81,31 @@ export interface HoleOptions { d: Dim; x: Dim; y: Dim; type?: 'through' | 'blind
 export interface FilletOptions { radius: Dim; endRadius?: Dim }
 /** `chamfer`: on the edges a selector picks, at 45°. */
 export interface ChamferOptions { distance: Dim }
+/** A copied whole, untrimmed NURBS support, with no native identity or live source reference. */
+export interface RawNurbsSurface {
+  readonly degreeU: number;
+  readonly degreeV: number;
+  readonly knotsU: readonly number[];
+  readonly knotsV: readonly number[];
+  readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[];
+  readonly weights: readonly (readonly number[])[];
+}
+/** `thicken`: total thickness t; normal is du × dv, both offsets half t in each direction. */
+export interface ThickenOptions { t: Dim; side?: 'normal' | 'reverse' | 'both' }
+/** `sew`: tolerance in mm; omitted or 0 uses the native automatic tolerance. */
+export interface SewOptions { tol?: number }
 /** `shell`: walls t thick, the faces a selector picks left open (none: a closed hollow). */
 export interface ShellOptions { t: Dim }
 /** `linear-pattern`: `count` copies (the original among them) `spacing` apart along an axis, joined into one body. */
 export interface LinearPatternOptions { axis: AxisName; spacing: Dim; count: Dim }
+/** Repeat a difference tool on two distinct global axes; each count includes the original cut. */
+export interface RectangularFeaturePatternOptions { axis: AxisName; spacing: Dim; count: Dim; axis2: AxisName; spacing2: Dim; count2: Dim }
+/** An inline XY region snapshot masks authored reference points; counts include the original cut. */
+export interface FillFeaturePatternOptions { region: FillFeaturePatternRegion; anchor: readonly [number, number]; spacing: Dim; count: Dim; spacing2: Dim; count2: Dim }
+/** Raw authored geometry, or a cad-model direct curve's stable object id. */
+export type CurveFeaturePatternPath = RawNurbsPath | { readonly objectId: string };
+/** Fixed-orientation cuts along an open polyline; count includes the original cut (1..64). */
+export interface CurveFeaturePatternOptions { path: CurveFeaturePatternPath; spacing: Dim; count: Dim }
 /**
  * `circular-pattern`: `count` copies (the original among them) about an axis, joined into one body. About Z they spread
  * over `span` (360, the default: an even full turn) round the axis through (px, py); about X or Y the kernel steps by
@@ -148,8 +182,29 @@ export function chamferSpec(edges: readonly string[], o: Resolved<ChamferOptions
   return { command: 'chamfer', edges: edgesOf(edges, 'chamfer'), values: { distance: positive('distance', o.distance) } };
 }
 
+export function cylindricalWrapSpec(face: string, o: Resolved<CylindricalWrapOptions>): FeatureSpec {
+  if (![o.u0, o.u1, o.v0, o.v1].every(v => typeof v === 'number' && Number.isFinite(v))) throw refuse('VALUE', 'cylindrical wrap bounds must be finite original native UV values');
+  if (!(0 < o.u0 && o.u0 < o.u1 && o.u1 < 0.5 && 0 < o.v0 && o.v0 < o.v1 && o.v1 < 1)) throw refuse('VALUE', 'cylindrical wrap needs 0 < u0 < u1 < 0.5 and 0 < v0 < v1 < 1');
+  return { command: 'cylindrical-wrap', face, values: { u0: o.u0, u1: o.u1, v0: o.v0, v1: o.v1, height: positive('height', o.height) } };
+}
+
 export function shellSpec(open: readonly string[], o: Resolved<ShellOptions>): FeatureSpec {
   return { command: 'shell', faces: open, values: { t: positive('t', o.t) } };
+}
+
+/** Capture a whole-surface recipe once; curved results use the native faceted approximation. */
+export function thickenSpec(surface: RawNurbsSurface, o: Resolved<ThickenOptions>): Extract<FeatureSpec, { readonly command: 'thicken' }> {
+  const t = positive('t', o.t), side = o.side;
+  if (t > 10000) throw refuse('VALUE', 'thicken t must be at most 10000 mm');
+  if (side !== undefined && side !== 'normal' && side !== 'reverse' && side !== 'both') throw refuse('VALUE', 'thicken side must be normal, reverse or both');
+  return { command: 'thicken', surface: surfaceSnapshot(surface), values: { t, ...(side !== undefined && side !== 'normal' ? { side } : {}) } };
+}
+
+/** Copy ordered whole surfaces into one new closed body with the existing native sewing algorithm. */
+export function sewSpec(surfaces: readonly RawNurbsSurface[], o: SewOptions = {}): Extract<FeatureSpec, { readonly command: 'sew' }> {
+  const tol = o.tol === undefined ? 0 : o.tol;
+  if (typeof tol !== 'number' || !Number.isFinite(tol) || tol < 0 || tol > 1) throw refuse('VALUE', 'sew tol must be 0 (automatic) or a positive number at most 1 mm');
+  return { command: 'sew', surfaces: surfaceSnapshots(surfaces), values: { tol } };
 }
 
 export function booleanSpec(command: BooleanCommand, tool: string): FeatureSpec {
@@ -162,6 +217,29 @@ export function linearPatternSpec(o: Resolved<LinearPatternOptions>): FeatureSpe
 
 export function linearFeaturePatternSpec(o: Resolved<LinearPatternOptions>): FeatureSpec {
   return { command: 'linear-feature-pattern', values: { axis: axisName(o.axis), spacing: positive('spacing', o.spacing), count: count(o.count) } };
+}
+
+export function rectangularFeaturePatternSpec(o: Resolved<RectangularFeaturePatternOptions>): FeatureSpec {
+  const axis = axisName(o.axis), axis2 = axisName(o.axis2);
+  if (axis === axis2) throw refuse('VALUE', 'rectangular feature pattern axes must be distinct');
+  if (!Number.isSafeInteger(o.count) || o.count < 1 || !Number.isSafeInteger(o.count2) || o.count2 < 1)
+    throw refuse('VALUE', 'rectangular feature pattern counts must be safe whole numbers of at least 1');
+  return { command: 'rectangular-feature-pattern', values: { axis, spacing: positive('spacing', o.spacing), count: o.count, axis2, spacing2: positive('spacing2', o.spacing2), count2: o.count2 } };
+}
+
+export function fillFeaturePatternSpec(o: Resolved<FillFeaturePatternOptions>): Extract<FeatureSpec, { readonly command: 'fill-feature-pattern' }> {
+  const spacing = positive('spacing', o.spacing), spacing2 = positive('spacing2', o.spacing2);
+  if (spacing > 10000 || spacing2 > 10000) throw refuse('VALUE', 'fill cut pattern spacing must be at most 10000 mm');
+  if (!Number.isSafeInteger(o.count) || o.count < 1 || o.count > 64 || !Number.isSafeInteger(o.count2) || o.count2 < 1 || o.count2 > 64 || o.count * o.count2 > 64) throw refuse('VALUE', 'fill cut pattern needs at most 64 candidate cells, with each count from 1 to 64');
+  const snapshot = fillCutSnapshot(o.region, o.anchor, (_code, message) => { throw refuse('VALUE', message); });
+  return { command: 'fill-feature-pattern', ...snapshot, values: { spacing, count: o.count, spacing2, count2: o.count2 } };
+}
+
+export function curveFeaturePatternSpec(o: Resolved<CurveFeaturePatternOptions>): FeatureSpec {
+  const spacing = positive('spacing', o.spacing);
+  if (spacing > 10000) throw refuse('VALUE', 'path cut pattern spacing must be at most 10000 mm');
+  if (!Number.isSafeInteger(o.count) || o.count < 1 || o.count > 64) throw refuse('VALUE', 'path cut pattern count must be a whole number from 1 to 64, including the original cut');
+  return { command: 'curve-feature-pattern', path: o.path, values: { spacing, count: o.count } };
 }
 
 export function circularPatternSpec(o: Resolved<CircularPatternOptions>): FeatureSpec {

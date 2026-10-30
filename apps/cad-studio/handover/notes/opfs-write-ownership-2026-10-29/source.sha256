@@ -1,0 +1,2 @@
+73e879642071ec3db0597189946edb952804c523fc4159c0d7b584263b46c2a5  apps/cad-studio/src/storage/handleStore.ts
+6a4a4682ba18abf8735f8754fd4fa7603b787bccf7186cc10882d41d21c64c48  apps/cad-studio/test/handle-store-concurrency.test.ts

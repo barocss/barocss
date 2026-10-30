@@ -1,0 +1,919 @@
+{
+  "beforeExposures": 6824,
+  "afterExposures": 6830,
+  "added": [
+    {
+      "key": [
+        "@barocss/cad",
+        ".",
+        "ExtractedTrimmedSurfaceRegionResult"
+      ],
+      "after": [
+        {
+          "package": "@barocss/cad",
+          "subpath": ".",
+          "exportName": "ExtractedTrimmedSurfaceRegionResult",
+          "space": "type",
+          "observedRole": "unclassified-observed; no policy exemption",
+          "variants": [
+            {
+              "conditions": [
+                [
+                  "import"
+                ],
+                [
+                  "types"
+                ]
+              ],
+              "target": {
+                "package": "@barocss/cad",
+                "file": "src/nurbs/surfaces/trimmed-surface-region.ts",
+                "name": "ExtractedTrimmedSurfaceRegionResult",
+                "kind": "interface"
+              },
+              "shape": {
+                "type": "ExtractedTrimmedSurfaceRegionResult",
+                "declarationSignatures": [
+                  {
+                    "kind": "InterfaceDeclaration",
+                    "heritage": [
+                      " extends ExtractedSurfaceRegionResult"
+                    ]
+                  }
+                ],
+                "members": [
+                  {
+                    "name": "components",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "TrimmedSurfaceRegionComponent[]"
+                  },
+                  {
+                    "name": "model",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "Model"
+                  },
+                  {
+                    "name": "options",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "SurfaceRegionOptions"
+                  },
+                  {
+                    "name": "original",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "Surface"
+                  },
+                  {
+                    "name": "originalModel",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "Model"
+                  },
+                  {
+                    "name": "originalSource",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "string"
+                  },
+                  {
+                    "name": "provenance",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "SurfaceRegionProvenance"
+                  },
+                  {
+                    "name": "report",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "ExtractedSurfaceRegionReport"
+                  },
+                  {
+                    "name": "source",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "string"
+                  },
+                  {
+                    "name": "sourceVersion",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "0"
+                  },
+                  {
+                    "name": "surface",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "Surface"
+                  },
+                  {
+                    "name": "trimRegion",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "TrimmedSurfaceRegionReport"
+                  }
+                ],
+                "indexSignatures": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": [
+        "@barocss/cad",
+        ".",
+        "TrimmedSurfaceRegionComponent"
+      ],
+      "after": [
+        {
+          "package": "@barocss/cad",
+          "subpath": ".",
+          "exportName": "TrimmedSurfaceRegionComponent",
+          "space": "type",
+          "observedRole": "unclassified-observed; no policy exemption",
+          "variants": [
+            {
+              "conditions": [
+                [
+                  "import"
+                ],
+                [
+                  "types"
+                ]
+              ],
+              "target": {
+                "package": "@barocss/cad",
+                "file": "src/nurbs/surfaces/trimmed-surface-region.ts",
+                "name": "TrimmedSurfaceRegionComponent",
+                "kind": "interface"
+              },
+              "shape": {
+                "type": "TrimmedSurfaceRegionComponent",
+                "declarationSignatures": [
+                  {
+                    "kind": "InterfaceDeclaration"
+                  }
+                ],
+                "members": [
+                  {
+                    "name": "componentIndex",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "number"
+                  },
+                  {
+                    "name": "surfaceId",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "string"
+                  },
+                  {
+                    "name": "trimLoops",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "OwnedSurfaceAxisTrimLoop[]"
+                  }
+                ],
+                "indexSignatures": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": [
+        "@barocss/cad",
+        ".",
+        "TrimmedSurfaceRegionDiagnosticCode"
+      ],
+      "after": [
+        {
+          "package": "@barocss/cad",
+          "subpath": ".",
+          "exportName": "TrimmedSurfaceRegionDiagnosticCode",
+          "space": "type",
+          "observedRole": "unclassified-observed; no policy exemption",
+          "variants": [
+            {
+              "conditions": [
+                [
+                  "import"
+                ],
+                [
+                  "types"
+                ]
+              ],
+              "target": {
+                "package": "@barocss/cad",
+                "file": "src/nurbs/surfaces/trimmed-surface-region.ts",
+                "name": "TrimmedSurfaceRegionDiagnosticCode",
+                "kind": "type"
+              },
+              "shape": {
+                "type": "\"INPUT\" | \"NATIVE\" | \"TOPOLOGY\" | \"BUDGET\" | \"REPRESENTABILITY\" | \"SUPPORT\" | \"BINDING\" | \"DOMAIN\"",
+                "declarationSignatures": [
+                  {
+                    "kind": "TypeAliasDeclaration",
+                    "definition": "\"INPUT\" | \"SUPPORT\" | \"DOMAIN\" | \"TOPOLOGY\" | \"REPRESENTABILITY\" | \"BUDGET\" | \"BINDING\" | \"NATIVE\""
+                  }
+                ],
+                "members": [
+                  {
+                    "name": "__@iterator@81",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "() => StringIterator<string>"
+                  },
+                  {
+                    "name": "anchor",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "(name: string) => string"
+                  },
+                  {
+                    "name": "at",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "(index: number) => string | undefined"
+                  },
+                  {
+                    "name": "big",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "() => string"
+                  },
+                  {
+                    "name": "blink",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "() => string"
+                  },
+                  {
+                    "name": "bold",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "() => string"
+                  },
+                  {
+                    "name": "charAt",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "(pos: number) => string"
+                  },
+                  {
+                    "name": "charCodeAt",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "(index: number) => number"
+                  },
+                  {
+                    "name": "codePointAt",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "(pos: number) => number | undefined"
+                  },
+                  {
+                    "name": "concat",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "(...strings: string[]) => string"
+                  },
+                  {
+                    "name": "endsWith",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "(searchString: string, endPosition?: number | undefined) => boolean"
+                  },
+                  {
+                    "name": "fixed",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "() => string"
+                  },
+                  {
+                    "name": "fontcolor",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "(color: string) => string"
+                  },
+                  {
+                    "name": "fontsize",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "{ (size: number): string; (size: string): string; }"
+                  },
+                  {
+                    "name": "includes",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "(searchString: string, position?: number | undefined) => boolean"
+                  },
+                  {
+                    "name": "indexOf",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "(searchString: string, position?: number | undefined) => number"
+                  },
+                  {
+                    "name": "italics",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "() => string"
+                  },
+                  {
+                    "name": "lastIndexOf",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "(searchString: string, position?: number | undefined) => number"
+                  },
+                  {
+                    "name": "length",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": true,
+                    "type": "number"
+                  },
+                  {
+                    "name": "link",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "(url: string) => string"
+                  },
+                  {
+                    "name": "localeCompare",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "{ (that: string): number; (that: string, locales?: string | string[] | undefined, options?: CollatorOptions | undefined): number; (that: string, locales?: LocalesArgument, options?: CollatorOptions | undefined): number; }"
+                  },
+                  {
+                    "name": "match",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "{ (regexp: string | RegExp): RegExpMatchArray | null; (matcher: { [Symbol.match](string: string): RegExpMatchArray | null; }): RegExpMatchArray | null; }"
+                  },
+                  {
+                    "name": "matchAll",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "(regexp: RegExp) => RegExpStringIterator<RegExpExecArray>"
+                  },
+                  {
+                    "name": "normalize",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "{ (form: \"NFC\" | \"NFD\" | \"NFKC\" | \"NFKD\"): string; (form?: string | undefined): string; }"
+                  },
+                  {
+                    "name": "padEnd",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "(maxLength: number, fillString?: string | undefined) => string"
+                  },
+                  {
+                    "name": "padStart",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "(maxLength: number, fillString?: string | undefined) => string"
+                  },
+                  {
+                    "name": "repeat",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "(count: number) => string"
+                  },
+                  {
+                    "name": "replace",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; (searchValue: { [Symbol.replace](string: string, replaceValue: string): string; }, replaceValue: string): string; (searchValue: { [Symbol.replace](string: string, replacer: (substring: string, ...args: any[]) => string): string; }, replacer: (substring: string, ...args: any[]) => string): string; }"
+                  },
+                  {
+                    "name": "replaceAll",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; }"
+                  },
+                  {
+                    "name": "search",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "{ (regexp: string | RegExp): number; (searcher: { [Symbol.search](string: string): number; }): number; }"
+                  },
+                  {
+                    "name": "slice",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "(start?: number | undefined, end?: number | undefined) => string"
+                  },
+                  {
+                    "name": "small",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "() => string"
+                  },
+                  {
+                    "name": "split",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "{ (separator: string | RegExp, limit?: number | undefined): string[]; (splitter: { [Symbol.split](string: string, limit?: number | undefined): string[]; }, limit?: number | undefined): string[]; }"
+                  },
+                  {
+                    "name": "startsWith",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "(searchString: string, position?: number | undefined) => boolean"
+                  },
+                  {
+                    "name": "strike",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "() => string"
+                  },
+                  {
+                    "name": "sub",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "() => string"
+                  },
+                  {
+                    "name": "substr",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "(from: number, length?: number | undefined) => string"
+                  },
+                  {
+                    "name": "substring",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "(start: number, end?: number | undefined) => string"
+                  },
+                  {
+                    "name": "sup",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "() => string"
+                  },
+                  {
+                    "name": "toLocaleLowerCase",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+                  },
+                  {
+                    "name": "toLocaleUpperCase",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+                  },
+                  {
+                    "name": "toLowerCase",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "() => string"
+                  },
+                  {
+                    "name": "toString",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "() => string"
+                  },
+                  {
+                    "name": "toUpperCase",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "() => string"
+                  },
+                  {
+                    "name": "trim",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "() => string"
+                  },
+                  {
+                    "name": "trimEnd",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "() => string"
+                  },
+                  {
+                    "name": "trimLeft",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "() => string"
+                  },
+                  {
+                    "name": "trimRight",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "() => string"
+                  },
+                  {
+                    "name": "trimStart",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "() => string"
+                  },
+                  {
+                    "name": "valueOf",
+                    "kind": "method",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "() => string"
+                  }
+                ],
+                "indexSignatures": [
+                  {
+                    "key": "number",
+                    "type": "string",
+                    "readonly": true,
+                    "callable": false
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": [
+        "@barocss/cad",
+        ".",
+        "TrimmedSurfaceRegionError"
+      ],
+      "after": [
+        {
+          "package": "@barocss/cad",
+          "subpath": ".",
+          "exportName": "TrimmedSurfaceRegionError",
+          "space": "type+value",
+          "observedRole": "unclassified-observed; no policy exemption",
+          "variants": [
+            {
+              "conditions": [
+                [
+                  "import"
+                ],
+                [
+                  "types"
+                ]
+              ],
+              "target": {
+                "package": "@barocss/cad",
+                "file": "src/nurbs/surfaces/trimmed-surface-region.ts",
+                "name": "TrimmedSurfaceRegionError",
+                "kind": "class"
+              },
+              "shape": {
+                "type": "TrimmedSurfaceRegionError",
+                "declarationSignatures": [
+                  {
+                    "kind": "ClassDeclaration",
+                    "heritage": [
+                      " extends KernelError"
+                    ]
+                  }
+                ],
+                "members": [
+                  {
+                    "name": "cause",
+                    "kind": "property",
+                    "optional": true,
+                    "readonly": false,
+                    "type": "unknown",
+                    "notProven": "any/unknown property; JSON and callability are not certified"
+                  },
+                  {
+                    "name": "code",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": true,
+                    "type": "TrimmedSurfaceRegionDiagnosticCode"
+                  },
+                  {
+                    "name": "details",
+                    "kind": "property",
+                    "optional": true,
+                    "readonly": true,
+                    "type": "Record<string, unknown> | undefined"
+                  },
+                  {
+                    "name": "message",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "string"
+                  },
+                  {
+                    "name": "name",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "string"
+                  },
+                  {
+                    "name": "stack",
+                    "kind": "property",
+                    "optional": true,
+                    "readonly": false,
+                    "type": "string | undefined"
+                  },
+                  {
+                    "name": "where",
+                    "kind": "property",
+                    "optional": true,
+                    "readonly": true,
+                    "type": "string | undefined"
+                  }
+                ],
+                "indexSignatures": [],
+                "bases": [
+                  "KernelError"
+                ],
+                "constructSignatures": [
+                  "new (code: TrimmedSurfaceRegionDiagnosticCode, detail: string, cause?: unknown) => TrimmedSurfaceRegionError"
+                ],
+                "staticMembers": [],
+                "abstract": false,
+                "role": "resource-or-facade-NOT_PROVEN"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": [
+        "@barocss/cad",
+        ".",
+        "TrimmedSurfaceRegionReport"
+      ],
+      "after": [
+        {
+          "package": "@barocss/cad",
+          "subpath": ".",
+          "exportName": "TrimmedSurfaceRegionReport",
+          "space": "type",
+          "observedRole": "unclassified-observed; no policy exemption",
+          "variants": [
+            {
+              "conditions": [
+                [
+                  "import"
+                ],
+                [
+                  "types"
+                ]
+              ],
+              "target": {
+                "package": "@barocss/cad",
+                "file": "src/nurbs/surfaces/trimmed-surface-region.ts",
+                "name": "TrimmedSurfaceRegionReport",
+                "kind": "interface"
+              },
+              "shape": {
+                "type": "TrimmedSurfaceRegionReport",
+                "declarationSignatures": [
+                  {
+                    "kind": "InterfaceDeclaration"
+                  }
+                ],
+                "members": [
+                  {
+                    "name": "componentCount",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "number"
+                  },
+                  {
+                    "name": "croppedMaterialAreaUV",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "SectionFraction"
+                  },
+                  {
+                    "name": "effectiveDomain",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "SurfaceRegionDomain"
+                  },
+                  {
+                    "name": "family",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "\"affine-plane-single-stored-trim-loop-region\""
+                  },
+                  {
+                    "name": "inputKeep",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "\"inside\" | \"outside\""
+                  },
+                  {
+                    "name": "inputPointCount",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "number"
+                  },
+                  {
+                    "name": "limits",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "{ maximumInputPoints: 160; maximumSegments: 164; maximumPairTests: 13366; maximumVertices: 484; maximumEdges: 804; maximumBoundaryOccurrences: 1608; maximumComponents: 536; maximumRationalOperations: 200000; maximumRationalBits: 8192; }"
+                  },
+                  {
+                    "name": "maximumNativePointDifference",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "number"
+                  },
+                  {
+                    "name": "maximumUVRoundingBound",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "number"
+                  },
+                  {
+                    "name": "maximumWorldBoundaryBound",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "number"
+                  },
+                  {
+                    "name": "originalDomain",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "SurfaceRegionDomain"
+                  },
+                  {
+                    "name": "originalMaterialAreaUV",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "SectionFraction"
+                  },
+                  {
+                    "name": "quality",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "{ uvComparison: 1e-7; linearComparison: 1e-7; chartPolicy: \"exact-or-one-rounding-certified-v1\"; materialComposition: \"one-object-per-interior-component-inside-outer-and-outside-holes\"; emptyCrop: \"atomic-DOMAIN-refusal\"; supportRegularity: \"strict-positive-projected-bilinear-Jacobian-and-convex-boundary\"; worldBoundary: \"whole-final-support-coefficient-bound-plus-affine-UV-rounding\"; genericSurfaceEmbeddingCertified: false; globalBinary64EvaluatorErrorCertified: false; solid: false; parentReportUnchanged: true; }"
+                  },
+                  {
+                    "name": "requestedDomain",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "SurfaceRegionDomain"
+                  },
+                  {
+                    "name": "usedSupportProof",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "SplitChildBindingProof"
+                  },
+                  {
+                    "name": "work",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": false,
+                    "type": "{ arrangement: ExactArrangementCounts; topology: SplitTopologyWork; materialArithmetic: { operations: number; gcdSteps: number; floatSearchSteps: number; floatConversions: number; maximumObservedBits: number; }; bindingArithmetic: { operations: number; gcdSteps: number; floatSearchSteps: number; floatConversions: number; maximumObservedBits: number; }; }"
+                  }
+                ],
+                "indexSignatures": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": [
+        "@barocss/cad",
+        ".",
+        "extractTrimmedSurfaceRegion"
+      ],
+      "after": [
+        {
+          "package": "@barocss/cad",
+          "subpath": ".",
+          "exportName": "extractTrimmedSurfaceRegion",
+          "space": "value",
+          "observedRole": "unclassified-observed; no policy exemption",
+          "variants": [
+            {
+              "conditions": [
+                [
+                  "import"
+                ],
+                [
+                  "types"
+                ]
+              ],
+              "target": {
+                "package": "@barocss/cad",
+                "file": "src/nurbs/surfaces/trimmed-surface-region.ts",
+                "name": "extractTrimmedSurfaceRegion",
+                "kind": "function"
+              },
+              "shape": {
+                "type": "(surface: Surface, trims: readonly SurfaceAxisTrimLoop[], options: SurfaceRegionOptions) => ExtractedTrimmedSurfaceRegionResult",
+                "declarationSignatures": [
+                  {
+                    "kind": "FunctionDeclaration"
+                  }
+                ],
+                "callSignatures": [
+                  "(surface: Surface, trims: readonly SurfaceAxisTrimLoop[], options: SurfaceRegionOptions) => ExtractedTrimmedSurfaceRegionResult"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "removed": [],
+  "changed": [],
+  "otherTopLevelChanges": []
+}

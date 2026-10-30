@@ -1,0 +1,5099 @@
+{
+  "status": "PASS",
+  "runnerProcess": 49501,
+  "worktree": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+  "sources": [
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/src/viewer/viewer.ts",
+      "sha256": "1c1df2143fe714569fe40b7aa27e6772faca9f44c9c50a9cca56194467b052a8"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/src/viewer/scene.ts",
+      "sha256": "f7e17275a2efb6c8b9d5bf73c89e61902f94a9f01541476ce07c79baf59954d5"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/dist/viewer/viewer.js",
+      "sha256": "d7cfd0a0e8d486267ea44959797b85f384d6138c14c50071e91ed67717e67c9c"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/dist/viewer/scene.js",
+      "sha256": "f8b810380643b45156e716513f25f73f412dbcc3137208e7c5285854e3327213"
+    }
+  ],
+  "cases": [
+    {
+      "name": "unchanged",
+      "positive": {
+        "pixel": [
+          255,
+          64,
+          32,
+          255
+        ],
+        "hit": {
+          "mesh": "original",
+          "instance": 1,
+          "triangle": 0,
+          "face": 71,
+          "point": [
+            0.7916351938838438,
+            -0.009099255102113114,
+            4.975408472310373e-7
+          ],
+          "depth": 0.778640627861023
+        },
+        "size": [
+          320,
+          240
+        ]
+      },
+      "held": {
+        "armed": false,
+        "selected": {
+          "fulfilled": true,
+          "released": false,
+          "unmaps": 0,
+          "ranges": 0,
+          "arguments": [
+            1
+          ]
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "arm"
+          },
+          {
+            "sequence": 1,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 2,
+            "kind": "native-map-fulfilled"
+          }
+        ]
+      },
+      "delayed": {
+        "mesh": "original",
+        "instance": 1,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.7916351938838438,
+          -0.009099255102113114,
+          4.975408472310373e-7
+        ],
+        "depth": 0.778640627861023
+      },
+      "afterDelayed": {
+        "armed": false,
+        "selected": {
+          "fulfilled": true,
+          "released": true,
+          "unmaps": 1,
+          "ranges": 3,
+          "arguments": [
+            1
+          ]
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "arm"
+          },
+          {
+            "sequence": 1,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 2,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 3,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 4,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 5,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 6,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 7,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 8,
+            "kind": "native-unmap"
+          }
+        ]
+      },
+      "fresh": {
+        "mesh": "original",
+        "instance": 1,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.7916351938838438,
+          -0.009099255102113114,
+          4.975408472310373e-7
+        ],
+        "depth": 0.778640627861023
+      },
+      "afterFresh": {
+        "armed": false,
+        "selected": {
+          "fulfilled": true,
+          "released": true,
+          "unmaps": 2,
+          "ranges": 6,
+          "arguments": [
+            1
+          ]
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "arm"
+          },
+          {
+            "sequence": 1,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 2,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 3,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 4,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 5,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 6,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 7,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 8,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 9,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 10,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 11,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 12,
+            "kind": "native-unmap"
+          }
+        ]
+      },
+      "status": "PASS",
+      "cleanup": "OWN_VIEWER_DISPOSED"
+    },
+    {
+      "name": "matrix-replacement",
+      "positive": {
+        "pixel": [
+          255,
+          64,
+          32,
+          255
+        ],
+        "hit": {
+          "mesh": "original",
+          "instance": 1,
+          "triangle": 0,
+          "face": 71,
+          "point": [
+            0.7916351938838438,
+            -0.009099255102113114,
+            4.975408472310373e-7
+          ],
+          "depth": 0.778640627861023
+        },
+        "size": [
+          320,
+          240
+        ]
+      },
+      "held": {
+        "armed": false,
+        "selected": {
+          "fulfilled": true,
+          "released": false,
+          "unmaps": 0,
+          "ranges": 0,
+          "arguments": [
+            1
+          ]
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "arm"
+          },
+          {
+            "sequence": 1,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 2,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 3,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 4,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 5,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 6,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 7,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 8,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 9,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 10,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 11,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 12,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 13,
+            "kind": "arm"
+          },
+          {
+            "sequence": 14,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 15,
+            "kind": "native-map-fulfilled"
+          }
+        ]
+      },
+      "delayed": null,
+      "afterDelayed": {
+        "armed": false,
+        "selected": {
+          "fulfilled": true,
+          "released": true,
+          "unmaps": 1,
+          "ranges": 3,
+          "arguments": [
+            1
+          ]
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "arm"
+          },
+          {
+            "sequence": 1,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 2,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 3,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 4,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 5,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 6,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 7,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 8,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 9,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 10,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 11,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 12,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 13,
+            "kind": "arm"
+          },
+          {
+            "sequence": 14,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 15,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 16,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 17,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 18,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 19,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 20,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 21,
+            "kind": "native-unmap"
+          }
+        ]
+      },
+      "fresh": {
+        "mesh": "original",
+        "instance": 1,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          1.1920024053200047,
+          -0.00909925500244275,
+          5.63262944033478e-7
+        ],
+        "depth": 0.7451962232589722
+      },
+      "afterFresh": {
+        "armed": false,
+        "selected": {
+          "fulfilled": true,
+          "released": true,
+          "unmaps": 2,
+          "ranges": 6,
+          "arguments": [
+            1
+          ]
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "arm"
+          },
+          {
+            "sequence": 1,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 2,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 3,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 4,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 5,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 6,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 7,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 8,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 9,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 10,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 11,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 12,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 13,
+            "kind": "arm"
+          },
+          {
+            "sequence": 14,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 15,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 16,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 17,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 18,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 19,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 20,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 21,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 22,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 23,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 24,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 25,
+            "kind": "native-unmap"
+          }
+        ]
+      },
+      "status": "PASS",
+      "cleanup": "OWN_VIEWER_DISPOSED"
+    },
+    {
+      "name": "reorder",
+      "positive": {
+        "pixel": [
+          255,
+          64,
+          32,
+          255
+        ],
+        "hit": {
+          "mesh": "original",
+          "instance": 1,
+          "triangle": 0,
+          "face": 71,
+          "point": [
+            0.7916351938838438,
+            -0.009099255102113114,
+            4.975408472310373e-7
+          ],
+          "depth": 0.778640627861023
+        },
+        "size": [
+          320,
+          240
+        ]
+      },
+      "held": {
+        "armed": false,
+        "selected": {
+          "fulfilled": true,
+          "released": false,
+          "unmaps": 0,
+          "ranges": 0,
+          "arguments": [
+            1
+          ]
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "arm"
+          },
+          {
+            "sequence": 1,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 2,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 3,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 4,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 5,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 6,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 7,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 8,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 9,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 10,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 11,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 12,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 13,
+            "kind": "arm"
+          },
+          {
+            "sequence": 14,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 15,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 16,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 17,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 18,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 19,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 20,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 21,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 22,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 23,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 24,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 25,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 26,
+            "kind": "arm"
+          },
+          {
+            "sequence": 27,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 28,
+            "kind": "native-map-fulfilled"
+          }
+        ]
+      },
+      "delayed": null,
+      "afterDelayed": {
+        "armed": false,
+        "selected": {
+          "fulfilled": true,
+          "released": true,
+          "unmaps": 1,
+          "ranges": 3,
+          "arguments": [
+            1
+          ]
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "arm"
+          },
+          {
+            "sequence": 1,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 2,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 3,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 4,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 5,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 6,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 7,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 8,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 9,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 10,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 11,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 12,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 13,
+            "kind": "arm"
+          },
+          {
+            "sequence": 14,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 15,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 16,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 17,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 18,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 19,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 20,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 21,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 22,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 23,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 24,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 25,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 26,
+            "kind": "arm"
+          },
+          {
+            "sequence": 27,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 28,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 29,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 30,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 31,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 32,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 33,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 34,
+            "kind": "native-unmap"
+          }
+        ]
+      },
+      "fresh": {
+        "mesh": "original",
+        "instance": 0,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.7916351938838438,
+          -0.009099255102113114,
+          4.975408472310373e-7
+        ],
+        "depth": 0.778640627861023
+      },
+      "afterFresh": {
+        "armed": false,
+        "selected": {
+          "fulfilled": true,
+          "released": true,
+          "unmaps": 2,
+          "ranges": 6,
+          "arguments": [
+            1
+          ]
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "arm"
+          },
+          {
+            "sequence": 1,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 2,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 3,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 4,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 5,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 6,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 7,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 8,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 9,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 10,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 11,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 12,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 13,
+            "kind": "arm"
+          },
+          {
+            "sequence": 14,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 15,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 16,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 17,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 18,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 19,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 20,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 21,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 22,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 23,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 24,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 25,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 26,
+            "kind": "arm"
+          },
+          {
+            "sequence": 27,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 28,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 29,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 30,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 31,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 32,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 33,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 34,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 35,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 36,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 37,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 38,
+            "kind": "native-unmap"
+          }
+        ]
+      },
+      "status": "PASS",
+      "cleanup": "OWN_VIEWER_DISPOSED"
+    },
+    {
+      "name": "shrink",
+      "positive": {
+        "pixel": [
+          255,
+          64,
+          32,
+          255
+        ],
+        "hit": {
+          "mesh": "original",
+          "instance": 1,
+          "triangle": 0,
+          "face": 71,
+          "point": [
+            0.7916351938838438,
+            -0.009099255102113114,
+            4.975408472310373e-7
+          ],
+          "depth": 0.778640627861023
+        },
+        "size": [
+          320,
+          240
+        ]
+      },
+      "held": {
+        "armed": false,
+        "selected": {
+          "fulfilled": true,
+          "released": false,
+          "unmaps": 0,
+          "ranges": 0,
+          "arguments": [
+            1
+          ]
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "arm"
+          },
+          {
+            "sequence": 1,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 2,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 3,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 4,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 5,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 6,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 7,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 8,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 9,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 10,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 11,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 12,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 13,
+            "kind": "arm"
+          },
+          {
+            "sequence": 14,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 15,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 16,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 17,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 18,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 19,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 20,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 21,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 22,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 23,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 24,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 25,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 26,
+            "kind": "arm"
+          },
+          {
+            "sequence": 27,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 28,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 29,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 30,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 31,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 32,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 33,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 34,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 35,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 36,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 37,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 38,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 39,
+            "kind": "arm"
+          },
+          {
+            "sequence": 40,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 41,
+            "kind": "native-map-fulfilled"
+          }
+        ]
+      },
+      "delayed": null,
+      "afterDelayed": {
+        "armed": false,
+        "selected": {
+          "fulfilled": true,
+          "released": true,
+          "unmaps": 1,
+          "ranges": 3,
+          "arguments": [
+            1
+          ]
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "arm"
+          },
+          {
+            "sequence": 1,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 2,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 3,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 4,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 5,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 6,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 7,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 8,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 9,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 10,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 11,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 12,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 13,
+            "kind": "arm"
+          },
+          {
+            "sequence": 14,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 15,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 16,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 17,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 18,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 19,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 20,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 21,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 22,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 23,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 24,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 25,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 26,
+            "kind": "arm"
+          },
+          {
+            "sequence": 27,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 28,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 29,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 30,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 31,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 32,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 33,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 34,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 35,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 36,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 37,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 38,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 39,
+            "kind": "arm"
+          },
+          {
+            "sequence": 40,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 41,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 42,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 43,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 44,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 45,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 46,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 47,
+            "kind": "native-unmap"
+          }
+        ]
+      },
+      "fresh": {
+        "mesh": "original",
+        "instance": 0,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          -0.7916352782648303,
+          -0.009099256072009513,
+          -1.420035809242793e-7
+        ],
+        "depth": 0.9010050296783447
+      },
+      "afterFresh": {
+        "armed": false,
+        "selected": {
+          "fulfilled": true,
+          "released": true,
+          "unmaps": 2,
+          "ranges": 6,
+          "arguments": [
+            1
+          ]
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "arm"
+          },
+          {
+            "sequence": 1,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 2,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 3,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 4,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 5,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 6,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 7,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 8,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 9,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 10,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 11,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 12,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 13,
+            "kind": "arm"
+          },
+          {
+            "sequence": 14,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 15,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 16,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 17,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 18,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 19,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 20,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 21,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 22,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 23,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 24,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 25,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 26,
+            "kind": "arm"
+          },
+          {
+            "sequence": 27,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 28,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 29,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 30,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 31,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 32,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 33,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 34,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 35,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 36,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 37,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 38,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 39,
+            "kind": "arm"
+          },
+          {
+            "sequence": 40,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 41,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 42,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 43,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 44,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 45,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 46,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 47,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 48,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 49,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 50,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 51,
+            "kind": "native-unmap"
+          }
+        ]
+      },
+      "status": "PASS",
+      "cleanup": "OWN_VIEWER_DISPOSED"
+    },
+    {
+      "name": "instances-null",
+      "positive": {
+        "pixel": [
+          255,
+          64,
+          32,
+          255
+        ],
+        "hit": {
+          "mesh": "original",
+          "instance": 1,
+          "triangle": 0,
+          "face": 71,
+          "point": [
+            0.7916351938838438,
+            -0.009099255102113114,
+            4.975408472310373e-7
+          ],
+          "depth": 0.778640627861023
+        },
+        "size": [
+          320,
+          240
+        ]
+      },
+      "held": {
+        "armed": false,
+        "selected": {
+          "fulfilled": true,
+          "released": false,
+          "unmaps": 0,
+          "ranges": 0,
+          "arguments": [
+            1
+          ]
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "arm"
+          },
+          {
+            "sequence": 1,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 2,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 3,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 4,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 5,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 6,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 7,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 8,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 9,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 10,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 11,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 12,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 13,
+            "kind": "arm"
+          },
+          {
+            "sequence": 14,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 15,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 16,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 17,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 18,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 19,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 20,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 21,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 22,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 23,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 24,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 25,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 26,
+            "kind": "arm"
+          },
+          {
+            "sequence": 27,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 28,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 29,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 30,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 31,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 32,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 33,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 34,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 35,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 36,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 37,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 38,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 39,
+            "kind": "arm"
+          },
+          {
+            "sequence": 40,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 41,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 42,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 43,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 44,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 45,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 46,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 47,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 48,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 49,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 50,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 51,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 52,
+            "kind": "arm"
+          },
+          {
+            "sequence": 53,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 54,
+            "kind": "native-map-fulfilled"
+          }
+        ]
+      },
+      "delayed": null,
+      "afterDelayed": {
+        "armed": false,
+        "selected": {
+          "fulfilled": true,
+          "released": true,
+          "unmaps": 1,
+          "ranges": 3,
+          "arguments": [
+            1
+          ]
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "arm"
+          },
+          {
+            "sequence": 1,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 2,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 3,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 4,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 5,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 6,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 7,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 8,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 9,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 10,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 11,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 12,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 13,
+            "kind": "arm"
+          },
+          {
+            "sequence": 14,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 15,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 16,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 17,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 18,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 19,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 20,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 21,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 22,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 23,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 24,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 25,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 26,
+            "kind": "arm"
+          },
+          {
+            "sequence": 27,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 28,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 29,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 30,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 31,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 32,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 33,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 34,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 35,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 36,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 37,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 38,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 39,
+            "kind": "arm"
+          },
+          {
+            "sequence": 40,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 41,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 42,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 43,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 44,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 45,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 46,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 47,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 48,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 49,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 50,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 51,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 52,
+            "kind": "arm"
+          },
+          {
+            "sequence": 53,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 54,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 55,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 56,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 57,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 58,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 59,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 60,
+            "kind": "native-unmap"
+          }
+        ]
+      },
+      "fresh": {
+        "mesh": "original",
+        "instance": null,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.009099256072009674,
+          -0.009099256072009513,
+          -1.420035809242793e-7
+        ],
+        "depth": 0.9010050296783447
+      },
+      "afterFresh": {
+        "armed": false,
+        "selected": {
+          "fulfilled": true,
+          "released": true,
+          "unmaps": 2,
+          "ranges": 6,
+          "arguments": [
+            1
+          ]
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "arm"
+          },
+          {
+            "sequence": 1,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 2,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 3,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 4,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 5,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 6,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 7,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 8,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 9,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 10,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 11,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 12,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 13,
+            "kind": "arm"
+          },
+          {
+            "sequence": 14,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 15,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 16,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 17,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 18,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 19,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 20,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 21,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 22,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 23,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 24,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 25,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 26,
+            "kind": "arm"
+          },
+          {
+            "sequence": 27,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 28,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 29,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 30,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 31,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 32,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 33,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 34,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 35,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 36,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 37,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 38,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 39,
+            "kind": "arm"
+          },
+          {
+            "sequence": 40,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 41,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 42,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 43,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 44,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 45,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 46,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 47,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 48,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 49,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 50,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 51,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 52,
+            "kind": "arm"
+          },
+          {
+            "sequence": 53,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 54,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 55,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 56,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 57,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 58,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 59,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 60,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 61,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 62,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 63,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 64,
+            "kind": "native-unmap"
+          }
+        ]
+      },
+      "status": "PASS",
+      "cleanup": "OWN_VIEWER_DISPOSED"
+    },
+    {
+      "name": "mesh-removal",
+      "positive": {
+        "pixel": [
+          255,
+          64,
+          32,
+          255
+        ],
+        "hit": {
+          "mesh": "original",
+          "instance": 1,
+          "triangle": 0,
+          "face": 71,
+          "point": [
+            0.7916351938838438,
+            -0.009099255102113114,
+            4.975408472310373e-7
+          ],
+          "depth": 0.778640627861023
+        },
+        "size": [
+          320,
+          240
+        ]
+      },
+      "held": {
+        "armed": false,
+        "selected": {
+          "fulfilled": true,
+          "released": false,
+          "unmaps": 0,
+          "ranges": 0,
+          "arguments": [
+            1
+          ]
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "arm"
+          },
+          {
+            "sequence": 1,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 2,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 3,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 4,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 5,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 6,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 7,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 8,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 9,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 10,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 11,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 12,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 13,
+            "kind": "arm"
+          },
+          {
+            "sequence": 14,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 15,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 16,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 17,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 18,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 19,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 20,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 21,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 22,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 23,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 24,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 25,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 26,
+            "kind": "arm"
+          },
+          {
+            "sequence": 27,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 28,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 29,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 30,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 31,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 32,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 33,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 34,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 35,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 36,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 37,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 38,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 39,
+            "kind": "arm"
+          },
+          {
+            "sequence": 40,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 41,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 42,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 43,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 44,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 45,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 46,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 47,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 48,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 49,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 50,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 51,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 52,
+            "kind": "arm"
+          },
+          {
+            "sequence": 53,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 54,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 55,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 56,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 57,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 58,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 59,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 60,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 61,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 62,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 63,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 64,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 65,
+            "kind": "arm"
+          },
+          {
+            "sequence": 66,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 67,
+            "kind": "native-map-fulfilled"
+          }
+        ]
+      },
+      "delayed": null,
+      "afterDelayed": {
+        "armed": false,
+        "selected": {
+          "fulfilled": true,
+          "released": true,
+          "unmaps": 1,
+          "ranges": 3,
+          "arguments": [
+            1
+          ]
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "arm"
+          },
+          {
+            "sequence": 1,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 2,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 3,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 4,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 5,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 6,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 7,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 8,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 9,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 10,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 11,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 12,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 13,
+            "kind": "arm"
+          },
+          {
+            "sequence": 14,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 15,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 16,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 17,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 18,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 19,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 20,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 21,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 22,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 23,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 24,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 25,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 26,
+            "kind": "arm"
+          },
+          {
+            "sequence": 27,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 28,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 29,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 30,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 31,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 32,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 33,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 34,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 35,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 36,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 37,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 38,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 39,
+            "kind": "arm"
+          },
+          {
+            "sequence": 40,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 41,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 42,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 43,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 44,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 45,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 46,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 47,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 48,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 49,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 50,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 51,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 52,
+            "kind": "arm"
+          },
+          {
+            "sequence": 53,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 54,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 55,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 56,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 57,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 58,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 59,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 60,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 61,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 62,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 63,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 64,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 65,
+            "kind": "arm"
+          },
+          {
+            "sequence": 66,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 67,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 68,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 69,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 70,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 71,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 72,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 73,
+            "kind": "native-unmap"
+          }
+        ]
+      },
+      "fresh": {
+        "mesh": "replacement",
+        "instance": 1,
+        "triangle": 0,
+        "face": 71,
+        "point": [
+          0.7916351938838438,
+          -0.009099255102113114,
+          4.975408472310373e-7
+        ],
+        "depth": 0.778640627861023
+      },
+      "afterFresh": {
+        "armed": false,
+        "selected": {
+          "fulfilled": true,
+          "released": true,
+          "unmaps": 2,
+          "ranges": 6,
+          "arguments": [
+            1
+          ]
+        },
+        "events": [
+          {
+            "sequence": 0,
+            "kind": "arm"
+          },
+          {
+            "sequence": 1,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 2,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 3,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 4,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 5,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 6,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 7,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 8,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 9,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 10,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 11,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 12,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 13,
+            "kind": "arm"
+          },
+          {
+            "sequence": 14,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 15,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 16,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 17,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 18,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 19,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 20,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 21,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 22,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 23,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 24,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 25,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 26,
+            "kind": "arm"
+          },
+          {
+            "sequence": 27,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 28,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 29,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 30,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 31,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 32,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 33,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 34,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 35,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 36,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 37,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 38,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 39,
+            "kind": "arm"
+          },
+          {
+            "sequence": 40,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 41,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 42,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 43,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 44,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 45,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 46,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 47,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 48,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 49,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 50,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 51,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 52,
+            "kind": "arm"
+          },
+          {
+            "sequence": 53,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 54,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 55,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 56,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 57,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 58,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 59,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 60,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 61,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 62,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 63,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 64,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 65,
+            "kind": "arm"
+          },
+          {
+            "sequence": 66,
+            "kind": "native-map-start",
+            "label": "pick read",
+            "size": 768,
+            "arguments": [
+              1
+            ]
+          },
+          {
+            "sequence": 67,
+            "kind": "native-map-fulfilled"
+          },
+          {
+            "sequence": 68,
+            "kind": "release-requested"
+          },
+          {
+            "sequence": 69,
+            "kind": "native-map-return-released"
+          },
+          {
+            "sequence": 70,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 71,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 72,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 73,
+            "kind": "native-unmap"
+          },
+          {
+            "sequence": 74,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              0,
+              4
+            ]
+          },
+          {
+            "sequence": 75,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              256,
+              4
+            ]
+          },
+          {
+            "sequence": 76,
+            "kind": "native-getMappedRange",
+            "arguments": [
+              512,
+              4
+            ]
+          },
+          {
+            "sequence": 77,
+            "kind": "native-unmap"
+          }
+        ]
+      },
+      "status": "PASS",
+      "cleanup": "OWN_VIEWER_DISPOSED"
+    }
+  ],
+  "errors": [],
+  "boundary": "Native mapAsync fulfilled-return schedule only. Counts are native buffer cleanup observations, not driver bytes, VRAM, performance or OOM proof.",
+  "adapter": {
+    "vendor": "apple",
+    "architecture": "metal-3"
+  },
+  "browser": "156.0.8078.48",
+  "cleanup": "OWN_CONTEXT_BROWSER_SERVER_CLOSED"
+}

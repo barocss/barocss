@@ -1,0 +1,121 @@
+{
+  "node": "v22.19.0",
+  "host": "same local macOS host",
+  "runsPerProcess": 7,
+  "processOrder": [
+    "A1 original",
+    "B1 basis",
+    "B2 basis",
+    "A2 original",
+    "C1 component",
+    "C2 component",
+    "A3 original"
+  ],
+  "externalHostLoadControlled": false,
+  "roundedMediansOnly": true,
+  "rows": [
+    {
+      "case": "shaft-thread",
+      "fingerprint": "63f2e23cc5a7c377",
+      "componentPairChangePercent": [
+        -2.209944751381221,
+        -0.7561436672967825
+      ],
+      "medians": {
+        "a1": 561,
+        "a2": 543,
+        "b1": 544,
+        "b2": 542,
+        "c1": 531,
+        "c2": 525,
+        "a3": 529
+      }
+    },
+    {
+      "case": "tapped-hole",
+      "fingerprint": "6e50cceb4849e3d5",
+      "componentPairChangePercent": [
+        -1.2891344383057057,
+        0.7352941176470562
+      ],
+      "medians": {
+        "a1": 577,
+        "a2": 543,
+        "b1": 540,
+        "b2": 554,
+        "c1": 536,
+        "c2": 548,
+        "a3": 544
+      }
+    },
+    {
+      "case": "shaft-thread-long",
+      "fingerprint": "1618ecf20aed2f8e",
+      "componentPairChangePercent": [
+        -2.669902912621358,
+        -4.217432052483594
+      ],
+      "medians": {
+        "a1": 2124,
+        "a2": 2060,
+        "b1": 2059,
+        "b2": 2105,
+        "c1": 2005,
+        "c2": 2044,
+        "a3": 2134
+      }
+    },
+    {
+      "case": "tapped-hole-long",
+      "fingerprint": "12564565abc9c0e0",
+      "componentPairChangePercent": [
+        -2.7799227799227832,
+        -2.6819923371647514
+      ],
+      "medians": {
+        "a1": 1328,
+        "a2": 1295,
+        "b1": 1318,
+        "b2": 1342,
+        "c1": 1259,
+        "c2": 1270,
+        "a3": 1305
+      }
+    },
+    {
+      "case": "direct-thread-long-construction",
+      "fingerprint": "6833bb3ffc833a40",
+      "componentPairChangePercent": [
+        5.263157894736836,
+        10.526315789473696
+      ],
+      "medians": {
+        "a1": 19,
+        "a2": 19,
+        "b1": 20,
+        "b2": 21,
+        "c1": 20,
+        "c2": 21,
+        "a3": 19
+      }
+    },
+    {
+      "case": "direct-thread-long-construction-first-mass",
+      "fingerprint": "6833bb3ffc833a40",
+      "componentPairChangePercent": [
+        -6.617647058823528,
+        -4.395604395604391
+      ],
+      "medians": {
+        "a1": 271,
+        "a2": 272,
+        "b1": 274,
+        "b2": 272,
+        "c1": 254,
+        "c2": 261,
+        "a3": 273
+      }
+    }
+  ],
+  "timeUnit": "ms"
+}

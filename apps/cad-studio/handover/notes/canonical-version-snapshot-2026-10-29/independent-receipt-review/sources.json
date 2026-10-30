@@ -1,0 +1,17 @@
+{
+  "rootActions": "Read supplied source/retained-author-receipt review and register existing roadmap evidence. No independent rerun, source-equivalence re-audit, product edit or issue mutation.",
+  "files": [
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/d323-canonical-snapshot-receipt-review.md",
+      "copy": "d323-canonical-snapshot-receipt-review.md",
+      "bytes": 8683,
+      "sha256": "ea7467db0ff7429d3e8d7e536c7e4fb3d9a0a11b88ede8a866802882dd501348"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/verification/d323-canonical-snapshot-receipt-review.json",
+      "copy": "d323-canonical-snapshot-receipt-review.json",
+      "bytes": 13188,
+      "sha256": "d48c11115c7dca44d886f510ce5079199fd1ba7c15cf81501ed4c5f9de2256c6"
+    }
+  ]
+}

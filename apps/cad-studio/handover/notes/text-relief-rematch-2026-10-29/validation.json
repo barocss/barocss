@@ -1,0 +1,46 @@
+{
+  "baseCommit": "739978a27",
+  "date": "2026-10-29",
+  "sourceChange": "one existing text-relief kind added to edit-time named-face registry",
+  "firstFocused": {
+    "total": 2,
+    "passed": 0,
+    "failed": 2
+  },
+  "finalFocused": {
+    "total": 53,
+    "passed": 53,
+    "failed": 0
+  },
+  "model": {
+    "total": 1824,
+    "passed": 1824,
+    "failed": 0,
+    "duration": 225281.689292
+  },
+  "studio": {
+    "total": 365,
+    "passed": 365,
+    "failed": 0,
+    "duration": 23673.303125
+  },
+  "modelTypes": "PASS",
+  "changedLint": "PASS",
+  "notRun": [
+    "new native topology renaming browser flow",
+    "new GPU/browser matrix",
+    "kernel rerun for this Model-only fix"
+  ],
+  "nativeTestBoundary": "matcher uses authored replacement names on one actual box; no text/font provider is run in the new tests",
+  "generated": {
+    "agentTools": "PASS",
+    "refusals": "PASS",
+    "apiInventory": "SCOPED_PASS",
+    "docs": {
+      "pages": 68,
+      "shots": 53,
+      "shotKB": 4488,
+      "labels": 852
+    }
+  }
+}

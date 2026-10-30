@@ -1,0 +1,40 @@
+{
+  "worktree": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+  "baseCommit": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+  "sources": [
+    {
+      "path": "apps/cad-studio/src/App.tsx",
+      "sha256": "6523603f2d1e417ace3cbb2c93c77f46e384286593f2b87d81457b7d82e24c66",
+      "capsule": "App.tsx.gz",
+      "gzipSha256": "4ff5554dfa4c2d50059fa21ad7a68ee6884bab382ee94c360b08ae149b23db51"
+    },
+    {
+      "path": "apps/cad-studio/src/storage/useProject.ts",
+      "sha256": "4cfc5b96100c382ea06056c85c8c80843f6efc64622b60e43c8711458dfbaa63",
+      "capsule": "useProject.ts.gz",
+      "gzipSha256": "d54ca17f19c0ca280502e755ff9f8636adf2a07b51d1fe3044012397723145cb"
+    },
+    {
+      "path": "apps/cad-studio/src/state/openOwnership.ts",
+      "sha256": "ea2098e7834673157f929f525732f5261ac9ea74d8209290e7306f0420b89839",
+      "capsule": "openOwnership.ts.gz",
+      "gzipSha256": "1f3d88f5d96273da28bd19a3bdf1f22e616f1ffc9199795e1cc68ce90de72a5b"
+    },
+    {
+      "path": "apps/cad-studio/src/storage/project.ts",
+      "sha256": "a927fd79a0db9be5d5b60f5380f2ad2ac114e4b5c33c0c9f5240da8772a815ad"
+    },
+    {
+      "path": "apps/cad-studio/src/storage/handleStore.ts",
+      "sha256": "73e879642071ec3db0597189946edb952804c523fc4159c0d7b584263b46c2a5"
+    },
+    {
+      "path": "apps/cad-studio/test/project-open-ownership-browser.mjs",
+      "sha256": "010ab5211ff822ed58a777fbe77bcdf4a068b21ffeb9f22dde34f2035cc55027",
+      "capsule": "project-open-ownership-browser.mjs.gz",
+      "gzipSha256": "f11ca4349f0b2b479498911f0741530810da078d02cf94c1f93bedec232516ff"
+    }
+  ],
+  "scope": "Five selected actual cases; original native-read-return plus source-reviewed plain-JSON microtask task drain; operation Promise NOT_EXPOSED",
+  "preflight": "Producer final driver syntax0/scopedlint0 receipts reused; no repeat"
+}

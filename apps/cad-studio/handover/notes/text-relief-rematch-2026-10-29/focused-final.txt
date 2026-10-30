@@ -1,0 +1,328 @@
+TAP version 13
+# Subtest: public text relief: exact selected face, independent add/remove area, one modified solid and captured source
+ok 1 - public text relief: exact selected face, independent add/remove area, one modified solid and captured source
+  ---
+  duration_ms: 90.338708
+  type: 'test'
+  ...
+# Subtest: public text relief: source, raw text and named size/depth/baseline/tracking are independent copies
+ok 2 - public text relief: source, raw text and named size/depth/baseline/tracking are independent copies
+  ---
+  duration_ms: 40.263125
+  type: 'test'
+  ...
+# Subtest: public text relief: raw TTF codec round trip restores bytes before editable recipe reuse
+ok 3 - public text relief: raw TTF codec round trip restores bytes before editable recipe reuse
+  ---
+  duration_ms: 36.888
+  type: 'test'
+  ...
+# Subtest: public text relief: modifies only the selected body and focuses its replacement
+ok 4 - public text relief: modifies only the selected body and focuses its replacement
+  ---
+  duration_ms: 20.672625
+  type: 'test'
+  ...
+# Subtest: public text relief: exact face and options refusals are typed and leave caller values unchanged
+ok 5 - public text relief: exact face and options refusals are typed and leave caller values unchanged
+  ---
+  duration_ms: 13.059959
+  type: 'test'
+  ...
+# Subtest: public text relief: height tracking follows the current top, while a reversed stored face direction refuses
+ok 6 - public text relief: height tracking follows the current top, while a reversed stored face direction refuses
+  ---
+  duration_ms: 43.899125
+  type: 'test'
+  ...
+# Subtest: O24 c: revolved sphere and cone, box edges, circular rims and face centres match closed forms
+ok 7 - O24 c: revolved sphere and cone, box edges, circular rims and face centres match closed forms
+  ---
+  duration_ms: 24.764667
+  type: 'test'
+  ...
+# Subtest: O24 c: edge merging preserves open arcs and refuses gaps between straight pieces
+ok 8 - O24 c: edge merging preserves open arcs and refuses gaps between straight pieces
+  ---
+  duration_ms: 0.472208
+  type: 'test'
+  ...
+# Subtest: O24 c: edge classification is invariant under translation and does not flatten a distant arc
+ok 9 - O24 c: edge classification is invariant under translation and does not flatten a distant arc
+  ---
+  duration_ms: 0.081083
+  type: 'test'
+  ...
+# Subtest: O24 c: a flat face with an off-centre circular hole has its analytic area centroid
+ok 10 - O24 c: a flat face with an off-centre circular hole has its analytic area centroid
+  ---
+  duration_ms: 4.194417
+  type: 'test'
+  ...
+# Subtest: O24 c: sphere and cone classification survives a large translation; a torus stays unmateable
+ok 11 - O24 c: sphere and cone classification survives a large translation; a torus stays unmateable
+  ---
+  duration_ms: 8.669208
+  type: 'test'
+  ...
+# Subtest: O24 c: cone/circle concentric, edge/plane coincident and sphere tangency solve without drift
+ok 12 - O24 c: cone/circle concentric, edge/plane coincident and sphere tangency solve without drift
+  ---
+  duration_ms: 6.944958
+  type: 'test'
+  ...
+# Subtest: O24 c: v2 assembly reads new references, adds a mate, saves, reopens and builds its joint tree
+ok 13 - O24 c: v2 assembly reads new references, adds a mate, saves, reopens and builds its joint tree
+  ---
+  duration_ms: 45.121291
+  type: 'test'
+  ...
+# Subtest: signatures: written with a reference from the bodies it was picked on; a re-matched one is not refreshed
+ok 14 - signatures: written with a reference from the bodies it was picked on; a re-matched one is not refreshed
+  ---
+  duration_ms: 62.771209
+  type: 'test'
+  ...
+# Subtest: conformance a1-refs-ambiguous: A mate's signature as near two faces alike (the tops of two boxes): the document opens as it is; the mate is listed as needing a choice, with both.
+ok 15 - conformance a1-refs-ambiguous: A mate's signature as near two faces alike (the tops of two boxes): the document opens as it is; the mate is listed as needing a choice, with both.
+  ---
+  duration_ms: 3.478125
+  type: 'test'
+  ...
+# Subtest: conformance a1-refs-edit-reopen: A fillet's edge after a dimension edit (signatures refreshed by the accepted edit), then reopened: no reference is matched again.
+ok 16 - conformance a1-refs-edit-reopen: A fillet's edge after a dimension edit (signatures refreshed by the accepted edit), then reopened: no reference is matched again.
+  ---
+  duration_ms: 22.229167
+  type: 'test'
+  ...
+# Subtest: conformance a1-refs-gone: A fillet whose stored edge is gone (nothing alike its signature is left): the document still opens, that fillet is held (suppressed, saying why) and listed with its error, and the rest of the part builds.
+ok 17 - conformance a1-refs-gone: A fillet whose stored edge is gone (nothing alike its signature is left): the document still opens, that fillet is held (suppressed, saying why) and listed with its error, and the rest of the part builds.
+  ---
+  duration_ms: 5.627542
+  type: 'test'
+  ...
+# Subtest: conformance a1-refs-jitter: A signature 1e-9 mm off the face it names (a kernel's accuracy changed): the name stands, nothing is matched again.
+ok 18 - conformance a1-refs-jitter: A signature 1e-9 mm off the face it names (a kernel's accuracy changed): the name stands, nothing is matched again.
+  ---
+  duration_ms: 1.961333
+  type: 'test'
+  ...
+# Subtest: conformance a1-refs-mate-renumbered: A mate's stored face name now names another face (as a kernel numbering faces otherwise would), its signature the face it was picked on: on open, with no prior document, it is matched to that face again and marked.
+ok 19 - conformance a1-refs-mate-renumbered: A mate's stored face name now names another face (as a kernel numbering faces otherwise would), its signature the face it was picked on: on open, with no prior document, it is matched to that face again and marked.
+  ---
+  duration_ms: 0.678542
+  type: 'test'
+  ...
+# Subtest: verification preserves only aliases of the same live drawing edge, without accepting other matches
+ok 20 - verification preserves only aliases of the same live drawing edge, without accepting other matches
+  ---
+  duration_ms: 1.147583
+  type: 'test'
+  ...
+# Subtest: the setters change the copy only; untouched nodes are shared; the read-only walk is the document itself
+ok 21 - the setters change the copy only; untouched nodes are shared; the read-only walk is the document itself
+  ---
+  duration_ms: 1.956708
+  type: 'test'
+  ...
+# Subtest: modelHash: kept by the objects it reads, the same value as the whole walk
+ok 22 - modelHash: kept by the objects it reads, the same value as the whole walk
+  ---
+  duration_ms: 0.423958
+  type: 'test'
+  ...
+# Subtest: rematch: a corner inserted before the filleted one renumbers the sides; the fillet follows its corner and says so
+ok 23 - rematch: a corner inserted before the filleted one renumbers the sides; the fillet follows its corner and says so
+  ---
+  duration_ms: 46.59325
+  type: 'test'
+  ...
+# Subtest: rematch: a dimension changed keeps every name (no guessing), and a corner gone into two alike is refused with both
+ok 24 - rematch: a dimension changed keeps every name (no guessing), and a corner gone into two alike is refused with both
+  ---
+  duration_ms: 19.367334
+  type: 'test'
+  ...
+# Subtest: conformance a1-rematch-ambiguous: The filleted corner cut off into two vertical edges as near the old one: refused, naming both.
+ok 25 - conformance a1-rematch-ambiguous: The filleted corner cut off into two vertical edges as near the old one: refused, naming both.
+  ---
+  duration_ms: 7.763666
+  type: 'test'
+  ...
+# Subtest: conformance a1-rematch-dimension: A dimension changed renumbers nothing: the stored names are kept as they are, without matching.
+ok 26 - conformance a1-rematch-dimension: A dimension changed renumbers nothing: the stored names are kept as they are, without matching.
+  ---
+  duration_ms: 12.776125
+  type: 'test'
+  ...
+# Subtest: conformance a1-rematch-sides: A corner inserted into the sketch before a filleted one renumbers the sides (the old edge name now names another corner); the fillet is matched again to its corner by geometry and the substitution reported.
+ok 27 - conformance a1-rematch-sides: A corner inserted into the sketch before a filleted one renumbers the sides (the old edge name now names another corner); the fillet is matched again to its corner by geometry and the substitution reported.
+  ---
+  duration_ms: 10.03975
+  type: 'test'
+  ...
+# Subtest: Text relief is one selected top-face command with explicit font, placement and mode
+ok 28 - Text relief is one selected top-face command with explicit font, placement and mode
+  ---
+  duration_ms: 23.483875
+  type: 'test'
+  ...
+# Subtest: Text relief refuses absent, side, mixed and merged picks before changing the recipe
+ok 29 - Text relief refuses absent, side, mixed and merged picks before changing the recipe
+  ---
+  duration_ms: 3.102708
+  type: 'test'
+  ...
+# Subtest: Text relief history edit keeps references, later nodes and untouched authored values
+ok 30 - Text relief history edit keeps references, later nodes and untouched authored values
+  ---
+  duration_ms: 2.654417
+  type: 'test'
+  ...
+# Subtest: Text relief history edit preserves bound placement, depth and em dimensions
+ok 31 - Text relief history edit preserves bound placement, depth and em dimensions
+  ---
+  duration_ms: 2.567625
+  type: 'test'
+  ...
+# Subtest: Text relief rejects malformed values, unavailable fonts and stale history without mutation
+ok 32 - Text relief rejects malformed values, unavailable fonts and stale history without mutation
+  ---
+  duration_ms: 3.280833
+  type: 'test'
+  ...
+# Subtest: text relief adds or removes the independent straight-outline area from one physical box
+ok 33 - text relief adds or removes the independent straight-outline area from one physical box
+  ---
+  duration_ms: 73.318208
+  type: 'test'
+  ...
+# Subtest: text relief preserves bound dimensions and current-schema recipe through native Save/Open
+ok 34 - text relief preserves bound dimensions and current-schema recipe through native Save/Open
+  ---
+  duration_ms: 57.911042
+  type: 'test'
+  ...
+# Subtest: precomposed Korean components and local holes all seat into one physical base
+ok 35 - precomposed Korean components and local holes all seat into one physical base
+  ---
+  duration_ms: 788.084334
+  type: 'test'
+  ...
+# Subtest: a tighter Korean pocket explicitly refuses the unchanged work budget without rewriting its tolerance
+ok 36 - a tighter Korean pocket explicitly refuses the unchanged work budget without rewriting its tolerance
+  ---
+  duration_ms: 48.215834
+  type: 'test'
+  ...
+# Subtest: structural relief validation shares Text source rules and rejects malformed modifier fields without rewriting
+ok 37 - structural relief validation shares Text source rules and rejects malformed modifier fields without rewriting
+  ---
+  duration_ms: 2.492625
+  type: 'test'
+  ...
+# Subtest: native admission refuses unsupported faces, floating or overlapping strokes and excess depth atomically
+ok 38 - native admission refuses unsupported faces, floating or overlapping strokes and excess depth atomically
+  ---
+  duration_ms: 14.786042
+  type: 'test'
+  ...
+# Subtest: suppressed relief passes the parent, while an active orphan reaches native source admission
+ok 39 - suppressed relief passes the parent, while an active orphan reaches native source admission
+  ---
+  duration_ms: 2.721792
+  type: 'test'
+  ...
+# Subtest: relief signatures are captured, forwarded and renamed without mutating original source metadata
+ok 40 - relief signatures are captured, forwarded and renamed without mutating original source metadata
+  ---
+  duration_ms: 0.941875
+  type: 'test'
+  ...
+# Subtest: generated relief sketch IDs retain authored priority and reject non-generated roles
+ok 41 - generated relief sketch IDs retain authored priority and reject non-generated roles
+  ---
+  duration_ms: 1.519917
+  type: 'test'
+  ...
+# Subtest: relief feature budget and placed-coordinate preflight refuse before native evaluation
+ok 42 - relief feature budget and placed-coordinate preflight refuse before native evaluation
+  ---
+  duration_ms: 12.396708
+  type: 'test'
+  ...
+# Subtest: font collectors retain relief nodes and nested prepared commands, but skip closed or malformed proposals
+ok 43 - font collectors retain relief nodes and nested prepared commands, but skip closed or malformed proposals
+  ---
+  duration_ms: 5.33125
+  type: 'test'
+  ...
+# Subtest: assembly flatten keeps source text opaque, shifts its parent/face signatures and resolves Dim placement
+ok 44 - assembly flatten keeps source text opaque, shifts its parent/face signatures and resolves Dim placement
+  ---
+  duration_ms: 2.077167
+  type: 'test'
+  ...
+# Subtest: text relief remap: opaque text/font remain exact while real parent, faces, sig keys and siblings move
+ok 45 - text relief remap: opaque text/font remain exact while real parent, faces, sig keys and siblings move
+  ---
+  duration_ms: 1.164584
+  type: 'test'
+  ...
+# Subtest: text relief remap: exact nested prepared command keeps raw font JSON and text; other references still move
+ok 46 - text relief remap: exact nested prepared command keeps raw font JSON and text; other references still move
+  ---
+  duration_ms: 0.2315
+  type: 'test'
+  ...
+# Subtest: text relief chat merge: literal feature/parameter names do not invent dependencies for prepared commands
+ok 47 - text relief chat merge: literal feature/parameter names do not invent dependencies for prepared commands
+  ---
+  duration_ms: 1.66675
+  type: 'test'
+  ...
+# Subtest: text relief chat merge: size, depth, tracking and both baseline coordinates keep actual parameter dependencies
+ok 48 - text relief chat merge: size, depth, tracking and both baseline coordinates keep actual parameter dependencies
+  ---
+  duration_ms: 3.81625
+  type: 'test'
+  ...
+# Subtest: text relief chat merge: deleting the real parent remains a missing-dependency conflict
+ok 49 - text relief chat merge: deleting the real parent remains a missing-dependency conflict
+  ---
+  duration_ms: 0.686834
+  type: 'test'
+  ...
+# Subtest: text relief version merge: ID clashes move real refs without altering font/text or restoring literal-only dependencies
+ok 50 - text relief version merge: ID clashes move real refs without altering font/text or restoring literal-only dependencies
+  ---
+  duration_ms: 1.292958
+  type: 'test'
+  ...
+# Subtest: text relief edits remain visible to revisions, diffs and both merge conflict paths
+ok 51 - text relief edits remain visible to revisions, diffs and both merge conflict paths
+  ---
+  duration_ms: 2.12825
+  type: 'test'
+  ...
+# Subtest: text relief rematches a renamed cap without changing source metadata
+ok 52 - text relief rematches a renamed cap without changing source metadata
+  ---
+  duration_ms: 18.685625
+  type: 'test'
+  ...
+# Subtest: text relief refuses an edit when its former cap is ambiguous or gone
+ok 53 - text relief refuses an edit when its former cap is ambiguous or gone
+  ---
+  duration_ms: 2.847291
+  type: 'test'
+  ...
+1..53
+# tests 53
+# suites 0
+# pass 53
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1390.172375

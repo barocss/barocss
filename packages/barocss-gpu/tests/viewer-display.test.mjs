@@ -15,7 +15,7 @@ try {
   await build({ stdin: { contents: "export {Viewer,Mesh,Geometry} from './viewer.ts'; export {Camera} from './camera.ts'; export {prepareGeometry,prepareScalars} from './geometry.ts'; export {identity} from './math.ts';", resolveDir: fileURLToPath(new URL('../src/viewer/', import.meta.url)), loader: 'ts' }, outfile, bundle: true, platform: 'node', format: 'esm', logLevel: 'silent' });
   ({ Viewer, Mesh, Geometry, Camera, prepareGeometry, prepareScalars, identity } = await import(pathToFileURL(outfile).href));
 } finally { await rm(temp, { recursive: true, force: true }); }
-const owner = () => Object.assign(Object.create(Viewer.prototype), { alive() {}, requestRender() {}, sceneMoved() {} });
+const owner = () => Object.assign(Object.create(Viewer.prototype), { camera: new Camera(), alive() {}, requestRender() {}, sceneMoved() {} });
 const line = material => new Mesh(new Geometry(prepareGeometry({ positions: [-1, 0, 0, 1, 0, 0], topology: 'lines', edges: [41] }), owner()), owner(), 1, { material });
 
 for (const dpr of [1, 2]) test(`hidden dash has its own CSS-pixel packing at DPR ${dpr}; omitted style follows visible dash`, () => {

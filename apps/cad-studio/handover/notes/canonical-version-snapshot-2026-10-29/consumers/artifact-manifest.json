@@ -1,0 +1,65 @@
+{
+  "algorithm": "sha256",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 2056,
+      "sha256": "5ae4f5110dcdb592c1ba73a75171f28e28f2da920a38d19ccb053d8410da0f2c"
+    },
+    {
+      "path": "actual/01-starter-plate-loads.png",
+      "bytes": 252611,
+      "sha256": "b1dee710e376cb0e44ca49f6dd05a1bfcd8a6201b277ab073a9ef05f0555c7d7"
+    },
+    {
+      "path": "actual/316-cg6-project-open-a-folder-save-into-it-two-versions-compare-restore-the-first-autosave-kept-in-the-project-and-offered-back-after-a-reload.png",
+      "bytes": 206853,
+      "sha256": "1dcf345fc5273c5ced92fdcbbcb46fcaaf233af17174ac06891b1bfef0c3a0a7"
+    },
+    {
+      "path": "actual/316a-cg6-compare.png",
+      "bytes": 281733,
+      "sha256": "42cb5dde302022a9626aeb093c2671401a71d02e672069f533f484f49330e72c"
+    },
+    {
+      "path": "actual/316b-cg6-versions.png",
+      "bytes": 21071,
+      "sha256": "f325be3104fe01e599b903fdb84043319a8ae244bc3044864882a1a1eebeee7b"
+    },
+    {
+      "path": "actual/display.json",
+      "bytes": 161,
+      "sha256": "52cf6d93babdc65bf357a917e2b25b91a79aece76fca76fe1f0c7a7223475c95"
+    },
+    {
+      "path": "actual/source-profile.json",
+      "bytes": 663,
+      "sha256": "b8567b78cafa3f2c3acbdca96b2f77c87c187077153d412393f5e752c75856bc"
+    },
+    {
+      "path": "first-run-exit.txt",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "first-run.txt",
+      "bytes": 362,
+      "sha256": "80945815e839dd2332bf7fafd8d51ff403366a5b9b174c350f94ad3aa403d4e8"
+    },
+    {
+      "path": "gate.txt",
+      "bytes": 44,
+      "sha256": "23a901c7f1b2446150cc2c1bdd6a8435d692b639217689fae90b65c9bf3eea80"
+    },
+    {
+      "path": "plan.md",
+      "bytes": 2403,
+      "sha256": "2c6cd3e1ff6e6b1feeae98a8a049cc40234b68660e096197cae48245f483101d"
+    },
+    {
+      "path": "receipt.json",
+      "bytes": 2341,
+      "sha256": "fc71d9f15eb3deed715e94d5c2241c39f395f48be1b6de03bb6fe921f8cfe17a"
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "status": "PASS_SCOPED_VISUAL_REVIEW",
+  "sourceCommit": "53a2007084b79b1448d01689193f6c7a95b364e1",
+  "numericRunStatus": "PASS",
+  "imagesViewed": [
+    "03-inside-two-components.png",
+    "14-outside-pocket-two-components.png",
+    "18-outside-one-component-with-hole.png",
+    "19-outside-hole-reopen.png",
+    "22-outside-full-retained-explicit-mask.png",
+    "23-retained-rectangle-reopen.png"
+  ],
+  "observations": [
+    "Two inside components remain filled and distinct.",
+    "Outside pocket remains filled and separate from the outer component.",
+    "Outside one-component crop now visibly fills outer material and preserves the U-shaped hole.",
+    "Full retained rectangular mask now visibly fills its whole small support.",
+    "Hole and rectangle remain visibly filled after native Save/fresh Open.",
+    "No visible coincident-source interference in these views. Original cyan guide curve remains authored and visible."
+  ],
+  "rendererProbes": {
+    "pass": 16,
+    "allPass": true,
+    "route": "Existing read-only renderer pick hook; independently classified positive material points and hole absence."
+  },
+  "limits": [
+    "Initial run01 numeric PASS and visual FAIL remain immutable separate evidence.",
+    "Six reviewed views and16 sampled renderer probes do not certify every raster point or exact display clipping.",
+    "Native stored-material area/centroids and final-support proof are separate from approximate display mesh.",
+    "No closed-solid mass or generic curved trim claim."
+  ]
+}

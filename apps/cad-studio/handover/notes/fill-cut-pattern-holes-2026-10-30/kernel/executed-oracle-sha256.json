@@ -1,0 +1,10 @@
+{
+  "source": "/tmp/d345-plan/oracle.mjs",
+  "sourceSHA256": "dacace43c2907a849d3c9dd8d01062adc53177dd6651eb97491c8700ddceaa42",
+  "output": "oracle-second.json",
+  "outputSHA256": "4955c838aa6b2e179e49f9320a7a2c7a65afaf00800af9f201c15cd102f26185",
+  "status": "PASS",
+  "firstFailure": "oracle-first.json",
+  "firstSource": "oracle-before.mjs",
+  "correction": "Expected reduced545/18 instead of mathematically equivalent unreduced9265/306 in a string structural assertion; material formula and placement set unchanged."
+}

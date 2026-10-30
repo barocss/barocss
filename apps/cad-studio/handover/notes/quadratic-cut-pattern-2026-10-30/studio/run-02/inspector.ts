@@ -1,0 +1,9 @@
+import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
+import {part} from '../../packages/barocss-cad-model/src/api/index.ts';import {partBreps,evaluateDoc} from '../../packages/barocss-cad-model/src/engine/evaluate.ts';
+import {modelOf} from '../../packages/barocss-cad-model/src/engine/direct.ts';import {checkBrep,brepMassProperties} from '../../packages/barocss-cad/src/index.ts';
+import {planCurveFeaturePatternPath} from '../../packages/barocss-cad/src/api/index.ts';
+const doc=JSON.parse(readFileSync(process.argv[2],'utf8')),before=JSON.stringify(doc),p=part('D346 observed',doc),view=evaluateDoc(doc,0);assert.ok(view.ok);
+const bodies=partBreps(doc).map(({key,brep})=>({key,brep,check:checkBrep(brep,{strict:true}),mass:p.body(key).mass({density:1}),nativeMass:brepMassProperties(brep,1),names:p.body(key).select().faces().names().sort(),model:view.bodies.find(b=>b.key===key)}));
+const curves=(doc.direct?.objects??[]).map(object=>{const model=modelOf(doc.direct.sources[object.source]),matches=model.objects.filter(g=>g.id===object.geometry);assert.equal(matches.length,1);return{object,geometry:matches[0]};});
+const plans=doc.nodes.flatMap((node,index)=>{if(node.kind!=='curve-feature-pattern')return[];const geometry='objectId' in node.path?curves.find(c=>c.object.id===node.path.objectId)?.geometry:node.path;assert.ok(geometry);const raw={degree:geometry.degree,knots:geometry.knots,controlPoints:geometry.controlPoints,weights:geometry.weights},rawBefore=JSON.stringify(raw),plan=planCurveFeaturePatternPath(raw,node.spacing,node.count);assert.equal(JSON.stringify(raw),rawBefore);return[{index,plan}];});
+assert.equal(JSON.stringify(doc),before);console.log(JSON.stringify({bodies,curves,plans}));

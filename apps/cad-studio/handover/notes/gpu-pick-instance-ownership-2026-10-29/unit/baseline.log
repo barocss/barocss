@@ -1,0 +1,35 @@
+TAP version 13
+# Subtest: delayed instance readback: unchanged control preserves instance, triangle, face and world point
+ok 1 - delayed instance readback: unchanged control preserves instance, triangle, face and world point
+  ---
+  duration_ms: 3.735542
+  type: 'test'
+  ...
+# Subtest: delayed instance readback: public instance shrink refuses old instance ID after unmapping once
+not ok 2 - delayed instance readback: public instance shrink refuses old instance ID after unmapping once
+  ---
+  duration_ms: 1.419083
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/tests/pick-instance-readback.test.mjs:68:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading '0')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    multiply (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/dist/viewer/math.js:18:38)
+    Viewer.instanceTransform (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/dist/viewer/viewer.js:2350:66)
+    Viewer.meshRay (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/dist/viewer/viewer.js:2316:49)
+    Viewer.pickNow (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/dist/viewer/viewer.js:2302:26)
+    async TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/tests/pick-instance-readback.test.mjs:76:17)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 371.012333

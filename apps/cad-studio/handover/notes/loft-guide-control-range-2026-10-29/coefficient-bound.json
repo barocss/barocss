@@ -1,0 +1,4549 @@
+{
+  "status": "passed",
+  "lengthUnit": "mm",
+  "scope": "Whole ideal represented geometry: exact source knot restriction and unchanged positive U weights; B-spline convex hull bound. Native evaluator roundoff is separate.",
+  "surfaces": 168,
+  "maximumL1": {
+    "numerator": "586699257071332065833425822111",
+    "denominator": "1178313601718004231558169254481102791791083520"
+  },
+  "approximateMaximumL1": 4.979143550714454e-16,
+  "records": [
+    {
+      "case": 0,
+      "surface": "f0_0_p0",
+      "domain": [
+        0,
+        0.9375
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 0,
+      "surface": "f0_0_p1",
+      "domain": [
+        0.9375,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 0,
+      "surface": "f0_1_p0",
+      "domain": [
+        0,
+        0.9375
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 0,
+      "surface": "f0_1_p1",
+      "domain": [
+        0.9375,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 0,
+      "surface": "f0_2_p0",
+      "domain": [
+        0,
+        0.9375
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 0,
+      "surface": "f0_2_p1",
+      "domain": [
+        0.9375,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 0,
+      "surface": "f0_3_p0",
+      "domain": [
+        0,
+        0.9375
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 0,
+      "surface": "f0_3_p1",
+      "domain": [
+        0.9375,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 1,
+      "surface": "f0_0_p0",
+      "domain": [
+        0,
+        0.23809523809523814
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 1,
+      "surface": "f0_0_p1",
+      "domain": [
+        0.23809523809523814,
+        0.4761904761904761
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 1,
+      "surface": "f0_0_p2",
+      "domain": [
+        0.4761904761904761,
+        0.7142857142857141
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 1,
+      "surface": "f0_0_p3",
+      "domain": [
+        0.7142857142857141,
+        0.9523809523809522
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 1,
+      "surface": "f0_0_p4",
+      "domain": [
+        0.9523809523809522,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 1,
+      "surface": "f0_1_p0",
+      "domain": [
+        0,
+        0.23809523809523814
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 1,
+      "surface": "f0_1_p1",
+      "domain": [
+        0.23809523809523814,
+        0.4761904761904761
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 1,
+      "surface": "f0_1_p2",
+      "domain": [
+        0.4761904761904761,
+        0.7142857142857141
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 1,
+      "surface": "f0_1_p3",
+      "domain": [
+        0.7142857142857141,
+        0.9523809523809522
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 1,
+      "surface": "f0_1_p4",
+      "domain": [
+        0.9523809523809522,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 1,
+      "surface": "f0_2_p0",
+      "domain": [
+        0,
+        0.23809523809523814
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 1,
+      "surface": "f0_2_p1",
+      "domain": [
+        0.23809523809523814,
+        0.4761904761904761
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 1,
+      "surface": "f0_2_p2",
+      "domain": [
+        0.4761904761904761,
+        0.7142857142857141
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 1,
+      "surface": "f0_2_p3",
+      "domain": [
+        0.7142857142857141,
+        0.9523809523809522
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 1,
+      "surface": "f0_2_p4",
+      "domain": [
+        0.9523809523809522,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 1,
+      "surface": "f0_3_p0",
+      "domain": [
+        0,
+        0.23809523809523814
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 1,
+      "surface": "f0_3_p1",
+      "domain": [
+        0.23809523809523814,
+        0.4761904761904761
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 1,
+      "surface": "f0_3_p2",
+      "domain": [
+        0.4761904761904761,
+        0.7142857142857141
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 1,
+      "surface": "f0_3_p3",
+      "domain": [
+        0.7142857142857141,
+        0.9523809523809522
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 1,
+      "surface": "f0_3_p4",
+      "domain": [
+        0.9523809523809522,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 2,
+      "surface": "f0_0_p0",
+      "domain": [
+        0,
+        0.875
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 2,
+      "surface": "f0_0_p1",
+      "domain": [
+        0.875,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 2,
+      "surface": "f0_1_p0",
+      "domain": [
+        0,
+        0.875
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 2,
+      "surface": "f0_1_p1",
+      "domain": [
+        0.875,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 2,
+      "surface": "f0_2_p0",
+      "domain": [
+        0,
+        0.875
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 2,
+      "surface": "f0_2_p1",
+      "domain": [
+        0.875,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 2,
+      "surface": "f0_3_p0",
+      "domain": [
+        0,
+        0.875
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 2,
+      "surface": "f0_3_p1",
+      "domain": [
+        0.875,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 3,
+      "surface": "f0_0_p0",
+      "domain": [
+        0,
+        0.21875
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 3,
+      "surface": "f0_0_p1",
+      "domain": [
+        0.21875,
+        0.4375
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 3,
+      "surface": "f0_0_p2",
+      "domain": [
+        0.4375,
+        0.65625
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 3,
+      "surface": "f0_0_p3",
+      "domain": [
+        0.65625,
+        0.875
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 3,
+      "surface": "f0_0_p4",
+      "domain": [
+        0.875,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 3,
+      "surface": "f0_1_p0",
+      "domain": [
+        0,
+        0.21875
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 3,
+      "surface": "f0_1_p1",
+      "domain": [
+        0.21875,
+        0.4375
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 3,
+      "surface": "f0_1_p2",
+      "domain": [
+        0.4375,
+        0.65625
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 3,
+      "surface": "f0_1_p3",
+      "domain": [
+        0.65625,
+        0.875
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 3,
+      "surface": "f0_1_p4",
+      "domain": [
+        0.875,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 3,
+      "surface": "f0_2_p0",
+      "domain": [
+        0,
+        0.21875
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 3,
+      "surface": "f0_2_p1",
+      "domain": [
+        0.21875,
+        0.4375
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 3,
+      "surface": "f0_2_p2",
+      "domain": [
+        0.4375,
+        0.65625
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 3,
+      "surface": "f0_2_p3",
+      "domain": [
+        0.65625,
+        0.875
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 3,
+      "surface": "f0_2_p4",
+      "domain": [
+        0.875,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 3,
+      "surface": "f0_3_p0",
+      "domain": [
+        0,
+        0.21875
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 3,
+      "surface": "f0_3_p1",
+      "domain": [
+        0.21875,
+        0.4375
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 3,
+      "surface": "f0_3_p2",
+      "domain": [
+        0.4375,
+        0.65625
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 3,
+      "surface": "f0_3_p3",
+      "domain": [
+        0.65625,
+        0.875
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 3,
+      "surface": "f0_3_p4",
+      "domain": [
+        0.875,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 4,
+      "surface": "f0_0_p0",
+      "domain": [
+        0,
+        0.8333333333333334
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "1427727499662291501692494571887",
+          "denominator": "10149316925909050296682211744048804286183768064"
+        },
+        {
+          "numerator": "1061365182079974685544410133091",
+          "denominator": "162389070814544804746915387904780868578940289024"
+        },
+        {
+          "numerator": "168134386088498537",
+          "denominator": "4615374985364292250179556387615232"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "29820707977741709944901589322067",
+        "denominator": "162389070814544804746915387904780868578940289024"
+      },
+      "approximateL1": 1.83637407543259e-16
+    },
+    {
+      "case": 4,
+      "surface": "f0_0_p1",
+      "domain": [
+        0.8333333333333334,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "1427727499662291501692494571887",
+          "denominator": "10149316925909050296682211744048804286183768064"
+        },
+        {
+          "numerator": "1061365182079974685544410133091",
+          "denominator": "162389070814544804746915387904780868578940289024"
+        },
+        {
+          "numerator": "168134386088498537",
+          "denominator": "4615374985364292250179556387615232"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "29820707977741709944901589322067",
+        "denominator": "162389070814544804746915387904780868578940289024"
+      },
+      "approximateL1": 1.83637407543259e-16
+    },
+    {
+      "case": 4,
+      "surface": "f0_1_p0",
+      "domain": [
+        0,
+        0.8333333333333334
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "1427727499662291501692494571887",
+          "denominator": "10149316925909050296682211744048804286183768064"
+        },
+        {
+          "numerator": "449583297817053911922327875831",
+          "denominator": "20298633851818100593364423488097608572367536128"
+        },
+        {
+          "numerator": "168134386088498537",
+          "denominator": "4615374985364292250179556387615232"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "4044501147274770819341975274453",
+        "denominator": "20298633851818100593364423488097608572367536128"
+      },
+      "approximateL1": 1.9924991882705024e-16
+    },
+    {
+      "case": 4,
+      "surface": "f0_1_p1",
+      "domain": [
+        0.8333333333333334,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "1427727499662291501692494571887",
+          "denominator": "10149316925909050296682211744048804286183768064"
+        },
+        {
+          "numerator": "869493133755839",
+          "denominator": "6760803201217224225249021657088"
+        },
+        {
+          "numerator": "168134386088498537",
+          "denominator": "4615374985364292250179556387615232"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "6205483818247051435621396201331",
+        "denominator": "20298633851818100593364423488097608572367536128"
+      },
+      "approximateL1": 3.0570943165671425e-16
+    },
+    {
+      "case": 4,
+      "surface": "f0_2_p0",
+      "domain": [
+        0,
+        0.8333333333333334
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "1427727499662291501692494571887",
+          "denominator": "10149316925909050296682211744048804286183768064"
+        },
+        {
+          "numerator": "449583297817053911922327875831",
+          "denominator": "20298633851818100593364423488097608572367536128"
+        },
+        {
+          "numerator": "168134386088498537",
+          "denominator": "4615374985364292250179556387615232"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "4044501147274770819341975274453",
+        "denominator": "20298633851818100593364423488097608572367536128"
+      },
+      "approximateL1": 1.9924991882705024e-16
+    },
+    {
+      "case": 4,
+      "surface": "f0_2_p1",
+      "domain": [
+        0.8333333333333334,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "1427727499662291501692494571887",
+          "denominator": "10149316925909050296682211744048804286183768064"
+        },
+        {
+          "numerator": "869493133755839",
+          "denominator": "6760803201217224225249021657088"
+        },
+        {
+          "numerator": "168134386088498537",
+          "denominator": "4615374985364292250179556387615232"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "6205483818247051435621396201331",
+        "denominator": "20298633851818100593364423488097608572367536128"
+      },
+      "approximateL1": 3.0570943165671425e-16
+    },
+    {
+      "case": 4,
+      "surface": "f0_3_p0",
+      "domain": [
+        0,
+        0.8333333333333334
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "1235539359254063",
+          "denominator": "54086425609737793801992173256704"
+        },
+        {
+          "numerator": "449583297817053911922327875831",
+          "denominator": "20298633851818100593364423488097608572367536128"
+        },
+        {
+          "numerator": "168134386088498537",
+          "denominator": "4615374985364292250179556387615232"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "13221952248893622616489471680285",
+        "denominator": "162389070814544804746915387904780868578940289024"
+      },
+      "approximateL1": 8.142144161902159e-17
+    },
+    {
+      "case": 4,
+      "surface": "f0_3_p1",
+      "domain": [
+        0.8333333333333334,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "3406330791097142843104728007067",
+          "denominator": "162389070814544804746915387904780868578940289024"
+        },
+        {
+          "numerator": "869493133755839",
+          "denominator": "6760803201217224225249021657088"
+        },
+        {
+          "numerator": "168134386088498537",
+          "denominator": "4615374985364292250179556387615232"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "30206561342476890300995984467523",
+        "denominator": "162389070814544804746915387904780868578940289024"
+      },
+      "approximateL1": 1.8601351181431453e-16
+    },
+    {
+      "case": 5,
+      "surface": "f0_0_p0",
+      "domain": [
+        0,
+        0.23809523809523814
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 5,
+      "surface": "f0_0_p1",
+      "domain": [
+        0.23809523809523814,
+        0.4761904761904761
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 5,
+      "surface": "f0_0_p2",
+      "domain": [
+        0.4761904761904761,
+        0.7142857142857141
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 5,
+      "surface": "f0_0_p3",
+      "domain": [
+        0.7142857142857141,
+        0.9523809523809522
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 5,
+      "surface": "f0_0_p4",
+      "domain": [
+        0.9523809523809522,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 5,
+      "surface": "f0_1_p0",
+      "domain": [
+        0,
+        0.23809523809523814
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 5,
+      "surface": "f0_1_p1",
+      "domain": [
+        0.23809523809523814,
+        0.4761904761904761
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 5,
+      "surface": "f0_1_p2",
+      "domain": [
+        0.4761904761904761,
+        0.7142857142857141
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 5,
+      "surface": "f0_1_p3",
+      "domain": [
+        0.7142857142857141,
+        0.9523809523809522
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 5,
+      "surface": "f0_1_p4",
+      "domain": [
+        0.9523809523809522,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 5,
+      "surface": "f0_2_p0",
+      "domain": [
+        0,
+        0.23809523809523814
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 5,
+      "surface": "f0_2_p1",
+      "domain": [
+        0.23809523809523814,
+        0.4761904761904761
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 5,
+      "surface": "f0_2_p2",
+      "domain": [
+        0.4761904761904761,
+        0.7142857142857141
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 5,
+      "surface": "f0_2_p3",
+      "domain": [
+        0.7142857142857141,
+        0.9523809523809522
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 5,
+      "surface": "f0_2_p4",
+      "domain": [
+        0.9523809523809522,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 5,
+      "surface": "f0_3_p0",
+      "domain": [
+        0,
+        0.23809523809523814
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 5,
+      "surface": "f0_3_p1",
+      "domain": [
+        0.23809523809523814,
+        0.4761904761904761
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 5,
+      "surface": "f0_3_p2",
+      "domain": [
+        0.4761904761904761,
+        0.7142857142857141
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 5,
+      "surface": "f0_3_p3",
+      "domain": [
+        0.7142857142857141,
+        0.9523809523809522
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 5,
+      "surface": "f0_3_p4",
+      "domain": [
+        0.9523809523809522,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 6,
+      "surface": "f0_0_p0",
+      "domain": [
+        0,
+        0.75
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 6,
+      "surface": "f0_0_p1",
+      "domain": [
+        0.75,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 6,
+      "surface": "f0_1_p0",
+      "domain": [
+        0,
+        0.75
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 6,
+      "surface": "f0_1_p1",
+      "domain": [
+        0.75,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 6,
+      "surface": "f0_2_p0",
+      "domain": [
+        0,
+        0.75
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 6,
+      "surface": "f0_2_p1",
+      "domain": [
+        0.75,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 6,
+      "surface": "f0_3_p0",
+      "domain": [
+        0,
+        0.75
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 6,
+      "surface": "f0_3_p1",
+      "domain": [
+        0.75,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 7,
+      "surface": "f0_0_p0",
+      "domain": [
+        0,
+        0.1875
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 7,
+      "surface": "f0_0_p1",
+      "domain": [
+        0.1875,
+        0.375
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 7,
+      "surface": "f0_0_p2",
+      "domain": [
+        0.375,
+        0.5625
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 7,
+      "surface": "f0_0_p3",
+      "domain": [
+        0.5625,
+        0.75
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 7,
+      "surface": "f0_0_p4",
+      "domain": [
+        0.75,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 7,
+      "surface": "f0_1_p0",
+      "domain": [
+        0,
+        0.1875
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 7,
+      "surface": "f0_1_p1",
+      "domain": [
+        0.1875,
+        0.375
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 7,
+      "surface": "f0_1_p2",
+      "domain": [
+        0.375,
+        0.5625
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 7,
+      "surface": "f0_1_p3",
+      "domain": [
+        0.5625,
+        0.75
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 7,
+      "surface": "f0_1_p4",
+      "domain": [
+        0.75,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 7,
+      "surface": "f0_2_p0",
+      "domain": [
+        0,
+        0.1875
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 7,
+      "surface": "f0_2_p1",
+      "domain": [
+        0.1875,
+        0.375
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 7,
+      "surface": "f0_2_p2",
+      "domain": [
+        0.375,
+        0.5625
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 7,
+      "surface": "f0_2_p3",
+      "domain": [
+        0.5625,
+        0.75
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 7,
+      "surface": "f0_2_p4",
+      "domain": [
+        0.75,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 7,
+      "surface": "f0_3_p0",
+      "domain": [
+        0,
+        0.1875
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 7,
+      "surface": "f0_3_p1",
+      "domain": [
+        0.1875,
+        0.375
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 7,
+      "surface": "f0_3_p2",
+      "domain": [
+        0.375,
+        0.5625
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 7,
+      "surface": "f0_3_p3",
+      "domain": [
+        0.5625,
+        0.75
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 7,
+      "surface": "f0_3_p4",
+      "domain": [
+        0.75,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 8,
+      "surface": "f0_0_p0",
+      "domain": [
+        0,
+        0.75
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "3",
+          "denominator": "18014398509481984"
+        },
+        {
+          "numerator": "1",
+          "denominator": "144115188075855872"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "25",
+        "denominator": "144115188075855872"
+      },
+      "approximateL1": 1.734723475976807e-16
+    },
+    {
+      "case": 8,
+      "surface": "f0_0_p1",
+      "domain": [
+        0.75,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "7",
+          "denominator": "36028797018963968"
+        },
+        {
+          "numerator": "1",
+          "denominator": "144115188075855872"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "29",
+        "denominator": "144115188075855872"
+      },
+      "approximateL1": 2.0122792321330962e-16
+    },
+    {
+      "case": 8,
+      "surface": "f0_1_p0",
+      "domain": [
+        0,
+        0.75
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "3",
+          "denominator": "18014398509481984"
+        },
+        {
+          "numerator": "3",
+          "denominator": "18014398509481984"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "3",
+        "denominator": "9007199254740992"
+      },
+      "approximateL1": 3.3306690738754696e-16
+    },
+    {
+      "case": 8,
+      "surface": "f0_1_p1",
+      "domain": [
+        0.75,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "7",
+          "denominator": "36028797018963968"
+        },
+        {
+          "numerator": "1",
+          "denominator": "9007199254740992"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "11",
+        "denominator": "36028797018963968"
+      },
+      "approximateL1": 3.0531133177191805e-16
+    },
+    {
+      "case": 8,
+      "surface": "f0_2_p0",
+      "domain": [
+        0,
+        0.75
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "3",
+          "denominator": "18014398509481984"
+        },
+        {
+          "numerator": "3",
+          "denominator": "18014398509481984"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "3",
+        "denominator": "9007199254740992"
+      },
+      "approximateL1": 3.3306690738754696e-16
+    },
+    {
+      "case": 8,
+      "surface": "f0_2_p1",
+      "domain": [
+        0.75,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "7",
+          "denominator": "36028797018963968"
+        },
+        {
+          "numerator": "1",
+          "denominator": "9007199254740992"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "11",
+        "denominator": "36028797018963968"
+      },
+      "approximateL1": 3.0531133177191805e-16
+    },
+    {
+      "case": 8,
+      "surface": "f0_3_p0",
+      "domain": [
+        0,
+        0.75
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "13",
+          "denominator": "1152921504606846976"
+        },
+        {
+          "numerator": "3",
+          "denominator": "18014398509481984"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "205",
+        "denominator": "1152921504606846976"
+      },
+      "approximateL1": 1.7780915628762273e-16
+    },
+    {
+      "case": 8,
+      "surface": "f0_3_p1",
+      "domain": [
+        0.75,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "13",
+          "denominator": "1152921504606846976"
+        },
+        {
+          "numerator": "1",
+          "denominator": "9007199254740992"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "141",
+        "denominator": "1152921504606846976"
+      },
+      "approximateL1": 1.222980050563649e-16
+    },
+    {
+      "case": 9,
+      "surface": "f0_0_p0",
+      "domain": [
+        0,
+        0.23076923076923084
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 9,
+      "surface": "f0_0_p1",
+      "domain": [
+        0.23076923076923084,
+        0.4615384615384615
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 9,
+      "surface": "f0_0_p2",
+      "domain": [
+        0.4615384615384615,
+        0.6923076923076922
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 9,
+      "surface": "f0_0_p3",
+      "domain": [
+        0.6923076923076922,
+        0.923076923076923
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "91293246925864554487255221853",
+          "denominator": "4323969341215689587168525627010801523176243200"
+        },
+        {
+          "numerator": "805164724856845081075652842031",
+          "denominator": "138367018918902066789392820064345648741639782400"
+        },
+        {
+          "numerator": "534545742780743440008321274641",
+          "denominator": "8647938682431379174337051254021603046352486400"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "12279280510976405864800960335583",
+        "denominator": "138367018918902066789392820064345648741639782400"
+      },
+      "approximateL1": 8.874427307112385e-17
+    },
+    {
+      "case": 9,
+      "surface": "f0_0_p4",
+      "domain": [
+        0.923076923076923,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "91293246925864554487255221853",
+          "denominator": "4323969341215689587168525627010801523176243200"
+        },
+        {
+          "numerator": "805164724856845081075652842031",
+          "denominator": "138367018918902066789392820064345648741639782400"
+        },
+        {
+          "numerator": "534545742780743440008321274641",
+          "denominator": "8647938682431379174337051254021603046352486400"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "12279280510976405864800960335583",
+        "denominator": "138367018918902066789392820064345648741639782400"
+      },
+      "approximateL1": 8.874427307112385e-17
+    },
+    {
+      "case": 9,
+      "surface": "f0_1_p0",
+      "domain": [
+        0,
+        0.23076923076923084
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 9,
+      "surface": "f0_1_p1",
+      "domain": [
+        0.23076923076923084,
+        0.4615384615384615
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 9,
+      "surface": "f0_1_p2",
+      "domain": [
+        0.4615384615384615,
+        0.6923076923076922
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 9,
+      "surface": "f0_1_p3",
+      "domain": [
+        0.6923076923076922,
+        0.923076923076923
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "91293246925864554487255221853",
+          "denominator": "4323969341215689587168525627010801523176243200"
+        },
+        {
+          "numerator": "632157812270357944165707431671",
+          "denominator": "4323969341215689587168525627010801523176243200"
+        },
+        {
+          "numerator": "534545742780743440008321274641",
+          "denominator": "8647938682431379174337051254021603046352486400"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "1981447861173188437314246581689",
+        "denominator": "8647938682431379174337051254021603046352486400"
+      },
+      "approximateL1": 2.2912371767836144e-16
+    },
+    {
+      "case": 9,
+      "surface": "f0_1_p4",
+      "domain": [
+        0.923076923076923,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "91293246925864554487255221853",
+          "denominator": "4323969341215689587168525627010801523176243200"
+        },
+        {
+          "numerator": "632157812270357944165707431671",
+          "denominator": "4323969341215689587168525627010801523176243200"
+        },
+        {
+          "numerator": "534545742780743440008321274641",
+          "denominator": "8647938682431379174337051254021603046352486400"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "1981447861173188437314246581689",
+        "denominator": "8647938682431379174337051254021603046352486400"
+      },
+      "approximateL1": 2.2912371767836144e-16
+    },
+    {
+      "case": 9,
+      "surface": "f0_2_p0",
+      "domain": [
+        0,
+        0.23076923076923084
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 9,
+      "surface": "f0_2_p1",
+      "domain": [
+        0.23076923076923084,
+        0.4615384615384615
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 9,
+      "surface": "f0_2_p2",
+      "domain": [
+        0.4615384615384615,
+        0.6923076923076922
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 9,
+      "surface": "f0_2_p3",
+      "domain": [
+        0.6923076923076922,
+        0.923076923076923
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "91293246925864554487255221853",
+          "denominator": "4323969341215689587168525627010801523176243200"
+        },
+        {
+          "numerator": "632157812270357944165707431671",
+          "denominator": "4323969341215689587168525627010801523176243200"
+        },
+        {
+          "numerator": "534545742780743440008321274641",
+          "denominator": "8647938682431379174337051254021603046352486400"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "1981447861173188437314246581689",
+        "denominator": "8647938682431379174337051254021603046352486400"
+      },
+      "approximateL1": 2.2912371767836144e-16
+    },
+    {
+      "case": 9,
+      "surface": "f0_2_p4",
+      "domain": [
+        0.923076923076923,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "91293246925864554487255221853",
+          "denominator": "4323969341215689587168525627010801523176243200"
+        },
+        {
+          "numerator": "632157812270357944165707431671",
+          "denominator": "4323969341215689587168525627010801523176243200"
+        },
+        {
+          "numerator": "534545742780743440008321274641",
+          "denominator": "8647938682431379174337051254021603046352486400"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "1981447861173188437314246581689",
+        "denominator": "8647938682431379174337051254021603046352486400"
+      },
+      "approximateL1": 2.2912371767836144e-16
+    },
+    {
+      "case": 9,
+      "surface": "f0_3_p0",
+      "domain": [
+        0,
+        0.23076923076923084
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 9,
+      "surface": "f0_3_p1",
+      "domain": [
+        0.23076923076923084,
+        0.4615384615384615
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 9,
+      "surface": "f0_3_p2",
+      "domain": [
+        0.4615384615384615,
+        0.6923076923076922
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        },
+        {
+          "numerator": "0",
+          "denominator": "1"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "0",
+        "denominator": "1"
+      },
+      "approximateL1": 0.0
+    },
+    {
+      "case": 9,
+      "surface": "f0_3_p3",
+      "domain": [
+        0.6923076923076922,
+        0.923076923076923
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "356361190785289",
+          "denominator": "24962965666032826522888810004480"
+        },
+        {
+          "numerator": "632157812270357944165707431671",
+          "denominator": "4323969341215689587168525627010801523176243200"
+        },
+        {
+          "numerator": "534545742780743440008321274641",
+          "denominator": "8647938682431379174337051254021603046352486400"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "7689263354218124655610848284137",
+        "denominator": "34591754729725516697348205016086412185409945600"
+      },
+      "approximateL1": 2.222860162572371e-16
+    },
+    {
+      "case": 9,
+      "surface": "f0_3_p4",
+      "domain": [
+        0.923076923076923,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "983740555487519429686669557309",
+          "denominator": "69183509459451033394696410032172824370819891200"
+        },
+        {
+          "numerator": "632157812270357944165707431671",
+          "denominator": "4323969341215689587168525627010801523176243200"
+        },
+        {
+          "numerator": "534545742780743440008321274641",
+          "denominator": "8647938682431379174337051254021603046352486400"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "15374631494059194056404558661173",
+        "denominator": "69183509459451033394696410032172824370819891200"
+      },
+      "approximateL1": 2.222297136150686e-16
+    },
+    {
+      "case": 10,
+      "surface": "f0_0_p0",
+      "domain": [
+        0,
+        0.9285714285714286
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "257906301897721",
+          "denominator": "4346230629353929698245812944896"
+        },
+        {
+          "numerator": "698372609878427",
+          "denominator": "4346230629353929698245812944896"
+        },
+        {
+          "numerator": "218553311647512006722775992735623",
+          "denominator": "3272400167551411871568301216031212185801421388800"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "515980353395718644558586428971311206341067549",
+        "denominator": "1799021017479454001537536762000779168416483893146995287654400"
+      },
+      "approximateL1": 2.868117428214601e-16
+    },
+    {
+      "case": 10,
+      "surface": "f0_0_p1",
+      "domain": [
+        0.9285714285714286,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "134467621847679",
+          "denominator": "2317989668988763106211050553344"
+        },
+        {
+          "numerator": "440185595462169",
+          "denominator": "5794974172471907765527626383360"
+        },
+        {
+          "numerator": "218553311647512006722775992735623",
+          "denominator": "3272400167551411871568301216031212185801421388800"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "5778662527477403363788815705558610669496942519",
+        "denominator": "28784336279671264024600588192012466694663742290351924602470400"
+      },
+      "approximateL1": 2.0075719208292265e-16
+    },
+    {
+      "case": 10,
+      "surface": "f0_1_p0",
+      "domain": [
+        0,
+        0.9285714285714286
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "1075222433652838749852969316838943401042075119",
+          "denominator": "7196084069917816006150147048003116673665935572587981150617600"
+        },
+        {
+          "numerator": "188343461104553",
+          "denominator": "2173115314676964849122906472448"
+        },
+        {
+          "numerator": "218553311647512006722775992735623",
+          "denominator": "3272400167551411871568301216031212185801421388800"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "435901877440707412369908462420000224033595773",
+        "denominator": "1439216813983563201230029409600623334733187114517596230123520"
+      },
+      "approximateL1": 3.0287436417185e-16
+    },
+    {
+      "case": 10,
+      "surface": "f0_1_p1",
+      "domain": [
+        0.9285714285714286,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "1075222433652838749852969316838943401042075119",
+          "denominator": "7196084069917816006150147048003116673665935572587981150617600"
+        },
+        {
+          "numerator": "425487523204439",
+          "denominator": "11589948344943815531055252766720"
+        },
+        {
+          "numerator": "218553311647512006722775992735623",
+          "denominator": "3272400167551411871568301216031212185801421388800"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "1456005788064505645953065428463608288732336733",
+        "denominator": "5756867255934252804920117638402493338932748458070384920494080"
+      },
+      "approximateL1": 2.529163385804382e-16
+    },
+    {
+      "case": 10,
+      "surface": "f0_2_p0",
+      "domain": [
+        0,
+        0.9285714285714286
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "1075222433652838749852969316838943401042075119",
+          "denominator": "7196084069917816006150147048003116673665935572587981150617600"
+        },
+        {
+          "numerator": "540042935478683",
+          "denominator": "4346230629353929698245812944896"
+        },
+        {
+          "numerator": "218553311647512006722775992735623",
+          "denominator": "3272400167551411871568301216031212185801421388800"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "244997906657930199752626806875794589939090069",
+        "denominator": "719608406991781600615014704800311667366593557258798115061760"
+      },
+      "approximateL1": 3.4046003948468076e-16
+    },
+    {
+      "case": 10,
+      "surface": "f0_2_p1",
+      "domain": [
+        0.9285714285714286,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "1075222433652838749852969316838943401042075119",
+          "denominator": "7196084069917816006150147048003116673665935572587981150617600"
+        },
+        {
+          "numerator": "398432591522219",
+          "denominator": "1448743543117976941381906595840"
+        },
+        {
+          "numerator": "218553311647512006722775992735623",
+          "denominator": "3272400167551411871568301216031212185801421388800"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "141395561164909733422290134657863577266734137",
+        "denominator": "287843362796712640246005881920124666946637422903519246024704"
+      },
+      "approximateL1": 4.912239760927521e-16
+    },
+    {
+      "case": 10,
+      "surface": "f0_3_p0",
+      "domain": [
+        0,
+        0.9285714285714286
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "1103513429184297850276314317190612007046018309",
+          "denominator": "14392168139835632012300294096006233347331871145175962301235200"
+        },
+        {
+          "numerator": "540042935478683",
+          "denominator": "4346230629353929698245812944896"
+        },
+        {
+          "numerator": "218553311647512006722775992735623",
+          "denominator": "3272400167551411871568301216031212185801421388800"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "3853026695037224345622911821028617003743669451",
+        "denominator": "14392168139835632012300294096006233347331871145175962301235200"
+      },
+      "approximateL1": 2.6771690391613426e-16
+    },
+    {
+      "case": 10,
+      "surface": "f0_3_p1",
+      "domain": [
+        0.9285714285714286,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "1103513429184297850276314317190612007046018309",
+          "denominator": "14392168139835632012300294096006233347331871145175962301235200"
+        },
+        {
+          "numerator": "398432591522219",
+          "denominator": "1448743543117976941381906595840"
+        },
+        {
+          "numerator": "218553311647512006722775992735623",
+          "denominator": "3272400167551411871568301216031212185801421388800"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "6022846620124107021684882416405904068298574921",
+        "denominator": "14392168139835632012300294096006233347331871145175962301235200"
+      },
+      "approximateL1": 4.1848084052420556e-16
+    },
+    {
+      "case": 11,
+      "surface": "f0_0_p0",
+      "domain": [
+        0,
+        0.21311475409836064
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "467234036511648086427124102333",
+          "denominator": "4713254406872034216155617835729492218300334080"
+        },
+        {
+          "numerator": "692984874065830654800292628841",
+          "denominator": "4713254406872034216155617835729492218300334080"
+        },
+        {
+          "numerator": "311054909023991",
+          "denominator": "63839715473788863103938987032576"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "18930943034124173897829569740889",
+        "denominator": "75412070509952547458489885371671875492805345280"
+      },
+      "approximateL1": 2.5103332803500936e-16
+    },
+    {
+      "case": 11,
+      "surface": "f0_0_p1",
+      "domain": [
+        0.21311475409836064,
+        0.4262295081967213
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "608951292484475",
+          "denominator": "1994991108555901971998093344768"
+        },
+        {
+          "numerator": "295990226091641",
+          "denominator": "1994991108555901971998093344768"
+        },
+        {
+          "numerator": "362791985149179",
+          "denominator": "15959928868447215775984746758144"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "7602324133758107",
+        "denominator": "15959928868447215775984746758144"
+      },
+      "approximateL1": 4.763382215811691e-16
+    },
+    {
+      "case": 11,
+      "surface": "f0_0_p2",
+      "domain": [
+        0.4262295081967213,
+        0.639344262295082
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "78072827366270377645061604821",
+          "denominator": "294578400429501889135837545245346763882102784"
+        },
+        {
+          "numerator": "147615610348155",
+          "denominator": "997495554277950985999046672384"
+        },
+        {
+          "numerator": "41597621101849305479520169387",
+          "denominator": "2356627203436008463116338508962205583582167040"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "531088152539289311053749880584886709960454002864360532408479",
+        "denominator": "1233167296271683908265866221629778838167213462008303202213070158435744481280"
+      },
+      "approximateL1": 4.3066999436731995e-16
+    },
+    {
+      "case": 11,
+      "surface": "f0_0_p3",
+      "domain": [
+        0.639344262295082,
+        0.8524590163934426
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "106102055548522946634697653029",
+          "denominator": "589156800859002115779084627240551395895541760"
+        },
+        {
+          "numerator": "133652177479633666005845671393",
+          "denominator": "589156800859002115779084627240551395895541760"
+        },
+        {
+          "numerator": "135102966406007",
+          "denominator": "3989982217111799440396559319040"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "103881361003560879542716258397",
+        "denominator": "235662720343600846311633850896220558358216704"
+      },
+      "approximateL1": 4.408052357712744e-16
+    },
+    {
+      "case": 11,
+      "surface": "f0_0_p4",
+      "domain": [
+        0.8524590163934426,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "21581069662234952576606356801",
+          "denominator": "294578400429501057889542313620275697947770880"
+        },
+        {
+          "numerator": "133652177479633666005845671393",
+          "denominator": "589156800859002115779084627240551395895541760"
+        },
+        {
+          "numerator": "18931980656425535953140561127",
+          "denominator": "589156800859002115779084627240551395895541760"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "97873148730264553556099473061",
+        "denominator": "294578400429501057889542313620275697947770880"
+      },
+      "approximateL1": 3.322482184286546e-16
+    },
+    {
+      "case": 11,
+      "surface": "f0_1_p0",
+      "domain": [
+        0,
+        0.21311475409836064
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "467234036511648086427124102333",
+          "denominator": "4713254406872034216155617835729492218300334080"
+        },
+        {
+          "numerator": "88391959654808237681342675191",
+          "denominator": "1178313601718008554038904458932373054575083520"
+        },
+        {
+          "numerator": "311054909023991",
+          "denominator": "63839715473788863103938987032576"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "13500270466978610632630818891657",
+        "denominator": "75412070509952547458489885371671875492805345280"
+      },
+      "approximateL1": 1.7902002127360905e-16
+    },
+    {
+      "case": 11,
+      "surface": "f0_1_p1",
+      "domain": [
+        0.21311475409836064,
+        0.4262295081967213
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "621350589706007",
+          "denominator": "3989982217111803943996186689536"
+        },
+        {
+          "numerator": "295990226091641",
+          "denominator": "1994991108555901971998093344768"
+        },
+        {
+          "numerator": "362791985149179",
+          "denominator": "15959928868447215775984746758144"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "5216116152706335",
+        "denominator": "15959928868447215775984746758144"
+      },
+      "approximateL1": 3.2682577696311655e-16
+    },
+    {
+      "case": 11,
+      "surface": "f0_1_p2",
+      "domain": [
+        0.4262295081967213,
+        0.639344262295082
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "140277109073857",
+          "denominator": "997495554277949860099139829760"
+        },
+        {
+          "numerator": "295491583663871",
+          "denominator": "3989982217111803943996186689536"
+        },
+        {
+          "numerator": "41597621101849305479520169387",
+          "denominator": "2356627203436008463116338508962205583582167040"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "97018423427039780714831005235214324691093761",
+        "denominator": "417572671288350751036257539873493937672375752586495239651328"
+      },
+      "approximateL1": 2.323390156920606e-16
+    },
+    {
+      "case": 11,
+      "surface": "f0_1_p3",
+      "domain": [
+        0.639344262295082,
+        0.8524590163934426
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "118303216890721",
+          "denominator": "498747777138974930049569914880"
+        },
+        {
+          "numerator": "133652177479633666005845671393",
+          "denominator": "589156800859002115779084627240551395895541760"
+        },
+        {
+          "numerator": "135102966406007",
+          "denominator": "3989982217111799440396559319040"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "586699257071332065833425822111",
+        "denominator": "1178313601718004231558169254481102791791083520"
+      },
+      "approximateL1": 4.979143550714454e-16
+    },
+    {
+      "case": 11,
+      "surface": "f0_1_p4",
+      "domain": [
+        0.8524590163934426,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "1442564775009",
+          "denominator": "7792934017796483282024529920"
+        },
+        {
+          "numerator": "133652177479633666005845671393",
+          "denominator": "589156800859002115779084627240551395895541760"
+        },
+        {
+          "numerator": "18931980656425535953140561127",
+          "denominator": "589156800859002115779084627240551395895541760"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "32705511167796008274745102009",
+        "denominator": "73644600107375264472385578405068924486942720"
+      },
+      "approximateL1": 4.440992431231989e-16
+    },
+    {
+      "case": 11,
+      "surface": "f0_2_p0",
+      "domain": [
+        0,
+        0.21311475409836064
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "56165662336935",
+          "denominator": "997495554277950985999046672384"
+        },
+        {
+          "numerator": "81959696767973299214227453973",
+          "denominator": "589156800859004277019452229466186527287541760"
+        },
+        {
+          "numerator": "311054909023991",
+          "denominator": "63839715473788863103938987032576"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "15104484925200783837205947185849",
+        "denominator": "75412070509952547458489885371671875492805345280"
+      },
+      "approximateL1": 2.0029266963578944e-16
+    },
+    {
+      "case": 11,
+      "surface": "f0_2_p1",
+      "domain": [
+        0.21311475409836064,
+        0.4262295081967213
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "119714850652304962367308731315",
+          "denominator": "1178313601718007556543350180981387055528411136"
+        },
+        {
+          "numerator": "81959696767973299214227453973",
+          "denominator": "589156800859004277019452229466186527287541760"
+        },
+        {
+          "numerator": "362791985149179",
+          "denominator": "15959928868447215775984746758144"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "41317101790772444197741212032335881546228397",
+        "denominator": "156834806117690909739425137908509722867930010034875756707840"
+      },
+      "approximateL1": 2.6344344609172755e-16
+    },
+    {
+      "case": 11,
+      "surface": "f0_2_p2",
+      "domain": [
+        0.4262295081967213,
+        0.639344262295082
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "140277109073857",
+          "denominator": "997495554277949860099139829760"
+        },
+        {
+          "numerator": "342375430726553",
+          "denominator": "1994991108555899720198279659520"
+        },
+        {
+          "numerator": "41597621101849305479520169387",
+          "denominator": "2356627203436008463116338508962205583582167040"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "777446994098092292826098127471",
+        "denominator": "2356627203436008463116338508962205583582167040"
+      },
+      "approximateL1": 3.298981667378529e-16
+    },
+    {
+      "case": 11,
+      "surface": "f0_2_p3",
+      "domain": [
+        0.639344262295082,
+        0.8524590163934426
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "206370578746803",
+          "denominator": "997495554277949860099139829760"
+        },
+        {
+          "numerator": "246849789967647",
+          "denominator": "997495554277949860099139829760"
+        },
+        {
+          "numerator": "135102966406007",
+          "denominator": "3989982217111799440396559319040"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "1947984441263807",
+        "denominator": "3989982217111799440396559319040"
+      },
+      "approximateL1": 4.882188278708372e-16
+    },
+    {
+      "case": 11,
+      "surface": "f0_2_p4",
+      "domain": [
+        0.8524590163934426,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "1442564775009",
+          "denominator": "7792934017796483282024529920"
+        },
+        {
+          "numerator": "90122039378780203685761894223",
+          "denominator": "589156800859002115779084627240551395895541760"
+        },
+        {
+          "numerator": "18931980656425535953140561127",
+          "denominator": "589156800859002115779084627240551395895541760"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "109056975620757301938938519451",
+        "denominator": "294578400429501057889542313620275697947770880"
+      },
+      "approximateL1": 3.702137545106841e-16
+    },
+    {
+      "case": 11,
+      "surface": "f0_3_p0",
+      "domain": [
+        0,
+        0.21311475409836064
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "56165662336935",
+          "denominator": "997495554277950985999046672384"
+        },
+        {
+          "numerator": "81959696767973299214227453973",
+          "denominator": "589156800859004277019452229466186527287541760"
+        },
+        {
+          "numerator": "311054909023991",
+          "denominator": "63839715473788863103938987032576"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "15104484925200783837205947185849",
+        "denominator": "75412070509952547458489885371671875492805345280"
+      },
+      "approximateL1": 2.0029266963578944e-16
+    },
+    {
+      "case": 11,
+      "surface": "f0_3_p1",
+      "domain": [
+        0.21311475409836064,
+        0.4262295081967213
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "608951292484475",
+          "denominator": "1994991108555901971998093344768"
+        },
+        {
+          "numerator": "81959696767973299214227453973",
+          "denominator": "589156800859004277019452229466186527287541760"
+        },
+        {
+          "numerator": "362791985149179",
+          "denominator": "15959928868447215775984746758144"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "8805963374736393976100668320381",
+        "denominator": "18853017627488136864622471342917968873201336320"
+      },
+      "approximateL1": 4.670850867872258e-16
+    },
+    {
+      "case": 11,
+      "surface": "f0_3_p2",
+      "domain": [
+        0.4262295081967213,
+        0.639344262295082
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "78072827366270377645061604821",
+          "denominator": "294578400429501889135837545245346763882102784"
+        },
+        {
+          "numerator": "63449839318399",
+          "denominator": "498747777138975492999523336192"
+        },
+        {
+          "numerator": "41597621101849305479520169387",
+          "denominator": "2356627203436008463116338508962205583582167040"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "505477803311482599795231864898325672084653584573799364361039",
+        "denominator": "1233167296271683908265866221629778838167213462008303202213070158435744481280"
+      },
+      "approximateL1": 4.0990205046770783e-16
+    },
+    {
+      "case": 11,
+      "surface": "f0_3_p3",
+      "domain": [
+        0.639344262295082,
+        0.8524590163934426
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "106102055548522946634697653029",
+          "denominator": "589156800859002115779084627240551395895541760"
+        },
+        {
+          "numerator": "246849789967647",
+          "denominator": "997495554277949860099139829760"
+        },
+        {
+          "numerator": "135102966406007",
+          "denominator": "3989982217111799440396559319040"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "543699203400118101988099831043",
+        "denominator": "1178313601718004231558169254481102791791083520"
+      },
+      "approximateL1": 4.614214777860445e-16
+    },
+    {
+      "case": 11,
+      "surface": "f0_3_p4",
+      "domain": [
+        0.8524590163934426,
+        1
+      ],
+      "coordinateBounds": [
+        {
+          "numerator": "25118606076192848149775591881",
+          "denominator": "589156800859002115779084627240551395895541760"
+        },
+        {
+          "numerator": "90122039378780203685761894223",
+          "denominator": "589156800859002115779084627240551395895541760"
+        },
+        {
+          "numerator": "18931980656425535953140561127",
+          "denominator": "589156800859002115779084627240551395895541760"
+        }
+      ],
+      "l1Bound": {
+        "numerator": "134172626111398587788678047231",
+        "denominator": "589156800859002115779084627240551395895541760"
+      },
+      "approximateL1": 2.2773670085072814e-16
+    }
+  ]
+}

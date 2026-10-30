@@ -98,15 +98,15 @@ export function prismaticFromProfile(input: { readonly outer: readonly ProfileSe
 /**
  * The solid under x' = M·x + t (M a similarity: rotation or reflection times a scale s), z' = zScale·z
  * + zOffset (|zScale| = s keeps cylinders round; any nonzero value is accepted for planar walls).
- * `retag` renames every tag (pattern copies).
+ * `retag` renames every tag (pattern copies); a string appends a suffix.
  */
-export function transformPrismatic(solid: PrismaticSolid, transform: { readonly matrix: readonly [number, number, number, number]; readonly offset?: readonly [number, number]; readonly zScale?: number; readonly zOffset?: number; readonly retag?: (tag: string) => string }): PrismaticSolid {
+export function transformPrismatic(solid: PrismaticSolid, transform: { readonly matrix: readonly [number, number, number, number]; readonly offset?: readonly [number, number]; readonly zScale?: number; readonly zOffset?: number; readonly retag?: ((tag: string) => string) | string }): PrismaticSolid {
   const [a, b, c, d] = transform.matrix, [tx, ty] = transform.offset ?? [0, 0], zs = transform.zScale ?? 1, zo = transform.zOffset ?? 0, det = a * d - b * c;
   const scale = Math.sqrt(Math.abs(det));
   if (!(scale > 0) || Math.abs(a * a + c * c - scale * scale) > 1e-12 * scale * scale || Math.abs(b * b + d * d - scale * scale) > 1e-12 * scale * scale || Math.abs(a * b + c * d) > 1e-12 * scale * scale || !(zs !== 0 && Number.isFinite(zs)))
     throw prismaticSolidError('the transform must be a similarity in XY with a nonzero Z scale');
   const map = (p: XY): XY => [a * p[0] + b * p[1] + tx, c * p[0] + d * p[1] + ty];
-  const retag = <T extends { tag?: string }>(x: T): T => transform.retag && x.tag !== undefined ? { ...x, tag: transform.retag(x.tag) } : x;
+  const retag = <T extends { tag?: string }>(x: T): T => transform.retag && x.tag !== undefined ? { ...x, tag: typeof transform.retag === 'string' ? x.tag + transform.retag : transform.retag(x.tag) } : x;
   const seg = (s: CurveSegment2): CurveSegment2 => s.kind === 'curve' ? noCurves() : retag(s.kind === 'line' ? { ...s, a: map(s.a), b: map(s.b) }
     : { ...s, c: map(s.c), r: s.r * scale, t0: Math.atan2(c * Math.cos(s.t0) + d * Math.sin(s.t0), a * Math.cos(s.t0) + b * Math.sin(s.t0)), sweep: s.sweep * Math.sign(det) });
   // A reflection reverses ring orientation; reverse the rings so material stays on the left.
@@ -114,7 +114,7 @@ export function transformPrismatic(solid: PrismaticSolid, transform: { readonly 
   const region = (r: CurveRegion2): CurveRegion2 => ({ outer: ring(r.outer), holes: r.holes.map(ring) });
   const z = (v: number) => zs * v + zo;
   const slabs = solid.slabs.map(s => ({ z0: Math.min(z(s.z0), z(s.z1)), z1: Math.max(z(s.z0), z(s.z1)), regions: s.regions.map(region) }));
-  const caps = (solid.caps ?? []).map(cp => ({ z: z(cp.z), regions: cp.regions.map(region), tag: transform.retag ? transform.retag(cp.tag) : cp.tag }));
+  const caps = (solid.caps ?? []).map(cp => ({ z: z(cp.z), regions: cp.regions.map(region), tag: typeof transform.retag === 'string' ? cp.tag + transform.retag : transform.retag ? transform.retag(cp.tag) : cp.tag }));
   // (A similarity keeps distinct neighbouring sections distinct: they need no merging check.)
   return normalize(slabs, 0, caps, true);
 }
@@ -263,8 +263,8 @@ export function brepFromPrismatic(solid: PrismaticSolid, options: { readonly id?
         const e = curveOf(k, z, 'p');
         return hUse(k, forward, level, f, up ? 'upFace' : 'downFace', { ...e, id: 'pcurve', controlPoints: e.controlPoints.map(uv) });
       }) }));
-      // The cap's name: the authored top or bottom at this height that contains it.
-      const q = interiorPoint(region), source = (solid.caps ?? []).find(cp => Math.abs(cp.z - z) <= tol && cp.regions.some(r => inRegion(q, r)));
+      // Naming uses the authored stored height, not geometric proximity to another cap.
+      const q = interiorPoint(region), source = (solid.caps ?? []).find(cp => cp.z === z && cp.regions.some(r => inRegion(q, r)));
       faces.push({ id: fid, surface: capSurface({ min: [x0, y0], max: [x1, y1] }, z, fid, up), sense: 'forward', loops, volume: (up ? 1 : -1) * regionArea(region) * z, cap: { region, z },
         base: source?.tag ?? `${id}.${up ? 'top' : 'bottom'}`, key: [q[0], q[1], z] });
     });

@@ -1,0 +1,26 @@
+{
+  "status": "SOURCE_PREPARED_NUMERIC_CONTRACT_PENDING",
+  "driverSha256": "4aee791d5ea9eb56686f5424c9d0718a40f2b81944442812a7a3d94a179a9a58",
+  "syntax": "PASS",
+  "inspectorSyntax": "PASS",
+  "oracleSyntax": "PASS",
+  "driverLint": {
+    "errors": 0,
+    "noConsoleWarnings": 1
+  },
+  "tinyIndependentDecimalCrosscheck": "PASS_3_LENGTHS_6_CERTIFIED_BALL_CROSSCHECKS",
+  "DecimalIsCertifiedInterval": false,
+  "productionTests": "NOT_RUN",
+  "build": "NOT_RUN",
+  "browser": "NOT_RUN",
+  "heavy": "NOT_RUN",
+  "D345ArtifactsModified": false,
+  "preflight": "BLOCKS_BEFORE_GENERATION_SERVER_BROWSER_UNTIL_HIGH_ERROR_WORK_CONTRACT_FROZEN",
+  "sharedAPI": "planCurveFeaturePatternPath(raw,spacing,count) root-approved shape; mathematical contract pending",
+  "hashes": {
+    "preparation.md": "6206862fc693d5cafaa1f46066233c61ff2240e0d9f88bd219365db27ec3800e",
+    "decimal-crosscheck.json": "9ed3951be279d804f9e14e3db3d0228e25393fa3979a278bb2482cd00a401dd8",
+    "decimal-crosscheck-provenance.json": "4389312e6e5c190f0a6b77809fe357d3264111f5384735ecb96496ce2b5b15ff",
+    "curve-oracle-source.py": "57281994fead57c41b429d84250154679f1e489680f6cd3cea9e8f3a40addf99"
+  }
+}

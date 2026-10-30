@@ -1,0 +1,8 @@
+{
+  "beforeAppSha256": "b86265aafcb141b91e214e92be63c4bff75bd60cfa36d5e90e41163f97132115",
+  "afterAppSha256": "09e402caf8e6fa163f4ec8b181ff872c8369f9969298b046e66d34dd1a02bf7c",
+  "change": "Inactive/completed Stop click only clears busy/slow and returns. No restart, cache invalidation, namespace or history mutation.",
+  "exactCompletedClickUIRace": "NOT_RUN",
+  "firstActualBeforeChange": "FAIL: consumer History DOM fixture; retain original b862 source binding in consumer evidence",
+  "helperChanged": false
+}

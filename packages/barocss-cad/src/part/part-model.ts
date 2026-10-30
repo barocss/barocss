@@ -23,7 +23,12 @@ import { booleanCurveRegions, curveTolerance, regionMoments, locateInRegion, sam
 import { booleanPolyhedra } from '../brep/polyhedral-boolean.js';
 import { booleanAnalytic, faceGeometry, splitFaceAlongCurve, splitFaceAlongIsocline, type FaceGeometry } from '../brep/analytic-boolean.js';
 import { faceReach, finishBrepEdges } from '../blend/edge-finish.js';
+import { polynomialFaceFillet } from '../blend/polynomial-face-fillet.js';
 import { draftedExtrusion } from '../features/drafted-extrusion.js';
+import { profileRelief, type ReliefSketch } from '../features/profile-relief.js';
+import { cylindricalWrapFeature, type CylindricalWrapReport } from '../features/cylindrical-wrap-feature.js';
+import { fillCutSnapshot, fillCutPlacements, type FillFeaturePatternRegion } from '../features/fill-cut-pattern.js';
+import { curveCutOffsets, type RawNurbsPath } from '../features/curve-cut-pattern.js';
 import { stepTessellatedChars } from '../io/step.js';
 import { brepFromTriangles, isMeshBrepError } from '../mesh/mesh-brep.js';
 import { facetBrepFromTriangles, weldVertices } from '../mesh/facet-brep.js';
@@ -126,6 +131,10 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'rib'; readonly target: string; readonly min: CadPartPoint3; readonly max: CadPartPoint3 }
   /** A supported XY rectangle raised above or recessed below the top of one straight-sided, single-slab upright solid. Depth is positive world mm, below the body's height. */
   | { readonly kind: 'rectangular-relief'; readonly target: string; readonly min: CadPartPoint2; readonly max: CadPartPoint2; readonly depth: CadPartDim; readonly mode: 'emboss' | 'engrave' }
+  /** Line-only XY components strictly inside exactly one +Z cap in `faces`. `clearance` adds to the existing linear policy (default 0); only engrave depth must remain below slab thickness. */
+  | { readonly kind: 'profile-relief'; readonly target: string; readonly faces: readonly string[]; readonly sketches: readonly string[]; readonly depth: CadPartDim; readonly mode: 'emboss' | 'engrave'; readonly clearance?: number; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
+  /** One rectangle in original native UV, first +Y wall quarter; height must equal the source radius. Mass is over its certified closed radial reference. */
+  | { readonly kind: 'cylindrical-wrap'; readonly target: string; readonly faces: readonly string[]; readonly rectangle: { readonly u: readonly [number, number]; readonly v: readonly [number, number] }; readonly height: CadPartDim; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
   /**
    * A full round (a face fillet): each named face — planar, facing +Z, an axis-aligned rectangle — becomes a half
    * cylinder tangent to its two sides along `along` (default: each face's longer side), of radius half its width
@@ -173,6 +182,12 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'linear-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number }
   /** Repeat the tool of the active difference producer; count includes the original cut. */
   | { readonly kind: 'linear-feature-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number }
+  /** Repeat an active difference tool on two distinct global axes; both counts include the original cut. */
+  | { readonly kind: 'rectangular-feature-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly spacing: CadPartDim; readonly count: number; readonly axis2: CadPartAxis; readonly spacing2: CadPartDim; readonly count2: number }
+  /** Repeat the original CUT tool on a finite XY grid, masked by an inline reference-point region. */
+  | { readonly kind: 'fill-feature-pattern'; readonly target: string; readonly region: FillFeaturePatternRegion; readonly anchor: readonly [number, number]; readonly spacing: CadPartDim; readonly count: number; readonly spacing2: CadPartDim; readonly count2: number }
+  /** Repeat a difference's cut tool along an open polyline, with its original orientation. */
+  | { readonly kind: 'curve-feature-pattern'; readonly target: string; readonly path: RawNurbsPath; readonly spacing: CadPartDim; readonly count: number }
   /** Copies k·angle about the axis through `pivot` (about X or Y: multiples of 90°). */
   | { readonly kind: 'circular-pattern'; readonly target: string; readonly axis: CadPartAxis; readonly angle: number; readonly count: number; readonly pivot?: CadPartPoint3 }
   /**
@@ -224,7 +239,7 @@ export type CadPartFeature = Base & (
    * The sketch's profile swept along a curve (any NURBS path in mm): its middle starts on the path's
    * start, square to it, carried along without twisting; the ends capped; holes run through. Faceted.
    */
-  | { readonly kind: 'sweep-curve'; readonly sketch: string; readonly path: { readonly degree: number; readonly knots: readonly number[]; readonly controlPoints: readonly (readonly [number, number, number])[]; readonly weights: readonly number[] } }
+  | { readonly kind: 'sweep-curve'; readonly sketch: string; readonly path: RawNurbsPath }
   /**
    * Draft (taper) on chosen side faces along the signed `pull` axis (default: positive Z). Each planar side
    * face turns about its line on the neutral plane by `angle` degrees: positive leans into the material,
@@ -637,6 +652,8 @@ export interface CadPartOutput {
   readonly representation: 'upright' | 'planar' | 'curved' | 'faceted';
   readonly brep: Brep;
   readonly bodyCount: number;
+  /** Closed-reference qualification; mass requires this evaluation's owned live provider. */
+  readonly cylindricalWrap?: CylindricalWrapReport;
   // (R7.3b: its results are functions over it — massPropertiesOf, surfaceAreaOf, checkOutput, exportStl, exportStep, flatPatternOf.)
   /** A generated gear's report: its dimensions, the measured flank deviation, its diagnostics (R6a). */
   readonly gear?: SpurGearReport;
@@ -730,6 +747,7 @@ interface Finish { readonly kind: 'chamfer' | 'fillet'; readonly edges: readonly
 /** `moved`: the part this one is a moved (turned, mirrored, uniformly scaled) copy of, for shell. */
 export interface Part {
   readonly solid: Solid; brep?: Brep; readonly mass?: (density: number) => MassProperties;
+  readonly cylindricalWrap?: CylindricalWrapReport;
   readonly history?: { readonly base: PrismaticSolid; readonly finishes: readonly Finish[] };
   readonly moved?: { readonly from: Part; readonly m: BrepAffine['matrix']; readonly o: Point };
   /** How a revolved or swept body was made (shell erodes its section and makes it again). */
@@ -1021,23 +1039,24 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
       const { id, part, result } = ref(r, what);
       if (result.kind !== 'solid') fail('REFERENCE', `${what}: ${id} is a sketch, not a solid`);
       const parts = (result as Extract<Result, { kind: 'solid' }>).parts, picked = part === null ? parts : [parts[part]];
+      if (picked.some(p => p.cylindricalWrap)) fail('CAPABILITY', 'a cylindrical wrap reference cannot be consumed by another feature yet; its reference mass and face tolerance apply only to the original result');
       if (!allowEmpty && picked.every(p => empty(p.solid))) fail('SELECTION', `${what}: ${r} is empty`);
       const used = consumed.get(id); if (part === null) consumed.set(id, 'all'); else if (used !== 'all') consumed.set(id, (used ?? new Set()).add(part));
       return picked.filter(p => !empty(p.solid));
     };
     const cutSource: Tools['cutSource'] = r => {
       const selected = ref(r, 'target'), author = doc.features.find(f => f.id === selected.id);
-      if (author?.kind !== 'difference') return fail('REFERENCE', 'linear feature pattern target must be a direct difference result');
-      if ('suppressed' in author && author.suppressed) return fail('REFERENCE', 'linear feature pattern target must be an unsuppressed difference');
+      if (author?.kind !== 'difference') return fail('REFERENCE', 'feature pattern target must be a direct difference result');
+      if ('suppressed' in author && author.suppressed) return fail('REFERENCE', 'feature pattern target must be an unsuppressed difference');
       const used = consumed.get(selected.id);
-      if (used === 'all' || used?.has(0)) return fail('REFERENCE', 'linear feature pattern target must still be active');
-      if (selected.result.kind !== 'solid' || selected.result.parts.length !== 1 || empty(selected.result.parts[0].solid)) return fail('REFERENCE', 'linear feature pattern target must be one nonempty solid');
+      if (used === 'all' || used?.has(0)) return fail('REFERENCE', 'feature pattern target must still be active');
+      if (selected.result.kind !== 'solid' || selected.result.parts.length !== 1 || empty(selected.result.parts[0].solid)) return fail('REFERENCE', 'feature pattern target must be one nonempty solid');
       // One Part may hold several B-rep bodies; count the existing representation without mutating the cached Part.
       const selectedBrep = brepOf({ solid: selected.result.parts[0].solid }, selected.id);
-      if (selectedBrep.bodies.length !== 1 || selectedBrep.bodies[0].kind !== 'solid') return fail('REFERENCE', 'linear feature pattern target must be one nonempty solid');
+      if (selectedBrep.bodies.length !== 1 || selectedBrep.bodies[0].kind !== 'solid') return fail('REFERENCE', 'feature pattern target must be one nonempty solid');
       // Resolve the original operands as dependencies; never replace or truncate their history.
       const base = solids(author.target, 'difference target', true), tool = solids(author.tool, 'difference tool', true);
-      if (base.length !== 1) return fail('REFERENCE', 'linear feature pattern difference must have one base solid');
+      if (base.length !== 1) return fail('REFERENCE', 'feature pattern difference must have one base solid');
       return { seed: solids(r, 'target')[0], tool };
     };
 
@@ -1482,6 +1501,40 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
         return one(joined);
       };
     }
+    case 'cylindrical-wrap': {
+      const target = solids(f.target, 'target'), selected = f.faces, rectangle = f.rectangle as { u?: unknown; v?: unknown } | undefined;
+      if (target.length !== 1) fail('REFERENCE', 'cylindrical wrap target must be one nonempty solid');
+      if (!Array.isArray(selected) || selected.length !== 1 || typeof selected[0] !== 'string' || !selected[0] || selected[0].includes('+')) fail('INPUT', 'cylindrical wrap faces must contain one exact native wall name');
+      if (!rectangle || typeof rectangle !== 'object' || Array.isArray(rectangle) || Object.keys(rectangle).some(k => k !== 'u' && k !== 'v')) fail('INPUT', 'cylindrical wrap rectangle must contain original native u and v intervals');
+      const u = rectangle!.u, v = rectangle!.v;
+      if (!Array.isArray(u) || !Array.isArray(v) || u.length !== 2 || v.length !== 2 || ![...u, ...v].every(x => typeof x === 'number' && Number.isFinite(x))) fail('INPUT', 'cylindrical wrap intervals must each contain two finite Numbers');
+      const U = u as [number, number], V = v as [number, number];
+      if (!(0 < U[0] && U[0] < U[1] && U[1] < 0.5 && 0 < V[0] && V[0] < V[1] && V[1] < 1)) fail('PARAMETER', 'cylindrical wrap needs 0 < u0 < u1 < 0.5 and 0 < v0 < v1 < 1');
+      const height = dim(f.height as CadPartDim, 'height', true), source = target[0], brep = brepOf(source, at);
+      if (!brep.faces.some(face => face.name === selected[0])) fail('REFERENCE', 'cylindrical wrap selected wall name is missing from its target');
+      const owned = { solid: source.solid, brep }, bounds = { u: [...U] as [number, number], v: [...V] as [number, number] }, face = selected[0] as string;
+      return () => ({ kind: 'solid', parts: [cylindricalWrapFeature(owned, face, bounds, height, at, fail)] });
+    }
+    case 'profile-relief': {
+      const target = solids(f.target, 'target'), names = f.sketches as unknown, selected = f.faces as unknown, depth = dim(f.depth as CadPartDim, 'depth', true), mode = f.mode;
+      if (mode !== 'emboss' && mode !== 'engrave') fail('INPUT', 'profile relief mode must be emboss or engrave');
+      if (!Array.isArray(selected) || selected.length !== 1 || typeof selected[0] !== 'string' || !selected[0] || selected[0].includes('+')) fail('INPUT', 'profile relief faces must contain exactly one exact cap face name');
+      const face = (selected as string[])[0];
+      if (f.clearance !== undefined && (typeof f.clearance !== 'number' || !Number.isFinite(f.clearance) || f.clearance < 0 || f.clearance > CadPartLimits.length)) fail('INPUT', 'profile relief clearance must be a finite nonnegative native length');
+      if (!Array.isArray(names) || !names.length || names.length > CadPartLimits.edges) fail('INPUT', 'profile relief needs 1..64 distinct component sketch references');
+      if (target.length !== 1) fail('REFERENCE', 'profile relief target must be one nonempty solid');
+      const source = target[0].solid;
+      if (source.kind !== 'upright' || !lineOnly(source.solid) || source.solid.slabs.length !== 1) fail('CAPABILITY', 'profile relief requires one line-only upright slab');
+      const seen = new Set<string>(), sketches: ReliefSketch[] = [];
+      for (const name of names as unknown[]) {
+        if (typeof name !== 'string' || !name || seen.has(name)) fail('INPUT', 'profile relief needs distinct component sketch names');
+        seen.add(name as string);
+        const sketch = ref(name, 'component sketch').result;
+        if (sketch.kind !== 'sketch') fail('REFERENCE', 'profile relief component references must name sketches');
+        sketches.push(sketch as Extract<Result, { kind: 'sketch' }>);
+      }
+      return () => one({ kind: 'upright', solid: profileRelief((source as Extract<Solid, { kind: 'upright' }>).solid, brepOf(target[0], at), face as string, sketches, depth, mode as 'emboss' | 'engrave', f.clearance as number | undefined, at, fail) });
+    }
     case 'rectangular-relief': {
       const target = solids(f.target, 'target'), min = xy(f.min as CadPartPoint2, 'min'), max = xy(f.max as CadPartPoint2, 'max'), depth = dim(f.depth as CadPartDim, 'depth', true), mode = f.mode;
       if (mode !== 'emboss' && mode !== 'engrave') fail('INPUT', 'rectangular relief mode must be emboss or engrave');
@@ -1734,7 +1787,18 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
           if (!shared.length) {
             // F1: apart — restore the corner between them (what lies there removed or filled), then the same.
             const restored = restoreCorner(brepOf(part, at), part.solid, (names as string[]).map(name => ({ name, faces: brepOf(part, at).faces.filter(x => x.name === name || (x.name ?? '').split('#')[0] === name) })), r, at, fail);
-            if (!restored) throw cause;
+            if (!restored) {
+              // A bounded convex polynomial corner can replace its old strip directly. Analytic restores keep priority.
+              try {
+                const made = polynomialFaceFillet(brepOf(part, at), names as [string, string], r, at);
+                if (made) return { kind: 'solid', parts: [{ solid: { kind: 'brep', brep: made.brep }, fillet: [made.report] }] };
+              } catch (error) {
+                const refusal = error instanceof BrepError ? /^B-rep: (SELECTION|CAPABILITY|PARAMETER): (.*)$/s.exec(error.message) : null;
+                if (refusal) fail(refusal[1] as CadPartErrorCode, refusal[2]);
+                throw error;
+              }
+              throw cause;
+            }
             part = { solid: restored }; shared = sharedEdges(brepOf(part, at), names as string[]);
             if (!shared.length) fail('GEOMETRY', `[FACE_FILLET_NOT_CLEAR] ${(names as string[]).join(' and ')} do not meet once the corner between them is restored`);
           }
@@ -1837,6 +1901,58 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
           const offset: Point = [0, 0, 0]; offset['xyz'.indexOf(axis)] = spacing * k;
           cut = boolean(cut, affine(joined, [1, 0, 0, 0, 1, 0, 0, 0, 1], offset, n => `${n}@${k}`), 'difference', at);
         }
+        return one(cut);
+      };
+    }
+    case 'rectangular-feature-pattern': {
+      const axis = axisOf(f.axis), axis2 = axisOf(f.axis2);
+      if (axis === axis2) fail('INPUT', 'rectangular feature pattern axes must be distinct');
+      const spacing = dim(f.spacing as CadPartDim, 'spacing'), spacing2 = dim(f.spacing2 as CadPartDim, 'spacing2');
+      if (spacing === 0 || spacing2 === 0) fail('PARAMETER', 'rectangular feature pattern spacing must not be zero');
+      const count = integer(f.count, 'count', 1, CadPartLimits.copies), count2 = integer(f.count2, 'count2', 1, CadPartLimits.copies);
+      const cells = count * count2;
+      if (!Number.isSafeInteger(cells) || cells > CadPartLimits.copies) fail('INPUT', `rectangular feature pattern must have at most ${CadPartLimits.copies} cells`);
+      const { seed, tool } = t.cutSource(f.target), first = 'xyz'.indexOf(axis), second = 'xyz'.indexOf(axis2);
+      const matrix: BrepAffine['matrix'] = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+      return () => {
+        if (cells === 1 || !tool.length) return { kind: 'solid', parts: [seed] };
+        const joined = unionAll(tool.map(p => p.solid), at);
+        let cut = seed.solid;
+        for (let j = 0; j < count2; j++) for (let i = 0; i < count; i++) {
+          if (i === 0 && j === 0) continue;
+          const offset: Point = [0, 0, 0]; offset[first] = spacing * i; offset[second] = spacing2 * j;
+          cut = boolean(cut, affine(joined, matrix, offset, `@${i},${j}`), 'difference', at);
+        }
+        return one(cut);
+      };
+    }
+    case 'fill-feature-pattern': {
+      const spacing = dim(f.spacing as CadPartDim, 'spacing'), spacing2 = dim(f.spacing2 as CadPartDim, 'spacing2');
+      if (spacing === 0 || spacing2 === 0) fail('PARAMETER', 'fill feature pattern spacing must not be zero');
+      const count = integer(f.count, 'count', 1, CadPartLimits.copies), count2 = integer(f.count2, 'count2', 1, CadPartLimits.copies);
+      if (count * count2 > CadPartLimits.copies) fail('INPUT', `fill feature pattern must have at most ${CadPartLimits.copies} candidate cells`);
+      const snapshot = fillCutSnapshot(f.region, f.anchor, fail);
+      const placements = fillCutPlacements(snapshot.region, snapshot.anchor, spacing, count, spacing2, count2);
+      const { seed, tool } = t.cutSource(f.target);
+      const matrix: BrepAffine['matrix'] = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+      return () => {
+        if (!placements.length || !tool.length) return { kind: 'solid', parts: [seed] };
+        const joined = unionAll(tool.map(p => p.solid), at);
+        let cut = seed.solid;
+        for (const placement of placements) cut = boolean(cut, affine(joined, matrix, placement.offset, placement.suffix), 'difference', at);
+        return one(cut);
+      };
+    }
+    case 'curve-feature-pattern': {
+      const spacing = dim(f.spacing as CadPartDim, 'spacing', true), count = integer(f.count, 'count', 1, CadPartLimits.copies);
+      const offsets = curveCutOffsets(f.path, spacing, count, CadPartLimits.length, fail);
+      const { seed, tool } = t.cutSource(f.target);
+      const matrix: BrepAffine['matrix'] = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+      return () => {
+        if (count === 1 || !tool.length) return { kind: 'solid', parts: [seed] };
+        const joined = unionAll(tool.map(p => p.solid), at);
+        let cut = seed.solid;
+        for (let k = 1; k < count; k++) cut = boolean(cut, affine(joined, matrix, offsets[k], `@${k}`), 'difference', at);
         return one(cut);
       };
     }
@@ -2546,7 +2662,7 @@ function unionAll(list: Solid[], at: string): Solid {
 }
 const volumeOfSolid = (s: Solid) => s.kind === 'upright' ? prismaticVolume(s.solid) : s.brep.bodies.length ? brepMassProperties(s.brep, 1, { segmentsPerQuarter: 8, quadratureSegments: 0 }).volume : 0;
 
-function affine(s: Solid, m: BrepAffine['matrix'], o: readonly number[], rename?: (n: string) => string): Solid {
+function affine(s: Solid, m: BrepAffine['matrix'], o: readonly number[], rename?: ((n: string) => string) | string): Solid {
   // Upright solids stay upright when XY maps by a similarity and Z only scales and shifts.
   if (s.kind === 'upright' && m[2] === 0 && m[5] === 0 && m[6] === 0 && m[7] === 0)
     return { kind: 'upright', solid: transformPrismatic(s.solid, { matrix: [m[0], m[1], m[3], m[4]], offset: [o[0], o[1]], zScale: m[8], zOffset: o[2], ...(rename ? { retag: rename } : {}) }) };
@@ -4413,7 +4529,7 @@ const outputState = new WeakMap<CadPartOutput, OutputState>();
 function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   const brep = brepOf(part, id.replace('/', '_'));
   const output: CadPartOutput = Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.worm ? { worm: part.worm } : {}), ...(part.wormPlace ? { wormPlacement: part.wormPlace } : {}), ...(part.wormWheel ? { wormWheel: part.wormWheel } : {}), ...(part.wormWheelPlace ? { wormWheelPlacement: part.wormWheelPlace } : {}), ...(part.spring ? { spring: part.spring } : {}), ...(part.cam ? { cam: part.cam } : {}), ...(part.sprocket ? { sprocket: part.sprocket } : {}), ...(part.pulley ? { pulley: part.pulley } : {}), ...(part.belt ? { belt: part.belt } : {}), ...(part.coupling ? { coupling: part.coupling } : {}), ...(part.connector ? { connector: part.connector } : {}), ...(part.connectorBody ? { connectorBody: part.connectorBody } : {}), ...(part.shaft ? { shaft: part.shaft } : {}), ...(part.key ? { key: part.key } : {}), ...(part.keyway ? { keyway: part.keyway } : {}), ...(part.ring ? { ring: part.ring } : {}), ...(part.pin ? { pin: part.pin } : {}), ...(part.bearing ? { bearing: part.bearing } : {}), ...(part.gland ? { gland: part.gland } : {}), ...(part.oring ? { oring: part.oring } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}), ...(part.gusset ? { gusset: part.gusset } : {}), ...(part.endCap ? { endCap: part.endCap } : {}), ...(part.bead ? { bead: part.bead } : {})
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.cylindricalWrap ? { cylindricalWrap: part.cylindricalWrap } : {}), ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.worm ? { worm: part.worm } : {}), ...(part.wormPlace ? { wormPlacement: part.wormPlace } : {}), ...(part.wormWheel ? { wormWheel: part.wormWheel } : {}), ...(part.wormWheelPlace ? { wormWheelPlacement: part.wormWheelPlace } : {}), ...(part.spring ? { spring: part.spring } : {}), ...(part.cam ? { cam: part.cam } : {}), ...(part.sprocket ? { sprocket: part.sprocket } : {}), ...(part.pulley ? { pulley: part.pulley } : {}), ...(part.belt ? { belt: part.belt } : {}), ...(part.coupling ? { coupling: part.coupling } : {}), ...(part.connector ? { connector: part.connector } : {}), ...(part.connectorBody ? { connectorBody: part.connectorBody } : {}), ...(part.shaft ? { shaft: part.shaft } : {}), ...(part.key ? { key: part.key } : {}), ...(part.keyway ? { keyway: part.keyway } : {}), ...(part.ring ? { ring: part.ring } : {}), ...(part.pin ? { pin: part.pin } : {}), ...(part.bearing ? { bearing: part.bearing } : {}), ...(part.gland ? { gland: part.gland } : {}), ...(part.oring ? { oring: part.oring } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}), ...(part.gusset ? { gusset: part.gusset } : {}), ...(part.endCap ? { endCap: part.endCap } : {}), ...(part.bead ? { bead: part.bead } : {})
   });
   outputState.set(output, { part, flats: new Map() });
   return output;
@@ -4427,6 +4543,7 @@ const stateOf = (o: CadPartOutput): OutputState => { let st = outputState.get(o)
  */
 export function massPropertiesOf(output: CadPartOutput, density = 1): MassProperties {
   const { part } = stateOf(output), brep = output.brep;
+  if ((output.cylindricalWrap || brep.source?.family === 'cylindrical-wrap-assembly') && !part.mass) throw new CadPartError('CAPABILITY', output.id, 'cylindrical wrap mass requires a live evaluated provider; load and evaluate the saved document recipe');
   if (brep.bodies.some(b => b.kind === 'sheet')) throw new CadPartError('GEOMETRY', output.id, 'an open mesh (a sheet) encloses no volume: it has no mass');
   return part.mass ? part.mass(density) : part.solid.kind === 'upright' ? prismaticMassProperties(part.solid.solid, density) : brepMassProperties(brep, density, { segmentsPerQuarter: 32 });
 }

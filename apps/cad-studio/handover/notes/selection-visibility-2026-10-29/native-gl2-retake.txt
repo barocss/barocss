@@ -1,0 +1,33 @@
+{
+  "status": "PASS",
+  "profiles": [
+    {
+      "id": "webgl2-dark",
+      "status": "PASS"
+    },
+    {
+      "id": "webgl2-light",
+      "status": "PASS"
+    }
+  ],
+  "cleanup": {
+    "contexts": [
+      {
+        "profile": "webgl2-dark",
+        "status": "CLOSED"
+      },
+      {
+        "profile": "webgl2-light",
+        "status": "CLOSED"
+      }
+    ],
+    "browsers": [
+      {
+        "backend": "webgl2",
+        "status": "CLOSED"
+      }
+    ],
+    "server": "CLOSED"
+  },
+  "output": "/tmp/d332-selection/native-gl2-retake"
+}

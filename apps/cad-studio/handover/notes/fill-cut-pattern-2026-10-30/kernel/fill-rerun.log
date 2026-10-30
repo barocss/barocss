@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: fill cut: facade owns the region snapshot, retains complete history and binds both spacings
+ok 1 - fill cut: facade owns the region snapshot, retains complete history and binds both spacings
+  ---
+  duration_ms: 83.099709
+  type: 'test'
+  ...
+# Subtest: fill cut: independent mass, corners and names survive both windings and native save/read
+ok 2 - fill cut: independent mass, corners and names survive both windings and native save/read
+  ---
+  duration_ms: 45.020708
+  type: 'test'
+  ...
+# Subtest: fill cut: spacing and region edits use original grid indices and independent centroids
+ok 3 - fill cut: spacing and region edits use original grid indices and independent centroids
+  ---
+  duration_ms: 60.27
+  type: 'test'
+  ...
+# Subtest: fill cut: source position and size recompute geometry without changing the authored mask anchor
+ok 4 - fill cut: source position and size recompute geometry without changing the authored mask anchor
+  ---
+  duration_ms: 35.983666
+  type: 'test'
+  ...
+# Subtest: fill cut: original CUT remains when its reference is outside, and empty/no-extra/one-cell are seed identities
+ok 5 - fill cut: original CUT remains when its reference is outside, and empty/no-extra/one-cell are seed identities
+  ---
+  duration_ms: 9.932959
+  type: 'test'
+  ...
+# Subtest: fill cut: exact boundary, adjacent binary64 values and rational reference sums have no rounding mask
+ok 6 - fill cut: exact boundary, adjacent binary64 values and rational reference sums have no rounding mask
+  ---
+  duration_ms: 0.400375
+  type: 'test'
+  ...
+# Subtest: fill cut: finite candidate bound precedes masking and tiny spacing never enumerates an automatic grid
+ok 7 - fill cut: finite candidate bound precedes masking and tiny spacing never enumerates an automatic grid
+  ---
+  duration_ms: 9.217583
+  type: 'test'
+  ...
+# Subtest: fill cut: malformed regions, holes, repeated vertices, backtracks and non-simple loops refuse atomically
+ok 8 - fill cut: malformed regions, holes, repeated vertices, backtracks and non-simple loops refuse atomically
+  ---
+  duration_ms: 8.389167
+  type: 'test'
+  ...
+# Subtest: fill cut: typed dimension/count failures and count binding refusal preserve the accepted part
+ok 9 - fill cut: typed dimension/count failures and count binding refusal preserve the accepted part
+  ---
+  duration_ms: 23.817792
+  type: 'test'
+  ...
+# Subtest: fill cut: source admission still runs for one-cell and zero-additional-placement recipes
+ok 10 - fill cut: source admission still runs for one-cell and zero-additional-placement recipes
+  ---
+  duration_ms: 10.054417
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 797.220292

@@ -1,0 +1,2187 @@
+TAP version 13
+# Subtest: synthetic exact-window receipt validates evaluator mechanics only
+ok 1 - synthetic exact-window receipt validates evaluator mechanics only
+  ---
+  duration_ms: 32.832459
+  type: 'test'
+  ...
+# Subtest: failing update generation and changed refused pixels never pass
+ok 2 - failing update generation and changed refused pixels never pass
+  ---
+  duration_ms: 50.098417
+  type: 'test'
+  ...
+# Subtest: center oracle and cross-backend parity distinguish error
+ok 3 - center oracle and cross-backend parity distinguish error
+  ---
+  duration_ms: 22.948584
+  type: 'test'
+  ...
+# Subtest: missing actual bytes, source identity and refusal must be rejected
+ok 4 - missing actual bytes, source identity and refusal must be rejected
+  ---
+  duration_ms: 45.011291
+  type: 'test'
+  ...
+# Subtest: every method returns a new scene and leaves the old one as it was; .data is plain
+ok 5 - every method returns a new scene and leaves the old one as it was; .data is plain
+  ---
+  duration_ms: 1.096083
+  type: 'test'
+  ...
+# Subtest: show() clears, sets the lights and background, adds each mesh under its key, and fits — public methods only
+ok 6 - show() clears, sets the lights and background, adds each mesh under its key, and fits — public methods only
+  ---
+  duration_ms: 0.294875
+  type: 'test'
+  ...
+# Subtest: cad's facade meshes go in as they are, byte for byte (no axis conversion)
+ok 7 - cad's facade meshes go in as they are, byte for byte (no axis conversion)
+  ---
+  duration_ms: 51.715834
+  type: 'test'
+  ...
+# Subtest: refusals are typed
+ok 8 - refusals are typed
+  ---
+  duration_ms: 0.742792
+  type: 'test'
+  ...
+# Subtest: materials by id: a scene material registered under a part's material id, found by the mesh that names it
+ok 9 - materials by id: a scene material registered under a part's material id, found by the mesh that names it
+  ---
+  duration_ms: 0.481458
+  type: 'test'
+  ...
+# Subtest: display lines: a facade mesh's lines drawn as line geometry when asked, its triangles as they were
+ok 10 - display lines: a facade mesh's lines drawn as line geometry when asked, its triangles as they were
+  ---
+  duration_ms: 2.903125
+  type: 'test'
+  ...
+# Subtest: a camera view: the direction and up kept, fit() framing the scene from it
+ok 11 - a camera view: the direction and up kept, fit() framing the scene from it
+  ---
+  duration_ms: 0.375417
+  type: 'test'
+  ...
+# Subtest: every exported error class is a BarocssError, its name kept, its message `[CODE] …`
+ok 12 - every exported error class is a BarocssError, its name kept, its message `[CODE] …`
+  ---
+  duration_ms: 1.007916
+  type: 'test'
+  ...
+# Subtest: the classes that cap a refusal at 1024 characters cap the whole message, its code included
+ok 13 - the classes that cap a refusal at 1024 characters cap the whole message, its code included
+  ---
+  duration_ms: 0.140625
+  type: 'test'
+  ...
+# Subtest: BarocssError itself: code, message, where and details as given; the prefix written once
+ok 14 - BarocssError itself: code, message, where and details as given; the prefix written once
+  ---
+  duration_ms: 0.487292
+  type: 'test'
+  ...
+# Subtest: refusalText: the words without the refusal's own code; a diagnostic keeps them plain
+ok 15 - refusalText: the words without the refusal's own code; a diagnostic keeps them plain
+  ---
+  duration_ms: 0.808
+  type: 'test'
+  ...
+# Subtest: a cause given as undefined is kept as one; none given, none kept (the classes that record a thrown undefined)
+ok 16 - a cause given as undefined is kept as one; none given, none kept (the classes that record a thrown undefined)
+  ---
+  duration_ms: 0.142417
+  type: 'test'
+  ...
+# Subtest: batch 3: the viewer refuses a caller's input with a coded ViewerError, its words kept after the code
+ok 17 - batch 3: the viewer refuses a caller's input with a coded ViewerError, its words kept after the code
+  ---
+  duration_ms: 0.427792
+  type: 'test'
+  ...
+# Subtest: batch 3: a public entry refuses with a coded GpuInputError, the plain refusal under it kept as its cause
+ok 18 - batch 3: a public entry refuses with a coded GpuInputError, the plain refusal under it kept as its cause
+  ---
+  duration_ms: 1.152625
+  type: 'test'
+  ...
+# Subtest: batch 3: the boolean buffers' entries and the BVH depth refuse coded
+ok 19 - batch 3: the boolean buffers' entries and the BVH depth refuse coded
+  ---
+  duration_ms: 0.679416
+  type: 'test'
+  ...
+# Subtest: unfiltered bench requires all 23 distinct named cases, including Render and both ghost paths
+ok 20 - unfiltered bench requires all 23 distinct named cases, including Render and both ghost paths
+  ---
+  duration_ms: 0.526167
+  type: 'test'
+  ...
+# Subtest: BENCH_ONLY=render requires all three Render rows, including bloom
+ok 21 - BENCH_ONLY=render requires all three Render rows, including bloom
+  ---
+  duration_ms: 0.359459
+  type: 'test'
+  ...
+# Subtest: BENCH_ONLY=section expects exactly the selected GPU and CPU row names
+ok 22 - BENCH_ONLY=section expects exactly the selected GPU and CPU row names
+  ---
+  duration_ms: 0.067834
+  type: 'test'
+  ...
+# Subtest: bench refuses zero matches, zero measurements, failed rows and missing pass flags
+ok 23 - bench refuses zero matches, zero measurements, failed rows and missing pass flags
+  ---
+  duration_ms: 0.109208
+  type: 'test'
+  ...
+# Subtest: bench retains pick parity and supports filters matching a dynamic workspace row
+ok 24 - bench retains pick parity and supports filters matching a dynamic workspace row
+  ---
+  duration_ms: 0.079667
+  type: 'test'
+  ...
+# Subtest: timestamp queries require exact used/read/pass counts and ordered nonempty pairs
+ok 25 - timestamp queries require exact used/read/pass counts and ordered nonempty pairs
+  ---
+  duration_ms: 0.682709
+  type: 'test'
+  ...
+# Subtest: GPU timing refuses negative/non-finite totals, missing queries and partial readbacks
+ok 26 - GPU timing refuses negative/non-finite totals, missing queries and partial readbacks
+  ---
+  duration_ms: 0.21975
+  type: 'test'
+  ...
+# Subtest: query readback follows the submitted command buffer and stays with its measurement window
+ok 27 - query readback follows the submitted command buffer and stays with its measurement window
+  ---
+  duration_ms: 1.307
+  type: 'test'
+  ...
+# Subtest: FLOW_DPR defaults to 1 and accepts decimal pixel ratios in the viewport range
+ok 28 - FLOW_DPR defaults to 1 and accepts decimal pixel ratios in the viewport range
+  ---
+  duration_ms: 0.301792
+  type: 'test'
+  ...
+# Subtest: FLOW_DPR refuses blank, non-finite, non-decimal and out-of-range inputs
+ok 29 - FLOW_DPR refuses blank, non-finite, non-decimal and out-of-range inputs
+  ---
+  duration_ms: 0.447
+  type: 'test'
+  ...
+# Subtest: invalid FLOW_DPR exits the actual CLI before Playwright or Vite startup
+ok 30 - invalid FLOW_DPR exits the actual CLI before Playwright or Vite startup
+  ---
+  duration_ms: 463.949666
+  type: 'test'
+  ...
+# Subtest: display evidence requires actual DPR and matching canvas backing dimensions
+ok 31 - display evidence requires actual DPR and matching canvas backing dimensions
+  ---
+  duration_ms: 0.138125
+  type: 'test'
+  ...
+# Subtest: G22 source prep uses the actual parent-row context and child override without modifying authored parts
+ok 32 - G22 source prep uses the actual parent-row context and child override without modifying authored parts
+  ---
+  duration_ms: 274.347042
+  type: 'test'
+  ...
+# Subtest: visible clearance bodies are matched by their exact key, root and placed copies alike (O10)
+ok 33 - visible clearance bodies are matched by their exact key, root and placed copies alike (O10)
+  ---
+  duration_ms: 39.874042
+  type: 'test'
+  ...
+# Subtest: hidden invalid parent-row parts are omitted before origin preparation
+ok 34 - hidden invalid parent-row parts are omitted before origin preparation
+  ---
+  duration_ms: 0.920333
+  type: 'test'
+  ...
+# Subtest: source document folds a nested child once at the outer origin without flattening or duplicating the empty root
+ok 35 - source document folds a nested child once at the outer origin without flattening or duplicating the empty root
+  ---
+  duration_ms: 3.302875
+  type: 'test'
+  ...
+# Subtest: inherited frame width 40→50 invalidates unchanged-instance readiness until the effective source is evaluated again
+ok 36 - inherited frame width 40→50 invalidates unchanged-instance readiness until the effective source is evaluated again
+  ---
+  duration_ms: 154.747875
+  type: 'test'
+  ...
+# Subtest: local frame width 60 overrides parent width changes and preserves source readiness and actual placed bounds
+ok 37 - local frame width 60 overrides parent width changes and preserves source readiness and actual placed bounds
+  ---
+  duration_ms: 18.546708
+  type: 'test'
+  ...
+# Subtest: current motion follows placement using non-commuting rotations and leaves local Model geometry untouched
+ok 38 - current motion follows placement using non-commuting rotations and leaves local Model geometry untouched
+  ---
+  duration_ms: 0.2885
+  type: 'test'
+  ...
+# Subtest: longest slash-delimited instance prefix owns motion; base bodies use exact keys and absent motions preserve identity
+ok 39 - longest slash-delimited instance prefix owns motion; base bodies use exact keys and absent motions preserve identity
+  ---
+  duration_ms: 0.139542
+  type: 'test'
+  ...
+# Subtest: stale generation/version/revision/pose and missing or completed pairs reject without mutating the current map
+ok 40 - stale generation/version/revision/pose and missing or completed pairs reject without mutating the current map
+  ---
+  duration_ms: 0.965416
+  type: 'test'
+  ...
+# Subtest: matching fills apply actual Model transitions once while retaining independent bands and the current revision
+ok 41 - matching fills apply actual Model transitions once while retaining independent bands and the current revision
+  ---
+  duration_ms: 0.493167
+  type: 'test'
+  ...
+# Subtest: near overlay vertices retain the exact independent band fields instead of native mesh indexing
+ok 42 - near overlay vertices retain the exact independent band fields instead of native mesh indexing
+  ---
+  duration_ms: 0.569
+  type: 'test'
+  ...
+# Subtest: pending, refused and designed outputs retain Model classification and explicit unclassified labels
+ok 43 - pending, refused and designed outputs retain Model classification and explicit unclassified labels
+  ---
+  duration_ms: 0.336334
+  type: 'test'
+  ...
+# Subtest: designed fill stays designed unless Model squeeze limit classifies excess overlap; refused fill remains unclassified
+ok 44 - designed fill stays designed unless Model squeeze limit classifies excess overlap; refused fill remains unclassified
+  ---
+  duration_ms: 0.097959
+  type: 'test'
+  ...
+# Subtest: cutout emits a triangle coplanar with its first kept plane once, independent of later planes or plane order
+ok 45 - cutout emits a triangle coplanar with its first kept plane once, independent of later planes or plane order
+  ---
+  duration_ms: 5.325042
+  type: 'test'
+  ...
+# Subtest: wholly removed triangles stay empty and an earlier wholly kept piece is not emitted again
+ok 46 - wholly removed triangles stay empty and an earlier wholly kept piece is not emitted again
+  ---
+  duration_ms: 1.6655
+  type: 'test'
+  ...
+# Subtest: crossing triangles distinguish union from intersection with analytic area, coverage and interpolated colours
+ok 47 - crossing triangles distinguish union from intersection with analytic area, coverage and interpolated colours
+  ---
+  duration_ms: 2.734125
+  type: 'test'
+  ...
+# Subtest: world planes under a rotated and translated model produce the same local clipped pieces without moving the exact field
+ok 48 - world planes under a rotated and translated model produce the same local clipped pieces without moving the exact field
+  ---
+  duration_ms: 0.836625
+  type: 'test'
+  ...
+# Subtest: an absent or empty clip preserves source arrays and never rewrites exact fields or model provenance
+ok 49 - an absent or empty clip preserves source arrays and never rewrites exact fields or model provenance
+  ---
+  duration_ms: 0.442667
+  type: 'test'
+  ...
+# Subtest: GPU clearance consumes supplied local geometry, colors and model once; pending and refusal stay distinct
+ok 50 - GPU clearance consumes supplied local geometry, colors and model once; pending and refusal stay distinct
+  ---
+  duration_ms: 20.294292
+  type: 'test'
+  ...
+# Subtest: GPU clearance clips independently in world space while retaining local attributes and uncapped output
+ok 51 - GPU clearance clips independently in world space while retaining local attributes and uncapped output
+  ---
+  duration_ms: 0.844417
+  type: 'test'
+  ...
+# Subtest: clearance preserves supplied opacity independently of the five base modes and isolation; native picks restore
+ok 52 - clearance preserves supplied opacity independently of the five base modes and isolation; native picks restore
+  ---
+  duration_ms: 10.816291
+  type: 'test'
+  ...
+# Subtest: replacement/null clear and dispose owned decals; stable display does not upload again; partial failures leave no stale output
+ok 53 - replacement/null clear and dispose owned decals; stable display does not upload again; partial failures leave no stale output
+  ---
+  duration_ms: 9.25375
+  type: 'test'
+  ...
+# Subtest: pose/source change hides old output before effects; wrong version and old request cannot refill it
+ok 54 - pose/source change hides old output before effects; wrong version and old request cannot refill it
+  ---
+  duration_ms: 1.417084
+  type: 'test'
+  ...
+# Subtest: disable terminates the worker; re-enable cannot flash a prior display or accept old worker output
+ok 55 - disable terminates the worker; re-enable cannot flash a prior display or accept old worker output
+  ---
+  duration_ms: 0.408125
+  type: 'test'
+  ...
+# Subtest: blob arrays copy once per document and resend to a fresh worker without detaching editor data
+ok 56 - blob arrays copy once per document and resend to a fresh worker without detaching editor data
+  ---
+  duration_ms: 0.5795
+  type: 'test'
+  ...
+# Subtest: a missing mesh array produces an explicit empty error display rather than an incomplete numeric result
+ok 57 - a missing mesh array produces an explicit empty error display rather than an incomplete numeric result
+  ---
+  duration_ms: 0.158292
+  type: 'test'
+  ...
+# Subtest: unloaded hidden and draft mesh arrays do not block a visible geometry request
+ok 58 - unloaded hidden and draft mesh arrays do not block a visible geometry request
+  ---
+  duration_ms: 0.218708
+  type: 'test'
+  ...
+# Subtest: local buffers retain the original field/provenance and a rotated translated model is sent once
+ok 59 - local buffers retain the original field/provenance and a rotated translated model is sent once
+  ---
+  duration_ms: 1.58825
+  type: 'test'
+  ...
+# Subtest: the actual GL uploads use world-plane clipped local triangles for keep-all and cutout keep-any
+ok 60 - the actual GL uploads use world-plane clipped local triangles for keep-all and cutout keep-any
+  ---
+  duration_ms: 0.741208
+  type: 'test'
+  ...
+# Subtest: pending preserves supplied colors without a false red hatch; refused and hatched rows use stripe coverage
+ok 61 - pending preserves supplied colors without a false red hatch; refused and hatched rows use stripe coverage
+  ---
+  duration_ms: 0.40725
+  type: 'test'
+  ...
+# Subtest: repeated snapshots reuse resources; clearing and disposal free all new overlay buffers and program
+ok 62 - repeated snapshots reuse resources; clearing and disposal free all new overlay buffers and program
+  ---
+  duration_ms: 0.214292
+  type: 'test'
+  ...
+# Subtest: Renderer keeps all five mode states and native pick results while the overlay remains absent from its pick pass
+ok 63 - Renderer keeps all five mode states and native pick results while the overlay remains absent from its pick pass
+  ---
+  duration_ms: 27.557792
+  type: 'test'
+  ...
+# Subtest: fixture source imports without DOM or browser execution; contract has five modes and thirteen distinct checks
+ok 64 - fixture source imports without DOM or browser execution; contract has five modes and thirteen distinct checks
+  ---
+  duration_ms: 0.63625
+  type: 'test'
+  ...
+# Subtest: optional instance fixture retains six controls and adds modes, opacity, curved silhouettes and isolation checks without changing the thirteen baseline checks
+ok 65 - optional instance fixture retains six controls and adds modes, opacity, curved silhouettes and isolation checks without changing the thirteen baseline checks
+  ---
+  duration_ms: 0.337708
+  type: 'test'
+  ...
+# Subtest: instance fixture packets are world-placed once and retain placement only as sharing metadata
+ok 66 - instance fixture packets are world-placed once and retain placement only as sharing metadata
+  ---
+  duration_ms: 2.323959
+  type: 'test'
+  ...
+# Subtest: wide-face instance fixture has a used native face 4097 and no added geometry layers
+ok 67 - wide-face instance fixture has a used native face 4097 and no added geometry layers
+  ---
+  duration_ms: 0.860542
+  type: 'test'
+  ...
+# Subtest: instance section fixture filters body zero but keeps original body one and generated-cap authority
+ok 68 - instance section fixture filters body zero but keeps original body one and generated-cap authority
+  ---
+  duration_ms: 3.694042
+  type: 'test'
+  ...
+# Subtest: fixture box carries twelve native edges and six native faces, with no triangle diagonals
+ok 69 - fixture box carries twelve native edges and six native faces, with no triangle diagonals
+  ---
+  duration_ms: 0.134958
+  type: 'test'
+  ...
+# Subtest: 2-plane cutout stays one source body and agrees with independent 3-box analytic volume
+ok 70 - 2-plane cutout stays one source body and agrees with independent 3-box analytic volume
+  ---
+  duration_ms: 9.651167
+  type: 'test'
+  ...
+# Subtest: 3-plane cutout stays one source body and agrees with independent 7-box analytic volume
+ok 71 - 3-plane cutout stays one source body and agrees with independent 7-box analytic volume
+  ---
+  duration_ms: 17.172833
+  type: 'test'
+  ...
+# Subtest: 2-plane raster oracle contains only union boundary faces
+ok 72 - 2-plane raster oracle contains only union boundary faces
+  ---
+  duration_ms: 0.461417
+  type: 'test'
+  ...
+# Subtest: 3-plane raster oracle contains only union boundary faces
+ok 73 - 3-plane raster oracle contains only union boundary faces
+  ---
+  duration_ms: 29.759333
+  type: 'test'
+  ...
+# Subtest: analytic ray oracle distinguishes original front, actual cap, kept-by-third-plane front, and background
+ok 74 - analytic ray oracle distinguishes original front, actual cap, kept-by-third-plane front, and background
+  ---
+  duration_ms: 0.482542
+  type: 'test'
+  ...
+# Subtest: synthetic DPR 1 metrics accept 6/4 CSS dash and reject solid, absent and wrong-period controls
+ok 75 - synthetic DPR 1 metrics accept 6/4 CSS dash and reject solid, absent and wrong-period controls
+  ---
+  duration_ms: 9.685833
+  type: 'test'
+  ...
+# Subtest: synthetic DPR 2 metrics accept 6/4 CSS dash and reject solid, absent and wrong-period controls
+ok 76 - synthetic DPR 2 metrics accept 6/4 CSS dash and reject solid, absent and wrong-period controls
+  ---
+  duration_ms: 3.364958
+  type: 'test'
+  ...
+# Subtest: strong-pixel comparison rejects dimension mismatch and detects controlled nonzero differences
+ok 77 - strong-pixel comparison rejects dimension mismatch and detects controlled nonzero differences
+  ---
+  duration_ms: 14.819958
+  type: 'test'
+  ...
+# Subtest: synthetic x-ray opacity witness accepts .25 and rejects opaque/empty/same-mode pseudo-controls
+ok 78 - synthetic x-ray opacity witness accepts .25 and rejects opaque/empty/same-mode pseudo-controls
+  ---
+  duration_ms: 61.543667
+  type: 'test'
+  ...
+# Subtest: WebGL2 opacity probes isolate a real native/cap boundary face without far/internal colour layers
+ok 79 - WebGL2 opacity probes isolate a real native/cap boundary face without far/internal colour layers
+  ---
+  duration_ms: 1.870041
+  type: 'test'
+  ...
+# Subtest: instance extension is explicit; default retains thirteen rows and flag requires six retained controls and four feature checks across all four cases
+ok 80 - instance extension is explicit; default retains thirteen rows and flag requires six retained controls and four feature checks across all four cases
+  ---
+  duration_ms: 2.101208
+  type: 'test'
+  ...
+# Subtest: --instances parses as an explicit opt-in and duplicate flags fail without loading the browser
+ok 81 - --instances parses as an explicit opt-in and duplicate flags fail without loading the browser
+  ---
+  duration_ms: 0.269791
+  type: 'test'
+  ...
+# Subtest: synthetic validation requires exactly the serial WebGPU/WebGL2 x DPR1/2 matrix with all 13 named checks
+ok 82 - synthetic validation requires exactly the serial WebGPU/WebGL2 x DPR1/2 matrix with all 13 named checks
+  ---
+  duration_ms: 0.339208
+  type: 'test'
+  ...
+# Subtest: synthetic validation rejects missing, duplicate, skipped, unsupported-only or failed check rows
+ok 83 - synthetic validation rejects missing, duplicate, skipped, unsupported-only or failed check rows
+  ---
+  duration_ms: 0.226458
+  type: 'test'
+  ...
+# Subtest: synthetic validation rejects adapter fallback, wrong actual DPR/backing and shader/device error evidence
+ok 84 - synthetic validation rejects adapter fallback, wrong actual DPR/backing and shader/device error evidence
+  ---
+  duration_ms: 0.23675
+  type: 'test'
+  ...
+# Subtest: synthetic validation requires all mode and quarter/octant PNG captures and scope diagnostics
+ok 85 - synthetic validation requires all mode and quarter/octant PNG captures and scope diagnostics
+  ---
+  duration_ms: 0.131959
+  type: 'test'
+  ...
+# Subtest: argument/authority helpers enforce preparation and exact clean immutable run authorization without loading Playwright
+ok 86 - argument/authority helpers enforce preparation and exact clean immutable run authorization without loading Playwright
+  ---
+  duration_ms: 0.3835
+  type: 'test'
+  ...
+# Subtest: exact local routes deny traversal, query and checkout access
+ok 87 - exact local routes deny traversal, query and checkout access
+  ---
+  duration_ms: 1.587666
+  type: 'test'
+  ...
+# Subtest: prepareHarness bundles synthetic source and records source/output hashes without executing fixture, browser or server
+ok 88 - prepareHarness bundles synthetic source and records source/output hashes without executing fixture, browser or server
+  ---
+  duration_ms: 1590.990667
+  type: 'test'
+  ...
+# Subtest: WebGL2 DPR 1: line-only modes retain solid/ghost depth and suppress colour, hatch, AO and contact shadow
+ok 89 - WebGL2 DPR 1: line-only modes retain solid/ghost depth and suppress colour, hatch, AO and contact shadow
+  ---
+  duration_ms: 3.235042
+  type: 'test'
+  ...
+# Subtest: WebGL2 DPR 1: hidden dashes are a separate depth-tested [6,4] CSS-pixel pass
+ok 90 - WebGL2 DPR 1: hidden dashes are a separate depth-tested [6,4] CSS-pixel pass
+  ---
+  duration_ms: 1.196459
+  type: 'test'
+  ...
+# Subtest: WebGL2 DPR 1: wireframe disables depth only for native edges and default restores appearance
+ok 91 - WebGL2 DPR 1: wireframe disables depth only for native edges and default restores appearance
+  ---
+  duration_ms: 1.475
+  type: 'test'
+  ...
+# Subtest: WebGL2 DPR 1: x-ray preserves hidden/ghost authority and ordinary face picking
+ok 92 - WebGL2 DPR 1: x-ray preserves hidden/ghost authority and ordinary face picking
+  ---
+  duration_ms: 3.309416
+  type: 'test'
+  ...
+# Subtest: WebGL2 DPR 2: line-only modes retain solid/ghost depth and suppress colour, hatch, AO and contact shadow
+ok 93 - WebGL2 DPR 2: line-only modes retain solid/ghost depth and suppress colour, hatch, AO and contact shadow
+  ---
+  duration_ms: 3.204959
+  type: 'test'
+  ...
+# Subtest: WebGL2 DPR 2: hidden dashes are a separate depth-tested [6,4] CSS-pixel pass
+ok 94 - WebGL2 DPR 2: hidden dashes are a separate depth-tested [6,4] CSS-pixel pass
+  ---
+  duration_ms: 0.642291
+  type: 'test'
+  ...
+# Subtest: WebGL2 DPR 2: wireframe disables depth only for native edges and default restores appearance
+ok 95 - WebGL2 DPR 2: wireframe disables depth only for native edges and default restores appearance
+  ---
+  duration_ms: 6.391458
+  type: 'test'
+  ...
+# Subtest: WebGL2 DPR 2: x-ray preserves hidden/ghost authority and ordinary face picking
+ok 96 - WebGL2 DPR 2: x-ray preserves hidden/ghost authority and ordinary face picking
+  ---
+  duration_ms: 0.622583
+  type: 'test'
+  ...
+# Subtest: WebGL2 unsupported direct/proposal overlays preserve the prior effective mode and permit explicit default
+ok 97 - WebGL2 unsupported direct/proposal overlays preserve the prior effective mode and permit explicit default
+  ---
+  duration_ms: 9.300209
+  type: 'test'
+  ...
+# Subtest: GPU adapter DPR 1: all line-only modes retain surfaces/caps and native-edge selection without intercepting picks
+ok 98 - GPU adapter DPR 1: all line-only modes retain surfaces/caps and native-edge selection without intercepting picks
+  ---
+  duration_ms: 4.326625
+  type: 'test'
+  ...
+# Subtest: GPU adapter DPR 1: x-ray changes appearance opacity while preserving original pick transparency and default restoration
+ok 99 - GPU adapter DPR 1: x-ray changes appearance opacity while preserving original pick transparency and default restoration
+  ---
+  duration_ms: 0.488417
+  type: 'test'
+  ...
+# Subtest: GPU adapter DPR 2: all line-only modes retain surfaces/caps and native-edge selection without intercepting picks
+ok 100 - GPU adapter DPR 2: all line-only modes retain surfaces/caps and native-edge selection without intercepting picks
+  ---
+  duration_ms: 5.077959
+  type: 'test'
+  ...
+# Subtest: GPU adapter DPR 2: x-ray changes appearance opacity while preserving original pick transparency and default restoration
+ok 101 - GPU adapter DPR 2: x-ray changes appearance opacity while preserving original pick transparency and default restoration
+  ---
+  duration_ms: 0.359208
+  type: 'test'
+  ...
+# Subtest: GPU adapter guards Render, analysis, direct/proposal/mould and external unsupported combinations without changing clip or previous mode
+ok 102 - GPU adapter guards Render, analysis, direct/proposal/mould and external unsupported combinations without changing clip or previous mode
+  ---
+  duration_ms: 1.951458
+  type: 'test'
+  ...
+# Subtest: GPU instance adapter DPR 1: five modes preserve shared geometry, placement, cap depth and picks
+ok 103 - GPU instance adapter DPR 1: five modes preserve shared geometry, placement, cap depth and picks
+  ---
+  duration_ms: 2.758958
+  type: 'test'
+  ...
+# Subtest: GPU instance adapter DPR 2: five modes preserve shared geometry, placement, cap depth and picks
+ok 104 - GPU instance adapter DPR 2: five modes preserve shared geometry, placement, cap depth and picks
+  ---
+  duration_ms: 1.094333
+  type: 'test'
+  ...
+# Subtest: GPU instance x-ray retains smaller appearance opacity and rejects sorted section caps without changing planes
+ok 105 - GPU instance x-ray retains smaller appearance opacity and rejects sorted section caps without changing planes
+  ---
+  duration_ms: 0.586667
+  type: 'test'
+  ...
+# Subtest: GPU isolation DPR 1: focus/fade/restore scales original opacity and pick authority in all five modes
+ok 106 - GPU isolation DPR 1: focus/fade/restore scales original opacity and pick authority in all five modes
+  ---
+  duration_ms: 3.072292
+  type: 'test'
+  ...
+# Subtest: GPU isolation DPR 2: focus/fade/restore scales original opacity and pick authority in all five modes
+ok 107 - GPU isolation DPR 2: focus/fade/restore scales original opacity and pick authority in all five modes
+  ---
+  duration_ms: 1.1805
+  type: 'test'
+  ...
+# Subtest: GPU cached curved silhouettes retain section clipping and no native pick authority through isolation
+ok 108 - GPU cached curved silhouettes retain section clipping and no native pick authority through isolation
+  ---
+  duration_ms: 0.402125
+  type: 'test'
+  ...
+# Subtest: GPU adapter rejects sorted-transparency x-ray sections and retains the prior mode and G20 planes
+ok 109 - GPU adapter rejects sorted-transparency x-ray sections and retains the prior mode and G20 planes
+  ---
+  duration_ms: 0.179208
+  type: 'test'
+  ...
+# Subtest: GPU adapter preserves pre-existing opacity below the x-ray ceiling when an unsupported Render request keeps the prior x-ray mode
+ok 110 - GPU adapter preserves pre-existing opacity below the x-ray ceiling when an unsupported Render request keeps the prior x-ray mode
+  ---
+  duration_ms: 0.18125
+  type: 'test'
+  ...
+# Subtest: world-placed packets share only a fully verified moved copy and keep private selection buffers
+ok 111 - world-placed packets share only a fully verified moved copy and keep private selection buffers
+  ---
+  duration_ms: 5.014166
+  type: 'test'
+  ...
+# Subtest: pose then drag is composed after reference-to-placement for both instance surfaces and native edges
+ok 112 - pose then drag is composed after reference-to-placement for both instance surfaces and native edges
+  ---
+  duration_ms: 0.85575
+  type: 'test'
+  ...
+# Subtest: selection-only setInstances reuses uploads and deleting the last shared user releases geometry exactly once
+ok 113 - selection-only setInstances reuses uploads and deleting the last shared user releases geometry exactly once
+  ---
+  duration_ms: 0.585042
+  type: 'test'
+  ...
+# Subtest: default instance surfaces and native edges share the base/direct scene depth; omitted hidden items are not drawn
+ok 114 - default instance surfaces and native edges share the base/direct scene depth; omitted hidden items are not drawn
+  ---
+  duration_ms: 1.251333
+  type: 'test'
+  ...
+# Subtest: actual ID decoding routes RGBA32 instance/native/cap source identities without stealing base or direct winners
+ok 115 - actual ID decoding routes RGBA32 instance/native/cap source identities without stealing base or direct winners
+  ---
+  duration_ms: 2.944625
+  type: 'test'
+  ...
+# Subtest: instance modes retain surface depth, classify native edges and cap x-ray opacity
+ok 116 - instance modes retain surface depth, classify native edges and cap x-ray opacity
+  ---
+  duration_ms: 2.723125
+  type: 'test'
+  ...
+# Subtest: isolation scales original base/ghost/instance alpha, removes faded pick authority and restores all five modes
+ok 117 - isolation scales original base/ghost/instance alpha, removes faded pick authority and restores all five modes
+  ---
+  duration_ms: 9.901083
+  type: 'test'
+  ...
+# Subtest: default assembly display is supported when the actual renderer can draw and identify instance faces
+ok 118 - default assembly display is supported when the actual renderer can draw and identify instance faces
+  ---
+  duration_ms: 0.676292
+  type: 'test'
+  ...
+# Subtest: an absent or incomplete bridge is diagnosed explicitly, including the default mode
+ok 119 - an absent or incomplete bridge is diagnosed explicitly, including the default mode
+  ---
+  duration_ms: 0.424291
+  type: 'test'
+  ...
+# Subtest: all five placed-instance modes use the actual adapter capability status without a UI-only rejection
+ok 120 - all five placed-instance modes use the actual adapter capability status without a UI-only rejection
+  ---
+  duration_ms: 0.150167
+  type: 'test'
+  ...
+# Subtest: placed instances do not create a scope guard; Render/analysis/direct/proposal/mould/editing guards remain precise
+ok 121 - placed instances do not create a scope guard; Render/analysis/direct/proposal/mould/editing guards remain precise
+  ---
+  duration_ms: 0.133833
+  type: 'test'
+  ...
+# Subtest: existing Views selector is the only mode control and keeps session requests separate from guarded fallback
+ok 122 - existing Views selector is the only mode control and keeps session requests separate from guarded fallback
+  ---
+  duration_ms: 166.916917
+  type: 'test'
+  ...
+# Subtest: default bridge availability preserves an existing backend rejection rather than declaring it passed
+ok 123 - default bridge availability preserves an existing backend rejection rather than declaring it passed
+  ---
+  duration_ms: 0.130833
+  type: 'test'
+  ...
+# Subtest: only actual generated caps carry instanceCap and never native-face authority
+ok 124 - only actual generated caps carry instanceCap and never native-face authority
+  ---
+  duration_ms: 0.24025
+  type: 'test'
+  ...
+# Subtest: isolation snapshots only selected visible placed instances and survives later selection changes
+ok 125 - isolation snapshots only selected visible placed instances and survives later selection changes
+  ---
+  duration_ms: 0.135459
+  type: 'test'
+  ...
+# Subtest: isolation stays session-only with one Display toggle, empty-selection restore and document replacement reset
+ok 126 - isolation stays session-only with one Display toggle, empty-selection restore and document replacement reset
+  ---
+  duration_ms: 99.279917
+  type: 'test'
+  ...
+# Subtest: Viewport forwards the snapshot to view state, suspends it under existing guards and schedules state updates
+ok 127 - Viewport forwards the snapshot to view state, suspends it under existing guards and schedules state updates
+  ---
+  duration_ms: 38.586709
+  type: 'test'
+  ...
+# Subtest: same-summary pending layer retains count30 before effects and after request, while its drawing stays null
+ok 128 - same-summary pending layer retains count30 before effects and after request, while its drawing stays null
+  ---
+  duration_ms: 4.354875
+  type: 'test'
+  ...
+# Subtest: mesh source, build direction, explicit layer height and overhang limit invalidate count on the first render
+ok 129 - mesh source, build direction, explicit layer height and overhang limit invalidate count on the first render
+  ---
+  duration_ms: 0.780791
+  type: 'test'
+  ...
+# Subtest: rapid layer requests keep the range but only the latest reply may replace the active drawing/count
+ok 130 - rapid layer requests keep the range but only the latest reply may replace the active drawing/count
+  ---
+  duration_ms: 0.138958
+  type: 'test'
+  ...
+# Subtest: disable clears count and drawing immediately, terminates worker, and re-enable cannot accept old-worker output
+ok 131 - disable clears count and drawing immediately, terminates worker, and re-enable cannot accept old-worker output
+  ---
+  duration_ms: 0.112542
+  type: 'test'
+  ...
+# Subtest: supports/printed toggles send no worker request; lazy same-summary replies retain the one support resource
+ok 132 - supports/printed toggles send no worker request; lazy same-summary replies retain the one support resource
+  ---
+  duration_ms: 0.118083
+  type: 'test'
+  ...
+# Subtest: closed contour/hole winding stays supplied and all lines use actual mid-layer z
+ok 133 - closed contour/hole winding stays supplied and all lines use actual mid-layer z
+  ---
+  duration_ms: 0.999125
+  type: 'test'
+  ...
+# Subtest: printed support uses G19 clipping and closes the top with no native face authority
+ok 134 - printed support uses G19 clipping and closes the top with no native face authority
+  ---
+  duration_ms: 3.282584
+  type: 'test'
+  ...
+# Subtest: summary, full support and unchanged layer drawings retain resource identities across toggles and lazy layers
+ok 135 - summary, full support and unchanged layer drawings retain resource identities across toggles and lazy layers
+  ---
+  duration_ms: 0.709709
+  type: 'test'
+  ...
+# Subtest: GPU additions have no native authority; lazy layer and support toggles reuse resources; null frees them
+ok 136 - GPU additions have no native authority; lazy layer and support toggles reuse resources; null frees them
+  ---
+  duration_ms: 0.599583
+  type: 'test'
+  ...
+# Subtest: GL owns a colour-only final pass, same support/bed resources and actual bed positions
+ok 137 - GL owns a colour-only final pass, same support/bed resources and actual bed positions
+  ---
+  duration_ms: 0.895458
+  type: 'test'
+  ...
+# Subtest: GL shader failure and GPU upload failure are explicit and discard partial overlay resources
+ok 138 - GL shader failure and GPU upload failure are explicit and discard partial overlay resources
+  ---
+  duration_ms: 0.179958
+  type: 'test'
+  ...
+# Subtest: actual Model +X bed transform is applied once without changing shared source arrays or geometric metadata
+ok 139 - actual Model +X bed transform is applied once without changing shared source arrays or geometric metadata
+  ---
+  duration_ms: 4.999583
+  type: 'test'
+  ...
+# Subtest: printed top uses layer upper boundary, preserves removed-body ordinals and gives cap triangles no native authority
+ok 140 - printed top uses layer upper boundary, preserves removed-body ordinals and gives cap triangles no native authority
+  ---
+  duration_ms: 3.966084
+  type: 'test'
+  ...
+# Subtest: camera bounds cover the full bed-frame source across layer changes and omit hidden or empty bodies
+ok 141 - camera bounds cover the full bed-frame source across layer changes and omit hidden or empty bodies
+  ---
+  duration_ms: 1.726667
+  type: 'test'
+  ...
+# Subtest: preserved ordinals disambiguate alias names while conflicting metadata and existing caps retain no invented identity
+ok 142 - preserved ordinals disambiguate alias names while conflicting metadata and existing caps retain no invented identity
+  ---
+  duration_ms: 1.343208
+  type: 'test'
+  ...
+# Subtest: support prisms use actual footprint/z ranges with outward winding and no native face or edge IDs
+ok 143 - support prisms use actual footprint/z ranges with outward winding and no native face or edge IDs
+  ---
+  duration_ms: 0.712083
+  type: 'test'
+  ...
+# Subtest: support handles concave polygons, empty/zero-height output and rejects malformed ranges without mutating columns
+ok 144 - support handles concave polygons, empty/zero-height output and rejects malformed ranges without mutating columns
+  ---
+  duration_ms: 0.324375
+  type: 'test'
+  ...
+# Subtest: omitted settings remain absent while display defaults retain estimate and direction provenance
+ok 145 - omitted settings remain absent while display defaults retain estimate and direction provenance
+  ---
+  duration_ms: 0.823416
+  type: 'test'
+  ...
+# Subtest: zero and false survive immutable patches; omitted values stay saved and explicit undefined deletes only that field
+ok 146 - zero and false survive immutable patches; omitted values stay saved and explicit undefined deletes only that field
+  ---
+  duration_ms: 0.33625
+  type: 'test'
+  ...
+# Subtest: actual Model validators refuse invalid controls, unknown fields, version changes and invalid nested document state
+ok 147 - actual Model validators refuse invalid controls, unknown fields, version changes and invalid nested document state
+  ---
+  duration_ms: 0.456333
+  type: 'test'
+  ...
+# Subtest: actual Model reader and carryOver retain sparse settings through an independent model command and JSON roundtrip
+ok 148 - actual Model reader and carryOver retain sparse settings through an independent model command and JSON roundtrip
+  ---
+  duration_ms: 2.04825
+  type: 'test'
+  ...
+# Subtest: actual Model summary is reused across lazy layers; absent height/direction retain estimate/default
+ok 149 - actual Model summary is reused across lazy layers; absent height/direction retain estimate/default
+  ---
+  duration_ms: 532.061666
+  type: 'test'
+  ...
+# Subtest: source/direction changes produce a new actual summary and rigid bed transform
+ok 150 - source/direction changes produce a new actual summary and rigid bed transform
+  ---
+  duration_ms: 244.649333
+  type: 'test'
+  ...
+# Subtest: superseded queued requests cannot publish an old layer; invalid inputs yield only explicit errors
+ok 151 - superseded queued requests cannot publish an old layer; invalid inputs yield only explicit errors
+  ---
+  duration_ms: 281.570209
+  type: 'test'
+  ...
+# Subtest: cylinder contours follow smooth normal facing rather than triangle edges or native edge lines
+ok 152 - cylinder contours follow smooth normal facing rather than triangle edges or native edge lines
+  ---
+  duration_ms: 2.351625
+  type: 'test'
+  ...
+# Subtest: sphere contours change with view and perspective uses eye-to-world-position at each vertex
+ok 153 - sphere contours change with view and perspective uses eye-to-world-position at each vertex
+  ---
+  duration_ms: 72.062042
+  type: 'test'
+  ...
+# Subtest: rigid placement rotates normals and translates perspective points while output remains in source coordinates
+ok 154 - rigid placement rotates normals and translates perspective points while output remains in source coordinates
+  ---
+  duration_ms: 1.10175
+  type: 'test'
+  ...
+# Subtest: planar, faceted and mixed-face triangles cannot create smooth silhouettes
+ok 155 - planar, faceted and mixed-face triangles cannot create smooth silhouettes
+  ---
+  duration_ms: 0.161541
+  type: 'test'
+  ...
+# Subtest: zero contours keep exact tangent mesh edges once and suppress ambiguous tangent patches and degenerate inputs
+ok 156 - zero contours keep exact tangent mesh edges once and suppress ambiguous tangent patches and degenerate inputs
+  ---
+  duration_ms: 0.280209
+  type: 'test'
+  ...
+# Subtest: camera fit refuses zero aspect before changing state
+ok 157 - camera fit refuses zero aspect before changing state
+  ---
+  duration_ms: 3.776542
+  type: 'test'
+  ...
+# Subtest: camera fit refuses zero margin before changing state
+ok 158 - camera fit refuses zero margin before changing state
+  ---
+  duration_ms: 0.1815
+  type: 'test'
+  ...
+# Subtest: camera fit refuses negative aspect before changing state
+ok 159 - camera fit refuses negative aspect before changing state
+  ---
+  duration_ms: 0.105666
+  type: 'test'
+  ...
+# Subtest: camera fit refuses negative margin before changing state
+ok 160 - camera fit refuses negative margin before changing state
+  ---
+  duration_ms: 0.058
+  type: 'test'
+  ...
+# Subtest: camera fit refuses NaN aspect before changing state
+ok 161 - camera fit refuses NaN aspect before changing state
+  ---
+  duration_ms: 0.134625
+  type: 'test'
+  ...
+# Subtest: camera fit refuses NaN margin before changing state
+ok 162 - camera fit refuses NaN margin before changing state
+  ---
+  duration_ms: 0.056167
+  type: 'test'
+  ...
+# Subtest: camera fit refuses positive infinity aspect before changing state
+ok 163 - camera fit refuses positive infinity aspect before changing state
+  ---
+  duration_ms: 0.103375
+  type: 'test'
+  ...
+# Subtest: camera fit refuses positive infinity margin before changing state
+ok 164 - camera fit refuses positive infinity margin before changing state
+  ---
+  duration_ms: 0.133084
+  type: 'test'
+  ...
+# Subtest: camera fit refuses negative infinity aspect before changing state
+ok 165 - camera fit refuses negative infinity aspect before changing state
+  ---
+  duration_ms: 0.382083
+  type: 'test'
+  ...
+# Subtest: camera fit refuses negative infinity margin before changing state
+ok 166 - camera fit refuses negative infinity margin before changing state
+  ---
+  duration_ms: 0.310833
+  type: 'test'
+  ...
+# Subtest: camera fit refuses finite positive aspect whose fitted distance overflows
+ok 167 - camera fit refuses finite positive aspect whose fitted distance overflows
+  ---
+  duration_ms: 0.284208
+  type: 'test'
+  ...
+# Subtest: camera fit refuses finite positive margin whose fitted radius overflows
+ok 168 - camera fit refuses finite positive margin whose fitted radius overflows
+  ---
+  duration_ms: 0.072625
+  type: 'test'
+  ...
+# Subtest: camera fit refuses a finite box whose span overflows without replacing its target
+ok 169 - camera fit refuses a finite box whose span overflows without replacing its target
+  ---
+  duration_ms: 0.127958
+  type: 'test'
+  ...
+# Subtest: camera fit refuses a finite box whose centre overflows before assigning either field
+ok 170 - camera fit refuses a finite box whose centre overflows before assigning either field
+  ---
+  duration_ms: 0.060292
+  type: 'test'
+  ...
+# Subtest: camera fit refuses NaN bound with nonfinite computed output atomically
+ok 171 - camera fit refuses NaN bound with nonfinite computed output atomically
+  ---
+  duration_ms: 0.055584
+  type: 'test'
+  ...
+# Subtest: camera fit refuses infinite bound with nonfinite computed output atomically
+ok 172 - camera fit refuses infinite bound with nonfinite computed output atomically
+  ---
+  duration_ms: 0.040167
+  type: 'test'
+  ...
+# Subtest: camera fit preserves the existing finite framing equation for both projections
+ok 173 - camera fit preserves the existing finite framing equation for both projections
+  ---
+  duration_ms: 0.146667
+  type: 'test'
+  ...
+# Subtest: camera fit keeps finite fallback direction for an initially coincident eye and target
+ok 174 - camera fit keeps finite fallback direction for an initially coincident eye and target
+  ---
+  duration_ms: 0.086208
+  type: 'test'
+  ...
+# Subtest: default matrices match independently derived fixed projection and old shape
+ok 175 - default matrices match independently derived fixed projection and old shape
+  ---
+  duration_ms: 1.63
+  type: 'test'
+  ...
+# Subtest: known center, left, right, up and down points detect matrix transpose and Y inversion
+ok 176 - known center, left, right, up and down points detect matrix transpose and Y inversion
+  ---
+  duration_ms: 1.188458
+  type: 'test'
+  ...
+# Subtest: side and oblique look-at frames remain orthonormal and right-handed
+ok 177 - side and oblique look-at frames remain orthonormal and right-handed
+  ---
+  duration_ms: 3.323333
+  type: 'test'
+  ...
+# Subtest: translated target projects to center without changing world geometry
+ok 178 - translated target projects to center without changing world geometry
+  ---
+  duration_ms: 0.098625
+  type: 'test'
+  ...
+# Subtest: near and far map to OpenGL clip endpoints and behind-camera has negative W
+ok 179 - near and far map to OpenGL clip endpoints and behind-camera has negative W
+  ---
+  duration_ms: 0.179667
+  type: 'test'
+  ...
+# Subtest: up rotation, aspect and optics follow analytic projection expectations
+ok 180 - up rotation, aspect and optics follow analytic projection expectations
+  ---
+  duration_ms: 0.146583
+  type: 'test'
+  ...
+# Subtest: nested camera data is copied and frozen while original up magnitude is retained
+ok 181 - nested camera data is copied and frozen while original up magnitude is retained
+  ---
+  duration_ms: 0.268459
+  type: 'test'
+  ...
+# Subtest: strict objects and vectors reject missing, foreign, symbol and accessor fields without reads
+ok 182 - strict objects and vectors reject missing, foreign, symbol and accessor fields without reads
+  ---
+  duration_ms: 0.770416
+  type: 'test'
+  ...
+# Subtest: camera vectors and optics reject all scalar bound violations
+ok 183 - camera vectors and optics reject all scalar bound violations
+  ---
+  duration_ms: 2.362459
+  type: 'test'
+  ...
+# Subtest: singular and almost singular eye/up axes reject before GPU allocation
+ok 184 - singular and almost singular eye/up axes reject before GPU allocation
+  ---
+  duration_ms: 0.803667
+  type: 'test'
+  ...
+# Subtest: Float32 clipping collapse, cancellation, overflow and underflow reject without clamping
+ok 185 - Float32 clipping collapse, cancellation, overflow and underflow reject without clamping
+  ---
+  duration_ms: 0.465916
+  type: 'test'
+  ...
+# Subtest: deterministic fixed shaders use only numeric scene data
+ok 186 - deterministic fixed shaders use only numeric scene data
+  ---
+  duration_ms: 4.3005
+  type: 'test'
+  ...
+# Subtest: empty scene and maximum bounded scene compile
+ok 187 - empty scene and maximum bounded scene compile
+  ---
+  duration_ms: 6.465334
+  type: 'test'
+  ...
+# Subtest: structured consumers cannot inject GLSL or bypass geometry limits
+ok 188 - structured consumers cannot inject GLSL or bypass geometry limits
+  ---
+  duration_ms: 8.606666
+  type: 'test'
+  ...
+# Subtest: a box: every face reached by its own direction; the samples' areas the triangles'
+ok 189 - a box: every face reached by its own direction; the samples' areas the triangles'
+  ---
+  duration_ms: 21.300959
+  type: 'test'
+  ...
+# Subtest: a sealed cavity: its faces reached by none (share 1); the outside reached; every mask as the kernel's rays
+ok 190 - a sealed cavity: its faces reached by none (share 1); the outside reached; every mask as the kernel's rays
+  ---
+  duration_ms: 30.959542
+  type: 'test'
+  ...
+# Subtest: f32 rounding outward: down never above, up never below, each the nearest such f32
+ok 191 - f32 rounding outward: down never above, up never below, each the nearest such f32
+  ---
+  duration_ms: 0.96025
+  type: 'test'
+  ...
+# Subtest: the packing: every triangle once in leaf order with its source index; each f32 vertex inside its leaf's f32 box
+ok 192 - the packing: every triangle once in leaf order with its source index; each f32 vertex inside its leaf's f32 box
+  ---
+  duration_ms: 50.983083
+  type: 'test'
+  ...
+# Subtest: the mirror's ray hit equals the kernel's (to the f32 vertices' rounding), misses included, the skipped triangle skipped
+ok 193 - the mirror's ray hit equals the kernel's (to the f32 vertices' rounding), misses included, the skipped triangle skipped
+  ---
+  duration_ms: 22.449709
+  type: 'test'
+  ...
+# Subtest: the mirror's nearest distance equals the kernel's, bounded queries included
+ok 194 - the mirror's nearest distance equals the kernel's, bounded queries included
+  ---
+  duration_ms: 21.8295
+  type: 'test'
+  ...
+# Subtest: a hierarchy deeper than the shaders' stack is refused by name
+ok 195 - a hierarchy deeper than the shaders' stack is refused by name
+  ---
+  duration_ms: 0.348958
+  type: 'test'
+  ...
+# Subtest: a box: the top and bottom triangles 8 deep and 8 thick; every triangle as the kernel composes it
+ok 196 - a box: the top and bottom triangles 8 deep and 8 thick; every triangle as the kernel composes it
+  ---
+  duration_ms: 1.913667
+  type: 'test'
+  ...
+# Subtest: a tube Ø60/Ø50, 40 high, 96 sides: the wall reads 5 across at its middle; every triangle as the kernel composes it
+ok 197 - a tube Ø60/Ø50, 40 high, 96 sides: the wall reads 5 across at its middle; every triangle as the kernel composes it
+  ---
+  duration_ms: 44.943875
+  type: 'test'
+  ...
+# Subtest: a degenerate triangle has no ray and reads Infinity
+ok 198 - a degenerate triangle has no ray and reads Infinity
+  ---
+  duration_ms: 0.493
+  type: 'test'
+  ...
+# Subtest: consecutive shared mesh/material pairs batch without reordering or counting hidden nodes
+ok 199 - consecutive shared mesh/material pairs batch without reordering or counting hidden nodes
+  ---
+  duration_ms: 7.617541
+  type: 'test'
+  ...
+# Subtest: fully hidden nodes have no instance bytes or batches
+ok 200 - fully hidden nodes have no instance bytes or batches
+  ---
+  duration_ms: 0.886167
+  type: 'test'
+  ...
+# Subtest: input is readmitted and a corrupt geometry ref is rejected
+ok 201 - input is readmitted and a corrupt geometry ref is rejected
+  ---
+  duration_ms: 1.681458
+  type: 'test'
+  ...
+# Subtest: the squared distance transform equals a brute-force search on random seeds, of several sizes
+ok 202 - the squared distance transform equals a brute-force search on random seeds, of several sizes
+  ---
+  duration_ms: 44.206375
+  type: 'test'
+  ...
+# Subtest: a glyph field: above the middle inside, below outside, to the spread either way
+ok 203 - a glyph field: above the middle inside, below outside, to the spread either way
+  ---
+  duration_ms: 2.054167
+  type: 'test'
+  ...
+# Subtest: the layout: lines a line apart, glyphs at their advances, the box centred by align; a box takes two instances
+ok 204 - the layout: lines a line apart, glyphs at their advances, the box centred by align; a box takes two instances
+  ---
+  duration_ms: 5.258041
+  type: 'test'
+  ...
+# Subtest: original current corpus preserves Scene and fixed shader bytes through own AST/IR
+ok 205 - original current corpus preserves Scene and fixed shader bytes through own AST/IR
+  ---
+  duration_ms: 30.725875
+  type: 'test'
+  ...
+# Subtest: syntax is bounded independently of semantic resolution and both precede GLSL lowering
+ok 206 - syntax is bounded independently of semantic resolution and both precede GLSL lowering
+  ---
+  duration_ms: 43.6825
+  type: 'test'
+  ...
+# Subtest: tagged packet IR preserves provenance and exact original typed buffer conversion
+ok 207 - tagged packet IR preserves provenance and exact original typed buffer conversion
+  ---
+  duration_ms: 5.810041
+  type: 'test'
+  ...
+# Subtest: reflective non-data tags/options/packets reject without getter reads or lower buffers
+ok 208 - reflective non-data tags/options/packets reject without getter reads or lower buffers
+  ---
+  duration_ms: 0.340333
+  type: 'test'
+  ...
+# Subtest: extracted sharing helpers retain topology and rigid-copy checks for positions, normals and native edge lines
+ok 209 - extracted sharing helpers retain topology and rigid-copy checks for positions, normals and native edge lines
+  ---
+  duration_ms: 1.655583
+  type: 'test'
+  ...
+# Subtest: CPU cutout body filtering retains original ordinals and stable instance/body identities without mutating source
+ok 210 - CPU cutout body filtering retains original ordinals and stable instance/body identities without mutating source
+  ---
+  duration_ms: 6.135708
+  type: 'test'
+  ...
+# Subtest: cutout duplicate native faces and edges map to original indices; all generated caps have no native face authority
+ok 211 - cutout duplicate native faces and edges map to original indices; all generated caps have no native face authority
+  ---
+  duration_ms: 1.083625
+  type: 'test'
+  ...
+# Subtest: existing packet provenance composes through another CPU section without adopting displayed ordinals
+ok 212 - existing packet provenance composes through another CPU section without adopting displayed ordinals
+  ---
+  duration_ms: 1.261625
+  type: 'test'
+  ...
+# Subtest: ambiguous native edge names and face identity produce -1 rather than a plausible original index
+ok 213 - ambiguous native edge names and face identity produce -1 rather than a plausible original index
+  ---
+  duration_ms: 2.406167
+  type: 'test'
+  ...
+# Subtest: full edge-name tokens stay distinct and generated cap adjacency never becomes a native edge
+ok 214 - full edge-name tokens stay distinct and generated cap adjacency never becomes a native edge
+  ---
+  duration_ms: 0.521459
+  type: 'test'
+  ...
+# Subtest: pose copies keep source arrays unchanged and GPU path returns the original packet without adding provenance
+ok 215 - pose copies keep source arrays unchanged and GPU path returns the original packet without adding provenance
+  ---
+  duration_ms: 0.638541
+  type: 'test'
+  ...
+# Subtest: G5 a material colour in the viewer: the exact sRGB decode of its hex, so it encodes back to its own bytes; other backends keep gamma 2.2
+ok 216 - G5 a material colour in the viewer: the exact sRGB decode of its hex, so it encodes back to its own bytes; other backends keep gamma 2.2
+  ---
+  duration_ms: 13.715666
+  type: 'test'
+  ...
+# Subtest: G5 a literal that is no f32 (nonzero, zero as one) refused at compile time, for both backends; the viewer answers with a diagnostic
+ok 217 - G5 a literal that is no f32 (nonzero, zero as one) refused at compile time, for both backends; the viewer answers with a diagnostic
+  ---
+  duration_ms: 2.084084
+  type: 'test'
+  ...
+# Subtest: valid material is validated and lowered without changing its source
+ok 218 - valid material is validated and lowered without changing its source
+  ---
+  duration_ms: 11.3555
+  type: 'test'
+  ...
+# Subtest: material IR validation accepts cross-runtime color roundoff only
+ok 219 - material IR validation accepts cross-runtime color roundoff only
+  ---
+  duration_ms: 2.454125
+  type: 'test'
+  ...
+# Subtest: UV material input lowers to the declared interpolant
+ok 220 - UV material input lowers to the declared interpolant
+  ---
+  duration_ms: 0.268041
+  type: 'test'
+  ...
+# Subtest: setInstances rejects 15 transform numbers before releasing or replacing existing state
+ok 221 - setInstances rejects 15 transform numbers before releasing or replacing existing state
+  ---
+  duration_ms: 1.691375
+  type: 'test'
+  ...
+# Subtest: setInstances rejects 2 colors for one instance before releasing or replacing existing state
+ok 222 - setInstances rejects 2 colors for one instance before releasing or replacing existing state
+  ---
+  duration_ms: 0.202708
+  type: 'test'
+  ...
+# Subtest: setInstances valid replacement and null each release only the prior buffer
+ok 223 - setInstances valid replacement and null each release only the prior buffer
+  ---
+  duration_ms: 0.201792
+  type: 'test'
+  ...
+# Subtest: literal asymmetric packet preserves domain and provenance, with explicit unit conversion
+ok 224 - literal asymmetric packet preserves domain and provenance, with explicit unit conversion
+  ---
+  duration_ms: 1.338042
+  type: 'test'
+  ...
+# Subtest: analytic quarter-cylinder accepts U-major rows and cross(partialU,partialV) normals
+ok 225 - analytic quarter-cylinder accepts U-major rows and cross(partialU,partialV) normals
+  ---
+  duration_ms: 20.234667
+  type: 'test'
+  ...
+# Subtest: accepted copies are deeply frozen while all caller data remains owned and mutable
+ok 226 - accepted copies are deeply frozen while all caller data remains owned and mutable
+  ---
+  duration_ms: 0.737
+  type: 'test'
+  ...
+# Subtest: metadata rejects unsupported, missing and executable extensions
+ok 227 - metadata rejects unsupported, missing and executable extensions
+  ---
+  duration_ms: 0.772458
+  type: 'test'
+  ...
+# Subtest: arrays reject mismatches, counts, typed inputs, sparse values and nonfinite numbers
+ok 228 - arrays reject mismatches, counts, typed inputs, sparse values and nonfinite numbers
+  ---
+  duration_ms: 0.830791
+  type: 'test'
+  ...
+# Subtest: all input objects and arrays reject getters, symbols and custom prototypes without invoking getters
+ok 229 - all input objects and arrays reject getters, symbols and custom prototypes without invoking getters
+  ---
+  duration_ms: 0.211792
+  type: 'test'
+  ...
+# Subtest: coordinates, normals, bounds and indices must describe exact valid geometry
+ok 230 - coordinates, normals, bounds and indices must describe exact valid geometry
+  ---
+  duration_ms: 0.464292
+  type: 'test'
+  ...
+# Subtest: host options require finite positive scale and bounded opaque RGB/translation
+ok 231 - host options require finite positive scale and bounded opaque RGB/translation
+  ---
+  duration_ms: 0.199333
+  type: 'test'
+  ...
+# Subtest: conversion rejects overflow, coordinate limits and float32 collapsed triangles
+ok 232 - conversion rejects overflow, coordinate limits and float32 collapsed triangles
+  ---
+  duration_ms: 0.834833
+  type: 'test'
+  ...
+# Subtest: G5 (the old review's fuzz R1): an array that answers differently on a later read (a Proxy) leaves no NaN in an accepted result
+ok 233 - G5 (the old review's fuzz R1): an array that answers differently on a later read (a Proxy) leaves no NaN in an accepted result
+  ---
+  duration_ms: 0.560708
+  type: 'test'
+  ...
+# Subtest: catalog keeps original identity, signed values and independent immutable copies
+ok 234 - catalog keeps original identity, signed values and independent immutable copies
+  ---
+  duration_ms: 1.924916
+  type: 'test'
+  ...
+# Subtest: analytic half-range, edge, outside, coincidence, back face and two colored lights
+ok 235 - analytic half-range, edge, outside, coincidence, back face and two colored lights
+  ---
+  duration_ms: 0.421833
+  type: 'test'
+  ...
+# Subtest: fixed ABI, little-endian packing, padding, disabled slot and fresh arrays
+ok 236 - fixed ABI, little-endian packing, padding, disabled slot and fresh arrays
+  ---
+  duration_ms: 1.470666
+  type: 'test'
+  ...
+# Subtest: emitted WGSL contains exact static ABI and bounded artistic law, no hidden conversion
+ok 237 - emitted WGSL contains exact static ABI and bounded artistic law, no hidden conversion
+  ---
+  duration_ms: 1.36575
+  type: 'test'
+  ...
+# Subtest: real legacy compiler/binder/lowerer retain source and resolved uniform bytes
+ok 238 - real legacy compiler/binder/lowerer retain source and resolved uniform bytes
+  ---
+  duration_ms: 12.084958
+  type: 'test'
+  ...
+# Subtest: bounded malformed catalog refusals do not invoke accessors or lose reflection cause
+ok 239 - bounded malformed catalog refusals do not invoke accessors or lose reflection cause
+  ---
+  duration_ms: 1.283959
+  type: 'test'
+  ...
+# Subtest: representation refusal, input/material boundaries and prior output retained
+ok 240 - representation refusal, input/material boundaries and prior output retained
+  ---
+  duration_ms: 1.749875
+  type: 'test'
+  ...
+# Subtest: public source exports and optionally emitted entry expose the same bounded producer
+ok 241 - public source exports and optionally emitted entry expose the same bounded producer
+  ---
+  duration_ms: 7.804833
+  type: 'test'
+  ...
+# Subtest: delayed instance readback: unchanged control preserves instance, triangle, face and world point
+ok 242 - delayed instance readback: unchanged control preserves instance, triangle, face and world point
+  ---
+  duration_ms: 2.878041
+  type: 'test'
+  ...
+# Subtest: delayed instance readback: matrix replacement refuses old metadata after unmapping once
+ok 243 - delayed instance readback: matrix replacement refuses old metadata after unmapping once
+  ---
+  duration_ms: 0.625291
+  type: 'test'
+  ...
+# matrix replacement: maps=2, reads=6, unmaps=2
+# Subtest: delayed instance readback: instance reorder refuses old metadata after unmapping once
+ok 244 - delayed instance readback: instance reorder refuses old metadata after unmapping once
+  ---
+  duration_ms: 0.629084
+  type: 'test'
+  ...
+# instance reorder: maps=2, reads=6, unmaps=2
+# Subtest: delayed instance readback: instance shrink refuses old metadata after unmapping once
+ok 245 - delayed instance readback: instance shrink refuses old metadata after unmapping once
+  ---
+  duration_ms: 0.651917
+  type: 'test'
+  ...
+# instance shrink: maps=2, reads=6, unmaps=2
+# Subtest: delayed instance readback: instance removal refuses old metadata after unmapping once
+ok 246 - delayed instance readback: instance removal refuses old metadata after unmapping once
+  ---
+  duration_ms: 1.532208
+  type: 'test'
+  ...
+# instance removal: maps=2, reads=6, unmaps=2
+# Subtest: delayed instance readback: mesh removal refuses old metadata after unmapping once
+ok 247 - delayed instance readback: mesh removal refuses old metadata after unmapping once
+  ---
+  duration_ms: 0.401875
+  type: 'test'
+  ...
+# mesh removal: maps=2, reads=6, unmaps=2
+# Subtest: delayed instance readback: scene clear refuses old metadata after unmapping once
+ok 248 - delayed instance readback: scene clear refuses old metadata after unmapping once
+  ---
+  duration_ms: 0.5735
+  type: 'test'
+  ...
+# scene clear: maps=2, reads=6, unmaps=2
+# Subtest: delayed instance readback: instance ABA refuses old metadata after unmapping once
+ok 249 - delayed instance readback: instance ABA refuses old metadata after unmapping once
+  ---
+  duration_ms: 0.686791
+  type: 'test'
+  ...
+# instance ABA: maps=2, reads=6, unmaps=2
+# Subtest: delayed instance readback: camera translation refuses old metadata after unmapping once
+ok 250 - delayed instance readback: camera translation refuses old metadata after unmapping once
+  ---
+  duration_ms: 0.851417
+  type: 'test'
+  ...
+# camera translation: maps=2, reads=6, unmaps=2
+# Subtest: delayed instance readback: clip change refuses old metadata after unmapping once
+ok 251 - delayed instance readback: clip change refuses old metadata after unmapping once
+  ---
+  duration_ms: 1.365
+  type: 'test'
+  ...
+# clip change: maps=2, reads=6, unmaps=2
+# Subtest: delayed instance readback: base mesh transform refuses old metadata after unmapping once
+ok 252 - delayed instance readback: base mesh transform refuses old metadata after unmapping once
+  ---
+  duration_ms: 0.290542
+  type: 'test'
+  ...
+# base mesh transform: maps=2, reads=6, unmaps=2
+# Subtest: delayed instance readback: rejected public setter preserves the pending valid hit and original state
+ok 253 - delayed instance readback: rejected public setter preserves the pending valid hit and original state
+  ---
+  duration_ms: 0.363292
+  type: 'test'
+  ...
+# Subtest: delayed instance readback: setting already-null instances preserves a non-instanced hit
+ok 254 - delayed instance readback: setting already-null instances preserves a non-instanced hit
+  ---
+  duration_ms: 0.143709
+  type: 'test'
+  ...
+# Subtest: delayed instance readback: detached mesh changes and no-op removal preserve the attached hit
+ok 255 - delayed instance readback: detached mesh changes and no-op removal preserve the attached hit
+  ---
+  duration_ms: 0.142667
+  type: 'test'
+  ...
+# Subtest: delayed instance readback: failed prior-buffer release preserves the current instance owner and hit
+ok 256 - delayed instance readback: failed prior-buffer release preserves the current instance owner and hit
+  ---
+  duration_ms: 0.140958
+  type: 'test'
+  ...
+# Subtest: same RGBA backing pixels are equal at zero tolerance
+ok 257 - same RGBA backing pixels are equal at zero tolerance
+  ---
+  duration_ms: 0.504
+  type: 'test'
+  ...
+# Subtest: declared window ignores outside pixels and measures per-channel differences
+ok 258 - declared window ignores outside pixels and measures per-channel differences
+  ---
+  duration_ms: 0.14825
+  type: 'test'
+  ...
+# Subtest: reject malformed pixel arrays, windows and tolerances without truncation
+ok 259 - reject malformed pixel arrays, windows and tolerances without truncation
+  ---
+  duration_ms: 0.231875
+  type: 'test'
+  ...
+# Subtest: version 0 parser applies independent defaults and full box extents
+ok 260 - version 0 parser applies independent defaults and full box extents
+  ---
+  duration_ms: 1.512208
+  type: 'test'
+  ...
+# Subtest: empty scene and opaque hexadecimal background are valid
+ok 261 - empty scene and opaque hexadecimal background are valid
+  ---
+  duration_ms: 0.284917
+  type: 'test'
+  ...
+# Subtest: ID specificity wins regardless of source order; equal specificity uses last declaration
+ok 262 - ID specificity wins regardless of source order; equal specificity uses last declaration
+  ---
+  duration_ms: 0.6445
+  type: 'test'
+  ...
+# Subtest: whitespace and bounded comments preserve source positions
+ok 263 - whitespace and bounded comments preserve source positions
+  ---
+  duration_ms: 0.244125
+  type: 'test'
+  ...
+# Subtest: result is deterministic and frozen through nested scene data
+ok 264 - result is deterministic and frozen through nested scene data
+  ---
+  duration_ms: 0.253417
+  type: 'test'
+  ...
+# Subtest: duplicate IDs and scene metadata reject explicitly
+ok 265 - duplicate IDs and scene metadata reject explicitly
+  ---
+  duration_ms: 0.245958
+  type: 'test'
+  ...
+# Subtest: missing/nonzero versions and multiple scenes reject
+ok 266 - missing/nonzero versions and multiple scenes reject
+  ---
+  duration_ms: 6.741333
+  type: 'test'
+  ...
+# Subtest: unsupported scene, property, selector and unknown ID reject
+ok 267 - unsupported scene, property, selector and unknown ID reject
+  ---
+  duration_ms: 5.044583
+  type: 'test'
+  ...
+# Subtest: shape-specific properties reject on inappropriate type and ID targets, even without instances
+ok 268 - shape-specific properties reject on inappropriate type and ID targets, even without instances
+  ---
+  duration_ms: 0.428667
+  type: 'test'
+  ...
+# Subtest: numeric boundaries accept 1000 and reject nonfinite, zero, negative and oversized geometry
+ok 269 - numeric boundaries accept 1000 and reject nonfinite, zero, negative and oversized geometry
+  ---
+  duration_ms: 0.80425
+  type: 'test'
+  ...
+# Subtest: value arity and opaque color restrictions reject unsupported syntax
+ok 270 - value arity and opaque color restrictions reject unsupported syntax
+  ---
+  duration_ms: 1.237416
+  type: 'test'
+  ...
+# Subtest: malformed input is never silently ignored
+ok 271 - malformed input is never silently ignored
+  ---
+  duration_ms: 4.242375
+  type: 'test'
+  ...
+# Subtest: UTF-8 source byte limit includes comments and rejects oversized multibyte input
+ok 272 - UTF-8 source byte limit includes comments and rejects oversized multibyte input
+  ---
+  duration_ms: 59.09925
+  type: 'test'
+  ...
+# Subtest: object, rule and declaration limits have exact acceptance boundaries
+ok 273 - object, rule and declaration limits have exact acceptance boundaries
+  ---
+  duration_ms: 30.489458
+  type: 'test'
+  ...
+# Subtest: non-string callers receive structured diagnostics
+ok 274 - non-string callers receive structured diagnostics
+  ---
+  duration_ms: 0.134541
+  type: 'test'
+  ...
+# Subtest: G18.2 a repeating UV material lowered to WGSL: the GLSL lowering's tree, engine_uv, the 64-byte slot
+ok 275 - G18.2 a repeating UV material lowered to WGSL: the GLSL lowering's tree, engine_uv, the 64-byte slot
+  ---
+  duration_ms: 97.717209
+  type: 'test'
+  ...
+# Subtest: G18.2 the viewer's shader material for it: uvs read as engine_uv, uniforms clamped into the slot; refusals typed
+ok 276 - G18.2 the viewer's shader material for it: uvs read as engine_uv, uniforms clamped into the slot; refusals typed
+  ---
+  duration_ms: 9.262459
+  type: 'test'
+  ...
+# Subtest: AA true: scene cap pipeline/probe sample counts match; pick/mask/light keep single-sample pipelines
+ok 277 - AA true: scene cap pipeline/probe sample counts match; pick/mask/light keep single-sample pipelines
+  ---
+  duration_ms: 3.582209
+  type: 'test'
+  ...
+# Subtest: AA false: scene cap pipeline/probe sample counts match; pick/mask/light keep single-sample pipelines
+ok 278 - AA false: scene cap pipeline/probe sample counts match; pick/mask/light keep single-sample pipelines
+  ---
+  duration_ms: 1.362333
+  type: 'test'
+  ...
+# Subtest: sampled scene shaders find the probe's triangle by its key at the sample, and interpolate the same world point in probe/cap
+ok 279 - sampled scene shaders find the probe's triangle by its key at the sample, and interpolate the same world point in probe/cap
+  ---
+  duration_ms: 0.713
+  type: 'test'
+  ...
+# Subtest: G9 the triangle key: 16 bits, never 0 (0 is no cap); two triangles share one about 1 time in 65 535
+ok 280 - G9 the triangle key: 16 bits, never 0 (0 is no cap); two triangles share one about 1 time in 65 535
+  ---
+  duration_ms: 93.1405
+  type: 'test'
+  ...
+# Subtest: AA true: cap samples are lazy, use the supported format, and release on resize
+ok 281 - AA true: cap samples are lazy, use the supported format, and release on resize
+  ---
+  duration_ms: 0.427209
+  type: 'test'
+  ...
+# Subtest: AA false: cap samples are lazy, use the supported format, and release on resize
+ok 282 - AA false: cap samples are lazy, use the supported format, and release on resize
+  ---
+  duration_ms: 0.081791
+  type: 'test'
+  ...
+# Subtest: scene-msaa: probe attachments and frame bindings never alias a sampled scene probe
+ok 283 - scene-msaa: probe attachments and frame bindings never alias a sampled scene probe
+  ---
+  duration_ms: 1.140375
+  type: 'test'
+  ...
+# Subtest: pick: probe attachments and frame bindings never alias a sampled scene probe
+ok 284 - pick: probe attachments and frame bindings never alias a sampled scene probe
+  ---
+  duration_ms: 1.114417
+  type: 'test'
+  ...
+# Subtest: scene-aa-off: probe attachments and frame bindings never alias a sampled scene probe
+ok 285 - scene-aa-off: probe attachments and frame bindings never alias a sampled scene probe
+  ---
+  duration_ms: 0.313584
+  type: 'test'
+  ...
+# Subtest: viewer math: reversed depth maps near to 1 and far toward 0; inverse and look-at agree
+ok 286 - viewer math: reversed depth maps near to 1 and far toward 0; inverse and look-at agree
+  ---
+  duration_ms: 0.880375
+  type: 'test'
+  ...
+# Subtest: viewer camera: clip planes hug the scene; fit frames a box; rays pass through the pixel
+ok 287 - viewer camera: clip planes hug the scene; fit frames a box; rays pass through the pixel
+  ---
+  duration_ms: 0.513292
+  type: 'test'
+  ...
+# Subtest: viewer controls: orbit keeps the distance and stops at the poles; pan moves both; zoom keeps the cursor point
+ok 288 - viewer controls: orbit keeps the distance and stops at the poles; pan moves both; zoom keeps the cursor point
+  ---
+  duration_ms: 0.223
+  type: 'test'
+  ...
+# Subtest: viewer bounds: frustum keeps boxes in view and drops ones behind or aside
+ok 289 - viewer bounds: frustum keeps boxes in view and drops ones behind or aside
+  ---
+  duration_ms: 0.291792
+  type: 'test'
+  ...
+# Subtest: viewer geometry: checks its input, computes normals, picks the nearest triangle
+ok 290 - viewer geometry: checks its input, computes normals, picks the nearest triangle
+  ---
+  duration_ms: 1.342667
+  type: 'test'
+  ...
+# Subtest: viewer lights: the frame block matches the WGSL layout
+ok 291 - viewer lights: the frame block matches the WGSL layout
+  ---
+  duration_ms: 3.043583
+  type: 'test'
+  ...
+# Subtest: G15b studio environments: equirectangular RGBA, overhead brighter than below, the softbox room dark with its key the brightest; the cyclorama bright all round
+ok 292 - G15b studio environments: equirectangular RGBA, overhead brighter than below, the softbox room dark with its key the brightest; the cyclorama bright all round
+  ---
+  duration_ms: 54.490917
+  type: 'test'
+  ...
+# Subtest: G2 the clip plane on the CPU: a ray finds the nearest hit on the kept side, a back face through the cut; a segment only its kept part
+ok 293 - G2 the clip plane on the CPU: a ray finds the nearest hit on the kept side, a back face through the cut; a segment only its kept part
+  ---
+  duration_ms: 154.709916
+  type: 'test'
+  ...
+# Subtest: G19 several clip planes on the CPU: the kept region is their intersection — rays, caps where the ray came into it, segments, boxes
+ok 294 - G19 several clip planes on the CPU: the kept region is their intersection — rays, caps where the ray came into it, segments, boxes
+  ---
+  duration_ms: 109.9045
+  type: 'test'
+  ...
+# Subtest: G20 a cut-out on the CPU: kept on any plane's kept side, the removed corner the intersection of their cut-away sides — rays and caps where the ray leaves it, packed planes, segments in two pieces, boxes
+ok 295 - G20 a cut-out on the CPU: kept on any plane's kept side, the removed corner the intersection of their cut-away sides — rays and caps where the ray leaves it, packed planes, segments in two pieces, boxes
+  ---
+  duration_ms: 35.131542
+  type: 'test'
+  ...
+# Subtest: ray picking on a large mesh (through its hierarchy) finds what a test of every triangle finds
+ok 296 - ray picking on a large mesh (through its hierarchy) finds what a test of every triangle finds
+  ---
+  duration_ms: 259.322834
+  type: 'test'
+  ...
+# Subtest: vertex colours: a range filled in place is the bytes a whole conversion gives; a run of one colour converted once is the same as per vertex
+ok 297 - vertex colours: a range filled in place is the bytes a whole conversion gives; a run of one colour converted once is the same as per vertex
+  ---
+  duration_ms: 0.367042
+  type: 'test'
+  ...
+# Subtest: nearest segment: the same segment, distance and parameter as the walk over every segment, on a small and a large geometry, with segments behind the eye; ties to the lowest
+ok 298 - nearest segment: the same segment, distance and parameter as the walk over every segment, on a small and a large geometry, with segments behind the eye; ties to the lowest
+  ---
+  duration_ms: 165.521916
+  type: 'test'
+  ...
+# Subtest: outline reach: a box's screen rectangle holds every point of it the camera sees; a corner behind the eye leaves it unbounded; the output block carries it before focus settings
+ok 299 - outline reach: a box's screen rectangle holds every point of it the camera sees; a corner behind the eye leaves it unbounded; the output block carries it before focus settings
+  ---
+  duration_ms: 1.139084
+  type: 'test'
+  ...
+# Subtest: G20 pickNow keeps a nearer cut-out front face and identifies real caps from readback depth
+    # Subtest: quarter front, mesh
+    ok 1 - quarter front, mesh
+      ---
+      duration_ms: 0.869875
+      type: 'test'
+      ...
+    # Subtest: quarter front, instance 1
+    ok 2 - quarter front, instance 1
+      ---
+      duration_ms: 0.247125
+      type: 'test'
+      ...
+    # Subtest: slab front, mesh
+    ok 3 - slab front, mesh
+      ---
+      duration_ms: 0.138541
+      type: 'test'
+      ...
+    # Subtest: slab front, instance 1
+    ok 4 - slab front, instance 1
+      ---
+      duration_ms: 0.245916
+      type: 'test'
+      ...
+    # Subtest: quarter cap, mesh
+    ok 5 - quarter cap, mesh
+      ---
+      duration_ms: 0.114417
+      type: 'test'
+      ...
+    # Subtest: quarter cap, instance 1
+    ok 6 - quarter cap, instance 1
+      ---
+      duration_ms: 0.398875
+      type: 'test'
+      ...
+    # Subtest: slab cap, mesh
+    ok 7 - slab cap, mesh
+      ---
+      duration_ms: 0.17675
+      type: 'test'
+      ...
+    # Subtest: slab cap, instance 1
+    ok 8 - slab cap, instance 1
+      ---
+      duration_ms: 0.130166
+      type: 'test'
+      ...
+    # Subtest: single cap tie on front, mesh
+    ok 9 - single cap tie on front, mesh
+      ---
+      duration_ms: 0.236792
+      type: 'test'
+      ...
+    # Subtest: single cap tie on front, instance 1
+    ok 10 - single cap tie on front, instance 1
+      ---
+      duration_ms: 0.12625
+      type: 'test'
+      ...
+    # Subtest: single cap, mesh
+    ok 11 - single cap, mesh
+      ---
+      duration_ms: 0.067042
+      type: 'test'
+      ...
+    # Subtest: single cap, instance 1
+    ok 12 - single cap, instance 1
+      ---
+      duration_ms: 0.166375
+      type: 'test'
+      ...
+    # Subtest: multi-plane cap, mesh
+    ok 13 - multi-plane cap, mesh
+      ---
+      duration_ms: 0.068834
+      type: 'test'
+      ...
+    # Subtest: multi-plane cap, instance 1
+    ok 14 - multi-plane cap, instance 1
+      ---
+      duration_ms: 0.084167
+      type: 'test'
+      ...
+    1..14
+ok 300 - G20 pickNow keeps a nearer cut-out front face and identifies real caps from readback depth
+  ---
+  duration_ms: 3.941292
+  type: 'test'
+  ...
+# Subtest: pickNow returns null when camera translation changes during readback, without changing an accepted hit
+ok 301 - pickNow returns null when camera translation changes during readback, without changing an accepted hit
+  ---
+  duration_ms: 0.376166
+  type: 'test'
+  ...
+# Subtest: pickNow returns null when the clip plane changes during readback, without changing an accepted hit
+ok 302 - pickNow returns null when the clip plane changes during readback, without changing an accepted hit
+  ---
+  duration_ms: 0.58325
+  type: 'test'
+  ...
+# Subtest: pickNow returns null when a mesh transform changes during readback, without changing an accepted hit
+ok 303 - pickNow returns null when a mesh transform changes during readback, without changing an accepted hit
+  ---
+  duration_ms: 0.783459
+  type: 'test'
+  ...
+# Subtest: depth of field preserves an exact disabled output block and scales only the pixel radius
+ok 304 - depth of field preserves an exact disabled output block and scales only the pixel radius
+  ---
+  duration_ms: 0.74
+  type: 'test'
+  ...
+# Subtest: depth of field releases its half-resolution resources once and restores the default state
+ok 305 - depth of field releases its half-resolution resources once and restores the default state
+  ---
+  duration_ms: 0.151458
+  type: 'test'
+  ...
+# Subtest: hidden dash has its own CSS-pixel packing at DPR 1; omitted style follows visible dash
+ok 306 - hidden dash has its own CSS-pixel packing at DPR 1; omitted style follows visible dash
+  ---
+  duration_ms: 1.93775
+  type: 'test'
+  ...
+# Subtest: hidden dash has its own CSS-pixel packing at DPR 2; omitted style follows visible dash
+ok 307 - hidden dash has its own CSS-pixel packing at DPR 2; omitted style follows visible dash
+  ---
+  duration_ms: 0.325333
+  type: 'test'
+  ...
+# Subtest: G15a: a surface finish, clear coat and oil film packed after the hatch; none, or on lines, zeros
+ok 308 - G15a: a surface finish, clear coat and oil film packed after the hatch; none, or on lines, zeros
+  ---
+  duration_ms: 0.505375
+  type: 'test'
+  ...
+# Subtest: depth-only surface and cap pipelines retain depth with colour writes disabled; pick pipelines stay unchanged
+not ok 309 - depth-only surface and cap pipelines retain depth with colour writes disabled; pick pipelines stay unchanged
+  ---
+  duration_ms: 1.710541
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/tests/viewer-display.test.mjs:51:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'autoClip')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    _Viewer.pipelineKey (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/viewer-display-uAtDxL/source.mjs:32075:34)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/tests/viewer-display.test.mjs:73:23)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: wireframe all-depth lines can explicitly retain ordinary depth-aware edge picking
+ok 310 - wireframe all-depth lines can explicitly retain ordinary depth-aware edge picking
+  ---
+  duration_ms: 0.700959
+  type: 'test'
+  ...
+# Subtest: shaded-with-edges preserves G20 quarter front mesh metadata and restores default
+ok 311 - shaded-with-edges preserves G20 quarter front mesh metadata and restores default
+  ---
+  duration_ms: 1.949625
+  type: 'test'
+  ...
+# Subtest: shaded-with-edges preserves G20 quarter front instance 1 metadata and restores default
+ok 312 - shaded-with-edges preserves G20 quarter front instance 1 metadata and restores default
+  ---
+  duration_ms: 0.669125
+  type: 'test'
+  ...
+# Subtest: shaded-with-edges preserves G20 quarter cap mesh metadata and restores default
+ok 313 - shaded-with-edges preserves G20 quarter cap mesh metadata and restores default
+  ---
+  duration_ms: 1.379125
+  type: 'test'
+  ...
+# Subtest: shaded-with-edges preserves G20 quarter cap instance 1 metadata and restores default
+ok 314 - shaded-with-edges preserves G20 quarter cap instance 1 metadata and restores default
+  ---
+  duration_ms: 0.737292
+  type: 'test'
+  ...
+# Subtest: hidden-lines-removed preserves G20 quarter front mesh metadata and restores default
+ok 315 - hidden-lines-removed preserves G20 quarter front mesh metadata and restores default
+  ---
+  duration_ms: 0.6175
+  type: 'test'
+  ...
+# Subtest: hidden-lines-removed preserves G20 quarter front instance 1 metadata and restores default
+ok 316 - hidden-lines-removed preserves G20 quarter front instance 1 metadata and restores default
+  ---
+  duration_ms: 0.402792
+  type: 'test'
+  ...
+# Subtest: hidden-lines-removed preserves G20 quarter cap mesh metadata and restores default
+ok 317 - hidden-lines-removed preserves G20 quarter cap mesh metadata and restores default
+  ---
+  duration_ms: 0.23125
+  type: 'test'
+  ...
+# Subtest: hidden-lines-removed preserves G20 quarter cap instance 1 metadata and restores default
+ok 318 - hidden-lines-removed preserves G20 quarter cap instance 1 metadata and restores default
+  ---
+  duration_ms: 0.244709
+  type: 'test'
+  ...
+# Subtest: hidden-lines-dashed preserves G20 quarter front mesh metadata and restores default
+ok 319 - hidden-lines-dashed preserves G20 quarter front mesh metadata and restores default
+  ---
+  duration_ms: 0.202
+  type: 'test'
+  ...
+# Subtest: hidden-lines-dashed preserves G20 quarter front instance 1 metadata and restores default
+ok 320 - hidden-lines-dashed preserves G20 quarter front instance 1 metadata and restores default
+  ---
+  duration_ms: 0.24375
+  type: 'test'
+  ...
+# Subtest: hidden-lines-dashed preserves G20 quarter cap mesh metadata and restores default
+ok 321 - hidden-lines-dashed preserves G20 quarter cap mesh metadata and restores default
+  ---
+  duration_ms: 0.222375
+  type: 'test'
+  ...
+# Subtest: hidden-lines-dashed preserves G20 quarter cap instance 1 metadata and restores default
+ok 322 - hidden-lines-dashed preserves G20 quarter cap instance 1 metadata and restores default
+  ---
+  duration_ms: 0.208125
+  type: 'test'
+  ...
+# Subtest: wireframe preserves G20 quarter front mesh metadata and restores default
+ok 323 - wireframe preserves G20 quarter front mesh metadata and restores default
+  ---
+  duration_ms: 0.276875
+  type: 'test'
+  ...
+# Subtest: wireframe preserves G20 quarter front instance 1 metadata and restores default
+ok 324 - wireframe preserves G20 quarter front instance 1 metadata and restores default
+  ---
+  duration_ms: 0.217375
+  type: 'test'
+  ...
+# Subtest: wireframe preserves G20 quarter cap mesh metadata and restores default
+ok 325 - wireframe preserves G20 quarter cap mesh metadata and restores default
+  ---
+  duration_ms: 0.854458
+  type: 'test'
+  ...
+# Subtest: wireframe preserves G20 quarter cap instance 1 metadata and restores default
+ok 326 - wireframe preserves G20 quarter cap instance 1 metadata and restores default
+  ---
+  duration_ms: 0.231542
+  type: 'test'
+  ...
+# Subtest: x-ray preserves G20 quarter front mesh metadata and restores default
+ok 327 - x-ray preserves G20 quarter front mesh metadata and restores default
+  ---
+  duration_ms: 0.236625
+  type: 'test'
+  ...
+# Subtest: x-ray preserves G20 quarter front instance 1 metadata and restores default
+ok 328 - x-ray preserves G20 quarter front instance 1 metadata and restores default
+  ---
+  duration_ms: 0.212875
+  type: 'test'
+  ...
+# Subtest: x-ray preserves G20 quarter cap mesh metadata and restores default
+ok 329 - x-ray preserves G20 quarter cap mesh metadata and restores default
+  ---
+  duration_ms: 0.172625
+  type: 'test'
+  ...
+# Subtest: x-ray preserves G20 quarter cap instance 1 metadata and restores default
+ok 330 - x-ray preserves G20 quarter cap instance 1 metadata and restores default
+  ---
+  duration_ms: 0.197583
+  type: 'test'
+  ...
+# Subtest: x-ray cap pick pass draws the visually transparent mesh when its original picking opacity is opaque
+not ok 331 - x-ray cap pick pass draws the visually transparent mesh when its original picking opacity is opaque
+  ---
+  duration_ms: 0.229292
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/tests/viewer-display.test.mjs:134:1'
+  failureType: 'testCodeFailure'
+  error: "Cannot read properties of undefined (reading 'autoClip')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: |-
+    _Viewer.drawCaps (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/viewer-display-uAtDxL/source.mjs:32377:129)
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-gpu/tests/viewer-display.test.mjs:140:23)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: failed creation releases every allocated resource even when both scope pops reject, preserving the first error
+ok 332 - failed creation releases every allocated resource even when both scope pops reject, preserving the first error
+  ---
+  duration_ms: 3.092375
+  type: 'test'
+  ...
+# Subtest: capture records its queued sample snapshot and keeps it fixed after later work completes
+ok 333 - capture records its queued sample snapshot and keeps it fixed after later work completes
+  ---
+  duration_ms: 4.492209
+  type: 'test'
+  ...
+# Subtest: stop then restart suppresses the old progress callback while preserving bounded in-flight work
+ok 334 - stop then restart suppresses the old progress callback while preserving bounded in-flight work
+  ---
+  duration_ms: 2.961083
+  type: 'test'
+  ...
+# Subtest: dispose during capture rejects active and queued readbacks and frees each allocation once
+ok 335 - dispose during capture rejects active and queued readbacks and frees each allocation once
+  ---
+  duration_ms: 0.881
+  type: 'test'
+  ...
+# Subtest: path trace packed source ids, material and instance attributes survive world transforms
+ok 336 - path trace packed source ids, material and instance attributes survive world transforms
+  ---
+  duration_ms: 2.225041
+  type: 'test'
+  ...
+# Subtest: path trace excludes invisible/unbounded overlays and refuses unsupported surfaces
+ok 337 - path trace excludes invisible/unbounded overlays and refuses unsupported surfaces
+  ---
+  duration_ms: 1.115583
+  type: 'test'
+  ...
+# Subtest: path trace uses inverse transpose normals under an instance scale
+ok 338 - path trace uses inverse transpose normals under an instance scale
+  ---
+  duration_ms: 0.242083
+  type: 'test'
+  ...
+# Subtest: path trace refuses invalid output sizes before allocation
+ok 339 - path trace refuses invalid output sizes before allocation
+  ---
+  duration_ms: 0.455375
+  type: 'test'
+  ...
+# Subtest: resize refuses invalid pixel ratios before changing backing size, meshes or scheduling
+ok 340 - resize refuses invalid pixel ratios before changing backing size, meshes or scheduling
+  ---
+  duration_ms: 1.058917
+  type: 'test'
+  ...
+# Subtest: Viewer.create refuses invalid explicit pixel ratios before GPU or canvas context access
+ok 341 - Viewer.create refuses invalid explicit pixel ratios before GPU or canvas context access
+  ---
+  duration_ms: 0.745167
+  type: 'test'
+  ...
+# Subtest: positive fractional pixel ratio preserves rounding, dirty marking and one render request
+ok 342 - positive fractional pixel ratio preserves rounding, dirty marking and one render request
+  ---
+  duration_ms: 0.120125
+  type: 'test'
+  ...
+# Subtest: valid ratio retains device size cap and does not replace mesh or geometry identities
+ok 343 - valid ratio retains device size cap and does not replace mesh or geometry identities
+  ---
+  duration_ms: 0.061208
+  type: 'test'
+  ...
+1..343
+# tests 357
+# suites 0
+# pass 355
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4581.629875

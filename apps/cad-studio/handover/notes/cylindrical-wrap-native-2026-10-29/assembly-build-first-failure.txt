@@ -1,0 +1,24 @@
+src/features/cylindrical-wrap-assembly.ts(402,41): error TS2322: Type 'number' is not assignable to type '1e-7'.
+src/features/cylindrical-wrap-assembly.ts(403,46): error TS2322: Type 'number' is not assignable to type '1e-7'.
+node:internal/errors:983
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /Users/user/Library/pnpm/nodejs/22.19.0/bin/node /Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/typescript/bin/tsc -p tsconfig.json
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:915:11)
+    at execFileSync (node:child_process:951:15)
+    at file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/scripts/tool.mjs:20:3
+    at ModuleJob.run (node:internal/modules/esm/module_job:345:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:651:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  status: 2,
+  signal: null,
+  output: [ null, null, null ],
+  pid: 15073,
+  stdout: null,
+  stderr: null
+}
+
+Node.js v22.19.0

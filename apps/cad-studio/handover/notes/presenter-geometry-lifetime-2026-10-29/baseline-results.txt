@@ -1,0 +1,33 @@
+{
+  "counts": [
+    {
+      "phase": "initial",
+      "retained": 1,
+      "meshes": 1
+    },
+    {
+      "phase": "32-camera-replacements",
+      "retained": 33,
+      "meshes": 1
+    },
+    {
+      "phase": "empty",
+      "retained": 33,
+      "meshes": 0
+    },
+    {
+      "phase": "disposed",
+      "retained": 0,
+      "meshes": 0
+    }
+  ],
+  "preserved": true,
+  "made": 33,
+  "explicitDisposals": 0,
+  "failedAdd": {
+    "code": "COLOR_INVALID",
+    "message": "[COLOR_INVALID] Not a hex colour: invalid-color",
+    "retained": 1,
+    "meshes": 0
+  }
+}

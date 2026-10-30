@@ -1,0 +1,10 @@
+{
+  "recordedAt": "2026-10-29T04:35:26.467503+00:00",
+  "preparationUnchanged": true,
+  "originalReceiptSHA256": "36dd2be15b4649285959b3a08bbba2f4546e97b1e122100abf9386ac1b1b5cd9",
+  "executionNotesSHA256": "a5f81a25cbc43e4faa6e7af21dc7ddd7158efa284b4489de01dd54abc142a9eb",
+  "classification": "NATIVE_OPFS_CONTROLLED_OVERLAP_OBSERVED",
+  "suggestion": "ISSUE_CANDIDATE_PENDING_PARENT_REVIEW",
+  "externalFolder": "NOT_RUN",
+  "naturalUISchedule": "NOT_RUN"
+}

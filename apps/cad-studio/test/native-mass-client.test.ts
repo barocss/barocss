@@ -29,7 +29,7 @@ class WorkerDouble {
     this.onmessage?.({ data: structuredClone({ masses }) });
   }
 }
-function setup() { Object.defineProperty(globalThis, 'Worker', { value: WorkerDouble, configurable: true }); const client = new EngineClient(); return { client, worker: WorkerDouble.made.at(-1)! }; }
+function setup() { Object.defineProperty(globalThis, 'Worker', { value: WorkerDouble, configurable: true }); const client = new EngineClient(); client.restart(); return { client, worker: WorkerDouble.made.at(-1)! }; }
 const eager = (revision: number) => evaluatePart(rectanglePart(10 + revision, 20, 5), revision);
 function deferred(revision: number) {
   forgetSnapshots(); deferMasses(true);

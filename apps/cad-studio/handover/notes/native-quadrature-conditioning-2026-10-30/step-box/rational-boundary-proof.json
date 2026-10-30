@@ -1,0 +1,22 @@
+{
+  "parameter": [
+    0.1875,
+    1
+  ],
+  "positiveWeights": true,
+  "upperColumnLevels": [
+    5.3457689,
+    5.3457689,
+    5.3457689,
+    5.3457689,
+    5.3457689
+  ],
+  "exactMathematicalZ": {
+    "numerator": "6018800706512197",
+    "denominator": "1125899906842624",
+    "value": 5.3457689
+  },
+  "observedFloatingZ": 5.345768900000001,
+  "normalExcess": 8.881784197001252e-16,
+  "meaning": "At native V=1 all active upper-column normal poles are the exact same finite value, hence rational partition cancels to that exact value. This witness proves evaluation roundoff, not a changed native plane."
+}

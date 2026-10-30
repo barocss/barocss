@@ -1,0 +1,4 @@
+../../apps/cad-studio/test/skeleton-session-node.test.ts(9,45): error TS2345: Argument of type '{ kind: "skeleton"; id: string; name: string; suppressed: boolean; bought: boolean; points: [number, number, number][]; segments: [number, number][]; constraints: { kind: "fixed"; point: number; }[]; }' is not assignable to parameter of type '{ kind: "skeleton"; points: [Dim, Dim, Dim][]; segments: [number, number][]; name?: string | undefined; constraints?: BoundConstraint3D[] | undefined; } & NodeExtras'.
+  Type '{ kind: "skeleton"; id: string; name: string; suppressed: boolean; bought: boolean; points: [number, number, number][]; segments: [number, number][]; constraints: { kind: "fixed"; point: number; }[]; }' is not assignable to type 'NodeExtras'.
+    Types of property 'suppressed' are incompatible.
+      Type 'boolean' is not assignable to type 'true'.

@@ -1,0 +1,171 @@
+{
+  "work_id": "drawing-da1a-20261029T084920",
+  "artifact_type": "bounded-runtime-receipt",
+  "status": "PASS_BOUNDED_DOCUMENT_API_CONTRACTS",
+  "owner_role": "source-api-verifier",
+  "last_updated": "2026-10-29T08:55:20.800354+00:00",
+  "exact_commit": "1266cdf24943acc5963bf5e346339e32c9f3da41",
+  "assertionChecks": [
+    {
+      "name": "fixture_replay",
+      "status": "PASS"
+    },
+    {
+      "name": "input_native_semantics",
+      "status": "PASS"
+    },
+    {
+      "name": "public_sdk_A4_fourviews",
+      "status": "PASS"
+    },
+    {
+      "name": "proposal_drawing_unchanged",
+      "status": "PASS"
+    },
+    {
+      "name": "agent_selfaccept_refused",
+      "status": "PASS"
+    },
+    {
+      "name": "user_reject_drawing_preserved",
+      "status": "PASS"
+    },
+    {
+      "name": "user_accept_intended_drawing",
+      "status": "PASS"
+    },
+    {
+      "name": "accepted_native_drawing_references",
+      "status": "PASS"
+    },
+    {
+      "name": "outputs_preserved",
+      "status": "PASS"
+    }
+  ],
+  "assertionCount": 9,
+  "fixtureDispatchSteps": 2,
+  "fixtureEvaluationCount": "NOT_MEASURED; dispatch can evaluate internally. Do not count steps or checks as independent tests.",
+  "sourceBinding": {
+    "snapshotFiles": 2767,
+    "archiveSha256": "f21f972ee65c199db14ec9c393a1af5c29f35ba3c67f2eca3d333b2ae1cb4525",
+    "compiledInputs": 702,
+    "committedSnapshotInputs": 701,
+    "ownedHarnessInputs": 1,
+    "allCompiledInputHashesMatchFrozenManifest": true,
+    "distInputs": 0,
+    "workspaceSymlinks": [
+      {
+        "path": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/drawing-da1a-20261029T084920/snapshot/node_modules/@barocss/cad-model",
+        "realpath": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/drawing-da1a-20261029T084920/snapshot/packages/barocss-cad-model",
+        "inside_snapshot": true
+      },
+      {
+        "path": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/drawing-da1a-20261029T084920/snapshot/node_modules/@barocss/cad",
+        "realpath": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/drawing-da1a-20261029T084920/snapshot/packages/barocss-cad",
+        "inside_snapshot": true
+      }
+    ]
+  },
+  "exitCodes": {
+    "gate": 0,
+    "build": 0,
+    "run": 0
+  },
+  "cleanup": {
+    "ownLeaseAcquired": 1,
+    "releaseExit": 0,
+    "shellExit": 0,
+    "ownedBrowserServerStarted": false,
+    "cleanup": "COMPLETE"
+  },
+  "firstFailure": null,
+  "residualIssues": {
+    "errors": 2,
+    "warnings": 1,
+    "codes": [
+      "TEXT_OVER_LINES",
+      "TEXT_OVER_LINES",
+      "DUPLICATE"
+    ],
+    "detailFile": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/drawing-da1a-20261029T084920/issue-details.json",
+    "classification": "recorded draft issues, not new regression/manufacturing acceptance"
+  },
+  "native": {
+    "input": {
+      "sha256": "0066d59c59b1235dd84236f062e0f17b6b4e0c7e4ac59d195bb7626cfac9010e",
+      "bytes": 2135,
+      "notes": []
+    },
+    "accepted": {
+      "sha256": "6b2cb00f30dcb17943164dfab0843e94677317d425cad9c764a649792c21b4b1",
+      "reencodedSha256": "6b2cb00f30dcb17943164dfab0843e94677317d425cad9c764a649792c21b4b1",
+      "rawBytesEqual": true,
+      "drawingAndReferencesSemanticEqual": true,
+      "notes": []
+    }
+  },
+  "outputs": [
+    {
+      "file": "sdk.svg",
+      "bytes": 15616,
+      "sha256": "9afc048fb2ca86f62e42e6198d72a2df85199927a0c544fe98d2b0d3fdae42ff",
+      "representation": "UTF8"
+    },
+    {
+      "file": "sdk.dxf",
+      "bytes": 42061,
+      "sha256": "38a47be14137df558ee84ecdc90758386401d88eab4f0f4d2480dd801afbd321",
+      "representation": "public API text serialized as UTF8; not raw writer Windows1252 bytes"
+    },
+    {
+      "file": "sdk.pdf",
+      "bytes": 10994,
+      "sha256": "31c94d26313345edc2686a597d8e2de6a7dd59218eb1415f54674e3f23925a24",
+      "representation": "public PDF bytes"
+    },
+    {
+      "file": "accepted.svg",
+      "bytes": 15616,
+      "sha256": "9afc048fb2ca86f62e42e6198d72a2df85199927a0c544fe98d2b0d3fdae42ff",
+      "representation": "UTF8"
+    },
+    {
+      "file": "accepted.dxf",
+      "bytes": 42061,
+      "sha256": "38a47be14137df558ee84ecdc90758386401d88eab4f0f4d2480dd801afbd321",
+      "representation": "public API text serialized as UTF8; not raw writer Windows1252 bytes"
+    },
+    {
+      "file": "accepted.pdf",
+      "bytes": 10994,
+      "sha256": "31c94d26313345edc2686a597d8e2de6a7dd59218eb1415f54674e3f23925a24",
+      "representation": "public PDF bytes"
+    }
+  ],
+  "scopeExclusions": {
+    "browser": "NOT_RUN",
+    "UI": "NOT_RUN",
+    "GPU_render": "NOT_RUN",
+    "liveAI": "NOT_RUN",
+    "measurementCorrectness": "NOT_CLAIMED",
+    "manufacturingApproval": "NOT_CLAIMED",
+    "fix_drawing": "NOT_RUN"
+  },
+  "commands": {
+    "singleOwningShell": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/drawing-da1a-20261029T084920/run.sh",
+    "build": "Node22 build.mjs then Node22 runner.mjs; one gate acquire heavy30; EXIT own release",
+    "rawLogs": [
+      "gate.log",
+      "build.stdout.log",
+      "build.stderr.log",
+      "run.stdout.log",
+      "run.stderr.log",
+      "gate.exit",
+      "build.exit",
+      "run.exit",
+      "cleanup.json"
+    ]
+  },
+  "nextCheckpoint": "Review the retained residual layout issues and public issue-detail projection before any visual/fix gate; numeric geometry oracle remains separate. No retry or product edit this cycle."
+}

@@ -3,7 +3,7 @@
 // sources and objects; an operation that makes new objects hides the ones it was made from (so they
 // can be shown again), one that refines an object's own source (poles, knots, degree, interval) moves the
 // object to the refined source.
-import { approximateCurvePlain, buildAlignedRationalRuledSurface, buildBezierCoonsSurface, buildMultiSectionLoftSurface, buildTranslationalSweepSurface, type CadAffineMatrix3x4, compileCadModel, type Curve, curveDomain, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide, elevateSourceCurveDegree, elevateSourceSurfaceAxisDegree, evaluateCurve, evaluateCurveCurvature, evaluateSurface, evaluateSurfaceCurvature, exportIGES, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, IGESImportError, importIGES, insertSourceCurveKnot, insertSourceSurfaceKnot, interpolateSurfacePlain, intersectPatches, joinCurves, type Model, removeCurveKnotPlain, reverseCurveWide, reverseSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter, type Surface, surfaceDomain, surfaceEvaluator, SurfaceIntersectionError, transformNativeGeometryAffine } from '@barocss/cad';
+import { approximateCurvePlain, buildAlignedRationalRuledSurface, buildBezierCoonsSurface, buildMultiSectionLoftSurface, buildTranslationalSweepSurface, type CadAffineMatrix3x4, compileCadModel, type Curve, curveDomain, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide, elevateSourceCurveDegree, elevateSourceSurfaceAxisDegree, evaluateCurve, evaluateCurveCurvature, evaluateSurface, evaluateSurfaceCurvature, exportIGES, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, extractTrimmedSurfaceRegion, IGESImportError, importIGES, insertSourceCurveKnot, insertSourceSurfaceKnot, interpolateSurfacePlain, intersectPatches, joinCurves, type Model, removeCurveKnotPlain, reverseCurveWide, reverseSurfaceAxis, reverseTrimmedSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter, splitTrimmedSurfaceAtParameter, type Surface, surfaceDomain, surfaceEvaluator, SurfaceIntersectionError, transformNativeGeometryAffine, TrimmedSurfaceAxisReversalError, TrimmedSurfaceParameterSplitError, TrimmedSurfaceRegionError } from '@barocss/cad';
 import { curvesSource, surfacesSource } from './curveSource';
 import { keptAt, projectLoop, trimmedMesh, type TrimLoop } from './trim';
 import { nextFreeId } from '../util/ids';
@@ -76,14 +76,42 @@ export function importIGESFile(d: DirectGeometry, text: string, label: string): 
 
 const object = (d: DirectGeometry, id: string) => { const o = d.objects.find(x => x.id === id); if (!o) throw refusal('DIRECT_PICK', 'No such object.'); return o; };
 const curveOf = (d: DirectGeometry, id: string) => { const g = geometryOf(d, object(d, id)); if (g.kind !== 'curve') throw refusal('DIRECT_PICK', 'Pick a curve.'); return g; };
+const selectedSurface = (d: DirectGeometry, id: string) => {
+  const o = object(d, id), surface = geometryOf(d, o);
+  if (surface.kind !== 'surface') throw refusal('DIRECT_PICK', 'Pick a surface.');
+  return { object: o, surface };
+};
 const surfaceOf = (d: DirectGeometry, id: string) => { const g = geometryOf(d, object(d, id)); if (g.kind !== 'surface') throw refusal('DIRECT_PICK', 'Pick a surface.'); return g; };
 
+/** Refuse consumers that use only the support surface and cannot carry its trims. */
+function requireWholeSurface(o: DirectObject, operation: string, code: 'DIRECT_VALUE' | 'DIRECT_INTERSECT' | 'IGES_EXPORT'): void {
+  if (o.trims !== undefined && (!Array.isArray(o.trims) || o.trims.length > 0)) {
+    throw refusal(code, `This operation does not preserve surface trims (${operation}). Use Untrim first only if you want to remove the trims.`);
+  }
+}
+function wholeSurfaceOf(d: DirectGeometry, id: string, operation: string): Surface {
+  const picked = selectedSurface(d, id);
+  requireWholeSurface(picked.object, operation, 'DIRECT_VALUE');
+  return picked.surface;
+}
+
+/** Copy accepted trim metadata before the new direct object is published. */
+function copyTrimLoops(loops: readonly TrimLoop[]): TrimLoop[] {
+  const owned: TrimLoop[] = [];
+  for (const loop of loops) {
+    const uv: [number, number][] = [];
+    for (const point of loop.uv) uv.push([point[0], point[1]]);
+    owned.push({ keep: loop.keep, uv });
+  }
+  return owned;
+}
+
 /** Add a result source with new objects; hide the objects they came from. */
-function add(d: DirectGeometry, from: string[], text: string, made: { geometry: string; name: string }[]): DirectGeometry {
+function add(d: DirectGeometry, from: string[], text: string, made: { geometry: string; name: string; trims?: TrimLoop[] }[]): DirectGeometry {
   const used = usedIds(d), key = fresh(new Set(Object.keys(d.sources)), 'src');
   return {
     sources: { ...d.sources, [key]: text },
-    objects: [...d.objects.map(o => from.includes(o.id) ? { ...o, hidden: true } : o), ...made.map(m => ({ id: fresh(used, 'obj'), name: m.name, source: key, geometry: m.geometry }))],
+    objects: [...d.objects.map(o => from.includes(o.id) ? { ...o, hidden: true } : o), ...made.map(m => ({ id: fresh(used, 'obj'), name: m.name, source: key, geometry: m.geometry, ...(m.trims === undefined ? {} : { trims: m.trims }) }))],
   };
 }
 /** Move an object to a refined source of its own (same geometry id). */
@@ -129,11 +157,55 @@ export const directOps = {
     return refine(d, id, r.source);
   },
   splitSurface(d: DirectGeometry, id: string, axis: 'u' | 'v', p: number) {
-    const used = usedIds(d), r = splitSurfaceAtParameter(surfaceOf(d, id), { axis, parameter: p, lowerSurfaceId: fresh(used, 'lower'), upperSurfaceId: fresh(used, 'upper') });
+    const picked = selectedSurface(d, id), trims = picked.object.trims;
+    if (trims !== undefined && !Array.isArray(trims)) requireWholeSurface(picked.object, 'Split surface', 'DIRECT_VALUE');
+    if (trims && trims.length > 0) {
+      let matches = 0;
+      for (const candidate of d.objects) if (candidate.id === id) matches++;
+      if (matches !== 1) throw refusal('DIRECT_PICK', 'The selected surface object ID is ambiguous.');
+      const used = usedIds(d), options = { axis, parameter: p, lowerSurfaceId: fresh(used, 'lower'), upperSurfaceId: fresh(used, 'upper') };
+      let r;
+      try { r = splitTrimmedSurfaceAtParameter(picked.surface, trims, options); }
+      catch (e) {
+        if (e instanceof TrimmedSurfaceParameterSplitError) throw refusal('DIRECT_VALUE', e.message);
+        throw e;
+      }
+      // Own every component sidecar before one publication; an empty side creates no object.
+      const made = [];
+      for (const component of r.components) made.push({
+        geometry: component.surfaceId,
+        name: `${picked.object.name} · ${axis} ${component.side} · region ${component.componentIndex + 1}`,
+        trims: copyTrimLoops(component.trimLoops),
+      });
+      return add(d, [id], r.source, made);
+    }
+    const s = picked.surface, used = usedIds(d), r = splitSurfaceAtParameter(s, { axis, parameter: p, lowerSurfaceId: fresh(used, 'lower'), upperSurfaceId: fresh(used, 'upper') });
     return add(d, [id], r.source, [{ geometry: r.lower.id, name: `${nameOf(d, id)} · ${axis} lower` }, { geometry: r.upper.id, name: `${nameOf(d, id)} · ${axis} upper` }]);
   },
   surfaceRegion(d: DirectGeometry, id: string, u: [number, number], v: [number, number]) {
-    const used = usedIds(d), r = extractSurfaceRegion(surfaceOf(d, id), { surfaceId: fresh(used, 'region'), uInterval: u, vInterval: v, resultIdPrefix: freshPrefix(used, 'rg') });
+    const picked = selectedSurface(d, id), trims = picked.object.trims;
+    if (trims !== undefined && !Array.isArray(trims)) requireWholeSurface(picked.object, 'Extract region', 'DIRECT_VALUE');
+    if (trims && trims.length > 0) {
+      let matches = 0;
+      for (const candidate of d.objects) if (candidate.id === id) matches++;
+      if (matches !== 1) throw refusal('DIRECT_PICK', 'The selected surface object ID is ambiguous.');
+      const used = usedIds(d), options = { surfaceId: fresh(used, 'region'), uInterval: u, vInterval: v, resultIdPrefix: freshPrefix(used, 'rg') };
+      let r;
+      try { r = extractTrimmedSurfaceRegion(picked.surface, trims, options); }
+      catch (e) {
+        if (e instanceof TrimmedSurfaceRegionError) throw refusal('DIRECT_VALUE', e.message);
+        throw e;
+      }
+      // Empty material refuses in the producer; own all masks before one successful publication.
+      const made = [];
+      for (const component of r.components) made.push({
+        geometry: component.surfaceId,
+        name: `${picked.object.name} · region ${component.componentIndex + 1}`,
+        trims: copyTrimLoops(component.trimLoops),
+      });
+      return add(d, [id], r.source, made);
+    }
+    const s = picked.surface, used = usedIds(d), r = extractSurfaceRegion(s, { surfaceId: fresh(used, 'region'), uInterval: u, vInterval: v, resultIdPrefix: freshPrefix(used, 'rg') });
     return add(d, [id], r.source, [{ geometry: r.surface.id, name: `${nameOf(d, id)} · region` }]);
   },
   isoCurve(d: DirectGeometry, id: string, axis: 'u' | 'v', p: number) {
@@ -142,7 +214,24 @@ export const directOps = {
     return add(d, [], r.source, [{ geometry: r.curve.id, name: `${nameOf(d, id)} · ${axis} = ${p}` }]);
   },
   reverseSurface(d: DirectGeometry, id: string, axis: 'u' | 'v') {
-    const used = usedIds(d), r = reverseSurfaceAxis(surfaceOf(d, id), { surfaceId: fresh(used, 'reversed'), axis, resultIdPrefix: freshPrefix(used, 'sr') });
+    const picked = selectedSurface(d, id), trims = picked.object.trims;
+    if (trims !== undefined && !Array.isArray(trims)) requireWholeSurface(picked.object, 'Reverse surface', 'DIRECT_VALUE');
+    const used = usedIds(d), options = { surfaceId: fresh(used, 'reversed'), axis, resultIdPrefix: freshPrefix(used, 'sr') };
+    if (trims && trims.length > 0) {
+      let matches = 0;
+      for (const candidate of d.objects) if (candidate.id === id) matches++;
+      if (matches !== 1) throw refusal('DIRECT_PICK', 'The selected surface object ID is ambiguous.');
+      let r;
+      try { r = reverseTrimmedSurfaceAxis(picked.surface, trims, options); }
+      catch (e) {
+        if (e instanceof TrimmedSurfaceAxisReversalError) throw refusal('DIRECT_VALUE', e.message);
+        throw e;
+      }
+      // Copy the sidecar before publishing the result; the hidden source retains its original trims.
+      const owned = copyTrimLoops(r.trimLoops);
+      return add(d, [id], r.source, [{ geometry: r.surface.id, name: `${nameOf(d, id)} · ${axis} reversed`, trims: owned }]);
+    }
+    const r = reverseSurfaceAxis(picked.surface, options);
     return add(d, [id], r.source, [{ geometry: r.surface.id, name: `${nameOf(d, id)} · ${axis} reversed` }]);
   },
   insertSurfaceKnot(d: DirectGeometry, id: string, axis: 'u' | 'v', knot: number) {
@@ -215,7 +304,7 @@ export const directOps = {
   extendSurface(d: DirectGeometry, id: string, edge: 'u-min' | 'u-max' | 'v-min' | 'v-max', distance: number) {
     if (!(distance > 0)) throw refusal('DIRECT_VALUE', 'Extend by a positive distance.');
     // (12 rows of the surface and 4 beyond it, 16 across: the most poles a surface takes each way.)
-    const s = surfaceOf(d, id), dom = surfaceDomain(s), n = 11, across = 15, extra = 4, alongU = edge.startsWith('u'), atMax = edge.endsWith('max');
+    const s = wholeSurfaceOf(d, id, 'Extend surface'), dom = surfaceDomain(s), n = 11, across = 15, extra = 4, alongU = edge.startsWith('u'), atMax = edge.endsWith('max');
     const [a0, a1] = alongU ? dom.u : dom.v, [b0, b1] = alongU ? dom.v : dom.u;
     const S = (a: number, b: number) => alongU ? evaluateSurface(s, a, b) : evaluateSurface(s, b, a);
     // Rows across the extended direction: the surface's own, then straight on along the unit tangent at the edge.
@@ -354,7 +443,10 @@ export function curvePlaneCrossings(d: DirectGeometry, id: string, axis: 'x' | '
  * why not: none where they do not meet, refused where they touch or overlap along a curve.
  */
 export function surfaceIntersection(d: DirectGeometry, a: string, b: string): { direct: DirectGeometry; count: number } {
-  const A = surfaceOf(d, a), B = surfaceOf(d, b), da = surfaceDomain(A), db = surfaceDomain(B);
+  const first = selectedSurface(d, a), second = selectedSurface(d, b);
+  requireWholeSurface(first.object, 'Intersect surfaces', 'DIRECT_INTERSECT');
+  requireWholeSurface(second.object, 'Intersect surfaces', 'DIRECT_INTERSECT');
+  const A = first.surface, B = second.surface, da = surfaceDomain(A), db = surfaceDomain(B);
   // Past its domain a patch runs on along its tangent plane (so the marcher's corrections converge at an edge).
   const patch = (s: Surface, dom: { u: [number, number]; v: [number, number] }) => ({
     at: (p: [number, number]) => {
@@ -434,6 +526,12 @@ export function directDisplay(d: DirectGeometry | undefined): DirectDisplay[] {
   displays = used;
   return shown;
 }
+/** A generated isocurve sample stays in the native closed domain, including its exact endpoints. */
+function displayParameter(lo: number, hi: number, index: number, count: number): number {
+  if (index === 0) return lo;
+  if (index === count) return hi;
+  return Math.max(lo, Math.min(hi, lo + (hi - lo) * index / count));
+}
 function displayOf(d: DirectGeometry, o: DirectGeometry['objects'][number]): DirectDisplay[] {
   try {
     const g = geometryOf(d, o);
@@ -453,11 +551,11 @@ function displayOf(d: DirectGeometry, o: DirectGeometry['objects'][number]): Dir
     // (Redrawn on every pole drag step: one evaluator, validated once, for all its samples.)
     const dom = surfaceDomain(g), at = surfaceEvaluator(g), iso: number[] = [], N = 32, su = dom.u[1] - dom.u[0], sv = dom.v[1] - dom.v[0];
     for (const [fixU, a, b] of [[true, dom.u, dom.v], [false, dom.v, dom.u]] as const) for (let k = 0; k <= 7; k++) {
-      const c = a[0] + (a[1] - a[0]) * k / 7;
+      const c = displayParameter(a[0], a[1], k, 7);
       let prev: readonly number[] | null = null;
       let was = true;
       for (let i = 0; i <= N; i++) {
-        const t = b[0] + (b[1] - b[0]) * i / N, u = fixU ? c : t, v = fixU ? t : c, q = at(u, v), keep = !trims || keptAt(trims, u, v, su, sv);
+        const t = displayParameter(b[0], b[1], i, N), u = fixU ? c : t, v = fixU ? t : c, q = at(u, v), keep = !trims || keptAt(trims, u, v, su, sv);
         if (prev && keep && was) iso.push(...prev, ...q); prev = q; was = keep;
       }
     }
@@ -509,7 +607,12 @@ export function directIGES(d: DirectGeometry, name = 'barocss_part'): string {
   const visible = d.objects.filter(o => !o.hidden);
   if (!visible.length) throw refusal('IGES_EXPORT', 'There are no visible curves or surfaces to export.');
   if (visible.length > 16) throw refusal('IGES_EXPORT', 'IGES export takes at most 16 curves and surfaces: hide some first.');
-  const objects = visible.map(o => ({ ...geometryOf(d, o), id: o.id }));
+  const objects: (Curve | Surface)[] = [];
+  for (const o of visible) {
+    const g = geometryOf(d, o);
+    if (g.kind === 'surface') requireWholeSurface(o, 'Export IGES', 'IGES_EXPORT');
+    objects.push({ ...g, id: o.id });
+  }
   const model: Model = { name: name.replace(/[^A-Za-z0-9_]/g, '_').replace(/^[^A-Za-z_]/, '_').slice(0, 64) || 'part', version: 0, lengthUnit: 'mm', objects };
   return exportIGES(model, objects.map(o => o.id)).iges;
 }

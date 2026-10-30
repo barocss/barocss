@@ -1,0 +1,1 @@
+Root precommit receipt reader stopped before staging: KeyError: 'files'. owned-sha256.json is a direct path/hash mapping, not a wrapper. No product source changed.

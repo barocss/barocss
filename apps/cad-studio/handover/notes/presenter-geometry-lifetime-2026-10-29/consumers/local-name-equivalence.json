@@ -1,0 +1,35 @@
+{
+  "change": "Only the new local fluid-position variable is renamed positionsM to positions. Existing public positionsM: positions fields remain.",
+  "previousActualRunHarnessSHA256": "31a6e572957e61226a5705ac41db1ba680561d6c79ba479c3f8b233f1cd0e41b",
+  "finalHarnessSHA256": "1e955b886c0990a939df2d5727df6149ba8c9d16407959be6de8af318df2a1cf",
+  "exactTextEquivalenceUnderDeclaredRenaming": true,
+  "allowedReplacements": [
+    {
+      "before": "const positionsM = new Float64Array(768);",
+      "after": "const positions = new Float64Array(768);"
+    },
+    {
+      "before": "positionsM[3 * i]",
+      "after": "positions[3 * i]"
+    },
+    {
+      "before": "positionsM[3 * i + 1]",
+      "after": "positions[3 * i + 1]"
+    },
+    {
+      "before": "positionsM[3 * i + 2]",
+      "after": "positions[3 * i + 2]"
+    },
+    {
+      "before": "particleCount: 256, positionsM }",
+      "after": "particleCount: 256, positionsM: positions }"
+    }
+  ],
+  "numericInputsAssertionsPublicProtocolAndExecutionFlow": "unchanged",
+  "originalBrowserLogsAndCapturedArtifacts": "unchanged",
+  "verificationCommands": "syntax and changed-harness lint only; no actual browser rerun",
+  "syntaxExit": 0,
+  "changedHarnessLintExit": 0,
+  "priorRawArtifactHashesStillMatch": true,
+  "sourceFrozen": true
+}

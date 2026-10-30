@@ -1,0 +1,15 @@
+standard
+{"stage":"sourceChecks","q":{"operations":38,"gcdSteps":4,"floatSearchSteps":0,"floatConversions":0,"maximumObservedBits":14},"direct":0,"work":2960}
+{"stage":"moments","q":{"operations":6733,"gcdSteps":4378,"floatSearchSteps":0,"floatConversions":0,"maximumObservedBits":439},"direct":2599,"work":17038}
+{"stage":"publicProperties","q":{"operations":7722,"gcdSteps":4404,"floatSearchSteps":63,"floatConversions":1,"maximumObservedBits":1024},"direct":3086,"work":18871}
+{"stage":"auditsAndRawReceipts","q":{"operations":17750,"gcdSteps":12836,"floatSearchSteps":63,"floatConversions":1,"maximumObservedBits":1024},"direct":3086,"work":37331}
+centered
+{"stage":"sourceChecks","q":{"operations":38,"gcdSteps":4,"floatSearchSteps":0,"floatConversions":0,"maximumObservedBits":14},"direct":0,"work":2960}
+{"stage":"moments","q":{"operations":6641,"gcdSteps":4276,"floatSearchSteps":0,"floatConversions":0,"maximumObservedBits":431},"direct":2606,"work":16851}
+{"stage":"publicProperties","q":{"operations":7708,"gcdSteps":4380,"floatSearchSteps":63,"floatConversions":1,"maximumObservedBits":1024},"direct":3093,"work":18840}
+{"stage":"auditsAndRawReceipts","q":{"operations":17721,"gcdSteps":12789,"floatSearchSteps":63,"floatConversions":1,"maximumObservedBits":1024},"direct":3093,"work":37262}
+asymmetric
+{"stage":"sourceChecks","q":{"operations":38,"gcdSteps":4,"floatSearchSteps":0,"floatConversions":0,"maximumObservedBits":14},"direct":0,"work":2960}
+{"stage":"moments","q":{"operations":10689,"gcdSteps":8318,"floatSearchSteps":0,"floatConversions":0,"maximumObservedBits":839},"direct":2618,"work":24953}
+{"stage":"publicProperties","q":{"operations":11756,"gcdSteps":8422,"floatSearchSteps":63,"floatConversions":1,"maximumObservedBits":1024},"direct":3158,"work":26995}
+{"stage":"auditsAndRawReceipts","q":{"operations":25378,"gcdSteps":20371,"floatSearchSteps":63,"floatConversions":1,"maximumObservedBits":1024},"direct":3158,"work":52566}

@@ -1,0 +1,578 @@
+[
+  {
+    "name": "fractional-box",
+    "status": "SUCCESS",
+    "inputRecipeUnchanged": true,
+    "originalNativeMin": [
+      {
+        "numerator": "0",
+        "denominator": "1",
+        "value": 0.0
+      },
+      {
+        "numerator": "0",
+        "denominator": "1",
+        "value": 0.0
+      },
+      {
+        "numerator": "0",
+        "denominator": "1",
+        "value": 0.0
+      }
+    ],
+    "originalNativeMax": [
+      {
+        "numerator": "5629507978462421",
+        "denominator": "281474976710656",
+        "value": 20.00003
+      },
+      {
+        "numerator": "10",
+        "denominator": "1",
+        "value": 10.0
+      },
+      {
+        "numerator": "5",
+        "denominator": "1",
+        "value": 5.0
+      }
+    ],
+    "originalExactDimensions": [
+      {
+        "numerator": "5629507978462421",
+        "denominator": "281474976710656",
+        "value": 20.00003
+      },
+      {
+        "numerator": "10",
+        "denominator": "1",
+        "value": 10.0
+      },
+      {
+        "numerator": "5",
+        "denominator": "1",
+        "value": 5.0
+      }
+    ],
+    "intendedVolume": {
+      "numerator": "197032779246184735",
+      "denominator": "140737488355328",
+      "value": 1400.0021
+    },
+    "intendedCentroid": [
+      {
+        "numerator": "5629507978462421",
+        "denominator": "562949953421312",
+        "value": 10.000015
+      },
+      {
+        "numerator": "5",
+        "denominator": "1",
+        "value": 5.0
+      },
+      {
+        "numerator": "7",
+        "denominator": "2",
+        "value": 3.5
+      }
+    ],
+    "intendedNewTop": {
+      "numerator": "7",
+      "denominator": "1",
+      "value": 7.0
+    },
+    "actualNativeVolume": 1400.0014999999999,
+    "actualMinusIntendedVolume": {
+      "numerator": "-84442493023",
+      "denominator": "140737488355328",
+      "value": -0.0006000000000696559
+    },
+    "outputFaceSupportResiduals": [
+      {
+        "name": "n1.side0#1",
+        "id": "n4_b0/n4_b0_s0/n4_w0_0_0_0",
+        "vertexCount": 5,
+        "minimumExpectedSupportResidual": {
+          "numerator": "0",
+          "denominator": "1",
+          "value": 0.0
+        },
+        "matchesOldTopExactly": false
+      },
+      {
+        "name": "n1.side0#2",
+        "id": "n4_b0/n4_b0_s0/n4_w0_0_0_1",
+        "vertexCount": 4,
+        "minimumExpectedSupportResidual": {
+          "numerator": "0",
+          "denominator": "1",
+          "value": 0.0
+        },
+        "matchesOldTopExactly": false
+      },
+      {
+        "name": "n1.side1",
+        "id": "n4_b0/n4_b0_s0/n4_w0_0_0_2",
+        "vertexCount": 4,
+        "minimumExpectedSupportResidual": {
+          "numerator": "0",
+          "denominator": "1",
+          "value": 0.0
+        },
+        "matchesOldTopExactly": false
+      },
+      {
+        "name": "n1.side2#2",
+        "id": "n4_b0/n4_b0_s0/n4_w0_0_0_3",
+        "vertexCount": 4,
+        "minimumExpectedSupportResidual": {
+          "numerator": "0",
+          "denominator": "1",
+          "value": 0.0
+        },
+        "matchesOldTopExactly": false
+      },
+      {
+        "name": "n1.side2#1",
+        "id": "n4_b0/n4_b0_s0/n4_w0_0_0_4",
+        "vertexCount": 5,
+        "minimumExpectedSupportResidual": {
+          "numerator": "0",
+          "denominator": "1",
+          "value": 0.0
+        },
+        "matchesOldTopExactly": false
+      },
+      {
+        "name": "n1.side3",
+        "id": "n4_b0/n4_b0_s0/n4_w0_0_0_5",
+        "vertexCount": 4,
+        "minimumExpectedSupportResidual": {
+          "numerator": "0",
+          "denominator": "1",
+          "value": 0.0
+        },
+        "matchesOldTopExactly": false
+      },
+      {
+        "name": "n3.side2",
+        "id": "n4_b0/n4_b0_s0/n4_w1_0_0_2",
+        "vertexCount": 4,
+        "minimumExpectedSupportResidual": {
+          "numerator": "8444249301",
+          "denominator": "281474976710656",
+          "value": 2.999999999886427e-05
+        },
+        "matchesOldTopExactly": false
+      },
+      {
+        "name": "n1.bottom",
+        "id": "n4_b0/n4_b0_s0/n4_d0_0",
+        "vertexCount": 6,
+        "minimumExpectedSupportResidual": {
+          "numerator": "0",
+          "denominator": "1",
+          "value": 0.0
+        },
+        "matchesOldTopExactly": false
+      },
+      {
+        "name": "n1.top",
+        "id": "n4_b0/n4_b0_s0/n4_u1_0",
+        "vertexCount": 4,
+        "minimumExpectedSupportResidual": {
+          "numerator": "8444249301",
+          "denominator": "281474976710656",
+          "value": 2.999999999886427e-05
+        },
+        "matchesOldTopExactly": true
+      },
+      {
+        "name": "n3.top",
+        "id": "n4_b0/n4_b0_s0/n4_u2_0",
+        "vertexCount": 4,
+        "minimumExpectedSupportResidual": {
+          "numerator": "0",
+          "denominator": "1",
+          "value": 0.0
+        },
+        "matchesOldTopExactly": false
+      }
+    ],
+    "allOutputFacesOnIntendedSupportWithinOriginal1eMinus7": false
+  },
+  {
+    "name": "translated-fractional-box",
+    "status": "SUCCESS",
+    "inputRecipeUnchanged": true,
+    "originalNativeMin": [
+      {
+        "numerator": "4447996384931129",
+        "denominator": "36028797018963968",
+        "value": 0.1234567
+      },
+      {
+        "numerator": "-1056399456673117",
+        "denominator": "4503599627370496",
+        "value": -0.2345678
+      },
+      {
+        "numerator": "1556799365229843",
+        "denominator": "4503599627370496",
+        "value": 0.3456789
+      }
+    ],
+    "originalNativeMax": [
+      {
+        "numerator": "5664257950219695",
+        "denominator": "281474976710656",
+        "value": 20.123486699999997
+      },
+      {
+        "numerator": "1374362400532245",
+        "denominator": "140737488355328",
+        "value": 9.7654322
+      },
+      {
+        "numerator": "6018699375520581",
+        "denominator": "1125899906842624",
+        "value": 5.3456789
+      }
+    ],
+    "originalExactDimensions": [
+      {
+        "numerator": "720577021243189831",
+        "denominator": "36028797018963968",
+        "value": 20.00003
+      },
+      {
+        "numerator": "45035996273704957",
+        "denominator": "4503599627370496",
+        "value": 10.0
+      },
+      {
+        "numerator": "22517998136852481",
+        "denominator": "4503599627370496",
+        "value": 5.0
+      }
+    ],
+    "intendedVolume": {
+      "numerator": "1023052680708351065471163639437537206786300866773291",
+      "denominator": "730750818665451459101842416358141509827966271488",
+      "value": 1400.0020999999997
+    },
+    "intendedCentroid": [
+      {
+        "numerator": "729473014013052089",
+        "denominator": "72057594037927936",
+        "value": 10.123471699999998
+      },
+      {
+        "numerator": "42923197360358723",
+        "denominator": "9007199254740992",
+        "value": 4.765432199999999
+      },
+      {
+        "numerator": "34638796122053159",
+        "denominator": "9007199254740992",
+        "value": 3.8456789000000002
+      }
+    ],
+    "intendedNewTop": {
+      "numerator": "8270499189205829",
+      "denominator": "1125899906842624",
+      "value": 7.3456789
+    },
+    "actualNativeVolume": 1400.0014999999999,
+    "actualMinusIntendedVolume": {
+      "numerator": "-438450491133548091258135616133927062287728939",
+      "denominator": "730750818665451459101842416358141509827966271488",
+      "value": -0.0005999999999100613
+    },
+    "outputFaceSupportResiduals": [
+      {
+        "name": "n1.side0",
+        "id": "n5_b0/n5_b0_s0/n5_w0_0_0_0",
+        "vertexCount": 4,
+        "minimumExpectedSupportResidual": {
+          "numerator": "0",
+          "denominator": "1",
+          "value": 0.0
+        },
+        "matchesOldTopExactly": false
+      },
+      {
+        "name": "n1.side1",
+        "id": "n5_b0/n5_b0_s0/n5_w0_0_0_1",
+        "vertexCount": 4,
+        "minimumExpectedSupportResidual": {
+          "numerator": "0",
+          "denominator": "1",
+          "value": 0.0
+        },
+        "matchesOldTopExactly": false
+      },
+      {
+        "name": "n1.side2",
+        "id": "n5_b0/n5_b0_s0/n5_w0_0_0_2",
+        "vertexCount": 4,
+        "minimumExpectedSupportResidual": {
+          "numerator": "0",
+          "denominator": "1",
+          "value": 0.0
+        },
+        "matchesOldTopExactly": false
+      },
+      {
+        "name": "n1.side3",
+        "id": "n5_b0/n5_b0_s0/n5_w0_0_0_3",
+        "vertexCount": 4,
+        "minimumExpectedSupportResidual": {
+          "numerator": "0",
+          "denominator": "1",
+          "value": 0.0
+        },
+        "matchesOldTopExactly": false
+      },
+      {
+        "name": "n1.bottom",
+        "id": "n5_b0/n5_b0_s0/n5_d0_0",
+        "vertexCount": 4,
+        "minimumExpectedSupportResidual": {
+          "numerator": "0",
+          "denominator": "1",
+          "value": 0.0
+        },
+        "matchesOldTopExactly": false
+      },
+      {
+        "name": "n1.top",
+        "id": "n5_b0/n5_b0_s0/n5_u1_0",
+        "vertexCount": 4,
+        "minimumExpectedSupportResidual": {
+          "numerator": "2",
+          "denominator": "1",
+          "value": 2.0
+        },
+        "matchesOldTopExactly": true
+      },
+      {
+        "name": "n4.side0",
+        "id": "n5_b1/n5_b1_s0/n5_w1_0_0_0",
+        "vertexCount": 4,
+        "minimumExpectedSupportResidual": {
+          "numerator": "1560046910921",
+          "denominator": "36028797018963968",
+          "value": 4.329999999999612e-05
+        },
+        "matchesOldTopExactly": false
+      },
+      {
+        "name": "n4.side1",
+        "id": "n5_b1/n5_b1_s0/n5_w1_0_0_1",
+        "vertexCount": 4,
+        "minimumExpectedSupportResidual": {
+          "numerator": "1160127264011",
+          "denominator": "36028797018963968",
+          "value": 3.220000000001e-05
+        },
+        "matchesOldTopExactly": false
+      },
+      {
+        "name": "n4.side2",
+        "id": "n5_b1/n5_b1_s0/n5_w1_0_0_2",
+        "vertexCount": 4,
+        "minimumExpectedSupportResidual": {
+          "numerator": "3743617191",
+          "denominator": "281474976710656",
+          "value": 1.3300000002658408e-05
+        },
+        "matchesOldTopExactly": false
+      },
+      {
+        "name": "n4.side3",
+        "id": "n5_b1/n5_b1_s0/n5_w1_0_0_3",
+        "vertexCount": 4,
+        "minimumExpectedSupportResidual": {
+          "numerator": "4531747125",
+          "denominator": "140737488355328",
+          "value": 3.219999999970469e-05
+        },
+        "matchesOldTopExactly": false
+      },
+      {
+        "name": "n4.bottom",
+        "id": "n5_b1/n5_b1_s0/n5_d2_0",
+        "vertexCount": 4,
+        "minimumExpectedSupportResidual": {
+          "numerator": "2251438287225161",
+          "denominator": "1125899906842624",
+          "value": 1.9996789000000001
+        },
+        "matchesOldTopExactly": false
+      },
+      {
+        "name": "n4.top",
+        "id": "n5_b1/n5_b1_s0/n5_u3_0",
+        "vertexCount": 4,
+        "minimumExpectedSupportResidual": {
+          "numerator": "361526460087",
+          "denominator": "1125899906842624",
+          "value": 0.00032109999999985206
+        },
+        "matchesOldTopExactly": false
+      }
+    ],
+    "allOutputFacesOnIntendedSupportWithinOriginal1eMinus7": false
+  },
+  {
+    "name": "drafted-rectangle",
+    "status": "SUCCESS",
+    "inputRecipeUnchanged": true,
+    "scope": "Continuation of actual stored straight rectangular frustum side planes; not generic drafted-solid certification",
+    "intendedContinuedSideVolume": {
+      "numerator": "10343154447840792972938935066708426093",
+      "denominator": "8112963841460668169578900514406400",
+      "value": 1274.892215713191
+    },
+    "intendedNormalCentroid": {
+      "numerator": "60057336671105934375773739756197914837",
+      "denominator": "17731121910584216525038174400071587588",
+      "value": 3.387114305229382
+    },
+    "intendedNewTop": {
+      "numerator": "7",
+      "denominator": "1",
+      "value": 7.0
+    },
+    "intendedNewTopMin": [
+      {
+        "numerator": "55161947743629167",
+        "denominator": "90071992547409920",
+        "value": 0.6124206446814681
+      },
+      {
+        "numerator": "55161947743629167",
+        "denominator": "90071992547409920",
+        "value": 0.6124206446814681
+      }
+    ],
+    "intendedNewTopMax": [
+      {
+        "numerator": "27285592237571397",
+        "denominator": "1407374883553280",
+        "value": 19.387579355318532
+      },
+      {
+        "numerator": "26423686804077187",
+        "denominator": "2814749767106560",
+        "value": 9.38757935531853
+      }
+    ],
+    "actualNativeVolume": 1284.701763476482,
+    "actualMinusContinuedSideVolume": {
+      "numerator": "79584506304661389109862441452290707",
+      "denominator": "8112963841460668169578900514406400",
+      "value": 9.809547763291016
+    },
+    "actualTopVertices": [
+      [
+        {
+          "numerator": "1969874477011855",
+          "denominator": "4503599627370496",
+          "value": 0.4374
+        },
+        {
+          "numerator": "1969874477011855",
+          "denominator": "4503599627370496",
+          "value": 0.4374
+        },
+        {
+          "numerator": "7",
+          "denominator": "1",
+          "value": 7.0
+        }
+      ],
+      [
+        {
+          "numerator": "1969874477011855",
+          "denominator": "4503599627370496",
+          "value": 0.4374
+        },
+        {
+          "numerator": "2691632612293319",
+          "denominator": "281474976710656",
+          "value": 9.5626
+        },
+        {
+          "numerator": "7",
+          "denominator": "1",
+          "value": 7.0
+        }
+      ],
+      [
+        {
+          "numerator": "5506382379399879",
+          "denominator": "281474976710656",
+          "value": 19.5626
+        },
+        {
+          "numerator": "1969874477011855",
+          "denominator": "4503599627370496",
+          "value": 0.4374
+        },
+        {
+          "numerator": "7",
+          "denominator": "1",
+          "value": 7.0
+        }
+      ],
+      [
+        {
+          "numerator": "5506382379399879",
+          "denominator": "281474976710656",
+          "value": 19.5626
+        },
+        {
+          "numerator": "2691632612293319",
+          "denominator": "281474976710656",
+          "value": 9.5626
+        },
+        {
+          "numerator": "7",
+          "denominator": "1",
+          "value": 7.0
+        }
+      ]
+    ],
+    "actualTopVertexNearestContinuedSideResidual": [
+      {
+        "numerator": "15764458203392067",
+        "denominator": "90071992547409920",
+        "value": 0.17502064468146802
+      },
+      {
+        "numerator": "15764458203392067",
+        "denominator": "90071992547409920",
+        "value": 0.17502064468146802
+      },
+      {
+        "numerator": "123159829713999",
+        "denominator": "703687441776640",
+        "value": 0.17502064468146586
+      },
+      {
+        "numerator": "123159829713999",
+        "denominator": "703687441776640",
+        "value": 0.17502064468146586
+      }
+    ]
+  },
+  {
+    "name": "integer-cylinder",
+    "status": "SUCCESS",
+    "inputRecipeUnchanged": true,
+    "analyticRoundedVolumeGuide": 197.92033717615698,
+    "guideScope": "Analytic pi rounded by host; not exact rational circle certification"
+  }
+]

@@ -1,0 +1,121 @@
+{
+  "workId": "D325",
+  "status": "SCOPED_PASS",
+  "baseline": "d85558ce0031d812341d5871743f8535520eb8d4",
+  "issue": {
+    "number": 2239,
+    "freshState": "CLOSED already for roadmap transfer",
+    "comments": 0,
+    "source": "issue2239-source.json",
+    "mutated": false
+  },
+  "scope": "SDK closed axial scene-unit near/far aligns with base raster and native GPU picks; automatic Core infinite depth and strict equal-instance order preserved",
+  "implementation": {
+    "runtimeFiles": 4,
+    "camera": "Public autoClip=true default; Presenter sets false and admitted near/far; finite manual perspective reversed [0,1] coefficients; manual range admission CLIP_INVALID",
+    "exactFar": "Separate manual fragment-depth minimum positive normal only at exact zero; raw depth remains0 and strict greater retains original first-hit tie",
+    "pendingPick": "Capture autoClip alongside existing camera/scene guards; unmap before stale return",
+    "unsupported": "Manual finite grid/positive-strength SSAO/contact/enabled DOF refuse CLIP_INVALID before submission. Active/creating path trace and trace creation refuse PATH_TRACE_UNSUPPORTED. Async-created unpublished session disposes before refusal; pending counter finally releases. Default auto unaffected",
+    "cpu": "SDK already skips out-of-range candidate and continues; Core raw raycast stays geometric",
+    "api": "Only Camera.autoClip boolean added at3 already existing gpu root/source/viewer exposures; root complete delta review and exact expected adoption",
+    "dependenciesSchema": "No new dependency/WASM/schema/lockfile"
+  },
+  "baselineNative": {
+    "result": "REPRODUCED_PRODUCT_FAIL",
+    "tests": 1,
+    "pass": 0,
+    "fail": 1,
+    "skip": 0,
+    "exit": 1,
+    "controlCovered": 9600,
+    "excludedCovered": [
+      9600,
+      9600
+    ],
+    "excludedCPUPick": null,
+    "firstFailure": "near-excludes: CPU-excluded square must also be absent from actual display / 9600 !== 0",
+    "evidence": "consumers/baseline-first/"
+  },
+  "cpu": {
+    "gpuNormalFirst": {
+      "tests": 357,
+      "pass": 355,
+      "fail": 2,
+      "skip": 0,
+      "reason": "Two existing partial test objects omit Camera; actual default Camera added to owner fixture"
+    },
+    "gpuDisplayFinal": {
+      "pass": 26,
+      "fail": 0,
+      "skip": 0,
+      "overlapsNormal": true
+    },
+    "gpuCameraFinal": {
+      "pass": 29,
+      "fail": 0,
+      "skip": 0,
+      "overlapsNormal": true
+    },
+    "sdkFinal": {
+      "pass": 11,
+      "fail": 0,
+      "skip": 0,
+      "registered": "New package test script runs this CPU file; affected-ci-run still omits package runtime tests"
+    },
+    "sdkFirstFailure": "background.top is not iterable in2 trace fixtures: remove background setter stub and use actual Core normalization;8pass2fail original retained",
+    "evidence": "unit/validation.json",
+    "countBoundary": "Focused repetitions overlap normal/previous runs; do not sum into unique total or claim a final whole-GPU runner"
+  },
+  "producer": {
+    "gpuBuildFinal": 0,
+    "gpuTypesFinal": 0,
+    "sdkTypes": 0,
+    "sourceAndHarnessLintFinal": 0,
+    "docs": {
+      "exit": 0,
+      "pages": 68,
+      "shots": 55,
+      "shotKB": 4811,
+      "labels": 860,
+      "generatedAgentTools": "PASS via child",
+      "generatedRefusals": "PASS via child",
+      "reviewedAPI": "SCOPED_PASS via child"
+    }
+  },
+  "actual": {
+    "runtime": "Chrome156.0.8078.48 / Apple metal-3 / DPR1",
+    "selectedTests": 1,
+    "pass": 1,
+    "fail": 0,
+    "skip": 0,
+    "sdkSamples": 12,
+    "cases": "Two scales1/.001: control/near-excludes/far-excludes/closed-near/closed-far/restored; excluded coverage0+CPU null, admitted coverage9600+CPU hit",
+    "gpu": "Automatic duplicate instance0; manual finite raw far-depth0/face71/triangle0/instance0; autoClip-only toggle while native mapped return held yields stale null/unmap1, fresh manual hit depth0/unmap2",
+    "pointBoundary": "Raw point recorded; not an independent full numeric world-coordinate certification",
+    "rootViewed": [
+      "scene-near-excludes.png",
+      "scene-closed-far.png",
+      "core-exact-far.png"
+    ],
+    "cleanup": "Owned SDK/Core/context/browser/server closed; runner68402 exited; gate returned; no unrelated processes terminated",
+    "evidence": "consumers/final-validation.json"
+  },
+  "intake": "Studio modernization incoming3 full docs copied and mapped existing15/20/21 without implementation/runtime acceptance; retain D321 Render-history gap and D322 ownership",
+  "notRun": [
+    "fullKernel",
+    "fullModel",
+    "fullStudio",
+    "final wholeGPU rerun",
+    "fullSDK suite",
+    "fullGPUbrowser",
+    "remoteCI",
+    "native caps/grid/SSAO/contact/DOF/path trace combinations",
+    "native off-axis/two-square/orthographic matrix",
+    "other adapters/browsers/DPR",
+    "world-coordinate conformance",
+    "driver memory/OOM/device-loss",
+    "performance benchmark"
+  ],
+  "next": "D326 existing12/O9 A05 late Open/project request ownership; current-source source-only gap needs baseline before a fix; A06 sender lifetime remains queued",
+  "push": "Authorized normal feature push after docs/artifact verification; no PR/release"
+}

@@ -1,0 +1,50 @@
+{
+  "baseline": "3420adb4fde2c10a6537e4371fa301249a5e2038",
+  "kind": "Source provenance only, not product checksum testing",
+  "files": [
+    {
+      "path": "apps/cad-studio/src/App.tsx",
+      "bytes": 190668,
+      "sha256": "02593b448da35d7714903d2c53af7fcc313c6a462f1a1c3c19f38bfedd6df6bf",
+      "capsule": "apps__cad-studio__src__App.tsx.gz"
+    },
+    {
+      "path": "apps/cad-studio/src/engine/client.ts",
+      "bytes": 20516,
+      "sha256": "9bb19fdca69b58951f80bf9809a0b86d048f19d427e2a525eeef1c484ce27b12",
+      "capsule": "apps__cad-studio__src__engine__client.ts.gz"
+    },
+    {
+      "path": "packages/barocss-cad-model/src/engine/wireDoc.ts",
+      "bytes": 7701,
+      "sha256": "d0ef7478b286e637e125465f25b60193ae5ba1449b148e09e1edecbc106fd0a3",
+      "capsule": "packages__barocss-cad-model__src__engine__wireDoc.ts.gz"
+    }
+  ],
+  "executedInputs": [
+    {
+      "path": "apps/cad-studio/test/engine-client-lifecycle-browser.mjs",
+      "bytes": 8693,
+      "sha256": "2b3da9bff2d4d52cd73bf4c1f799d550b784f722f1934e93c92b6014e5a5ec31",
+      "capsule": "engine-client-lifecycle-browser.mjs.gz"
+    },
+    {
+      "path": "apps/cad-studio/test/fixtures/engine-lifecycle-entry.ts",
+      "bytes": 618,
+      "sha256": "b5b23a11e28750ba804b01c85765e34540236041cdda40affab7cc83343ed9fc",
+      "capsule": "engine-lifecycle-entry.ts.gz"
+    },
+    {
+      "path": "apps/cad-studio/test/imported-open-ownership-browser.mjs",
+      "bytes": 12435,
+      "sha256": "9b0b7b1c359bf95c9a26d6365d24852dc996668ad37ded6fb9c70331c9e35d65",
+      "capsule": "imported-open-ownership-browser.mjs.gz"
+    },
+    {
+      "path": "apps/cad-studio/test/browser-flow.mjs",
+      "bytes": 964416,
+      "sha256": "f052d62e221c06ed46ef809f077cf27197dd9ec04ae5e06c9c75228fd689b77d",
+      "capsule": "browser-flow.mjs.gz"
+    }
+  ]
+}

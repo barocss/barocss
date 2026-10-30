@@ -1,0 +1,77 @@
+{
+  "work_id": "D334-studio-context-fix",
+  "artifact_type": "source-verification",
+  "status": "source-frozen",
+  "owner_role": "Studio scoped executor",
+  "source_request": "Fix empty Path selector and accepted live-source evaluation freshness",
+  "last_updated": "2026-10-29T14:49:20.951585+00:00",
+  "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+  "head": "10a2b99b6a675197e49baf0a9cfa3dd2f3fdd142",
+  "node": "/Users/user/Library/pnpm/nodejs/22.19.0/bin/node",
+  "node_version": "v22.19.0",
+  "files": [
+    {
+      "path": "apps/cad-studio/src/App.tsx",
+      "sha256": "7807028f0064a44f9c224716e5819b151de9e07064966a9c16172979703e9420",
+      "snapshot": "/tmp/d334-studio-context-fix/source/apps/cad-studio/src/App.tsx"
+    },
+    {
+      "path": "apps/cad-studio/src/app/directCurveCandidate.ts",
+      "sha256": "4c7d190d392245376e7105c6f2d9bc4d5d3e7b543c44dda059a7b462e838ad2a",
+      "snapshot": "/tmp/d334-studio-context-fix/source/apps/cad-studio/src/app/directCurveCandidate.ts"
+    },
+    {
+      "path": "apps/cad-studio/test/direct-curve-candidate.test.ts",
+      "sha256": "368c6fdd3b2c856ca014e0d20bcaccd51a9e86c5ca24313aa0a131de22add20d",
+      "snapshot": "/tmp/d334-studio-context-fix/source/apps/cad-studio/test/direct-curve-candidate.test.ts"
+    }
+  ],
+  "checks": {
+    "focused": {
+      "status": "PASS",
+      "tests": 7,
+      "fail": 0,
+      "skip": 0,
+      "command": "node scripts/test.mjs direct-curve-candidate",
+      "cwd": "apps/cad-studio",
+      "log": "/tmp/d334-studio-context-fix/focused-test-final.log"
+    },
+    "types": {
+      "status": "PASS",
+      "exit_code": 0,
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "cwd": "apps/cad-studio",
+      "log": "/tmp/d334-studio-context-fix/type-check.log"
+    },
+    "build": {
+      "status": "PASS",
+      "exit_code": 0,
+      "command": "node ../../node_modules/vite/bin/vite.js build",
+      "cwd": "apps/cad-studio",
+      "log": "/tmp/d334-studio-context-fix/build.log",
+      "warnings": "Module-level use client and ineffective dynamic imports"
+    },
+    "lint": {
+      "status": "PASS",
+      "exit_code": 0,
+      "command": "node node_modules/eslint/bin/eslint.js apps/cad-studio/src/App.tsx apps/cad-studio/src/app/directCurveCandidate.ts apps/cad-studio/test/direct-curve-candidate.test.ts",
+      "log": "/tmp/d334-studio-context-fix/lint.log"
+    },
+    "diff_check": {
+      "status": "PASS",
+      "exit_code": 0
+    },
+    "browser": {
+      "status": "NOT_RUN",
+      "owner": "root",
+      "prior_failure": "/tmp/d334-root/native-first/receipt.json"
+    }
+  },
+  "first_failures_preserved": {
+    "focused-test-first.log": "New test expected label Path but importSource returns Path · c1; expectation now uses authored name",
+    "type-check-first.log": "New suppressed test inferred boolean; changed to true as const",
+    "build-first.log": "Studio local Vite bin absent; used installed root Vite bin"
+  },
+  "scope": "Three Studio files only; no Model, Kernel, dependency, schema, browser driver, handover, commit or remote changes",
+  "proof_boundary": "Helper behavior plus Studio compilation and scoped lint. Actual App/browser adoption and handoff remain root validation."
+}

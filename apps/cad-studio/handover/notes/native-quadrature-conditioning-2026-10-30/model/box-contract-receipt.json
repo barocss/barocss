@@ -1,0 +1,40 @@
+{
+  "status": "BBOX_CONTRACT_FOLLOWUP_CHECKS_PASS_BROWSER_RETAKE_PENDING",
+  "heavyGate": "RELEASED",
+  "sourceFrozen": true,
+  "checks": {
+    "focusedStep": {
+      "passed": 2,
+      "failed": 0
+    },
+    "modelTypes": "PASS",
+    "newModelTestLint": {
+      "errors": 0,
+      "warnings": 0
+    },
+    "driverSyntax": "PASS",
+    "driverLint": {
+      "errors": 0,
+      "consoleWarnings": 1
+    },
+    "kernelFullStudioTypesVite": "UNCHANGED_SOURCE_PRIOR_GATES_REUSED",
+    "actualBrowserRetake": "NOT_RUN"
+  },
+  "changes": "Only metadata bbox contract: finite ordered axes, strict all-native-vertex enclosure, strict normal endpoint enclosure, outward normal expansion <= existing CadNumericPolicy.linearTolerance. Actual normal geometry/import intervals, validity, closure, counts, names, volume/rational references, centroid and ownership checks unchanged.",
+  "firstBrowserFailure": {
+    "run": "/tmp/d344-studio/run-01",
+    "preserved": true,
+    "classification": "Overstrict metadata bbox equals authored-cap oracle; High actual file and independent review confirm native geometry/import exactness and evaluated metadata bound rounding"
+  },
+  "evidence": [
+    "/tmp/d344-step-box/result.json",
+    "/tmp/d344-review/step-box-review.md"
+  ],
+  "sourceHashes": {
+    "packages/barocss-cad-model/test/native-quadrature-step.test.ts": "d40272434fcd89d614387937f07a6fda69bb5255d7e7a5235fdecf1bc9352af0",
+    "apps/cad-studio/test/native-quadrature-step-browser.mjs": "f2d24cc98e7832ae2cbb7b0ffd3674ca0688acbbb30ecc8905dd295ab7b0a038",
+    "packages/barocss-cad/scripts/perf-bench.mjs": "37d81a207f097d7cb35d859200db64f716d0c38d30ed8a79b3d79e60ab4c39a9",
+    "packages/barocss-cad/src/brep/brep-mass-quadrature.ts": "696ec924bc4f1d7b74862533676af5e4c0b8a2a284a8a249ea7007dade4c8ed5"
+  },
+  "noProductSourceChange": true
+}

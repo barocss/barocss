@@ -1,0 +1,8 @@
+{
+  "apps/cad-studio/src/App.tsx": "7b77b98d715d8018a861e500f2607b50d2a09a49c01b78398a68efbd3a220a77",
+  "apps/cad-studio/src/app/directCurveCandidate.ts": "d49b15379bfd9818b5ccaa12f2257f019534046aeb15a777506d2811d87c5b9c",
+  "apps/cad-studio/src/ui/FillPatternHints.tsx": "e99927956bbb24c2014bc3bbe8edd00b3775fd7b473d84e4bdf60efe6d43b0e4",
+  "apps/cad-studio/src/ui/Hud.tsx": "777545d109ae7482f64128ccdec0f53ba8627f8a06f750a5d672f0704734c2a7",
+  "apps/cad-studio/src/ui/NodeEditor.tsx": "25d592886d4829b0d2140a842d8e19251b28f407059dd4d6d5370928c482d459",
+  "apps/cad-studio/test/fill-pattern-candidate.test.ts": "98b6145baf8219b7b52123764d697ae824e8a46773239c5ecd016e91057c38a5"
+}

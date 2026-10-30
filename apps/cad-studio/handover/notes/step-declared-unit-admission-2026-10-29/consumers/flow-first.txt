@@ -1,0 +1,4 @@
+flow display: {"requestedDpr":1,"renderer":"webgpu","devicePixelRatio":1,"cssWidth":1140,"cssHeight":900,"backingWidth":1140,"backingHeight":900}
+ok 1 starter plate loads
+ok 58 D317: unsupported STEP length declarations preserve accepted B-rep and AP242 Open state
+screenshots: /tmp/d317-studio-first

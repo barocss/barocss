@@ -1,0 +1,50 @@
+{
+  "added": [
+    [
+      "@barocss/cad-model",
+      "./drawing/callout",
+      "holeCalloutOwner",
+      "value"
+    ],
+    [
+      "@barocss/cad-model",
+      "./drawing/callout",
+      "holeCalloutOwnerOf",
+      "value"
+    ],
+    [
+      "@barocss/cad-model",
+      "./drawing/measurement",
+      "sameLinearDependency",
+      "value"
+    ],
+    [
+      "@barocss/cad-model",
+      "./drawing/measurement",
+      "samePointDependency",
+      "value"
+    ]
+  ],
+  "removed": [],
+  "changed": [
+    [
+      "@barocss/cad-model",
+      "./drawing/auto",
+      "autoDimensions",
+      "value"
+    ],
+    [
+      "@barocss/cad-model",
+      "./drawing/issues",
+      "IssueContext",
+      "type"
+    ],
+    [
+      "@barocss/cad-model",
+      "./drawing/issues",
+      "SheetInputs",
+      "type"
+    ]
+  ],
+  "otherTopLevelChanges": []
+}

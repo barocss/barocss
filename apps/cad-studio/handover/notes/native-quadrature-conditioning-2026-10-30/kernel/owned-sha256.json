@@ -1,0 +1,6 @@
+{
+  "packages/barocss-cad/src/brep/brep-mass-quadrature.ts": "696ec924bc4f1d7b74862533676af5e4c0b8a2a284a8a249ea7007dade4c8ed5",
+  "packages/barocss-cad/test/native-quadrature-conditioning.test.mjs": "2f6c907cca86b9692a0f86c7ce5ceaa8fa0d4cfdc6505a2c9cbf29942082c606",
+  "packages/barocss-cad/test/helpers/native-quadrature-oracle.mjs": "240bdab4bc858bec60d2bb97a991f3224403bfcb2a66424f42a34a99582d4a81",
+  "packages/barocss-cad/test/fixtures/native-quadrature-thin-cylinder.json": "d9ca158a6c6dfb5d91d900af55ad5b39b0decd1b7c4b78aa06be240a7ccc5ce6"
+}

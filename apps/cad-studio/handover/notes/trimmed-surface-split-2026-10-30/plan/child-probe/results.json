@@ -1,0 +1,5699 @@
+{
+  "node": "v22.19.0",
+  "boundary": "existing public splitSurfaceAtParameter only; no proposed D340 helper exists",
+  "reports": [
+    {
+      "name": "translated-tiny-1e-16",
+      "status": "RETURNED",
+      "fixture": {
+        "name": "translated-tiny-1e-16",
+        "surface": {
+          "kind": "surface",
+          "id": "original",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                9998,
+                0,
+                0
+              ],
+              [
+                9998,
+                1,
+                0
+              ]
+            ],
+            [
+              [
+                9999,
+                0,
+                0
+              ],
+              [
+                9999,
+                1,
+                0
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "axis": "u",
+        "parameter": 1e-16
+      },
+      "result": {
+        "original": {
+          "kind": "surface",
+          "id": "original",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                9998,
+                0,
+                0
+              ],
+              [
+                9998,
+                1,
+                0
+              ]
+            ],
+            [
+              [
+                9999,
+                0,
+                0
+              ],
+              [
+                9999,
+                1,
+                0
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "refined": {
+          "kind": "surface",
+          "id": "original",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            0,
+            0,
+            1e-16,
+            1,
+            1
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                9998,
+                0,
+                0
+              ],
+              [
+                9998,
+                1,
+                0
+              ]
+            ],
+            [
+              [
+                9998,
+                0,
+                0
+              ],
+              [
+                9998,
+                1,
+                0
+              ]
+            ],
+            [
+              [
+                9999,
+                0,
+                0
+              ],
+              [
+                9999,
+                1,
+                0
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "lower": {
+          "kind": "surface",
+          "id": "lower",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            0,
+            0,
+            1e-16,
+            1e-16
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                9998,
+                0,
+                0
+              ],
+              [
+                9998,
+                1,
+                0
+              ]
+            ],
+            [
+              [
+                9998,
+                0,
+                0
+              ],
+              [
+                9998,
+                1,
+                0
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "upper": {
+          "kind": "surface",
+          "id": "upper",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            1e-16,
+            1e-16,
+            1,
+            1
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                9998,
+                0,
+                0
+              ],
+              [
+                9998,
+                1,
+                0
+              ]
+            ],
+            [
+              [
+                9999,
+                0,
+                0
+              ],
+              [
+                9999,
+                1,
+                0
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "source": "@model original { version:0; length-unit:mm; @surface #lower { type:nurbs; degree-u:1; degree-v:1; knots-u:[0,0,0.0000000000000001,0.0000000000000001]; knots-v:[0,0,1,1]; control-points:[[[9998,0,0],[9998,1,0]],[[9998,0,0],[9998,1,0]]]; weights:[[1,1],[1,1]]; } @surface #upper { type:nurbs; degree-u:1; degree-v:1; knots-u:[0.0000000000000001,0.0000000000000001,1,1]; knots-v:[0,0,1,1]; control-points:[[[9998,0,0],[9998,1,0]],[[9999,0,0],[9999,1,0]]]; weights:[[1,1],[1,1]]; } }\n",
+        "sourceVersion": 0,
+        "model": {
+          "name": "original",
+          "version": 0,
+          "lengthUnit": "mm",
+          "objects": [
+            {
+              "kind": "surface",
+              "id": "lower",
+              "degreeU": 1,
+              "degreeV": 1,
+              "knotsU": [
+                0,
+                0,
+                1e-16,
+                1e-16
+              ],
+              "knotsV": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  [
+                    9998,
+                    0,
+                    0
+                  ],
+                  [
+                    9998,
+                    1,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    9998,
+                    0,
+                    0
+                  ],
+                  [
+                    9998,
+                    1,
+                    0
+                  ]
+                ]
+              ],
+              "weights": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            },
+            {
+              "kind": "surface",
+              "id": "upper",
+              "degreeU": 1,
+              "degreeV": 1,
+              "knotsU": [
+                1e-16,
+                1e-16,
+                1,
+                1
+              ],
+              "knotsV": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  [
+                    9998,
+                    0,
+                    0
+                  ],
+                  [
+                    9998,
+                    1,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    9999,
+                    0,
+                    0
+                  ],
+                  [
+                    9999,
+                    1,
+                    0
+                  ]
+                ]
+              ],
+              "weights": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            }
+          ]
+        },
+        "provenance": {
+          "kind": "surface-parameter-split",
+          "sourceSurfaceId": "original",
+          "axis": "u",
+          "parameter": 1e-16,
+          "firstRefinedKnotIndex": 2,
+          "refinement": {
+            "kind": "knot-insertion",
+            "insertions": 1,
+            "operation": {
+              "kind": "strip-curve-surface-knot-insertion",
+              "surfaceId": "original",
+              "axis": "u",
+              "unchangedPoles": [
+                {
+                  "originalUIndex": 0,
+                  "originalVIndex": 0,
+                  "refinedUIndex": 0,
+                  "refinedVIndex": 0
+                },
+                {
+                  "originalUIndex": 1,
+                  "originalVIndex": 0,
+                  "refinedUIndex": 2,
+                  "refinedVIndex": 0
+                },
+                {
+                  "originalUIndex": 0,
+                  "originalVIndex": 1,
+                  "refinedUIndex": 0,
+                  "refinedVIndex": 1
+                },
+                {
+                  "originalUIndex": 1,
+                  "originalVIndex": 1,
+                  "refinedUIndex": 2,
+                  "refinedVIndex": 1
+                }
+              ],
+              "unchangedKnots": [
+                {
+                  "originalKnotIndex": 0,
+                  "refinedKnotIndex": 0
+                },
+                {
+                  "originalKnotIndex": 1,
+                  "refinedKnotIndex": 1
+                },
+                {
+                  "originalKnotIndex": 2,
+                  "refinedKnotIndex": 3
+                },
+                {
+                  "originalKnotIndex": 3,
+                  "refinedKnotIndex": 4
+                }
+              ],
+              "strips": [
+                {
+                  "fixedPoleIndex": 0,
+                  "curve": {
+                    "kind": "homogeneous-curve-knot-insertion",
+                    "curveId": "surface_strip_0",
+                    "degree": 1,
+                    "knot": 1e-16,
+                    "insertions": 1,
+                    "unchangedPoles": [
+                      {
+                        "originalPoleIndex": 0,
+                        "refinedPoleIndex": 0
+                      },
+                      {
+                        "originalPoleIndex": 1,
+                        "refinedPoleIndex": 2
+                      }
+                    ],
+                    "unchangedKnots": [
+                      {
+                        "originalKnotIndex": 0,
+                        "refinedKnotIndex": 0
+                      },
+                      {
+                        "originalKnotIndex": 1,
+                        "refinedKnotIndex": 1
+                      },
+                      {
+                        "originalKnotIndex": 2,
+                        "refinedKnotIndex": 3
+                      },
+                      {
+                        "originalKnotIndex": 3,
+                        "refinedKnotIndex": 4
+                      }
+                    ],
+                    "steps": [
+                      {
+                        "insertion": 1,
+                        "spanIndex": 1,
+                        "priorMultiplicity": 0,
+                        "generatedPoles": [
+                          {
+                            "refinedPoleIndex": 1,
+                            "leftPriorPoleIndex": 0,
+                            "rightPriorPoleIndex": 1,
+                            "alpha": 1e-16
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "fixedPoleIndex": 1,
+                  "curve": {
+                    "kind": "homogeneous-curve-knot-insertion",
+                    "curveId": "surface_strip_1",
+                    "degree": 1,
+                    "knot": 1e-16,
+                    "insertions": 1,
+                    "unchangedPoles": [
+                      {
+                        "originalPoleIndex": 0,
+                        "refinedPoleIndex": 0
+                      },
+                      {
+                        "originalPoleIndex": 1,
+                        "refinedPoleIndex": 2
+                      }
+                    ],
+                    "unchangedKnots": [
+                      {
+                        "originalKnotIndex": 0,
+                        "refinedKnotIndex": 0
+                      },
+                      {
+                        "originalKnotIndex": 1,
+                        "refinedKnotIndex": 1
+                      },
+                      {
+                        "originalKnotIndex": 2,
+                        "refinedKnotIndex": 3
+                      },
+                      {
+                        "originalKnotIndex": 3,
+                        "refinedKnotIndex": 4
+                      }
+                    ],
+                    "steps": [
+                      {
+                        "insertion": 1,
+                        "spanIndex": 1,
+                        "priorMultiplicity": 0,
+                        "generatedPoles": [
+                          {
+                            "refinedPoleIndex": 1,
+                            "leftPriorPoleIndex": 0,
+                            "rightPriorPoleIndex": 1,
+                            "alpha": 1e-16
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "unchangedPoles": [
+              {
+                "originalUIndex": 0,
+                "originalVIndex": 0,
+                "refinedUIndex": 0,
+                "refinedVIndex": 0
+              },
+              {
+                "originalUIndex": 1,
+                "originalVIndex": 0,
+                "refinedUIndex": 2,
+                "refinedVIndex": 0
+              },
+              {
+                "originalUIndex": 0,
+                "originalVIndex": 1,
+                "refinedUIndex": 0,
+                "refinedVIndex": 1
+              },
+              {
+                "originalUIndex": 1,
+                "originalVIndex": 1,
+                "refinedUIndex": 2,
+                "refinedVIndex": 1
+              }
+            ],
+            "unchangedKnots": [
+              {
+                "originalKnotIndex": 0,
+                "refinedKnotIndex": 0
+              },
+              {
+                "originalKnotIndex": 1,
+                "refinedKnotIndex": 1
+              },
+              {
+                "originalKnotIndex": 2,
+                "refinedKnotIndex": 3
+              },
+              {
+                "originalKnotIndex": 3,
+                "refinedKnotIndex": 4
+              }
+            ]
+          },
+          "lower": {
+            "side": "lower",
+            "surfaceId": "lower",
+            "poleMappings": [
+              {
+                "refinedUIndex": 0,
+                "refinedVIndex": 0,
+                "childUIndex": 0,
+                "childVIndex": 0
+              },
+              {
+                "refinedUIndex": 0,
+                "refinedVIndex": 1,
+                "childUIndex": 0,
+                "childVIndex": 1
+              },
+              {
+                "refinedUIndex": 1,
+                "refinedVIndex": 0,
+                "childUIndex": 1,
+                "childVIndex": 0
+              },
+              {
+                "refinedUIndex": 1,
+                "refinedVIndex": 1,
+                "childUIndex": 1,
+                "childVIndex": 1
+              }
+            ],
+            "selectedKnots": [
+              {
+                "childKnotIndex": 0,
+                "refinedKnotIndex": 0,
+                "value": 0,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 1,
+                "refinedKnotIndex": 1,
+                "value": 0,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 2,
+                "refinedKnotIndex": 2,
+                "value": 1e-16,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 3,
+                "refinedKnotIndex": null,
+                "value": 1e-16,
+                "origin": "requested-clamp"
+              }
+            ],
+            "nonselectedKnots": [
+              {
+                "childKnotIndex": 0,
+                "refinedKnotIndex": 0,
+                "value": 0,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 1,
+                "refinedKnotIndex": 1,
+                "value": 0,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 2,
+                "refinedKnotIndex": 2,
+                "value": 1,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 3,
+                "refinedKnotIndex": 3,
+                "value": 1,
+                "origin": "refined-copy"
+              }
+            ]
+          },
+          "upper": {
+            "side": "upper",
+            "surfaceId": "upper",
+            "poleMappings": [
+              {
+                "refinedUIndex": 1,
+                "refinedVIndex": 0,
+                "childUIndex": 0,
+                "childVIndex": 0
+              },
+              {
+                "refinedUIndex": 1,
+                "refinedVIndex": 1,
+                "childUIndex": 0,
+                "childVIndex": 1
+              },
+              {
+                "refinedUIndex": 2,
+                "refinedVIndex": 0,
+                "childUIndex": 1,
+                "childVIndex": 0
+              },
+              {
+                "refinedUIndex": 2,
+                "refinedVIndex": 1,
+                "childUIndex": 1,
+                "childVIndex": 1
+              }
+            ],
+            "selectedKnots": [
+              {
+                "childKnotIndex": 0,
+                "refinedKnotIndex": null,
+                "value": 1e-16,
+                "origin": "requested-clamp"
+              },
+              {
+                "childKnotIndex": 1,
+                "refinedKnotIndex": 2,
+                "value": 1e-16,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 2,
+                "refinedKnotIndex": 3,
+                "value": 1,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 3,
+                "refinedKnotIndex": 4,
+                "value": 1,
+                "origin": "refined-copy"
+              }
+            ],
+            "nonselectedKnots": [
+              {
+                "childKnotIndex": 0,
+                "refinedKnotIndex": 0,
+                "value": 0,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 1,
+                "refinedKnotIndex": 1,
+                "value": 0,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 2,
+                "refinedKnotIndex": 2,
+                "value": 1,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 3,
+                "refinedKnotIndex": 3,
+                "value": 1,
+                "origin": "refined-copy"
+              }
+            ]
+          },
+          "shared": {
+            "refinedAxisPoleIndex": 1,
+            "lowerAxisPoleIndex": 1,
+            "upperAxisPoleIndex": 0,
+            "coefficients": [
+              {
+                "varyingPoleIndex": 0,
+                "point": [
+                  9998,
+                  0,
+                  0
+                ],
+                "weight": 1
+              },
+              {
+                "varyingPoleIndex": 1,
+                "point": [
+                  9998,
+                  1,
+                  0
+                ],
+                "weight": 1
+              }
+            ],
+            "lowerBoundary": "u-max",
+            "upperBoundary": "u-min",
+            "lowerDirection": "increasing",
+            "upperDirection": "decreasing"
+          }
+        },
+        "report": {
+          "kind": "surface-parameter-split",
+          "surfaceId": "original",
+          "lengthUnit": "mm",
+          "axis": "u",
+          "parameter": 1e-16,
+          "selectedDegree": 1,
+          "originalMultiplicity": 0,
+          "requiredInsertions": 1,
+          "refinedMultiplicity": 1,
+          "grids": {
+            "original": {
+              "u": 2,
+              "v": 2,
+              "total": 4
+            },
+            "refined": {
+              "u": 3,
+              "v": 2,
+              "total": 6
+            },
+            "lower": {
+              "u": 2,
+              "v": 2,
+              "total": 4
+            },
+            "upper": {
+              "u": 2,
+              "v": 2,
+              "total": 4
+            }
+          },
+          "domains": {
+            "original": {
+              "u": [
+                0,
+                1
+              ],
+              "v": [
+                0,
+                1
+              ]
+            },
+            "refined": {
+              "u": [
+                0,
+                1
+              ],
+              "v": [
+                0,
+                1
+              ]
+            },
+            "lower": {
+              "u": [
+                0,
+                1e-16
+              ],
+              "v": [
+                0,
+                1
+              ]
+            },
+            "upper": {
+              "u": [
+                1e-16,
+                1
+              ],
+              "v": [
+                0,
+                1
+              ]
+            }
+          },
+          "cutEndpoints": {
+            "requested": 1e-16,
+            "lower": 1e-16,
+            "upper": 1e-16,
+            "negativeZero": {
+              "requested": false,
+              "lower": false,
+              "upper": false
+            }
+          },
+          "selectedAxisKnotGuards": {
+            "original": false,
+            "refined": true,
+            "lowerEndpoint": false,
+            "upperEndpoint": false
+          },
+          "derivativeSemantics": "native-guards-unchanged",
+          "shared": {
+            "refinedAxisPoleIndex": 1,
+            "lowerAxisPoleIndex": 1,
+            "upperAxisPoleIndex": 0,
+            "coefficients": [
+              {
+                "varyingPoleIndex": 0,
+                "point": [
+                  9998,
+                  0,
+                  0
+                ],
+                "weight": 1
+              },
+              {
+                "varyingPoleIndex": 1,
+                "point": [
+                  9998,
+                  1,
+                  0
+                ],
+                "weight": 1
+              }
+            ],
+            "lowerBoundary": "u-max",
+            "upperBoundary": "u-min",
+            "lowerDirection": "increasing",
+            "upperDirection": "decreasing"
+          },
+          "observations": [
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 0,
+              "v": 0,
+              "originalPoint": [
+                9998,
+                0,
+                0
+              ],
+              "childPoint": [
+                9998,
+                0,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 0,
+              "v": 0.5,
+              "originalPoint": [
+                9998,
+                0.5,
+                0
+              ],
+              "childPoint": [
+                9998,
+                0.5,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 0,
+              "v": 1,
+              "originalPoint": [
+                9998,
+                1,
+                0
+              ],
+              "childPoint": [
+                9998,
+                1,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 5e-17,
+              "v": 0,
+              "originalPoint": [
+                9998,
+                0,
+                0
+              ],
+              "childPoint": [
+                9998,
+                0,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 5e-17,
+              "v": 0.5,
+              "originalPoint": [
+                9998,
+                0.5,
+                0
+              ],
+              "childPoint": [
+                9998,
+                0.5,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 5e-17,
+              "v": 1,
+              "originalPoint": [
+                9998,
+                1,
+                0
+              ],
+              "childPoint": [
+                9998,
+                1,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 1e-16,
+              "v": 0,
+              "originalPoint": [
+                9998,
+                0,
+                0
+              ],
+              "childPoint": [
+                9998,
+                0,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 1e-16,
+              "v": 0.5,
+              "originalPoint": [
+                9998,
+                0.5000000000000001,
+                0
+              ],
+              "childPoint": [
+                9998,
+                0.5,
+                0
+              ],
+              "difference": 1.1102230246251565e-16
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 1e-16,
+              "v": 1,
+              "originalPoint": [
+                9998,
+                1,
+                0
+              ],
+              "childPoint": [
+                9998,
+                1,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 1e-16,
+              "v": 0,
+              "originalPoint": [
+                9998,
+                0,
+                0
+              ],
+              "childPoint": [
+                9998,
+                0,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 1e-16,
+              "v": 0.5,
+              "originalPoint": [
+                9998,
+                0.5000000000000001,
+                0
+              ],
+              "childPoint": [
+                9998,
+                0.5,
+                0
+              ],
+              "difference": 1.1102230246251565e-16
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 1e-16,
+              "v": 1,
+              "originalPoint": [
+                9998,
+                1,
+                0
+              ],
+              "childPoint": [
+                9998,
+                1,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 0.5,
+              "v": 0,
+              "originalPoint": [
+                9998.5,
+                0,
+                0
+              ],
+              "childPoint": [
+                9998.5,
+                0,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 0.5,
+              "v": 0.5,
+              "originalPoint": [
+                9998.5,
+                0.5,
+                0
+              ],
+              "childPoint": [
+                9998.5,
+                0.5,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 0.5,
+              "v": 1,
+              "originalPoint": [
+                9998.5,
+                1,
+                0
+              ],
+              "childPoint": [
+                9998.5,
+                1,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 1,
+              "v": 0,
+              "originalPoint": [
+                9999,
+                0,
+                0
+              ],
+              "childPoint": [
+                9999,
+                0,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 1,
+              "v": 0.5,
+              "originalPoint": [
+                9999,
+                0.5,
+                0
+              ],
+              "childPoint": [
+                9999,
+                0.5,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 1,
+              "v": 1,
+              "originalPoint": [
+                9999,
+                1,
+                0
+              ],
+              "childPoint": [
+                9999,
+                1,
+                0
+              ],
+              "difference": 0
+            }
+          ],
+          "maximumObservedDifference": 1.1102230246251565e-16,
+          "authority": "original-surface-coefficients",
+          "geometricValidity": "not-certified",
+          "topologyCertified": false,
+          "solid": false,
+          "limits": {
+            "maximumGridAxis": 16,
+            "maximumPoles": 256,
+            "maximumDegree": 3,
+            "authoredIdCharacters": 48,
+            "snapshotValues": 4096,
+            "snapshotDepth": 8,
+            "arrayElements": 64,
+            "recordFields": 8,
+            "stringCharacters": 128,
+            "maximumObservations": 128,
+            "observationComparison": 1e-7
+          }
+        }
+      },
+      "observations": {
+        "lower": [
+          {
+            "u": 0,
+            "v": 0,
+            "point": [
+              9998,
+              0,
+              0
+            ]
+          },
+          {
+            "u": 0,
+            "v": 0.5,
+            "point": [
+              9998,
+              0.5,
+              0
+            ]
+          },
+          {
+            "u": 0,
+            "v": 1,
+            "point": [
+              9998,
+              1,
+              0
+            ]
+          },
+          {
+            "u": 5e-17,
+            "v": 0,
+            "point": [
+              9998,
+              0,
+              0
+            ]
+          },
+          {
+            "u": 5e-17,
+            "v": 0.5,
+            "point": [
+              9998,
+              0.5,
+              0
+            ]
+          },
+          {
+            "u": 5e-17,
+            "v": 1,
+            "point": [
+              9998,
+              1,
+              0
+            ]
+          },
+          {
+            "u": 1e-16,
+            "v": 0,
+            "point": [
+              9998,
+              0,
+              0
+            ]
+          },
+          {
+            "u": 1e-16,
+            "v": 0.5,
+            "point": [
+              9998,
+              0.5,
+              0
+            ]
+          },
+          {
+            "u": 1e-16,
+            "v": 1,
+            "point": [
+              9998,
+              1,
+              0
+            ]
+          }
+        ],
+        "upper": [
+          {
+            "u": 1e-16,
+            "v": 0,
+            "point": [
+              9998,
+              0,
+              0
+            ]
+          },
+          {
+            "u": 1e-16,
+            "v": 0.5,
+            "point": [
+              9998,
+              0.5,
+              0
+            ]
+          },
+          {
+            "u": 1e-16,
+            "v": 1,
+            "point": [
+              9998,
+              1,
+              0
+            ]
+          },
+          {
+            "u": 0.5,
+            "v": 0,
+            "point": [
+              9998.5,
+              0,
+              0
+            ]
+          },
+          {
+            "u": 0.5,
+            "v": 0.5,
+            "point": [
+              9998.5,
+              0.5,
+              0
+            ]
+          },
+          {
+            "u": 0.5,
+            "v": 1,
+            "point": [
+              9998.5,
+              1,
+              0
+            ]
+          },
+          {
+            "u": 1,
+            "v": 0,
+            "point": [
+              9999,
+              0,
+              0
+            ]
+          },
+          {
+            "u": 1,
+            "v": 0.5,
+            "point": [
+              9999,
+              0.5,
+              0
+            ]
+          },
+          {
+            "u": 1,
+            "v": 1,
+            "point": [
+              9999,
+              1,
+              0
+            ]
+          }
+        ]
+      },
+      "inputUnchanged": true
+    },
+    {
+      "name": "translated-MIN_VALUE",
+      "status": "RETURNED",
+      "fixture": {
+        "name": "translated-MIN_VALUE",
+        "surface": {
+          "kind": "surface",
+          "id": "original",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                9998,
+                0,
+                0
+              ],
+              [
+                9998,
+                1,
+                0
+              ]
+            ],
+            [
+              [
+                9999,
+                0,
+                0
+              ],
+              [
+                9999,
+                1,
+                0
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "axis": "u",
+        "parameter": 5e-324
+      },
+      "result": {
+        "original": {
+          "kind": "surface",
+          "id": "original",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                9998,
+                0,
+                0
+              ],
+              [
+                9998,
+                1,
+                0
+              ]
+            ],
+            [
+              [
+                9999,
+                0,
+                0
+              ],
+              [
+                9999,
+                1,
+                0
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "refined": {
+          "kind": "surface",
+          "id": "original",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            0,
+            0,
+            5e-324,
+            1,
+            1
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                9998,
+                0,
+                0
+              ],
+              [
+                9998,
+                1,
+                0
+              ]
+            ],
+            [
+              [
+                9998,
+                0,
+                0
+              ],
+              [
+                9998,
+                1,
+                0
+              ]
+            ],
+            [
+              [
+                9999,
+                0,
+                0
+              ],
+              [
+                9999,
+                1,
+                0
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "lower": {
+          "kind": "surface",
+          "id": "lower",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            0,
+            0,
+            5e-324,
+            5e-324
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                9998,
+                0,
+                0
+              ],
+              [
+                9998,
+                1,
+                0
+              ]
+            ],
+            [
+              [
+                9998,
+                0,
+                0
+              ],
+              [
+                9998,
+                1,
+                0
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "upper": {
+          "kind": "surface",
+          "id": "upper",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            5e-324,
+            5e-324,
+            1,
+            1
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                9998,
+                0,
+                0
+              ],
+              [
+                9998,
+                1,
+                0
+              ]
+            ],
+            [
+              [
+                9999,
+                0,
+                0
+              ],
+              [
+                9999,
+                1,
+                0
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "source": "@model original { version:0; length-unit:mm; @surface #lower { type:nurbs; degree-u:1; degree-v:1; knots-u:[0,0,0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005,0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005]; knots-v:[0,0,1,1]; control-points:[[[9998,0,0],[9998,1,0]],[[9998,0,0],[9998,1,0]]]; weights:[[1,1],[1,1]]; } @surface #upper { type:nurbs; degree-u:1; degree-v:1; knots-u:[0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005,0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005,1,1]; knots-v:[0,0,1,1]; control-points:[[[9998,0,0],[9998,1,0]],[[9999,0,0],[9999,1,0]]]; weights:[[1,1],[1,1]]; } }\n",
+        "sourceVersion": 0,
+        "model": {
+          "name": "original",
+          "version": 0,
+          "lengthUnit": "mm",
+          "objects": [
+            {
+              "kind": "surface",
+              "id": "lower",
+              "degreeU": 1,
+              "degreeV": 1,
+              "knotsU": [
+                0,
+                0,
+                5e-324,
+                5e-324
+              ],
+              "knotsV": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  [
+                    9998,
+                    0,
+                    0
+                  ],
+                  [
+                    9998,
+                    1,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    9998,
+                    0,
+                    0
+                  ],
+                  [
+                    9998,
+                    1,
+                    0
+                  ]
+                ]
+              ],
+              "weights": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            },
+            {
+              "kind": "surface",
+              "id": "upper",
+              "degreeU": 1,
+              "degreeV": 1,
+              "knotsU": [
+                5e-324,
+                5e-324,
+                1,
+                1
+              ],
+              "knotsV": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  [
+                    9998,
+                    0,
+                    0
+                  ],
+                  [
+                    9998,
+                    1,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    9999,
+                    0,
+                    0
+                  ],
+                  [
+                    9999,
+                    1,
+                    0
+                  ]
+                ]
+              ],
+              "weights": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            }
+          ]
+        },
+        "provenance": {
+          "kind": "surface-parameter-split",
+          "sourceSurfaceId": "original",
+          "axis": "u",
+          "parameter": 5e-324,
+          "firstRefinedKnotIndex": 2,
+          "refinement": {
+            "kind": "knot-insertion",
+            "insertions": 1,
+            "operation": {
+              "kind": "strip-curve-surface-knot-insertion",
+              "surfaceId": "original",
+              "axis": "u",
+              "unchangedPoles": [
+                {
+                  "originalUIndex": 0,
+                  "originalVIndex": 0,
+                  "refinedUIndex": 0,
+                  "refinedVIndex": 0
+                },
+                {
+                  "originalUIndex": 1,
+                  "originalVIndex": 0,
+                  "refinedUIndex": 2,
+                  "refinedVIndex": 0
+                },
+                {
+                  "originalUIndex": 0,
+                  "originalVIndex": 1,
+                  "refinedUIndex": 0,
+                  "refinedVIndex": 1
+                },
+                {
+                  "originalUIndex": 1,
+                  "originalVIndex": 1,
+                  "refinedUIndex": 2,
+                  "refinedVIndex": 1
+                }
+              ],
+              "unchangedKnots": [
+                {
+                  "originalKnotIndex": 0,
+                  "refinedKnotIndex": 0
+                },
+                {
+                  "originalKnotIndex": 1,
+                  "refinedKnotIndex": 1
+                },
+                {
+                  "originalKnotIndex": 2,
+                  "refinedKnotIndex": 3
+                },
+                {
+                  "originalKnotIndex": 3,
+                  "refinedKnotIndex": 4
+                }
+              ],
+              "strips": [
+                {
+                  "fixedPoleIndex": 0,
+                  "curve": {
+                    "kind": "homogeneous-curve-knot-insertion",
+                    "curveId": "surface_strip_0",
+                    "degree": 1,
+                    "knot": 5e-324,
+                    "insertions": 1,
+                    "unchangedPoles": [
+                      {
+                        "originalPoleIndex": 0,
+                        "refinedPoleIndex": 0
+                      },
+                      {
+                        "originalPoleIndex": 1,
+                        "refinedPoleIndex": 2
+                      }
+                    ],
+                    "unchangedKnots": [
+                      {
+                        "originalKnotIndex": 0,
+                        "refinedKnotIndex": 0
+                      },
+                      {
+                        "originalKnotIndex": 1,
+                        "refinedKnotIndex": 1
+                      },
+                      {
+                        "originalKnotIndex": 2,
+                        "refinedKnotIndex": 3
+                      },
+                      {
+                        "originalKnotIndex": 3,
+                        "refinedKnotIndex": 4
+                      }
+                    ],
+                    "steps": [
+                      {
+                        "insertion": 1,
+                        "spanIndex": 1,
+                        "priorMultiplicity": 0,
+                        "generatedPoles": [
+                          {
+                            "refinedPoleIndex": 1,
+                            "leftPriorPoleIndex": 0,
+                            "rightPriorPoleIndex": 1,
+                            "alpha": 5e-324
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "fixedPoleIndex": 1,
+                  "curve": {
+                    "kind": "homogeneous-curve-knot-insertion",
+                    "curveId": "surface_strip_1",
+                    "degree": 1,
+                    "knot": 5e-324,
+                    "insertions": 1,
+                    "unchangedPoles": [
+                      {
+                        "originalPoleIndex": 0,
+                        "refinedPoleIndex": 0
+                      },
+                      {
+                        "originalPoleIndex": 1,
+                        "refinedPoleIndex": 2
+                      }
+                    ],
+                    "unchangedKnots": [
+                      {
+                        "originalKnotIndex": 0,
+                        "refinedKnotIndex": 0
+                      },
+                      {
+                        "originalKnotIndex": 1,
+                        "refinedKnotIndex": 1
+                      },
+                      {
+                        "originalKnotIndex": 2,
+                        "refinedKnotIndex": 3
+                      },
+                      {
+                        "originalKnotIndex": 3,
+                        "refinedKnotIndex": 4
+                      }
+                    ],
+                    "steps": [
+                      {
+                        "insertion": 1,
+                        "spanIndex": 1,
+                        "priorMultiplicity": 0,
+                        "generatedPoles": [
+                          {
+                            "refinedPoleIndex": 1,
+                            "leftPriorPoleIndex": 0,
+                            "rightPriorPoleIndex": 1,
+                            "alpha": 5e-324
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "unchangedPoles": [
+              {
+                "originalUIndex": 0,
+                "originalVIndex": 0,
+                "refinedUIndex": 0,
+                "refinedVIndex": 0
+              },
+              {
+                "originalUIndex": 1,
+                "originalVIndex": 0,
+                "refinedUIndex": 2,
+                "refinedVIndex": 0
+              },
+              {
+                "originalUIndex": 0,
+                "originalVIndex": 1,
+                "refinedUIndex": 0,
+                "refinedVIndex": 1
+              },
+              {
+                "originalUIndex": 1,
+                "originalVIndex": 1,
+                "refinedUIndex": 2,
+                "refinedVIndex": 1
+              }
+            ],
+            "unchangedKnots": [
+              {
+                "originalKnotIndex": 0,
+                "refinedKnotIndex": 0
+              },
+              {
+                "originalKnotIndex": 1,
+                "refinedKnotIndex": 1
+              },
+              {
+                "originalKnotIndex": 2,
+                "refinedKnotIndex": 3
+              },
+              {
+                "originalKnotIndex": 3,
+                "refinedKnotIndex": 4
+              }
+            ]
+          },
+          "lower": {
+            "side": "lower",
+            "surfaceId": "lower",
+            "poleMappings": [
+              {
+                "refinedUIndex": 0,
+                "refinedVIndex": 0,
+                "childUIndex": 0,
+                "childVIndex": 0
+              },
+              {
+                "refinedUIndex": 0,
+                "refinedVIndex": 1,
+                "childUIndex": 0,
+                "childVIndex": 1
+              },
+              {
+                "refinedUIndex": 1,
+                "refinedVIndex": 0,
+                "childUIndex": 1,
+                "childVIndex": 0
+              },
+              {
+                "refinedUIndex": 1,
+                "refinedVIndex": 1,
+                "childUIndex": 1,
+                "childVIndex": 1
+              }
+            ],
+            "selectedKnots": [
+              {
+                "childKnotIndex": 0,
+                "refinedKnotIndex": 0,
+                "value": 0,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 1,
+                "refinedKnotIndex": 1,
+                "value": 0,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 2,
+                "refinedKnotIndex": 2,
+                "value": 5e-324,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 3,
+                "refinedKnotIndex": null,
+                "value": 5e-324,
+                "origin": "requested-clamp"
+              }
+            ],
+            "nonselectedKnots": [
+              {
+                "childKnotIndex": 0,
+                "refinedKnotIndex": 0,
+                "value": 0,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 1,
+                "refinedKnotIndex": 1,
+                "value": 0,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 2,
+                "refinedKnotIndex": 2,
+                "value": 1,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 3,
+                "refinedKnotIndex": 3,
+                "value": 1,
+                "origin": "refined-copy"
+              }
+            ]
+          },
+          "upper": {
+            "side": "upper",
+            "surfaceId": "upper",
+            "poleMappings": [
+              {
+                "refinedUIndex": 1,
+                "refinedVIndex": 0,
+                "childUIndex": 0,
+                "childVIndex": 0
+              },
+              {
+                "refinedUIndex": 1,
+                "refinedVIndex": 1,
+                "childUIndex": 0,
+                "childVIndex": 1
+              },
+              {
+                "refinedUIndex": 2,
+                "refinedVIndex": 0,
+                "childUIndex": 1,
+                "childVIndex": 0
+              },
+              {
+                "refinedUIndex": 2,
+                "refinedVIndex": 1,
+                "childUIndex": 1,
+                "childVIndex": 1
+              }
+            ],
+            "selectedKnots": [
+              {
+                "childKnotIndex": 0,
+                "refinedKnotIndex": null,
+                "value": 5e-324,
+                "origin": "requested-clamp"
+              },
+              {
+                "childKnotIndex": 1,
+                "refinedKnotIndex": 2,
+                "value": 5e-324,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 2,
+                "refinedKnotIndex": 3,
+                "value": 1,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 3,
+                "refinedKnotIndex": 4,
+                "value": 1,
+                "origin": "refined-copy"
+              }
+            ],
+            "nonselectedKnots": [
+              {
+                "childKnotIndex": 0,
+                "refinedKnotIndex": 0,
+                "value": 0,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 1,
+                "refinedKnotIndex": 1,
+                "value": 0,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 2,
+                "refinedKnotIndex": 2,
+                "value": 1,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 3,
+                "refinedKnotIndex": 3,
+                "value": 1,
+                "origin": "refined-copy"
+              }
+            ]
+          },
+          "shared": {
+            "refinedAxisPoleIndex": 1,
+            "lowerAxisPoleIndex": 1,
+            "upperAxisPoleIndex": 0,
+            "coefficients": [
+              {
+                "varyingPoleIndex": 0,
+                "point": [
+                  9998,
+                  0,
+                  0
+                ],
+                "weight": 1
+              },
+              {
+                "varyingPoleIndex": 1,
+                "point": [
+                  9998,
+                  1,
+                  0
+                ],
+                "weight": 1
+              }
+            ],
+            "lowerBoundary": "u-max",
+            "upperBoundary": "u-min",
+            "lowerDirection": "increasing",
+            "upperDirection": "decreasing"
+          }
+        },
+        "report": {
+          "kind": "surface-parameter-split",
+          "surfaceId": "original",
+          "lengthUnit": "mm",
+          "axis": "u",
+          "parameter": 5e-324,
+          "selectedDegree": 1,
+          "originalMultiplicity": 0,
+          "requiredInsertions": 1,
+          "refinedMultiplicity": 1,
+          "grids": {
+            "original": {
+              "u": 2,
+              "v": 2,
+              "total": 4
+            },
+            "refined": {
+              "u": 3,
+              "v": 2,
+              "total": 6
+            },
+            "lower": {
+              "u": 2,
+              "v": 2,
+              "total": 4
+            },
+            "upper": {
+              "u": 2,
+              "v": 2,
+              "total": 4
+            }
+          },
+          "domains": {
+            "original": {
+              "u": [
+                0,
+                1
+              ],
+              "v": [
+                0,
+                1
+              ]
+            },
+            "refined": {
+              "u": [
+                0,
+                1
+              ],
+              "v": [
+                0,
+                1
+              ]
+            },
+            "lower": {
+              "u": [
+                0,
+                5e-324
+              ],
+              "v": [
+                0,
+                1
+              ]
+            },
+            "upper": {
+              "u": [
+                5e-324,
+                1
+              ],
+              "v": [
+                0,
+                1
+              ]
+            }
+          },
+          "cutEndpoints": {
+            "requested": 5e-324,
+            "lower": 5e-324,
+            "upper": 5e-324,
+            "negativeZero": {
+              "requested": false,
+              "lower": false,
+              "upper": false
+            }
+          },
+          "selectedAxisKnotGuards": {
+            "original": false,
+            "refined": true,
+            "lowerEndpoint": false,
+            "upperEndpoint": false
+          },
+          "derivativeSemantics": "native-guards-unchanged",
+          "shared": {
+            "refinedAxisPoleIndex": 1,
+            "lowerAxisPoleIndex": 1,
+            "upperAxisPoleIndex": 0,
+            "coefficients": [
+              {
+                "varyingPoleIndex": 0,
+                "point": [
+                  9998,
+                  0,
+                  0
+                ],
+                "weight": 1
+              },
+              {
+                "varyingPoleIndex": 1,
+                "point": [
+                  9998,
+                  1,
+                  0
+                ],
+                "weight": 1
+              }
+            ],
+            "lowerBoundary": "u-max",
+            "upperBoundary": "u-min",
+            "lowerDirection": "increasing",
+            "upperDirection": "decreasing"
+          },
+          "observations": [
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 0,
+              "v": 0,
+              "originalPoint": [
+                9998,
+                0,
+                0
+              ],
+              "childPoint": [
+                9998,
+                0,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 0,
+              "v": 0.5,
+              "originalPoint": [
+                9998,
+                0.5,
+                0
+              ],
+              "childPoint": [
+                9998,
+                0.5,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 0,
+              "v": 1,
+              "originalPoint": [
+                9998,
+                1,
+                0
+              ],
+              "childPoint": [
+                9998,
+                1,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 5e-324,
+              "v": 0,
+              "originalPoint": [
+                9998,
+                0,
+                0
+              ],
+              "childPoint": [
+                9998,
+                0,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 5e-324,
+              "v": 0.5,
+              "originalPoint": [
+                9998,
+                0.5,
+                0
+              ],
+              "childPoint": [
+                9998,
+                0.5,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 5e-324,
+              "v": 1,
+              "originalPoint": [
+                9998,
+                1,
+                0
+              ],
+              "childPoint": [
+                9998,
+                1,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 5e-324,
+              "v": 0,
+              "originalPoint": [
+                9998,
+                0,
+                0
+              ],
+              "childPoint": [
+                9998,
+                0,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 5e-324,
+              "v": 0.5,
+              "originalPoint": [
+                9998,
+                0.5,
+                0
+              ],
+              "childPoint": [
+                9998,
+                0.5,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 5e-324,
+              "v": 1,
+              "originalPoint": [
+                9998,
+                1,
+                0
+              ],
+              "childPoint": [
+                9998,
+                1,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 0.5,
+              "v": 0,
+              "originalPoint": [
+                9998.5,
+                0,
+                0
+              ],
+              "childPoint": [
+                9998.5,
+                0,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 0.5,
+              "v": 0.5,
+              "originalPoint": [
+                9998.5,
+                0.5,
+                0
+              ],
+              "childPoint": [
+                9998.5,
+                0.5,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 0.5,
+              "v": 1,
+              "originalPoint": [
+                9998.5,
+                1,
+                0
+              ],
+              "childPoint": [
+                9998.5,
+                1,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 1,
+              "v": 0,
+              "originalPoint": [
+                9999,
+                0,
+                0
+              ],
+              "childPoint": [
+                9999,
+                0,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 1,
+              "v": 0.5,
+              "originalPoint": [
+                9999,
+                0.5,
+                0
+              ],
+              "childPoint": [
+                9999,
+                0.5,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 1,
+              "v": 1,
+              "originalPoint": [
+                9999,
+                1,
+                0
+              ],
+              "childPoint": [
+                9999,
+                1,
+                0
+              ],
+              "difference": 0
+            }
+          ],
+          "maximumObservedDifference": 0,
+          "authority": "original-surface-coefficients",
+          "geometricValidity": "not-certified",
+          "topologyCertified": false,
+          "solid": false,
+          "limits": {
+            "maximumGridAxis": 16,
+            "maximumPoles": 256,
+            "maximumDegree": 3,
+            "authoredIdCharacters": 48,
+            "snapshotValues": 4096,
+            "snapshotDepth": 8,
+            "arrayElements": 64,
+            "recordFields": 8,
+            "stringCharacters": 128,
+            "maximumObservations": 128,
+            "observationComparison": 1e-7
+          }
+        }
+      },
+      "observations": {
+        "lower": [
+          {
+            "u": 0,
+            "v": 0,
+            "point": [
+              9998,
+              0,
+              0
+            ]
+          },
+          {
+            "u": 0,
+            "v": 0.5,
+            "point": [
+              9998,
+              0.5,
+              0
+            ]
+          },
+          {
+            "u": 0,
+            "v": 1,
+            "point": [
+              9998,
+              1,
+              0
+            ]
+          },
+          {
+            "u": 0,
+            "v": 0,
+            "point": [
+              9998,
+              0,
+              0
+            ]
+          },
+          {
+            "u": 0,
+            "v": 0.5,
+            "point": [
+              9998,
+              0.5,
+              0
+            ]
+          },
+          {
+            "u": 0,
+            "v": 1,
+            "point": [
+              9998,
+              1,
+              0
+            ]
+          },
+          {
+            "u": 5e-324,
+            "v": 0,
+            "point": [
+              9998,
+              0,
+              0
+            ]
+          },
+          {
+            "u": 5e-324,
+            "v": 0.5,
+            "point": [
+              9998,
+              0.5,
+              0
+            ]
+          },
+          {
+            "u": 5e-324,
+            "v": 1,
+            "point": [
+              9998,
+              1,
+              0
+            ]
+          }
+        ],
+        "upper": [
+          {
+            "u": 5e-324,
+            "v": 0,
+            "point": [
+              9998,
+              0,
+              0
+            ]
+          },
+          {
+            "u": 5e-324,
+            "v": 0.5,
+            "point": [
+              9998,
+              0.5,
+              0
+            ]
+          },
+          {
+            "u": 5e-324,
+            "v": 1,
+            "point": [
+              9998,
+              1,
+              0
+            ]
+          },
+          {
+            "u": 0.5,
+            "v": 0,
+            "point": [
+              9998.5,
+              0,
+              0
+            ]
+          },
+          {
+            "u": 0.5,
+            "v": 0.5,
+            "point": [
+              9998.5,
+              0.5,
+              0
+            ]
+          },
+          {
+            "u": 0.5,
+            "v": 1,
+            "point": [
+              9998.5,
+              1,
+              0
+            ]
+          },
+          {
+            "u": 1,
+            "v": 0,
+            "point": [
+              9999,
+              0,
+              0
+            ]
+          },
+          {
+            "u": 1,
+            "v": 0.5,
+            "point": [
+              9999,
+              0.5,
+              0
+            ]
+          },
+          {
+            "u": 1,
+            "v": 1,
+            "point": [
+              9999,
+              1,
+              0
+            ]
+          }
+        ]
+      },
+      "inputUnchanged": true
+    },
+    {
+      "name": "translated-representable-thin-1e-10",
+      "status": "RETURNED",
+      "fixture": {
+        "name": "translated-representable-thin-1e-10",
+        "surface": {
+          "kind": "surface",
+          "id": "original",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                9998,
+                0,
+                0
+              ],
+              [
+                9998,
+                1,
+                0
+              ]
+            ],
+            [
+              [
+                9999,
+                0,
+                0
+              ],
+              [
+                9999,
+                1,
+                0
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "axis": "u",
+        "parameter": 1e-10
+      },
+      "result": {
+        "original": {
+          "kind": "surface",
+          "id": "original",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                9998,
+                0,
+                0
+              ],
+              [
+                9998,
+                1,
+                0
+              ]
+            ],
+            [
+              [
+                9999,
+                0,
+                0
+              ],
+              [
+                9999,
+                1,
+                0
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "refined": {
+          "kind": "surface",
+          "id": "original",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            0,
+            0,
+            1e-10,
+            1,
+            1
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                9998,
+                0,
+                0
+              ],
+              [
+                9998,
+                1,
+                0
+              ]
+            ],
+            [
+              [
+                9998.0000000001,
+                0,
+                0
+              ],
+              [
+                9998.0000000001,
+                1,
+                0
+              ]
+            ],
+            [
+              [
+                9999,
+                0,
+                0
+              ],
+              [
+                9999,
+                1,
+                0
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "lower": {
+          "kind": "surface",
+          "id": "lower",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            0,
+            0,
+            1e-10,
+            1e-10
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                9998,
+                0,
+                0
+              ],
+              [
+                9998,
+                1,
+                0
+              ]
+            ],
+            [
+              [
+                9998.0000000001,
+                0,
+                0
+              ],
+              [
+                9998.0000000001,
+                1,
+                0
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "upper": {
+          "kind": "surface",
+          "id": "upper",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            1e-10,
+            1e-10,
+            1,
+            1
+          ],
+          "knotsV": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              [
+                9998.0000000001,
+                0,
+                0
+              ],
+              [
+                9998.0000000001,
+                1,
+                0
+              ]
+            ],
+            [
+              [
+                9999,
+                0,
+                0
+              ],
+              [
+                9999,
+                1,
+                0
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "source": "@model original { version:0; length-unit:mm; @surface #lower { type:nurbs; degree-u:1; degree-v:1; knots-u:[0,0,0.0000000001,0.0000000001]; knots-v:[0,0,1,1]; control-points:[[[9998,0,0],[9998,1,0]],[[9998.0000000001,0,0],[9998.0000000001,1,0]]]; weights:[[1,1],[1,1]]; } @surface #upper { type:nurbs; degree-u:1; degree-v:1; knots-u:[0.0000000001,0.0000000001,1,1]; knots-v:[0,0,1,1]; control-points:[[[9998.0000000001,0,0],[9998.0000000001,1,0]],[[9999,0,0],[9999,1,0]]]; weights:[[1,1],[1,1]]; } }\n",
+        "sourceVersion": 0,
+        "model": {
+          "name": "original",
+          "version": 0,
+          "lengthUnit": "mm",
+          "objects": [
+            {
+              "kind": "surface",
+              "id": "lower",
+              "degreeU": 1,
+              "degreeV": 1,
+              "knotsU": [
+                0,
+                0,
+                1e-10,
+                1e-10
+              ],
+              "knotsV": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  [
+                    9998,
+                    0,
+                    0
+                  ],
+                  [
+                    9998,
+                    1,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    9998.0000000001,
+                    0,
+                    0
+                  ],
+                  [
+                    9998.0000000001,
+                    1,
+                    0
+                  ]
+                ]
+              ],
+              "weights": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            },
+            {
+              "kind": "surface",
+              "id": "upper",
+              "degreeU": 1,
+              "degreeV": 1,
+              "knotsU": [
+                1e-10,
+                1e-10,
+                1,
+                1
+              ],
+              "knotsV": [
+                0,
+                0,
+                1,
+                1
+              ],
+              "controlPoints": [
+                [
+                  [
+                    9998.0000000001,
+                    0,
+                    0
+                  ],
+                  [
+                    9998.0000000001,
+                    1,
+                    0
+                  ]
+                ],
+                [
+                  [
+                    9999,
+                    0,
+                    0
+                  ],
+                  [
+                    9999,
+                    1,
+                    0
+                  ]
+                ]
+              ],
+              "weights": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            }
+          ]
+        },
+        "provenance": {
+          "kind": "surface-parameter-split",
+          "sourceSurfaceId": "original",
+          "axis": "u",
+          "parameter": 1e-10,
+          "firstRefinedKnotIndex": 2,
+          "refinement": {
+            "kind": "knot-insertion",
+            "insertions": 1,
+            "operation": {
+              "kind": "strip-curve-surface-knot-insertion",
+              "surfaceId": "original",
+              "axis": "u",
+              "unchangedPoles": [
+                {
+                  "originalUIndex": 0,
+                  "originalVIndex": 0,
+                  "refinedUIndex": 0,
+                  "refinedVIndex": 0
+                },
+                {
+                  "originalUIndex": 1,
+                  "originalVIndex": 0,
+                  "refinedUIndex": 2,
+                  "refinedVIndex": 0
+                },
+                {
+                  "originalUIndex": 0,
+                  "originalVIndex": 1,
+                  "refinedUIndex": 0,
+                  "refinedVIndex": 1
+                },
+                {
+                  "originalUIndex": 1,
+                  "originalVIndex": 1,
+                  "refinedUIndex": 2,
+                  "refinedVIndex": 1
+                }
+              ],
+              "unchangedKnots": [
+                {
+                  "originalKnotIndex": 0,
+                  "refinedKnotIndex": 0
+                },
+                {
+                  "originalKnotIndex": 1,
+                  "refinedKnotIndex": 1
+                },
+                {
+                  "originalKnotIndex": 2,
+                  "refinedKnotIndex": 3
+                },
+                {
+                  "originalKnotIndex": 3,
+                  "refinedKnotIndex": 4
+                }
+              ],
+              "strips": [
+                {
+                  "fixedPoleIndex": 0,
+                  "curve": {
+                    "kind": "homogeneous-curve-knot-insertion",
+                    "curveId": "surface_strip_0",
+                    "degree": 1,
+                    "knot": 1e-10,
+                    "insertions": 1,
+                    "unchangedPoles": [
+                      {
+                        "originalPoleIndex": 0,
+                        "refinedPoleIndex": 0
+                      },
+                      {
+                        "originalPoleIndex": 1,
+                        "refinedPoleIndex": 2
+                      }
+                    ],
+                    "unchangedKnots": [
+                      {
+                        "originalKnotIndex": 0,
+                        "refinedKnotIndex": 0
+                      },
+                      {
+                        "originalKnotIndex": 1,
+                        "refinedKnotIndex": 1
+                      },
+                      {
+                        "originalKnotIndex": 2,
+                        "refinedKnotIndex": 3
+                      },
+                      {
+                        "originalKnotIndex": 3,
+                        "refinedKnotIndex": 4
+                      }
+                    ],
+                    "steps": [
+                      {
+                        "insertion": 1,
+                        "spanIndex": 1,
+                        "priorMultiplicity": 0,
+                        "generatedPoles": [
+                          {
+                            "refinedPoleIndex": 1,
+                            "leftPriorPoleIndex": 0,
+                            "rightPriorPoleIndex": 1,
+                            "alpha": 1e-10
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "fixedPoleIndex": 1,
+                  "curve": {
+                    "kind": "homogeneous-curve-knot-insertion",
+                    "curveId": "surface_strip_1",
+                    "degree": 1,
+                    "knot": 1e-10,
+                    "insertions": 1,
+                    "unchangedPoles": [
+                      {
+                        "originalPoleIndex": 0,
+                        "refinedPoleIndex": 0
+                      },
+                      {
+                        "originalPoleIndex": 1,
+                        "refinedPoleIndex": 2
+                      }
+                    ],
+                    "unchangedKnots": [
+                      {
+                        "originalKnotIndex": 0,
+                        "refinedKnotIndex": 0
+                      },
+                      {
+                        "originalKnotIndex": 1,
+                        "refinedKnotIndex": 1
+                      },
+                      {
+                        "originalKnotIndex": 2,
+                        "refinedKnotIndex": 3
+                      },
+                      {
+                        "originalKnotIndex": 3,
+                        "refinedKnotIndex": 4
+                      }
+                    ],
+                    "steps": [
+                      {
+                        "insertion": 1,
+                        "spanIndex": 1,
+                        "priorMultiplicity": 0,
+                        "generatedPoles": [
+                          {
+                            "refinedPoleIndex": 1,
+                            "leftPriorPoleIndex": 0,
+                            "rightPriorPoleIndex": 1,
+                            "alpha": 1e-10
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "unchangedPoles": [
+              {
+                "originalUIndex": 0,
+                "originalVIndex": 0,
+                "refinedUIndex": 0,
+                "refinedVIndex": 0
+              },
+              {
+                "originalUIndex": 1,
+                "originalVIndex": 0,
+                "refinedUIndex": 2,
+                "refinedVIndex": 0
+              },
+              {
+                "originalUIndex": 0,
+                "originalVIndex": 1,
+                "refinedUIndex": 0,
+                "refinedVIndex": 1
+              },
+              {
+                "originalUIndex": 1,
+                "originalVIndex": 1,
+                "refinedUIndex": 2,
+                "refinedVIndex": 1
+              }
+            ],
+            "unchangedKnots": [
+              {
+                "originalKnotIndex": 0,
+                "refinedKnotIndex": 0
+              },
+              {
+                "originalKnotIndex": 1,
+                "refinedKnotIndex": 1
+              },
+              {
+                "originalKnotIndex": 2,
+                "refinedKnotIndex": 3
+              },
+              {
+                "originalKnotIndex": 3,
+                "refinedKnotIndex": 4
+              }
+            ]
+          },
+          "lower": {
+            "side": "lower",
+            "surfaceId": "lower",
+            "poleMappings": [
+              {
+                "refinedUIndex": 0,
+                "refinedVIndex": 0,
+                "childUIndex": 0,
+                "childVIndex": 0
+              },
+              {
+                "refinedUIndex": 0,
+                "refinedVIndex": 1,
+                "childUIndex": 0,
+                "childVIndex": 1
+              },
+              {
+                "refinedUIndex": 1,
+                "refinedVIndex": 0,
+                "childUIndex": 1,
+                "childVIndex": 0
+              },
+              {
+                "refinedUIndex": 1,
+                "refinedVIndex": 1,
+                "childUIndex": 1,
+                "childVIndex": 1
+              }
+            ],
+            "selectedKnots": [
+              {
+                "childKnotIndex": 0,
+                "refinedKnotIndex": 0,
+                "value": 0,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 1,
+                "refinedKnotIndex": 1,
+                "value": 0,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 2,
+                "refinedKnotIndex": 2,
+                "value": 1e-10,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 3,
+                "refinedKnotIndex": null,
+                "value": 1e-10,
+                "origin": "requested-clamp"
+              }
+            ],
+            "nonselectedKnots": [
+              {
+                "childKnotIndex": 0,
+                "refinedKnotIndex": 0,
+                "value": 0,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 1,
+                "refinedKnotIndex": 1,
+                "value": 0,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 2,
+                "refinedKnotIndex": 2,
+                "value": 1,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 3,
+                "refinedKnotIndex": 3,
+                "value": 1,
+                "origin": "refined-copy"
+              }
+            ]
+          },
+          "upper": {
+            "side": "upper",
+            "surfaceId": "upper",
+            "poleMappings": [
+              {
+                "refinedUIndex": 1,
+                "refinedVIndex": 0,
+                "childUIndex": 0,
+                "childVIndex": 0
+              },
+              {
+                "refinedUIndex": 1,
+                "refinedVIndex": 1,
+                "childUIndex": 0,
+                "childVIndex": 1
+              },
+              {
+                "refinedUIndex": 2,
+                "refinedVIndex": 0,
+                "childUIndex": 1,
+                "childVIndex": 0
+              },
+              {
+                "refinedUIndex": 2,
+                "refinedVIndex": 1,
+                "childUIndex": 1,
+                "childVIndex": 1
+              }
+            ],
+            "selectedKnots": [
+              {
+                "childKnotIndex": 0,
+                "refinedKnotIndex": null,
+                "value": 1e-10,
+                "origin": "requested-clamp"
+              },
+              {
+                "childKnotIndex": 1,
+                "refinedKnotIndex": 2,
+                "value": 1e-10,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 2,
+                "refinedKnotIndex": 3,
+                "value": 1,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 3,
+                "refinedKnotIndex": 4,
+                "value": 1,
+                "origin": "refined-copy"
+              }
+            ],
+            "nonselectedKnots": [
+              {
+                "childKnotIndex": 0,
+                "refinedKnotIndex": 0,
+                "value": 0,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 1,
+                "refinedKnotIndex": 1,
+                "value": 0,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 2,
+                "refinedKnotIndex": 2,
+                "value": 1,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 3,
+                "refinedKnotIndex": 3,
+                "value": 1,
+                "origin": "refined-copy"
+              }
+            ]
+          },
+          "shared": {
+            "refinedAxisPoleIndex": 1,
+            "lowerAxisPoleIndex": 1,
+            "upperAxisPoleIndex": 0,
+            "coefficients": [
+              {
+                "varyingPoleIndex": 0,
+                "point": [
+                  9998.0000000001,
+                  0,
+                  0
+                ],
+                "weight": 1
+              },
+              {
+                "varyingPoleIndex": 1,
+                "point": [
+                  9998.0000000001,
+                  1,
+                  0
+                ],
+                "weight": 1
+              }
+            ],
+            "lowerBoundary": "u-max",
+            "upperBoundary": "u-min",
+            "lowerDirection": "increasing",
+            "upperDirection": "decreasing"
+          }
+        },
+        "report": {
+          "kind": "surface-parameter-split",
+          "surfaceId": "original",
+          "lengthUnit": "mm",
+          "axis": "u",
+          "parameter": 1e-10,
+          "selectedDegree": 1,
+          "originalMultiplicity": 0,
+          "requiredInsertions": 1,
+          "refinedMultiplicity": 1,
+          "grids": {
+            "original": {
+              "u": 2,
+              "v": 2,
+              "total": 4
+            },
+            "refined": {
+              "u": 3,
+              "v": 2,
+              "total": 6
+            },
+            "lower": {
+              "u": 2,
+              "v": 2,
+              "total": 4
+            },
+            "upper": {
+              "u": 2,
+              "v": 2,
+              "total": 4
+            }
+          },
+          "domains": {
+            "original": {
+              "u": [
+                0,
+                1
+              ],
+              "v": [
+                0,
+                1
+              ]
+            },
+            "refined": {
+              "u": [
+                0,
+                1
+              ],
+              "v": [
+                0,
+                1
+              ]
+            },
+            "lower": {
+              "u": [
+                0,
+                1e-10
+              ],
+              "v": [
+                0,
+                1
+              ]
+            },
+            "upper": {
+              "u": [
+                1e-10,
+                1
+              ],
+              "v": [
+                0,
+                1
+              ]
+            }
+          },
+          "cutEndpoints": {
+            "requested": 1e-10,
+            "lower": 1e-10,
+            "upper": 1e-10,
+            "negativeZero": {
+              "requested": false,
+              "lower": false,
+              "upper": false
+            }
+          },
+          "selectedAxisKnotGuards": {
+            "original": false,
+            "refined": true,
+            "lowerEndpoint": false,
+            "upperEndpoint": false
+          },
+          "derivativeSemantics": "native-guards-unchanged",
+          "shared": {
+            "refinedAxisPoleIndex": 1,
+            "lowerAxisPoleIndex": 1,
+            "upperAxisPoleIndex": 0,
+            "coefficients": [
+              {
+                "varyingPoleIndex": 0,
+                "point": [
+                  9998.0000000001,
+                  0,
+                  0
+                ],
+                "weight": 1
+              },
+              {
+                "varyingPoleIndex": 1,
+                "point": [
+                  9998.0000000001,
+                  1,
+                  0
+                ],
+                "weight": 1
+              }
+            ],
+            "lowerBoundary": "u-max",
+            "upperBoundary": "u-min",
+            "lowerDirection": "increasing",
+            "upperDirection": "decreasing"
+          },
+          "observations": [
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 0,
+              "v": 0,
+              "originalPoint": [
+                9998,
+                0,
+                0
+              ],
+              "childPoint": [
+                9998,
+                0,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 0,
+              "v": 0.5,
+              "originalPoint": [
+                9998,
+                0.5,
+                0
+              ],
+              "childPoint": [
+                9998,
+                0.5,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 0,
+              "v": 1,
+              "originalPoint": [
+                9998,
+                1,
+                0
+              ],
+              "childPoint": [
+                9998,
+                1,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 5e-11,
+              "v": 0,
+              "originalPoint": [
+                9998.00000000005,
+                0,
+                0
+              ],
+              "childPoint": [
+                9998.000000000051,
+                0,
+                0
+              ],
+              "difference": 1.8189894035458565e-12
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 5e-11,
+              "v": 0.5,
+              "originalPoint": [
+                9998.00000000005,
+                0.5,
+                0
+              ],
+              "childPoint": [
+                9998.000000000051,
+                0.5,
+                0
+              ],
+              "difference": 1.8189894035458565e-12
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 5e-11,
+              "v": 1,
+              "originalPoint": [
+                9998.00000000005,
+                1,
+                0
+              ],
+              "childPoint": [
+                9998.000000000051,
+                1,
+                0
+              ],
+              "difference": 1.8189894035458565e-12
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 1e-10,
+              "v": 0,
+              "originalPoint": [
+                9998.0000000001,
+                0,
+                0
+              ],
+              "childPoint": [
+                9998.0000000001,
+                0,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 1e-10,
+              "v": 0.5,
+              "originalPoint": [
+                9998.000000000098,
+                0.5,
+                0
+              ],
+              "childPoint": [
+                9998.0000000001,
+                0.5,
+                0
+              ],
+              "difference": 1.8189894035458565e-12
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 1e-10,
+              "v": 1,
+              "originalPoint": [
+                9998.0000000001,
+                1,
+                0
+              ],
+              "childPoint": [
+                9998.0000000001,
+                1,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 1e-10,
+              "v": 0,
+              "originalPoint": [
+                9998.0000000001,
+                0,
+                0
+              ],
+              "childPoint": [
+                9998.0000000001,
+                0,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 1e-10,
+              "v": 0.5,
+              "originalPoint": [
+                9998.000000000098,
+                0.5,
+                0
+              ],
+              "childPoint": [
+                9998.0000000001,
+                0.5,
+                0
+              ],
+              "difference": 1.8189894035458565e-12
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 1e-10,
+              "v": 1,
+              "originalPoint": [
+                9998.0000000001,
+                1,
+                0
+              ],
+              "childPoint": [
+                9998.0000000001,
+                1,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 0.50000000005,
+              "v": 0,
+              "originalPoint": [
+                9998.500000000051,
+                0,
+                0
+              ],
+              "childPoint": [
+                9998.500000000051,
+                0,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 0.50000000005,
+              "v": 0.5,
+              "originalPoint": [
+                9998.50000000005,
+                0.5,
+                0
+              ],
+              "childPoint": [
+                9998.500000000051,
+                0.5,
+                0
+              ],
+              "difference": 1.8189894035458565e-12
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 0.50000000005,
+              "v": 1,
+              "originalPoint": [
+                9998.500000000051,
+                1,
+                0
+              ],
+              "childPoint": [
+                9998.500000000051,
+                1,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 1,
+              "v": 0,
+              "originalPoint": [
+                9999,
+                0,
+                0
+              ],
+              "childPoint": [
+                9999,
+                0,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 1,
+              "v": 0.5,
+              "originalPoint": [
+                9999,
+                0.5,
+                0
+              ],
+              "childPoint": [
+                9999,
+                0.5,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 1,
+              "v": 1,
+              "originalPoint": [
+                9999,
+                1,
+                0
+              ],
+              "childPoint": [
+                9999,
+                1,
+                0
+              ],
+              "difference": 0
+            }
+          ],
+          "maximumObservedDifference": 1.8189894035458565e-12,
+          "authority": "original-surface-coefficients",
+          "geometricValidity": "not-certified",
+          "topologyCertified": false,
+          "solid": false,
+          "limits": {
+            "maximumGridAxis": 16,
+            "maximumPoles": 256,
+            "maximumDegree": 3,
+            "authoredIdCharacters": 48,
+            "snapshotValues": 4096,
+            "snapshotDepth": 8,
+            "arrayElements": 64,
+            "recordFields": 8,
+            "stringCharacters": 128,
+            "maximumObservations": 128,
+            "observationComparison": 1e-7
+          }
+        }
+      },
+      "observations": {
+        "lower": [
+          {
+            "u": 0,
+            "v": 0,
+            "point": [
+              9998,
+              0,
+              0
+            ]
+          },
+          {
+            "u": 0,
+            "v": 0.5,
+            "point": [
+              9998,
+              0.5,
+              0
+            ]
+          },
+          {
+            "u": 0,
+            "v": 1,
+            "point": [
+              9998,
+              1,
+              0
+            ]
+          },
+          {
+            "u": 5e-11,
+            "v": 0,
+            "point": [
+              9998.000000000051,
+              0,
+              0
+            ]
+          },
+          {
+            "u": 5e-11,
+            "v": 0.5,
+            "point": [
+              9998.000000000051,
+              0.5,
+              0
+            ]
+          },
+          {
+            "u": 5e-11,
+            "v": 1,
+            "point": [
+              9998.000000000051,
+              1,
+              0
+            ]
+          },
+          {
+            "u": 1e-10,
+            "v": 0,
+            "point": [
+              9998.0000000001,
+              0,
+              0
+            ]
+          },
+          {
+            "u": 1e-10,
+            "v": 0.5,
+            "point": [
+              9998.0000000001,
+              0.5,
+              0
+            ]
+          },
+          {
+            "u": 1e-10,
+            "v": 1,
+            "point": [
+              9998.0000000001,
+              1,
+              0
+            ]
+          }
+        ],
+        "upper": [
+          {
+            "u": 1e-10,
+            "v": 0,
+            "point": [
+              9998.0000000001,
+              0,
+              0
+            ]
+          },
+          {
+            "u": 1e-10,
+            "v": 0.5,
+            "point": [
+              9998.0000000001,
+              0.5,
+              0
+            ]
+          },
+          {
+            "u": 1e-10,
+            "v": 1,
+            "point": [
+              9998.0000000001,
+              1,
+              0
+            ]
+          },
+          {
+            "u": 0.50000000005,
+            "v": 0,
+            "point": [
+              9998.500000000051,
+              0,
+              0
+            ]
+          },
+          {
+            "u": 0.50000000005,
+            "v": 0.5,
+            "point": [
+              9998.500000000051,
+              0.5,
+              0
+            ]
+          },
+          {
+            "u": 0.50000000005,
+            "v": 1,
+            "point": [
+              9998.500000000051,
+              1,
+              0
+            ]
+          },
+          {
+            "u": 1,
+            "v": 0,
+            "point": [
+              9999,
+              0,
+              0
+            ]
+          },
+          {
+            "u": 1,
+            "v": 0.5,
+            "point": [
+              9999,
+              0.5,
+              0
+            ]
+          },
+          {
+            "u": 1,
+            "v": 1,
+            "point": [
+              9999,
+              1,
+              0
+            ]
+          }
+        ]
+      },
+      "inputUnchanged": true
+    },
+    {
+      "name": "ordinary-nonunit-slanted-fractional",
+      "status": "RETURNED",
+      "fixture": {
+        "name": "ordinary-nonunit-slanted-fractional",
+        "surface": {
+          "kind": "surface",
+          "id": "original",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            -2,
+            -2,
+            6,
+            6
+          ],
+          "knotsV": [
+            1,
+            1,
+            7,
+            7
+          ],
+          "controlPoints": [
+            [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                1
+              ]
+            ],
+            [
+              [
+                1,
+                0,
+                1
+              ],
+              [
+                1,
+                1,
+                2
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "axis": "u",
+        "parameter": 0.4
+      },
+      "result": {
+        "original": {
+          "kind": "surface",
+          "id": "original",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            -2,
+            -2,
+            6,
+            6
+          ],
+          "knotsV": [
+            1,
+            1,
+            7,
+            7
+          ],
+          "controlPoints": [
+            [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                1
+              ]
+            ],
+            [
+              [
+                1,
+                0,
+                1
+              ],
+              [
+                1,
+                1,
+                2
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "refined": {
+          "kind": "surface",
+          "id": "original",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            -2,
+            -2,
+            0.4,
+            6,
+            6
+          ],
+          "knotsV": [
+            1,
+            1,
+            7,
+            7
+          ],
+          "controlPoints": [
+            [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                1
+              ]
+            ],
+            [
+              [
+                0.3,
+                0,
+                0.3
+              ],
+              [
+                0.3,
+                1,
+                1.2999999999999998
+              ]
+            ],
+            [
+              [
+                1,
+                0,
+                1
+              ],
+              [
+                1,
+                1,
+                2
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "lower": {
+          "kind": "surface",
+          "id": "lower",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            -2,
+            -2,
+            0.4,
+            0.4
+          ],
+          "knotsV": [
+            1,
+            1,
+            7,
+            7
+          ],
+          "controlPoints": [
+            [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                1
+              ]
+            ],
+            [
+              [
+                0.3,
+                0,
+                0.3
+              ],
+              [
+                0.3,
+                1,
+                1.2999999999999998
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "upper": {
+          "kind": "surface",
+          "id": "upper",
+          "degreeU": 1,
+          "degreeV": 1,
+          "knotsU": [
+            0.4,
+            0.4,
+            6,
+            6
+          ],
+          "knotsV": [
+            1,
+            1,
+            7,
+            7
+          ],
+          "controlPoints": [
+            [
+              [
+                0.3,
+                0,
+                0.3
+              ],
+              [
+                0.3,
+                1,
+                1.2999999999999998
+              ]
+            ],
+            [
+              [
+                1,
+                0,
+                1
+              ],
+              [
+                1,
+                1,
+                2
+              ]
+            ]
+          ],
+          "weights": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        "source": "@model original { version:0; length-unit:mm; @surface #lower { type:nurbs; degree-u:1; degree-v:1; knots-u:[-2,-2,0.4,0.4]; knots-v:[1,1,7,7]; control-points:[[[0,0,0],[0,1,1]],[[0.3,0,0.3],[0.3,1,1.2999999999999998]]]; weights:[[1,1],[1,1]]; } @surface #upper { type:nurbs; degree-u:1; degree-v:1; knots-u:[0.4,0.4,6,6]; knots-v:[1,1,7,7]; control-points:[[[0.3,0,0.3],[0.3,1,1.2999999999999998]],[[1,0,1],[1,1,2]]]; weights:[[1,1],[1,1]]; } }\n",
+        "sourceVersion": 0,
+        "model": {
+          "name": "original",
+          "version": 0,
+          "lengthUnit": "mm",
+          "objects": [
+            {
+              "kind": "surface",
+              "id": "lower",
+              "degreeU": 1,
+              "degreeV": 1,
+              "knotsU": [
+                -2,
+                -2,
+                0.4,
+                0.4
+              ],
+              "knotsV": [
+                1,
+                1,
+                7,
+                7
+              ],
+              "controlPoints": [
+                [
+                  [
+                    0,
+                    0,
+                    0
+                  ],
+                  [
+                    0,
+                    1,
+                    1
+                  ]
+                ],
+                [
+                  [
+                    0.3,
+                    0,
+                    0.3
+                  ],
+                  [
+                    0.3,
+                    1,
+                    1.2999999999999998
+                  ]
+                ]
+              ],
+              "weights": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            },
+            {
+              "kind": "surface",
+              "id": "upper",
+              "degreeU": 1,
+              "degreeV": 1,
+              "knotsU": [
+                0.4,
+                0.4,
+                6,
+                6
+              ],
+              "knotsV": [
+                1,
+                1,
+                7,
+                7
+              ],
+              "controlPoints": [
+                [
+                  [
+                    0.3,
+                    0,
+                    0.3
+                  ],
+                  [
+                    0.3,
+                    1,
+                    1.2999999999999998
+                  ]
+                ],
+                [
+                  [
+                    1,
+                    0,
+                    1
+                  ],
+                  [
+                    1,
+                    1,
+                    2
+                  ]
+                ]
+              ],
+              "weights": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  1
+                ]
+              ]
+            }
+          ]
+        },
+        "provenance": {
+          "kind": "surface-parameter-split",
+          "sourceSurfaceId": "original",
+          "axis": "u",
+          "parameter": 0.4,
+          "firstRefinedKnotIndex": 2,
+          "refinement": {
+            "kind": "knot-insertion",
+            "insertions": 1,
+            "operation": {
+              "kind": "strip-curve-surface-knot-insertion",
+              "surfaceId": "original",
+              "axis": "u",
+              "unchangedPoles": [
+                {
+                  "originalUIndex": 0,
+                  "originalVIndex": 0,
+                  "refinedUIndex": 0,
+                  "refinedVIndex": 0
+                },
+                {
+                  "originalUIndex": 1,
+                  "originalVIndex": 0,
+                  "refinedUIndex": 2,
+                  "refinedVIndex": 0
+                },
+                {
+                  "originalUIndex": 0,
+                  "originalVIndex": 1,
+                  "refinedUIndex": 0,
+                  "refinedVIndex": 1
+                },
+                {
+                  "originalUIndex": 1,
+                  "originalVIndex": 1,
+                  "refinedUIndex": 2,
+                  "refinedVIndex": 1
+                }
+              ],
+              "unchangedKnots": [
+                {
+                  "originalKnotIndex": 0,
+                  "refinedKnotIndex": 0
+                },
+                {
+                  "originalKnotIndex": 1,
+                  "refinedKnotIndex": 1
+                },
+                {
+                  "originalKnotIndex": 2,
+                  "refinedKnotIndex": 3
+                },
+                {
+                  "originalKnotIndex": 3,
+                  "refinedKnotIndex": 4
+                }
+              ],
+              "strips": [
+                {
+                  "fixedPoleIndex": 0,
+                  "curve": {
+                    "kind": "homogeneous-curve-knot-insertion",
+                    "curveId": "surface_strip_0",
+                    "degree": 1,
+                    "knot": 0.4,
+                    "insertions": 1,
+                    "unchangedPoles": [
+                      {
+                        "originalPoleIndex": 0,
+                        "refinedPoleIndex": 0
+                      },
+                      {
+                        "originalPoleIndex": 1,
+                        "refinedPoleIndex": 2
+                      }
+                    ],
+                    "unchangedKnots": [
+                      {
+                        "originalKnotIndex": 0,
+                        "refinedKnotIndex": 0
+                      },
+                      {
+                        "originalKnotIndex": 1,
+                        "refinedKnotIndex": 1
+                      },
+                      {
+                        "originalKnotIndex": 2,
+                        "refinedKnotIndex": 3
+                      },
+                      {
+                        "originalKnotIndex": 3,
+                        "refinedKnotIndex": 4
+                      }
+                    ],
+                    "steps": [
+                      {
+                        "insertion": 1,
+                        "spanIndex": 1,
+                        "priorMultiplicity": 0,
+                        "generatedPoles": [
+                          {
+                            "refinedPoleIndex": 1,
+                            "leftPriorPoleIndex": 0,
+                            "rightPriorPoleIndex": 1,
+                            "alpha": 0.3
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                {
+                  "fixedPoleIndex": 1,
+                  "curve": {
+                    "kind": "homogeneous-curve-knot-insertion",
+                    "curveId": "surface_strip_1",
+                    "degree": 1,
+                    "knot": 0.4,
+                    "insertions": 1,
+                    "unchangedPoles": [
+                      {
+                        "originalPoleIndex": 0,
+                        "refinedPoleIndex": 0
+                      },
+                      {
+                        "originalPoleIndex": 1,
+                        "refinedPoleIndex": 2
+                      }
+                    ],
+                    "unchangedKnots": [
+                      {
+                        "originalKnotIndex": 0,
+                        "refinedKnotIndex": 0
+                      },
+                      {
+                        "originalKnotIndex": 1,
+                        "refinedKnotIndex": 1
+                      },
+                      {
+                        "originalKnotIndex": 2,
+                        "refinedKnotIndex": 3
+                      },
+                      {
+                        "originalKnotIndex": 3,
+                        "refinedKnotIndex": 4
+                      }
+                    ],
+                    "steps": [
+                      {
+                        "insertion": 1,
+                        "spanIndex": 1,
+                        "priorMultiplicity": 0,
+                        "generatedPoles": [
+                          {
+                            "refinedPoleIndex": 1,
+                            "leftPriorPoleIndex": 0,
+                            "rightPriorPoleIndex": 1,
+                            "alpha": 0.3
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "unchangedPoles": [
+              {
+                "originalUIndex": 0,
+                "originalVIndex": 0,
+                "refinedUIndex": 0,
+                "refinedVIndex": 0
+              },
+              {
+                "originalUIndex": 1,
+                "originalVIndex": 0,
+                "refinedUIndex": 2,
+                "refinedVIndex": 0
+              },
+              {
+                "originalUIndex": 0,
+                "originalVIndex": 1,
+                "refinedUIndex": 0,
+                "refinedVIndex": 1
+              },
+              {
+                "originalUIndex": 1,
+                "originalVIndex": 1,
+                "refinedUIndex": 2,
+                "refinedVIndex": 1
+              }
+            ],
+            "unchangedKnots": [
+              {
+                "originalKnotIndex": 0,
+                "refinedKnotIndex": 0
+              },
+              {
+                "originalKnotIndex": 1,
+                "refinedKnotIndex": 1
+              },
+              {
+                "originalKnotIndex": 2,
+                "refinedKnotIndex": 3
+              },
+              {
+                "originalKnotIndex": 3,
+                "refinedKnotIndex": 4
+              }
+            ]
+          },
+          "lower": {
+            "side": "lower",
+            "surfaceId": "lower",
+            "poleMappings": [
+              {
+                "refinedUIndex": 0,
+                "refinedVIndex": 0,
+                "childUIndex": 0,
+                "childVIndex": 0
+              },
+              {
+                "refinedUIndex": 0,
+                "refinedVIndex": 1,
+                "childUIndex": 0,
+                "childVIndex": 1
+              },
+              {
+                "refinedUIndex": 1,
+                "refinedVIndex": 0,
+                "childUIndex": 1,
+                "childVIndex": 0
+              },
+              {
+                "refinedUIndex": 1,
+                "refinedVIndex": 1,
+                "childUIndex": 1,
+                "childVIndex": 1
+              }
+            ],
+            "selectedKnots": [
+              {
+                "childKnotIndex": 0,
+                "refinedKnotIndex": 0,
+                "value": -2,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 1,
+                "refinedKnotIndex": 1,
+                "value": -2,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 2,
+                "refinedKnotIndex": 2,
+                "value": 0.4,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 3,
+                "refinedKnotIndex": null,
+                "value": 0.4,
+                "origin": "requested-clamp"
+              }
+            ],
+            "nonselectedKnots": [
+              {
+                "childKnotIndex": 0,
+                "refinedKnotIndex": 0,
+                "value": 1,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 1,
+                "refinedKnotIndex": 1,
+                "value": 1,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 2,
+                "refinedKnotIndex": 2,
+                "value": 7,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 3,
+                "refinedKnotIndex": 3,
+                "value": 7,
+                "origin": "refined-copy"
+              }
+            ]
+          },
+          "upper": {
+            "side": "upper",
+            "surfaceId": "upper",
+            "poleMappings": [
+              {
+                "refinedUIndex": 1,
+                "refinedVIndex": 0,
+                "childUIndex": 0,
+                "childVIndex": 0
+              },
+              {
+                "refinedUIndex": 1,
+                "refinedVIndex": 1,
+                "childUIndex": 0,
+                "childVIndex": 1
+              },
+              {
+                "refinedUIndex": 2,
+                "refinedVIndex": 0,
+                "childUIndex": 1,
+                "childVIndex": 0
+              },
+              {
+                "refinedUIndex": 2,
+                "refinedVIndex": 1,
+                "childUIndex": 1,
+                "childVIndex": 1
+              }
+            ],
+            "selectedKnots": [
+              {
+                "childKnotIndex": 0,
+                "refinedKnotIndex": null,
+                "value": 0.4,
+                "origin": "requested-clamp"
+              },
+              {
+                "childKnotIndex": 1,
+                "refinedKnotIndex": 2,
+                "value": 0.4,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 2,
+                "refinedKnotIndex": 3,
+                "value": 6,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 3,
+                "refinedKnotIndex": 4,
+                "value": 6,
+                "origin": "refined-copy"
+              }
+            ],
+            "nonselectedKnots": [
+              {
+                "childKnotIndex": 0,
+                "refinedKnotIndex": 0,
+                "value": 1,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 1,
+                "refinedKnotIndex": 1,
+                "value": 1,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 2,
+                "refinedKnotIndex": 2,
+                "value": 7,
+                "origin": "refined-copy"
+              },
+              {
+                "childKnotIndex": 3,
+                "refinedKnotIndex": 3,
+                "value": 7,
+                "origin": "refined-copy"
+              }
+            ]
+          },
+          "shared": {
+            "refinedAxisPoleIndex": 1,
+            "lowerAxisPoleIndex": 1,
+            "upperAxisPoleIndex": 0,
+            "coefficients": [
+              {
+                "varyingPoleIndex": 0,
+                "point": [
+                  0.3,
+                  0,
+                  0.3
+                ],
+                "weight": 1
+              },
+              {
+                "varyingPoleIndex": 1,
+                "point": [
+                  0.3,
+                  1,
+                  1.2999999999999998
+                ],
+                "weight": 1
+              }
+            ],
+            "lowerBoundary": "u-max",
+            "upperBoundary": "u-min",
+            "lowerDirection": "increasing",
+            "upperDirection": "decreasing"
+          }
+        },
+        "report": {
+          "kind": "surface-parameter-split",
+          "surfaceId": "original",
+          "lengthUnit": "mm",
+          "axis": "u",
+          "parameter": 0.4,
+          "selectedDegree": 1,
+          "originalMultiplicity": 0,
+          "requiredInsertions": 1,
+          "refinedMultiplicity": 1,
+          "grids": {
+            "original": {
+              "u": 2,
+              "v": 2,
+              "total": 4
+            },
+            "refined": {
+              "u": 3,
+              "v": 2,
+              "total": 6
+            },
+            "lower": {
+              "u": 2,
+              "v": 2,
+              "total": 4
+            },
+            "upper": {
+              "u": 2,
+              "v": 2,
+              "total": 4
+            }
+          },
+          "domains": {
+            "original": {
+              "u": [
+                -2,
+                6
+              ],
+              "v": [
+                1,
+                7
+              ]
+            },
+            "refined": {
+              "u": [
+                -2,
+                6
+              ],
+              "v": [
+                1,
+                7
+              ]
+            },
+            "lower": {
+              "u": [
+                -2,
+                0.4
+              ],
+              "v": [
+                1,
+                7
+              ]
+            },
+            "upper": {
+              "u": [
+                0.4,
+                6
+              ],
+              "v": [
+                1,
+                7
+              ]
+            }
+          },
+          "cutEndpoints": {
+            "requested": 0.4,
+            "lower": 0.4,
+            "upper": 0.4,
+            "negativeZero": {
+              "requested": false,
+              "lower": false,
+              "upper": false
+            }
+          },
+          "selectedAxisKnotGuards": {
+            "original": false,
+            "refined": true,
+            "lowerEndpoint": false,
+            "upperEndpoint": false
+          },
+          "derivativeSemantics": "native-guards-unchanged",
+          "shared": {
+            "refinedAxisPoleIndex": 1,
+            "lowerAxisPoleIndex": 1,
+            "upperAxisPoleIndex": 0,
+            "coefficients": [
+              {
+                "varyingPoleIndex": 0,
+                "point": [
+                  0.3,
+                  0,
+                  0.3
+                ],
+                "weight": 1
+              },
+              {
+                "varyingPoleIndex": 1,
+                "point": [
+                  0.3,
+                  1,
+                  1.2999999999999998
+                ],
+                "weight": 1
+              }
+            ],
+            "lowerBoundary": "u-max",
+            "upperBoundary": "u-min",
+            "lowerDirection": "increasing",
+            "upperDirection": "decreasing"
+          },
+          "observations": [
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": -2,
+              "v": 1,
+              "originalPoint": [
+                0,
+                0,
+                0
+              ],
+              "childPoint": [
+                0,
+                0,
+                0
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": -2,
+              "v": 4,
+              "originalPoint": [
+                0,
+                0.5,
+                0.5
+              ],
+              "childPoint": [
+                0,
+                0.5,
+                0.5
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": -2,
+              "v": 7,
+              "originalPoint": [
+                0,
+                1,
+                1
+              ],
+              "childPoint": [
+                0,
+                1,
+                1
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": -0.8,
+              "v": 1,
+              "originalPoint": [
+                0.15,
+                0,
+                0.15
+              ],
+              "childPoint": [
+                0.15,
+                0,
+                0.15
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": -0.8,
+              "v": 4,
+              "originalPoint": [
+                0.15000000000000002,
+                0.5000000000000001,
+                0.6500000000000001
+              ],
+              "childPoint": [
+                0.14999999999999997,
+                0.49999999999999994,
+                0.6499999999999999
+              ],
+              "difference": 2.830524433501838e-16
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": -0.8,
+              "v": 7,
+              "originalPoint": [
+                0.15,
+                1,
+                1.15
+              ],
+              "childPoint": [
+                0.15,
+                1,
+                1.1500000000000001
+              ],
+              "difference": 2.220446049250313e-16
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 0.4,
+              "v": 1,
+              "originalPoint": [
+                0.3,
+                0,
+                0.3
+              ],
+              "childPoint": [
+                0.3,
+                0,
+                0.3
+              ],
+              "difference": 0
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 0.4,
+              "v": 4,
+              "originalPoint": [
+                0.3,
+                0.5,
+                0.8
+              ],
+              "childPoint": [
+                0.3,
+                0.5,
+                0.7999999999999999
+              ],
+              "difference": 1.1102230246251565e-16
+            },
+            {
+              "side": "lower",
+              "surfaceId": "lower",
+              "u": 0.4,
+              "v": 7,
+              "originalPoint": [
+                0.3,
+                1,
+                1.2999999999999998
+              ],
+              "childPoint": [
+                0.3,
+                1,
+                1.2999999999999998
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 0.4,
+              "v": 1,
+              "originalPoint": [
+                0.3,
+                0,
+                0.3
+              ],
+              "childPoint": [
+                0.3,
+                0,
+                0.3
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 0.4,
+              "v": 4,
+              "originalPoint": [
+                0.3,
+                0.5,
+                0.8
+              ],
+              "childPoint": [
+                0.3,
+                0.5,
+                0.7999999999999999
+              ],
+              "difference": 1.1102230246251565e-16
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 0.4,
+              "v": 7,
+              "originalPoint": [
+                0.3,
+                1,
+                1.2999999999999998
+              ],
+              "childPoint": [
+                0.3,
+                1,
+                1.2999999999999998
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 3.1999999999999997,
+              "v": 1,
+              "originalPoint": [
+                0.65,
+                0,
+                0.65
+              ],
+              "childPoint": [
+                0.6499999999999999,
+                0,
+                0.6499999999999999
+              ],
+              "difference": 1.5700924586837752e-16
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 3.1999999999999997,
+              "v": 4,
+              "originalPoint": [
+                0.65,
+                0.5,
+                1.15
+              ],
+              "childPoint": [
+                0.65,
+                0.5,
+                1.15
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 3.1999999999999997,
+              "v": 7,
+              "originalPoint": [
+                0.65,
+                1,
+                1.6500000000000001
+              ],
+              "childPoint": [
+                0.6499999999999999,
+                1,
+                1.65
+              ],
+              "difference": 2.482534153247273e-16
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 6,
+              "v": 1,
+              "originalPoint": [
+                1,
+                0,
+                1
+              ],
+              "childPoint": [
+                1,
+                0,
+                1
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 6,
+              "v": 4,
+              "originalPoint": [
+                1,
+                0.5,
+                1.5
+              ],
+              "childPoint": [
+                1,
+                0.5,
+                1.5
+              ],
+              "difference": 0
+            },
+            {
+              "side": "upper",
+              "surfaceId": "upper",
+              "u": 6,
+              "v": 7,
+              "originalPoint": [
+                1,
+                1,
+                2
+              ],
+              "childPoint": [
+                1,
+                1,
+                2
+              ],
+              "difference": 0
+            }
+          ],
+          "maximumObservedDifference": 2.830524433501838e-16,
+          "authority": "original-surface-coefficients",
+          "geometricValidity": "not-certified",
+          "topologyCertified": false,
+          "solid": false,
+          "limits": {
+            "maximumGridAxis": 16,
+            "maximumPoles": 256,
+            "maximumDegree": 3,
+            "authoredIdCharacters": 48,
+            "snapshotValues": 4096,
+            "snapshotDepth": 8,
+            "arrayElements": 64,
+            "recordFields": 8,
+            "stringCharacters": 128,
+            "maximumObservations": 128,
+            "observationComparison": 1e-7
+          }
+        }
+      },
+      "observations": {
+        "lower": [
+          {
+            "u": -2,
+            "v": 1,
+            "point": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "u": -2,
+            "v": 4,
+            "point": [
+              0,
+              0.5,
+              0.5
+            ]
+          },
+          {
+            "u": -2,
+            "v": 7,
+            "point": [
+              0,
+              1,
+              1
+            ]
+          },
+          {
+            "u": -0.8,
+            "v": 1,
+            "point": [
+              0.15,
+              0,
+              0.15
+            ]
+          },
+          {
+            "u": -0.8,
+            "v": 4,
+            "point": [
+              0.14999999999999997,
+              0.49999999999999994,
+              0.6499999999999999
+            ]
+          },
+          {
+            "u": -0.8,
+            "v": 7,
+            "point": [
+              0.15,
+              1,
+              1.1500000000000001
+            ]
+          },
+          {
+            "u": 0.4,
+            "v": 1,
+            "point": [
+              0.3,
+              0,
+              0.3
+            ]
+          },
+          {
+            "u": 0.4,
+            "v": 4,
+            "point": [
+              0.3,
+              0.5,
+              0.7999999999999999
+            ]
+          },
+          {
+            "u": 0.4,
+            "v": 7,
+            "point": [
+              0.3,
+              1,
+              1.2999999999999998
+            ]
+          }
+        ],
+        "upper": [
+          {
+            "u": 0.4,
+            "v": 1,
+            "point": [
+              0.3,
+              0,
+              0.3
+            ]
+          },
+          {
+            "u": 0.4,
+            "v": 4,
+            "point": [
+              0.3,
+              0.5,
+              0.7999999999999999
+            ]
+          },
+          {
+            "u": 0.4,
+            "v": 7,
+            "point": [
+              0.3,
+              1,
+              1.2999999999999998
+            ]
+          },
+          {
+            "u": 3.1999999999999997,
+            "v": 1,
+            "point": [
+              0.6499999999999999,
+              0,
+              0.6499999999999999
+            ]
+          },
+          {
+            "u": 3.1999999999999997,
+            "v": 4,
+            "point": [
+              0.65,
+              0.5,
+              1.15
+            ]
+          },
+          {
+            "u": 3.1999999999999997,
+            "v": 7,
+            "point": [
+              0.6499999999999999,
+              1,
+              1.65
+            ]
+          },
+          {
+            "u": 6,
+            "v": 1,
+            "point": [
+              1,
+              0,
+              1
+            ]
+          },
+          {
+            "u": 6,
+            "v": 4,
+            "point": [
+              1,
+              0.5,
+              1.5
+            ]
+          },
+          {
+            "u": 6,
+            "v": 7,
+            "point": [
+              1,
+              1,
+              2
+            ]
+          }
+        ]
+      },
+      "inputUnchanged": true
+    }
+  ]
+}

@@ -13,6 +13,7 @@ import { curvedLoftSolid } from './curved-loft.js';
 import type { LoftInput, LoftSectionFrame } from './loft.js';
 import type { LoftLegacyBuilder } from './loft-guide.js';
 import { framedMixedLoftSolid } from './framed-mixed-loft.js';
+import { framedNurbsLoftSolid } from './framed-nurbs-loft.js';
 import type { Point } from '../types.js';
 
 type XY = [number, number];
@@ -32,19 +33,30 @@ function minimumOnSpan(f: (t: number) => number): number {
   return Math.min(y0, y1, t > 0 && t < 1 ? f(t) : Infinity);
 }
 
+function finiteFrameNumber(value: unknown): boolean { return typeof value === 'number' && Number.isFinite(value); }
+function frameVector(x: unknown): Point {
+  if (!Array.isArray(x) || x.length !== 3 || !x.every(finiteFrameNumber)) return fail('need finite three-component frame vectors');
+  return [...x] as Point;
+}
 function frame(input: LoftSectionFrame | undefined): Basis {
   if (!input || typeof input !== 'object') return fail('must each provide a frame');
-  const vector = (x: unknown): Point => {
-    if (!Array.isArray(x) || x.length !== 3 || !x.every(v => typeof v === 'number' && Number.isFinite(v))) return fail('need finite three-component frame vectors');
-    return [...x] as Point;
-  };
-  const origin = vector(input.origin), u = vector(input.xAxis), v = vector(input.yAxis);
+  const origin = frameVector(input.origin), u = frameVector(input.xAxis), v = frameVector(input.yAxis);
   // An explicit rigid, right-handed frame: its normal is xAxis × yAxis. No silent projection.
   if (Math.abs(dot(u, u) - 1) > 1e-9 || Math.abs(dot(v, v) - 1) > 1e-9 || Math.abs(dot(u, v)) > 1e-9) return fail('need perpendicular unit xAxis and yAxis');
   return { origin, u, v };
 }
 
 export function orientedLoftSolid(input: LoftInput, legacy: LoftLegacyBuilder) {
+  if (input.guide?.kind === 'nurbs') {
+    if (input.sections.length < 2 || input.sections.length > 8) return fail('a polynomial guide takes two to eight sections');
+    if (input.smooth) return fail('currently support ruled sides, not smooth interpolation');
+    const frames: Basis[] = [];
+    for (const section of input.sections) {
+      if (section.z !== undefined || section.frame === undefined) return fail('require frame on every polynomial guided section and no z');
+      frames.push(frame(section.frame));
+    }
+    return framedNurbsLoftSolid(input, frames, legacy);
+  }
   if (input.sections.length >= 3 && input.sections.length <= 8) {
     if (input.smooth) return fail('currently support ruled sides, not smooth interpolation');
     if (input.guide !== undefined) return fail(input.sections.length === 3 ? 'three-section conics do not support a guide' : 'more than two conic sections do not support a guide');

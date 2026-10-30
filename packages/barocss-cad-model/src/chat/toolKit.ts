@@ -127,6 +127,12 @@ export function checkValues(fields: Field[], values: Values): string | null {
   for (const f of shownFields(fields, values)) {
     const v = values[f.key];
     if (v === undefined || v === '') return `"${f.key}" (${f.label}) is required.`;
+    if (f.kind === 'text' || f.kind === 'file') {
+      if (typeof v !== 'string') return `"${f.key}" (${f.label}) must be text.`;
+      if (!v.trim()) return `"${f.key}" (${f.label}) is required.`;
+      if (v.length > f.maxLength) return `"${f.key}" (${f.label}) must use at most ${f.maxLength} characters.`;
+      continue;
+    }
     if (f.kind === 'choice') { if (!f.options.length && f.empty) return f.empty; if (!f.options.some(o => o.value === String(v))) return f.unknown?.(String(v)) ?? `"${f.key}" is one of ${f.options.map(o => o.value).join(', ')}.`; continue; }
     const n = Number(v);
     if (!Number.isFinite(n)) return `"${f.key}" (${f.label}) must be a number.`;

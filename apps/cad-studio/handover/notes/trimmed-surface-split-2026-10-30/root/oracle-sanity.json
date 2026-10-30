@@ -1,0 +1,184 @@
+{
+  "status": "PASS_REFERENCE_ARITHMETIC_ONLY",
+  "boundary": "Eight-point represented guide UV input. Not public-produced160, not product geometry or native support verification.",
+  "firstFailure": "Independent result reader passed numerator/denominator strings to two-argument Fraction; fixed int conversion only. Product oracle.py unchanged.",
+  "records": [
+    {
+      "input": {
+        "uv": [
+          [
+            -1.0,
+            2.0
+          ],
+          [
+            3.0,
+            2.0
+          ],
+          [
+            3.0,
+            5.2
+          ],
+          [
+            1.8,
+            5.2
+          ],
+          [
+            1.8,
+            3.2
+          ],
+          [
+            0.2,
+            3.2
+          ],
+          [
+            0.2,
+            5.2
+          ],
+          [
+            -1.0,
+            5.2
+          ]
+        ],
+        "domain": {
+          "u": [
+            -2,
+            6
+          ],
+          "v": [
+            1,
+            7
+          ]
+        },
+        "axis": "v",
+        "parameter": 3.7,
+        "keep": "inside"
+      },
+      "exit": 0,
+      "stdout": "{\n  \"lower\": [\n    {\n      \"areaUV\": {\n        \"numerator\": \"216172782113783833\",\n        \"denominator\": \"36028797018963968\"\n      },\n      \"areaWorld\": {\n        \"numerator\": \"5404319552844595825\",\n        \"denominator\": \"36028797018963968\"\n      },\n      \"centroidWorld\": [\n        {\n          \"numerator\": \"194711132195056058443776561122377725\",\n          \"denominator\": \"7788445287802242343515669967929344\"\n        },\n        {\n          \"numerator\": \"693658408444887311626615841934553\",\n          \"denominator\": \"243388915243820073234864686497792\"\n        },\n        {\n          \"numerator\": \"3\",\n          \"denominator\": \"1\"\n        }\n      ]\n    }\n  ],\n  \"upper\": [\n    {\n      \"areaUV\": {\n        \"numerator\": \"64851834634135143\",\n        \"denominator\": \"36028797018963968\"\n      },\n      \"areaWorld\": {\n        \"numerator\": \"1621295865853378575\",\n        \"denominator\": \"36028797018963968\"\n      },\n      \"centroidWorld\": [\n        {\n          \"numerator\": \"648518346341351425\",\n          \"denominator\": \"36028797018963968\"\n        },\n        {\n          \"numerator\": \"12666373951979521\",\n          \"denominator\": \"1125899906842624\"\n        },\n        {\n          \"numerator\": \"3\",\n          \"denominator\": \"1\"\n        }\n      ]\n    },\n    {\n      \"areaUV\": {\n        \"numerator\": \"16212958658533785\",\n        \"denominator\": \"9007199254740992\"\n      },\n      \"areaWorld\": {\n        \"numerator\": \"405323966463344625\",\n        \"denominator\": \"9007199254740992\"\n      },\n      \"centroidWorld\": [\n        {\n          \"numerator\": \"288230376151711745\",\n          \"denominator\": \"9007199254740992\"\n        },\n        {\n          \"numerator\": \"12666373951979521\",\n          \"denominator\": \"1125899906842624\"\n        },\n        {\n          \"numerator\": \"3\",\n          \"denominator\": \"1\"\n        }\n      ]\n    }\n  ]\n}\n",
+      "stderr": "",
+      "componentCounts": [
+        1,
+        2
+      ],
+      "totalArea": 240.00000000000003
+    },
+    {
+      "input": {
+        "uv": [
+          [
+            -1.0,
+            2.0
+          ],
+          [
+            3.0,
+            2.0
+          ],
+          [
+            3.0,
+            5.2
+          ],
+          [
+            1.8,
+            5.2
+          ],
+          [
+            1.8,
+            3.2
+          ],
+          [
+            0.2,
+            3.2
+          ],
+          [
+            0.2,
+            5.2
+          ],
+          [
+            -1.0,
+            5.2
+          ]
+        ],
+        "domain": {
+          "u": [
+            -2,
+            6
+          ],
+          "v": [
+            1,
+            7
+          ]
+        },
+        "axis": "v",
+        "parameter": 3.7,
+        "keep": "outside"
+      },
+      "exit": 0,
+      "stdout": "{\n  \"lower\": [\n    {\n      \"areaUV\": {\n        \"numerator\": \"4165829655317709\",\n        \"denominator\": \"281474976710656\"\n      },\n      \"areaWorld\": {\n        \"numerator\": \"104145741382942725\",\n        \"denominator\": \"281474976710656\"\n      },\n      \"centroidWorld\": [\n        {\n          \"numerator\": \"134545038867693575\",\n          \"denominator\": \"4165829655317709\"\n        },\n        {\n          \"numerator\": \"-3739569270673273356715553927987\",\n          \"denominator\": \"9380614441688898021435566456832\"\n        },\n        {\n          \"numerator\": \"3\",\n          \"denominator\": \"1\"\n        }\n      ]\n    },\n    {\n      \"areaUV\": {\n        \"numerator\": \"28823037615171175\",\n        \"denominator\": \"36028797018963968\"\n      },\n      \"areaWorld\": {\n        \"numerator\": \"720575940379279375\",\n        \"denominator\": \"36028797018963968\"\n      },\n      \"centroidWorld\": [\n        {\n          \"numerator\": \"900719925474099205\",\n          \"denominator\": \"36028797018963968\"\n        },\n        {\n          \"numerator\": \"7036874417766401\",\n          \"denominator\": \"1125899906842624\"\n        },\n        {\n          \"numerator\": \"3\",\n          \"denominator\": \"1\"\n        }\n      ]\n    }\n  ],\n  \"upper\": [\n    {\n      \"areaUV\": {\n        \"numerator\": \"821456572032378421\",\n        \"denominator\": \"36028797018963968\"\n      },\n      \"areaWorld\": {\n        \"numerator\": \"20536414300809460525\",\n        \"denominator\": \"36028797018963968\"\n      },\n      \"centroidWorld\": [\n        {\n          \"numerator\": \"911248098672862195520511314730418185\",\n          \"denominator\": \"29596092093648515702801256339734528\"\n        },\n        {\n          \"numerator\": \"15223976648500943280965046433008821\",\n          \"denominator\": \"924877877926516115712539260616704\"\n        },\n        {\n          \"numerator\": \"3\",\n          \"denominator\": \"1\"\n        }\n      ]\n    }\n  ]\n}\n",
+      "stderr": "",
+      "componentCounts": [
+        2,
+        1
+      ],
+      "totalArea": 960.0
+    },
+    {
+      "input": {
+        "uv": [
+          [
+            -1.0,
+            2.0
+          ],
+          [
+            3.0,
+            2.0
+          ],
+          [
+            3.0,
+            5.2
+          ],
+          [
+            1.8,
+            5.2
+          ],
+          [
+            1.8,
+            3.2
+          ],
+          [
+            0.2,
+            3.2
+          ],
+          [
+            0.2,
+            5.2
+          ],
+          [
+            -1.0,
+            5.2
+          ]
+        ],
+        "domain": {
+          "u": [
+            -2,
+            6
+          ],
+          "v": [
+            1,
+            7
+          ]
+        },
+        "axis": "v",
+        "parameter": 5.7,
+        "keep": "inside"
+      },
+      "exit": 0,
+      "stdout": "{\n  \"lower\": [\n    {\n      \"areaUV\": {\n        \"numerator\": \"86469112845513529\",\n        \"denominator\": \"9007199254740992\"\n      },\n      \"areaWorld\": {\n        \"numerator\": \"2161727821137838225\",\n        \"denominator\": \"9007199254740992\"\n      },\n      \"centroidWorld\": [\n        {\n          \"numerator\": \"77884452878022419508017824612220925\",\n          \"denominator\": \"3115378115120896786085320507523072\"\n        },\n        {\n          \"numerator\": \"584133396585168180717634837702249\",\n          \"denominator\": \"97355566097528024565166265860096\"\n        },\n        {\n          \"numerator\": \"3\",\n          \"denominator\": \"1\"\n        }\n      ]\n    }\n  ],\n  \"upper\": []\n}\n",
+      "stderr": "",
+      "componentCounts": [
+        1,
+        0
+      ],
+      "totalArea": 240.00000000000003
+    }
+  ]
+}

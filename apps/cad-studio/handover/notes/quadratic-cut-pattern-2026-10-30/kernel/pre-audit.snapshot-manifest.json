@@ -1,0 +1,4600 @@
+{
+  "status": "BYTE_EXACT_ARCHIVE_VERIFIED",
+  "source": "/tmp/d346-kernel/pre-audit",
+  "archive": "/tmp/d346-kernel/pre-audit.snapshot.tar.gz",
+  "archiveBytes": 2504929,
+  "archiveSHA256": "d2a3bd6a23dd274ab482e9d4715785dfec8c067b8640bae8f8210d2ad401e938",
+  "files": [
+    {
+      "path": "admission-work.md",
+      "bytes": 2242,
+      "sha256": "fce18690213bb95cc0f04e2a09139062d222573cb2adee9339cf044430258e6e"
+    },
+    {
+      "path": "dist/api/core.d.ts",
+      "bytes": 1990,
+      "sha256": "daee06b98818c10e288d432d77c981da2e79e38eb74752ef9241e7a54a1950f3"
+    },
+    {
+      "path": "dist/api/core.js",
+      "bytes": 3068,
+      "sha256": "a2676776e319e8ad51b671503ec2f4b09fbc97a1ea9156ee2ec2269aea324d4d"
+    },
+    {
+      "path": "dist/api/curve-feature-pattern-plan.d.ts",
+      "bytes": 679,
+      "sha256": "8a5f3b7e204c08ff247fdcd48ac9089cb0521c0bf2e2793ffb73662417d5ee35"
+    },
+    {
+      "path": "dist/api/curve-feature-pattern-plan.js",
+      "bytes": 703,
+      "sha256": "15cc80aee082ad8da7962f8d35f7f5089dd1b5eece65f6d74977824b6a379e88"
+    },
+    {
+      "path": "dist/api/index.d.ts",
+      "bytes": 1810,
+      "sha256": "9262efe86b7d905d8961fd05dc512b143e57804853f5bd9c0b9a8d1fdd04cbe0"
+    },
+    {
+      "path": "dist/api/index.js",
+      "bytes": 1115,
+      "sha256": "8ecf989f55e1a97145e66fc6944de9fd92bd0a5fe4d2a4a72d7a3e680522b6a3"
+    },
+    {
+      "path": "dist/api/kernel.d.ts",
+      "bytes": 681,
+      "sha256": "8e2c43ee0cb61669519cf8ec431a6a423243b2b9b2203538e570525c03cbafd1"
+    },
+    {
+      "path": "dist/api/kernel.js",
+      "bytes": 14312,
+      "sha256": "f7deca7b20c63524801cae4cedb43994db0e15c246ea078a8b6a4f3fef58395f"
+    },
+    {
+      "path": "dist/api/part.d.ts",
+      "bytes": 9352,
+      "sha256": "84edec198149fedecac301dffa1e841807fbcb6a1a98cbc58da1584ce8678219"
+    },
+    {
+      "path": "dist/api/part.js",
+      "bytes": 17129,
+      "sha256": "9fb01f0080c90b6a436166738ad5ff8af791f89e58df2f01487f208db52e3367"
+    },
+    {
+      "path": "dist/api/refusal.d.ts",
+      "bytes": 833,
+      "sha256": "86c7d7ce590671193bb1eaccc650bcbc5a543d7cfedf7f38d9a62a8913fb0e23"
+    },
+    {
+      "path": "dist/api/refusal.js",
+      "bytes": 925,
+      "sha256": "6eaef20fed6d20f138f23a1b15456b554b51dda0eea9c5d44a6a07438ed2c0fb"
+    },
+    {
+      "path": "dist/api/select.d.ts",
+      "bytes": 3690,
+      "sha256": "6b38d20e08022bbecef5dba5e0fef19bb59724fa6d40256b1138bc1205be5e3c"
+    },
+    {
+      "path": "dist/api/select.js",
+      "bytes": 10174,
+      "sha256": "50295657e2c81c22face743b3a8fb53b80f2ff31757400e95ca20eee417c09ce"
+    },
+    {
+      "path": "dist/api/sketch.d.ts",
+      "bytes": 5506,
+      "sha256": "95e8373fd43a8919ad5dddb47e6d5a3407e2dc04f0e8a3551a32f6d1bc57f4c6"
+    },
+    {
+      "path": "dist/api/sketch.js",
+      "bytes": 8854,
+      "sha256": "bb08817276cf58add5eb488e8302c722e510e6a8b8fa4175fbc7d630b8b0e2e8"
+    },
+    {
+      "path": "dist/api/spec.d.ts",
+      "bytes": 14345,
+      "sha256": "1c3ae639ad4cbb2e6723f1db94b95cae6ca238bf75520663ffcd5adb777e7154"
+    },
+    {
+      "path": "dist/api/spec.js",
+      "bytes": 12874,
+      "sha256": "c3dce7ec74ea6611f596bf0d76e9624a9098deb26b589cb234c3ccafa1c1b7f9"
+    },
+    {
+      "path": "dist/api/surface-snapshot.d.ts",
+      "bytes": 423,
+      "sha256": "0450ed8a5f3118dffb02a1eb7f7d77fb0733d546be85b60b9346cf39847008ae"
+    },
+    {
+      "path": "dist/api/surface-snapshot.js",
+      "bytes": 4139,
+      "sha256": "b94f087b474a49a7aaddf7765c57a7077a1fab3d7525659d477216732e7f8b8d"
+    },
+    {
+      "path": "dist/axis-box-boolean.d.ts",
+      "bytes": 8813,
+      "sha256": "6c7c644f9077012cca09f7b86024f51e9bc29c66d6ff670df1037dc9862a49cf"
+    },
+    {
+      "path": "dist/axis-box-boolean.js",
+      "bytes": 37248,
+      "sha256": "20954e1997969c6a7c3ecddbf5080370704dfaf10378af2befcda777ac7e62a2"
+    },
+    {
+      "path": "dist/axis-box-solid-mass.d.ts",
+      "bytes": 6561,
+      "sha256": "dadfb0b0caada6cd91d83469ffcafb457cdb01f3991c0ebf41336b6d32cf3219"
+    },
+    {
+      "path": "dist/axis-box-solid-mass.js",
+      "bytes": 14675,
+      "sha256": "ec140d01499822c88b54e2cced62f9d7a5a608132ed0f07056d1ee3cbb3ffd66"
+    },
+    {
+      "path": "dist/blend/edge-finish.d.ts",
+      "bytes": 1354,
+      "sha256": "3c4710164feac355fb5187bb025b9bbc61cd46b2715c86ca3580639f2ebac7d3"
+    },
+    {
+      "path": "dist/blend/edge-finish.js",
+      "bytes": 106263,
+      "sha256": "c9a05a5e6b9cda78e01a8aec4cf249feccefa47d44a6e33379bc8312342267f6"
+    },
+    {
+      "path": "dist/blend/fillet-section.d.ts",
+      "bytes": 2150,
+      "sha256": "33b5312c714b1cde0f759bca8fa04229d1463c589e73635db9044915e2ff24b5"
+    },
+    {
+      "path": "dist/blend/fillet-section.js",
+      "bytes": 7825,
+      "sha256": "d919077cf6fb8060a1278b87b444ecab878319edd694f1208b0e73fdc985d443"
+    },
+    {
+      "path": "dist/blend/general-shell.d.ts",
+      "bytes": 1092,
+      "sha256": "f797243598e13e99db33b91f8b98cdd487a2fa9b27127408df336b47ea436ca9"
+    },
+    {
+      "path": "dist/blend/general-shell.js",
+      "bytes": 49866,
+      "sha256": "b581f549169f03a5fb25d8d0661508fa06edc99b13f8cd578b216421a49e7f0d"
+    },
+    {
+      "path": "dist/blend/offset-cavity.d.ts",
+      "bytes": 3888,
+      "sha256": "ab1a95bcb217f24f08e0c8dd095e119ad068c68824b83591e787a644968ce11e"
+    },
+    {
+      "path": "dist/blend/offset-cavity.js",
+      "bytes": 75716,
+      "sha256": "9b97aaaf8eeaafb0c246c3480bdc7aebef7ccf895caabd8cc3a613e047f843d1"
+    },
+    {
+      "path": "dist/blend/polynomial-face-fillet.d.ts",
+      "bytes": 414,
+      "sha256": "6a6ee90cae6efbeb9beb998586a91f44fe54a9da22b4d8151c2df1efeb361020"
+    },
+    {
+      "path": "dist/blend/polynomial-face-fillet.js",
+      "bytes": 31762,
+      "sha256": "57948f6b7e0a299f5e63208131d757a90dd50d8751f1553133deb05fc737b143"
+    },
+    {
+      "path": "dist/blend/polynomial-run.d.ts",
+      "bytes": 551,
+      "sha256": "e3da01a4329719f69274335223c775f179d20be66b152f9cc59436311e7c24cf"
+    },
+    {
+      "path": "dist/blend/polynomial-run.js",
+      "bytes": 4742,
+      "sha256": "d9cff8bc6fc51a6f4cea181a6d0549df242d28cd6975858bfe229d083a561e7f"
+    },
+    {
+      "path": "dist/blend/region-shell.d.ts",
+      "bytes": 271,
+      "sha256": "11ba2c4c306b6fc25c86e4e1013657a712013e3f7f4fb493e95ab0241d911a62"
+    },
+    {
+      "path": "dist/blend/region-shell.js",
+      "bytes": 16242,
+      "sha256": "fb36784d36ef586d6acdd4443fa7666d101f74aed114bd20ac64e5b9feb6fe18"
+    },
+    {
+      "path": "dist/blend/rolling-ball.d.ts",
+      "bytes": 11150,
+      "sha256": "91c233aaf40b5b15499b3775f681b4eda7869c03fa4aee0c1cb21cbbb69908c7"
+    },
+    {
+      "path": "dist/blend/rolling-ball.js",
+      "bytes": 116749,
+      "sha256": "1b228ac2e9355d781508f15e2a9fffed0e240934a2cd7d605304a19e23f6af3a"
+    },
+    {
+      "path": "dist/brep/analytic-boolean.d.ts",
+      "bytes": 5794,
+      "sha256": "0134917b3781dff2b62908252846bac92d7a68e0b49c5492bd62aa52f090abb4"
+    },
+    {
+      "path": "dist/brep/analytic-boolean.js",
+      "bytes": 202224,
+      "sha256": "1e7af0878b36a2727e368f8a17d75c83fefce745dcbad786b37a24fd37b6493c"
+    },
+    {
+      "path": "dist/brep/axis-inertia.d.ts",
+      "bytes": 1067,
+      "sha256": "ba2ff337e5376e5154f79a34e043b51a0a4b04497998c4efda0642c15ab126b1"
+    },
+    {
+      "path": "dist/brep/axis-inertia.js",
+      "bytes": 3826,
+      "sha256": "65b9aaa74451f90b444b944dd8a86d03f35a51620899ee082fe726d61e6dba9c"
+    },
+    {
+      "path": "dist/brep/brep-adapters.d.ts",
+      "bytes": 1833,
+      "sha256": "25652922f1b0a9a369928ceba083b419faddb1cd3b0ee791dad6781dd7572f90"
+    },
+    {
+      "path": "dist/brep/brep-adapters.js",
+      "bytes": 7595,
+      "sha256": "7f2fc048790cb613bf8b497144ed9e864e5f67149debcb8e3c4aa7ade9ef19e8"
+    },
+    {
+      "path": "dist/brep/brep-bounds.d.ts",
+      "bytes": 328,
+      "sha256": "471b4345b2b860b86fd2680ab39ba0ecdf3ac2d76502612a1a0445332c1c857f"
+    },
+    {
+      "path": "dist/brep/brep-bounds.js",
+      "bytes": 7579,
+      "sha256": "8f374ced7cbf688444a66844d3522e744c36c45d861de25543b8fbfe78f2819a"
+    },
+    {
+      "path": "dist/brep/brep-check-geometry.d.ts",
+      "bytes": 857,
+      "sha256": "cb3973b2dfb2a7d87c9f80a6901b9fcb6cf640ad0932e65fd80d4a7484458cca"
+    },
+    {
+      "path": "dist/brep/brep-check-geometry.js",
+      "bytes": 23835,
+      "sha256": "f47bc9998a5384b2da7e7af33e13431df79390de6eeb18fac73966ba0c29eafe"
+    },
+    {
+      "path": "dist/brep/brep-core.d.ts",
+      "bytes": 9168,
+      "sha256": "cbb73f2a50d7c10a1d0246dea77bca878d18853623b202f473d17a6f375b020b"
+    },
+    {
+      "path": "dist/brep/brep-core.js",
+      "bytes": 28231,
+      "sha256": "7c64346eaac5fe5c5c9ac01ea498583b4ff99d689eb2687ff4222de49f16c0f9"
+    },
+    {
+      "path": "dist/brep/brep-euler.d.ts",
+      "bytes": 3338,
+      "sha256": "2cc7cf6cf04cfb3d8d09a76e2028542c86d83d72d27916f118a9abcc24dbc2f3"
+    },
+    {
+      "path": "dist/brep/brep-euler.js",
+      "bytes": 10458,
+      "sha256": "6816a468cb54fffe1e41d835504a554867aef2c0578d482d1d0e39ad1a6e53fd"
+    },
+    {
+      "path": "dist/brep/brep-glue.d.ts",
+      "bytes": 534,
+      "sha256": "3f482d79c9655764ff06f0e99c09099b0446adb317f5bf8de38820e7365d995b"
+    },
+    {
+      "path": "dist/brep/brep-glue.js",
+      "bytes": 8255,
+      "sha256": "e0632911c9751dde3dce2cb382cea3d9f06523c35506b0bc6a70f2b435f780a2"
+    },
+    {
+      "path": "dist/brep/brep-hidden-line.d.ts",
+      "bytes": 2429,
+      "sha256": "ee04ecdc8dc1ba0613cbacdacda01c2879a2c52361b63a4c63254e3fc249641a"
+    },
+    {
+      "path": "dist/brep/brep-hidden-line.js",
+      "bytes": 34609,
+      "sha256": "6a477f0fb3cdaf7932ee81c0e704ea7ed0522a60d67e57e3123a40ab1cada117"
+    },
+    {
+      "path": "dist/brep/brep-mass-quadrature.d.ts",
+      "bytes": 1994,
+      "sha256": "7f934af9fa1b7c87150a55a5c8030166a2ff7911f2064f0cebf9151ce2cdc117"
+    },
+    {
+      "path": "dist/brep/brep-mass-quadrature.js",
+      "bytes": 63323,
+      "sha256": "830606c3e8f1c28501188566a987b1caf71d0bbefecc9733b121794a51f86e57"
+    },
+    {
+      "path": "dist/brep/brep-sweep.d.ts",
+      "bytes": 1299,
+      "sha256": "62ca23545ca792f36f0cbcbbd57ee29e559579cead069cfe1ed0ed4a8c977f18"
+    },
+    {
+      "path": "dist/brep/brep-sweep.js",
+      "bytes": 7316,
+      "sha256": "b73c4d0e038eea58537b75b97f2a1458922b81eeb44033bcb8d223ced38ba66b"
+    },
+    {
+      "path": "dist/brep/brep-tessellate.d.ts",
+      "bytes": 3875,
+      "sha256": "b51de5a2c4f9eca4bf36579977f036a3f782a86983e3196e9322210fac51b139"
+    },
+    {
+      "path": "dist/brep/brep-tessellate.js",
+      "bytes": 95106,
+      "sha256": "1c6d01b05c83dddbcd7b2d21c720e7610bdd3e1d9acc28b0107e1903f29cc402"
+    },
+    {
+      "path": "dist/brep/brep-transform.d.ts",
+      "bytes": 667,
+      "sha256": "4c7dc70294310ae9bef2afc3c5d9baf6c973f7a0bbe55e21279fe1ef5079e567"
+    },
+    {
+      "path": "dist/brep/brep-transform.js",
+      "bytes": 2854,
+      "sha256": "cbc8140e034c14588b9a274b8e05881b8454f4329f410af567396a5552c0ef21"
+    },
+    {
+      "path": "dist/brep/closed-exact-patch-shell.d.ts",
+      "bytes": 5942,
+      "sha256": "5b1aeaf2cd2115fbfaced631437e35207d5847dbdaa28bdb41277edf5fa7a4e4"
+    },
+    {
+      "path": "dist/brep/closed-exact-patch-shell.js",
+      "bytes": 27566,
+      "sha256": "8d654183dafb07c4640e2e4de42d06222563d7a60c36982b872447330ba83562"
+    },
+    {
+      "path": "dist/brep/convex-distance.d.ts",
+      "bytes": 203,
+      "sha256": "db678d179271c425dcddb1211301202b6c8af3ddff9fe3d747093f931ff5b492"
+    },
+    {
+      "path": "dist/brep/convex-distance.js",
+      "bytes": 4597,
+      "sha256": "3e5ee8c9814e059d9c9c3db6f78d9f2bf96d366f959d7a335830de6635550fa8"
+    },
+    {
+      "path": "dist/brep/convex-hull.d.ts",
+      "bytes": 606,
+      "sha256": "be8d5fa351236a9d26419a46f57cbc1f8a9d26b32a359c32459ea977c87be003"
+    },
+    {
+      "path": "dist/brep/convex-hull.js",
+      "bytes": 7678,
+      "sha256": "1e9249ef8abda05e21e04b3eaefb57c812506825ae70110e33be85c8661418f3"
+    },
+    {
+      "path": "dist/brep/curved-arrangement.d.ts",
+      "bytes": 5682,
+      "sha256": "4b12411f39adbf446944e296d072178dc4fd63070e9a0583600b3dd340eca917"
+    },
+    {
+      "path": "dist/brep/curved-arrangement.js",
+      "bytes": 60342,
+      "sha256": "8eaa63e4fda09e07712a932e0696a26f678ce7e84d0ab4ca45729678928a5482"
+    },
+    {
+      "path": "dist/brep/planar-arrangement.d.ts",
+      "bytes": 3631,
+      "sha256": "acaecdaa2631050a88bad5697e3088f48da24ff07adb0502909b01fe83986117"
+    },
+    {
+      "path": "dist/brep/planar-arrangement.js",
+      "bytes": 23556,
+      "sha256": "30a5e226c4cc4673942490c7e550516f24979339c61ec7278c1558b31645b88f"
+    },
+    {
+      "path": "dist/brep/polyhedral-boolean.d.ts",
+      "bytes": 467,
+      "sha256": "bec511b89864a50761e69674439ad321d04e6cef97af96a2325276c7c7477753"
+    },
+    {
+      "path": "dist/brep/polyhedral-boolean.js",
+      "bytes": 29367,
+      "sha256": "f132aabb69cc33262b955b9f8f602404d7865b1b6dd0d3ad15e8d380814e861d"
+    },
+    {
+      "path": "dist/brep/sew-solid.d.ts",
+      "bytes": 892,
+      "sha256": "1ad0f6ad382863d04c36e531567be5c0c711d5e780addcddfaadea9cfe221264"
+    },
+    {
+      "path": "dist/brep/sew-solid.js",
+      "bytes": 11237,
+      "sha256": "0950a4d19827de3cfdc2b15932598a420370001ee8417f71a68d48e6be1bb72c"
+    },
+    {
+      "path": "dist/brep/solid-mass.d.ts",
+      "bytes": 4166,
+      "sha256": "42a814cc8db3bc99b1723258f17e76b4f36145539855e35ebf0ae46d53b4e45f"
+    },
+    {
+      "path": "dist/brep/solid-mass.js",
+      "bytes": 15681,
+      "sha256": "5a45147aa0980a88a456e17226cc8c0f18dcc482e69fc1e8401af3d62af6dbe2"
+    },
+    {
+      "path": "dist/brep/sweep-solid.d.ts",
+      "bytes": 798,
+      "sha256": "344a2a2ab69fd632e96eeebd6f284cf1273b12ce74a01090675fa07f4837eacc"
+    },
+    {
+      "path": "dist/brep/sweep-solid.js",
+      "bytes": 4949,
+      "sha256": "f2cc06ffe86546223af35e10567a3a76a9d223a318587213d377c7629a212d01"
+    },
+    {
+      "path": "dist/brep/thicken-solid.d.ts",
+      "bytes": 514,
+      "sha256": "bd0227dcb5a9a5a2677ae796a7d27b9280d0896cc8b32cddd7e34d2def13017a"
+    },
+    {
+      "path": "dist/brep/thicken-solid.js",
+      "bytes": 3465,
+      "sha256": "7bbd557b35b6c14a637a051313181527492e1a90eed33b02e278c497944eb3bb"
+    },
+    {
+      "path": "dist/cad-document.d.ts",
+      "bytes": 5195,
+      "sha256": "59c3c80bbc8e236635b9f7f247babf9bc6bdaec26c9e93a56df52ce0a838cb82"
+    },
+    {
+      "path": "dist/cad-document.js",
+      "bytes": 20476,
+      "sha256": "b7b62e3b8e099d66ecb92ad44caeb1055e241d5f38f373188d6b40e58f461757"
+    },
+    {
+      "path": "dist/convex-planar-slab-subtraction.d.ts",
+      "bytes": 5909,
+      "sha256": "b8bb0761a5aa03200d55c3eedd64b1665d65e21bdbd074c5ca240079053ddaa4"
+    },
+    {
+      "path": "dist/convex-planar-slab-subtraction.js",
+      "bytes": 21708,
+      "sha256": "0e63bbdc2c10334ff20e9e6b0aced09ced5dee1d20b159e5a31b648e6ce39ea2"
+    },
+    {
+      "path": "dist/convex-planar-solid-chamfer.d.ts",
+      "bytes": 4011,
+      "sha256": "9082b5415676834651a5d1830b5f49d1f57fc42fd61aac118e3b51ee022904c5"
+    },
+    {
+      "path": "dist/convex-planar-solid-chamfer.js",
+      "bytes": 17085,
+      "sha256": "c6947552ce3aeed81e9829d5f305c05fb609793979f419fa79dd6757a9df15ac"
+    },
+    {
+      "path": "dist/convex-planar-solid-intersection.d.ts",
+      "bytes": 4601,
+      "sha256": "22084a8317455885d1d9081c9e0d3039e16d65c01605b6b2f960aef1c5313fc4"
+    },
+    {
+      "path": "dist/convex-planar-solid-intersection.js",
+      "bytes": 17223,
+      "sha256": "cdff938588d4c35bdbf4d089367a3089d8ed75ba03f5491ad2736daec23937de"
+    },
+    {
+      "path": "dist/convex-planar-solid-mass.d.ts",
+      "bytes": 4769,
+      "sha256": "56d62b35c02bc0fc982e7c874701e837000ef1c918fc40df802650f45e6790a1"
+    },
+    {
+      "path": "dist/convex-planar-solid-mass.js",
+      "bytes": 12376,
+      "sha256": "64efe0040e7963c4a1a2b5db388be023c5edda3c900e8d92677922b559936ca4"
+    },
+    {
+      "path": "dist/convex-planar-solid-proof-internal.d.ts",
+      "bytes": 2804,
+      "sha256": "54c18ccd5f9a7470ba503f45d12ee48d29d462d4e7120f96694025a96151748d"
+    },
+    {
+      "path": "dist/convex-planar-solid-proof-internal.js",
+      "bytes": 10953,
+      "sha256": "500fcddcc50679b79c8c69ea21f630d014abbf3c65a9464a13b0ee346c6fb51f"
+    },
+    {
+      "path": "dist/convex-planar-solid-split.d.ts",
+      "bytes": 5798,
+      "sha256": "4e8b88e0f8803b346f4b13a9631087cdfbaf65fc1883b7a8087a0cc738cd35f7"
+    },
+    {
+      "path": "dist/convex-planar-solid-split.js",
+      "bytes": 25842,
+      "sha256": "84fa340852923a14987defc931d332886efc91654575089cc0832f0310f66505"
+    },
+    {
+      "path": "dist/convex-planar-solid.d.ts",
+      "bytes": 6706,
+      "sha256": "f1efa42b851eb6b9a139f2d13cea5863a002e4b10245aef94a3f3ebe21866020"
+    },
+    {
+      "path": "dist/convex-planar-solid.js",
+      "bytes": 18492,
+      "sha256": "933b41c2494a7287f838a5caf636a493bb55866e235797aad9a973e4836ded79"
+    },
+    {
+      "path": "dist/core/adjacency.d.ts",
+      "bytes": 1632,
+      "sha256": "af7652a1e784e3ec78987411da0439b8cc63fa101aa74721b89b4a1679699e3e"
+    },
+    {
+      "path": "dist/core/adjacency.js",
+      "bytes": 10296,
+      "sha256": "6b67d2215fe9e6236ddd0a6871da03191d8f082821705997c2a2acd5c43ffb70"
+    },
+    {
+      "path": "dist/core/barocss-error.d.ts",
+      "bytes": 1977,
+      "sha256": "a5979efe33faa3528e2f37db6ad502db01a074c17df5c9e6b855fcb3c43d3db3"
+    },
+    {
+      "path": "dist/core/barocss-error.js",
+      "bytes": 2420,
+      "sha256": "513d88dad54c198a6976bdd0279683283f3f1ccc8a1bcae5038172e7043fdba0"
+    },
+    {
+      "path": "dist/core/boundary.d.ts",
+      "bytes": 395,
+      "sha256": "65ac535f596c59caa513cd5817825df81f0836288b113d39101ba2cfcb48a93b"
+    },
+    {
+      "path": "dist/core/boundary.js",
+      "bytes": 3503,
+      "sha256": "728147260e9d5c5d9e76d11511191525a2aabb5afca00f71d2c3e46b90b923ce"
+    },
+    {
+      "path": "dist/core/box-shell.d.ts",
+      "bytes": 1422,
+      "sha256": "2b2daee2e1e376825ab97e774095d4d97c3242b72679af49efa447341d7a35af"
+    },
+    {
+      "path": "dist/core/box-shell.js",
+      "bytes": 11675,
+      "sha256": "aa49609fd1b589ee0d371209864838b39cbd463735a4453d888eed5d3182f11d"
+    },
+    {
+      "path": "dist/core/box-solid.d.ts",
+      "bytes": 481,
+      "sha256": "913ceaea603eb2764a399cb099bfb77c02e0b64d621f5be78694b100518f1992"
+    },
+    {
+      "path": "dist/core/box-solid.js",
+      "bytes": 3417,
+      "sha256": "a9986410281c09c04979e6bdc00b9617887ab5a28fe935731248eba62f5b8cbe"
+    },
+    {
+      "path": "dist/core/derivatives.d.ts",
+      "bytes": 973,
+      "sha256": "9f723af563ebc567f170aac56092f17ce55cd6cf65bc6b36b700523748629332"
+    },
+    {
+      "path": "dist/core/derivatives.js",
+      "bytes": 8092,
+      "sha256": "fb4b39065580478d659fb650335143cf773105a0b6c3a4d230f52a42138033d8"
+    },
+    {
+      "path": "dist/core/dyadic.d.ts",
+      "bytes": 104,
+      "sha256": "a0cd08b1db4973e381d2988f3888b0aeb61b35cfb8e4ef7d2e0e8c679bf3f63f"
+    },
+    {
+      "path": "dist/core/dyadic.js",
+      "bytes": 767,
+      "sha256": "403cfa843fe91b6884ee566fab7d290486122b6b8930002b94c874ba841c914e"
+    },
+    {
+      "path": "dist/core/error-codes.d.ts",
+      "bytes": 6557,
+      "sha256": "188bc9e4bff8bdcde7e14e410aeef321d509ddf6456e56d04e489966341ead4f"
+    },
+    {
+      "path": "dist/core/error-codes.js",
+      "bytes": 7198,
+      "sha256": "dffb8a6a963bbfde66249994065f9d25636249ca1241e5ed643349e7ee6664fe"
+    },
+    {
+      "path": "dist/core/extent.d.ts",
+      "bytes": 599,
+      "sha256": "581d1d4770fe7e66e66cc514d857dc924962f2111f8b3dbc4ecebd3655d87958"
+    },
+    {
+      "path": "dist/core/extent.js",
+      "bytes": 1381,
+      "sha256": "37f8fc5f039defd491813da09dc99a7bb34d8a661c76934ae3d05a4dc68fc834"
+    },
+    {
+      "path": "dist/core/extrusion.d.ts",
+      "bytes": 458,
+      "sha256": "dda02700610dda94301224a209b50b137165bb552b8dacbbb086fc246e6dde07"
+    },
+    {
+      "path": "dist/core/extrusion.js",
+      "bytes": 827,
+      "sha256": "544cb65e6e27a2a9ddef9894a1553cbde5c89b82489573523d2418027368a612"
+    },
+    {
+      "path": "dist/core/face.d.ts",
+      "bytes": 1553,
+      "sha256": "d203f643354631d58cf7ac04d1ab36e9695dd80a1af856c64c5ad7a17d17aa54"
+    },
+    {
+      "path": "dist/core/face.js",
+      "bytes": 10538,
+      "sha256": "4bc5df71bca1c53200d278639a921a3829c63be16f9bb65aaa34eb1b605679d0"
+    },
+    {
+      "path": "dist/core/math.d.ts",
+      "bytes": 1584,
+      "sha256": "ab82beb807198391024e738cd95817b51b0d98fe7c69ab3649503cd1aae75336"
+    },
+    {
+      "path": "dist/core/math.js",
+      "bytes": 15681,
+      "sha256": "fee23d90d77c1c05178a2b60ae3cff67eaa71eaa585697946378434bc3f86289"
+    },
+    {
+      "path": "dist/core/native-d0-bound.d.ts",
+      "bytes": 5315,
+      "sha256": "8b0e9bafb4616ecd6fdaa4e0df53057f859b2b772a0379942882f23beeac653f"
+    },
+    {
+      "path": "dist/core/native-d0-bound.js",
+      "bytes": 26685,
+      "sha256": "f7789ff4fdcf497b4690094971730956ddcb999109529d5416cc59ebe7103bf5"
+    },
+    {
+      "path": "dist/core/orthogonal-adjacency.d.ts",
+      "bytes": 901,
+      "sha256": "edbc47004bd3e6d26f4477e135f093d1885a8013b8e200492fc6c67b874ba83c"
+    },
+    {
+      "path": "dist/core/orthogonal-adjacency.js",
+      "bytes": 10397,
+      "sha256": "ed6090db341bce5678bb22a8bcafec07191ad869bc207fe1efd2aba0559adcd2"
+    },
+    {
+      "path": "dist/core/own-data.d.ts",
+      "bytes": 3470,
+      "sha256": "5813654e90d68ee04baa28f5d1e3601d2dfe525fae4400eb125edeef931ff108"
+    },
+    {
+      "path": "dist/core/own-data.js",
+      "bytes": 5208,
+      "sha256": "86f6c2188e71b9a494cae418c79d7fdf91fea87242c92058396c986f2573c3cd"
+    },
+    {
+      "path": "dist/core/packet.d.ts",
+      "bytes": 805,
+      "sha256": "ffe72b7176a505e4f78d790db863e66b3e61fbca8b4807249c07229808b65729"
+    },
+    {
+      "path": "dist/core/packet.js",
+      "bytes": 7872,
+      "sha256": "00404af9bdc8441f2785af86a3a1a1b0bdba5a0702e620c6adfdc2dff85a1fbc"
+    },
+    {
+      "path": "dist/core/preview.d.ts",
+      "bytes": 835,
+      "sha256": "6e94f23d0a1cd7339d5e8c19e3174ab01649718b2e31bb00cdfcc3a8f2634444"
+    },
+    {
+      "path": "dist/core/preview.js",
+      "bytes": 7152,
+      "sha256": "60e31bac419340f932237852c88f30e681e993f9ee3cb0787e2b9f23d308de78"
+    },
+    {
+      "path": "dist/core/public-api.d.ts",
+      "bytes": 5866,
+      "sha256": "990f9518103b6fcee0755d079be5e280efb1c7eb29edea83d25181c7daf27d76"
+    },
+    {
+      "path": "dist/core/public-api.js",
+      "bytes": 5826,
+      "sha256": "96880bbffe2d1a4f18899464f32d9f56677b01bc58fef140b41a62de889ba6ff"
+    },
+    {
+      "path": "dist/core/quadrature.d.ts",
+      "bytes": 134,
+      "sha256": "4438c9b2ae5b6ac5ab404a81d59b07e5ed1248771c9ce789d790a0d800b70c7a"
+    },
+    {
+      "path": "dist/core/quadrature.js",
+      "bytes": 885,
+      "sha256": "10ee0c53a107783ccff65025dd1c401f21882cef8045fec9f63216e4d1c5e1a0"
+    },
+    {
+      "path": "dist/core/second-derivatives.d.ts",
+      "bytes": 1653,
+      "sha256": "b0718258779546f27aff967636c531d56dc0efab2e3d4207fcd45dc8b7b5b6a9"
+    },
+    {
+      "path": "dist/core/second-derivatives.js",
+      "bytes": 15225,
+      "sha256": "ae3eda236390e36266f7e107c3daefb60d28b92ea7162269f0f319ffac1ff7f2"
+    },
+    {
+      "path": "dist/core/structural-equality.d.ts",
+      "bytes": 63,
+      "sha256": "6d7eda4dcd07a1c7d657de36cb56a108e46bd983f3fe83a666a67437a4b7bd29"
+    },
+    {
+      "path": "dist/core/structural-equality.js",
+      "bytes": 826,
+      "sha256": "4335d9e9feabcf24fdc4fa1c49bb6c66aa41416cc45bdde48082746bba1709b3"
+    },
+    {
+      "path": "dist/core/vec3.d.ts",
+      "bytes": 597,
+      "sha256": "4c42609a08401104a8767dbc4fa3db9bdf8cfc5031423b83bcdbe5d502321a53"
+    },
+    {
+      "path": "dist/core/vec3.js",
+      "bytes": 792,
+      "sha256": "f32fd5f9de957e6d81a5e930efb8fd5a33a527567aeb90427d605c0ce45ca47a"
+    },
+    {
+      "path": "dist/data-copy.d.ts",
+      "bytes": 132,
+      "sha256": "3109c0d462f93956b957ba9c58bdeff06898c75c1dca046fdde11c256fa9dbb8"
+    },
+    {
+      "path": "dist/data-copy.js",
+      "bytes": 377,
+      "sha256": "33a46d35f16486d23f2304ae473a35bf463b16ebb0816433fd1d2392944035f7"
+    },
+    {
+      "path": "dist/document/cad-assembly-instance-point.d.ts",
+      "bytes": 3309,
+      "sha256": "0efd59e3fccf948d34f6293c76e859f9bf9e506ffd8428342ba3cc535ff7f6da"
+    },
+    {
+      "path": "dist/document/cad-assembly-instance-point.js",
+      "bytes": 6726,
+      "sha256": "cc15acaf5cfd77ee287fdbc1e76aba849683d12b9ad059e02284a3bf1ce175aa"
+    },
+    {
+      "path": "dist/document/cad-assembly-members.d.ts",
+      "bytes": 3647,
+      "sha256": "537d352d22dde03bc500271d7804db857a502d35636b3e87fe53e149d6fe5e2f"
+    },
+    {
+      "path": "dist/document/cad-assembly-members.js",
+      "bytes": 10451,
+      "sha256": "5e7771adca029a746219c0c21b32e5efe510cb733c9b4df1e1e4908a225df421"
+    },
+    {
+      "path": "dist/document/cad-assembly-part-replacement.d.ts",
+      "bytes": 4691,
+      "sha256": "69bc80a13f7e06b7c47331466ef80f7871c777d2e0babdf9dd20a8adeeef1397"
+    },
+    {
+      "path": "dist/document/cad-assembly-part-replacement.js",
+      "bytes": 17474,
+      "sha256": "a07bcb71394c281498b1be2a8622e6c703f0f615f02bee3bf774f3ae36b18a6f"
+    },
+    {
+      "path": "dist/document/cad-assembly.d.ts",
+      "bytes": 7003,
+      "sha256": "40a0bd8ccbc8fdb4fd248652d91fa2bc917f2b8d003da56199299b3522f1a717"
+    },
+    {
+      "path": "dist/document/cad-assembly.js",
+      "bytes": 22989,
+      "sha256": "1a4d58ec102e4b187d8d101b04c2bf6064f44599d779c164992b03dbdd4fb7f5"
+    },
+    {
+      "path": "dist/document/cad-document-bounds.d.ts",
+      "bytes": 3363,
+      "sha256": "070e7a75711882d59e5a188555bdb3f34c10f00da9e006e5dd6da3a6ce29e607"
+    },
+    {
+      "path": "dist/document/cad-document-bounds.js",
+      "bytes": 7679,
+      "sha256": "76a56ded713dc4f89db2b0b8e5e514bf24a624182321ac736cef9fbe97f340ec"
+    },
+    {
+      "path": "dist/document/cad-document-compatibility.d.ts",
+      "bytes": 5348,
+      "sha256": "5bb52b42a02192cce505ae2566314365a5b3d670b3f317656df6dc029d614e4c"
+    },
+    {
+      "path": "dist/document/cad-document-compatibility.js",
+      "bytes": 15211,
+      "sha256": "59e78f782a6da4e73a775d4405569fd7f2251097c8c69f08378060dff4ec9356"
+    },
+    {
+      "path": "dist/document/cad-document-export.d.ts",
+      "bytes": 6409,
+      "sha256": "e87ce097b8a7721d11b44059d38aaffcf80ca157adcce65aabd42a7563f4a68c"
+    },
+    {
+      "path": "dist/document/cad-document-export.js",
+      "bytes": 17055,
+      "sha256": "720963e7cfd1bb1f764db05fb4c6158e38d76d3f2e1564aa3bd2cb15cb7f447d"
+    },
+    {
+      "path": "dist/document/cad-document-reference.d.ts",
+      "bytes": 6860,
+      "sha256": "5a3e1b14fd06c52392c698fc51ade12404c21cca024444ab9d9a705685b88653"
+    },
+    {
+      "path": "dist/document/cad-document-reference.js",
+      "bytes": 17971,
+      "sha256": "a3b8a116dc1957330819900e42f65215a2f50574653aabd669b92908264b9373"
+    },
+    {
+      "path": "dist/document/construction-types.d.ts",
+      "bytes": 332,
+      "sha256": "61354f39cace31d7a22e11ef0544e97f4fe017d8d9bdab2b58e53c6c23dc036c"
+    },
+    {
+      "path": "dist/document/construction-types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "dist/document/function-quantity-semantics.d.ts",
+      "bytes": 2539,
+      "sha256": "aa39503555060a493174e3715da0233ecf11f011eef600da3e57cb1f2418a31f"
+    },
+    {
+      "path": "dist/document/function-quantity-semantics.js",
+      "bytes": 23657,
+      "sha256": "650c496d97abf858bd6fed8458a409510b6230d07394d0d9c454b489b857ad5d"
+    },
+    {
+      "path": "dist/document/parameter-semantics.d.ts",
+      "bytes": 992,
+      "sha256": "9b6c7c0bb5dc6ecf16b6e208f2775cb7b5db044155321a2cf326b465e5c1a63a"
+    },
+    {
+      "path": "dist/document/parameter-semantics.js",
+      "bytes": 11500,
+      "sha256": "509b891a040065d87851c414efcb8de3512328e1e919731a14ca2b8813279078"
+    },
+    {
+      "path": "dist/document/side-names.d.ts",
+      "bytes": 579,
+      "sha256": "888b57f072ce1e87034231e39c8b942e0b25ad4cf6d71cf6a41cea4f4fd7e89c"
+    },
+    {
+      "path": "dist/document/side-names.js",
+      "bytes": 644,
+      "sha256": "612106fe204018031339cdb09d60d6bf60582daa46d36e6cc1e92a0ca95ba379"
+    },
+    {
+      "path": "dist/document/unit-named.d.ts",
+      "bytes": 146,
+      "sha256": "71df1c309c24b3f841f10d3e892eb47cf6126969e38c961744f52c0eac1506ae"
+    },
+    {
+      "path": "dist/document/unit-named.js",
+      "bytes": 1344,
+      "sha256": "87f3b15331797bd01b5ca3290813c85c2be08f6565e9b7f4ce8108f9a42b4bd6"
+    },
+    {
+      "path": "dist/exact-proof/exact-affine-plane-internal.d.ts",
+      "bytes": 1138,
+      "sha256": "9a55b6dc6de59d4dc743f24c00fc11ab7d54a254666d0d625e4cfc20da909555"
+    },
+    {
+      "path": "dist/exact-proof/exact-affine-plane-internal.js",
+      "bytes": 3728,
+      "sha256": "6c7861bc5f7796845b478ac113c3ad80ef87272688d90bfa03caf23571574879"
+    },
+    {
+      "path": "dist/exact-proof/exact-binary64-orientation-v1.d.ts",
+      "bytes": 931,
+      "sha256": "900c68568f1ec2897a0ae1d54ec0afbaab977b186e60fb354386fd954b2af91c"
+    },
+    {
+      "path": "dist/exact-proof/exact-binary64-orientation-v1.js",
+      "bytes": 3002,
+      "sha256": "c18271471b972056e633eb1afad7e4d31b7f724b3993f5735195355b4ab8987d"
+    },
+    {
+      "path": "dist/exact-proof/exact-boundary-face-adjacency.d.ts",
+      "bytes": 7057,
+      "sha256": "66b11031dab60428a31f747ffaa35803d295e2db936bece697e1b4e3e392fc39"
+    },
+    {
+      "path": "dist/exact-proof/exact-boundary-face-adjacency.js",
+      "bytes": 24000,
+      "sha256": "f561dfaf13241b40e4f021e364b0999db823655eed2c752beedce53258454b11"
+    },
+    {
+      "path": "dist/exact-proof/exact-collinear-segment-overlap-v1.d.ts",
+      "bytes": 778,
+      "sha256": "776937a004713709619bdde466f5f2ab3a808d81f8545de9347a4c2c3bb4a841"
+    },
+    {
+      "path": "dist/exact-proof/exact-collinear-segment-overlap-v1.js",
+      "bytes": 1971,
+      "sha256": "f6baa17167ac3b4be0a9a9ce8997f0025b2b45a14fb7f6a8d5a460a6bc9815df"
+    },
+    {
+      "path": "dist/exact-proof/exact-paired-vlinear-polynomial-internal.d.ts",
+      "bytes": 2544,
+      "sha256": "10b4e1d26ee83e9df43e2f5098bcd1f8c34949a9c8b631ce95867ec9731ebc53"
+    },
+    {
+      "path": "dist/exact-proof/exact-paired-vlinear-polynomial-internal.js",
+      "bytes": 12658,
+      "sha256": "5aca4ff6efd314c85ae1c4f40df2f134f8c52c6a622244cddbb81eda1b1bccce"
+    },
+    {
+      "path": "dist/exact-proof/exact-paired-vlinear-surface-intersection.d.ts",
+      "bytes": 7788,
+      "sha256": "f4337ebfc5c3c96743ce16b6d1ef0855889ea9e7ebb4c3e80a1cc8aeb85a26b6"
+    },
+    {
+      "path": "dist/exact-proof/exact-paired-vlinear-surface-intersection.js",
+      "bytes": 30858,
+      "sha256": "74024c2fb16881edc9d7e77cb38096d56506b7bbec7f9a8d46f52bd7edbe7563"
+    },
+    {
+      "path": "dist/exact-proof/exact-segment-crossing-v1.d.ts",
+      "bytes": 1001,
+      "sha256": "9d2330a59826e719b00c5d907629133d2468805de2c7baf2a9c051300389cd80"
+    },
+    {
+      "path": "dist/exact-proof/exact-segment-crossing-v1.js",
+      "bytes": 1658,
+      "sha256": "a90665c3f3cecceb7942d311e759508983510e99cca158b606525d4b51df2089"
+    },
+    {
+      "path": "dist/exact-proof/exact-segment-intersection-point-v1.d.ts",
+      "bytes": 1004,
+      "sha256": "9a109332da2a97c0a1ba579a902b9a4f1cb6960855b98e452679ee3baf0a986a"
+    },
+    {
+      "path": "dist/exact-proof/exact-segment-intersection-point-v1.js",
+      "bytes": 3142,
+      "sha256": "9b9824ff84d271aafc22a9578105ced869962452fc2f2fcaaacd8ac3cc843502"
+    },
+    {
+      "path": "dist/exact-proof/exact-segment-snapshot-internal.d.ts",
+      "bytes": 728,
+      "sha256": "670cba841bbdb231c991fb55fd0ce8f85913bbb6a70576b55d54ea748a9aaf81"
+    },
+    {
+      "path": "dist/exact-proof/exact-segment-snapshot-internal.js",
+      "bytes": 1913,
+      "sha256": "03fb2b2de5531adfc6685481f2366c9131312f6676da4e5e06a837fd5078a264"
+    },
+    {
+      "path": "dist/exact-proof/exact-straight-edge-split-plan-v1.d.ts",
+      "bytes": 1120,
+      "sha256": "f2111c7245150525a6521f5d192a2f484ff60d6ab0b7c6733cfe2faeca9dd283"
+    },
+    {
+      "path": "dist/exact-proof/exact-straight-edge-split-plan-v1.js",
+      "bytes": 3058,
+      "sha256": "725900bac154a79c0e116005d0b67d5de74e032036fad724259ac42b499d6d88"
+    },
+    {
+      "path": "dist/exact-proof/exact-surface-band-trim.d.ts",
+      "bytes": 11110,
+      "sha256": "3d6e666c44e0c181a72261197ff476552fcd94229007fb8d43427b6f05548547"
+    },
+    {
+      "path": "dist/exact-proof/exact-surface-band-trim.js",
+      "bytes": 30069,
+      "sha256": "2de1a7b196740ddec3e80ca05c57799ab827eea46332cbb2b930b75669da13cf"
+    },
+    {
+      "path": "dist/exact-proof/exact-surface-lower-trim.d.ts",
+      "bytes": 9505,
+      "sha256": "c52ee1ebce7ef4d6206c2eed09686246d5efddaca42f25ce1aea78ec03e2477c"
+    },
+    {
+      "path": "dist/exact-proof/exact-surface-lower-trim.js",
+      "bytes": 23559,
+      "sha256": "fd8a332d9b0c9581f3f3d440e5f0c312a83a5bd336479fc0f9bb35ca67d0d776"
+    },
+    {
+      "path": "dist/exact-proof/feature-impact-plan-v1.d.ts",
+      "bytes": 987,
+      "sha256": "6f31e3fdeb6c0eaa123c73d8c960637ab7d01f7609326b976c16d7e8cc3a64f5"
+    },
+    {
+      "path": "dist/exact-proof/feature-impact-plan-v1.js",
+      "bytes": 4234,
+      "sha256": "222d42030f76353b031f3423d35d6c3f09fd6845a38d6d1ed51dc1c6a875c45e"
+    },
+    {
+      "path": "dist/exact-proof/feature-rebuild-candidate-v1.d.ts",
+      "bytes": 1114,
+      "sha256": "5baf5c22520231483862f63d8c135e762f2f959b74accc4a3b615ef32888e97f"
+    },
+    {
+      "path": "dist/exact-proof/feature-rebuild-candidate-v1.js",
+      "bytes": 3632,
+      "sha256": "51d726b337fa0268d919228e35cfaea314a2e9ff5297faa79484d20ca3a14d70"
+    },
+    {
+      "path": "dist/exact-proof/native-crossing-incidence-graph-v1.d.ts",
+      "bytes": 1292,
+      "sha256": "8094d9fbb04bc856e9ba0c62091b3baec4a63201f32a0c3f3ffda7a251b92f0d"
+    },
+    {
+      "path": "dist/exact-proof/native-crossing-incidence-graph-v1.js",
+      "bytes": 2165,
+      "sha256": "199e1039f16fbfdbb64e0eb92699fc59003a8d3d6216f0225967e833e52c82a4"
+    },
+    {
+      "path": "dist/exact-proof/native-extrusion-leaf-probe-v1.d.ts",
+      "bytes": 1435,
+      "sha256": "c4a4b2cfe1247e88ebac3741ea4716cc4d974537bcbaf8f36db0df4ea4be62db"
+    },
+    {
+      "path": "dist/exact-proof/native-extrusion-leaf-probe-v1.js",
+      "bytes": 2708,
+      "sha256": "fcdd90d1e70ec48b39bea026b1ff7c4f26011e435cd55db955fc1390c09d3864"
+    },
+    {
+      "path": "dist/exact-proof/native-extrusion-preview-acceptance-v1.d.ts",
+      "bytes": 2062,
+      "sha256": "207c9f615614463affa49c96a831ba15ef75f74d059cab2f004001cacc9d013a"
+    },
+    {
+      "path": "dist/exact-proof/native-extrusion-preview-acceptance-v1.js",
+      "bytes": 5514,
+      "sha256": "8253e22438e78b845ea97a906d963138b805829643178570fc2d308ebe7c878a"
+    },
+    {
+      "path": "dist/exact-proof/native-extrusion-preview-session-v1.d.ts",
+      "bytes": 1361,
+      "sha256": "ea387078dfd7326384ee713bf327ba525ed0c0a39ae74911e2c9d07932c7a55b"
+    },
+    {
+      "path": "dist/exact-proof/native-extrusion-preview-session-v1.js",
+      "bytes": 2440,
+      "sha256": "fd913c0b414ac105b02dd528b417a3d716a70cc2fe6f645b8fd29ce9905dfb7d"
+    },
+    {
+      "path": "dist/exact-proof/native-half-edge-twins-v1.d.ts",
+      "bytes": 697,
+      "sha256": "8e446ebdf3962900298b7639878cb1ae5754db6ddc1f2375be2ca73d44eff9b9"
+    },
+    {
+      "path": "dist/exact-proof/native-half-edge-twins-v1.js",
+      "bytes": 3019,
+      "sha256": "a4035200b8bcf258192dc32c6d9e8da7972639dee4b87c22c415cba7141906fc"
+    },
+    {
+      "path": "dist/exact-proof/native-planar-face-boundary-v1.d.ts",
+      "bytes": 1011,
+      "sha256": "f144b3f09367c9381cb88297951107dc85ce5faa0a43721502b0182accbeb9b0"
+    },
+    {
+      "path": "dist/exact-proof/native-planar-face-boundary-v1.js",
+      "bytes": 2510,
+      "sha256": "6df470f37a10e95bfda8f891a42134cd7135cd883d0de93f76c7580a7787ce0b"
+    },
+    {
+      "path": "dist/exact-proof/native-planar-loop-qualification-v1.d.ts",
+      "bytes": 670,
+      "sha256": "081d8d7e5dd630294c665adb94ec9814bee44d7dc7977e8c19e5588d437a24e7"
+    },
+    {
+      "path": "dist/exact-proof/native-planar-loop-qualification-v1.js",
+      "bytes": 5596,
+      "sha256": "c6a2d0fb4875d9187d841bd8afc975bd36d8770cdd3a4bdd3ac30b6d4e58b0fc"
+    },
+    {
+      "path": "dist/exact-proof/persistent-face-reference-v1.d.ts",
+      "bytes": 1334,
+      "sha256": "cfb518079be6507b4ead2c22663edb2102214a492a8e42c05b815c33572d1161"
+    },
+    {
+      "path": "dist/exact-proof/persistent-face-reference-v1.js",
+      "bytes": 2353,
+      "sha256": "102f0fb657a3c3714973eda918b8607dda340c50beb90fb2b430fd547d7308e5"
+    },
+    {
+      "path": "dist/exact-proof/robust-orientation-v1.d.ts",
+      "bytes": 1514,
+      "sha256": "25b701c5eef7efd7dac50b94d70b38939a7223f0086f37acd7f2c6c3ebe4a8c5"
+    },
+    {
+      "path": "dist/exact-proof/robust-orientation-v1.js",
+      "bytes": 4240,
+      "sha256": "d8522cc73687f740a66676d845552243178c9d8d99815b2c445dd1cfe512d691"
+    },
+    {
+      "path": "dist/features/affine-geometry-transform.d.ts",
+      "bytes": 7554,
+      "sha256": "a14d86b78ed4075aa6b9b9961132064ec9e67710a8ea9498a8f4dd06a8771aac"
+    },
+    {
+      "path": "dist/features/affine-geometry-transform.js",
+      "bytes": 24667,
+      "sha256": "81e64fc2e62a895834732b013ebd4e19f4dd79aeef3014d9a38ae9c567c4d79e"
+    },
+    {
+      "path": "dist/features/boolean-extrusion-feature-graph-serde.d.ts",
+      "bytes": 693,
+      "sha256": "76191ceed78458542cffa92b4e35d73aca964a69146b7b71e77a7673cbdf4318"
+    },
+    {
+      "path": "dist/features/boolean-extrusion-feature-graph-serde.js",
+      "bytes": 2670,
+      "sha256": "58c50ad441b2a3cc58b8d911e6a3a063fff153ddbbcbb9abf961672c9402b85c"
+    },
+    {
+      "path": "dist/features/boolean-extrusion-feature-graph.d.ts",
+      "bytes": 9159,
+      "sha256": "b15d72ffb83e0dedd19dacc016473b8ece44ae1ac9d2b5c27c1ee96f7b0cf364"
+    },
+    {
+      "path": "dist/features/boolean-extrusion-feature-graph.js",
+      "bytes": 38475,
+      "sha256": "46f7320191a72bec3ccb29e91a3a1f2341d792e31e13de38f11b37a09a98e897"
+    },
+    {
+      "path": "dist/features/boolean-extrusion-feature-lifecycle.d.ts",
+      "bytes": 808,
+      "sha256": "62b69c4593f44179f4e22073c6dbbd0401c6bb15e77c16ecad80cd268174e145"
+    },
+    {
+      "path": "dist/features/boolean-extrusion-feature-lifecycle.js",
+      "bytes": 14371,
+      "sha256": "f6a292f53be2a6a1fddca85bcf947e7163637debc427d2b2f6de0bf1bb8e2669"
+    },
+    {
+      "path": "dist/features/boolean-extrusion-parameter-lifecycle.d.ts",
+      "bytes": 940,
+      "sha256": "0ee3c0819482b195f86e41ccaf1e7029ee838a401967fa6e9a8e650feb5cbb81"
+    },
+    {
+      "path": "dist/features/boolean-extrusion-parameter-lifecycle.js",
+      "bytes": 12414,
+      "sha256": "e5de76dccf6adb0696b748e0cd02acfa4e64607803224bcf8ba8dafd165723d3"
+    },
+    {
+      "path": "dist/features/circular-geometry-pattern.d.ts",
+      "bytes": 7727,
+      "sha256": "874cef7466ba0456816c436b5cb9323031064562006ec4a62c8925046a597c62"
+    },
+    {
+      "path": "dist/features/circular-geometry-pattern.js",
+      "bytes": 25647,
+      "sha256": "d9566c55051515255b344ee87998b7099017154f5d92eb66c407c44c3041e990"
+    },
+    {
+      "path": "dist/features/curve-cut-pattern.d.ts",
+      "bytes": 990,
+      "sha256": "8c94f38c52112d5c620eef86fad22b15a92c8f3b5279414119849ace1f7b22a1"
+    },
+    {
+      "path": "dist/features/curve-cut-pattern.js",
+      "bytes": 11000,
+      "sha256": "b622358b959693808c53e5b447106cdda84b1fcd56059834f63e64159377103c"
+    },
+    {
+      "path": "dist/features/curved-loft.d.ts",
+      "bytes": 503,
+      "sha256": "9f5c20aeb878b5b71554f15dbbffe8961693abad0d09de4a506035aaac4a7bf3"
+    },
+    {
+      "path": "dist/features/curved-loft.js",
+      "bytes": 10426,
+      "sha256": "4ee76b6e9cd15e85653d1b9563e95c16ee8677f5a72bad893f16dfd032cf2961"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-assembly.d.ts",
+      "bytes": 8884,
+      "sha256": "f8529523b70123f2c81e3683f7c9a1b6ff983df21aa00ac377a96479610deb34"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-assembly.js",
+      "bytes": 68708,
+      "sha256": "038a8f1c5d6d2afbdd15292da67b4de382395ac9695c4efb0d0d954cd64f03dd"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-bound-reference.d.ts",
+      "bytes": 3984,
+      "sha256": "60a11bb18ece385eb9ef43dc53c28f868dac723263edd0f5f6f9786e7d8416a2"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-bound-reference.js",
+      "bytes": 11480,
+      "sha256": "2ecc06f2e244af752137d0d9fbd7f96202e3a1407474a0d66ab8891dc7524f90"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-chart-component.d.ts",
+      "bytes": 3173,
+      "sha256": "b835b37666b3b4f84266522a70a240a18c5734a59461211df542135b08b2cf7b"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-chart-component.js",
+      "bytes": 9370,
+      "sha256": "00ab4a1b9b0e78b547804e92dc34460a3ac63a73ee0e468f1fc29725e8dcf5fd"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-chart-cone.d.ts",
+      "bytes": 2095,
+      "sha256": "9e8edc3698ef775740afeac278b195bf0b857436a606c0881a1059413ab0b94a"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-chart-cone.js",
+      "bytes": 9255,
+      "sha256": "7521fb13ec855d7c482ce2b547ebc1e7938539f4decea2eabccbadc7bb42a1d4"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-chart-pair.d.ts",
+      "bytes": 2358,
+      "sha256": "95de68cc4a550a8ebc420f7ae765e59126ae0329841be4efd734234c6e4eb835"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-chart-pair.js",
+      "bytes": 6426,
+      "sha256": "d7485f3ed2f6ab524896703450f43a60cdbefcbba5609f4f2e80eee2b70ac1e2"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-chart-separation.d.ts",
+      "bytes": 2727,
+      "sha256": "4052330c4f616cfab1eebb68871ef7e9a6ace8312e4b8e2ea4b060bca5da9047"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-chart-separation.js",
+      "bytes": 7689,
+      "sha256": "70c1afd4c0093e88dc232e3fa815bba682abed298dbea93f8f0a3ccd0abc8fa3"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-chart-winding.d.ts",
+      "bytes": 3647,
+      "sha256": "db1b22c9d9e87d225df37edac9e4c305c6a41b20d5bdb63374e3435c27740e7b"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-chart-winding.js",
+      "bytes": 13494,
+      "sha256": "6e1e41f2df8af64a1f16cf9d2327921bad1f691eea5feb9d7d0b575aa62f5b28"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-chart.d.ts",
+      "bytes": 4508,
+      "sha256": "8773e27e0674754d836992c62574a17a26045e73e7a8575b9c15e611e5504ad5"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-chart.js",
+      "bytes": 15556,
+      "sha256": "38ba3cad136182b471b6b18c14bf9ed7efd65d37d7af3022209a22d88f38f731"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-closed-reference.d.ts",
+      "bytes": 6301,
+      "sha256": "286b8fe5f54526190a200e93db5e45954884ceac9e732f9f43702ef4e06eeeb3"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-closed-reference.js",
+      "bytes": 1566,
+      "sha256": "23527d157f9742cd9332e7559777ede52f80f0b415ecf9f5b86cf4cf0960f47b"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-curve.d.ts",
+      "bytes": 3038,
+      "sha256": "1f12e2891e8d438f9449e6f2301dbb38b8e616629abf86bcbd9f4adea320b62d"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-curve.js",
+      "bytes": 16138,
+      "sha256": "3a43384837eec5324aea0291f958f06e3ed8789e921e5e7f689703f270280e20"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-feature.d.ts",
+      "bytes": 1178,
+      "sha256": "bf984d23f7c77bf20b0967032b9f03d7767cc140c6eac1f4845a7fb0ea7e26d1"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-feature.js",
+      "bytes": 2978,
+      "sha256": "e554ef711344175fbd9d05cb36b0065cc4e9ae4c13fe23baba3634879aa7ffa7"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-formal-mass.d.ts",
+      "bytes": 4525,
+      "sha256": "9e95dbe46a7b527a5334154bb501deb6d5d1b191a03e24271c933822fd2f67a1"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-formal-mass.js",
+      "bytes": 27337,
+      "sha256": "50f8a8659a1ade7a348d46235c8ad5b47d3b8e895fa28d5f6b9be706b680a213"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-map.d.ts",
+      "bytes": 6208,
+      "sha256": "790c73752aeccc1d9d46512b8b1c12ff9e2779daa72771bd4c7724102e072d7d"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-map.js",
+      "bytes": 20209,
+      "sha256": "be08328c0ffbda5dcc1b402af33617d2bb62ad4a4843b22876c1dd64dccaa4cd"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-moments.d.ts",
+      "bytes": 2134,
+      "sha256": "539a1295bb684ec734efaf0706ebaa92817c9280bd1b78124c26537ca79085c7"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-moments.js",
+      "bytes": 18687,
+      "sha256": "c0f76b73374022779c925fd68d1e1e152a8e2cdbb04759f8621f32d552a5164a"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-native-position.d.ts",
+      "bytes": 2163,
+      "sha256": "e7574145566eee7cb5868a6f2a0c592be0a5e917c18f48530d7673abc3559d50"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-native-position.js",
+      "bytes": 15098,
+      "sha256": "1c2111f157bca463e10018b475b61d2432aae8aebcdaff76961bdb99d925248b"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-reference-closure.d.ts",
+      "bytes": 3985,
+      "sha256": "6869a1e15503965f3c73824734c5708d66791be91ac2d4a5f0c8c6d98b91c524"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-reference-closure.js",
+      "bytes": 18821,
+      "sha256": "19c62c26f61a84d4962f66d90ab18aae36cde22483a81968ae1509d393449e0f"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-reference-context.d.ts",
+      "bytes": 2341,
+      "sha256": "4c88e7ca8440b62745f784741095a7ba5722e1e4a18584823f41e27583f38e4b"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-reference-context.js",
+      "bytes": 4591,
+      "sha256": "2623eb5cbd3cbae12fdf54ca7504b41fd49247936f3e29dcb6bc87662f360f59"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-reference-mass.d.ts",
+      "bytes": 1820,
+      "sha256": "64d6b6bd4d7ba875fc7d1d22eb44b452dadc2cde964b1582f7d38fd0e1d0e0f9"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-reference-mass.js",
+      "bytes": 8027,
+      "sha256": "9f63353d4633b2186adf954ef63389b5e8bc4b2b52bfe9ce80efc1e34abd2267"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-side-family.d.ts",
+      "bytes": 2425,
+      "sha256": "7a7b82326288b8baa2a8aab419f1ad28bcaf2ff7fdf9d392646ab30075f40c2d"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-side-family.js",
+      "bytes": 8805,
+      "sha256": "30212e1f2939ccc93f0c513fb450be2074cc180b481276762d60c5e80023d1c6"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-source-walls.d.ts",
+      "bytes": 2737,
+      "sha256": "20e4c57e453bb86430651e05e78ea591f5be3e395cc19c9de0577edd447a787b"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-source-walls.js",
+      "bytes": 10818,
+      "sha256": "94956a28010a561930f7c2cf7a32bd054c64617f68be53ab3725c5a04c6748da"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-source.d.ts",
+      "bytes": 2833,
+      "sha256": "74997de85cbff05a315cd892295adc975c60676f295c552f7932870aab8eb86b"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-source.js",
+      "bytes": 11833,
+      "sha256": "8723098375bfd0d6226125bc3a1396bfac1ac185b637ad2271130630c6d1bcc5"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-wall-cycle.d.ts",
+      "bytes": 2562,
+      "sha256": "ec97962585c8d0b2e0abc706c88ddcd824f929d199c8206325ffc27253e2343e"
+    },
+    {
+      "path": "dist/features/cylindrical-wrap-wall-cycle.js",
+      "bytes": 10043,
+      "sha256": "e101873c5eb9a5f7f116e5f861224f07fba43f147385483ed503c211c11fe4ac"
+    },
+    {
+      "path": "dist/features/drafted-extrusion.d.ts",
+      "bytes": 759,
+      "sha256": "3a691098e008b09c994deb9918ad82a3267c05a0106f6c0b10ce91d8f5815919"
+    },
+    {
+      "path": "dist/features/drafted-extrusion.js",
+      "bytes": 9694,
+      "sha256": "a7ce65364923335ca96db82c33742b2a6b746bc07bbcca902d231a855944d7d8"
+    },
+    {
+      "path": "dist/features/extruded-profile-solid.d.ts",
+      "bytes": 6676,
+      "sha256": "78e08537d952e4c47e8747e712cfdca207029c084a76fa017bf97c6c9b8fcc32"
+    },
+    {
+      "path": "dist/features/extruded-profile-solid.js",
+      "bytes": 22528,
+      "sha256": "95d8c545aaa7aa63c154bac65507a7a463d54eaf830603936c33cd3b9b6f26c5"
+    },
+    {
+      "path": "dist/features/extrusion-principal-inertia.d.ts",
+      "bytes": 5266,
+      "sha256": "a65d1306535682332af856c24b93e03976746b726f5d1579eae01ec49c6b9aca"
+    },
+    {
+      "path": "dist/features/extrusion-principal-inertia.js",
+      "bytes": 18248,
+      "sha256": "6e3d9fe12e477c5f8273808acfcae0272d57763443f53a31fb033ed6f19e1f1b"
+    },
+    {
+      "path": "dist/features/extrusion-validation.d.ts",
+      "bytes": 196,
+      "sha256": "fd7f0cceea8f689146ea21541f668c44fd2af1fcb5c75c8ee913524337736b4d"
+    },
+    {
+      "path": "dist/features/extrusion-validation.js",
+      "bytes": 3503,
+      "sha256": "a6e7a455e946f89149d1f30559f58adebcec3aa6c07166d4466c76c26c404322"
+    },
+    {
+      "path": "dist/features/fill-cut-pattern.d.ts",
+      "bytes": 1058,
+      "sha256": "8040b902766c6392efe359ab53c0dd479f356587de901f95cb572bdbfd8e7b2d"
+    },
+    {
+      "path": "dist/features/fill-cut-pattern.js",
+      "bytes": 8600,
+      "sha256": "6da1022666efcfa0fb7bd0527479c4dbc1a3c19c9ace4d75a80c59fcbdf29781"
+    },
+    {
+      "path": "dist/features/fit-plain.d.ts",
+      "bytes": 2246,
+      "sha256": "3a6ea1d92f30b887e941c4f3a7c797fcc5455a81bacb4b495fee69a970ae2d7a"
+    },
+    {
+      "path": "dist/features/fit-plain.js",
+      "bytes": 10545,
+      "sha256": "44c006dbada42c3373149cb4a4fa8b0e49da7a6959f8e9cd2e5c46060197ffc8"
+    },
+    {
+      "path": "dist/features/framed-mixed-loft.d.ts",
+      "bytes": 411,
+      "sha256": "6d43c99896ebfad5ed16d34e557d7e937cef88122628a7a3f7cedae9ae9dfcc8"
+    },
+    {
+      "path": "dist/features/framed-mixed-loft.js",
+      "bytes": 6675,
+      "sha256": "52cdf8985af2c5f36ea3497836b12f686e89bf6f01c062ad5bd74204043e4572"
+    },
+    {
+      "path": "dist/features/framed-nurbs-loft.d.ts",
+      "bytes": 411,
+      "sha256": "eb7bd4b97720ae5a69d39221cb5d450b6cb5eeaa5d230b453160311ebf6ce99b"
+    },
+    {
+      "path": "dist/features/framed-nurbs-loft.js",
+      "bytes": 4458,
+      "sha256": "41d42677e5e2b289c835dd22ac9bd8b7444da314a969d9738ed0e575a3bc5dfa"
+    },
+    {
+      "path": "dist/features/known-solid-qualification.d.ts",
+      "bytes": 2292,
+      "sha256": "1b9952f633c26500652df2ea70b85db01700bc5cc210266141ce6caa5939a002"
+    },
+    {
+      "path": "dist/features/known-solid-qualification.js",
+      "bytes": 3222,
+      "sha256": "755644dbfe11e571ac6a9d9901415e9f705d56cb54b4d69655a984141868e0cd"
+    },
+    {
+      "path": "dist/features/library-fit.d.ts",
+      "bytes": 1938,
+      "sha256": "1238d437925e360bcf80daf365f24a01a01cd0b723a54f4a029acc0d9f4d248f"
+    },
+    {
+      "path": "dist/features/library-fit.js",
+      "bytes": 5127,
+      "sha256": "87b3426c2d23dd9ad0a85db2f969683f85eed5ddef19127624dc9f0a7f6ce60e"
+    },
+    {
+      "path": "dist/features/library.d.ts",
+      "bytes": 12280,
+      "sha256": "145dd2b5af299580a80d2d470cd0a80009bc6e6c1c357c499520de0d83550df9"
+    },
+    {
+      "path": "dist/features/library.js",
+      "bytes": 39833,
+      "sha256": "76eb42ecd0895e2bc21ee4a6a31d4de41553f3d4ee1ef8f90772bdc2d06bd1fc"
+    },
+    {
+      "path": "dist/features/linear-geometry-pattern.d.ts",
+      "bytes": 6138,
+      "sha256": "950f394fda99ad5edc601ce70fb96bee3aaabac2d0c0039da24a0b28742ee799"
+    },
+    {
+      "path": "dist/features/linear-geometry-pattern.js",
+      "bytes": 19248,
+      "sha256": "bec4f7ad37042e3f65d0fa8d356b9d0f2b0686a5a24eee2c8132cfabdde15f77"
+    },
+    {
+      "path": "dist/features/loft-common-frame.d.ts",
+      "bytes": 1181,
+      "sha256": "00d723eee3e0a10876b3b907f6872de7aaf4236c38ecb07eff93ad449b134588"
+    },
+    {
+      "path": "dist/features/loft-common-frame.js",
+      "bytes": 3738,
+      "sha256": "63ad35b3c3fa747201ccc8d18c8aeec59128f86b5b28fef2b9bc4379163759d5"
+    },
+    {
+      "path": "dist/features/loft-guide-patches.d.ts",
+      "bytes": 394,
+      "sha256": "bbc5d18694e928d7f4a790dff40b3fc55e93f57b39f377460fbf00d0001540d8"
+    },
+    {
+      "path": "dist/features/loft-guide-patches.js",
+      "bytes": 6779,
+      "sha256": "4704cf3bf8e220dec87756a0459311cdc6f711f86b20fbe3e03492cc6efa0a6d"
+    },
+    {
+      "path": "dist/features/loft-guide.d.ts",
+      "bytes": 689,
+      "sha256": "a2e8a2a25fd20d90f1e82977fedab5abb6f17e87896d6348699b65beb8ba0fab"
+    },
+    {
+      "path": "dist/features/loft-guide.js",
+      "bytes": 4069,
+      "sha256": "b2e5ff7c3b32ab8f0f0fa667932c47dfe0b1bf25749b9ddfcf5c503dc7c1a1e8"
+    },
+    {
+      "path": "dist/features/loft-nurbs-guide.d.ts",
+      "bytes": 1864,
+      "sha256": "68a5665dafacf58b5d3f18175c0fa93352f8f47ee7a7d30dbdd89597ed6dfb46"
+    },
+    {
+      "path": "dist/features/loft-nurbs-guide.js",
+      "bytes": 8511,
+      "sha256": "e988ea582b23f091dc20285c7c71b59e6db97921bd34c81a05cf71b4dc983afc"
+    },
+    {
+      "path": "dist/features/loft.d.ts",
+      "bytes": 2660,
+      "sha256": "f620b7fa117cce00aa7b224a02a2dcc27644274e779d2e32044336657638060d"
+    },
+    {
+      "path": "dist/features/loft.js",
+      "bytes": 24242,
+      "sha256": "1e652cb8cb2f8b153bf0511ab41ac1d6622cd41bd182e6a7afbf5f685e762a00"
+    },
+    {
+      "path": "dist/features/multi-section-loft.d.ts",
+      "bytes": 7828,
+      "sha256": "1bebdf6fd55153e81d5d9ebb00082023d8bdf272dfc9c55f085cb964a44db71f"
+    },
+    {
+      "path": "dist/features/multi-section-loft.js",
+      "bytes": 24542,
+      "sha256": "788ecec34028a25b9e77770ebaecddfa82f367ed049d188d30c1a9a49f637f60"
+    },
+    {
+      "path": "dist/features/nurbs-source-loft-feature-graph.d.ts",
+      "bytes": 10329,
+      "sha256": "e4aaa5585ba377ac48565b0f4f877bfa6fbe7f39e8d6f581cfd5c400049a474a"
+    },
+    {
+      "path": "dist/features/nurbs-source-loft-feature-graph.js",
+      "bytes": 34776,
+      "sha256": "adafb085f632f148c2a5883bb27aa7d0479fc27e4c95a7a86feb3b9bf797b677"
+    },
+    {
+      "path": "dist/features/oriented-loft.d.ts",
+      "bytes": 321,
+      "sha256": "1b36522384bdc4774dc2cad8b4513377391bf18551812a3df060c95cec0e19d5"
+    },
+    {
+      "path": "dist/features/oriented-loft.js",
+      "bytes": 14472,
+      "sha256": "2dc2150de225a3f95f8e31fe564f3f1c707cd548647ac461e2d8e486103a3f56"
+    },
+    {
+      "path": "dist/features/piecewise-rational-loft.d.ts",
+      "bytes": 7106,
+      "sha256": "a0d6a7952869bb5694fcd18e55019b265a4ff36a90005e560ee4a3ecd394b374"
+    },
+    {
+      "path": "dist/features/piecewise-rational-loft.js",
+      "bytes": 18524,
+      "sha256": "5605669c5b535ad0da08c6bca8c9d982e282c83e25637b7cca2dbaf16229f62c"
+    },
+    {
+      "path": "dist/features/prismatic-solid.d.ts",
+      "bytes": 4394,
+      "sha256": "6737be9081bbec0f5f2f067d0addb23156c66ea0c02d625c284b6cead9338d41"
+    },
+    {
+      "path": "dist/features/prismatic-solid.js",
+      "bytes": 29687,
+      "sha256": "66db82c485ad2ab7efbe622bed018bc3f6a211fab84ff333c0eee0ab11643d39"
+    },
+    {
+      "path": "dist/features/profile-relief.d.ts",
+      "bytes": 1124,
+      "sha256": "02639313e35cbdfb14471abf61811e7c2c95b365a220fd1ee4a49b38ac8e5e1a"
+    },
+    {
+      "path": "dist/features/profile-relief.js",
+      "bytes": 37322,
+      "sha256": "d4ce96e1de98b0ac86c0e4098c383b83d0176bece01fb610bbeba8da8d4f3e1d"
+    },
+    {
+      "path": "dist/features/quadratic-cut-arithmetic.d.ts",
+      "bytes": 1937,
+      "sha256": "c6d6f1e24ff2f3e1264c6d15828a5405a0f43591c731009150a1f2e8866eff6d"
+    },
+    {
+      "path": "dist/features/quadratic-cut-arithmetic.js",
+      "bytes": 8868,
+      "sha256": "431e5486583785c22b6643d1088fc7c8ee9caff513e64f3ed367d1f1b9e7cbc3"
+    },
+    {
+      "path": "dist/features/quadratic-cut-plan.d.ts",
+      "bytes": 891,
+      "sha256": "0f847d4a6709fdcb9dba18fe7be11b00b69b95f557826bdb737a2c93fb531160"
+    },
+    {
+      "path": "dist/features/quadratic-cut-plan.js",
+      "bytes": 14238,
+      "sha256": "3a30ce0b5e5f162ca6fc50ee9e1b7939657baed5b52b9c01d438e574f5b4ce0f"
+    },
+    {
+      "path": "dist/features/revolve.d.ts",
+      "bytes": 1730,
+      "sha256": "7aa8bb76486b72f4b1a19f3de5de62616c6e759484159e847de44a941e51b358"
+    },
+    {
+      "path": "dist/features/revolve.js",
+      "bytes": 26923,
+      "sha256": "97631f9d27e631e8a3038c69ee189903b2ccc7d1c65618530b7768147dbf3157"
+    },
+    {
+      "path": "dist/features/section-exact-surface-binding.d.ts",
+      "bytes": 6882,
+      "sha256": "dbbd4e3dbb4af5c4c2c6d60ae292c2ce01c1dcfb17a7eb557d67b9c480503ce6"
+    },
+    {
+      "path": "dist/features/section-exact-surface-binding.js",
+      "bytes": 17194,
+      "sha256": "d1c3b7204b5ee3a167d71e36dfb0de665d1144ec75981e741fc06426edbfe4c0"
+    },
+    {
+      "path": "dist/features/section-knot-alignment.d.ts",
+      "bytes": 5878,
+      "sha256": "f15c0cfac38df6e22a1d76e7407347a35048dac195c450038516c2033b019488"
+    },
+    {
+      "path": "dist/features/section-knot-alignment.js",
+      "bytes": 20159,
+      "sha256": "b4f48b1c4abf3bafbb53605c16ec2f68f77e488b2f4e04a9b70ebabb96df211b"
+    },
+    {
+      "path": "dist/features/section-offset.d.ts",
+      "bytes": 669,
+      "sha256": "05b3f5beb948402a887befb620734a0ed6e8c8c45b2a667607dec390bb76e331"
+    },
+    {
+      "path": "dist/features/section-offset.js",
+      "bytes": 6140,
+      "sha256": "5f28029fbdeeb5291c717e80c495b91279ba1d741872ebea604f1b62338b063f"
+    },
+    {
+      "path": "dist/features/section-properties.d.ts",
+      "bytes": 2038,
+      "sha256": "1165d9b9d781fb90ada4863c47755be13e9a0d18a2760910e2807004d206e71c"
+    },
+    {
+      "path": "dist/features/section-properties.js",
+      "bytes": 5763,
+      "sha256": "86f0bf88920e8fb69e8cd7d2f36d654cfdb0c45ceda03dea4cf160c629501a12"
+    },
+    {
+      "path": "dist/features/section-table.d.ts",
+      "bytes": 1156,
+      "sha256": "6e6a437b334b09ce746807c52a93fdbe6e53d32e87f6ed15274f87ee2c947c69"
+    },
+    {
+      "path": "dist/features/section-table.js",
+      "bytes": 6423,
+      "sha256": "3c115f86f4209a9f2b4fb4ae6fe8b63d64f216b0dcf92e3270a9766cad046d4c"
+    },
+    {
+      "path": "dist/features/split-face-evolution.d.ts",
+      "bytes": 1711,
+      "sha256": "a7cd5966cceb27881a46941aa65d2db927703d9dd41db8da664cd08fab919120"
+    },
+    {
+      "path": "dist/features/split-face-evolution.js",
+      "bytes": 2557,
+      "sha256": "b203b288ff04c2714b0f22458b802b40b0bfd605f54cb2da5f5cc0e269aa4862"
+    },
+    {
+      "path": "dist/features/subd-cage.d.ts",
+      "bytes": 7511,
+      "sha256": "80575ec7f2025477f8f8dde52326763526738d63c5b43d2a85b34c6bf3dbf9cd"
+    },
+    {
+      "path": "dist/features/subd-cage.js",
+      "bytes": 25066,
+      "sha256": "25e8c9481ef4cda840089d38dd103935ca642cfbcbdad9cb9cbee93585145258"
+    },
+    {
+      "path": "dist/features/subd-report.d.ts",
+      "bytes": 1776,
+      "sha256": "0b4b67702f845b4d2691c6898b9ecd07a85b04f702e2ab2267921ddc97dc6c90"
+    },
+    {
+      "path": "dist/features/subd-report.js",
+      "bytes": 6254,
+      "sha256": "6b01577541beeee0be6c25ebaece00a9e1c20a972a28adf7911919b49f8440cc"
+    },
+    {
+      "path": "dist/features/subd-sd2.d.ts",
+      "bytes": 4735,
+      "sha256": "71d5a41b170e7c3a338af7625253ae0a6b7e5b6f7eff5ac899454ed6ee8a5d44"
+    },
+    {
+      "path": "dist/features/subd-sd2.js",
+      "bytes": 44594,
+      "sha256": "e361fd4650104442fda80f4d812e2dfbbb2ca56a6a850bd2123e0c7822ca12ee"
+    },
+    {
+      "path": "dist/features/subd.d.ts",
+      "bytes": 2679,
+      "sha256": "893cc2441715d8d4d6c23b02e536c4ca1e48add3bf843a7039b98bdba7068675"
+    },
+    {
+      "path": "dist/features/subd.js",
+      "bytes": 25794,
+      "sha256": "2c2e04f97969e5c8cad758fd83b90b80d8547f44c3fe2f83943f5fe783836a9b"
+    },
+    {
+      "path": "dist/features/three-section-loft.d.ts",
+      "bytes": 6780,
+      "sha256": "2305a087d90b36c0e9d3dfefaaa4fa0162000117a11942aaade7bd1e2b83e957"
+    },
+    {
+      "path": "dist/features/three-section-loft.js",
+      "bytes": 19646,
+      "sha256": "06b9a085515637d01074a3514a8a230a925052916b176f34c19b665b6e2f5dc0"
+    },
+    {
+      "path": "dist/features/z-axis-revolve-document.d.ts",
+      "bytes": 2319,
+      "sha256": "b7d11de78126ee3f265c3ad3d12daa4aadfa7a942b56b58909a0d53091e91152"
+    },
+    {
+      "path": "dist/features/z-axis-revolve-document.js",
+      "bytes": 13477,
+      "sha256": "784ff235fff8f537107869c13f80fc7bff3c3112c3e755b15b64aac91a646626"
+    },
+    {
+      "path": "dist/features/z-axis-revolve-preview.d.ts",
+      "bytes": 3203,
+      "sha256": "248453b92ffd15d2355a61ec71d9d9e19664881e5b3fc3f690f523f51e487c69"
+    },
+    {
+      "path": "dist/features/z-axis-revolve-preview.js",
+      "bytes": 11216,
+      "sha256": "ecc31ba6e081b5ab2fec437657aa86e7959c194f01d9ede723c3541fbadccde4"
+    },
+    {
+      "path": "dist/frame-sheet/frame-cutlist.d.ts",
+      "bytes": 4219,
+      "sha256": "b82b3318fc8f7d049331b79c82b5f8c4dbf36b6c3c27092c71090c841fc59528"
+    },
+    {
+      "path": "dist/frame-sheet/frame-cutlist.js",
+      "bytes": 9023,
+      "sha256": "40b0201fb2f8968e89a6a7fc8860c5e2011e17de07fa431bdd501ef11372bb8c"
+    },
+    {
+      "path": "dist/frame-sheet/frame-section.d.ts",
+      "bytes": 8384,
+      "sha256": "a8058c0aca04d2d171944a672884f497762da171b355c792351992f2923b0079"
+    },
+    {
+      "path": "dist/frame-sheet/frame-section.js",
+      "bytes": 21962,
+      "sha256": "39d3a242f0e7a7415d63b769acb0f6c4ee689d4c251a759812bf966badba6ffb"
+    },
+    {
+      "path": "dist/frame-sheet/frame-weldment.d.ts",
+      "bytes": 4492,
+      "sha256": "0f7dc5bca3f6a9334df47ef8c7342b8a68233f3c4a69ffc521535b5ed0dcb5f6"
+    },
+    {
+      "path": "dist/frame-sheet/frame-weldment.js",
+      "bytes": 1647,
+      "sha256": "2a07e56986faee5c5a7b424238aeb3a361e0c10c7f84ff62091aabd74a3576b7"
+    },
+    {
+      "path": "dist/frame-sheet/sheet-flat.d.ts",
+      "bytes": 4284,
+      "sha256": "6584b98929873b9a808500618901d30a929f093d963ad830d082cad2fb8721b2"
+    },
+    {
+      "path": "dist/frame-sheet/sheet-flat.js",
+      "bytes": 38821,
+      "sha256": "6b2d272943f036a44e5d7647aac100a248f046fc2fe4408831a91e43d88225ae"
+    },
+    {
+      "path": "dist/frame-sheet/sheet-metal.d.ts",
+      "bytes": 7101,
+      "sha256": "012bcbc474b660b0d8930b14beb0465e7b93e05071dd4ae8cac03ec5785ec882"
+    },
+    {
+      "path": "dist/frame-sheet/sheet-metal.js",
+      "bytes": 18625,
+      "sha256": "62686f4e71ed3413cbfa6e7a310137a79e8bbc9842848f9b1ba0dba19aa6a879"
+    },
+    {
+      "path": "dist/index.d.ts",
+      "bytes": 102413,
+      "sha256": "42b1ce2e39a134ab6e77a6cde0a856f08b764af45a7e0c2b938e9419b18a0e93"
+    },
+    {
+      "path": "dist/index.js",
+      "bytes": 47061,
+      "sha256": "4c7b1b07f5ed6f72cf5f1aff9c0dd43c84a09a79ee1b5c7194c68ccf1c96c17f"
+    },
+    {
+      "path": "dist/internal/native-si-mass-state.d.ts",
+      "bytes": 1551,
+      "sha256": "5eeb11e282adfb5e0cdeb6f5024840373be31a8cf5a13e4d2f9f13143d5c5379"
+    },
+    {
+      "path": "dist/internal/native-si-mass-state.js",
+      "bytes": 1749,
+      "sha256": "b7a96b5974d98299a4e04685d6d51e99cf8a16b866284691eb6986a43dc7c4cc"
+    },
+    {
+      "path": "dist/internal/native-si-mass.d.ts",
+      "bytes": 180,
+      "sha256": "d672d555cea29c5726331c29d62f9eefd8471c47f721e08c1279069e81e12caa"
+    },
+    {
+      "path": "dist/internal/native-si-mass.js",
+      "bytes": 161,
+      "sha256": "0fdbeef320574402869e7cce6af01304daf147cb7db4a185eaf3e153732c1d7c"
+    },
+    {
+      "path": "dist/intersect/multispan-vlinear-plane-section.d.ts",
+      "bytes": 9957,
+      "sha256": "325becfdd2461ef7073b8dea83861d38a23bbbd78f867160521c7522de9cdc3e"
+    },
+    {
+      "path": "dist/intersect/multispan-vlinear-plane-section.js",
+      "bytes": 34233,
+      "sha256": "b54d18f746bf56c173e0e0ab2c1b57d50747d9f838ac9ba6d022261c09c3e580"
+    },
+    {
+      "path": "dist/intersect/multispan-vlinear-plane-trim-classification.d.ts",
+      "bytes": 7518,
+      "sha256": "e15c874663cd8d4be9a385bd887406036cbf13e32d568cfd2206e83ffbc840b1"
+    },
+    {
+      "path": "dist/intersect/multispan-vlinear-plane-trim-classification.js",
+      "bytes": 18369,
+      "sha256": "95c0bafba68f0b417bb76b8d35f2e207558befce5364f01a69028508a36a4c3d"
+    },
+    {
+      "path": "dist/intersect/multispan-vlinear-plane-trim.d.ts",
+      "bytes": 9494,
+      "sha256": "8ffd270c738f5f07a836eb86cfac69bc888508db766e6b3b02174393e3003744"
+    },
+    {
+      "path": "dist/intersect/multispan-vlinear-plane-trim.js",
+      "bytes": 32830,
+      "sha256": "2729a447ee96df793d378dc75b5930981def7150523047672b4a0825b0de7e3a"
+    },
+    {
+      "path": "dist/intersect/own-affine-plane-loop-internal.d.ts",
+      "bytes": 1121,
+      "sha256": "b10378b8b159a6960eef6ac16b7e1beba4833fad3e180bb88cf8ffbcdabcab15"
+    },
+    {
+      "path": "dist/intersect/own-affine-plane-loop-internal.js",
+      "bytes": 7039,
+      "sha256": "63815113f7aac277e3cb0313fac22bc743b14ac008b59e96e668b3479f1d3c99"
+    },
+    {
+      "path": "dist/intersect/own-coincident-plane-clip.d.ts",
+      "bytes": 5915,
+      "sha256": "067911ea4922adb424155472059361c58e4d4a127c566ea6d9189a4b07907440"
+    },
+    {
+      "path": "dist/intersect/own-coincident-plane-clip.js",
+      "bytes": 23440,
+      "sha256": "1cc3bc739948583b926095bc1ba29a3cffcacfcbdce56c0e848016893e80aec3"
+    },
+    {
+      "path": "dist/intersect/own-convex-loop-clip.d.ts",
+      "bytes": 5852,
+      "sha256": "186114539b88f6e620c31451ed90fd8b896ab3f9c599ff9fb2789f992c0b12ee"
+    },
+    {
+      "path": "dist/intersect/own-convex-loop-clip.js",
+      "bytes": 26204,
+      "sha256": "d917c396585f4ad5b06b3612fe2b829ea6cbd1b188ff38ab460b38e23ba73b04"
+    },
+    {
+      "path": "dist/intersect/own-convex-planar-face-holes-intersection.d.ts",
+      "bytes": 7170,
+      "sha256": "0cfd76f58b575e7ee4ede4f28308ab1f30e4470dbd0134d71ecd7fd29e4511b0"
+    },
+    {
+      "path": "dist/intersect/own-convex-planar-face-holes-intersection.js",
+      "bytes": 37589,
+      "sha256": "c6349da6b6ce3ec482683b785f6a92879d7e5315625fd1d7d4f317b971686a1f"
+    },
+    {
+      "path": "dist/intersect/own-convex-planar-face-holes-preview.d.ts",
+      "bytes": 5163,
+      "sha256": "1463737ee316ecd27efd1814556e9d2f635a734224b596456ee59a28f5a1cde8"
+    },
+    {
+      "path": "dist/intersect/own-convex-planar-face-holes-preview.js",
+      "bytes": 22646,
+      "sha256": "4bcea805c3ec9a3c022fc60a4d7e022ff4ba33a67854651aa7404878eddcc482"
+    },
+    {
+      "path": "dist/intersect/own-convex-planar-face-holes-ray.d.ts",
+      "bytes": 4365,
+      "sha256": "731893ae558912c11553868701bff6fa5654041450cb865497261d01b6523504"
+    },
+    {
+      "path": "dist/intersect/own-convex-planar-face-holes-ray.js",
+      "bytes": 11887,
+      "sha256": "5e120c9211b093397f95aef66d735d11e3cf79ad03120c8a3a4813475b0a8910"
+    },
+    {
+      "path": "dist/intersect/own-convex-planar-face-holes.d.ts",
+      "bytes": 5567,
+      "sha256": "d586d6451618bc9dfa9138f36dcf7fd35b2700af0a66ad663380752d53d0c9d8"
+    },
+    {
+      "path": "dist/intersect/own-convex-planar-face-holes.js",
+      "bytes": 23481,
+      "sha256": "e2c90fa556790b375ea06196878322f17643507d3393eb58cacf2f67b332bde3"
+    },
+    {
+      "path": "dist/intersect/own-convex-planar-face-intersection.d.ts",
+      "bytes": 5104,
+      "sha256": "9e6044e74ae4e04bbdf108eba9d099ccc62d2d4a0cf3d706d465e5daf15ee84a"
+    },
+    {
+      "path": "dist/intersect/own-convex-planar-face-intersection.js",
+      "bytes": 24158,
+      "sha256": "70ac1b92a19989b0785a76eb05d5aa71e36b74dc378885e41692300fec7fc7d8"
+    },
+    {
+      "path": "dist/intersect/own-cubic-bernstein-roots.d.ts",
+      "bytes": 2426,
+      "sha256": "52c3739780c87c04e70fcc6e2bde8de23c9d14eb803cb40b2f7310f05086139d"
+    },
+    {
+      "path": "dist/intersect/own-cubic-bernstein-roots.js",
+      "bytes": 11832,
+      "sha256": "c2d61c675ec9751c31503df99a35691c3e19dcaf04fb7cfce770afa83489c862"
+    },
+    {
+      "path": "dist/intersect/own-cubic-curve-plane-intersection.d.ts",
+      "bytes": 5463,
+      "sha256": "b6b6ebe9d894789d6d9203def50c69b75e0468740ececbbbb738eb07efdc4d23"
+    },
+    {
+      "path": "dist/intersect/own-cubic-curve-plane-intersection.js",
+      "bytes": 12898,
+      "sha256": "93e12dd6bc0b05a61432503440e048cbd79f2917ccc89fb051ed3c0d01859556"
+    },
+    {
+      "path": "dist/intersect/own-curve-line-intersection.d.ts",
+      "bytes": 6789,
+      "sha256": "8404e16ecca6a04934640857f8c540a5ac383f326f747ad63f1995b5d00bc6f7"
+    },
+    {
+      "path": "dist/intersect/own-curve-line-intersection.js",
+      "bytes": 30682,
+      "sha256": "c4cbabd7284774d63c8c2187179c00946bd01379a39971a785aa8c865cc44e4e"
+    },
+    {
+      "path": "dist/intersect/own-curve-plane-intersection.d.ts",
+      "bytes": 4902,
+      "sha256": "79879e39b5e31faf7f2ccb8f359686c56572bc241444eca977a0307dd79ac422"
+    },
+    {
+      "path": "dist/intersect/own-curve-plane-intersection.js",
+      "bytes": 15761,
+      "sha256": "1706676470ecbf6c902a226a4f97b79609100a1882830afb551a1f4cd47f3728"
+    },
+    {
+      "path": "dist/intersect/own-homogeneous-bernstein-roots.d.ts",
+      "bytes": 986,
+      "sha256": "bd2718fb75f73cf00894acbb2f38deb7f2455a51cd124c730c8db2d84fcf427d"
+    },
+    {
+      "path": "dist/intersect/own-homogeneous-bernstein-roots.js",
+      "bytes": 5247,
+      "sha256": "71bbecd03b4db9a8b79bb76bd73d10b693c57634a7cac3225591f16d48f80be3"
+    },
+    {
+      "path": "dist/intersect/own-multispan-curve-plane.d.ts",
+      "bytes": 5676,
+      "sha256": "2e47170253e304799b8198ed46108b0b658e718de147707f99f1477241981165"
+    },
+    {
+      "path": "dist/intersect/own-multispan-curve-plane.js",
+      "bytes": 18601,
+      "sha256": "feeb498ac3d2e5f942667b3dad5923a118dc5d14b20a930dddcb4f2072216fb8"
+    },
+    {
+      "path": "dist/intersect/own-plane-cylinder-clipped.d.ts",
+      "bytes": 5133,
+      "sha256": "c199dc990bab3695e5b1c6f822f588fa5b98d36afbee9760efe78a817e3bb40d"
+    },
+    {
+      "path": "dist/intersect/own-plane-cylinder-clipped.js",
+      "bytes": 16915,
+      "sha256": "fa7bf0f47db355414104a609f6e1d133901d62ede0958845da20b82d087f34a2"
+    },
+    {
+      "path": "dist/intersect/own-plane-cylinder-intersection-internal.d.ts",
+      "bytes": 1650,
+      "sha256": "fc7fbbbbc6d47cac220d0f72244a503b64dda8a7a43431becc77934dd22e8622"
+    },
+    {
+      "path": "dist/intersect/own-plane-cylinder-intersection-internal.js",
+      "bytes": 12485,
+      "sha256": "7312858171fe8037d1b48fcd984d46a7575cbca695d258585c4b90f48ec8737f"
+    },
+    {
+      "path": "dist/intersect/own-plane-cylinder-intersection.d.ts",
+      "bytes": 4560,
+      "sha256": "e0b2a8d35b90f922eb40714306c842923c7326d3079b53a5519c796072b9bdcf"
+    },
+    {
+      "path": "dist/intersect/own-plane-cylinder-intersection.js",
+      "bytes": 3657,
+      "sha256": "2b3a311c81621a8a5c89b1746c13cc2a540c2937081131d32ed8c0525a03dcba"
+    },
+    {
+      "path": "dist/intersect/own-plate-circular-hole-preview.d.ts",
+      "bytes": 3098,
+      "sha256": "813024c3a1592a08e99d9f21714a19620c6c52d398e1f55b8348bebc746a0c3e"
+    },
+    {
+      "path": "dist/intersect/own-plate-circular-hole-preview.js",
+      "bytes": 18435,
+      "sha256": "dded2a87ecf813e097574e010ea0be3f78cabc0ea5d3d34d143302d6a38ba0da"
+    },
+    {
+      "path": "dist/intersect/surface-intersection.d.ts",
+      "bytes": 2216,
+      "sha256": "13d6951b61f600bc81ccb4e9b87fa3895e003fee0828d5ba2c0c8646c57b9361"
+    },
+    {
+      "path": "dist/intersect/surface-intersection.js",
+      "bytes": 28450,
+      "sha256": "1087ce934a2d92a419e92864ff44aa3074515ae0903f42c99df11f2e2afe7c54"
+    },
+    {
+      "path": "dist/intersect/vlinear-plane-section.d.ts",
+      "bytes": 8540,
+      "sha256": "970afc2fd2f08ec6837246519c506c8c1942ff603a458e50f4f5f4d5a02fa4d1"
+    },
+    {
+      "path": "dist/intersect/vlinear-plane-section.js",
+      "bytes": 27724,
+      "sha256": "342d8165596893be6c6e89c148e1d1b93a085c4f693eb7ddb88679d275ed79e3"
+    },
+    {
+      "path": "dist/intersect/vlinear-plane-trim-classification.d.ts",
+      "bytes": 6547,
+      "sha256": "1280dd00f6e4029e3759357529474cd82e7c2e9e437d17ceb8cc8866da5f30ba"
+    },
+    {
+      "path": "dist/intersect/vlinear-plane-trim-classification.js",
+      "bytes": 15920,
+      "sha256": "b8638da8f317156ce1153dc1bc4e451e9b4b652e85646aa4b1558bba5144bd70"
+    },
+    {
+      "path": "dist/intersect/vlinear-plane-trim.d.ts",
+      "bytes": 8474,
+      "sha256": "fcee9c5676b0fcaf64f1d47eae40a8279136833613db2561bc17d6b16c67b68f"
+    },
+    {
+      "path": "dist/intersect/vlinear-plane-trim.js",
+      "bytes": 28309,
+      "sha256": "94fdff278215a43833bb05e4e1f7857cf43236aa9305b5d75da8af837496d087"
+    },
+    {
+      "path": "dist/io/dxf-writer.d.ts",
+      "bytes": 7618,
+      "sha256": "93f03eae273392e7f4fa8a3f50f6403d48604ab91e3f5806a43ebdb4acb40390"
+    },
+    {
+      "path": "dist/io/dxf-writer.js",
+      "bytes": 52913,
+      "sha256": "b38b4e3aaf6640875dd5a3f979877f3e9173b8680c92ede089ea2f13a53a5be6"
+    },
+    {
+      "path": "dist/io/iges-import.d.ts",
+      "bytes": 8203,
+      "sha256": "8ecd193bad3814bc2e763b5e3ad1cb76553363716d1a88e4e37e514c168d7539"
+    },
+    {
+      "path": "dist/io/iges-import.js",
+      "bytes": 36245,
+      "sha256": "47e0edf0d694b8e5a058006bc2bffde54b19938e95b8b2523e7447184f1e3041"
+    },
+    {
+      "path": "dist/io/iges.d.ts",
+      "bytes": 904,
+      "sha256": "0e9061c831ffe6c807a0f180efef2c8c1420097ddfddfd1d1f02b784551864b2"
+    },
+    {
+      "path": "dist/io/iges.js",
+      "bytes": 7851,
+      "sha256": "d0ab29a1cc2514b56e0eadd1354ad3824be620399bef306bbf2336c14f4d5ddf"
+    },
+    {
+      "path": "dist/io/step-import.d.ts",
+      "bytes": 2647,
+      "sha256": "5cb80b850388d9009a8b5d405848af4effac9254ec2263607b8012073625ec4c"
+    },
+    {
+      "path": "dist/io/step-import.js",
+      "bytes": 53322,
+      "sha256": "75407a0ca55e42475c5362c79f4be4bd802ffa84f5099f796d81f9dbf5ad0586"
+    },
+    {
+      "path": "dist/io/step.d.ts",
+      "bytes": 2335,
+      "sha256": "763c80ed0497272a50a9546c7ac9a771064452cfc1c3e216a8e3bc881e1896cf"
+    },
+    {
+      "path": "dist/io/step.js",
+      "bytes": 20036,
+      "sha256": "75894c97dc80a1a82c01dda993e373324a748cbf13d13d0679bb068aa6090b0e"
+    },
+    {
+      "path": "dist/io/stl.d.ts",
+      "bytes": 233,
+      "sha256": "e239651362ef171e431c74c74de8a04dd6da6013b954ed4cf0de140e7214a943"
+    },
+    {
+      "path": "dist/io/stl.js",
+      "bytes": 1487,
+      "sha256": "563a10abc90cf61f41f91e37c339a7f26682e54055d00bed5421ab4e32d66183"
+    },
+    {
+      "path": "dist/language/expression-parser.d.ts",
+      "bytes": 1893,
+      "sha256": "c4c1b5d822534da61781cc84023c179b163a91d378b26635d1383f9e2a3cea1a"
+    },
+    {
+      "path": "dist/language/expression-parser.js",
+      "bytes": 8624,
+      "sha256": "aa0f2e03535b13bbf5b7d0d0e2b90dca44df0dbd8e47b9c352c495f7e24f8ffe"
+    },
+    {
+      "path": "dist/language/lower-model.d.ts",
+      "bytes": 367,
+      "sha256": "a1e689fdabebf1995315f579d434059a2cf23636beeacb2c42e179c6816db21b"
+    },
+    {
+      "path": "dist/language/lower-model.js",
+      "bytes": 1024,
+      "sha256": "ec53c03c3c4b3ba96386df7ed6622af39cb2edb7ae9793266dac04d1e10f32e5"
+    },
+    {
+      "path": "dist/language/semantic-model.d.ts",
+      "bytes": 2558,
+      "sha256": "b25ea7ec421efbdde3e531d381dfbe6b48f95c7e8d9d1ec2d637335e451e0319"
+    },
+    {
+      "path": "dist/language/semantic-model.js",
+      "bytes": 8546,
+      "sha256": "37986d69a471e822c4c5adedd89977220f5dd793ea5d630cf6eac0a436e3ead6"
+    },
+    {
+      "path": "dist/language/source-ast.d.ts",
+      "bytes": 3368,
+      "sha256": "33f04e292dc1f2437fa318f333c0d2699681b0c9d43fdc0a3421a7b27750bc34"
+    },
+    {
+      "path": "dist/language/source-ast.js",
+      "bytes": 16730,
+      "sha256": "e0ffc257184efd72c267c921a74c57d39dbe596663fd150f71a369f9e965e6d9"
+    },
+    {
+      "path": "dist/machine/bearing.d.ts",
+      "bytes": 3732,
+      "sha256": "89998ee5308f1b927e0e497f986a94ac7f68890b6988291192ddda569207ae07"
+    },
+    {
+      "path": "dist/machine/bearing.js",
+      "bytes": 15682,
+      "sha256": "323f10a529cf829b8c23b85b8064831a8d4d1c9b2bb764057300f1d25d80186c"
+    },
+    {
+      "path": "dist/machine/cam.d.ts",
+      "bytes": 6301,
+      "sha256": "5e1d837b465a6669a8cb3c3a9aebec71823e79763652408600e338f7ed463254"
+    },
+    {
+      "path": "dist/machine/cam.js",
+      "bytes": 27876,
+      "sha256": "cb6d8a9f2ddcae16c71d2508fb6e1508b9b3c3370478c1acd100f0f4a5d137a5"
+    },
+    {
+      "path": "dist/machine/connector.d.ts",
+      "bytes": 4670,
+      "sha256": "32ec389993e4e105d7c87bb4ba4792921ee80b79ae3c174ccccd624f0e9938cd"
+    },
+    {
+      "path": "dist/machine/connector.js",
+      "bytes": 11265,
+      "sha256": "c482e8c4a16a2c211dd97222adafd459163fd6f3e229c38386b06816059ac112"
+    },
+    {
+      "path": "dist/machine/drive.d.ts",
+      "bytes": 9611,
+      "sha256": "e9399677ceec7eeb6aa4b167047cac21152277989f2a9338f43572170e9c15d2"
+    },
+    {
+      "path": "dist/machine/drive.js",
+      "bytes": 27816,
+      "sha256": "c0a41c93d52fb498715a9475d1b6e850c3c208715869469560ed99822e6d28dd"
+    },
+    {
+      "path": "dist/machine/fits.d.ts",
+      "bytes": 3650,
+      "sha256": "537f35e75a325b78a872e8aa4d3d0921c822b4bc1c8881127f1206dcc546147f"
+    },
+    {
+      "path": "dist/machine/fits.js",
+      "bytes": 12381,
+      "sha256": "a7f71aa0ecebacb421689de9f4536e32cc5d013dd30b61758cfe8d8e040b8fc9"
+    },
+    {
+      "path": "dist/machine/gear-bevel.d.ts",
+      "bytes": 12556,
+      "sha256": "693cbdb8c7d42c55e210b5987f1b769735ca46632f85be0f9751f27ea6b66927"
+    },
+    {
+      "path": "dist/machine/gear-bevel.js",
+      "bytes": 58947,
+      "sha256": "c19a72dfa2e6f074d452bfd6869254d79c77c6f23a3c679141ada26b135debcf"
+    },
+    {
+      "path": "dist/machine/gear-internal.d.ts",
+      "bytes": 12024,
+      "sha256": "aa4d255dd7e838bb736e89a22ff2bb31ddcfff4d65985e778527e32d8d68beba"
+    },
+    {
+      "path": "dist/machine/gear-internal.js",
+      "bytes": 51610,
+      "sha256": "748296f7ad8eb3567b4aa174caea33259eb8f06740a3eeaaf86a190d2cf33214"
+    },
+    {
+      "path": "dist/machine/gear-rack.d.ts",
+      "bytes": 7249,
+      "sha256": "bf1447fd43d706f156a2ccd75d2665aba7eb4968638ccfae7e1cfe032a1d2091"
+    },
+    {
+      "path": "dist/machine/gear-rack.js",
+      "bytes": 22575,
+      "sha256": "bc8c37720a28de8237e6d64bb2c6ba6340b1a6c156d071d3ef295ba20259f359"
+    },
+    {
+      "path": "dist/machine/gear-worm-wheel.d.ts",
+      "bytes": 6965,
+      "sha256": "609669d63375452ff56cc4f8453204317887f98f3fed741eaa19835dd008b13e"
+    },
+    {
+      "path": "dist/machine/gear-worm-wheel.js",
+      "bytes": 37775,
+      "sha256": "e68d2fd5abb7c1506c820abe9d774dc9fa35ec20af78c31a0c7b95fee0f4bf0d"
+    },
+    {
+      "path": "dist/machine/gear-worm.d.ts",
+      "bytes": 9970,
+      "sha256": "aaebb531b11d2d42e2289d005d9baaee9421837ea9bbb94024f0b0503044c558"
+    },
+    {
+      "path": "dist/machine/gear-worm.js",
+      "bytes": 28488,
+      "sha256": "49774d64b2dbf8228816a1bc1e0faad7737c73cfdabe02940b6a2e866f5f220b"
+    },
+    {
+      "path": "dist/machine/gear.d.ts",
+      "bytes": 19706,
+      "sha256": "b5d59cfbdaf6503ab32aa6472d760bca2411820527cba1837d3510068c74bd8c"
+    },
+    {
+      "path": "dist/machine/gear.js",
+      "bytes": 64906,
+      "sha256": "5bac6f019eeff733b5402fde95089e6a545d369e3441112ab8616c294a35e975"
+    },
+    {
+      "path": "dist/machine/oring.d.ts",
+      "bytes": 4421,
+      "sha256": "e943c6c3daa153fa24a60677510009a11cb5c1da220000db23d0490605fd69b4"
+    },
+    {
+      "path": "dist/machine/oring.js",
+      "bytes": 15869,
+      "sha256": "8f8ee89d92900d5a974aed3d15e14e74c6c0249df5c66197f50feee8274a11a5"
+    },
+    {
+      "path": "dist/machine/shaft-parts.d.ts",
+      "bytes": 4523,
+      "sha256": "352b33c99246e556c2cd5640fd95e888eeea7fa12061623a716fc2b6d01bb790"
+    },
+    {
+      "path": "dist/machine/shaft-parts.js",
+      "bytes": 13517,
+      "sha256": "7c00229d0bbfcaa67c8e465ff0978d56ff6d4820410cfb776242b9daf852907f"
+    },
+    {
+      "path": "dist/machine/shaft.d.ts",
+      "bytes": 3696,
+      "sha256": "9991ae1815a5cef22d6a52e59114a3a1ddc5208f70141cec3a16ffe96a4c9944"
+    },
+    {
+      "path": "dist/machine/shaft.js",
+      "bytes": 15844,
+      "sha256": "26492db0c7753106f251b5d6bc83e5856d2e0a6fe5a8330691cc9fefe56905cd"
+    },
+    {
+      "path": "dist/machine/spring.d.ts",
+      "bytes": 10874,
+      "sha256": "9db7688f390e1ac71fc8a4e01980caeb3464bfccf4277d4575051a219ebae8de"
+    },
+    {
+      "path": "dist/machine/spring.js",
+      "bytes": 47176,
+      "sha256": "12d5c9b1c586116507418245765355d25398fcb8c09874034729d262058da275"
+    },
+    {
+      "path": "dist/machine/thread-helical.d.ts",
+      "bytes": 311,
+      "sha256": "4e93a793825f750eec0ecc3f7b8b5acff2451e367c0d381374a772973d784658"
+    },
+    {
+      "path": "dist/machine/thread-helical.js",
+      "bytes": 16911,
+      "sha256": "dc523ced069c6b1cedc389970499d1384617b38b7a57e1b2dbc0ba007abd7d5f"
+    },
+    {
+      "path": "dist/machine/thread-solid.d.ts",
+      "bytes": 1935,
+      "sha256": "7a3977770d0127d9578ab5586e2878373da17977013ce80562f4fd8e09dd4e78"
+    },
+    {
+      "path": "dist/machine/thread-solid.js",
+      "bytes": 6130,
+      "sha256": "a8e8de555436e3d62e3b3daa630dbe4db7ed455afb08f70d27a14b3f063222dc"
+    },
+    {
+      "path": "dist/mesh/facet-boolean.d.ts",
+      "bytes": 2070,
+      "sha256": "5344b026af6a3045c3ddd264e3e4c83cfc0acd647a9db4147e89004cd1712f54"
+    },
+    {
+      "path": "dist/mesh/facet-boolean.js",
+      "bytes": 25996,
+      "sha256": "cd67715d47bb65325894d43b938d7cb843b6442582541fa5a35e7b4a28a2aad4"
+    },
+    {
+      "path": "dist/mesh/facet-brep.d.ts",
+      "bytes": 2943,
+      "sha256": "2eb9631e0a0f3dc2402ca2655e3c865b0e183a7cc7d023f24a9cb5cd27800031"
+    },
+    {
+      "path": "dist/mesh/facet-brep.js",
+      "bytes": 27343,
+      "sha256": "39edc1dc20e93bbd3a3614918d828dcfe0236b003ee01332e3c195f1bf1b39e7"
+    },
+    {
+      "path": "dist/mesh/facet-bvh.d.ts",
+      "bytes": 871,
+      "sha256": "100f76a7e0429fe049a3d906d8322950046129af558e627494de78268719c84b"
+    },
+    {
+      "path": "dist/mesh/facet-bvh.js",
+      "bytes": 6952,
+      "sha256": "f62f2c4f2245e2e161635748dd37844bd32e88cc2b4ad576a17d3e5c5fa4b046"
+    },
+    {
+      "path": "dist/mesh/facet-patch.d.ts",
+      "bytes": 1616,
+      "sha256": "16c385276bdbe7007cba32284885b6f50a6cfe9d2d5141a7ec62fb188da02c76"
+    },
+    {
+      "path": "dist/mesh/facet-patch.js",
+      "bytes": 5340,
+      "sha256": "8d17f9fad34bfe97f64b4a6525d2901736ab2bb51dd24d6196591b2e501e42c9"
+    },
+    {
+      "path": "dist/mesh/facet-split.d.ts",
+      "bytes": 2357,
+      "sha256": "c1071745bca35037f38146afc2832abf465e8fc9218de8972f0744148c3c9627"
+    },
+    {
+      "path": "dist/mesh/facet-split.js",
+      "bytes": 15975,
+      "sha256": "438cb755df2e0dba0e523891c9d21dcfd07dfcdc0b2e910d6b050dcc285f6658"
+    },
+    {
+      "path": "dist/mesh/mesh-brep.d.ts",
+      "bytes": 1888,
+      "sha256": "f77eed65265e6e341250c26d48d9cf1d250ccd064b6d2fafa7d0e2ee7a3004a2"
+    },
+    {
+      "path": "dist/mesh/mesh-brep.js",
+      "bytes": 13422,
+      "sha256": "5dafb339532609e81e7f8de6f23df9fcc5fd74f3030c536857dc2d00eac04de5"
+    },
+    {
+      "path": "dist/mesh/mesh-clearance.d.ts",
+      "bytes": 1139,
+      "sha256": "b41b4852f6db13e3273c61720eea11d6a0e309a5770abaf8623183f08ee85740"
+    },
+    {
+      "path": "dist/mesh/mesh-clearance.js",
+      "bytes": 12178,
+      "sha256": "e25f726b3ac877dcd8952acf3022b7249d4da49b33ac32be306c2bd387e04551"
+    },
+    {
+      "path": "dist/mesh/mesh-decimate.d.ts",
+      "bytes": 2313,
+      "sha256": "f6e69a50465bf070a969f7ff37c7fde4c4f187aba0d59f1e68b4687717818a77"
+    },
+    {
+      "path": "dist/mesh/mesh-decimate.js",
+      "bytes": 29505,
+      "sha256": "fc1a87b70c5604e6e839b2dbf6e7bed41ea8d95f82fc4085fbcf3c0dfde27fb9"
+    },
+    {
+      "path": "dist/mesh/mesh-distance.d.ts",
+      "bytes": 898,
+      "sha256": "06630362736baf2b11ffb5507dc90b2b1dfd7643cef824296968afbc689f91a8"
+    },
+    {
+      "path": "dist/mesh/mesh-distance.js",
+      "bytes": 3219,
+      "sha256": "0d7ad02192d298dc6b9f7f37fede2f264d645894ddffaa97478aa3e0fad23bf4"
+    },
+    {
+      "path": "dist/mesh/mesh-offset.d.ts",
+      "bytes": 657,
+      "sha256": "9f0b883c4bae2caac398b14e9be9ad58442cafc185ee0a024d04a73d20c944ac"
+    },
+    {
+      "path": "dist/mesh/mesh-offset.js",
+      "bytes": 7853,
+      "sha256": "0088953b6688386e2492ec760369504d3ab58628a043bb8ff55c7505fca08289"
+    },
+    {
+      "path": "dist/mesh/mesh-repair.d.ts",
+      "bytes": 4068,
+      "sha256": "4bc1f55b1fafdd22be3b27ce651aaacb1dfbeed0aff4e845110104b9edd33205"
+    },
+    {
+      "path": "dist/mesh/mesh-repair.js",
+      "bytes": 36695,
+      "sha256": "cf2a936f545222b575631338650e57e5293a3fc1dfcd0bb85ddb9ea5ae80ddf4"
+    },
+    {
+      "path": "dist/mesh/triangle-bvh.d.ts",
+      "bytes": 2294,
+      "sha256": "165928304668e3e3dd04e3b4ebf7ce06df619cad73e2ad0c0c1a941e9a26e333"
+    },
+    {
+      "path": "dist/mesh/triangle-bvh.js",
+      "bytes": 13592,
+      "sha256": "affd471fdb8dda1331f404b6ba0e9b5228c7f490d4f7f0bf2225d8da9d47a135"
+    },
+    {
+      "path": "dist/mesh/voxel-field.d.ts",
+      "bytes": 2087,
+      "sha256": "e6ff66f56550c775a3b696f60f4006af549866e24ebdb25b8d974555d82d5c0a"
+    },
+    {
+      "path": "dist/mesh/voxel-field.js",
+      "bytes": 8439,
+      "sha256": "d4b9b16d2011913e1c50fedfabe14c1dc3d2a0be7ce6a9e371fde4870ae0f489"
+    },
+    {
+      "path": "dist/model-compiler.d.ts",
+      "bytes": 1489,
+      "sha256": "4775529af4378d1f63f02669b87fac21b93116713d63cfc2a65bf47d9cab7b7d"
+    },
+    {
+      "path": "dist/model-compiler.js",
+      "bytes": 6483,
+      "sha256": "4c79c0eadcc9658a53cf2198e5243707db9766cd812ecf6f1e26575ce6c7e706"
+    },
+    {
+      "path": "dist/modeling-box-internal.d.ts",
+      "bytes": 327,
+      "sha256": "471ef66c2e9d6b123ad6ea904dfa73abd9463ab3c3cc3a27e4a44b3a2110a784"
+    },
+    {
+      "path": "dist/modeling-box-internal.js",
+      "bytes": 2176,
+      "sha256": "1949928ac64f2ea9c3eefdb4a20ae58c0efe4e46a51c04686fc26b455b023a65"
+    },
+    {
+      "path": "dist/modeling-circular-pattern-internal.d.ts",
+      "bytes": 3819,
+      "sha256": "9469891722d1848f87aabdbdd0e848de747704a4210c54aee5eb350e3980a27d"
+    },
+    {
+      "path": "dist/modeling-circular-pattern-internal.js",
+      "bytes": 14656,
+      "sha256": "eab3a89b1ee3a386751a033704fac56a8e574f0e1c751a65a3f1e6375d147e7b"
+    },
+    {
+      "path": "dist/modeling-dimension-internal.d.ts",
+      "bytes": 874,
+      "sha256": "5f9a7b310588af57009c69f89116cd4050c66e71ed6a90c25f8c9fcb9fb758bc"
+    },
+    {
+      "path": "dist/modeling-dimension-internal.js",
+      "bytes": 3515,
+      "sha256": "6d6720d15b70b85bd900ff292394f0d9e8b3fa01687e843d2133fb564645bf7e"
+    },
+    {
+      "path": "dist/modeling-linear-pattern-internal.d.ts",
+      "bytes": 3474,
+      "sha256": "5ece7fddddcd2615b3f36092f5cab4ce1733ff386532a2ef2f22ad0bf2c3f1d0"
+    },
+    {
+      "path": "dist/modeling-linear-pattern-internal.js",
+      "bytes": 14067,
+      "sha256": "5969b63360b671153aa511bcbf6afa2b257af10bb95e71068fa0305252b8981c"
+    },
+    {
+      "path": "dist/modeling-mirror-internal.d.ts",
+      "bytes": 4352,
+      "sha256": "91bbf9dfff35ba98cee14599e8ce6ddc835de7ee1803fe3d545436a7fbfb9401"
+    },
+    {
+      "path": "dist/modeling-mirror-internal.js",
+      "bytes": 26937,
+      "sha256": "e1097d5b4d59fd2dfd0108093785eb924d3f1ad2fa018db347b1dcc19bb9fb9f"
+    },
+    {
+      "path": "dist/modeling-profile-internal.d.ts",
+      "bytes": 1095,
+      "sha256": "9d3e494a60857c0be6a72ba5135f8673a6265ff6b6845aafb64454b80db57ad2"
+    },
+    {
+      "path": "dist/modeling-profile-internal.js",
+      "bytes": 782,
+      "sha256": "9e800efcf8b833ca7134d75a2ed810664ebd0651d042bf81252421aac3ed3c7e"
+    },
+    {
+      "path": "dist/modeling-regeneration-internal.d.ts",
+      "bytes": 764,
+      "sha256": "cbaa0cddb685ab4531da87ef2d9c7653021b047485cd94e1851a6d384e06b5fc"
+    },
+    {
+      "path": "dist/modeling-regeneration-internal.js",
+      "bytes": 1222,
+      "sha256": "0060112f924c20516990b51de3dd6064e04328dd58a6d387a838b242361afef6"
+    },
+    {
+      "path": "dist/modeling-rotation-internal.d.ts",
+      "bytes": 4995,
+      "sha256": "b041d7a274c00765812ae13ae4db1eb2abcf3aac24d5cb8b81d2f568d069fb73"
+    },
+    {
+      "path": "dist/modeling-rotation-internal.js",
+      "bytes": 30986,
+      "sha256": "75048fc2b0fc3ef1884ddae57d5e6f5274c77e4e1f0eca7c1057393bfe48c2f8"
+    },
+    {
+      "path": "dist/modeling-scale-internal.d.ts",
+      "bytes": 4365,
+      "sha256": "a6a4931375db7afa0ee60c9f26f1c704b21a963a607dbf294c580f99e78f58f0"
+    },
+    {
+      "path": "dist/modeling-scale-internal.js",
+      "bytes": 29386,
+      "sha256": "c7ac4430ec96c43eefac023bc6f31ddeb0a57af7fbb7ab91bd7f2475a2bc12bf"
+    },
+    {
+      "path": "dist/modeling-stl-internal.d.ts",
+      "bytes": 5686,
+      "sha256": "55410ed754159a8328198317a9c33e3ab1516014cc9cfd6c3ff8da0341acbd2d"
+    },
+    {
+      "path": "dist/modeling-stl-internal.js",
+      "bytes": 10937,
+      "sha256": "537478b8137c7f88a437414dca15b19b104f26f74fc008567c515d950c9e08ff"
+    },
+    {
+      "path": "dist/modeling-translation-internal.d.ts",
+      "bytes": 3543,
+      "sha256": "1c828d96ad5249eaa602d1d31bd51f25c236a477301d283ec6acc8ccbf9d380c"
+    },
+    {
+      "path": "dist/modeling-translation-internal.js",
+      "bytes": 23911,
+      "sha256": "9aee70e16521f911554d87f3fa7bdef6255b9ead0faadd6c8fa8ff365e722a5b"
+    },
+    {
+      "path": "dist/modeling.d.ts",
+      "bytes": 18416,
+      "sha256": "960eb2c1fee6a08ae33873cf445f20f81e08071b32da61d245194b2f1f3392f2"
+    },
+    {
+      "path": "dist/modeling.js",
+      "bytes": 112431,
+      "sha256": "7b04c66ebda45ae833bb2dd3bc482c524e76d7bd1e1cda29131ce024c110b02a"
+    },
+    {
+      "path": "dist/numeric-policy.d.ts",
+      "bytes": 2458,
+      "sha256": "48b78c90e6c6bf3683497ba8340dab80d71bc63c687da7947e9a7fea8ab07e3d"
+    },
+    {
+      "path": "dist/numeric-policy.js",
+      "bytes": 3153,
+      "sha256": "ab288fa0b789a7c3dacb243552e8bacbeb66eff4982a740afc39a1c9420abd27"
+    },
+    {
+      "path": "dist/nurbs/curves/bezier-curve-degree-elevation.d.ts",
+      "bytes": 3353,
+      "sha256": "32f6a6d124237be5d882a7333d08c3028b5ac7ae3e1bac2c112e9faeb2b5267c"
+    },
+    {
+      "path": "dist/nurbs/curves/bezier-curve-degree-elevation.js",
+      "bytes": 11040,
+      "sha256": "f54bb50764f9197aae23e945c32acb15c66b6816ab6afa972424272c225e8395"
+    },
+    {
+      "path": "dist/nurbs/curves/cad-curve-arc-length.d.ts",
+      "bytes": 5962,
+      "sha256": "85e0e0be351b0cf04a7cc405dfcbf087d53dbffeeb277dc5fa79b1f84c5088a3"
+    },
+    {
+      "path": "dist/nurbs/curves/cad-curve-arc-length.js",
+      "bytes": 20126,
+      "sha256": "4476dc411b00a092f291c207ab23366ecaba6a6c8b1c146b208237d198973fcb"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-adaptive-sampling.d.ts",
+      "bytes": 4961,
+      "sha256": "61afc949f0f9b373c2fb894b139b28b272bc2f10eaa3680253add06b7e1b8ddf"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-adaptive-sampling.js",
+      "bytes": 18762,
+      "sha256": "72e84d4235c4a858686b3795ace39c459728c2af01713c55de5ecd554844291f"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-bezier-spans.d.ts",
+      "bytes": 5521,
+      "sha256": "5d023e0bc6fb8d8eee75a675877e5f1d1e27b5e4582d1f73db3773b30b44ca86"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-bezier-spans.js",
+      "bytes": 17948,
+      "sha256": "4ad990393561a237ddec2f72db6b1c184a10f24d9be71fc4808b7a520d800d6b"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-bezier-subdivision-internal.d.ts",
+      "bytes": 1420,
+      "sha256": "de5def66e7c41c76b458ab1a32abdc9e6b1c5896c3b38bfae3a3347bea3e0675"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-bezier-subdivision-internal.js",
+      "bytes": 8962,
+      "sha256": "fe8ddf925a396281f2ed64435e22b205df63d9c4f22e32f2964236b80f7a942a"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-c0-degree-elevation-internal.d.ts",
+      "bytes": 1694,
+      "sha256": "d3d262107c19d3812c91e45ceccc8351773f3d6476d1c08fa0aef9f472c12063"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-c0-degree-elevation-internal.js",
+      "bytes": 4413,
+      "sha256": "afac7bb8869fcea8d5ebf0044cfb928d9199e45ac0d87bd53cedab3b3a63ac0b"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-control-polygon.d.ts",
+      "bytes": 2866,
+      "sha256": "f66f6ca80cf6b8733f36727370b836bc0a4d8bbe79f10ef0367e62a1a273f915"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-control-polygon.js",
+      "bytes": 11365,
+      "sha256": "4dcaa1ce32fce5c3177e548263c709ba7badf2f46d46ab50e14fa0735f6d1856"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-endpoint-continuity.d.ts",
+      "bytes": 5191,
+      "sha256": "e6a9240a28fcfc029fdfa0ece62237d28efb9741e91b26e55fdaa9706d685d50"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-endpoint-continuity.js",
+      "bytes": 14377,
+      "sha256": "b12b7597345a5a82c37e425e140db8a26dbc1c8c2c61469e78415959ad134adc"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-interpolation-kernel-internal.d.ts",
+      "bytes": 793,
+      "sha256": "9960b425c4f97c0dde79831b2e85e02130a2d561ea688c1429c11ab0a3e6b5e8"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-interpolation-kernel-internal.js",
+      "bytes": 19356,
+      "sha256": "2d5b34e8e086fa88d40616660f488ebfc098eed237bf6b834319bd63dbb5a3ae"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-interpolation.d.ts",
+      "bytes": 5706,
+      "sha256": "728257dd78be556eb6f54b0060d60a3dc9eb9f15c5bb81a278d331eab6966b74"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-interpolation.js",
+      "bytes": 1965,
+      "sha256": "4a134ec2657e2d418af54a8e5349118cfeafeae5471c09338a51b22232e9d32d"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-interval-extraction.d.ts",
+      "bytes": 5302,
+      "sha256": "de59888b2f000a965f551d53415d4fc947e0ea560de34ce094b5c06769caae1c"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-interval-extraction.js",
+      "bytes": 19026,
+      "sha256": "35ce3a06a772b0a94b5acb84dce0765e785d008a79c36828004cc7b3f88204e3"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-join.d.ts",
+      "bytes": 5002,
+      "sha256": "c1f7ac7b22a85a87d8c59b21044a08be647d35b2555fa683dc6be82139a12a3d"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-join.js",
+      "bytes": 18183,
+      "sha256": "5725171c353d9a7bb2d72ba9794705cee4337055c14baca8d400e5a0e71ac50b"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-knot-insertion.d.ts",
+      "bytes": 3394,
+      "sha256": "7fed96f91ee9ed0bfefe415a2a81b89622092f873082ba4a78b1aa1497cd7a2d"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-knot-insertion.js",
+      "bytes": 12850,
+      "sha256": "547164e98db4d634aab4702be348371fbc721e9098892e393057f2669aefc8ae"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-parameter-split.d.ts",
+      "bytes": 4105,
+      "sha256": "114c8eb984af56854c8e370f599a29ff46f9b3f8d0f650b4f08a2831aec602df"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-parameter-split.js",
+      "bytes": 15118,
+      "sha256": "a1358ff48d8c08e38f9235edeab367a6d0eb20e34c4e627d688a9905dc2b48c1"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-parameterization.d.ts",
+      "bytes": 4621,
+      "sha256": "4e9ee0516da141c2d44b61f84ae57016eb804d8f7c9ce3fd0b3219c6c74ea94d"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-parameterization.js",
+      "bytes": 14081,
+      "sha256": "1b005c1d6750643103b96ba251da7cb6236ea0ffa7c1e8a2518ed1e0b37e4918"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-planar-face-material.d.ts",
+      "bytes": 6174,
+      "sha256": "a61f439b1d97c45e9332b52b16a7fbe322f41b503a16f95be0f32447df629e59"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-planar-face-material.js",
+      "bytes": 24536,
+      "sha256": "6e21505585734beb5258e8ebebd78d65cccbc7924ab9c6d68c45b68b9d325a15"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-reversal.d.ts",
+      "bytes": 5752,
+      "sha256": "9682433729cc1d79b263fdc32f758fd095f336259fece1da2d0d83ff6271550b"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-reversal.js",
+      "bytes": 20234,
+      "sha256": "cb8c3f66f5ee894d947693f0d4a1c64975adef9f0e78379ff16b0345b53a956b"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-segment.d.ts",
+      "bytes": 358,
+      "sha256": "6dc74ee7aadc41eba649b96be4a6612ab2da9013d2b31cfb414694b43bf4bf46"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-segment.js",
+      "bytes": 2493,
+      "sha256": "9732bd930bfae2bf10a5d8988dd760d066f2251b32831be5048752f2571a7c27"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-source.d.ts",
+      "bytes": 708,
+      "sha256": "37279f8de7ced90d9e8ee16437413b43c518a3cebf78bd2ec1f1cb71922760ae"
+    },
+    {
+      "path": "dist/nurbs/curves/curve-source.js",
+      "bytes": 5486,
+      "sha256": "2fea330c8d95232513a7f31eb69a2f9fb1b62815198d0331068c80bbd2e65b2a"
+    },
+    {
+      "path": "dist/nurbs/curves/knot-guard.d.ts",
+      "bytes": 194,
+      "sha256": "684d1db0bbff2fec84cdb2caecb9dea28af6a576ac598527cfb47245b3fd2e96"
+    },
+    {
+      "path": "dist/nurbs/curves/knot-guard.js",
+      "bytes": 421,
+      "sha256": "94c5b6ca40c3f8ebd03784e19e9f5037a6a4d36a8b1b4cfc1db5a9a205ba9f56"
+    },
+    {
+      "path": "dist/nurbs/curves/quintic-hermite-curve.d.ts",
+      "bytes": 5058,
+      "sha256": "a4187f2f76e317ad56460f4020ee669ee8a0aeb845bac79214c6029c672958bc"
+    },
+    {
+      "path": "dist/nurbs/curves/quintic-hermite-curve.js",
+      "bytes": 15078,
+      "sha256": "d23202b8122ccc89d0b994ba2491f30c2a1289e481b8b00d801f600949302445"
+    },
+    {
+      "path": "dist/nurbs/curves/weighted-curve-interpolation.d.ts",
+      "bytes": 2584,
+      "sha256": "15d7bafbb41d445281845df0ab09163b92572affb17c668a42847757913ff15e"
+    },
+    {
+      "path": "dist/nurbs/curves/weighted-curve-interpolation.js",
+      "bytes": 4820,
+      "sha256": "0f597d23e0433ecb09e3ab10dc3a73791cd994d7b74564bb24ddf81d4d2cba4c"
+    },
+    {
+      "path": "dist/nurbs/source-wide/curve-wide-adaptive-sampling.d.ts",
+      "bytes": 8281,
+      "sha256": "fd285d6a8cb148cce2528456dbb87cadefb115b4db8a9538d81671d28e2abd87"
+    },
+    {
+      "path": "dist/nurbs/source-wide/curve-wide-adaptive-sampling.js",
+      "bytes": 30791,
+      "sha256": "727d7cb46780e5434580febc154c4dc6e2bf57f499142582dc953e40b13d66f1"
+    },
+    {
+      "path": "dist/nurbs/source-wide/curve-wide-control-polygon.d.ts",
+      "bytes": 4815,
+      "sha256": "afc4f04a2167a7fe87c4e9dd0281df85fb5f88ca774f513958c6214f1c4fcb89"
+    },
+    {
+      "path": "dist/nurbs/source-wide/curve-wide-control-polygon.js",
+      "bytes": 15121,
+      "sha256": "8a5423f9f2dfbf902102fe559c17616cc6334bee9d561b872373ccb67cb8acc2"
+    },
+    {
+      "path": "dist/nurbs/source-wide/curve-wide-cubic-plane-intersection.d.ts",
+      "bytes": 6269,
+      "sha256": "0f2c69b9f5205b2f581f87dc68695776acbb901e6e554b42399f22820e9b745c"
+    },
+    {
+      "path": "dist/nurbs/source-wide/curve-wide-cubic-plane-intersection.js",
+      "bytes": 16210,
+      "sha256": "bb3a2e8b8beddb5b093a7303688807a56522feac5e52e8e9c29f015462479a5b"
+    },
+    {
+      "path": "dist/nurbs/source-wide/curve-wide-plane-intersection.d.ts",
+      "bytes": 5151,
+      "sha256": "6c377e9bc71e08fa22aae438536d2bbd61c36799de51ea0da167991c6c031cfa"
+    },
+    {
+      "path": "dist/nurbs/source-wide/curve-wide-plane-intersection.js",
+      "bytes": 14571,
+      "sha256": "6c5d8412993220b7d06c8e7d2e93270c2d68ab39c20f7349c0cdad763903557d"
+    },
+    {
+      "path": "dist/nurbs/source-wide/curve-wide-refinement.d.ts",
+      "bytes": 5602,
+      "sha256": "8954185b73b5f258784755338d882542a3731edfb004ee4a00914cbbdae9f4b2"
+    },
+    {
+      "path": "dist/nurbs/source-wide/curve-wide-refinement.js",
+      "bytes": 22311,
+      "sha256": "08f781deba187c7a6d274c46f90004dec7967d8b771e9a9d5c25265736ba1a98"
+    },
+    {
+      "path": "dist/nurbs/source-wide/curve-wide-reversal.d.ts",
+      "bytes": 4146,
+      "sha256": "a3e1f730d28d3bfcb186092e3dc77cedffd07ddfb5a16e8f20f6113be36ac8b9"
+    },
+    {
+      "path": "dist/nurbs/source-wide/curve-wide-reversal.js",
+      "bytes": 9970,
+      "sha256": "91ecbf989448131a6d4dbe949f2633a3ff7a5787092361454247ef19f56f0012"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-curve-adaptive-sampling.d.ts",
+      "bytes": 8071,
+      "sha256": "67eb257157456935a35ba4ca9861652f1076b5c3dbe514be5673d9373dc98cf5"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-curve-adaptive-sampling.js",
+      "bytes": 31311,
+      "sha256": "27b165c89dc7db39f0973bdbb8bc25c6189594ae68d010f6a770d8010f7ca548"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-curve-control-polygon.d.ts",
+      "bytes": 5104,
+      "sha256": "9be0eff2616f90e109064cb2acf0785a033130f81d2ac589f791e05747dea91b"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-curve-control-polygon.js",
+      "bytes": 17758,
+      "sha256": "5892987da337f3db663bb4e18d3f0a42b83a93d172f2cd47486b7106af2b7483"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-curve-degree-elevation.d.ts",
+      "bytes": 6929,
+      "sha256": "f03908e70c299b9341978036417aa0e3fa748299efe6a89f5f07285e99e1dcd9"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-curve-degree-elevation.js",
+      "bytes": 29972,
+      "sha256": "7285965fb66a53c94c63c1d2bea2b6b84a9f67777ff4fcf1d91edbdc41ec996b"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-curve-interval-extraction.d.ts",
+      "bytes": 9513,
+      "sha256": "913da0e7146061c3b6d3a2041ade62b4117d0821a69f6400f9adafa35850f4a1"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-curve-interval-extraction.js",
+      "bytes": 42851,
+      "sha256": "daae7cd50840276e6129c01b2893f425e9ff8486ff78e9fcbe4a84cf98aa2913"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-curve-knot-insertion.d.ts",
+      "bytes": 6528,
+      "sha256": "72d5593313de22718475d75e624acc4d778804745c5df6751f021da54711025c"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-curve-knot-insertion.js",
+      "bytes": 26725,
+      "sha256": "2ddb494428c675e90c1c066ed52d6bd3d3987df4deb71b0c4a4d9126c26dc2b2"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-knot-aligned-loft.d.ts",
+      "bytes": 7484,
+      "sha256": "43f38033b39517b41fae53ba4eaa37e9c2e9b772687a9e3d59471f3dbfc00075"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-knot-aligned-loft.js",
+      "bytes": 28875,
+      "sha256": "7054256d2eb46dd85b3cb72585d25b66ad5d8acdc97549d6d50c41a6d21a7150"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-knot-recipe-loft-graph.d.ts",
+      "bytes": 11195,
+      "sha256": "a02d6ffa4dd6e2761e58b166be4bf8d6ec82e0555f2e9cdb8de1d6d31a0e8112"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-knot-recipe-loft-graph.js",
+      "bytes": 43604,
+      "sha256": "18fb7bc5a8a6eebe6feedc123002e26731053f4eb0d3f15e4914ef4c9b30edec"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-line-width-extrusion-graph.d.ts",
+      "bytes": 13606,
+      "sha256": "34f13dede41e720c6d8d501d883059319f67645e4e7702c6b9b549ec12041d1f"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-line-width-extrusion-graph.js",
+      "bytes": 39005,
+      "sha256": "49c3fc5a203390037ed144972dbe22b589d0ec7fc04956b66c0008d1f9f8aab0"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-line-width-face.d.ts",
+      "bytes": 7820,
+      "sha256": "acceefac066ad48bdbfa5e34cba2ae0dff176045b39a4d405d107cb73a471a43"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-line-width-face.js",
+      "bytes": 25364,
+      "sha256": "0b1963e522d4fa69716ccb257090c5655b1f20adfbc15a42d333c68601ad4aed"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-line-width-material-body-graph.d.ts",
+      "bytes": 15309,
+      "sha256": "4a745d86a22f30b094c3fcc71b3a5f26dc782adf908eff83618edbe809a1380c"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-line-width-material-body-graph.js",
+      "bytes": 50661,
+      "sha256": "836f6433425ff89e772785b44734cea47983e8cf54621b28cd99e51af922be39"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-surface-control-net-wide.d.ts",
+      "bytes": 5769,
+      "sha256": "19c7413cd6ee302b6b7cc35d273249fd5e2905f010c63f64222066bbc6bcbaec"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-surface-control-net-wide.js",
+      "bytes": 19000,
+      "sha256": "ea88deeb8f366dcae6c22187ea7aa6b6eeb08cc00b1927836ad0dc9432b44a49"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-surface-control-net.d.ts",
+      "bytes": 3917,
+      "sha256": "9a6dc1763a3ed237081a2ac9578b039bbb33b2135cd4a21ae416e22f2bfbfe7f"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-surface-control-net.js",
+      "bytes": 15945,
+      "sha256": "96a9fc3f906eb488ccc0ddd94af32beee6178533bdcdf21d5a58cf047ba91059"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-surface-degree-elevation.d.ts",
+      "bytes": 8244,
+      "sha256": "dd26ea40d47cbb45f210873bc6e0cbd82484e29363a29addff3dd914ee705043"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-surface-degree-elevation.js",
+      "bytes": 38191,
+      "sha256": "d7bad8521ddf5fe3cb31c3646c29cb080f39991856f81586e8bb294f63023bb8"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-surface-knot-insertion.d.ts",
+      "bytes": 7511,
+      "sha256": "d50d4fc715c6312a37bf688c4ae36c38e79815c2b6d8a9d19e4e831469a5e62d"
+    },
+    {
+      "path": "dist/nurbs/source-wide/source-surface-knot-insertion.js",
+      "bytes": 32109,
+      "sha256": "2c7a69864b83f849c36a8b75b7f45720412f12e018b4ec08a1d9aa0950ab32aa"
+    },
+    {
+      "path": "dist/nurbs/surfaces/bezier-coons-surface.d.ts",
+      "bytes": 1229,
+      "sha256": "a9aff91abc71ba6fdae1a7b465840df0b09670922b4989fd44512c72f41c8072"
+    },
+    {
+      "path": "dist/nurbs/surfaces/bezier-coons-surface.js",
+      "bytes": 7373,
+      "sha256": "0efcdbd32a750600ff9f9985470e26a49f55dcfc2bc96959cc8900328f3179ad"
+    },
+    {
+      "path": "dist/nurbs/surfaces/cad-surface-area.d.ts",
+      "bytes": 6956,
+      "sha256": "d65275058804376ee30ca0ae4af00482a42f14b3ba8f66b205638b38db3bd9e2"
+    },
+    {
+      "path": "dist/nurbs/surfaces/cad-surface-area.js",
+      "bytes": 24838,
+      "sha256": "8974ea4cbb9cb8491942999776fc5943710ec881a12f65f9c3158337267f311f"
+    },
+    {
+      "path": "dist/nurbs/surfaces/compatible-ruled-surface.d.ts",
+      "bytes": 2541,
+      "sha256": "d691dbf2f70d3c146e3787554d13e68830da46427a28d3b1354b61a42d58b337"
+    },
+    {
+      "path": "dist/nurbs/surfaces/compatible-ruled-surface.js",
+      "bytes": 9876,
+      "sha256": "43a6e1a822cd08a131a1e9d100315aecdebb1b68b7dc8b3207ff61d374d0028c"
+    },
+    {
+      "path": "dist/nurbs/surfaces/degree-matched-bezier-ruled.d.ts",
+      "bytes": 4079,
+      "sha256": "329feab6dbe04f809af43cb93d04c2f13c1b5fbbc41ea393098bde23f006da30"
+    },
+    {
+      "path": "dist/nurbs/surfaces/degree-matched-bezier-ruled.js",
+      "bytes": 12319,
+      "sha256": "df9b0d5edad4d002774c2565da9a096a87430adb3999b062c2b6f7e9209efef6"
+    },
+    {
+      "path": "dist/nurbs/surfaces/local-curvature.d.ts",
+      "bytes": 1920,
+      "sha256": "e224a1d211360fd2a0d71bf6d67c2243df26953454e386781acb65ab6f642080"
+    },
+    {
+      "path": "dist/nurbs/surfaces/local-curvature.js",
+      "bytes": 6883,
+      "sha256": "d0e5814d5e3ebc49b4f8f5f537dca3482919f3790715385cd8653248f90798e2"
+    },
+    {
+      "path": "dist/nurbs/surfaces/rational-ruled-surface.d.ts",
+      "bytes": 4301,
+      "sha256": "ded1f0dce0b5ee902d4a9e71b52742032433d9ea8ffbeaf5d837e7ab59615925"
+    },
+    {
+      "path": "dist/nurbs/surfaces/rational-ruled-surface.js",
+      "bytes": 14000,
+      "sha256": "309fd9704fd64d188ad1e802f8eba8dce8e35916f173d602835ed2673e786d67"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-axis-reversal.d.ts",
+      "bytes": 5864,
+      "sha256": "02071b52f3990d33a3715b254a123feb35d17da3c72158b30202f2eaa1b30c3c"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-axis-reversal.js",
+      "bytes": 21642,
+      "sha256": "885cba1b756613239cc0d343dd5fe7336ea33ce47a0dbcae0b81bb0756eb0248"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-bezier-axis-degree-elevation.d.ts",
+      "bytes": 4212,
+      "sha256": "f9ae415932f33747ab705b03392a1ad1e0939fcecc44e2c5ae321c5fecc8e8d9"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-bezier-axis-degree-elevation.js",
+      "bytes": 14538,
+      "sha256": "298b7ecefdbc38d78a219cef732394b20f8acae65fe16612fa9e0086bf4c1512"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-closest.d.ts",
+      "bytes": 2309,
+      "sha256": "7e4f837f7b82cea9a8b8a6b467945dac50b0be5807ef4e6f156970cc2dafea03"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-closest.js",
+      "bytes": 10605,
+      "sha256": "ee9d031495c66cb574204cd65d338d3dfe10a3ef7d2bf51c64cc4d7b43e262a5"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-control-net.d.ts",
+      "bytes": 2247,
+      "sha256": "a8cf9108747c172cdfe2442c915e87e42e3aa478803bbb33c44fd89704db718b"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-control-net.js",
+      "bytes": 10292,
+      "sha256": "0d46bd0d3218cbff55ac60c703d47b67339184113046f9521985a99598bae2e0"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-interpolation.d.ts",
+      "bytes": 5770,
+      "sha256": "72a95ce660c35bb4c8b762497bfc17c554576c864df84728bd16f54e8d76d713"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-interpolation.js",
+      "bytes": 17604,
+      "sha256": "07e5e53f5689ae3777da683999445c84abfa7632b48f46853f8358739dfb87e0"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-isocline.d.ts",
+      "bytes": 1422,
+      "sha256": "fb92afd1c374611438cc56c03f3ec4c9ba7ed5d830b0398abe65aaf87db27e33"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-isocline.js",
+      "bytes": 12028,
+      "sha256": "0b6208e9be045aadf2c325f2b5d3c8315025e9c29a7c91c6f2da10cb3229b3bb"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-isocurve.d.ts",
+      "bytes": 2979,
+      "sha256": "09c2679f881467e4fca1910b3b5e3b19ba666d55e0031dfbe06018abd3a957ae"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-isocurve.js",
+      "bytes": 11829,
+      "sha256": "6a002f2f57030825f664ab8d810f8e1ad4a40b976557debf40725364a9802fdc"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-knot-insertion.d.ts",
+      "bytes": 2880,
+      "sha256": "876cc5cb29e6ac73ae8bf23c7e7c7e75574639bfce6568a0ce36d81788c63625"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-knot-insertion.js",
+      "bytes": 13510,
+      "sha256": "d38e9fe340306e83c16c04a31146db5637c10e3d8b6f91f58e85d11f14e4f01d"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-parameter-split.d.ts",
+      "bytes": 4462,
+      "sha256": "010494f0718e567bb57914134a8983cc5f8b2c7758d7838827dcb7f6994ffa70"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-parameter-split.js",
+      "bytes": 16307,
+      "sha256": "c1708dcd1c0d48c0160dd7fb09d774c4dfb390b33181a607d3887e362e51c913"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-region.d.ts",
+      "bytes": 5893,
+      "sha256": "101d96e8e4536e1a3257bcc6acf79f8b4bd36195f14b4be1021d50ea11f0199c"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-region.js",
+      "bytes": 22159,
+      "sha256": "e2ce1e6d7a9005a2ea5c7003021bed939e69c22cd06acc7ab0e54ba1ca669881"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-revolution.d.ts",
+      "bytes": 1791,
+      "sha256": "8bd862b768ee1a3c01437c1afdc0b82a99507b736961a6df08d6677e1f1f16e3"
+    },
+    {
+      "path": "dist/nurbs/surfaces/surface-revolution.js",
+      "bytes": 7056,
+      "sha256": "a55a1e7e0189dc4085f6fe334c359be08778ec0150cd13ca5f8ab0dbe3b48c8e"
+    },
+    {
+      "path": "dist/nurbs/surfaces/translational-sweep-surface.d.ts",
+      "bytes": 6910,
+      "sha256": "11235b6b271ba85252bbe25f1323999840b38c37a5c2ad35aa9191e6d6e05e67"
+    },
+    {
+      "path": "dist/nurbs/surfaces/translational-sweep-surface.js",
+      "bytes": 19979,
+      "sha256": "df95b98a5c38990ffbfb1abf2d355f229167d87048b7587cbca9849ea15663a9"
+    },
+    {
+      "path": "dist/nurbs/surfaces/trimmed-surface-axis-reversal.d.ts",
+      "bytes": 3217,
+      "sha256": "a343305fb5827e9d9ad308c1c82fbc28f21d72fa1d5f72d645350e88ff068643"
+    },
+    {
+      "path": "dist/nurbs/surfaces/trimmed-surface-axis-reversal.js",
+      "bytes": 12194,
+      "sha256": "29106aa11e59f78c783eae94f9188950f99e3d61ac533d28115f771011f556b9"
+    },
+    {
+      "path": "dist/nurbs/surfaces/trimmed-surface-parameter-split.d.ts",
+      "bytes": 3494,
+      "sha256": "0ba63cb86d4c53347c1e715ba6e5b290137fe4fb9f0346f4a4b8d33604463a7b"
+    },
+    {
+      "path": "dist/nurbs/surfaces/trimmed-surface-parameter-split.js",
+      "bytes": 13552,
+      "sha256": "02a66200c81b3f342685244e6a287af191219d3c0e517a86c16fa528d958918d"
+    },
+    {
+      "path": "dist/nurbs/surfaces/trimmed-surface-region.d.ts",
+      "bytes": 3539,
+      "sha256": "532fdc16ba03851dea645cbf88a69790c69fad76f67800dfe87f72d20e0883fa"
+    },
+    {
+      "path": "dist/nurbs/surfaces/trimmed-surface-region.js",
+      "bytes": 11343,
+      "sha256": "2b62bd4d19d4ed22a6b026fbfd3d56f2638b6232c84b16a3c35ab1db3c3ff2d4"
+    },
+    {
+      "path": "dist/nurbs/surfaces/trimmed-surface-split-binding.d.ts",
+      "bytes": 1360,
+      "sha256": "273090c6ff592ea19d2136c1fa3a2253ec5b175aca95e7fdfa818f204710e837"
+    },
+    {
+      "path": "dist/nurbs/surfaces/trimmed-surface-split-binding.js",
+      "bytes": 8965,
+      "sha256": "8f0c23e70c7d9704aa275beb7653fca0c3bf7e185b1b4bd23952409a3c57c932"
+    },
+    {
+      "path": "dist/nurbs/surfaces/trimmed-surface-split-common.d.ts",
+      "bytes": 599,
+      "sha256": "1a5986c654ae34e5ff0de1f39ab6fb312bb4e7f921a0f57b8d31836e2a6369b5"
+    },
+    {
+      "path": "dist/nurbs/surfaces/trimmed-surface-split-common.js",
+      "bytes": 534,
+      "sha256": "54227a122d885744b49fc55551c97a42c6be2103db6d9e5779f1930a36e63da1"
+    },
+    {
+      "path": "dist/nurbs/surfaces/trimmed-surface-split-topology.d.ts",
+      "bytes": 1777,
+      "sha256": "608c7fde371d9c3db81d26ccd8c0e78880951e9dd6f360db0de030bb357285f2"
+    },
+    {
+      "path": "dist/nurbs/surfaces/trimmed-surface-split-topology.js",
+      "bytes": 6065,
+      "sha256": "19c5666c0066e27143be48860e91ea50d462c8f0a71f2a60d4007a3c71b4841e"
+    },
+    {
+      "path": "dist/nurbs/surfaces/z-axis-revolved-surface.d.ts",
+      "bytes": 2390,
+      "sha256": "319020ee222178a8daf2a34a96cb27884f5dd2b9f1c13f426cd5ebbb8de68e41"
+    },
+    {
+      "path": "dist/nurbs/surfaces/z-axis-revolved-surface.js",
+      "bytes": 10585,
+      "sha256": "d4e47ce55fcbcc5c8457deb4eafd3ad6fd131e815a3ff87b6cf07720f47286d8"
+    },
+    {
+      "path": "dist/orthogonal-solid-boolean.d.ts",
+      "bytes": 3879,
+      "sha256": "43d89f12d0d7c7cc8e71907ebd60428ae97d3f8ac556b7e0c9472bec056d7bd2"
+    },
+    {
+      "path": "dist/orthogonal-solid-boolean.js",
+      "bytes": 8864,
+      "sha256": "c45cdd0b3ad069857611cfd6d26c424187267c635079eb5a7ce88acdbb2ac150"
+    },
+    {
+      "path": "dist/own-convex-planar-face.d.ts",
+      "bytes": 4507,
+      "sha256": "2e3190f9e3ac2e9b0d0428830511b768ac5ebe5a42656a951bb6d15e787cca2d"
+    },
+    {
+      "path": "dist/own-convex-planar-face.js",
+      "bytes": 17306,
+      "sha256": "02b40a43b3de4422f1b8dfd1fb3c9848bf5c3965fd85de56e0cd6f6e8e33dfda"
+    },
+    {
+      "path": "dist/own-plate-circular-hole.d.ts",
+      "bytes": 3464,
+      "sha256": "7d057de4e00111bb43b011910696b9427320472b976bb83ba0ec45fd77ca921f"
+    },
+    {
+      "path": "dist/own-plate-circular-hole.js",
+      "bytes": 15775,
+      "sha256": "20876ba5f108b5172b0b0fb6fdf7305509d118bb9a29039a8e6dce485d27a86d"
+    },
+    {
+      "path": "dist/paired/paired-roof-body-split-proof-internal.d.ts",
+      "bytes": 3767,
+      "sha256": "1cce3d835ee24affba3b979a358e20657ff20a928339bc2da3d5f29153f23b9a"
+    },
+    {
+      "path": "dist/paired/paired-roof-body-split-proof-internal.js",
+      "bytes": 31751,
+      "sha256": "ddfd0053a066c27e168c519f451c1d422677a483b84f201ef0942c1b0266548e"
+    },
+    {
+      "path": "dist/paired/paired-roof-body-split.d.ts",
+      "bytes": 5214,
+      "sha256": "7c2ff354ba08c5c87ce7ec63b55dfa3640aea5d865a5116fad776257e35869f8"
+    },
+    {
+      "path": "dist/paired/paired-roof-body-split.js",
+      "bytes": 17707,
+      "sha256": "0df6acd45787c022dc5408d623325ad06386b34851e43c8ccbb9e249888c1b9f"
+    },
+    {
+      "path": "dist/paired/paired-roof-difference-body-construction-internal.d.ts",
+      "bytes": 2101,
+      "sha256": "94577a37ce418b2cd0067ac850e4dd91f9579c9137b7a9736e08d8755b0d5b9d"
+    },
+    {
+      "path": "dist/paired/paired-roof-difference-body-construction-internal.js",
+      "bytes": 20123,
+      "sha256": "2f3d46817b93c8f055fec26c46c153e6e91e61b00cdee53611ec80334a442d9c"
+    },
+    {
+      "path": "dist/paired/paired-roof-difference-body-proof-internal.d.ts",
+      "bytes": 11374,
+      "sha256": "2f08f761b9a180c6f787b10f0150b39e4a6b8500000bfcd2753643a213f88687"
+    },
+    {
+      "path": "dist/paired/paired-roof-difference-body-proof-internal.js",
+      "bytes": 55076,
+      "sha256": "b1cbb8998dfb39a902d6597ec318e6a2bec848dfb47f4efc093ea49486c9b13b"
+    },
+    {
+      "path": "dist/paired/paired-roof-difference-body-world-points-internal.d.ts",
+      "bytes": 3589,
+      "sha256": "50e2eef46d1440c6399c0e48b8a0f5a0c1d737aa132fcdb76c68e7239ae6d090"
+    },
+    {
+      "path": "dist/paired/paired-roof-difference-body-world-points-internal.js",
+      "bytes": 13933,
+      "sha256": "4b71b86b2660f344445174e5d69049d882386e8ddbb9a9364f06fa7e9cfebc84"
+    },
+    {
+      "path": "dist/paired/paired-roof-difference-body-world-points.d.ts",
+      "bytes": 8176,
+      "sha256": "ae0a5296e5b5d6d9d437acd60e3151a97b563b75f6869808c85cf9906f299d7b"
+    },
+    {
+      "path": "dist/paired/paired-roof-difference-body-world-points.js",
+      "bytes": 21268,
+      "sha256": "9c6d709eea3fa001352d29be63cafb246c8c5ed1a59df2e8227dcc4fe5ba06a8"
+    },
+    {
+      "path": "dist/paired/paired-roof-difference-body.d.ts",
+      "bytes": 16581,
+      "sha256": "06608fb884debd247f2f80103c5b997ce45808bfcea926031a5819ba7422acd7"
+    },
+    {
+      "path": "dist/paired/paired-roof-difference-body.js",
+      "bytes": 36616,
+      "sha256": "53536e606dcebee38028fc587aabdbf7a5155362304dbaa172884cd3c9076639"
+    },
+    {
+      "path": "dist/paired/paired-section-plane-cap.d.ts",
+      "bytes": 10062,
+      "sha256": "a77b3bb1e899195ac83ffd1f8719125c65a47bdc914a2763b13ad56da2a0ed76"
+    },
+    {
+      "path": "dist/paired/paired-section-plane-cap.js",
+      "bytes": 26622,
+      "sha256": "a1d1d3c3b923b059bd79d9eeb0dba9b7a13e8c938d32c82c63f00697b7d3b45a"
+    },
+    {
+      "path": "dist/paired/paired-surface-b-uv-split-faces-proof-internal.d.ts",
+      "bytes": 6572,
+      "sha256": "5e8dbec1e75db7606e5a7a423eaef446f1f91a795cd6d297e9688e2539f30e8c"
+    },
+    {
+      "path": "dist/paired/paired-surface-b-uv-split-faces-proof-internal.js",
+      "bytes": 25469,
+      "sha256": "511e2464ba6fc965848a20419dd4d574a91ee5210002f4900846e58617d55f1f"
+    },
+    {
+      "path": "dist/paired/paired-surface-b-uv-split-faces.d.ts",
+      "bytes": 8897,
+      "sha256": "10419d99dab712d2121b5663bc9b712ec0725e74c9372617561f83e05ab5269c"
+    },
+    {
+      "path": "dist/paired/paired-surface-b-uv-split-faces.js",
+      "bytes": 35099,
+      "sha256": "7982140e4adf1a80e0d8924f0f3ae26077e7b6d377c37fa59baab7cd156b9d0e"
+    },
+    {
+      "path": "dist/paired/paired-surface-intersection-branch.d.ts",
+      "bytes": 11871,
+      "sha256": "8635996ce4d981a666eca50ee172bc7b8b73cd9cef0e9e0f550aa5f28274edb5"
+    },
+    {
+      "path": "dist/paired/paired-surface-intersection-branch.js",
+      "bytes": 41441,
+      "sha256": "e636329527a200e6b728245e2833cbf4471b2db180c6442a9598ca37497a0a8d"
+    },
+    {
+      "path": "dist/paired/paired-surface-material-body-proof-internal.d.ts",
+      "bytes": 8589,
+      "sha256": "a347f928c13e202fec86c6ae7073ed302d542c3c44d5c48b89ee72762f421cf8"
+    },
+    {
+      "path": "dist/paired/paired-surface-material-body-proof-internal.js",
+      "bytes": 40606,
+      "sha256": "aadfe2398d7847084bafab45c3ddf2c14082ba8047462fee2620977a0cc8c82d"
+    },
+    {
+      "path": "dist/paired/paired-surface-material-body-world-points-internal.d.ts",
+      "bytes": 3435,
+      "sha256": "a560493dd6c263a8023992711eecef3336598471861a74d351a0b2f7e621157a"
+    },
+    {
+      "path": "dist/paired/paired-surface-material-body-world-points-internal.js",
+      "bytes": 12104,
+      "sha256": "b157e6cb08d8a5da3c212220a9527954ccc070ba5ff01c248822272dbb151e12"
+    },
+    {
+      "path": "dist/paired/paired-surface-material-body-world-points.d.ts",
+      "bytes": 8113,
+      "sha256": "b9d63da6fbe7d969aab62c8275d9a44f7c46512a59699eb5cf14ec7ba9e78d4c"
+    },
+    {
+      "path": "dist/paired/paired-surface-material-body-world-points.js",
+      "bytes": 20866,
+      "sha256": "d5cf0b602e7cbba047ba24113ce21d60a6c8f4580b0813db5813f8d4d555b526"
+    },
+    {
+      "path": "dist/paired/paired-surface-material-body.d.ts",
+      "bytes": 14083,
+      "sha256": "42b8c6f9590458b46aa99ef280f06af8a9ae2e25416dea3420437b8a9110e33f"
+    },
+    {
+      "path": "dist/paired/paired-surface-material-body.js",
+      "bytes": 39306,
+      "sha256": "4c9c78724c7cdd2d429b5cbb62cdcb10a2ac37fc84021a5c10390638daeca06f"
+    },
+    {
+      "path": "dist/paired/paired-surface-uv-face-classification-internal.d.ts",
+      "bytes": 3988,
+      "sha256": "c39eab6662e43586c98d1837a87953dbf67c0833c1137aa72f8064dfe77da1f0"
+    },
+    {
+      "path": "dist/paired/paired-surface-uv-face-classification-internal.js",
+      "bytes": 13349,
+      "sha256": "a822d89eb2a689a4293dafb7da50a28bd7dba2c9ae988edf0c7e4cd200b359d7"
+    },
+    {
+      "path": "dist/paired/paired-surface-uv-face-classification.d.ts",
+      "bytes": 8452,
+      "sha256": "eceb04cfb1edf2c5215d45928ca924874bcfa24b0bbb61ed48e91a560391dc89"
+    },
+    {
+      "path": "dist/paired/paired-surface-uv-face-classification.js",
+      "bytes": 20785,
+      "sha256": "5791291e10fe270a1f246df067b90c17eaf58edc27e1435bc9f90fdfa38b794e"
+    },
+    {
+      "path": "dist/paired/paired-surface-uv-split-faces-proof-internal.d.ts",
+      "bytes": 6143,
+      "sha256": "f935ca764ca9b6fe36e9ba9e245443cc5f8e59045665ce8ecb9d209ac0e0f607"
+    },
+    {
+      "path": "dist/paired/paired-surface-uv-split-faces-proof-internal.js",
+      "bytes": 23395,
+      "sha256": "f8601ff22e2b7f62a42d8f789ccdb7173f9b4d21f48f918d0ecd33ddffc81ed8"
+    },
+    {
+      "path": "dist/paired/paired-surface-uv-split-faces.d.ts",
+      "bytes": 8680,
+      "sha256": "2c0e85071a88b865090289594fbd5d0418bda751ced4babea1ad2d841bee74ae"
+    },
+    {
+      "path": "dist/paired/paired-surface-uv-split-faces.js",
+      "bytes": 33869,
+      "sha256": "c6700bf74fdf1deb45f8a98f1bb1788c151a750d70dfe4c41e495484db000155"
+    },
+    {
+      "path": "dist/part/part-expect.d.ts",
+      "bytes": 2394,
+      "sha256": "40a952e190f238a996fd4e28997b5a75b37b50b935cf37d5070cffd0bcd3b21f"
+    },
+    {
+      "path": "dist/part/part-expect.js",
+      "bytes": 9455,
+      "sha256": "cd449b1a3805b0b7c26b3bd2486fe36788b5a254180761e6d2e8a239bb78a0a6"
+    },
+    {
+      "path": "dist/part/part-finish.d.ts",
+      "bytes": 304,
+      "sha256": "e28d06021b5ca19e401bbd63151fee564a9f8a14861b33653b3ac610beb6c476"
+    },
+    {
+      "path": "dist/part/part-finish.js",
+      "bytes": 5245,
+      "sha256": "a3478563bae04e9c47cfdc3eaeb2f2ad32ea9fa4fbb9d89bd56c401567449456"
+    },
+    {
+      "path": "dist/part/part-frame.d.ts",
+      "bytes": 303,
+      "sha256": "fdfe954483087154a3f82f6339a8f6cb1e0d32c94853e65d5fc27c80dde641b2"
+    },
+    {
+      "path": "dist/part/part-frame.js",
+      "bytes": 16980,
+      "sha256": "2926941ecd5aecd97b6dbf8f34f64e1a89eb1c8af90d240e987f36b9bfb22452"
+    },
+    {
+      "path": "dist/part/part-gears.d.ts",
+      "bytes": 289,
+      "sha256": "7165f8072776bd6123c00f32d93d54432f1bf7a1baf5e4c3285cdcfc60c83f29"
+    },
+    {
+      "path": "dist/part/part-gears.js",
+      "bytes": 30166,
+      "sha256": "4d0f25a658393f39e7a61061d6caeab4f66606de7dd8768ea0eb0f70e101ceaf"
+    },
+    {
+      "path": "dist/part/part-machine.d.ts",
+      "bytes": 303,
+      "sha256": "dd924b742ab44761e29ea4754120ca53871ba524dc0c1710b624c19cbc64647c"
+    },
+    {
+      "path": "dist/part/part-machine.js",
+      "bytes": 31522,
+      "sha256": "0b032411b29bf1bdd3f1b116f9bf994320061937de64c0d8c684efee1a5ef5ec"
+    },
+    {
+      "path": "dist/part/part-mesh.d.ts",
+      "bytes": 300,
+      "sha256": "cfd3f148c5642983e7cfedfb634f98b437cec4bf77e1ad25d4b04bef802d1a35"
+    },
+    {
+      "path": "dist/part/part-mesh.js",
+      "bytes": 11731,
+      "sha256": "e493e558be2b34440d8b9d5282f22dfcd9304c7b95b7dff17881bb80cec68342"
+    },
+    {
+      "path": "dist/part/part-model.d.ts",
+      "bytes": 101436,
+      "sha256": "ece46123ca43386ed2ff5be1a7a242b572af8da60aa1dc87216af9bfdae1d32e"
+    },
+    {
+      "path": "dist/part/part-model.js",
+      "bytes": 352524,
+      "sha256": "9f16176b266ece04dcc250a668a4ba01d840a1a6cc8fe70cd2573c28b1eeff3f"
+    },
+    {
+      "path": "dist/part/part-sheet.d.ts",
+      "bytes": 297,
+      "sha256": "5eb48d7a01412b54c8348bf4f6dee4ef924b233e831bac1323c0e6db2b7c7521"
+    },
+    {
+      "path": "dist/part/part-sheet.js",
+      "bytes": 9205,
+      "sha256": "f55abf88d96c27f0f23e9830c21d691f07e7bc68c569a9c83d5319cc78be7e7a"
+    },
+    {
+      "path": "dist/part/part-shell.d.ts",
+      "bytes": 302,
+      "sha256": "788206c713c584045a145ed272195255812fa089ad6b760c1c75ef4a1d4b7be1"
+    },
+    {
+      "path": "dist/part/part-shell.js",
+      "bytes": 2906,
+      "sha256": "64e28d39cea31dc3dbe37db2b7fddb8af81656df7e094935269c08365c65670a"
+    },
+    {
+      "path": "dist/planar-solids/axis-box-mass-frame.d.ts",
+      "bytes": 6349,
+      "sha256": "93f50f4027bd164f40583dc954500642cc8bc2fd09b27922f56ac68fc15b8e2d"
+    },
+    {
+      "path": "dist/planar-solids/axis-box-mass-frame.js",
+      "bytes": 14264,
+      "sha256": "4fa3cde0a954a62bd286fa612b2e21689ffd4f77fbe97fa49193f9f50061472a"
+    },
+    {
+      "path": "dist/planar-solids/axis-box-point-classification.d.ts",
+      "bytes": 5498,
+      "sha256": "abd73fbf9f884fb29cf7dccea22ed3420ab40b5e07fa7157674523387733344b"
+    },
+    {
+      "path": "dist/planar-solids/axis-box-point-classification.js",
+      "bytes": 13780,
+      "sha256": "695d92e323b4a510d3cdc8fc867bf5be028a3ee9c4e014321379297b9fd887cc"
+    },
+    {
+      "path": "dist/planar-solids/axis-box-principal-inertia.d.ts",
+      "bytes": 6367,
+      "sha256": "3cfd1b578dfe0a09d8e991c7c585c5e49e3d4d6bf50534947c113639d9f9615e"
+    },
+    {
+      "path": "dist/planar-solids/axis-box-principal-inertia.js",
+      "bytes": 17887,
+      "sha256": "846aaa671ffeb6cb112b2965162210ec7fbff04a9105a85c8c448e71a181c71a"
+    },
+    {
+      "path": "dist/planar-solids/axis-box-solid-feature-document.d.ts",
+      "bytes": 5906,
+      "sha256": "085268cbda33bbb15baef7acd6136fd724c12ab12e8200b21087a65748660792"
+    },
+    {
+      "path": "dist/planar-solids/axis-box-solid-feature-document.js",
+      "bytes": 19880,
+      "sha256": "ff02c29ced86eaa893944100ebba4146d593af9aa262bd2b9686dec3fb094469"
+    },
+    {
+      "path": "dist/planar-solids/axis-rectangle-extrusion.d.ts",
+      "bytes": 1580,
+      "sha256": "7befcbfa03271d14fcdcbde8203e9b4b767d996f47525679a0a3dd148bf4b833"
+    },
+    {
+      "path": "dist/planar-solids/axis-rectangle-extrusion.js",
+      "bytes": 9494,
+      "sha256": "9b7362ef833b95cf4ec19260e0346f9507ed49997bf31847ca2243cd3ef043a0"
+    },
+    {
+      "path": "dist/planar-solids/axis-rectangle-feature-document.d.ts",
+      "bytes": 2114,
+      "sha256": "74961967963ee9ab3311907431f6339975639ad621666282db07c9a51ad2b352"
+    },
+    {
+      "path": "dist/planar-solids/axis-rectangle-feature-document.js",
+      "bytes": 12414,
+      "sha256": "c6ecdb4a15ea6ced5758aea49d84e31649e3e21e27719831d76637a511f63ac7"
+    },
+    {
+      "path": "dist/planar-solids/convex-planar-face-extrusion.d.ts",
+      "bytes": 8612,
+      "sha256": "a1fbeb273015bd58c86bb5743ecfb32eb798fcd3df1fbff4ddc7ae5988702a53"
+    },
+    {
+      "path": "dist/planar-solids/convex-planar-face-extrusion.js",
+      "bytes": 28954,
+      "sha256": "6b7a9279cb4a7df9818e1763473706f1f2787ff0c02d4a3a85b8e922bbaadf30"
+    },
+    {
+      "path": "dist/planar-solids/convex-planar-slab-subtraction-internal.d.ts",
+      "bytes": 2231,
+      "sha256": "2d9c3e1ea82aa391d93dcb1dda2874dd49dcb86502dbcb1c5b9d8b89fbfba312"
+    },
+    {
+      "path": "dist/planar-solids/convex-planar-slab-subtraction-internal.js",
+      "bytes": 7174,
+      "sha256": "8b0d89bb9d81f319a0abb5a15fb6f7806202ce1b991f53d114244a7f0528a04b"
+    },
+    {
+      "path": "dist/planar-solids/convex-planar-solid-chamfer-internal.d.ts",
+      "bytes": 2208,
+      "sha256": "3592526681b2c913dfbe4dd1948577a7737ef5f0028e531ab16f201d64051b88"
+    },
+    {
+      "path": "dist/planar-solids/convex-planar-solid-chamfer-internal.js",
+      "bytes": 7274,
+      "sha256": "6804ff517fd03c125c9a75bb0a21b629d53e4b9c971795abe2283a8f359c10ef"
+    },
+    {
+      "path": "dist/planar-solids/convex-planar-solid-intersection-internal.d.ts",
+      "bytes": 2188,
+      "sha256": "6911da3262f8c24cf5b4a266b804d6152d2ab9248400f5d3a56847dddf5fa981"
+    },
+    {
+      "path": "dist/planar-solids/convex-planar-solid-intersection-internal.js",
+      "bytes": 7170,
+      "sha256": "a14d48a02911e8a7fccf74ef0a72fe5f84ca8036a23c2755af4ef17b90304284"
+    },
+    {
+      "path": "dist/planar-solids/convex-planar-solid-mass-internal.d.ts",
+      "bytes": 2681,
+      "sha256": "22bf188fadca4f392ae01a325b70f1ca3657d0dcb621189b35b0486db431ac71"
+    },
+    {
+      "path": "dist/planar-solids/convex-planar-solid-mass-internal.js",
+      "bytes": 6464,
+      "sha256": "4c810834f3bd33215675204a6b5098b67b63e8668d534ba35fc3a5132c07b389"
+    },
+    {
+      "path": "dist/planar-solids/convex-planar-solid-mesh.d.ts",
+      "bytes": 4129,
+      "sha256": "97a7fc19b39fa5b15ec499694a3665ee20f83d1cfdb4901940142db625d29d3f"
+    },
+    {
+      "path": "dist/planar-solids/convex-planar-solid-mesh.js",
+      "bytes": 10347,
+      "sha256": "f51179edbddcf69a267141e5d002ba135a8371f9017814be83250028029e993b"
+    },
+    {
+      "path": "dist/planar-solids/convex-planar-solid-split-internal.d.ts",
+      "bytes": 2051,
+      "sha256": "51e0cd5196f02de181c91167b7afd70ab25716c8aecfae6847f6a6d954e9233b"
+    },
+    {
+      "path": "dist/planar-solids/convex-planar-solid-split-internal.js",
+      "bytes": 7024,
+      "sha256": "a3bed198577e847738f51e0a65b5ba55b37c46316a46cf2d45770fdee838b493"
+    },
+    {
+      "path": "dist/planar-solids/coplanar-face-boolean-arrangement.d.ts",
+      "bytes": 2281,
+      "sha256": "a3fe77260480b6734468b8ee52d0630f77e066ae49c6afbe69475244fe5b3196"
+    },
+    {
+      "path": "dist/planar-solids/coplanar-face-boolean-arrangement.js",
+      "bytes": 21225,
+      "sha256": "4c14e6c94ed0000adc7ebccb26c9e69521eb750b71564f1da567cfce2e9280cb"
+    },
+    {
+      "path": "dist/planar-solids/coplanar-face-boolean-extrusion-geometry.d.ts",
+      "bytes": 1535,
+      "sha256": "097a9152eb3dc18e2c3b7fb6bd737d047e9a64b03da9a44b79faa9301e78c2a3"
+    },
+    {
+      "path": "dist/planar-solids/coplanar-face-boolean-extrusion-geometry.js",
+      "bytes": 6354,
+      "sha256": "e122831414bbb0d1113658e1e2bec1a82f0c44bc2c18ee13e2310a4e781cc4cc"
+    },
+    {
+      "path": "dist/planar-solids/coplanar-face-boolean-extrusion-mass.d.ts",
+      "bytes": 6718,
+      "sha256": "6ca935fe5fb7376614701dcda7e516cfcc33d20782c27b4ce1d3be022f385b40"
+    },
+    {
+      "path": "dist/planar-solids/coplanar-face-boolean-extrusion-mass.js",
+      "bytes": 23736,
+      "sha256": "e214ee90343c5bbc812fc39da533466d5590557939f375ff21dcafcb56802ddd"
+    },
+    {
+      "path": "dist/planar-solids/coplanar-face-boolean-extrusion-mesh.d.ts",
+      "bytes": 9902,
+      "sha256": "be3b2dd296f9578d42e70a12ff0089f86b2a3d917d318614757a0410008433d7"
+    },
+    {
+      "path": "dist/planar-solids/coplanar-face-boolean-extrusion-mesh.js",
+      "bytes": 32150,
+      "sha256": "c9560c72ff552ab317ec0bfb45d1cfa9efd04f2388bcd6a47cbd0c41425a0da0"
+    },
+    {
+      "path": "dist/planar-solids/coplanar-face-boolean-extrusion-properties.d.ts",
+      "bytes": 5442,
+      "sha256": "ca44f80992264bacecfcb2fdad39ff9a7de600ffc5aa8ac0c826e8a974b7426f"
+    },
+    {
+      "path": "dist/planar-solids/coplanar-face-boolean-extrusion-properties.js",
+      "bytes": 16162,
+      "sha256": "79d637f5b88e5edea3c2178c2e3ef622ee3fe0b86cc458dc4f2110b2b946a366"
+    },
+    {
+      "path": "dist/planar-solids/coplanar-face-boolean-extrusion.d.ts",
+      "bytes": 9705,
+      "sha256": "104ad0e985c9810aa4fc3534b4e2f710aa8f5805e693a985764185c7a7a7576e"
+    },
+    {
+      "path": "dist/planar-solids/coplanar-face-boolean-extrusion.js",
+      "bytes": 31480,
+      "sha256": "4fbc7e3aa3e88d9b3ea8ba229e963106d36b3b6439b725bbb75dfeeefff91870"
+    },
+    {
+      "path": "dist/planar-solids/coplanar-face-boolean-mesh-triangulation.d.ts",
+      "bytes": 1146,
+      "sha256": "5df9630812cb8cc08777a69cfeec3750be6247d5b5fef2ea8bcd8825a70cd247"
+    },
+    {
+      "path": "dist/planar-solids/coplanar-face-boolean-mesh-triangulation.js",
+      "bytes": 15551,
+      "sha256": "dc7596fd3fa227a40080bf584aaae6275481df10880ab8fc8a7c4f5bebc8bb30"
+    },
+    {
+      "path": "dist/planar-solids/coplanar-face-boolean-mesh.d.ts",
+      "bytes": 9551,
+      "sha256": "c047670cfd7d40f3e8019f197ecbf0b04fef4c2958c1ef4a5c91b6c96ad107e4"
+    },
+    {
+      "path": "dist/planar-solids/coplanar-face-boolean-mesh.js",
+      "bytes": 23262,
+      "sha256": "c3f022cf205367b13c1a5deae2918fb9180bad7bbcb8325ac30508a22af90a1e"
+    },
+    {
+      "path": "dist/planar-solids/coplanar-face-boolean.d.ts",
+      "bytes": 9289,
+      "sha256": "0093c40c035afe0843aa042bd895ccf51c19fc149b516fada915c2d8102012e4"
+    },
+    {
+      "path": "dist/planar-solids/coplanar-face-boolean.js",
+      "bytes": 22338,
+      "sha256": "cb0902e62a3d45c045c90321505f906c859a16407158d2decc648fc43301dd08"
+    },
+    {
+      "path": "dist/planar-solids/orthogonal-solid-boolean-internal.d.ts",
+      "bytes": 6309,
+      "sha256": "cbf4d6815262960f7e03920a04b0a7690c558f302fb388fa128b020c2b0732b4"
+    },
+    {
+      "path": "dist/planar-solids/orthogonal-solid-boolean-internal.js",
+      "bytes": 37613,
+      "sha256": "8f73c99c90e5b8e39c87ba651005f9471614558910aa92f10fabd721b693f40b"
+    },
+    {
+      "path": "dist/planar-solids/rectangular-extrusion-cube-correspondence-internal.d.ts",
+      "bytes": 4556,
+      "sha256": "fd3a66d74072165bebb61b471131ad12e9bb12bab697f7470272a846f99163f8"
+    },
+    {
+      "path": "dist/planar-solids/rectangular-extrusion-cube-correspondence-internal.js",
+      "bytes": 40701,
+      "sha256": "45c54eb656f9d120f2fb3cfef580b68af6a1c32d174c2785e3de26a3520b4d44"
+    },
+    {
+      "path": "dist/planar-solids/rectangular-face-extrusion-body.d.ts",
+      "bytes": 8900,
+      "sha256": "f5623b83f3e7e229e7ffc66e3367bf24d67a8f29c94ec43dddb5c16e4fdd7c72"
+    },
+    {
+      "path": "dist/planar-solids/rectangular-face-extrusion-body.js",
+      "bytes": 31295,
+      "sha256": "b946d30b3be7fa192537fbad9ce09e7c617664988a17cd04793d29fddd7f164d"
+    },
+    {
+      "path": "dist/planar-solids/stored-plate-hole-point-classification.d.ts",
+      "bytes": 4794,
+      "sha256": "b3ba29a69fc56d79ae717d32672e731b66b489988e0ce5b7b570f11db10dfc4b"
+    },
+    {
+      "path": "dist/planar-solids/stored-plate-hole-point-classification.js",
+      "bytes": 17436,
+      "sha256": "555343fc34b794517c2668c59246c7c0daa3f5c2a4a3c2076014594231ec0d38"
+    },
+    {
+      "path": "dist/planar-solids/xy-affine-prism-feature-document-v2.d.ts",
+      "bytes": 5479,
+      "sha256": "9bbdcdaead9c645d624b1515b6f3c567b5218f5ebe3b95ea19780006c363a62b"
+    },
+    {
+      "path": "dist/planar-solids/xy-affine-prism-feature-document-v2.js",
+      "bytes": 33469,
+      "sha256": "7b2bdeccf31997ae4bfc76458e7f6ca67f966a905c41a75eb84ec012588e07f0"
+    },
+    {
+      "path": "dist/planar-solids/xy-affine-prism-feature-document.d.ts",
+      "bytes": 12233,
+      "sha256": "55b69e1a66160d762f46bd616e987df5d155e8b587be739da42d853f856825e2"
+    },
+    {
+      "path": "dist/planar-solids/xy-affine-prism-feature-document.js",
+      "bytes": 32089,
+      "sha256": "aadcb9037110e8dcf9f07abeaf8011871fbb3edb04268e64c84db7198c7c8eb1"
+    },
+    {
+      "path": "dist/planar-solids/xy-circle-planar-face-preview.d.ts",
+      "bytes": 2591,
+      "sha256": "ac5df79c309895f1bec3ea1361ada111d5613ab1275da2c81dcd7f18eb0eb33d"
+    },
+    {
+      "path": "dist/planar-solids/xy-circle-planar-face-preview.js",
+      "bytes": 10657,
+      "sha256": "70649471a9f8326319d877da2581ebf49fc352aa238cca4577facb0116f8518d"
+    },
+    {
+      "path": "dist/planar-solids/xy-circle-planar-face.d.ts",
+      "bytes": 3333,
+      "sha256": "d7a4ecda3874a9821f04c2bdf5c0840195e3f5ff53a268671af2f5d99be782c4"
+    },
+    {
+      "path": "dist/planar-solids/xy-circle-planar-face.js",
+      "bytes": 12271,
+      "sha256": "023b6cb5e1a7f7a15d663d432281430f12d79ec93345a153e5f7bd86664c0be6"
+    },
+    {
+      "path": "dist/planar-solids/xy-circle-prism-document.d.ts",
+      "bytes": 2600,
+      "sha256": "b3bc85daccffa259c7f0a8aae8bf98aee73044b47612e8a1b5b9da7c650d4b11"
+    },
+    {
+      "path": "dist/planar-solids/xy-circle-prism-document.js",
+      "bytes": 15347,
+      "sha256": "9e0d890e385e0a949b86d057b61bbfb7ee92947500b7475f0e30c8513a8a4019"
+    },
+    {
+      "path": "dist/planar-solids/xy-circle-prism-shell-preview.d.ts",
+      "bytes": 4071,
+      "sha256": "ff2ac9132c0102db269c3b50c358a86392cdeaea967a33db5499f29713ee66e6"
+    },
+    {
+      "path": "dist/planar-solids/xy-circle-prism-shell-preview.js",
+      "bytes": 16083,
+      "sha256": "8f00c9998efaa5f04864f51cb5dd48654d8fbc653159d4b1237bf12fa06680fd"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-planar-face-hole-preview.d.ts",
+      "bytes": 3242,
+      "sha256": "2e5304c55b76d62660974d276b2c8ff662c230f7ce5534ddcb4005dc6c0bbcf4"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-planar-face-hole-preview.js",
+      "bytes": 16210,
+      "sha256": "eb94bbc8ce47533fba7754ed8b8c6ecf239c84d0a6ae2ad748e3acf9d485c0e0"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-planar-face-hole.d.ts",
+      "bytes": 3556,
+      "sha256": "81f4d89c7be5016a4e8cac5089c722f56c8162ecacf7e43a1b1ef1ae8b19bae1"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-planar-face-hole.js",
+      "bytes": 15622,
+      "sha256": "59b640bf41ae6d838e6d8377b48a507148898ada89dc30372c50641549d4afdb"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-planar-face.d.ts",
+      "bytes": 2355,
+      "sha256": "3b6396996daf9f9573aa61ec412aa00a3df6997fea0fbba80c3e3c414e373288"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-planar-face.js",
+      "bytes": 11271,
+      "sha256": "8499b0c4ca79adfa2eed21ca226f93bef8e54d0d943e0801249b8b4a7c7bdd46"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-preview.d.ts",
+      "bytes": 1274,
+      "sha256": "ab814bf2e35c00add7ef3024bcfbbf11a5646b93674daf059d9343de14e50357"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-preview.js",
+      "bytes": 7120,
+      "sha256": "19c453195d84bb586e42323f5d442c81112e0fcc9989121dd2759a3a4410170f"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-prism-document.d.ts",
+      "bytes": 2025,
+      "sha256": "6a4c5bc3e3a0c7a9074fce9a28812303ec8ed9aa2d89aa27fca329547802aee6"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-prism-document.js",
+      "bytes": 12668,
+      "sha256": "bc1c06ea9ec2f8c691e5c7f10d2f6cef4269ad98aba932268168fa88d4d6fb57"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-prism-hole-document.d.ts",
+      "bytes": 3316,
+      "sha256": "eda543a50a32d082c29ef6765abc9dac59904cc42592d630830b0b2fa9eeff85"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-prism-hole-document.js",
+      "bytes": 15102,
+      "sha256": "ae9641f40d231e3fb65079743f4e61c776087ca303cbdf84d32604ef8364ba7a"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-prism-preview.d.ts",
+      "bytes": 2089,
+      "sha256": "020a675efc67642ece94939e38582e2db1adadd24060ecef3762a8a7cc98447c"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-prism-preview.js",
+      "bytes": 8577,
+      "sha256": "4bd0a6f761a56368622d18040de1cb58f1c8220e4a9c49137bba93020bdac6ac"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-prism-ray-query.d.ts",
+      "bytes": 2101,
+      "sha256": "129069c25feb12aab2e2dadf8f11a3d2866d601959704e8420e43adafc94029a"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-prism-ray-query.js",
+      "bytes": 11511,
+      "sha256": "f67494a9563e1effe283a90b271fd69eaceefea39be1b9bcef6f332307b90428"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-prism-shell-hole-preview.d.ts",
+      "bytes": 3719,
+      "sha256": "5e7700f1d359daaaed32fd79fbd2ade633b719552b871b5ba02674e063459d8a"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-prism-shell-hole-preview.js",
+      "bytes": 15495,
+      "sha256": "8a36d88bde7ea928d206776bf6d2e432170fc81e2b18e8aac913fab2ff8e3e74"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-prism-shell-hole-ray-query.d.ts",
+      "bytes": 2868,
+      "sha256": "b0190d2b993b792edbe2a3a18a1586e6494bc02ba76343c2dd633bb09cebeefa"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-prism-shell-hole-ray-query.js",
+      "bytes": 12627,
+      "sha256": "cab44db6c4b7384c10c08f448e60e687e9c098e274af4e7fa32691aec54a6a65"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-prism-shell-hole.d.ts",
+      "bytes": 4569,
+      "sha256": "ab9277f42746a6c5f1cef407b3f0ecfb43129c1fc689f48c65c0de65d97dca9a"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-prism-shell-hole.js",
+      "bytes": 21524,
+      "sha256": "2545a303910fc0bfec8fb6263bc655537dd0734e62611b82dc8fae7233144d84"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-prism-shell-preview.d.ts",
+      "bytes": 2734,
+      "sha256": "1f86fa82c72670c9a206aa32133cc5b6217842407b5e6a576789b02a7874e9ba"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-prism-shell-preview.js",
+      "bytes": 11171,
+      "sha256": "60f7f914756f546e8552660b74e2d669feccdd1d0d818664ba3cd59429eb61f3"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-prism-shell.d.ts",
+      "bytes": 3133,
+      "sha256": "8800900055a1587f1a50d46d145a2f4bcce7d004ce6845c3875dfac1b61debcf"
+    },
+    {
+      "path": "dist/planar-solids/xy-polygon-prism-shell.js",
+      "bytes": 13850,
+      "sha256": "9e765180936a7756a3e2b87f3a0ab75c8c9fbaac49006389febe4e11780e6c49"
+    },
+    {
+      "path": "dist/qualified-strip-binary-stl-encoding-internal.d.ts",
+      "bytes": 2843,
+      "sha256": "2a5cdab9062907d9d4b0cbb307a38a00d459dff13a98cd88dd37cb3db77fbd14"
+    },
+    {
+      "path": "dist/qualified-strip-binary-stl-encoding-internal.js",
+      "bytes": 10117,
+      "sha256": "cbc440a2dcd384a3c42e9522b323cca70f4655d4f8b2044a765a45547e0abaef"
+    },
+    {
+      "path": "dist/section-rational-internal.d.ts",
+      "bytes": 2083,
+      "sha256": "0c6ce5064c5904cb7fa8c8f7ce0553668404ebb036b2ba5ec3d6e26fef75f7d1"
+    },
+    {
+      "path": "dist/section-rational-internal.js",
+      "bytes": 9993,
+      "sha256": "bcf7ffb1b52dddf17f3f7ac8a1754b15f734d820d81059e8c733e797e6d2ba6a"
+    },
+    {
+      "path": "dist/sketch/circle-graph-internal.d.ts",
+      "bytes": 1880,
+      "sha256": "7851d74f425a72947d14ea1e2a61e9c22992af2cffe223f3a038a0a07af0a420"
+    },
+    {
+      "path": "dist/sketch/circle-graph-internal.js",
+      "bytes": 15168,
+      "sha256": "c9dec829f694da0c7cdb23105259b7c7e0b475188f0c6eb1601b8168e9bf1b58"
+    },
+    {
+      "path": "dist/sketch/driven-mixed-sketch-lines.d.ts",
+      "bytes": 6409,
+      "sha256": "8051a1a00042c02db99e5d02cb866e19af07872ad2e1c2f1bd54ef87a5002875"
+    },
+    {
+      "path": "dist/sketch/driven-mixed-sketch-lines.js",
+      "bytes": 22684,
+      "sha256": "c4241d1598b3f553ea078cd52742e123f9836cf898f6b3f66741f301da98ff55"
+    },
+    {
+      "path": "dist/sketch/driven-sketch-circle-feature-graph.d.ts",
+      "bytes": 5721,
+      "sha256": "172a24750d10d792eaad97a56331d297e38eccf4dbbcdd62f8e030e20a12b884"
+    },
+    {
+      "path": "dist/sketch/driven-sketch-circle-feature-graph.js",
+      "bytes": 23721,
+      "sha256": "3b15636d77d081ef5106ce7c26ad764eb90264f399f9fdd1c1bc37c69b97a9d8"
+    },
+    {
+      "path": "dist/sketch/mixed-workplane-sketch-document.d.ts",
+      "bytes": 7884,
+      "sha256": "78177fa038d204e3c36dea3786d30e6983fbb131497956afb15e925b0bc1e603"
+    },
+    {
+      "path": "dist/sketch/mixed-workplane-sketch-document.js",
+      "bytes": 26153,
+      "sha256": "e9ebed67c70a1aae691b7e1230a26af33bb7e4a97f37c177460ab499a8dd7b29"
+    },
+    {
+      "path": "dist/sketch/sketch-circle-feature-graph.d.ts",
+      "bytes": 5642,
+      "sha256": "f1b3278e8006934bf3a684898f3bf89d776038b3b695ce630ec34d38067b2768"
+    },
+    {
+      "path": "dist/sketch/sketch-circle-feature-graph.js",
+      "bytes": 17959,
+      "sha256": "6d996145e53f7cd8319fab1a0cde3256a66e8e30c0a3bb50466a929d57303493"
+    },
+    {
+      "path": "dist/sketch/sketch-rectangle-feature-graph.d.ts",
+      "bytes": 5412,
+      "sha256": "4f9afffe3f032d98d2d309ac75f4839bafc1e1bae6e398d4ebfeaf5da94ddf8b"
+    },
+    {
+      "path": "dist/sketch/sketch-rectangle-feature-graph.js",
+      "bytes": 29525,
+      "sha256": "f3f33d25c6e75ff7c695e5f24116112cb8b2459d796140633005d3ad3cca399b"
+    },
+    {
+      "path": "dist/sketch/workplane-sketch-document.d.ts",
+      "bytes": 5975,
+      "sha256": "d80d724d8780f7fdc8a260e732725c17b709f308bf1dc2e27e15b4b26d7d0f30"
+    },
+    {
+      "path": "dist/sketch/workplane-sketch-document.js",
+      "bytes": 17933,
+      "sha256": "cd025ce1db4ca4947454528a3eea50f9fc8b9b6f3a79fbb3ae0a1df9dc168a99"
+    },
+    {
+      "path": "dist/sketch/workplane-sketch-frame-internal.d.ts",
+      "bytes": 1006,
+      "sha256": "95f34fd3ca08d2a2a5c153fd415266551096549ae857c190a2446f10fac40f3c"
+    },
+    {
+      "path": "dist/sketch/workplane-sketch-frame-internal.js",
+      "bytes": 2588,
+      "sha256": "fd731301aa5f44d3a651473e6c187d344975293ff6c85205dc9b57d65b722f58"
+    },
+    {
+      "path": "dist/sketch/xy-affine-sketch-internal.d.ts",
+      "bytes": 1930,
+      "sha256": "9521cfec19f22c517279702949a9cfac61b899274a4d620d628c94ce9b9a42e1"
+    },
+    {
+      "path": "dist/sketch/xy-affine-sketch-internal.js",
+      "bytes": 18540,
+      "sha256": "20fb8713dc45bc5b785a1592008f47d17340ac65ce0a91b3d8caa87eb6ddac44"
+    },
+    {
+      "path": "dist/sketch/xy-angle-arc-artifact.d.ts",
+      "bytes": 3227,
+      "sha256": "ebc902358220450170b92306379ddbc5bbec96da79f5467e4fdc3005de4a60a5"
+    },
+    {
+      "path": "dist/sketch/xy-angle-arc-artifact.js",
+      "bytes": 17862,
+      "sha256": "85852e0d972333553735748572834fb5cb8e6b515cbc6895d3e6d38eaaf69770"
+    },
+    {
+      "path": "dist/sketch/xy-angle-arc.d.ts",
+      "bytes": 4330,
+      "sha256": "573093270a09d2bfa66315aa9212ad670cea84293caaec8df38dff9d6996c560"
+    },
+    {
+      "path": "dist/sketch/xy-angle-arc.js",
+      "bytes": 16250,
+      "sha256": "0d49c8405a412780a9d045dc032feae0bb43cc7009f2dacbe7ea91b0f3b28632"
+    },
+    {
+      "path": "dist/sketch/xy-arc-sketch-document.d.ts",
+      "bytes": 2894,
+      "sha256": "0e2c1424e54da726480ac859fc89b782aaf954270fae4dd4d4aff24220aff5c7"
+    },
+    {
+      "path": "dist/sketch/xy-arc-sketch-document.js",
+      "bytes": 16394,
+      "sha256": "a2f152984a1dcd0332af6bdd47eceeff57857adb045cf8e4e8e3ccae601e924a"
+    },
+    {
+      "path": "dist/sketch/xy-circular-numerical-sketch-admission-internal.d.ts",
+      "bytes": 1560,
+      "sha256": "27eb663f6064106bd602fe7e3dc4239f55467e5ee2d1be3ade357edef831666b"
+    },
+    {
+      "path": "dist/sketch/xy-circular-numerical-sketch-admission-internal.js",
+      "bytes": 12066,
+      "sha256": "2b2e1a2c9f0ef1384fe8f72a44bed0823be8374c3ae3fa1f717da0ce44779649"
+    },
+    {
+      "path": "dist/sketch/xy-circular-numerical-sketch-native-internal.d.ts",
+      "bytes": 428,
+      "sha256": "c25b15b347e9eb857693f5f6dbd91a392b4d368921d513d229b255fe24953aaf"
+    },
+    {
+      "path": "dist/sketch/xy-circular-numerical-sketch-native-internal.js",
+      "bytes": 2503,
+      "sha256": "fa0c9e59b4bd1df5fb323536b8f2b855f3652ac979cd1a8cda087cba51b068d4"
+    },
+    {
+      "path": "dist/sketch/xy-circular-numerical-sketch-solver-internal.d.ts",
+      "bytes": 1419,
+      "sha256": "308ba9eac66ba7e4f30d42fee4b7e819ac51a08f56371d6899d512a81f7e5d57"
+    },
+    {
+      "path": "dist/sketch/xy-circular-numerical-sketch-solver-internal.js",
+      "bytes": 8629,
+      "sha256": "cc230f299877a7eec7b16b89f79b1d5a264734c62bcdb5beae5b6076b64722b5"
+    },
+    {
+      "path": "dist/sketch/xy-circular-numerical-sketch.d.ts",
+      "bytes": 4583,
+      "sha256": "c583e55cccdb7bf8364804062765d90ca99fc90a3480a347b696bbf00790dd3e"
+    },
+    {
+      "path": "dist/sketch/xy-circular-numerical-sketch.js",
+      "bytes": 2249,
+      "sha256": "703d7c759fedda4f1d22fc227b67bd9d897938bb6526716b536ac99afa73c526"
+    },
+    {
+      "path": "dist/sketch/xy-linear-sketch.d.ts",
+      "bytes": 2925,
+      "sha256": "3ecaf231db8db3c45f0b3ef5b7fac3fda8ae23a6818e636ead937200071ac3d2"
+    },
+    {
+      "path": "dist/sketch/xy-linear-sketch.js",
+      "bytes": 24469,
+      "sha256": "69b9e17b437bd184004960d00fc198bfe2e3314e21c20270867dd0f72bee226d"
+    },
+    {
+      "path": "dist/sketch/xy-numerical-sketch-admission-internal.d.ts",
+      "bytes": 1463,
+      "sha256": "acc5f04bde3a9492a6c838bdb8dd96072ec4811a190bec05967892a0fad61e99"
+    },
+    {
+      "path": "dist/sketch/xy-numerical-sketch-admission-internal.js",
+      "bytes": 11134,
+      "sha256": "62154fd49c52cfe0520a5cfaf389a42831a9f315aef6690b0cea20778e078773"
+    },
+    {
+      "path": "dist/sketch/xy-numerical-sketch-solver-internal.d.ts",
+      "bytes": 2205,
+      "sha256": "9c638e06d18c5cc03610de471a0345880e886f35f53fc2495bfc7cfd3267bdd2"
+    },
+    {
+      "path": "dist/sketch/xy-numerical-sketch-solver-internal.js",
+      "bytes": 10761,
+      "sha256": "141361226befea56bcba3d3bd83ad5a760b85ff2a188d9a262a7345463e2e8a9"
+    },
+    {
+      "path": "dist/sketch/xy-numerical-sketch.d.ts",
+      "bytes": 5505,
+      "sha256": "7c6bdd129e014b244247d3245e4caa2b6b14a994bf01998d73f510e7aaeb830f"
+    },
+    {
+      "path": "dist/sketch/xy-numerical-sketch.js",
+      "bytes": 3802,
+      "sha256": "57beca37a7919d7d09d37152380860526d6fd300d410895bd56d6d567628d48e"
+    },
+    {
+      "path": "dist/sketch/xy-polygon-region.d.ts",
+      "bytes": 1352,
+      "sha256": "884b125b0c2d8213b52e1a80dd289a204d517516535fc50b044343a9411c2ad3"
+    },
+    {
+      "path": "dist/sketch/xy-polygon-region.js",
+      "bytes": 10314,
+      "sha256": "6ada424e778f85d3459d062ff335835022f31b00812bccf294f099ce18061322"
+    },
+    {
+      "path": "dist/sketch/xy-profile.d.ts",
+      "bytes": 985,
+      "sha256": "0651f7664805b0cb37099015883ac6689f43424b511536709ba47f8bb6eacb8a"
+    },
+    {
+      "path": "dist/sketch/xy-profile.js",
+      "bytes": 3229,
+      "sha256": "f8942353d0425a9a6e77172e5dd860b7c22b781fbcffa3e73abfe0c5ea482a18"
+    },
+    {
+      "path": "dist/sketch/xy-sketch-document.d.ts",
+      "bytes": 2395,
+      "sha256": "f1dcd31deb1bb1565f7635a6e00dd85917df30b83aa44f7b469de5264153bdb1"
+    },
+    {
+      "path": "dist/sketch/xy-sketch-document.js",
+      "bytes": 16156,
+      "sha256": "185658f5f3d549d5db81e0cab3cde4d8f2199b9a9143d0e79334950f0cf8d32e"
+    },
+    {
+      "path": "dist/stored-circle-prism-solid.d.ts",
+      "bytes": 3312,
+      "sha256": "fe688c8ce3a500747ea4239514da3142386d3474f9f10df94ae641fa70159bf0"
+    },
+    {
+      "path": "dist/stored-circle-prism-solid.js",
+      "bytes": 27848,
+      "sha256": "77b5829ccb793674881db4e833b45e8c025bc941c24c60166e5e4c2381f62518"
+    },
+    {
+      "path": "dist/stored-plate-hole-solid.d.ts",
+      "bytes": 3816,
+      "sha256": "54878bb09fdf1cfc8180d2b90c8a1021df5d32ebe6fcb4d875c839fa4d8b7ce0"
+    },
+    {
+      "path": "dist/stored-plate-hole-solid.js",
+      "bytes": 23975,
+      "sha256": "a71ea0769149d27ef13a20ad793fe7b6759892f89e8db6b15d765ae216687e93"
+    },
+    {
+      "path": "dist/translated-strip/qualified-strip-binary-stl.d.ts",
+      "bytes": 7026,
+      "sha256": "93cd95009937e98a76f90d2866116bf791f5121433042933fcddb5ee0a88bb83"
+    },
+    {
+      "path": "dist/translated-strip/qualified-strip-binary-stl.js",
+      "bytes": 14657,
+      "sha256": "a71e07b3240ddc176eb72761104fb0673640c3a65aade2c8b5d5a5cfeb09bcae"
+    },
+    {
+      "path": "dist/translated-strip/qualified-translated-strip-body-mesh-domain-internal.d.ts",
+      "bytes": 1916,
+      "sha256": "96d0a889e98321dc2d035fa77531d7325a81e1c45d4fe02a6fff7b5240087abb"
+    },
+    {
+      "path": "dist/translated-strip/qualified-translated-strip-body-mesh-domain-internal.js",
+      "bytes": 9815,
+      "sha256": "91e7787a4ee1e0fa04dcbe1b39935b1d43cd6858c4d5d957f59c188543eb8e9b"
+    },
+    {
+      "path": "dist/translated-strip/qualified-translated-strip-body-mesh.d.ts",
+      "bytes": 10455,
+      "sha256": "3d76621aa9d6ab037812ef310e16a361a00d4596f1347a560b2243d64fb5563c"
+    },
+    {
+      "path": "dist/translated-strip/qualified-translated-strip-body-mesh.js",
+      "bytes": 40553,
+      "sha256": "642159ea91530cabbfa6e1cf2e46b149030d9f8280711593b5bf3e5d9e6bb834"
+    },
+    {
+      "path": "dist/translated-strip/qualified-translated-strip-body.d.ts",
+      "bytes": 10307,
+      "sha256": "b11cc624d58744c143992fcdf0bbe374f4b9c750250a2f3e9c61c167c88e84d4"
+    },
+    {
+      "path": "dist/translated-strip/qualified-translated-strip-body.js",
+      "bytes": 36972,
+      "sha256": "80d7b53ed90572870fa7f0a5bbdb7beed82571ee900782fa1b03f3c947c74250"
+    },
+    {
+      "path": "dist/translated-strip/qualified-translated-strip-material-internal.d.ts",
+      "bytes": 8235,
+      "sha256": "d3f0e660bee54012b8ba7134f677fd86c37fdb43b1b73041659f553da525abc9"
+    },
+    {
+      "path": "dist/translated-strip/qualified-translated-strip-material-internal.js",
+      "bytes": 29363,
+      "sha256": "f0b8fded109cd796a74c17ca40d3a913568e04fdf4233d2ae75d52d13caa4f39"
+    },
+    {
+      "path": "dist/translated-strip/translated-strip-interval-boolean-construction-internal.d.ts",
+      "bytes": 2053,
+      "sha256": "f97c2a2c2d493ac74472ed645ab9636c2d71e145335d0e5ffb78559c46f7a46e"
+    },
+    {
+      "path": "dist/translated-strip/translated-strip-interval-boolean-construction-internal.js",
+      "bytes": 3594,
+      "sha256": "1c2cc07f061f641c1579554cc9215475133f24e434c1c1390febefce5cc26ac0"
+    },
+    {
+      "path": "dist/translated-strip/translated-strip-interval-boolean.d.ts",
+      "bytes": 11732,
+      "sha256": "f9538b4f6c8ed7057b0c8b1e86c6cd3d2c41f0ce5a866fda63b15375bfc0be1d"
+    },
+    {
+      "path": "dist/translated-strip/translated-strip-interval-boolean.js",
+      "bytes": 38464,
+      "sha256": "5748adbd5744bad90dd41eb3b702585d0facdd8f71aa919b2efb862d50b668a0"
+    },
+    {
+      "path": "dist/translated-strip/translated-strip-plane-split.d.ts",
+      "bytes": 15249,
+      "sha256": "9868f819620bd15b1d608d2e569226ec92ce7f1693c6a871a7a1fbb8f6fe0c63"
+    },
+    {
+      "path": "dist/translated-strip/translated-strip-plane-split.js",
+      "bytes": 55886,
+      "sha256": "2f0cc224e280b75d0a0222674e5ac24d3a42f8c17e7917447a3995463a374aab"
+    },
+    {
+      "path": "dist/translated-strip/translated-surface-base-face.d.ts",
+      "bytes": 10776,
+      "sha256": "b8d859e6009ea374e9933b5d8177ee6848ef18f9b62e3d1c3dd10e8e88720ca5"
+    },
+    {
+      "path": "dist/translated-strip/translated-surface-base-face.js",
+      "bytes": 29231,
+      "sha256": "6d232bed10c60855fd8e27a1b7b7784a949faa0972b35b9ede039bfb06751cdc"
+    },
+    {
+      "path": "dist/translated-strip/translated-surface-end-faces.d.ts",
+      "bytes": 10436,
+      "sha256": "4e3dcad81e00346758ffd66f1a186b1e8646e97b62bc065e63bc57ccfd8cdd0b"
+    },
+    {
+      "path": "dist/translated-strip/translated-surface-end-faces.js",
+      "bytes": 27898,
+      "sha256": "d1daff1ac4ab2a3d6e0fdba8b89c39ec9efe592cb9f89b1b2da2a0faa08ddee7"
+    },
+    {
+      "path": "dist/translated-strip/translated-surface-strip-volume.d.ts",
+      "bytes": 9102,
+      "sha256": "f198c6c1d9de03defbcc35c8cb874a7806650efd88eb7c22353c9c127d9081cc"
+    },
+    {
+      "path": "dist/translated-strip/translated-surface-strip-volume.js",
+      "bytes": 23009,
+      "sha256": "87508644c71ff2d84ca4f79b76d2b1d377ccd548daa81bc5e2358c2ade2b469c"
+    },
+    {
+      "path": "dist/translated-strip/translated-surface-strip-world-points.d.ts",
+      "bytes": 10599,
+      "sha256": "5191dc9d308933e0914aea203296d4f0977c029a17191d09e121f89ad5ca153c"
+    },
+    {
+      "path": "dist/translated-strip/translated-surface-strip-world-points.js",
+      "bytes": 31210,
+      "sha256": "7467d92ba3aef5744949482f44474e867adbdfa3a09700ad74dff07b4aa3081c"
+    },
+    {
+      "path": "dist/types.d.ts",
+      "bytes": 1449,
+      "sha256": "f34138eb1b9096c4426e3d143204b18a2b6ab53eb65f1ffec1827fcc28e7b80f"
+    },
+    {
+      "path": "dist/types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "dist/xy-affine-prism-feature-document-internal.d.ts",
+      "bytes": 630,
+      "sha256": "f7d846770fe514b5564230124e4fc12dac2fc5205e7135b67c3d27346b9f459c"
+    },
+    {
+      "path": "dist/xy-affine-prism-feature-document-internal.js",
+      "bytes": 1398,
+      "sha256": "900f736cc1be98a83f13ccfaf82977cf61706e5025eded672bd903b7f51e0d27"
+    },
+    {
+      "path": "dist/xy-affine-sketch-prism.d.ts",
+      "bytes": 6839,
+      "sha256": "d7fe7b4a22c1f13cf02573030e9b582c9787307ebf2feea91b92253c1b9342d8"
+    },
+    {
+      "path": "dist/xy-affine-sketch-prism.js",
+      "bytes": 15908,
+      "sha256": "6c3091cf12d3117d3140e7764fb9d240cac935883d89eac2341a561801c8db60"
+    },
+    {
+      "path": "dist/xy-affine-sketch.d.ts",
+      "bytes": 4628,
+      "sha256": "c7328fa61c022b13afd96990bf520b1ecaa683b24967dadd6e036ca40585d34a"
+    },
+    {
+      "path": "dist/xy-affine-sketch.js",
+      "bytes": 3984,
+      "sha256": "078124439212856549e9710613ffcf893d4d028b2a5543bbf3de479103a2b862"
+    },
+    {
+      "path": "dist/xy-arc.d.ts",
+      "bytes": 1026,
+      "sha256": "e2a0ef4a09aef181a74ef90580e4629cb3fbbb635ae54d793b4e2567733173df"
+    },
+    {
+      "path": "dist/xy-arc.js",
+      "bytes": 3399,
+      "sha256": "5f5d125925d0437c20e2ba8bed9a564c787d64cabd1f7daca029134ed6c48805"
+    },
+    {
+      "path": "dist/xy-circle-prism-shell.d.ts",
+      "bytes": 4098,
+      "sha256": "b1d26e9ed9f04957315481db405e5ad29901692ad959e2275603bb987dc02926"
+    },
+    {
+      "path": "dist/xy-circle-prism-shell.js",
+      "bytes": 15808,
+      "sha256": "91f575749a2356f49bdcf3a67d840deeab8b0002712533c8d701b1f3ce2431aa"
+    },
+    {
+      "path": "frozen-hashes.json",
+      "bytes": 753,
+      "sha256": "f618b7ad3adbb0293293fb595036de70948bed693786d9ab6f82def6fba58fb7"
+    },
+    {
+      "path": "receipt.md",
+      "bytes": 6617,
+      "sha256": "5651a888ca2d5b5633c95b5758c29fd71188696abdbc2569db44500e4b5753a0"
+    },
+    {
+      "path": "src/api/curve-feature-pattern-plan.ts",
+      "bytes": 966,
+      "sha256": "9ced2ad6b7f58027ba8e820188623da7c12ace027f9bd47fce123ffa2ddca067"
+    },
+    {
+      "path": "src/api/index.ts",
+      "bytes": 2113,
+      "sha256": "46c4e80584ec19603127795e9f28f6cfb5d74d22f815cf27177ddd333b4c5f26"
+    },
+    {
+      "path": "src/features/curve-cut-pattern.ts",
+      "bytes": 11146,
+      "sha256": "f4c435337229921935906f8a55877ba7226fbeac49efc08d779348688643d24a"
+    },
+    {
+      "path": "src/features/quadratic-cut-arithmetic.ts",
+      "bytes": 9164,
+      "sha256": "47fe4a5f2c9b9853828b3315e3f0cdb5f20867e70c6db1c5a290c6e038563563"
+    },
+    {
+      "path": "src/features/quadratic-cut-plan.ts",
+      "bytes": 14452,
+      "sha256": "de244b7826e9424d7b121b95c56275ea1b760956801841d1d280a81dd7c7ef5b"
+    },
+    {
+      "path": "test/helpers/quadratic-cut-oracle.mjs",
+      "bytes": 5916,
+      "sha256": "bfc9c3bc8aa02524b11057b8c9c7a3dafca0328d49fbe3b0c9535768c066faf5"
+    },
+    {
+      "path": "test/quadratic-cut-pattern.test.mjs",
+      "bytes": 9382,
+      "sha256": "06be27bc92d7bbf7edb0a946dc98bbf33a3a0e2fd07046e92a94d6fad66699c4"
+    }
+  ],
+  "scope": "All original files retained exactly in deterministic tar/gzip; uid/mode/time archive metadata normalized, contents unchanged."
+}

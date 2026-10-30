@@ -1,0 +1,8 @@
+{
+  "addedExposureRows": 6,
+  "changedExposureRows": 12,
+  "removed": 0,
+  "coreResultChecks": "Only new rectangular feature kind in snapshot.features union",
+  "review": "Root reviewed raw/semantic diff: new feature/Part method/options/validators, node and snapshot types, function|string suffix naming; unchanged package exports/policy/version and unrelated members",
+  "candidateSHA256": "e8f570d1f68a6e3e6e32dc017760008f855f75ac500e18fbc6a6c1316a3d5f08"
+}

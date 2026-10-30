@@ -1,0 +1,12 @@
+flow display: {"requestedDpr":1,"renderer":"webgpu","devicePixelRatio":1,"cssWidth":1140,"cssHeight":900,"backingWidth":1140,"backingHeight":900}
+locator.innerText: Timeout 30000ms exceeded.
+Call log:
+[2m  - waiting for locator('.hint-bar .hint-title')[22m
+
+ok 1 starter plate loads
+ok 5 hole on a supported plate
+ok 6 feature editor changes the sketch a feature is made from
+FAIL 25 a finished sketch reopens from the feature editor with its constraints and is written back in place — locator.innerText: Timeout 30000ms exceeded.
+ok 57 a mesh with a hole: checked, the repair gate (steps, holes, its numbers before it is applied), applied as a recorded step, its badge shows the fill and opens it again
+ok 58 STEP and meshes: asked how mesh bodies go out (tessellated AP242 or planar); a tessellated file reads back; a mesh-only STEP that does not close goes through the repair gate
+screenshots: /tmp/d327-browser-targeted

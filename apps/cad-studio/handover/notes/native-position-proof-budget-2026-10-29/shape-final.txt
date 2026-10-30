@@ -1,0 +1,1 @@
+SAME native-bound-pad                 100 →      98 ms (-2.0%) 

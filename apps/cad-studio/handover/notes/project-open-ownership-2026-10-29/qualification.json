@@ -1,0 +1,102 @@
+{
+  "workId": "D326",
+  "status": "SCOPED_PASS",
+  "baseline": "f841c0c34a1897a88fd75a14d5fe53521181f858",
+  "scope": "Project request/session/store/path and App serialized .bcad/.json/extensionless Open ownership; stale metadata/errors/manual linked checks and accepted-file reference followup",
+  "baselineCPU": {
+    "pass": 1,
+    "fail": 6,
+    "skip": 0,
+    "exit": 1,
+    "raw": "baseline.log",
+    "meaning": "Actual hook/codecs plus controlled DirHandle transport; old A accepted after Close/New/B, or changed later log/autosave/linked offer"
+  },
+  "baselineNative": {
+    "first": "Setup failure before A armed: B document ready but mass still pending; original preserved",
+    "second": "Reproduced product FAIL selected1: completed B volume2184 replaced by A volume1000/doc/name/path/version/history after original native read return",
+    "disk": "Saved B original bytes remain; reproduced live-owner overwrite, not disk-byte loss",
+    "source": "consumers/baseline-validation.json"
+  },
+  "implementation": {
+    "hook": "Opaque request/session/store/path guard; picker/use/refresh same owner; Close/detach invalidates even empty; guard after awaited reads and before current metadata/errors; informational Check captures read-only App scope without minting new intent",
+    "bridge": "Studio-private type-only OpenIntentBridge; every document dispatch rotates App open scope; project onOpened synchronously returns actual accepted scope after own replacement",
+    "file": "Serialized arrayBuffer and readStudioFile await returns require current intent; stale error suppressed; fit bound to accepted scope",
+    "verifyOpened": "Actual acceptedDoc + opaque accepted scope + D322 dispatch token; checks after both awaits before ref problems/direct update/dirty. Direct current-doc update without another await avoids self-refusing through the functional wrapper. Same-node value equality is not ownership",
+    "preserve": "D321 replaceDoc/Undo/Stop entry remains; D322 Save receipt/tag/functional updater ordering remains; no dependency/WASM/schema/lockfile",
+    "sourceReview": "High read-only review found missing reopen owner and manual Check external scope; repaired before final tests, final selected review no required finding. Review executed no runtime"
+  },
+  "cpu": {
+    "firstFocused": {
+      "pass": 24,
+      "fail": 0,
+      "skip": 0,
+      "beforeLastReviewRepairs": true
+    },
+    "finalFocused": {
+      "pass": 29,
+      "fail": 0,
+      "skip": 0,
+      "newProject": 20,
+      "existingSave": 9
+    },
+    "wholeStudio": {
+      "pass": 423,
+      "fail": 0,
+      "skip": 0,
+      "includesFocused": true
+    },
+    "types": 0,
+    "scopedLint": 0,
+    "driverSyntax": 0,
+    "raw": "unit/validation.json",
+    "countBoundary": "Focused repeats overlap whole423; no summed unique total"
+  },
+  "actual": {
+    "selected": 5,
+    "pass": 5,
+    "fail": 0,
+    "skip": 0,
+    "runtime": "Chrome156.0.8078.48 / WebGPU / DPR1",
+    "cases": [
+      "project A read -> project B",
+      "project A read -> New C",
+      "project A read -> Close",
+      "real file input A read -> New C",
+      "real file input A read -> project B"
+    ],
+    "checks": "Actual UI-produced A bytes/native original fulfilled return held only; current Doc/name/History/path/version/offer/dirty/recovery; B native bytes unchanged; NewC actual local recovery + volume792 retained; B volume2184 retained",
+    "history": "Real History HTMLDivElement and nonempty BUTTON labels exist/type-checked before comparison; no missing-equals-missing proof",
+    "completionBoundary": "Asset-free plain JSON finite microtask path; original native read-return event then real MessageChannel task/UI frames and current fresh mass. Operation promise NOT_EXPOSED; not generic blob/crypto/linked completion proof",
+    "rootViewed": [
+      "baseline-second/B-before-A-release.png",
+      "baseline-second/after-A-release.png",
+      "final/project-to-B/after-A-release.png",
+      "final/file-to-new/after-A-release.png",
+      "final/project-to-close/after-A-release.png"
+    ],
+    "cleanup": "5 owned namespaces removed and absence confirmed; contexts/browsers/servers closed; runner97413 exited; gate returned; no unrelated processes touched",
+    "source": "consumers/final-validation.json"
+  },
+  "docs": {
+    "exit": 0,
+    "pages": 68,
+    "shots": 55,
+    "shotKB": 4811,
+    "labels": 860,
+    "generatedAgentTools": "PASS via child",
+    "generatedRefusals": "PASS via child",
+    "API": "SCOPED_PASS via child; expected unchanged"
+  },
+  "notRun": [
+    "STEP/STL/OBJ/IGES/.barocad completion/stage ownership (existing A05 followup)",
+    "all A05 acceptance",
+    "blob/container/linked native stalls",
+    "general fileB-vs-fileA matrix",
+    "native folder-picker races/reopen/manualCheck/verify remap-negative cases",
+    "external folders/tabs/crash",
+    "fullKernel/Model/GPU/browser/remoteCI",
+    "performance/memory"
+  ],
+  "next": "Direct owner priority D327 App.tsx refactor before A06/optional extensions; preserve D321/D322/D326 ownership",
+  "push": "Authorized normal feature push after docs/artifact checks, no PR/release"
+}

@@ -1,0 +1,24 @@
+{
+  "status": "FAIL_SCOPED_VISUAL_REVIEW",
+  "sourceCommit": "ecab49052b3adfe114aeaef663d586e0f85a99e2",
+  "numericRunStatus": "PASS",
+  "imagesViewed": [
+    "03-inside-two-components.png",
+    "14-outside-pocket-two-components.png",
+    "18-outside-one-component-with-hole.png",
+    "22-outside-full-retained-explicit-mask.png",
+    "guard-empty-region.png",
+    "09-renamed-reeditable.png"
+  ],
+  "failure": "Outside one-component-with-hole and full-retained-rectangle screenshots contain no visible filled surface despite positive independent native material. Original cyan curve and control handles remain. Product qualification held for diagnosis.",
+  "passingObservations": [
+    "Two inside components and outside pocket visibly filled.",
+    "Empty crop refusal preserves the original U material and reports no positive-area material.",
+    "Renamed reopened component remains separately selected."
+  ],
+  "limits": [
+    "Root screenshot finding; cause not yet established.",
+    "Independent stored-material arithmetic and native Save semantics remain separate passes.",
+    "No initial clean product PASS claim."
+  ]
+}

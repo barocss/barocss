@@ -1,0 +1,11 @@
+import {writeFileSync} from 'node:fs';
+import {rectanglePart,withNode} from '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/src/engine/doc.ts';
+import {evaluateDoc,partBreps} from '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/src/engine/evaluate.ts';
+import {resolveNativeOffsetFace} from '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/src/app/nativeOffsetFace.ts';
+import {offsetFaceCommand} from '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/src/app/profileCommands.ts';
+import {checkBrep,brepMassProperties} from '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/src/index.ts';
+const doc=withNode(rectanglePart(20.00003,10.00007,5.00009),{kind:'translate',parent:{node:1,side:'solid'},offset:[.1234567,-.2345678,.3456789]}), before=JSON.stringify(doc), evaluated=evaluateDoc(doc,1);if(!evaluated.ok)throw Error(JSON.stringify(evaluated));
+const result=[];
+for(const axis of [0,1]){const face=evaluated.bodies[0].mesh.faces.findIndex(f=>f.normal[axis]===-1),ctx={doc,bodies:evaluated.bodies,selection:{faces:[{body:0,face}],edges:[],bodies:[]}},p=resolveNativeOffsetFace(ctx),distance=2.125,next=p.coordinate+p.sign*distance,lo=Math.min(p.opposite,next),hi=Math.max(p.opposite,next),record={axis,sign:p.sign,coordinate:p.coordinate,opposite:p.opposite,distance,next,lo,hi,reassociatedHi:lo+(hi-lo)};
+try{const candidate=offsetFaceCommand.build(ctx,{d:distance}),out=evaluateDoc(candidate,2);Object.assign(record,{status:'SUCCESS',evaluation:out.ok?out.bodies.map(b=>({volume:b.volume,centroid:b.centroid})):out,native:partBreps(candidate).map(n=>({check:checkBrep(n.brep,{strict:true}),mass:brepMassProperties(n.brep,1),vertices:n.brep.vertices}))});}catch(e){Object.assign(record,{status:'REFUSED',error:{message:e.message,code:e.code,details:e.details}});}Object.assign(record,{originalUnchanged:JSON.stringify(doc)===before});result.push(record);}
+writeFileSync(process.argv[2],JSON.stringify(result,null,2));console.log(JSON.stringify(result));

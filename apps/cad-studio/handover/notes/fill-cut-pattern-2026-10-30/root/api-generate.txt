@@ -1,0 +1,11 @@
+{
+  "status": "GENERATED_FOR_REVIEW",
+  "file": "/tmp/d335-root/api-candidate.json",
+  "notProven": [
+    "SCOPED_PASS covers only EX001/EX002/EX003/DA001/IV001/IV002.",
+    "DA001 covers two direct core-result anchors, not every nested JSON boundary.",
+    "Helper throws, immutability, numeric units, runtime behaviour and full conventions §§1–12 are NOT_PROVEN.",
+    "Facade/resource/Error/callback/native labels are observations, never blanket exceptions.",
+    "Native SI and R7.3d legacy surfaces are catalogued without conversion or retirement."
+  ]
+}

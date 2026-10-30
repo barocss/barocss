@@ -1,0 +1,6 @@
+captured shaft-thread
+captured tapped-hole
+captured shaft-thread-long
+captured tapped-hole-long
+captured direct-thread-long-construction
+captured direct-thread-long-construction-first-mass

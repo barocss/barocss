@@ -1,0 +1,3 @@
+The first build launch did not execute the build. Its log redirect used ../../../apps from packages/barocss-cad instead of ../../apps. zsh also rejected assignment to its reserved status variable. Corrected both and reran the full Node22 build. Original tool output:
+zsh:4: no such file or directory: ../../../apps/cad-studio/handover/notes/thread-basis-performance-2026-10-29/build-candidate.txt
+zsh:5: read-only variable: status

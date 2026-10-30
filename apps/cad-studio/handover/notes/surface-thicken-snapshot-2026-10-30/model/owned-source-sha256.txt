@@ -1,0 +1,11 @@
+dc2b206c3772a65802c314cf9474b2a598e1b8069d787cdab285c48128f33152  packages/barocss-cad-model/src/engine/thicken.ts
+71f863f59c6282ec8c696b645ed886271cea08f6da1b204939567f8ccb4ddf42  packages/barocss-cad-model/src/app/thickenCommand.ts
+70b5dcdd1646f58fec9b41af068f96d36d7a2daff2ae8b3464628412a5e1914f  packages/barocss-cad-model/src/app/commands.ts
+61f40544be9d7b6caf85b765f0ceec0246e46de3ea3d67c9e874263db6783eea  packages/barocss-cad-model/src/app/editFields.ts
+2384c9ecb45c9a60bad4841e005607f75655801b7028df43d0778cc2ad002482  packages/barocss-cad-model/src/chat/features.ts
+6a13e1e83fcc29f31f27cf5025b51a5404aa0c6252fea0dc1279bda9daff4d1e  packages/barocss-cad-model/src/api/studio.ts
+7cd3dde6150e89f6e6b8abf888fc82b6c8f63a2036fb6470b162f28a4ff1dc00  packages/barocss-cad-model/src/api/index.ts
+b70ffbbdb971f4631201806b769c7a577185adc464c2db36b4bfc96931c41570  packages/barocss-cad-model/test/api-thicken.test.ts
+ce309d6ca3475e7397a8432b42c5783995fb7671e63dde56c3fdc77dfb9fffeb  packages/barocss-cad-model/README.md
+6df915083ec4c70c02590c9652ffff0bd27feaf9f009380e61ba357be30d2632  apps/cad-studio/src/App.tsx
+8f93c956f85de18e29522dcc2cdadf10bfc517882a6387eea51b281ae7ce94d2  apps/cad-studio/src/ui/DirectInspector.tsx

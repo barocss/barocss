@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: route editor hands off only the exact final validated candidate once
+ok 1 - route editor hands off only the exact final validated candidate once
+  ---
+  duration_ms: 15.875792
+  type: 'test'
+  ...
+# Subtest: route editor discard while preview waits rejects its reply before final evaluation
+ok 2 - route editor discard while preview waits rejects its reply before final evaluation
+  ---
+  duration_ms: 3.326834
+  type: 'test'
+  ...
+# Subtest: route editor discard while final validation waits rejects the old ready handoff
+ok 3 - route editor discard while final validation waits rejects the old ready handoff
+  ---
+  duration_ms: 3.80925
+  type: 'test'
+  ...
+# Subtest: route editor rejects a final reply after same-value document identity replacement
+ok 4 - route editor rejects a final reply after same-value document identity replacement
+  ---
+  duration_ms: 3.536209
+  type: 'test'
+  ...
+# Subtest: route editor blocked owner rejects held preview before final evaluation
+ok 5 - route editor blocked owner rejects held preview before final evaluation
+  ---
+  duration_ms: 3.283834
+  type: 'test'
+  ...
+# Subtest: route editor active command rejects held final response without adopting the candidate
+ok 6 - route editor active command rejects held final response without adopting the candidate
+  ---
+  duration_ms: 2.992125
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 117.208875

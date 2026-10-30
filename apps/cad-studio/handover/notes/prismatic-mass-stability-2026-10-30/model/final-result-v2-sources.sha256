@@ -1,0 +1,6 @@
+8a1fdc9adb080cae39edc1ed34c1c591e5e87095b79e79cc53e48df94be231fd  src/app/profileCommands.ts
+096d95ed4f0f2565b053d8568db9e981415f9bd7222ed2ab43c79be3c966eb0d  src/app/nativeOffsetFace.ts
+aad1c22a62db43d503f9dbe12f09c621048f69a9f40a4ee3fc8387e3835d8c31  test/native-offset-face.test.ts
+a6aac6af88dbd9ec358872f0b9e4b88d247a0488e3cc05eec2c0d8e217700203  test/offset-face-native.test.ts
+cc4c890f5cb3acd7b29c4987e8f9e52ef8a8a9e4f0715e3ab3434f3bfdbfe5a2  test/native-offset-result.test.ts
+e025ae574c1fd17050236dee21ecef5452ab51117492e4ad3fc96db75057a018  test/mass-longitudinal.test.ts

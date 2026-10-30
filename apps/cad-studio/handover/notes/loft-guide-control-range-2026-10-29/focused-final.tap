@@ -1,0 +1,574 @@
+TAP version 13
+# Subtest: cubic guide: tapered circle has authored seam, exact section surfaces and independent full mass tensor
+ok 1 - cubic guide: tapered circle has authored seam, exact section surfaces and independent full mass tensor
+  ---
+  duration_ms: 11.0835
+  type: 'test'
+  ...
+# Subtest: cubic guide: mixed profile retains its first authored seam and the same transverse Bernstein displacement
+ok 2 - cubic guide: mixed profile retains its first authored seam and the same transverse Bernstein displacement
+  ---
+  duration_ms: 6.421291
+  type: 'test'
+  ...
+# Subtest: cubic guide: exact endpoint, normal-fraction and explicit control encoding refusals preserve inputs
+ok 3 - cubic guide: exact endpoint, normal-fraction and explicit control encoding refusals preserve inputs
+  ---
+  duration_ms: 8.409917
+  type: 'test'
+  ...
+# Subtest: cubic guide: original JSON survives save/read and a refused reevaluation preserves the accepted snapshot
+ok 4 - cubic guide: original JSON survives save/read and a refused reevaluation preserves the accepted snapshot
+  ---
+  duration_ms: 7.456917
+  type: 'test'
+  ...
+# Subtest: 17 and 64 control straight polynomial guides return valid, evaluable, watertight prism and taper surfaces
+ok 5 - 17 and 64 control straight polynomial guides return valid, evaluable, watertight prism and taper surfaces
+  ---
+  duration_ms: 153.733417
+  type: 'test'
+  ...
+# Subtest: large guides retain degree1-5, repeated knots, original non-unit domains and nonlinear height geometry
+ok 6 - large guides retain degree1-5, repeated knots, original non-unit domains and nonlinear height geometry
+  ---
+  duration_ms: 175.69925
+  type: 'test'
+  ...
+# Subtest: 64 source controls cross intermediate section planes without an oversized temporary Curve
+ok 7 - 64 source controls cross intermediate section planes without an oversized temporary Curve
+  ---
+  duration_ms: 257.642833
+  type: 'test'
+  ...
+# Subtest: 16 controls retain one native side per profile edge and original side names
+ok 8 - 16 controls retain one native side per profile edge and original side names
+  ---
+  duration_ms: 4.591167
+  type: 'test'
+  ...
+# Subtest: large-guide refusal and later caller edits preserve the accepted BRep, mass and original input arrays
+ok 9 - large-guide refusal and later caller edits preserve the accepted BRep, mass and original input arrays
+  ---
+  duration_ms: 21.896708
+  type: 'test'
+  ...
+# Subtest: multi conic loft: four cylinder sections share rings and retain the fixed MMGS tensor
+ok 10 - multi conic loft: four cylinder sections share rings and retain the fixed MMGS tensor
+  ---
+  duration_ms: 12.42825
+  type: 'test'
+  ...
+# Subtest: multi conic loft: eight sections, intermediate counts, inline conics and variable radii use the same ruled spans
+ok 11 - multi conic loft: eight sections, intermediate counts, inline conics and variable radii use the same ruled spans
+  ---
+  duration_ms: 18.413125
+  type: 'test'
+  ...
+# Subtest: multi conic loft: unsupported counts, guides, smooth and malformed sections refuse without input mutation
+ok 12 - multi conic loft: unsupported counts, guides, smooth and malformed sections refuse without input mutation
+  ---
+  duration_ms: 2.015125
+  type: 'test'
+  ...
+# Subtest: multi conic loft: codec retains frames and a refused reevaluation preserves the accepted snapshot
+ok 13 - multi conic loft: codec retains frames and a refused reevaluation preserves the accepted snapshot
+  ---
+  duration_ms: 6.312667
+  type: 'test'
+  ...
+# Subtest: CG1.3 a straight guide at an uneven pace on an oblique prism: the prism (volume and centroid)
+ok 14 - CG1.3 a straight guide at an uneven pace on an oblique prism: the prism (volume and centroid)
+  ---
+  duration_ms: 25.639291
+  type: 'test'
+  ...
+# Subtest: CG1.3 a guide bowed sideways through equal squares (two spans of a quadratic): Cavalieri — A·H, the centroid the guide's mean offset
+ok 15 - CG1.3 a guide bowed sideways through equal squares (two spans of a quadratic): Cavalieri — A·H, the centroid the guide's mean offset
+  ---
+  duration_ms: 230.237625
+  type: 'test'
+  ...
+# Subtest: CG1.3 three sections, the guide through a corner of each with a height linear in its parameter: the unguided loft's volume (Cavalieri), its centroid moved by the guide
+ok 16 - CG1.3 three sections, the guide through a corner of each with a height linear in its parameter: the unguided loft's volume (Cavalieri), its centroid moved by the guide
+  ---
+  duration_ms: 222.365583
+  type: 'test'
+  ...
+# Subtest: CG1.3 a cubic crossing the middle section inside its one span (cut there): equal squares whose corner is the guide — A·H, the centroid the guide's mean
+ok 17 - CG1.3 a cubic crossing the middle section inside its one span (cut there): equal squares whose corner is the guide — A·H, the centroid the guide's mean
+  ---
+  duration_ms: 162.394542
+  type: 'test'
+  ...
+# Subtest: CG1.3 refusals: smooth sections, a guide that misses a section's vertex, one that does not rise, one that ends off the top
+ok 18 - CG1.3 refusals: smooth sections, a guide that misses a section's vertex, one that does not rise, one that ends off the top
+  ---
+  duration_ms: 0.756125
+  type: 'test'
+  ...
+# Subtest: CG1.3 the part model: a guide in world coordinates on sketches stacked along a tilted plane's normal
+ok 19 - CG1.3 the part model: a guide in world coordinates on sketches stacked along a tilted plane's normal
+  ---
+  duration_ms: 215.189
+  type: 'test'
+  ...
+# Subtest: CG1.3 nonuniform guide height on a tapered square keeps the frustum geometry and moments
+ok 20 - CG1.3 nonuniform guide height on a tapered square keeps the frustum geometry and moments
+  ---
+  duration_ms: 4.24475
+  type: 'test'
+  ...
+# Subtest: CG1.3 quintic nonuniform height and a wide bow retain independently integrated polynomial moments
+ok 21 - CG1.3 quintic nonuniform height and a wide bow retain independently integrated polynomial moments
+  ---
+  duration_ms: 8.407583
+  type: 'test'
+  ...
+# Subtest: oriented loft: nonparallel caps form an exact extruded quadrilateral prism
+ok 22 - oriented loft: nonparallel caps form an exact extruded quadrilateral prism
+  ---
+  duration_ms: 15.683875
+  type: 'test'
+  ...
+# Subtest: oriented loft: side patch interpolates the actual section edges and caps lie on their planes
+ok 23 - oriented loft: side patch interpolates the actual section edges and caps lie on their planes
+  ---
+  duration_ms: 1.63075
+  type: 'test'
+  ...
+# Subtest: oriented loft: explicit twist retains a real ruled B-rep and symmetric analytic moments
+ok 24 - oriented loft: explicit twist retains a real ruled B-rep and symmetric analytic moments
+  ---
+  duration_ms: 2.7915
+  type: 'test'
+  ...
+# Subtest: oriented loft: affine rectangle taper has independent frustum volume and centroid
+ok 25 - oriented loft: affine rectangle taper has independent frustum volume and centroid
+  ---
+  duration_ms: 2.674
+  type: 'test'
+  ...
+# Subtest: oriented loft: translated parallel frames reproduce a known prism and MMGS inertia
+ok 26 - oriented loft: translated parallel frames reproduce a known prism and MMGS inertia
+  ---
+  duration_ms: 5.551
+  type: 'test'
+  ...
+# Subtest: oriented loft: half-turn collapse is refused even though both end Jacobians are positive
+ok 27 - oriented loft: half-turn collapse is refused even though both end Jacobians are positive
+  ---
+  duration_ms: 0.435625
+  type: 'test'
+  ...
+# Subtest: oriented loft: intersecting section planes, reversed progression and coincident caps are refused
+ok 28 - oriented loft: intersecting section planes, reversed progression and coincident caps are refused
+  ---
+  duration_ms: 0.35875
+  type: 'test'
+  ...
+# Subtest: oriented loft: invalid frames and mixed position encodings cannot silently fall back
+ok 29 - oriented loft: invalid frames and mixed position encodings cannot silently fall back
+  ---
+  duration_ms: 0.4405
+  type: 'test'
+  ...
+# Subtest: oriented loft: unsupported nonparallel nonaffine, nonconvex, nonparallel conics and three-section polygons are explicit refusals
+ok 30 - oriented loft: unsupported nonparallel nonaffine, nonconvex, nonparallel conics and three-section polygons are explicit refusals
+  ---
+  duration_ms: 0.782334
+  type: 'test'
+  ...
+# Subtest: parallel polygon loft: non-affine trapezoid has independent volume, centroid and bounds
+ok 31 - parallel polygon loft: non-affine trapezoid has independent volume, centroid and bounds
+  ---
+  duration_ms: 3.570792
+  type: 'test'
+  ...
+# Subtest: parallel polygon loft: rulings preserve both authored non-affine section edges
+ok 32 - parallel polygon loft: rulings preserve both authored non-affine section edges
+  ---
+  duration_ms: 0.436084
+  type: 'test'
+  ...
+# Subtest: parallel polygon loft: convex endpoints with a collapsing interior are refused
+ok 33 - parallel polygon loft: convex endpoints with a collapsing interior are refused
+  ---
+  duration_ms: 0.164458
+  type: 'test'
+  ...
+# Subtest: parallel polygon loft: general correspondence requires positive plane spacing and identical axes
+ok 34 - parallel polygon loft: general correspondence requires positive plane spacing and identical axes
+  ---
+  duration_ms: 0.217292
+  type: 'test'
+  ...
+# Subtest: oriented loft: degenerate and self-crossing profiles retain typed profile refusals
+ok 35 - oriented loft: degenerate and self-crossing profiles retain typed profile refusals
+  ---
+  duration_ms: 0.132125
+  type: 'test'
+  ...
+# Subtest: oriented loft: first-section segment tags remain stable
+ok 36 - oriented loft: first-section segment tags remain stable
+  ---
+  duration_ms: 0.396916
+  type: 'test'
+  ...
+# Subtest: oriented loft: part document dispatch consumes explicit frames without a cross-package adapter
+ok 37 - oriented loft: part document dispatch consumes explicit frames without a cross-package adapter
+  ---
+  duration_ms: 4.141375
+  type: 'test'
+  ...
+# Subtest: legacy loft: parallel profile+z retains its analytic solid and original surface representation
+ok 38 - legacy loft: parallel profile+z retains its analytic solid and original surface representation
+  ---
+  duration_ms: 3.886166
+  type: 'test'
+  ...
+# Subtest: curved loft: independent circular frustum volume and centroid
+ok 39 - curved loft: independent circular frustum volume and centroid
+  ---
+  duration_ms: 8.460166
+  type: 'test'
+  ...
+# Subtest: curved loft: laterally moved cylinder keeps independent mass and centre
+ok 40 - curved loft: laterally moved cylinder keeps independent mass and centre
+  ---
+  duration_ms: 4.196917
+  type: 'test'
+  ...
+# Subtest: curved loft: independently integrated ellipse radii and centre vary linearly
+ok 41 - curved loft: independently integrated ellipse radii and centre vary linearly
+  ---
+  duration_ms: 2.824125
+  type: 'test'
+  ...
+# Subtest: curved loft: exact rational side interpolates both ellipse boundaries and closes its seam
+ok 42 - curved loft: exact rational side interpolates both ellipse boundaries and closes its seam
+  ---
+  duration_ms: 0.968125
+  type: 'test'
+  ...
+# Subtest: curved loft: a circle-to-ellipse pair shares the same exact parameter correspondence
+ok 43 - curved loft: a circle-to-ellipse pair shares the same exact parameter correspondence
+  ---
+  duration_ms: 3.697375
+  type: 'test'
+  ...
+# Subtest: curved loft: clockwise inputs normalize without moving the seam or changing names
+ok 44 - curved loft: clockwise inputs normalize without moving the seam or changing names
+  ---
+  duration_ms: 3.306666
+  type: 'test'
+  ...
+# Subtest: curved loft: a contour tag gives stable quarter-side and edge names
+ok 45 - curved loft: a contour tag gives stable quarter-side and edge names
+  ---
+  duration_ms: 3.05475
+  type: 'test'
+  ...
+# Subtest: curved loft: malformed finite tuples, radii and direction values are typed refusals
+ok 46 - curved loft: malformed finite tuples, radii and direction values are typed refusals
+  ---
+  duration_ms: 0.3635
+  type: 'test'
+  ...
+# Subtest: curved loft: unsupported encodings, seam phases and shape families never fall back
+ok 47 - curved loft: unsupported encodings, seam phases and shape families never fall back
+  ---
+  duration_ms: 0.390542
+  type: 'test'
+  ...
+# Subtest: curved loft: nonparallel, reversed, smooth and over-budget sections remain refused
+ok 48 - curved loft: nonparallel, reversed, smooth and over-budget sections remain refused
+  ---
+  duration_ms: 0.184792
+  type: 'test'
+  ...
+# Subtest: curved loft: inline ellipse document agrees with direct loft and survives save/read
+ok 49 - curved loft: inline ellipse document agrees with direct loft and survives save/read
+  ---
+  duration_ms: 3.926125
+  type: 'test'
+  ...
+# Subtest: curved loft: existing circle sketches consume the same full-arc geometry in document evaluation
+ok 50 - curved loft: existing circle sketches consume the same full-arc geometry in document evaluation
+  ---
+  duration_ms: 3.199167
+  type: 'test'
+  ...
+# Subtest: curved loft: document mixed encodings and malformed inline profiles retain typed failures
+ok 51 - curved loft: document mixed encodings and malformed inline profiles retain typed failures
+  ---
+  duration_ms: 0.651209
+  type: 'test'
+  ...
+# Subtest: framed mixed loft: stadium extrusion has independent analytic volume and centroid
+ok 52 - framed mixed loft: stadium extrusion has independent analytic volume and centroid
+  ---
+  duration_ms: 4.737792
+  type: 'test'
+  ...
+# Subtest: framed mixed loft: positive uniform scale and translation have independent frustum moments
+ok 53 - framed mixed loft: positive uniform scale and translation have independent frustum moments
+  ---
+  duration_ms: 3.903042
+  type: 'test'
+  ...
+# Subtest: framed mixed loft: frame displacement retains an oblique stadium prism
+ok 54 - framed mixed loft: frame displacement retains an oblique stadium prism
+  ---
+  duration_ms: 2.39625
+  type: 'test'
+  ...
+# Subtest: framed mixed loft: a tilted rigid common frame rotates the analytic solid
+ok 55 - framed mixed loft: a tilted rigid common frame rotates the analytic solid
+  ---
+  duration_ms: 2.826875
+  type: 'test'
+  ...
+# Subtest: framed mixed loft: actual ruled surfaces interpolate the two line/arc sections
+ok 56 - framed mixed loft: actual ruled surfaces interpolate the two line/arc sections
+  ---
+  duration_ms: 1.015792
+  type: 'test'
+  ...
+# Subtest: framed mixed loft: identity frame reuses legacy geometry and mass without modifying inputs
+ok 57 - framed mixed loft: identity frame reuses legacy geometry and mass without modifying inputs
+  ---
+  duration_ms: 1.485333
+  type: 'test'
+  ...
+# Subtest: framed mixed loft: segment tags stay attached to split semicircles
+ok 58 - framed mixed loft: segment tags stay attached to split semicircles
+  ---
+  duration_ms: 2.06175
+  type: 'test'
+  ...
+# Subtest: framed mixed loft: clockwise contours preserve the same analytic region
+ok 59 - framed mixed loft: clockwise contours preserve the same analytic region
+  ---
+  duration_ms: 1.964208
+  type: 'test'
+  ...
+# Subtest: framed mixed loft: nonuniform or reversed scales and reordered correspondence are refused
+ok 60 - framed mixed loft: nonuniform or reversed scales and reordered correspondence are refused
+  ---
+  duration_ms: 0.48575
+  type: 'test'
+  ...
+# Subtest: framed mixed loft: topology, direction and malformed contour failures remain typed
+ok 61 - framed mixed loft: topology, direction and malformed contour failures remain typed
+  ---
+  duration_ms: 0.47225
+  type: 'test'
+  ...
+# Subtest: framed mixed loft: unsupported frame, spacing and position encodings are refused
+ok 62 - framed mixed loft: unsupported frame, spacing and position encodings are refused
+  ---
+  duration_ms: 0.147667
+  type: 'test'
+  ...
+# Subtest: framed mixed loft: existing loop documents evaluate and save/read without a schema extension
+ok 63 - framed mixed loft: existing loop documents evaluate and save/read without a schema extension
+  ---
+  duration_ms: 3.701042
+  type: 'test'
+  ...
+# Subtest: quadratic guide: independent bent-cylinder volume, centroid, inertia and actual bounds
+ok 64 - quadratic guide: independent bent-cylinder volume, centroid, inertia and actual bounds
+  ---
+  duration_ms: 5.792333
+  type: 'test'
+  ...
+# Subtest: quadratic guide: seam and surface carry the exact authored Bezier controls
+ok 65 - quadratic guide: seam and surface carry the exact authored Bezier controls
+  ---
+  duration_ms: 0.689375
+  type: 'test'
+  ...
+# Subtest: quadratic guide: intermediate sections stay circular and both original caps stay planar
+ok 66 - quadratic guide: intermediate sections stay circular and both original caps stay planar
+  ---
+  duration_ms: 1.067917
+  type: 'test'
+  ...
+# Subtest: quadratic guide: varying circular radii retain independent weighted centre and volume
+ok 67 - quadratic guide: varying circular radii retain independent weighted centre and volume
+  ---
+  duration_ms: 2.649
+  type: 'test'
+  ...
+# Subtest: quadratic guide: exact ellipse uses the same transverse displacement and bounds
+ok 68 - quadratic guide: exact ellipse uses the same transverse displacement and bounds
+  ---
+  duration_ms: 2.251959
+  type: 'test'
+  ...
+# Subtest: quadratic guide: transverse Y displacement is not encoded as an extra section pose
+ok 69 - quadratic guide: transverse Y displacement is not encoded as an extra section pose
+  ---
+  duration_ms: 2.140667
+  type: 'test'
+  ...
+# Subtest: quadratic guide: world controls work on a common axis-permuted frame
+ok 70 - quadratic guide: world controls work on a common axis-permuted frame
+  ---
+  duration_ms: 2.091292
+  type: 'test'
+  ...
+# Subtest: quadratic guide: straight optional guide preserves the previous conic geometry and mass
+ok 71 - quadratic guide: straight optional guide preserves the previous conic geometry and mass
+  ---
+  duration_ms: 1.978
+  type: 'test'
+  ...
+# Subtest: quadratic guide: malformed guide objects and control tuples have exact typed diagnostics
+ok 72 - quadratic guide: malformed guide objects and control tuples have exact typed diagnostics
+  ---
+  duration_ms: 5.54575
+  type: 'test'
+  ...
+# Subtest: quadratic guide: cap seams and middle normal coordinate cannot be snapped or ignored
+ok 73 - quadratic guide: cap seams and middle normal coordinate cannot be snapped or ignored
+  ---
+  duration_ms: 1.551084
+  type: 'test'
+  ...
+# Subtest: quadratic guide: unsupported polygon, nonparallel, legacy z, smooth and multisection paths refuse
+ok 74 - quadratic guide: unsupported polygon, nonparallel, legacy z, smooth and multisection paths refuse
+  ---
+  duration_ms: 0.192459
+  type: 'test'
+  ...
+# Subtest: quadratic guide: direct and inline-ellipse documents agree and save/read the authored rail
+ok 75 - quadratic guide: direct and inline-ellipse documents agree and save/read the authored rail
+  ---
+  duration_ms: 3.9265
+  type: 'test'
+  ...
+# Subtest: quadratic guide: circle-sketch documents consume the guide and reject invalid doc encodings
+ok 76 - quadratic guide: circle-sketch documents consume the guide and reject invalid doc encodings
+  ---
+  duration_ms: 5.572542
+  type: 'test'
+  ...
+# Subtest: mixed quadratic guide: independent stadium volume, centroid and actual rail bounds
+ok 77 - mixed quadratic guide: independent stadium volume, centroid and actual rail bounds
+  ---
+  duration_ms: 6.954042
+  type: 'test'
+  ...
+# Subtest: mixed quadratic guide: independent D-profile area and centroid
+ok 78 - mixed quadratic guide: independent D-profile area and centroid
+  ---
+  duration_ms: 1.541792
+  type: 'test'
+  ...
+# Subtest: mixed quadratic guide: scaled translated stadium has independent volume, centroid and inertia
+ok 79 - mixed quadratic guide: scaled translated stadium has independent volume, centroid and inertia
+  ---
+  duration_ms: 2.796083
+  type: 'test'
+  ...
+# Subtest: mixed quadratic guide: every rational side carries the same quadratic displacement
+ok 80 - mixed quadratic guide: every rational side carries the same quadratic displacement
+  ---
+  duration_ms: 2.772875
+  type: 'test'
+  ...
+# Subtest: mixed quadratic guide: straight rail preserves original mass and tagged names
+ok 81 - mixed quadratic guide: straight rail preserves original mass and tagged names
+  ---
+  duration_ms: 5.195917
+  type: 'test'
+  ...
+# Subtest: mixed quadratic guide: permuted rigid frame carries the authored world rail
+ok 82 - mixed quadratic guide: permuted rigid frame carries the authored world rail
+  ---
+  duration_ms: 2.515958
+  type: 'test'
+  ...
+# Subtest: mixed quadratic guide: exact seam, midplane, rigid axes and homothety restrictions remain
+ok 83 - mixed quadratic guide: exact seam, midplane, rigid axes and homothety restrictions remain
+  ---
+  duration_ms: 1.133875
+  type: 'test'
+  ...
+# Subtest: mixed quadratic guide: mixed/conic dispatch refuses both section orders
+ok 84 - mixed quadratic guide: mixed/conic dispatch refuses both section orders
+  ---
+  duration_ms: 0.232042
+  type: 'test'
+  ...
+# Subtest: mixed quadratic guide: direct and loop documents agree through JSON save/read
+ok 85 - mixed quadratic guide: direct and loop documents agree through JSON save/read
+  ---
+  duration_ms: 3.570041
+  type: 'test'
+  ...
+# Subtest: mixed quadratic guide: clockwise normalization preserves an exact first seam
+ok 86 - mixed quadratic guide: clockwise normalization preserves an exact first seam
+  ---
+  duration_ms: 3.481625
+  type: 'test'
+  ...
+# Subtest: mixed quadratic guide: clockwise arc-first seam lost by normalization has exact typed refusal
+ok 87 - mixed quadratic guide: clockwise arc-first seam lost by normalization has exact typed refusal
+  ---
+  duration_ms: 0.336375
+  type: 'test'
+  ...
+# Subtest: mixed quadratic guide: an authored seam lost to exact arc normalization refuses
+ok 88 - mixed quadratic guide: an authored seam lost to exact arc normalization refuses
+  ---
+  duration_ms: 0.201625
+  type: 'test'
+  ...
+# Subtest: three conic sections: circular waist has independent mass, shared middle ring and physical bounds
+ok 89 - three conic sections: circular waist has independent mass, shared middle ring and physical bounds
+  ---
+  duration_ms: 3.216875
+  type: 'test'
+  ...
+# Subtest: three conic sections: translated ellipses on nonuniform spans have independent integrals
+ok 90 - three conic sections: translated ellipses on nonuniform spans have independent integrals
+  ---
+  duration_ms: 3.096667
+  type: 'test'
+  ...
+# Subtest: three conic sections: nonuniform circular spans and permuted axes preserve independent mass
+ok 91 - three conic sections: nonuniform circular spans and permuted axes preserve independent mass
+  ---
+  duration_ms: 2.600542
+  type: 'test'
+  ...
+# Subtest: three conic sections: bounded admission rejects guides, smooth, mixed, polygon and invalid planes
+ok 92 - three conic sections: bounded admission rejects guides, smooth, mixed, polygon and invalid planes
+  ---
+  duration_ms: 3.52575
+  type: 'test'
+  ...
+# Subtest: three conic sections: circle sketches and inline ellipses agree with direct JSON save/read
+ok 93 - three conic sections: circle sketches and inline ellipses agree with direct JSON save/read
+  ---
+  duration_ms: 8.332625
+  type: 'test'
+  ...
+# Subtest: three conic sections: existing two-section IDs, names and cap contracts remain
+ok 94 - three conic sections: existing two-section IDs, names and cap contracts remain
+  ---
+  duration_ms: 1.488666
+  type: 'test'
+  ...
+1..94
+# tests 94
+# suites 0
+# pass 94
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1598.815417

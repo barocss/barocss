@@ -1,0 +1,1408 @@
+{
+  "node": "v22.19.0",
+  "status": "reproduced",
+  "records": [
+    {
+      "sectionCount": 2,
+      "profile": "polygon",
+      "input": {
+        "id": "L",
+        "name": "L",
+        "sections": [
+          {
+            "profile": [
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  1,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  1,
+                  1
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "frame": {
+              "origin": [
+                -2,
+                3,
+                4
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "profile": [
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  2,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  2,
+                  2
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  2
+                ]
+              }
+            ],
+            "frame": {
+              "origin": [
+                -1,
+                5,
+                5
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          }
+        ],
+        "guide": {
+          "kind": "nurbs",
+          "degree": 1,
+          "knots": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              -2,
+              3,
+              4
+            ],
+            [
+              -1,
+              5,
+              5
+            ]
+          ]
+        }
+      },
+      "expected": {
+        "volume": 2.3333333333333335
+      },
+      "outcome": {
+        "threw": {
+          "name": "BrepError",
+          "code": "INPUT",
+          "message": "B-rep: loft: curved sections currently need one full-circle arc or one inline ellipse on each end"
+        }
+      }
+    },
+    {
+      "sectionCount": 2,
+      "profile": "circle",
+      "input": {
+        "id": "L",
+        "name": "L",
+        "sections": [
+          {
+            "profile": [
+              {
+                "kind": "arc",
+                "start": [
+                  1,
+                  0
+                ],
+                "center": [
+                  0,
+                  0
+                ],
+                "direction": "ccw"
+              }
+            ],
+            "frame": {
+              "origin": [
+                -2,
+                3,
+                4
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "profile": [
+              {
+                "kind": "arc",
+                "start": [
+                  2,
+                  0
+                ],
+                "center": [
+                  0,
+                  0
+                ],
+                "direction": "ccw"
+              }
+            ],
+            "frame": {
+              "origin": [
+                -1,
+                5,
+                5
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          }
+        ],
+        "guide": {
+          "kind": "nurbs",
+          "degree": 1,
+          "knots": [
+            0,
+            0,
+            1,
+            1
+          ],
+          "controlPoints": [
+            [
+              -2,
+              4,
+              4
+            ],
+            [
+              -1,
+              7,
+              5
+            ]
+          ]
+        }
+      },
+      "expected": {
+        "volume": 7.330382858376184
+      },
+      "outcome": {
+        "threw": {
+          "name": "BrepError",
+          "code": "INPUT",
+          "message": "B-rep: loft: quadratic guide needs exactly kind quadratic-bezier and controlPoints"
+        }
+      }
+    },
+    {
+      "sectionCount": 3,
+      "profile": "polygon",
+      "input": {
+        "id": "L",
+        "name": "L",
+        "sections": [
+          {
+            "profile": [
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  1,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  1,
+                  1
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "frame": {
+              "origin": [
+                -2,
+                3,
+                4
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "profile": [
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  1.5,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  1.5,
+                  1.5
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  1.5
+                ]
+              }
+            ],
+            "frame": {
+              "origin": [
+                -1.5,
+                4,
+                4.5
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "profile": [
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  2,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  2,
+                  2
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  2
+                ]
+              }
+            ],
+            "frame": {
+              "origin": [
+                -1,
+                5,
+                5
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          }
+        ],
+        "guide": {
+          "kind": "nurbs",
+          "degree": 1,
+          "knots": [
+            0,
+            0,
+            1,
+            2,
+            2
+          ],
+          "controlPoints": [
+            [
+              -2,
+              3,
+              4
+            ],
+            [
+              -1.5,
+              4,
+              4.5
+            ],
+            [
+              -1,
+              5,
+              5
+            ]
+          ]
+        }
+      },
+      "expected": {
+        "volume": 2.3333333333333335
+      },
+      "outcome": {
+        "threw": {
+          "name": "BrepError",
+          "code": "INPUT",
+          "message": "B-rep: loft: oriented sections three-section conics do not support a guide"
+        }
+      }
+    },
+    {
+      "sectionCount": 3,
+      "profile": "circle",
+      "input": {
+        "id": "L",
+        "name": "L",
+        "sections": [
+          {
+            "profile": [
+              {
+                "kind": "arc",
+                "start": [
+                  1,
+                  0
+                ],
+                "center": [
+                  0,
+                  0
+                ],
+                "direction": "ccw"
+              }
+            ],
+            "frame": {
+              "origin": [
+                -2,
+                3,
+                4
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "profile": [
+              {
+                "kind": "arc",
+                "start": [
+                  1.5,
+                  0
+                ],
+                "center": [
+                  0,
+                  0
+                ],
+                "direction": "ccw"
+              }
+            ],
+            "frame": {
+              "origin": [
+                -1.5,
+                4,
+                4.5
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "profile": [
+              {
+                "kind": "arc",
+                "start": [
+                  2,
+                  0
+                ],
+                "center": [
+                  0,
+                  0
+                ],
+                "direction": "ccw"
+              }
+            ],
+            "frame": {
+              "origin": [
+                -1,
+                5,
+                5
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          }
+        ],
+        "guide": {
+          "kind": "nurbs",
+          "degree": 1,
+          "knots": [
+            0,
+            0,
+            1,
+            2,
+            2
+          ],
+          "controlPoints": [
+            [
+              -2,
+              4,
+              4
+            ],
+            [
+              -1.5,
+              5.5,
+              4.5
+            ],
+            [
+              -1,
+              7,
+              5
+            ]
+          ]
+        }
+      },
+      "expected": {
+        "volume": 7.330382858376184
+      },
+      "outcome": {
+        "threw": {
+          "name": "BrepError",
+          "code": "INPUT",
+          "message": "B-rep: loft: oriented sections three-section conics do not support a guide"
+        }
+      }
+    },
+    {
+      "sectionCount": 8,
+      "profile": "polygon",
+      "input": {
+        "id": "L",
+        "name": "L",
+        "sections": [
+          {
+            "profile": [
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  1,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  1,
+                  1
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "frame": {
+              "origin": [
+                -2,
+                3,
+                4
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "profile": [
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  1.1428571428571428,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  1.1428571428571428,
+                  1.1428571428571428
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  1.1428571428571428
+                ]
+              }
+            ],
+            "frame": {
+              "origin": [
+                -1.8571428571428572,
+                3.2857142857142856,
+                4.142857142857143
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "profile": [
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  1.2857142857142856,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  1.2857142857142856,
+                  1.2857142857142856
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  1.2857142857142856
+                ]
+              }
+            ],
+            "frame": {
+              "origin": [
+                -1.7142857142857144,
+                3.571428571428571,
+                4.285714285714286
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "profile": [
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  1.4285714285714286,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  1.4285714285714286,
+                  1.4285714285714286
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  1.4285714285714286
+                ]
+              }
+            ],
+            "frame": {
+              "origin": [
+                -1.5714285714285714,
+                3.857142857142857,
+                4.428571428571429
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "profile": [
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  1.5714285714285714,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  1.5714285714285714,
+                  1.5714285714285714
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  1.5714285714285714
+                ]
+              }
+            ],
+            "frame": {
+              "origin": [
+                -1.4285714285714286,
+                4.142857142857142,
+                4.571428571428571
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "profile": [
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  1.7142857142857144,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  1.7142857142857144,
+                  1.7142857142857144
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  1.7142857142857144
+                ]
+              }
+            ],
+            "frame": {
+              "origin": [
+                -1.2857142857142856,
+                4.428571428571429,
+                4.714285714285714
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "profile": [
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  1.8571428571428572,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  1.8571428571428572,
+                  1.8571428571428572
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  1.8571428571428572
+                ]
+              }
+            ],
+            "frame": {
+              "origin": [
+                -1.1428571428571428,
+                4.714285714285714,
+                4.857142857142857
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "profile": [
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  2,
+                  0
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  2,
+                  2
+                ]
+              },
+              {
+                "kind": "line",
+                "start": [
+                  0,
+                  2
+                ]
+              }
+            ],
+            "frame": {
+              "origin": [
+                -1,
+                5,
+                5
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          }
+        ],
+        "guide": {
+          "kind": "nurbs",
+          "degree": 1,
+          "knots": [
+            0,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            7
+          ],
+          "controlPoints": [
+            [
+              -2,
+              3,
+              4
+            ],
+            [
+              -1.8571428571428572,
+              3.2857142857142856,
+              4.142857142857143
+            ],
+            [
+              -1.7142857142857144,
+              3.571428571428571,
+              4.285714285714286
+            ],
+            [
+              -1.5714285714285714,
+              3.857142857142857,
+              4.428571428571429
+            ],
+            [
+              -1.4285714285714286,
+              4.142857142857142,
+              4.571428571428571
+            ],
+            [
+              -1.2857142857142856,
+              4.428571428571429,
+              4.714285714285714
+            ],
+            [
+              -1.1428571428571428,
+              4.714285714285714,
+              4.857142857142857
+            ],
+            [
+              -1,
+              5,
+              5
+            ]
+          ]
+        }
+      },
+      "expected": {
+        "volume": 2.3333333333333335
+      },
+      "outcome": {
+        "threw": {
+          "name": "BrepError",
+          "code": "INPUT",
+          "message": "B-rep: loft: oriented sections more than two conic sections do not support a guide"
+        }
+      }
+    },
+    {
+      "sectionCount": 8,
+      "profile": "circle",
+      "input": {
+        "id": "L",
+        "name": "L",
+        "sections": [
+          {
+            "profile": [
+              {
+                "kind": "arc",
+                "start": [
+                  1,
+                  0
+                ],
+                "center": [
+                  0,
+                  0
+                ],
+                "direction": "ccw"
+              }
+            ],
+            "frame": {
+              "origin": [
+                -2,
+                3,
+                4
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "profile": [
+              {
+                "kind": "arc",
+                "start": [
+                  1.1428571428571428,
+                  0
+                ],
+                "center": [
+                  0,
+                  0
+                ],
+                "direction": "ccw"
+              }
+            ],
+            "frame": {
+              "origin": [
+                -1.8571428571428572,
+                3.2857142857142856,
+                4.142857142857143
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "profile": [
+              {
+                "kind": "arc",
+                "start": [
+                  1.2857142857142856,
+                  0
+                ],
+                "center": [
+                  0,
+                  0
+                ],
+                "direction": "ccw"
+              }
+            ],
+            "frame": {
+              "origin": [
+                -1.7142857142857144,
+                3.571428571428571,
+                4.285714285714286
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "profile": [
+              {
+                "kind": "arc",
+                "start": [
+                  1.4285714285714286,
+                  0
+                ],
+                "center": [
+                  0,
+                  0
+                ],
+                "direction": "ccw"
+              }
+            ],
+            "frame": {
+              "origin": [
+                -1.5714285714285714,
+                3.857142857142857,
+                4.428571428571429
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "profile": [
+              {
+                "kind": "arc",
+                "start": [
+                  1.5714285714285714,
+                  0
+                ],
+                "center": [
+                  0,
+                  0
+                ],
+                "direction": "ccw"
+              }
+            ],
+            "frame": {
+              "origin": [
+                -1.4285714285714286,
+                4.142857142857142,
+                4.571428571428571
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "profile": [
+              {
+                "kind": "arc",
+                "start": [
+                  1.7142857142857144,
+                  0
+                ],
+                "center": [
+                  0,
+                  0
+                ],
+                "direction": "ccw"
+              }
+            ],
+            "frame": {
+              "origin": [
+                -1.2857142857142856,
+                4.428571428571429,
+                4.714285714285714
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "profile": [
+              {
+                "kind": "arc",
+                "start": [
+                  1.8571428571428572,
+                  0
+                ],
+                "center": [
+                  0,
+                  0
+                ],
+                "direction": "ccw"
+              }
+            ],
+            "frame": {
+              "origin": [
+                -1.1428571428571428,
+                4.714285714285714,
+                4.857142857142857
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "profile": [
+              {
+                "kind": "arc",
+                "start": [
+                  2,
+                  0
+                ],
+                "center": [
+                  0,
+                  0
+                ],
+                "direction": "ccw"
+              }
+            ],
+            "frame": {
+              "origin": [
+                -1,
+                5,
+                5
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ],
+              "yAxis": [
+                0,
+                0,
+                1
+              ]
+            }
+          }
+        ],
+        "guide": {
+          "kind": "nurbs",
+          "degree": 1,
+          "knots": [
+            0,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            7
+          ],
+          "controlPoints": [
+            [
+              -2,
+              4,
+              4
+            ],
+            [
+              -1.8571428571428572,
+              4.428571428571429,
+              4.142857142857143
+            ],
+            [
+              -1.7142857142857144,
+              4.857142857142857,
+              4.285714285714286
+            ],
+            [
+              -1.5714285714285714,
+              5.285714285714286,
+              4.428571428571429
+            ],
+            [
+              -1.4285714285714286,
+              5.714285714285714,
+              4.571428571428571
+            ],
+            [
+              -1.2857142857142856,
+              6.142857142857143,
+              4.714285714285714
+            ],
+            [
+              -1.1428571428571428,
+              6.571428571428571,
+              4.857142857142857
+            ],
+            [
+              -1,
+              7,
+              5
+            ]
+          ]
+        }
+      },
+      "expected": {
+        "volume": 7.330382858376184
+      },
+      "outcome": {
+        "threw": {
+          "name": "BrepError",
+          "code": "INPUT",
+          "message": "B-rep: loft: oriented sections more than two conic sections do not support a guide"
+        }
+      }
+    }
+  ]
+}

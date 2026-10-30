@@ -1,0 +1,152 @@
+{
+  "baseline": "a5d1acfa7e6834951819eaaeeaf6da314cae9b8f",
+  "reviewKind": "Studio visual modernization review; no product changes",
+  "freshRuntime": {
+    "status": "NOT_RUN_PRODUCT_FLOWS",
+    "harnessSetup": "FAIL",
+    "cause": "Preparation omitted exported CAD Model samples/rows JSON; Vite FastenerSizes.tsx import failed; viewport wait then timed out",
+    "firstFailureReceipt": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/studio-ux-20261029/result.json",
+    "logs": [
+      "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/studio-ux-20261029/probe.stderr",
+      "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/studio-ux-20261029/probe.log"
+    ],
+    "initialManifestSHA256": "3fb1a25819cbf01a06faac3e9fdf490bdd0306f0c1b3f4dd8a384c5efed59718",
+    "actualPartialLoadedInputs": 1015,
+    "workspaceResolutions": 365,
+    "unpinnedOrForeignInputs": [],
+    "ownDistInputs": [],
+    "inputAudit": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/studio-ux-20261029/source-resolution.json",
+    "assetPreparationCorrection": "Added complete committed packages/barocss-cad-model/samples after lease ended; initial manifest preserved; no browser or guard retry",
+    "completeManifestSHA256": "c7330b8c9fe8923cf487e3aa1c331e811e0dad5a266814ff5ea2c068859f0680",
+    "completeFiles": 1169,
+    "authorizedRepair": {
+      "directory": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/studio-ux-20261029-repair",
+      "status": "GUARD_DENIED_NOT_RUN",
+      "gateExit": 75,
+      "waitSeconds": 31,
+      "initialLoad": 61.21,
+      "finalLoad": 49.28,
+      "newServerOrBrowserStarted": false,
+      "noFurtherRetry": true,
+      "exportAssetAudit": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/studio-ux-20261029-repair/export-asset-audit.json"
+    }
+  },
+  "authorVisualEvidence": {
+    "status": "VIEWED",
+    "sourceProfile": {
+      "baseline": "27500e219febc591845cd5e4c53341a24ca9d39b",
+      "worktree": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+      "sources": [
+        {
+          "path": "apps/cad-studio/src/storage/project.ts",
+          "sha256": "a927fd79a0db9be5d5b60f5380f2ad2ac114e4b5c33c0c9f5240da8772a815ad"
+        },
+        {
+          "path": "apps/cad-studio/test/browser-flow.mjs",
+          "sha256": "9a031f112e8b0388bdbd16ba5d215fe0bb3a5d58456da85ad2cd0f87cf039a4c"
+        }
+      ],
+      "selection": "^CG6 project:",
+      "scope": "Normal UI project-version positive regression; omitted-nextId not UI-generated; folder picker returns real native OPFS handle."
+    },
+    "images": [
+      {
+        "path": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runtime/studio-ux-a5d1/apps/cad-studio/handover/notes/canonical-version-snapshot-2026-10-29/consumers/actual/01-starter-plate-loads.png",
+        "sha256": "b1dee710e376cb0e44ca49f6dd05a1bfcd8a6201b277ab073a9ef05f0555c7d7",
+        "width": 1440,
+        "height": 900,
+        "openedAndViewed": true,
+        "authority": "author retained image, not this probe"
+      },
+      {
+        "path": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runtime/studio-ux-a5d1/apps/cad-studio/handover/notes/canonical-version-snapshot-2026-10-29/consumers/actual/316a-cg6-compare.png",
+        "sha256": "42cb5dde302022a9626aeb093c2671401a71d02e672069f533f484f49330e72c",
+        "width": 1440,
+        "height": 900,
+        "openedAndViewed": true,
+        "authority": "author retained image, not this probe"
+      },
+      {
+        "path": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runtime/studio-ux-a5d1/apps/cad-studio/handover/notes/canonical-version-snapshot-2026-10-29/consumers/actual/316b-cg6-versions.png",
+        "sha256": "f325be3104fe01e599b903fdb84043319a8ae244bc3044864882a1a1eebeee7b",
+        "width": 299,
+        "height": 343,
+        "openedAndViewed": true,
+        "authority": "author retained image, not this probe"
+      }
+    ],
+    "proofBoundary": "Images are exact bytes retained in a5d1 commit but original execution was baseline27500e2 plus author project.ts patch, not an independent a5d1 browser run"
+  },
+  "flowResults": [
+    {
+      "flow": "Model starter1440x900",
+      "status": "NOT_RUN",
+      "reason": "Fresh app could not load because audit snapshot omitted public sample assets"
+    },
+    {
+      "flow": "Tree selection",
+      "status": "NOT_RUN",
+      "reason": "Fresh app could not load because audit snapshot omitted public sample assets"
+    },
+    {
+      "flow": "Existing feature editor",
+      "status": "NOT_RUN",
+      "reason": "Fresh app could not load because audit snapshot omitted public sample assets"
+    },
+    {
+      "flow": "Sketch preview",
+      "status": "NOT_RUN",
+      "reason": "Fresh app could not load because audit snapshot omitted public sample assets"
+    },
+    {
+      "flow": "Render presentation",
+      "status": "NOT_RUN",
+      "reason": "Fresh app could not load because audit snapshot omitted public sample assets"
+    },
+    {
+      "flow": "Drawing presentation",
+      "status": "NOT_RUN",
+      "reason": "Fresh app could not load because audit snapshot omitted public sample assets"
+    },
+    {
+      "flow": "Model1280x800",
+      "status": "NOT_RUN",
+      "reason": "Fresh app could not load because audit snapshot omitted public sample assets"
+    }
+  ],
+  "cleanup": {
+    "gateAcquireExit": 0,
+    "gateReleaseExit": 0,
+    "objects": [
+      {
+        "name": "context0",
+        "status": "closed-owned-only"
+      },
+      {
+        "name": "browser",
+        "status": "closed-owned-only"
+      },
+      {
+        "name": "server",
+        "status": "closed-owned-only"
+      }
+    ],
+    "ownProcessPIDsVerifiedAbsent": [
+      25151,
+      27115,
+      27852
+    ],
+    "otherProcesses": "Preserved"
+  },
+  "commands": [
+    "python3 /Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/studio-ux-20261029/prepare.py",
+    "sh /Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/studio-ux-20261029/run.sh",
+    "sh /Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/studio-ux-20261029-repair/run.sh"
+  ],
+  "limits": [
+    "No product source or dirty GPU WIP change",
+    "No independent fresh Studio UI flow PASS",
+    "No Save/Open/PNG/skeleton regression repetition",
+    "No geometry, performance, memory, natural recovery, deployment or customer-file acceptance"
+  ]
+}

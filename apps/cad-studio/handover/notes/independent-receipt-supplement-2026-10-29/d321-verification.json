@@ -1,0 +1,420 @@
+{
+  "conclusion": "APPROVE_BOUNDED_AUTHOR_RECEIPTS",
+  "exactReviewedCommit": "a386c8705beda2c72d215da61a55fd6119351ca2",
+  "productRepository": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+  "headAtDispatch": "a5d1acfa7e6834951819eaaeeaf6da314cae9b8f",
+  "mode": "SOURCE_AND_RECEIPT_ONLY",
+  "independentExecution": "NOT_RUN",
+  "heavyGate": "NOT_REQUESTED",
+  "buildTestBrowserServerNativeInstrumentation": "NOT_RUN",
+  "writes": "Only the two new owned audit report/evidence files. Product/WIP/branches/existing evidence/tabs/processes unchanged.",
+  "commands": [
+    "git -C /Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b show --stat --oneline a386c8705beda2c72d215da61a55fd6119351ca2",
+    "git -C /Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b show a386c8705beda2c72d215da61a55fd6119351ca2 -- apps/cad-studio/src/App.tsx apps/cad-studio/src/state/workOwnership.ts",
+    "git -C /Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b show a386c8705beda2c72d215da61a55fd6119351ca2:<exact product/evidence path>",
+    "Python standard-library SHA256/bytes, gzip decode and JSON comparisons over immutable git blobs; no test/runtime execution."
+  ],
+  "manifests": [
+    {
+      "path": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/qualification-artifacts.json",
+      "manifestSHA256": "5dd96ce9c4c4191d2fd77f5ea10de19001d1afd46d3ac63b3e90f0c9322607e7",
+      "relativeBase": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/",
+      "schema": "relative artifact path -> bytes,sha256",
+      "references": 109,
+      "mismatches": []
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/source-artifact-manifest.json",
+      "manifestSHA256": "03f1e57ef1c50a6055ff88a5f58670b9a0ffb901423c869a931d94533c67808f",
+      "relativeBase": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/",
+      "schema": "artifacts object -> relative artifact path -> bytes,sha256",
+      "references": 25,
+      "mismatches": []
+    },
+    {
+      "path": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/consumers/artifact-manifest.json",
+      "manifestSHA256": "21da0b7e37111aa9be9eba6e708297451daa248e37abd95fd17a0b3aeaa94b8f",
+      "relativeBase": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/consumers/",
+      "schema": "relative artifact path -> bytes,sha256",
+      "references": 69,
+      "mismatches": []
+    }
+  ],
+  "verifiedHashReferences": 203,
+  "uniqueVerifiedArtifactFiles": 109,
+  "countMeaning": "109 parent+25 source+69 consumer=203 overlapping references,109 unique artifacts. Not tests.",
+  "qualificationSourceBindings": [
+    {
+      "path": "apps/cad-studio/src/App.tsx",
+      "sha256": "fe99a2a25719148774ee15e69c9493c743c3e88226289cf1dcb89333a3149a1b",
+      "matchesQualification": true
+    },
+    {
+      "path": "apps/cad-studio/src/state/workOwnership.ts",
+      "sha256": "d95db66ed196df304ce29d2b6d497b589eca361160812cb5cbca30da376f6ed8",
+      "matchesQualification": true
+    },
+    {
+      "path": "apps/cad-studio/test/stop-work-ownership.test.ts",
+      "sha256": "986f3fc5cb8cfe650831940f52ed622eacc50c31ad79e5b96171bf6a9f96ac3f",
+      "matchesQualification": true
+    },
+    {
+      "path": "apps/cad-studio/test/browser-flow.mjs",
+      "sha256": "9a031f112e8b0388bdbd16ba5d215fe0bb3a5d58456da85ad2cd0f87cf039a4c",
+      "matchesQualification": true
+    },
+    {
+      "path": "apps/cad-studio/test/stop-work-native-worker.mjs",
+      "sha256": "752e73f84a1a0d7d05e88ce7299f5f43aa9f5dddf485caabeec503c6682e5dc2",
+      "matchesQualification": true
+    },
+    {
+      "path": "apps/library-docs/docs/studio/features.md",
+      "sha256": "a6cc39aabd5a2a91c3163ad1a7956059416c926371161ca022a09de3f95743a9",
+      "matchesQualification": true
+    }
+  ],
+  "runtimeProfiles": [
+    {
+      "profile": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/consumers/third-run/source-profile.json",
+      "files": [
+        {
+          "sourcePath": "apps/cad-studio/src/App.tsx",
+          "sourceSHA256": "fe99a2a25719148774ee15e69c9493c743c3e88226289cf1dcb89333a3149a1b",
+          "gzip": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/consumers/third-run/App.tsx.gz",
+          "gzipHashMatches": true,
+          "decompressedHashMatches": true,
+          "bytesMatch": true,
+          "exactCommitSourceMatches": true
+        },
+        {
+          "sourcePath": "apps/cad-studio/src/state/workOwnership.ts",
+          "sourceSHA256": "d95db66ed196df304ce29d2b6d497b589eca361160812cb5cbca30da376f6ed8",
+          "gzip": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/consumers/third-run/workOwnership.ts.gz",
+          "gzipHashMatches": true,
+          "decompressedHashMatches": true,
+          "bytesMatch": true,
+          "exactCommitSourceMatches": true
+        },
+        {
+          "sourcePath": "apps/cad-studio/src/engine/client.ts",
+          "sourceSHA256": "56f10abe7acc2c3d528a7fc6096e8dbf0b6b5b1417d41e85dc6752cd76303d6b",
+          "gzip": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/consumers/third-run/client.ts.gz",
+          "gzipHashMatches": true,
+          "decompressedHashMatches": true,
+          "bytesMatch": true,
+          "exactCommitSourceMatches": true
+        },
+        {
+          "sourcePath": "apps/cad-studio/test/browser-flow.mjs",
+          "sourceSHA256": "9a031f112e8b0388bdbd16ba5d215fe0bb3a5d58456da85ad2cd0f87cf039a4c",
+          "gzip": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/consumers/third-run/browser-flow.mjs.gz",
+          "gzipHashMatches": true,
+          "decompressedHashMatches": true,
+          "bytesMatch": true,
+          "exactCommitSourceMatches": true
+        },
+        {
+          "sourcePath": "apps/cad-studio/test/stop-work-native-worker.mjs",
+          "sourceSHA256": "752e73f84a1a0d7d05e88ce7299f5f43aa9f5dddf485caabeec503c6682e5dc2",
+          "gzip": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/consumers/third-run/stop-work-native-worker.mjs.gz",
+          "gzipHashMatches": true,
+          "decompressedHashMatches": true,
+          "bytesMatch": true,
+          "exactCommitSourceMatches": true
+        }
+      ],
+      "scope": "App, private workOwnership helper, unchanged EngineClient, browser-flow driver, test-only Worker helper. No full dependency/input-audit graph."
+    },
+    {
+      "profile": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/consumers/regression/d318/source-profile.json",
+      "files": [
+        {
+          "sourcePath": "apps/cad-studio/src/App.tsx",
+          "sourceSHA256": "fe99a2a25719148774ee15e69c9493c743c3e88226289cf1dcb89333a3149a1b",
+          "gzip": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/consumers/regression/d318/App.tsx.gz",
+          "gzipHashMatches": true,
+          "decompressedHashMatches": true,
+          "bytesMatch": true,
+          "exactCommitSourceMatches": true
+        },
+        {
+          "sourcePath": "apps/cad-studio/src/state/workOwnership.ts",
+          "sourceSHA256": "d95db66ed196df304ce29d2b6d497b589eca361160812cb5cbca30da376f6ed8",
+          "gzip": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/consumers/regression/d318/workOwnership.ts.gz",
+          "gzipHashMatches": true,
+          "decompressedHashMatches": true,
+          "bytesMatch": true,
+          "exactCommitSourceMatches": true
+        },
+        {
+          "sourcePath": "apps/cad-studio/src/engine/client.ts",
+          "sourceSHA256": "56f10abe7acc2c3d528a7fc6096e8dbf0b6b5b1417d41e85dc6752cd76303d6b",
+          "gzip": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/consumers/regression/d318/client.ts.gz",
+          "gzipHashMatches": true,
+          "decompressedHashMatches": true,
+          "bytesMatch": true,
+          "exactCommitSourceMatches": true
+        },
+        {
+          "sourcePath": "apps/cad-studio/test/browser-flow.mjs",
+          "sourceSHA256": "9a031f112e8b0388bdbd16ba5d215fe0bb3a5d58456da85ad2cd0f87cf039a4c",
+          "gzip": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/consumers/regression/d318/browser-flow.mjs.gz",
+          "gzipHashMatches": true,
+          "decompressedHashMatches": true,
+          "bytesMatch": true,
+          "exactCommitSourceMatches": true
+        },
+        {
+          "sourcePath": "apps/cad-studio/test/stop-work-native-worker.mjs",
+          "sourceSHA256": "752e73f84a1a0d7d05e88ce7299f5f43aa9f5dddf485caabeec503c6682e5dc2",
+          "gzip": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/consumers/regression/d318/stop-work-native-worker.mjs.gz",
+          "gzipHashMatches": true,
+          "decompressedHashMatches": true,
+          "bytesMatch": true,
+          "exactCommitSourceMatches": true
+        }
+      ],
+      "scope": "App, private workOwnership helper, unchanged EngineClient, browser-flow driver, test-only Worker helper. No full dependency/input-audit graph."
+    }
+  ],
+  "unitHelperReuse": {
+    "testedSHA256": "316181a696ea5be4a4555e75ddfa17b90d6edeaeda686c79f855a4ad4f6d93fc",
+    "finalSHA256": "d95db66ed196df304ce29d2b6d497b589eca361160812cb5cbca30da376f6ed8",
+    "sameExactBytes": false,
+    "reverseUnusedParameterRenameSHA256": "316181a696ea5be4a4555e75ddfa17b90d6edeaeda686c79f855a4ad4f6d93fc",
+    "reverseRenameMatchesTested": true,
+    "difference": "Only unused invalidateWork parameter state->_state. Static reverse replacement reproduces the exact tested hash; no rerun.",
+    "tests": "13 new helper+4 existing lanes=17; pure decision/lane boundary, not App integration."
+  },
+  "rawStateEvidence": {
+    "path": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/consumers/third-run/d321-states.json",
+    "sha256": "f512e54f85113548ff98c437515a831615949246d35a71c57eb815a095ccf8e2",
+    "states": 14,
+    "derivedFacts": {
+      "gridOneDocRetained": true,
+      "gridTwoDocRetained": true,
+      "gridOneRecoveryStringRetained": true,
+      "gridTwoRecoveryStringRetained": true,
+      "renderHistoryKeysPresent": [
+        false,
+        false,
+        false
+      ],
+      "renderHistoryBoundary": "All three omit history; undefined equality is not a full Undo-history observation.",
+      "modelHistoryAfterRefusalsMatchesD1": true,
+      "drawingDocRetained": true,
+      "drawingRecoveryStringRetained": true,
+      "drawingHistoryStringRetained": true,
+      "stopDocD0": true,
+      "stopRecoveryD0": true,
+      "stopDirty": true,
+      "stopFresh": true,
+      "stopMassReady": true,
+      "stopVolume": 1000.0000000000001
+    },
+    "observations": {
+      "drawing": {
+        "status": "PASS",
+        "refusal": "info\nChange not applied\nWait for the computation to finish, or stop it, before changing the document.\nclose"
+      },
+      "newBackend": {
+        "submit": {
+          "sequence": 40,
+          "time": 6493.200000047684,
+          "kind": "submit",
+          "key": 3,
+          "type": "evaluate",
+          "id": 11,
+          "revision": 9,
+          "nativeSource": {
+            "epoch": 2,
+            "requestId": 11,
+            "revision": 9,
+            "slot": "evaluate"
+          },
+          "sourceNodeCount": 2,
+          "sourceNodes": [
+            {
+              "wireId": 1,
+              "id": "n0",
+              "kind": "sketch"
+            },
+            {
+              "wireId": 2,
+              "id": "n1",
+              "kind": "extrude"
+            }
+          ]
+        },
+        "bodies": {
+          "fresh": true,
+          "bodies": [
+            {
+              "key": "b1",
+              "volume": 1000.0000000000001,
+              "centroid": [
+                4.999999999999999,
+                4.999999999999999,
+                5
+              ],
+              "massRef": null
+            }
+          ],
+          "massReady": true,
+          "colored": []
+        },
+        "viewportExactProvenance": "NOT_EXPOSED"
+      },
+      "normalGrid": {
+        "evaluationsBeforeGrid": 6,
+        "evaluationsAfterGrid": 6
+      }
+    },
+    "scheduleDerivedFromFinalTrace": [
+      {
+        "workerKey": 1,
+        "requestId": 8,
+        "nativeResultAfterSubmitMS": 44.799999952316284,
+        "deliveryHeldUntilTerminationMS": 3294.4000000953674,
+        "discardedHeld": 4,
+        "oldClientDeliveriesAfterClaim": 0
+      },
+      {
+        "workerKey": 3,
+        "requestId": 15,
+        "nativeResultAfterSubmitMS": 48.60000014305115,
+        "deliveryHeldUntilTerminationMS": 1487.6999998092651,
+        "discardedHeld": 2,
+        "oldClientDeliveriesAfterClaim": 0
+      }
+    ]
+  },
+  "originalIndependentReproduction": {
+    "path": "runs/studio-003-prepared/execution-summary.json",
+    "source": "5463dbf32af5dd10670badd0d334c68504615292",
+    "status": "SCHEDULE_OBSERVED",
+    "observed": {
+      "modelEqualsD0": false,
+      "modelEqualsD1": true,
+      "renderEqualsD1": true,
+      "renderEqualsD2": false
+    },
+    "boundary": "Controlled actual native Worker delivery retained FIFO then discarded on termination. Original Stop removed later accepted Grid while retaining originating model edit. Not natural slow computation/current HEAD."
+  },
+  "authorCounts": {
+    "selectedD321": {
+      "pass": 1,
+      "fail": 0,
+      "skip": 0,
+      "exit": 0
+    },
+    "selectedD318Regression": {
+      "pass": 1,
+      "fail": 0,
+      "skip": 0,
+      "exit": 0
+    },
+    "starterSmoke": "Separate one starter load per run, excluded from selected counts.",
+    "focused": {
+      "pass": 17,
+      "fail": 0,
+      "skip": 0,
+      "newHelper": 13,
+      "existingLanes": 4
+    },
+    "rootStudio": {
+      "pass": 389,
+      "fail": 0,
+      "skip": 0,
+      "exit": 0
+    },
+    "overlap": "Root389 includes focused17. First/second/third are repeated selected flow, not three unique D321 passes. D322398 is later different source."
+  },
+  "rawExits": {
+    "consumers/browser-first-exit.txt": "1",
+    "consumers/browser-second-exit.txt": "1",
+    "consumers/browser-third-exit.txt": "0",
+    "root-studio-full-exit.txt": "0"
+  },
+  "retainedFailures": [
+    {
+      "run": "first",
+      "class": "HARNESS_WORKSPACE_DOM_COMPARISON",
+      "sourceApp": "b86265aafcb141b91e214e92be63c4bff75bd60cfa36d5e90e41163f97132115",
+      "log": "browser-first-failure.txt",
+      "details": "first-run-binding.json",
+      "fullDriverExactSource": "NOT_RETAINED; no reconstructed/exact full replay claim",
+      "exactAppSource": "first-run/source-App-at-first-browser.ts.gz"
+    },
+    {
+      "run": "second",
+      "class": "PRODUCT_REDO_REGRESSION",
+      "sourceApp": "09e402caf8e6fa163f4ec8b181ff872c8369f9969298b046e66d34dd1a02bf7c",
+      "log": "browser-second-failure.txt",
+      "details": "second-run-observation.json",
+      "sourceProfile": "second-run/production-source.json",
+      "driverSource": "second-run/harness-source.json",
+      "afterRedoRawState": "NOT_RETAINED; last raw snapshot is successful StopD0, failure log/PNG preserved",
+      "repair": "Production captures redoEntry synchronously before docNow ref assignment; no consumer Doc/Redo/mass assertion weakened."
+    }
+  ],
+  "intermediateSources": [
+    {
+      "metadata": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/source-at-first-browser.json",
+      "sourceSHA256": "b86265aafcb141b91e214e92be63c4bff75bd60cfa36d5e90e41163f97132115",
+      "gzipHashMatches": true,
+      "sourceHashMatches": true,
+      "bytesMatch": true,
+      "baselineField": "e1f2b05d62b8011412a1d8ee9c1cc73256737177",
+      "isFinalSource": false,
+      "caveat": "Exactly remove the sole inactive-run guard line from the subsequent source; original b862 hash verified."
+    },
+    {
+      "metadata": "apps/cad-studio/handover/notes/stop-work-ownership-2026-10-29/source-at-second-browser.json",
+      "sourceSHA256": "09e402caf8e6fa163f4ec8b181ff872c8369f9969298b046e66d34dd1a02bf7c",
+      "gzipHashMatches": true,
+      "sourceHashMatches": true,
+      "bytesMatch": true,
+      "baselineField": "e1f2b05d62b8011412a1d8ee9c1cc73256737177",
+      "isFinalSource": false,
+      "caveat": "NOT_RETAINED"
+    }
+  ],
+  "authorCleanup": {
+    "firstRun": "runner exited1 after finally; owned browser/server closed, gate returned",
+    "secondRun": "runner exited1 after finally; owned browser/server closed, gate returned",
+    "thirdRun": "runner exited0 after finally; owned browser/server closed, gate returned",
+    "d318Regression": "runner exited0 after finally; all owned fresh contexts/browser/server closed, gate returned",
+    "currentOwnedHeavyOrBrowser": "NONE",
+    "runtimeSourceFreeze": "still held by parent for full unit/docs; consumer edits evidence only"
+  },
+  "sourceDecision": {
+    "admission": "Unsupported independent pending edits are refused before history/dirty/document acceptance; stale callbacks refuse.",
+    "origin": "Accepted reservation binds exact history entry, document, evaluated input and generation; candidate/view-only work has no borrowed origin.",
+    "finish": "Only matching run token can finish, so old finally cannot release a newer run. Candidate temporary completion permission is removed in finally.",
+    "stop": "Current run is captured+invalidated before restart; exact origin/top entry required for rollback. Immutable local Redo snapshot is captured before docNow reassignment. No run returns before worker/history/cache changes.",
+    "lifecycle": "Undo/Redo and replacement invalidate old ownership separately. Worker-session ref changes on selected Stop, guards placed loops before/after await; ordinary history change does not replace backend."
+  },
+  "limitations": [
+    "whole Kernel/Model/Viewer suites",
+    "whole Studio browser suite",
+    "exact completed-run versus Stop-click UI race",
+    "actual async-image, initial/variant/parameter Stop matrix",
+    "complete Undo/New/Open invalidation UI matrix",
+    "all Drawing/assembly/repair-stage worker-restart paths",
+    "exact viewport geometry provenance and full Undo-depth instrumentation",
+    "natural slow-computation timing or performance benchmark",
+    "Independent execution NOT_RUN.",
+    "First full failing browser driver/helper source NOT_RETAINED; first App capsule is reconstructed but original-hash-matched.",
+    "Second intermediate Redo post-failure raw doc/trace NOT_RETAINED; preserve historical failure, do not call it final-source failure.",
+    "Final selected source capsules do not constitute full imported source/input-audit binding.",
+    "Render-workspace history keys are omitted; undefined equality is not full-stack proof. Drawing/Model DOM strings and actual Undo/Redo transitions are narrower evidence.",
+    "D321 recovery evidence is localStorage/UI/doc/Worker trace, not native saved/autosave file byte roundtrip. D318 byte fixtures belong to separate regression.",
+    "Later D322 modifies App; a386 evidence does not qualify current a5d1 HEAD."
+  ],
+  "newRegression": "None established in selected scope; no new issue or product change.",
+  "nextCheckpoint": "Return to D323 author receipt review after exact commit/qualification/manifest supplied. GPU003 remains paused until GPU owner commit and fresh immutable snapshot. No duplicate tests proposed.",
+  "renderHistoryEvidenceCompletionCondition": "Actually record the Render history field, assert its presence and type first, then compare. Exclude both-undefined equality from PASS evidence. This is an evidence gap, not a product regression; no execution in this cycle."
+}

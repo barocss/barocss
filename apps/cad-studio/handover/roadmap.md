@@ -1,13 +1,51 @@
 # barocss CAD roadmap
 
-## 전체 실행 색인 — 2026-10-27
+## Current execution index — 2026-10-30
 
-이 번호는 기존 작업의 공통 색인이다. 새 작업 큐나 일괄 실행 승인이 아니다.
-실제 배정은 기존 단일 기록의 `roadmapExecution.tasks`만 사용한다.
-기존 CG·DR·K·O·R·RS·PB·V 및 이슈 ID는 그대로 유지한다.
-번호 순서가 모든 작업의 직렬 실행 순서를 뜻하지는 않는다. 독립 소스는 병렬로 만든다.
-같은 기능은 **Kernel/GPU/CAD → CAD Model·API → Studio/Viewer 실제 소비 → 제품 통합**까지 닫는다.
-잘못된 성공, 단위·좌표·참조 손실과 실제 오류는 해당 기능 안에서 먼저 해결한다.
+The delivered07 profiles are complete at their recorded limits; do not restart them. D332 now qualifies the selected base Studio point/edge/face/body visibility profiles. D333 qualifies the bounded rectangular cut-grid profile. D334 qualifies the bounded open-polyline cut profile. D335 qualifies one finite XY reference-point polygon-mask CUT grid across a retained creation prefix and final saved-prefix retake; there is no clean whole-flow PASS. D335 also repairs ordinary edited-sketch ID loss with native Save/fresh Open proof under existing09/12. [Evidence](notes/fill-cut-pattern-2026-10-30/qualification.json). D336 qualifies six direct-surface trim-loss refusal boundaries in one clean actual Chrome/WebGPU flow. [Evidence](notes/direct-surface-trim-guards-2026-10-30/qualification.json). This adds no trimmed geometry support. D337 now qualifies one simple3..160-point stored trim loop through affine planar Reverse, with actual public160 producer, both axes/flags, concave material, Undo/native-file and retained refusal proof. [Evidence](notes/trimmed-surface-reverse-2026-10-30/qualification.json). D338 qualifies the shared whole-surface Thicken snapshot facade and actual selected-source preview/edit/file flow, reusing unchanged faceted Core geometry. [Evidence](notes/surface-thicken-snapshot-2026-10-30/qualification.json). Named parameter mutation is focused-test proof; actual UI edits literal thickness/side. D339 is bounded-qualified after held run01 visual FAIL, render-only fixecb2b8619 and clean run02/images. Selected Sew preview restores original display on Cancel/refusal; raw facade visibility remains authored and uses explicit user Hide for clear inspection. [Evidence](notes/ordered-sew-snapshot-2026-10-30/qualification.json). D340 qualifies component-preserving Split for one affine stored trim loop, with actual V inside/outside/empty/refusal/file proof and a separate five-image visual pass. [Evidence](notes/trimmed-surface-split-2026-10-30/qualification.json). U-axis browser is NOT_RUN; U/flags are focused-test scope. D341 qualifies bounded trimmed Extract region after initial numericPASS/visualFAIL, private display-domain correction and clean run02 six-image/16renderer-probe review. [Evidence](notes/trimmed-surface-region-2026-10-30/qualification.json). Empty material crop refuses atomically; stored material and sampled display remain separate. D342 qualifies bounded current-native Offset face authority after initial numeric PASS/selection-flow FAIL and a Studio-only acceptance fix; [evidence](notes/offset-face-native-2026-10-30/qualification.json). D343 qualifies the captured longitudinal mass repair and actual Offset result/cap identity after two retained product failures; see [qualification](notes/prismatic-mass-stability-2026-10-30/qualification.json). D344 now qualifies the captured native whole-patch mass conditioning repair and actual default STEP metadata/readback; [qualification](notes/native-quadrature-conditioning-2026-10-30/qualification.json). The first metadata-box equality failure is preserved before the corrected enclosure oracle and clean run02. D345 now qualifies bounded straight polygon-hole Fill CUT reference masks through actual7→9→5-cut edit/reselection/native-file flow, after retained driver and consumed-selection failures; [qualification](notes/fill-cut-pattern-holes-2026-10-30/qualification.json). Existing total16 budget and reference-point semantics remain; generic curves/frames/full-tool containment stay open. D346 now qualifies one constant-Z polynomial quadratic CUT path with a shared certified placement query,31 affected Kernel/97 Model checks and clean actual run02 after a consumed-selection repair; [qualification](notes/quadratic-cut-pattern-2026-10-30/qualification.json). The owner now requests Claude handoff and develop integration: finish this checkpoint and start no new feature. [Current handoff](notes/claude-handoff-2026-10-30/README.md). Existing positive untrimmed Extend is the next08 consumer gap; its [stopped read-only plan](notes/quadratic-cut-pattern-2026-10-30/next-plan/checkpoint.md) is not an implementation or reproduced defect. Assess the bounded08 exit after that proof, then09; optional generality is not an automatic prerequisite. Optional general07 extensions remain separately scoped.
+Confirmed urgent correctness defects still take precedence. D331 closes the selected DA-DUP-1
+drawing dependency defect; see the qualification entry below. D313's bounded cylindrical wrap
+is complete at `f29df9217`.
+D314 runtime`bb92da70b` qualifies the measured thread-quadrature slice. D315 runtime`dbfe93216` repairs the17/64-control polynomial-guide Surface/temporary Curve mismatch.
+D316 adds the certified raw explicit-frame polynomial-guide path while preserving the existing
+non-XY height route. See [qualification](notes/framed-polynomial-guide-2026-10-29/qualification.json).
+D317 repairs matched unsupported STEP SI length admission (#2240,13/16): explicit NOT_READ,
+preserved supported scaling and actual Studio refusal/Undo/file proof. See
+[qualification](notes/step-declared-unit-admission-2026-10-29/qualification.json). D318 supplies skeleton structural admission and stable Apply identity with actual fresh-context
+Save/Open/re-edit/Undo/file proof. See [qualification](notes/skeleton-file-admission-2026-10-29/qualification.json).
+D319 now qualifies Presenter-owned Geometry replacement/clear lifetime (#2238,05/V1/R2),
+including actual SDK WebGPU readbacks. [Evidence](notes/presenter-geometry-lifetime-2026-10-29/qualification.json).
+D320 qualifies same-store/exact-path conditional-write ownership #2241 with real native OPFS
+selected1/5groups. [Evidence](notes/opfs-write-ownership-2026-10-29/qualification.json). Separate
+instances/tabs/remove-race/tag collisions and actual Studio save scheduling remain unqualified.
+D321 qualifies originating-work Stop #2242 underO9/12/16: final Studio389/389, types/lint,
+actual selected Stop/Redo and same-source skeleton file regression, generated/API/docs pass.
+[Evidence](notes/stop-work-ownership-2026-10-29/qualification.json). D322 now qualifies the selected
+A02/P1 late Save ownership repair with final Studio398/398, actual Save3 and affected Stop1 plus
+separate starter, types/lint/generated/API/docs. [Evidence](notes/late-save-ownership-2026-10-29/qualification.json).
+D323 now connects existing canonical snapshot codecs under12/CG6: unique related12/types/lint,
+actual existing CG6 project selected1+separate starter, generated/API/docs pass.
+[Evidence](notes/canonical-version-snapshot-2026-10-29/qualification.json). D324 qualifies selected
+A07/#2237 readback ownership under06/R2: GPU emit/types, normal CPU357 incl new15, native selected1/6groups,
+lint/generated/API/docs pass. [Evidence](notes/gpu-pick-instance-ownership-2026-10-29/qualification.json).
+D325 qualifies A08/#2239 closed SDK display/CPU/GPU clipping under05/V1/V2 with native selected1/12SDK observations and exact-far GPU ownership. [Evidence](notes/viewer-clipping-contract-2026-10-29/qualification.json). D326 now qualifies selected project/serialized-document Open ownership under12/O9: Studio423, focused29 and actual5 pass. [Evidence](notes/project-open-ownership-2026-10-29/qualification.json). D327/D328 complete the selected App decomposition. D329 qualifies the selected nonserialized import/stage A05 ownership. D330 qualifies normal-root Worker retirement, explicit Retry and WireSender disposal under12/O9 A06; see [evidence](notes/worker-wire-lifetime-2026-10-29/qualification.json). Wider ownership matrices remain open. D331 qualifies the selected DA-DUP-1/#2243 drawing duplicate/location repair. D332 qualifies selected visibility. D333, D334 and D335 qualify bounded rectangular, open-polyline and XY region-snapshot cut patterns; [D334 evidence](notes/curve-cut-pattern-2026-10-29/qualification.json) retains the product and driver failures. Remaining08 precedes09. Preserve other owners and HOLD boundaries.
+The research reconciliation below attaches
+existing GitHub investigations to these numbered scopes; it creates no second implementation queue.
+
+Keep existing CG/DR/K/O/R/RS/PB/V and issue IDs. Earlier lane assignments, stop/resume statements
+and time-sensitive next steps below are historical. The owner's current instructions control
+this worktree. The owner now authorizes a normal push to `origin/local/cad-dev` after each
+qualified roadmap feature. Exclude unfinished working-tree changes. PRs and releases still require
+a direct owner instruction.
+
+Register messages from other chats in this roadmap before considering implementation. Do not
+switch tasks on message arrival. At each feature boundary, choose the most urgent
+registered work; prioritize confirmed data loss, wrong physical units and runtime failures over
+optional extensions. Keep existing holds and ownership boundaries.
+
+Complete each feature through **Kernel/GPU/CAD → Model/API → actual Studio/Viewer consumer**,
+with its source, required checks and file flow recorded separately. Fix reproduced false success,
+unit/coordinate/reference loss and actual errors within the affected feature first.
 
 상태를 구분한다: **소스 완료 / 필요한 검사 완료 / 실제 화면·파일 완료 / 제품 완료**.
 이 네 상태를 합쳐 쓰지 않는다. 기존 유효한 PASS는 반복하지 않는다.
@@ -22,7 +60,7 @@
 | 02 | 도면 사용 문서 연결 | 독립 프레임과 기존 point datum target 설명을 현재 도면 문서에 작성하고 공통 소스에 채택했다. 최종 문서 배치와 제품 연결을 마감한다. 전체 GD&T 완료로 쓰지 않는다. | Docs + Drawings | 뷰·위치·모호한 선택·없는/숨긴 참조·저장/출력 경계를 설명하고 01의 실제 결과와 맞춘다. 04의 같은 최종 문서 배치로 닫는다. |
 | 03 | 절삭 피처 선형 반복 — CG2 | 공통433에서 invalid 거부·적용·Undo/Redo·실제 Save/New/Open을 확인했다. 정확 16경로는 제품 `4bff492c`에 no-ff 통합했다. 제품 CAD build와 수정 후 docs는 `13e9c835`에서 통과했다. 최초 stale preview와 문서 거부 코드 차이 실패는 보존한다. 별도 제품 브라우저는 NOT_RUN이다. | Kernel/Model + Outer + API | 원 절삭 도구만 반복한다. 60×30×10에서 4×4 관통 컷3개의 표시 잔류17520mm³·외곽·참조를 보존한다. 전체 기하·릴리스 수락으로 확대하지 않는다. |
 | 04 | 실제 API 문서·그림·탐색 구조 | 실제 Kernel API3사례·JPEG3와 메뉴/Studio6안내를 공통에 채택했다. 새 Model 기본 샘플/실제3결과·별도그림은 소유 후보f4→189다. 새8샘플/3producer는 PASS이나 전체164는159PASS/2FAIL/3CANCELLED다. spring은Kernel교정,CLI는별도환경확인으로 닫고 최종공개목록·docs/site·제품을 한 배치로 마감한다. | Docs + API | 기존 URL·앵커를 보존한다. 새 공개 목록을 의미 검토하고 최종 공통 SHA에서 check/site 한 배치와 필요한 desktop 페이지를 확인한다. 24-case gallery는 이3사례로 완료 처리하지 않는다. |
-| 05 | Viewer 제품 마감과 다음 리뷰 전달 | 기존 SDK/React 앱·조립·named views·원본 점 검사·아이콘 UI는 공통 채택, 제품은 미채택이다. 소유 워크는 키보드·작은 화면·파일 실패 보존, 조립품 거리·리뷰 저장/복원을 완료했다고 보고했다. 새 정상 commit과 실제 파일·자원 반환을 확인 중이며 제품 완료로 합치지 않는다. 제한 IGES와 파일 닫기는 남은 범위를 구분한다. | Viewer + API/Docs | 기존 정상 묶음은 04와 제품에 연결한다. 새 PNG는 실제 좌표/DPR·일반/측정 이미지·오류 시 accepted 보존을 확인한 별도 정상 commit으로 닫는다. 중단된 packaging/config/hook은 재개하지 않는다. |
+| 05 | Viewer 제품 마감과 다음 리뷰 전달 | 기존 SDK/React 앱·조립·named views·원본 점 검사·아이콘 UI는 공통 채택, 제품은 미채택이다. 소유 워크는 키보드·작은 화면·파일 실패 보존, 조립품 거리·리뷰 저장/복원을 완료했다고 보고했다. 새 정상 commit과 실제 파일·자원 반환을 확인 중이며 제품 완료로 합치지 않는다. 제한 IGES와 파일 닫기는 남은 범위를 구분한다.  D319: Presenter-owned Geometry release passes Viewer build/types, related40 and actual SDK WebGPU122 readbacks/124 stable-count samples, clear/dispose0; CPU picks and pixel changes retained. Full app UI, driverbytes/OOM/recovery are unqualified. [Evidence](notes/presenter-geometry-lifetime-2026-10-29/qualification.json). | Viewer + API/Docs | 기존 정상 묶음은 04와 제품에 연결한다. 새 PNG는 실제 좌표/DPR·일반/측정 이미지·오류 시 accepted 보존을 확인한 별도 정상 commit으로 닫는다. 중단된 packaging/config/hook은 재개하지 않는다. |
 | 06 | GPU 소유 결과 인계와 다음 GPU 기능 | PT soft visibility `fe2637f4`, RenderTarget `607f7d0`, sized target `8de2f6ac`는 소유 새필수배치·공개PNG·정리를 마쳤다. sized target은 실제 Chrome DPR2 에뮬레이션도 별도 확인했다. GLB subset은 교정 `5d8b7757`에서 emit294/CPU18/lint3·합성 WebGPU 공개 사례를 마치고 전반환했다. target.asTexture `2a35e9b6`는 소유 emit·새 WebGPU 회귀·lint5·합성 공개 예제와 자원 반환을 마쳤다. 초기 sandbox 실패는 보존한다. GLB 내장 텍스처는 `29fd0191`의 첫 emit 실패를 보존하고 교정 `d4e2c3ec`에서 새 검사와 합성 PNG/JPEG 공개 예제를 통과했다. 일반 glTF나 제품 통합 수락은 아니다. | GPU; 병합은 사용자가 지정한 다른 위치 | 최신 직접 지시대로 정상 commit·원 실패·PNG·한계를 인계한다. 이 root 제품에 자동 병합하지 않는다. 후보 소스 완료를 실행/품질 완료로 쓰지 않는다. 다음 항목은 승인된 GPU 소유 로드맵과 정확 범위로 이어간다. |
 
 03은 공통 실제 화면·파일과 제품 build/docs를 마쳤다. 독립 도면의 최신 reader/writer 저장 보호를 다음 기능으로 연결한다. 02·04·기존05는 최종 공통 공개 목록·문서·제품 배치로 닫는다. 완료한 흐름은 반복하지 않는다.
@@ -36,26 +74,220 @@
 
 | 번호 | 작업·기존 ID | 남은 범위 | 담당·선행 조건 | 완료 조건 |
 |---|---|---|---|---|
-| 07 | 고급 모델링 — CG1 | 일반 가이드/다중 단면 로프트, 경계 표면, 가변/면 필렛, 드래프트, 리브, 문자·엠보싱·wrap, 나선/실제 나사의 남은 지원 범위. | Kernel → Model/API → Outer. 2026-10-27 `local/cad-dev`에 K02–K07을 가져와 Kernel·Model 검사를 실행했다(develop 미머지): K02 다중 단면 로프트 `c6467a10`, K03 Bezier Coons `8a89b210`(Studio Direct Fill 정확 경로), K04 가변 필렛 `8f452298`+체인 끝 반지름 `74c78827`(Studio Fillet 끝 반지름), K05 드래프트 `ff544d59`(Studio Pull 축), K06 리브 `418ba584`, K07 제한 직사각 양각/음각 `76934576`. K02·K06·K07의 Studio는 그대로다(기존 명령으로 같은 형상). 면 필렛 첫 단계 full round(평평한 +Z 직사각 윗면 → 반원통, 면 이름 참조·부피 공식·옆면 열림 검사, Studio Full round 명령) `0a8287b1`. 이미 있는 것: 제한 가이드 로프트(2차·3차 Bezier·복사 가이드), 압축 스프링 closed-ground 끝, Fastener의 모델링 나사(`thread`). 남은 것: 일반 가이드 로프트, 곡면 면 필렛의 나머지(축이 기울어지거나 다른 원통·원뿔끼리 — 공이 공간 곡선을 따라 구르는 일반 rolling-ball 면 필렛, `notes/research-rolling-ball-face-fillet-2026-10-27.md` F0·F1·F3·F4 완료(맞닿으면 모서리 필렛, 떨어지면 모서리 복원 후 모서리 필렛, 기울어진 원통·평면·원뿔·구), F2(복원 3 s 미만) 2026-10-28 재측정 충족: 복원 2.3–2.5 s, 전체 6.0 s(맨 티 1.4 s) — 복원된 면 조각은 D287에서 이음매 둘로 나눠 합침 — 둥글림 위 r4가 맨 티의 r4와 면·모서리·이름까지 같고 5.2–5.4 s, 자유곡면; `face-fillet` 완료 범위: 두 평면, 평면+축에 직교/평행한 원통, 평행한 두 원통 — 모서리가 둘이면 둘 다, 같은 축을 도는 평면·원통·원뿔·구·토러스 — 테이퍼 보스·카운터싱크·축 끝 모따기·공 손잡이·돔·비드), 문자·wrap(글꼴 원본 결정 필요), 나사의 남은 범위(평가 시간 0.6–2.4 s; 구멍 나사의 볼트 대비 공차 0.04 mm와 왼나사는 완료). 기존 원통 면의 실제 나사 `face-thread`는 완료(구멍: 채운 뒤 탭, 축: 코어로 깎고 결합·숄더 앞 relief 홈). | 지원 프로필·원공차·참조·독립 기대를 고정하고 편집·파일·제품까지 연결. 이미 완료된 bounded loft를 재구현하지 않는다. |
-| 08 | 피처 패턴·직접 편집·표면 — CG2 | 곡선/채우기 패턴, 면 이동·삭제·교체, thicken/offset/knit/trim/extend의 남은 범위. | Kernel/Model + Outer. 03과 기존 affine/Boolean/표면 provider 재사용. | body 복사와 feature 반복을 구분하고 원 이력·소실/모호 참조·실패 atomicity를 보존한다. |
-| 09 | 고급 스케치 — CG3 | spline 핸들·conic·문자·block과 진단/편집의 미완료 소비 경로. 치수 표현식은 기존 결정 조건을 유지한다. | Kernel/Model + Outer. 기본2D→3D·돌출 컷의 기존 완료 근거 재사용. | 실제 제약·DOF/충돌/비수렴을 구분한다. 원 입력·치수·좌표와 편집 후 파일 결과를 보존한다. |
+| 07 | Advanced modeling — CG1 | **DELIVERED for the recorded bounded profiles (D288–D316); do not restart these features.** Guided polynomial loft, supported face fillets, original-font editable Text/+Z relief, modeled threads, measured thread optimization and one rectangular cylindrical wrap are implemented and qualified at their recorded limits. See the status ledger below. | Optional/general extensions remain separately scoped: uncertified/multiple/rational guide frames, general multi-span/rational fillets, arbitrary-depth/outline/glyph/curved wrap and text shaping. Preserve existing refusal boundaries; these are not missing implementations of the delivered profiles. | A new extension needs its own bounded input, original tolerances, geometry/mass oracle and actual editable Studio/file proof. No whole-family or release acceptance is implied by the delivered profiles. |
+| 08 | Feature patterns, direct editing and surfaces — CG2 | D333 qualifies the rectangular cut grid; D334 qualifies one fixed-orientation open-polyline CUT pattern through Kernel/Part/API/Model/actual Studio across retained prefixes+tail, including live path edit/Undo/file flows. D335 qualifies a finite XY reference-point polygon-mask CUT grid with an owned region snapshot, editable spacing/reselection and native file identity across retained prefix+retake; [evidence](notes/fill-cut-pattern-2026-10-30/qualification.json). Bounded delivered profiles and the minimum exit are reconciled in the [08 scope ledger](notes/quadratic-cut-pattern-2026-10-30/model-prep/roadmap08-scope-ledger.md). Next: positive existing untrimmed Extend UI/file proof, then an explicit08 exit assessment. The adopted research intake excludes a generic surface/B-rep replacement project; current retained-ID source replacement has D346 actual P1-edit proof. Further rational/multispan/frame/full-tool/trimsolid/face-replacement generality stays separately scoped rather than automatically blocking09. Reuse03 and existing body-copy/affine/Boolean/surface consumers; the research mapping attaches #2227/#2215 and #2032/#2036 controls. | Kernel/Model → actual Studio after delivered07 and qualified D332. Delivered D333/D334/D335 are bounded profiles. D336 qualifies Reverse/Split/Region/Extend, both-operand intersection and visible IGES trim-safe refusal, with intentional Untrim/Undo/native-file proof; [evidence](notes/direct-surface-trim-guards-2026-10-30/qualification.json). No trim transport/clipping support is added; whole08 remains open. D337 qualifies bounded trim-preserving Reverse on affine degree1×1 equal-weight planar support, one simple3..160-point stored loop, both axes/flags and nonunit domains. Actual public160 producer/Undo/file proof is retained in [qualification](notes/trimmed-surface-reverse-2026-10-30/qualification.json). Curved/multi-loop support and whole08 remain open. D338 qualifies Part.thicken(surface,{t,side}), owned whole-support snapshots, t binding, editable side and actual Direct preview/Cancel/Apply/Undo/file/source-lifetime/trim-fold-refusal flow; [evidence](notes/surface-thicken-snapshot-2026-10-30/qualification.json). Existing Core geometry is unchanged; no exact curved offset/trim solid/Sew facade is added. D339 qualifies Part.sew(surfaces,{tol}) after preserved run01 automatedPASS/visualFAIL and clean display-fix retake, strict owned2..64 ordered snapshots, numeric0auto/explicit(0,1] without binding, and actual selected-source same-commit hiding/Undo/edit/file/refusal proof; [evidence](notes/ordered-sew-snapshot-2026-10-30/qualification.json). Existing natural-edge/first-authority/order/tolerance algorithms remain. No trim sewing/healing or generic curved certificate. D340 qualifies one original affine simple3..160-point loop through ordered lower/upper material components, inside outer AND outside holes, empty side0objects and actual V inside/outside/pocket/empty Undo/file/reselection/refusal plus bounded visual proof; [evidence](notes/trimmed-surface-split-2026-10-30/qualification.json). Native child residual/UV and used-child regularity retain original limits; U actual browser NOT_RUN, structural ceilings source-derived rather than measured maxima. Generic curved/multi-loop/repeated Split remains open. D341 qualifies one original affine3..160loop through exact rectangular material components/holes, shared final support and atomic no-positive-material DOMAIN refusal. Initial run01 numericPASS/visualFAIL is retained; display-sample endpoint repair plus run02 images/16probes closes bounded visual proof. [Evidence](notes/trimmed-surface-region-2026-10-30/qualification.json). Comb476V788E/78inside79outside are measured focused results;484/804 structural ceilings are not measured maxima. Generic curved/multi-loop/repeated/Extend/SSI/trimsolid scope stays open. D342 qualifies existing Offset face on native straight right-prism/cylinder caps, owned profiles and exact world endpoint/strict target admission. Initial run01 numeric PASS/selection alias FAIL is retained; run02 raw Core/Part/Studio numeric proof and selected-flow/images pass after clearing consumed picks on successful Offset only. [Evidence](notes/offset-face-native-2026-10-30/qualification.json). Generic draft/curved/repeated closure and selection remapping remain open. D343 adds bounded actual Offset target admission, corrected upright mass and unique cap references through actual Undo/file proof; [qualification](notes/prismatic-mass-stability-2026-10-30/qualification.json). It does not complete08. D344 adds bounded native quadrature/default STEP proof, [qualification](notes/native-quadrature-conditioning-2026-10-30/qualification.json); D345 qualifies straight polygon-hole masks under the existing total16vertex budget: holes strictly internal/disjoint, additional references inside/on holes excluded, seed/order/names retained, owned Model snapshot, parameter/edit/reselection/file guards and actual7→9→5cuts/native proof. [Qualification](notes/fill-cut-pattern-holes-2026-10-30/qualification.json). Preserve run01 label-locator FAIL and run02 selected-witness alias FAIL before successful-Fill-only selection clear and clean run03/six-image review. No full-tool containment/curved/frame/global selection-remap claim. D346 adds one three-pole unit-weight constant-Z polynomial quadratic with exact dyadic/Simpson inverse position certification under old1e-7 and one per-query200k counter. First count64/audit/Model-harness failures remain; final31Kernel/97Model/types/lint/API/generated and actualUI12observations/9nativeReads/6oracles/2nativefiles plus root6images pass. Successful Path Apply clears consumed picks after actualrun01witnessalias; cleanrun02/source979maps retained. [Qualification](notes/quadratic-cut-pattern-2026-10-30/qualification.json). No allquadratic/count64browser/fullsuite/generalreplacement claim. Stop new work for owner-requested Claude handoff; next positive Extend remains source-only. | Distinguish body copies from repeated cut tools. Preserve source/history, dual-UV/trim ownership, exact names, ambiguous/missing references and atomic refusal; verify actual edit/file results. |
+| 09 | Advanced sketch — CG3 | Remaining spline handles, conics, text/blocks and diagnostic/edit consumers. D335 repairs existing ordinary edited-sketch identity loss: n5/nextId7 and downstream filln6 survive source edit and native Save/fresh Open. This is bounded repair evidence, not whole09 completion. Reuse existing solver and corrected sketch adapter; attach #2210/#2215 and #2033/#2038 controls.  D318 supplies skeleton raw admission/ID preservation with Model41/Studio7 affected checks, both types/lint and actual fresh-context edit/Undo/file proof; see [qualification](notes/skeleton-file-admission-2026-10-29/qualification.json). | Kernel/Model → actual Studio after08. Existing2D→3D/extrude-cut and dimension-expression decisions remain. | Returned geometry meets the original residual limits. Distinguish DOF, conflict, redundancy and nonconvergence; preserve authored coordinates/dimensions/references through actual constraint edit, downstream feature and Save/fresh Open. |
 | 10 | 조립 확장 — CG4 | 유연한 하위 조립, 반복 occurrence 참조, 조립 피처, 승인된 motion/대형 조립 범위. | Model/Outer + Kernel/GPU. 같은 revision의 배치/관절 기반이 선행. | 계층·part-local/world/display 변환과 반복 인스턴스를 보존한다. pose 표시를 동역학 완료로 쓰지 않는다. |
 | 11 | 도면 확장 — CG5 DR-6/7/8 | 남은 GD&T/복합 프레임, ISO/ASME 스타일·인치 표시, 도면 세트. | Drawings. 01과 필요한 geometry/reference 기반이 선행. | 실제 sheet/SVG·파일·정상 제품을 닫는다. 한 프레임·기호 시험을 전체 규격 적합성이나 제조 수락으로 올리지 않는다. |
-| 12 | 파일·버전·협업 — CG6 | 기존 저장·분기·merge·linked part의 기능별 파일 흐름을 완성하고, 공유·댓글·동시 편집은 서버/계정/호스팅 결정 뒤에 진행한다. | Model/API + Outer; 필요한 인프라 소유·승인이 선행. | 실제 디스크/프로젝트 파일·revision·충돌/실패 복구를 확인한다. 기존 버전 기능을 새 구현으로 다시 배정하지 않는다. |
-| 13 | 교환과 손실 표시 — CG7 | STEP AP242 조립/PMI, glTF/USDZ 등 형식별 지원 프로필과 독립 읽기. Parasolid 읽기는 기존 사용자 결정 조건을 유지한다. | Kernel/API + 기존 교환 소유자. | 형상만 저장한 결과와 계층/반복 배치/PMI/이력 보존을 구분한다. 단위·scale·손실을 명시한다. 자체 writer/reader 일치만으로 독립 수락하지 않는다. |
+| 12 | 파일·버전·협업 — CG6 | D339 two native recipe Save/fresh Open flows preserve ordered coefficients/labels/tol/names semantically. Selected source hide/body is one accepted Undo action; later original Move/delete leaves copied body unchanged. Raw facade hides none.  D338 two native Save/fresh Open recipes preserve owned surface snapshots and t/side bindings semantically. Actual source Move/delete leaves accepted body/public names unchanged; no live-source association or raw-byte identity claim.  D337 native Save/fresh Open preserves accepted reversed trim UV/flags/IDs/source semantically; actual UndoRedo/reselection passes. No raw-byte identity claim.  D336 retains exact trim metadata through native Save/fresh Open and intentional Untrim/Reverse UndoRedo. Existing12/O9/R4 retains a lower-priority async direct-export ownership source candidate, NOT_REPRODUCED; no new queue or fix claim.  D335 preserves ordinary edited-source sketch identity through native Save/fresh Open in the bounded fill flow; semantic document equality passes after the retained real ID-loss failure. Whole12 remains open. 기존 저장·분기·merge·linked part의 기능별 파일 흐름을 완성하고, 공유·댓글·동시 편집은 서버/계정/호스팅 결정 뒤에 진행한다.  D318 supplies skeleton raw admission/ID preservation with Model41/Studio7 affected checks, both types/lint and actual fresh-context edit/Undo/file proof; see [qualification](notes/skeleton-file-admission-2026-10-29/qualification.json).  D320 adds same-store/path write ownership; native OPFS selected1/5groups passes with original-tag conflict refusal, retained bytes and return-tag/abort checks. Broader session/tab/remove and UI scheduling remain unqualified. | Model/API + Outer; 필요한 인프라 소유·승인이 선행. | 실제 디스크/프로젝트 파일·revision·충돌/실패 복구를 확인한다. 기존 버전 기능을 새 구현으로 다시 배정하지 않는다. |
+| 13 | 교환과 손실 표시 — CG7 | D337 actual trimmed Reverse results retain IGES no-download and eligible Thicken/Sew refusal. No trimmed export/solid support is added.  D336 refuses visible trimmed IGES before download; intentionally untrimmed positive bytes reimport as2 surfaces. This is a scoped loss guard, not trimmed IGES support.  STEP AP242 조립/PMI, glTF/USDZ 등 형식별 지원 프로필과 독립 읽기. Parasolid 읽기는 기존 사용자 결정 조건을 유지한다.  D317: unsupported matched SI length declarations refuse before Studio Open; related Model6/6, both types/lint and actual B-rep/AP242 refusal plus supported/undeclared Save/Open pass. [Bounded evidence](notes/step-declared-unit-admission-2026-10-29/qualification.json). | Kernel/API + 기존 교환 소유자. | 형상만 저장한 결과와 계층/반복 배치/PMI/이력 보존을 구분한다. 단위·scale·손실을 명시한다. 자체 writer/reader 일치만으로 독립 수락하지 않는다. |
 | 14 | 생산 기능 — CG8 | 생산 CAM/postprocessor·판금 DXF nesting은 현재 미리보기와 별개인 후속 계획이다. | 기존 Kernel/Model/제조 소유자; 별도 범위·입력·승인 조건. | NOT FOR PRODUCTION을 완료로 바꾸지 않는다. P2·PG11 조건을 이 번호로 해제하지 않는다. 새 구현 자동 착수 없음. |
 | 15 | 제품 사용성 — CG9 | 표시 단위, 한국어 UI, 접근성, 안내·desktop 구성의 남은 범위. | Outer/Viewer + 각 기반 소유자; 현재 기능 완료 뒤 좁은 소비 공백부터. | 긴 상시 설명을 줄이고 아이콘·짧은 툴팁·현재 값으로 기능을 구분한다. 단위·오류·필수 경고는 유지한다. 중단된 package/hook 작업을 우회하지 않는다. |
-| 16 | 정확도·강건성·API/참조 — CG10, R7, #2210/#2215 | 재현 가능한 잘못된 성공/손실, sketch 출력·revolve admission, SSI/pcurve·근사 오차·이름/참조 진화의 남은 범위. | Kernel/API/Model/GPU의 실제 producer·consumer 소유자. 결함은 해당 기능에서 우선 처리. | 원공차·입력·오차/지원 경계를 고정한다. 단위 변환은 한 경계에서만 한다. 기존 언어/DSL·GUI·공개 API가 같은 typed core를 소비한다. 새 DSL/solver 설치나 중단 K9 재개 승인이 아니다. |
+| 16 | 정확도·강건성·API/참조 — CG10, R7, #2210/#2215 | D343 qualifies stable prismatic longitudinal integrals, actual shared Offset target validation, Chrome circular-bound authority and exact stored-height cap provenance after run01 preview refusal/run02 public-name failure and clean run03. [qualification](notes/prismatic-mass-stability-2026-10-30/qualification.json). Final Kernel2325PASS/6existingSKIP and Model86PASS are separate from actual UI/file/visual proof. D344 qualifies the captured wholePatch pre-quotient conditioning defect: body-global coordinates are removed before weighted products and local fields use the same origin. [qualification](notes/native-quadrature-conditioning-2026-10-30/qualification.json). Actual default STEP target-only scalar/readback proof is separate from unchanged upright mass. Generic quadrature, central inertia and extreme-input accuracy remain open. D339 preserves existing Sew first-boundary authority/order/tolerance; box14400/area4080/8V12E6F and physical face identity are bounded evidence. Actual closure words differ from structured GEOMETRY focused-code proof. API10added/0removed/7extensions removes no old member.  D338 retains Core geometry/fold policy and distinguishes native73 facet names from Model6 composite display groups on its flat fixture. Actual folded preview refuses before Apply; API12added/0removed/7changed has no removed old members.  D337 bounded trim reflection keeps separate original1e-7 UV/world binding and topology checks; concave stored130.95906250000002 differs from design131. API adds7 public names, no export-map keys.  D336 closes six reproduced trim-loss wrong successes by atomic refusal. Independent material area1100 remains separate from sampled display1100.081380233; no mesh-precision repair.  재현 가능한 잘못된 성공/손실, sketch 출력·revolve admission, SSI/pcurve·근사 오차·이름/참조 진화의 남은 범위. | Kernel/API/Model/GPU의 실제 producer·consumer 소유자. 결함은 해당 기능에서 우선 처리. | 원공차·입력·오차/지원 경계를 고정한다. 단위 변환은 한 경계에서만 한다. 기존 언어/DSL·GUI·공개 API가 같은 typed core를 소비한다. 새 DSL/solver 설치나 중단 K9 재개 승인이 아니다. |
 | 17 | 경로 묶음·가상 클립 — PB0–PB4 | 현재 두 경로/한 클립의 한정 구현과 파일/원자성 근거를 유지한다. 다중 클립·분기·굽힘/간격·길이의 공학 조건은 후속 범위다. | Model/API + GPU + Outer; 기존 stable handle·revision 계약 재사용. | 연관 sweep을 같은 후보로 재생성해 전부 성공할 때만 채택한다. Cancel·stale·한 멤버 실패 시 기존 전체 결과 보존. 자동 충돌 회피/케이블 동역학으로 확대하지 않는다. |
 | 18 | 관절·로봇 — J1/J2, R1/D1/R2, RS6/RS7/P4 | 같은2R 입력/리비전 연결 → 관절·한계/폐루프 → 제한 자유 진자 → 다링크·접촉·제어 → 독립 교환·제품. 기존6단계 계획을 따른다. | Kernel/Model/API/Outer/GPU; 자유동역학은 기존 Physics 소유·지원 프로필 확인이 선행. | 기구학·지정 재생·정적 토크·자유 동역학을 구분한다. 같은 질량/관성·프레임·단위·참조와 실제 파일을 사용한다. paused Physics/Motion 자동 재개 없음. |
 | 19 | 가상 실험·다물리·실측 — Stage0–6 | 기반 → 공통 실험 계약 → 제한 진자 → 기계/로봇/접촉/제어 → 구조·열 → 유체·전기 → 실측 피드백의 기존7단계. | 각 기존 기반/해석/실측 소유자. 미래 단계의 소유·입력·지원·승인을 먼저 정한다. | 입력/선언값/계산값/실측을 구분하고 독립 기대·보존/수렴·오차·파일로 확인한다. 현재 정적 결과·화면을 일반 solver 검증으로 올리지 않는다. 새 엔진/의존성·중단 작업 자동 착수 없음. |
 | 20 | 기즈모·핸들 드래그 UI/UX·렌더링 (2026-10-27 사용자 관찰) | ① 치수 화살표(w·h 등)를 끄는 동안 뒤 기능(구멍)이 사라졌다가 멈추면 돌아온다: 드래그 중 미리보기를 끌린 기능까지만 계산하는 `rolled` 경로 때문. 제안: 전체 미리보기 시간을 재서 느릴 때(예: 120 ms 초과)만 줄인다. ② 필렛 화살표를 끄는 중 값이 다른 숫자로 튄다: 실패 값을 마지막 성공 값으로 되돌리는 wall/lastOk가 늦게 도착한 이전 프레임 결과로 갱신되는 것으로 의심, 재현·확정 필요. ③ 구멍·기즈모 드래그가 끊긴다: 매 프레임 Kernel 미리보기를 기다려야 화면이 바뀐다. 먼저 드래그 중 미리보기 1회 시간과 화면 갱신 간격을 측정하고, 즉시 화면 변환과 Kernel 결과 반영을 분리한다. ④ 화살표 드래그 결과는 Apply 전까지 미리보기일 뿐이라는 점이 화면에서 잘 드러나지 않고, 매번 Apply를 눌러야 해서 불편하다(사용자, 같은 날). 함께 검토할 안: 화살표·기즈모를 놓으면 바로 적용(한 번의 Undo로 되돌림), Enter로 적용·Esc로 취소, 다른 곳을 누르면 적용, 값 입력 명령만 Apply 유지. 명령마다 어느 방식이 맞는지 정하고 실제 Studio에서 확인한다. ⑤ (해결) 복구 Restore가 진행 중 명령·미리보기를 남겨 옛 몸체가 보이고 기즈모가 새 몸체 위치에 뜨던 문제는 `7174b010f`에서 고쳤다. ⑥ 사용자가 보여준 다른 CAD 화면을 참고(2026-10-27): 핸들을 끈 뒤 Enter를 누르면 바로 적용된다(④의 방향). 끄는 동안과 놓은 뒤 핸들 바로 옆에 이름이 붙은 숫자 입력칸(예: "Distance 8 mm")이 즉시 떠서 값을 고쳐 쓰고 Enter로 적용한다. 명령 패널은 선택을 "2 selected" 칩(× 지우기)으로 보이고, 종류 선택·값·접는 Options(예: Tangent chain, Preview 켜기)·Cancel/OK 순서다. ⑦ (2026-10-27 확인 중 관찰) 복구 알림과 "can't run here" 알림이 뷰포트 왼쪽 위에 떠서 그 아래 면을 가리고, 그 위를 누르면 면 선택이 되지 않는다. 알림을 뷰포트 밖(오른쪽 도크·하단)으로 옮기거나 클릭을 통과시키는 안을 함께 본다. | Outer/Studio + GPU(렌더 성능). 기존 handle·gizmo·preview 경로 재사용. | 실제 Studio에서 각 현상을 재현한 원 증거를 남기고, 수정 후 같은 조작으로 확인한다. 측정값(미리보기 ms, 프레임 간격)을 기록하고 체감 개선을 수치로 남긴다. 새 엔진·solver 없음. |
 | 21 | Studio 도구 사이드바 배치 (2026-10-27 사용자 요청) | 왼쪽 도구 막대가 약 76개 명령(생성 42·수정 24·패턴 5·검사 4·결합 등)을 세로 한 줄로 늘어놓아 스크롤해야 찾는다. 권장안: 카테고리별 구분 라벨이 있는 2~3열 아이콘 격자로 넓혀 보통 화면 높이에서 스크롤 없이 보이게 한다. 대안: 카테고리 아이콘 + 펼침 패널, 상단 리본. 함께: 하단 History 막대가 아이콘만 있는 40px 띠이고 명령·스케치 중에는 숨겨져 "없어진 것처럼" 보인다(사용자 관찰). 이름 기본 표시, 편집 중에도 흐리게 유지 등을 검토한다. 사용자가 보여준 다른 CAD 화면을 참고(2026-10-27): 상단 리본에 작업 탭(Model·Surface·Assemble·Insert·Inspect·Manage·View·Sheet Metal·Weldments)과 이름 붙은 도구 묶음(Sketch·Create·Modify·Arrange·Configure·Construct, 아이콘 + 글자), 오른쪽 위 명령 검색칸; 왼쪽 Browser 트리(문서 설정·이름 있는 뷰·Origin·Bodies·Sketches·Features, 접기·보이기 토글); 하단 History 타임라인(처음·이전·다음·끝 버튼, 기능 아이콘 줄, 되감기 표시); 뷰포트 하단 가운데 시점 도구(회전·이동·확대·맞춤·홈·뷰), 오른쪽 위 축 표시. 명령 패널은 기존 규칙대로 오른쪽 한 도크에 둔다(겹치는 떠 있는 패널 없음). 20번과 함께 UI 묶음으로 처리한다. | Outer/Studio. 기존 TOOL_GROUPS·명령 정의 재사용, 새 UI 라이브러리 없음. | 보통 화면(예: 1440×900)에서 모든 카테고리가 스크롤 없이 보이고, 뷰포트 폭 감소와 단축키·툴팁 동작을 실제 Studio에서 확인한다. |
-| 22 | 커널 JavaScript 성능·코드 모양 (2026-10-27 사용자 요청) | (소스 완료·필요한 검사 완료) 핫스팟 P1.1–P1.7, 핫 파일 정리 P2, 공유 own-data 검사 P3(첫 묶음: snapshot 18곳·record 26곳), 재발 방지 P4(ESLint `no-loop-func`, `scripts/code-shape.mjs`를 lint에서 실행). 모든 단계에서 결과가 비트 단위로 같고(벤치 결과 sha256), 필렛·나사·숨은선·면 필렛 복구가 원래보다 18–40 % 빠르다. 남은 것: snapshot 나머지 37곳, 핫 폴더 밖 `no-loop-func` 55건, code-shape 상한을 0으로 줄이기. 기록: [검토와 결과](notes/research-js-perf-review-2026-10-27.md) §5–8, [보고서](notes/report-kernel-performance-2026-10-28.md). 2026-10-28 이어서: 불리언 경로(겹친 자르기, 광역 단계, 점 격자, 고리 걸러내기, 먼 면), D281(떨어진 같은 평면 면은 자기 이름 유지); 면 필렛 복구 23.1 → 5.8 s, 보스 48개 판 1.16 → 0.55 s. 증분 이어 붙이기는 원인 두 가지(반원 sweep이 π를 1 ulp 넘어 쪼개짐, 같은 이름 면 번호가 반올림으로 뒤바뀜, D282)를 고친 뒤 기록 순서·끝자리 변경을 허용하고 적용(D283, 둥근 판 + 보스 −10…−13 %). | Kernel. 새 의존성 없음. | 항목마다 측정(A/B)과 결과 동일성, 해당 테스트, 마지막에 커널 전체 스위트와 문서 검사. |
+| 22 | Kernel JavaScript performance and code shape | D314 runtime`bb92da70b`: strict component pruning preserves all actual geometry/mass bits; paired median7 longshaft2060→2005/2134→2044ms, longhole1295→1259/1305→1270ms, fresh construction+firstmass272→254/273→261ms. Short cases have no consistent benefit. Basis caching was measured and rejected. [Measured selection and proof scope](notes/thread-basis-performance-2026-10-29/README.md). Earlier D281–D290 studies and [performance report](notes/report-kernel-performance-2026-10-28.md) remain historical evidence. Remaining own-data consolidation, hot-loop closures and code-shape reductions require current-source measurements. | Kernel; reuse existing no-loop-func/code-shape lint gates. #2188/#2213 provide measurement contracts, not another engine or speculative acceleration. | Original inputs/tolerances/work caps; before/after actual output equivalence or explicitly accepted shape evidence; affected/full checks. Preserve error/order/signed-zero/omission/ownership contracts and reject an ineffective optimization. |
 
 사용자 정정: 아직 릴리스가 없으므로 최신 reader/writer만 기준으로 삼는다. 구 미출시 바이너리 호환과 장기 migration을 위해 schema5를 강제하지 않는다. 현재 일반 schema3과 route schema4를 유지하고 standalone/composite의 raw 입력 검사와 필드 보존을 구현한다. 실제 사용자 파일과 snapshot key/id/parent/bytes는 보존한다. 기존 Model448→3b8 및 Drawing 후보 정상 commit은 이력으로 남기고 필요한 정확 delta만 새 계약에 맞춰 연결한다. Outer 저장·복구, 합동 실행·파일 흐름·제품은 아직 미완료다.
 
 공통16의 공개 API 방향은 [설계 기록](api-public-model-direction-20261027.md)에 있다. CAD Model을 사용자 편집 원본과 기본 Part/Assembly 진입점으로 삼고 커널은 독립 계산 계층으로 유지한다. 메서드별 계약/파일/API 호환 이행과 물리적 패키지 통합은 아직 완료·확정되지 않았다. 명칭 변경만으로 이 과제를 닫지 않는다.
+
+### 07 delivery ledger — reconciled 2026-10-29
+
+The initial07 work has already been implemented. Keep completed profiles separate from broader
+future support; do not describe the whole row as unstarted or rerun completed qualification.
+
+| Delivered profile | Decision and evidence | Separate extension still open |
+| --- | --- | --- |
+| One polynomial B-spline guide through Model/API/chat/Studio; renderable17/64 controls; certified raw frames | D288, D315, [D316 qualification](notes/framed-polynomial-guide-2026-10-29/qualification.json) | Uncertified frames, multiple/rational guides and smooth guided sections |
+| Bounded polynomial face-end and corner fillets, alongside existing analytic/variable/full-round support | D289/D291; recorded in decisions.md | General free-form, multi-span and rational face pairs |
+| Original TrueType assets, editable Text and supported +Z emboss/engrave | D292–D296; recorded in decisions.md | General text shaping and unsupported relief faces |
+| Rectangular cylindrical wrap connected through Part/API/Model/Studio, with closed-reference mass | D297–D313, [product qualification](notes/cylindrical-wrap-product-2026-10-29/README.md) | Arbitrary outline/glyph/curved/depth support; literal native rounded-shell closure/mass and native SI remain unqualified |
+| Modeled threads and measured boundary-distance pruning | D290, [D314 measured results](notes/thread-basis-performance-2026-10-29/README.md) | Further performance work only after current-source measurements |
+
+D317–D330 are subsequent correctness and maintainability work; they do not mean07 was never done.
+The feature order remains07→08→09. At a feature boundary, handle confirmed urgent defects first;
+then select a real remaining profile rather than reopening the delivered profiles above.
+
+### GitHub research reconciliation — 2026-10-29
+
+[Research-to-roadmap mapping](notes/github-research-roadmap-2026-10-29.md) and its
+[source/state index](notes/github-research-roadmap-2026-10-29.sources.json) retain the source links.
+The title-research search enumerated114 issues across100+14 results with no incomplete result.
+The selected CAD-family set contains73 full bodies and24 comments across7 issues:68 issues OPEN,
+5 CLOSED at the initial retrieval. The owner then authorized archive after roadmap transfer:
+68 state-only closures and a fresh73/73 CLOSED verification are recorded in the
+[closure receipt](notes/github-research-roadmap-2026-10-29.closure.json). Original bodies/comments
+remain. Continue from this index; do not repeat the completed issue intake. The other66 research-title bodies were outside this CAD-family review.
+Issue state, research completion, local source, executed product flow and release are separate.
+The remote research baselines predate local D313; reproduce a current gap before adding code.
+
+| Existing scope | Research inputs and deduplicated action | Required result |
+|---|---|---|
+| 07 → 08 → 09 | Reuse the bounded modeling/loft/fillet/Text/thread/wrap results. Reuse qualified D314/D315/D316; after the selected correctness/direct-owner gates, continue08 patterns/direct surfaces, then09 sketch consumers. General07 extensions do not reopen its delivered profiles. #2227/#2215 supply regression contracts; #2032/#2033/#2036/#2038 are design targets. | Kernel → Part/API/Model → actual Studio edit/Undo/file proof for the exact profile. Preserve unsupported ranges, independent geometry/mass oracles and reference/refusal semantics. Existing surface commands and body-copy patterns are not missing features. |
+| 16 CG10/R7 | One result-acceptance ledger for [#2205](https://github.com/barocss/barocss/issues/2205), [#2210](https://github.com/barocss/barocss/issues/2210), [#2215](https://github.com/barocss/barocss/issues/2215), [#2227](https://github.com/barocss/barocss/issues/2227) and [#2228](https://github.com/barocss/barocss/issues/2228). Attach controls to the feature that owns the seam. | Distinguish existing test definitions, retained runs, reproduced gaps and inapplicable cases. Keep false-success, uncertainty/SSI/dual-UV, units and reference-evolution evidence explicit. The inventory's six-rule SCOPED_PASS is not whole API acceptance. D334 retains raw390 changes and reviewed17added/0removed/12actual API changes plus one property-order change; TypeScript internal symbol IDs and union order explain the remaining raw drift. Keep inventory stability in this existing16/R7 intake. |
+| 22 +20 | [#2188](https://github.com/barocss/barocss/issues/2188) supplies workload/async measurements; #2213 supplies GPU measurement boundaries. D314's qualified quadrature change remains a bounded measured slice. | Same inputs and original tolerances; before/after timings plus actual output equivalence. Feedback/queue/compute/validation/export and CPU/GPU/driver memory remain distinct. Reject an ineffective optimization. |
+| 12 files/recovery | #2217/#2181/#2184/#2208/#2220/#2228 share revision-bound candidate, accepted-state and resource ownership. Reuse the current implementation before selecting a missing control. | Real Save/fresh Open/re-edit and stale/cancel/failure preservation at the same source/revision. Report semantic equality and raw-byte identity separately. Current schema and existing asset-dependent JSON/package branches remain authoritative. |
+| 04 +11 +13 | #2187/#2207 attach one-way SVG/dimensions to existing exporters; #2217/#2227 attach entity/units/pcurve/loss controls. #527's pre-transfer strict proof remains blocked despite later STEP functionality; its issue is now archived into this roadmap. | Actual bytes/units/view/provenance and selected independent read-back. Preserve #527's three proof blockers separately; current export success does not retroactively satisfy them. No new first-STEP-writer or generic format rewrite task. |
+| 20 +21 UI | #2165/#2171/#2175/#2118/#2122 inform existing selection, Inspector, preview, notification, toolbar/history and feedback work. Reuse D313's visible-limit/history-route correction. | Reproduce one current interaction, measure feedback and compute/frame timing, preserve the correct candidate, and inspect Cancel/Undo/file and smaller-window behavior. Design PNGs remain reference images. |
+| 06/18/19 +14 | #2214 indexes #2211/#2212/#2213; robotics/SimReady/analysis/material/manufacturing proposals stay with their existing scopes and holds. #745's closed review is separate from its later migration/retirement/Physics issues. | Reuse existing providers and loss/unknown/provenance gates. Keep source, numeric, browser/file and physical acceptance separate. A research link does not select a new engine, WASM/dependency, hardware control or paused lane. |
+| Later AI/capture/design | Keep #2193–#2204 under #2192, plus #2224/#2178 and the existing full capture/render0–21 group. The note maps every selected design/research issue without adding duplicate epics. | Preserve #2192's actual isolated partial experiments and its latest failed p9 fit/prior retained model. Do not label the whole pipeline unrun or complete. Optional depth/mesh remains optional; general photo fidelity, physical scale and product integration need their own evidence. |
+
+Closed #1652 is a retained-fixture comparison ledger; #514/#518/#520 are RESEARCH_ONLY.
+Reuse their bounded evidence instead of rebuilding current B-rep foundations. This reconciliation
+changes local planning documentation; the subsequent owner-authorized archive changes issue
+state only. It does not count as a new product test run or satisfy retained proof blockers.
+
+### Static engine-audit follow-ups — 2026-10-29
+
+The original fixed-source audit at `06c33222a` supplies15 **NOT_REPRODUCED** candidates, not15 product failures.
+They are attached to existing areas below; no duplicate issues or task queue are created. D297 `739978a27`
+and current wrap/text-relief-rematch WIP retain separate ownership and evidence. The owner's **07 → 08 → 09**
+order is unchanged; wrap remains active. Candidate priority controls their later reproduction order only.
+
+| Existing area / task | Attached audit candidates | Scope and acceptance |
+| --- | --- | --- |
+| 09 advanced sketch + 12 files | A01 | Actual skeleton Save/fresh Open with IDs, references and evaluation preserved. |
+| 12 CG6 + O9 revision/recovery ownership | A02, A04, A05, A06 | Delayed Save/Open generations, canonical snapshot codec and worker-sender disposal; preserve newer recovery and accepted state. |
+| 05 Viewer + V1/V2 lifecycle/camera/inspect | A03, A08, A09 | Stable live geometry/buffers, consistent near/far picks, and bounded internal-display rollback investigation. |
+| 06 GPU + existing pick/display contracts, R2 | A07, A16 | Stale instance readback and admitted degenerate-normal policy. |
+| 16 CG10 + existing RB5–RB8 and R7.3d | A10, A14, A15 | Explicit execution/skip evidence, honest mass-fallback diagnostics and selected public-family consumers/support. |
+| 22 remaining own-data + R5/R2 | A11 | Consolidate only equal contracts; preserve errors, limits, signed zero, omission, order and ownership. |
+| 16 R7 + R4 Model/R1 Studio ownership | A12 | Stable public/internal contracts and actual consumer/runtime boundaries; file splitting alone is insufficient. |
+
+A10 counts remain separate: GPU default45/83, three-command union64/83, all83, unregistered19; these are
+static file-registration counts, not executions. A13 is excluded by the public immutable-array contract.
+[Full intake and exact acceptance scopes](notes/engine-audit-intake-2026-10-29.md) preserve the audit limits,
+existing-task deduplication and deferred reproduction order. This registration runs no product checks.
+
+An independent fixed5463dbf32 execution audit subsequently reports five bounded reproductions:
+A01 [#2235](https://github.com/barocss/barocss/issues/2235) actual skeleton Save/fresh Open;
+A04 [#2236](https://github.com/barocss/barocss/issues/2236) version memoryStore canonical-key loss;
+A07 [#2237](https://github.com/barocss/barocss/issues/2237) delayed CPU readback reconstruction mock;
+A03 [#2238](https://github.com/barocss/barocss/issues/2238) actual WebGPU retained Geometry growth;
+A08 [#2239](https://github.com/barocss/barocss/issues/2239) actual display/public CPU clip mismatch.
+[Exact execution limits and remaining acceptance](notes/engine-audit-intake-2026-10-29.md)
+replace NOT_REPRODUCED only for those cases. An additional fixed-source unit-import report [#2240](https://github.com/barocss/barocss/issues/2240)
+attaches to13/16: declared unsupported NANO is accepted as undeclared millimetres. Preserve
+correct conversion or explicit refusal and accepted-state/file evidence. The owner authorized
+closing all six after roadmap transfer. Fresh reads confirm6/6 CLOSED with bodies preserved;
+[the closure receipt](notes/engine-audit-reproductions-2026-10-29.closure.json) records state-only
+writes. Closure means transfer, not defect repair or product acceptance. D318 now qualifies the selected skeleton admission/re-edit gate #2235 with actual fresh-context file proof.
+D319 now qualifies the selected Presenter-owned Geometry lifetime gate #2238.
+The three other original defect acceptance tasks remain incomplete here; D317 qualifies the selected
+#2240 SI-prefix admission repair with actual B-rep/AP242 refusal and positive file controls. This intake reran no product test; apply the execution priority above.
+
+### Native OPFS conditional-write report — 2026-10-29
+
+[#2241 P2](https://github.com/barocss/barocss/issues/2241) attaches to existing12 CG6/O9,
+not a new storage project. [Retained execution, review and acceptance](notes/opfs-overlap-intake-2026-10-29/README.md)
+report controlled native Chrome156 OPFS overlap: two same-original-tag writes both succeed,
+A commits/readbacks first, then B replaces it; serial stale refusal passes. The barrier delays
+only returns from admitted native streams, not IO. Actual Studio/two-tab/external-folder or
+user-file-loss proof is NOT_RUN. Coordinate the selected adapter/path through returned-tag read;
+check stale rejection/first-byte retention, new-tag progress, errors/cancellation and return-tag
+ownership. No cross-instance/tab/CAS guarantee follows from a local queue. D318 stays selected;
+existing P1 repairs precede this P2. Intake executes no product probe and creates no duplicate issue.
+The owner-authorized transfer closure is fresh-verified CLOSED with the original body preserved;
+[receipt](notes/opfs-overlap-intake-2026-10-29/closure.json). The defect remains incomplete in this roadmap.
+
+The external D317 receipt review independently verifies retained source/artifact bindings at
+73c608517 and the bounded author's assertions. Independent runtime/browser/visual checks are
+NOT_RUN; its [retained review](notes/opfs-overlap-intake-2026-10-29/d317-receipt-review.md)
+does not expand STEP context or exchange conformance claims.
+
+D320 now supplies the selected #2241 same-store/exact-path ownership gate: unit10/10/types/lint,
+actual native OPFS selected1/5groups, stale refusal/first-byte retention/new-tag progress/return
+tag/abort cleanup and generated/docs pass. [Qualification](notes/opfs-write-ownership-2026-10-29/qualification.json).
+Broader separate-instance/tab/remove/external-program coordination and size/time tag collisions
+remain in12/O9; actual Studio concurrent-save UI is NOT_RUN. Transfer closure and this bounded
+repair remain separate facts.
+
+### Controlled Stop wrong-edit rollback — 2026-10-29
+
+[#2242 P2](https://github.com/barocss/barocss/issues/2242) refines existing O9/12/16's Stop gate.
+[Retained execution and peer review](notes/stop-operation-intake-2026-10-29/README.md) observe
+actual UI D0→Box Apply D1→accepted Render Grid D2→Stop on frozen5463dbf32. A real Worker finishes
+in about44ms; only native event delivery is held FIFO before client handling and discarded on
+termination. Stop retains D1 but removes Grid; recovery is D1, while Undo/Redo controls work.
+This is controlled pending-client scheduling and reversible wrong-edit rollback, not natural
+slow computation, current-HEAD runtime or permanent file loss. Bind cancellation to originating
+work, preserve any accepted independent Grid change, define model/Undo/Redo/dirty/recovery
+outcome, and retain old-epoch/no-Render/subsequent-edit controls. Full Undo depth and viewport
+provenance remain unexposed. D319 remains selected; existing P1 and write-integrity work precede
+this P2. Intake runs no product check and creates no duplicate issue. State-only archive after
+roadmap transfer is separate from the still-incomplete repair. Fresh verification confirms CLOSED
+with the original body preserved; [receipt](notes/stop-operation-intake-2026-10-29/closure.json).
+
+The external [D318 receipt review](notes/stop-operation-intake-2026-10-29/d318-receipt-review.md)
+confirms the committed author's bindings and selected assertions. Independent runtime/browser/
+image review and exact replay of the original audit file remain NOT_RUN. Its48/28 artifact
+counts overlap; author tests are not added to the independent audit total.
+
+### Original skeleton-file independent reader supplement — 2026-10-29
+
+[Exact original-file receipt](notes/original-skeleton-reader-intake-2026-10-29/README.md)
+supplements existing #2235/D318 only: independent Node reader/codec atb1a9ed8c9 preserves the
+whole original09a1…670-byte document, one n0/4points/4segments/nextId1 and outputs with no notes.
+This specific fixture also re-encodes to identical bytes. General file-byte identity, independent
+UI/re-edit/geometry/solver and whole suites remain NOT_RUN. Its499 build inputs are pinned;
+no moving Viewer WIP was imported. Do not add this to author41/7 or audit95 counts. No new task
+or issue is created and D319 remains selected.
+
+### Later independent receipt and exact original UI supplements — 2026-10-29
+
+[Retained independent reviews](notes/independent-receipt-supplement-2026-10-29/README.md)
+verify D319 at9916bda9f and D320 ate1f2b05d6 source/author bindings, without independent runtime
+reruns.145 D319 manifest entries overlap; D320312 input records are156 unique files. Existing
+SDK/private-count and same-adapter/path bounds remain. First failing OPFS harness source was
+not separately archived; retained failure logs/final source do not establish an exact old harness diff.
+
+Independent exactb1a original09a1 skeleton UI now passes fresh Open, pointer edit, ID/fields,
+Undo/Redo, real Save and second fresh Open; edited670-byte hash19b02… differs from original as
+expected.7 images were reviewed externally in wire/editor scope. Initial missingJSON snapshot
+setup failure is retained.1020 pinned loads/381 resolutions have zero escapes. Comparison with
+committed e1f2 is1143/1144 equal (D320 handleStore differs), not moving D321 WIP equivalence.
+Mass/frame/solver/whole-suite and general byte guarantees remain unqualified. This supplements
+#2235 only and adds no author41/7/audit95 aggregate. D321 remains selected; no task or issue is added.
+
+### Additional package acceptance gates — 2026-10-29
+
+An incoming investigation adds seven acceptance conditions to existing tasks only.
+[Retained source assessment](notes/commercial-capabilities-source-2026-10-29.md) uses baseline
+`5463dbf32` and comparison `b3de047be`; its cited production paths were unchanged between those
+commits. This is source assessment, not a new runtime or independent numeric qualification.
+No new issue, implementation queue or paused lane is activated. D316 remains selected.
+
+| Existing destination | Attached condition and minimum evidence |
+| --- | --- |
+| 16 CG10 / EA A14; #2210/#2215 | Follow mass fallback cause, method, units and density through the actual consumer. Kernel already defines `volumeBound` as an estimate and Studio already warns about mesh mass. Do not advertise that difference as certified enclosure or as centroid/inertia error. Compare one admitted fallback case independently, without changing tolerance. |
+| 12/16 public Model; #2181/#2184/#2208/#2228 | Reuse immutable Part and CandidateBoard. Identify the actual public edit acceptance owner. A second-operation failure preserves document/IDs/refs and Undo depth; successful acceptance is one identified Undo/Redo action. Cancel, late completion and idempotent retry must preserve the accepted state. Do not assume a new batch API is needed. |
+| 06/15/20 Studio recovery; #2228 | Verify host recovery wiring and actionable success/failure feedback while retaining unsaved document, dirty state and Undo. Device recreation and a newly completed frame are separate observations. Existing GPU recovery is present; no duplicate renderer is requested. |
+| O9/12/16 Stop; #2188/#2228 | Verify that Stop rolls back only its originating work. If the busy UI prevents unrelated commits, record that invariant and close the probe without code. Otherwise retain newer accepted edits and check subsequent work and Undo. No wrong-Undo defect is asserted by source inspection. |
+| 06 R2/22 and V6; #2213/#2188 | After the existing geometry-lifetime defect, measure one bounded long-session scene/capture/recovery sequence in a harness. Separate retained CPU arrays, live GPU objects, uploaded bytes and driver memory. Require stabilization/release; a new public telemetry API is conditional on a real host need. |
+| 05 V2/V5/16; #2228/#2180 | Choose the actual job's metric before adding measurement. Coaxial radius5 shaft/radius6 bore has axis distance0 but surface clearance1; offset0.25 gives0.25 and0.75. These are analytic expectations, not executed proof. Preserve revision/occurrence binding. Existing explicit point measurement may suffice. Repair pick/clipping first. |
+| 05 V1/V4/V5 plus06/16; #2228/#2213 | Reuse existing recovery guidance. Verify a completed frame, same revision, camera, selection and native measurement continuity after recreation; retain data and actionable feedback on forced failure. Callback tests alone do not qualify recovered pixels. |
+
+The later [Stop reachability source assessment](notes/studio-cancel-invariant-source-2026-10-29.md)
+compares the same nine production paths at5463dbf32 andd187a840b. Render→Scene→Grid/Exposure
+has no busy gate, commits document/Undo, and does not alter the simple master model memo. Stop
+selects the current Undo top rather than the originating work identity. Thus a universal busy
+edit prohibition cannot close this gate from source alone. The selected pending runtime schedule
+is accepted D0→ordinary expensive model commit D1→accepted Render-only D2 while the same worker
+remains pending and Stop visible→Stop. Observe document/Undo/Redo/dirty/recovery and a subsequent
+edit/Undo. Parameter candidates, preview and repair-stage cancellation are separate paths;
+existing epoch/latest-result guards do not prove Undo ownership. The natural pending interval,
+wrong Undo and data loss remain **NOT_RUN**, not reproduced defects. No new issue or immediate
+source fix is selected by this incoming report.
+
+Prepared Model004 concurrent-save and GPU002 clear-lifetime probes remain **NOT_RUN**.
+The source report records guard refusal after31 seconds, exit75, load49; it did not bypass or
+retry in that cycle. Neither probe is a reproduced data-loss/leak defect. Its proposed later
+order Model004 then GPU002 is a deferred investigation plan, not permission to preempt D316.
+Issues2235–2240 already have roadmap ownership and are not registered again.
 
 ### 제품 완료와 인계의 공통 조건
 
@@ -63,13 +295,19 @@
 2. 기존 기반을 재사용해 같은 기능의 전체 소스를 정상 commit한다.
 3. 필요한 영향 검사와 실제 소비/파일 흐름을 한 배치로 닫는다. 원 FAIL과 NOTRUN은 보존한다.
 4. 검토된 정확 delta만 제품에 통합하고 필수 제품 검사와 제한을 기록한다. 명시적 소유 인계 예외인06은 다른 통합 위치로 전달한다.
-5. 실제 Codex core 남음이5% 이하면 기존 조건부 중단·정상 인계 commit·허용된 feature branch push·원격 SHA 확인·cad PAUSED를 수행한다. reset/credits 소비나 force/main/develop rewrite는 하지 않는다.
+5. At an actual usage stop, preserve a local checkpoint, original failures and the exact resume condition. Remote publication still requires the owner's current direct instruction; an older conditional handoff rule supplies no new authorization.
 
 사용자 지시로 P2 제조인수는 활성 추적과 정기 보고에서 제외한다. 과거 HOLD·미수락·FAIL은 이력으로 보존하며 PASS로 바꾸지 않는다. PG11 입력과 PG12의 한정 positive도 새 기능 완료가 아니다.
 optional G15d.4, 측정 후 보류한 LOD와 기존 BVH는 새 개발로 자동 배정하지 않는다.
 공유/댓글 인프라, 새 solver·runtime dependency, Physics/Motion 및 packaging/config/hook의 기존 중단은 유지한다.
 상세·옛 실행 기록은 아래에 보존한다. 이 색인과 단일 작업 기록의 최신 상태가 옛 진행형 문구보다 우선한다.
 
+
+## Historical contracts and execution records
+
+The sections below retain earlier technical contracts, evidence and decisions. Their dated
+lane assignments and next-step orders are records. Use the current index above and the latest
+owner instruction for execution; reuse the technical acceptance criteria where they still apply.
 
 Current as of 2026-10-27, after the scoped CAD integration checkpoints. This file is the one place for **what we do, in what order, and
 when each item is done**. It replaces Codex's continuation roadmap of 2026-10-22/23, which is at `0eabecf7f` and on
@@ -1305,3 +1543,755 @@ new reference-review UI and parameter file flow still require their first
 affected checks. Reuse unchanged passing evidence; do not rerun old flows.
 
 2026-10-27 추적 범위 정정: 사용자 요청에 따라 P2 제조인수의 활성 추적과 정기 보고를 제외한다. 기존 미수락/HOLD와 실패 기록은 보존하며 PASS로 바꾸지 않는다.
+
+### D321 originating-work Stop qualification — 2026-10-29
+
+Policy B refuses unsupported independent document edits before acceptance while the main computation is
+pending. Stop replays only the exact originating accepted transition. Candidates/initial/variant work cannot
+borrow older Undo. Final Studio389/389/types/lint, actual selected D321 Stop/refusal/Redo and same-source
+D318 file regression pass. Their starter smokes and earlier helper17 overlap remain separate counts.
+[Qualification and retained first failures](notes/stop-work-ownership-2026-10-29/qualification.json).
+Controlled real-Worker client-delivery holds are not natural slow work or exact viewport provenance.
+Noactive completed-click race and the full candidate/initial/async-image/assembly matrix remain NOT_RUN.
+
+Next selected priority: existing EA-20261029/A02 P1 under12/CG6/O9. Current App Save callback and useProject
+save continuation have source-only late-owner concerns. First reproduce delayed Save across edits/New/project/
+path changes; do not claim data loss or implementation acceptance from source alone. Preserve newer recovery/
+autosave and bind clean/metadata changes to the captured saved owner. No new queue or issue is created.
+
+D322 baseline update: actual Chrome156 native OPFS at a386c8705 reproduces the selected same-document
+case. Save A commits with its native close return held; public Grid edit B completes a native autosave.
+After release, live B/saved A remain, but dirty becomes false and B autosave is removed. Original safe
+assertion fails; first async-poll setup failure stays separate. Root views before/after PNGs. This is
+reversible in-memory state plus lost autosave, not permanent file/crash loss or New/Close/switch proof.
+See [current evidence](notes/late-save-ownership-2026-10-29/README.md). Bounded repair and final acceptance
+are in progress; the other original defect scopes remain queued.
+
+### Viewer app review and design proposal intake — 2026-10-29
+
+[Read report, draft and exact source bindings](notes/viewer-app-design-intake-2026-10-29/README.md)
+attach incoming Viewer proposals to existing05/V1/V2/V3/V5 and the app ROADMAP, without switching
+from D322 or creating issues. Proposed56px/model-first/collapsible-tree/task-inspector composition
+must keep value/unit/A/B visible at1440x900 and720x700 with keyboard/Escape/focus states. Assembly
+A/B overlay+actual measured PNG (app1.1/3.2/3.4) and review identity/revision/ordered-subset guidance
+(app1.3/2.1) have separate acceptance. Assembly t/u/v range/error UX (app3.1/2.2) is source-only.
+Retain customer-file/display-limit/recovery/section gates; section/pick maps to existing2239.
+
+External pinned a386 CPU133/build581source0dist and actual8mm/sqrt234mm/review/PNG/compact/error
+flows remain their author's bounded receipts, not new root executions. No new corruption defect
+was established. Root reads four supplied sources and retains them; no visual/browser rerun here.
+Standalone static SVG/8mm draft is not CAD functionality or final design acceptance. Its original
+19 checks precede search failure; final ID correction is static-only and browser recheck gate75
+means NOT_RUN. Required A/B detailed identity/loading/refusal/recovery/API states remain. Incoming
+proposal priority does not supersede the confirmed Save correctness gate or other urgent defects.
+
+### D322 late Save ownership qualification — 2026-10-29
+
+[Final qualification](notes/late-save-ownership-2026-10-29/qualification.json): focused9/9, final
+Studio398/398/0skip, types/lint, actual native-OPFS Studio Save3 and identical-source D321 selected1
+plus separate starter, generated/API/docs pass. New edits retain dirty/autosave; normal next Save
+advances its own tag; New retains new local recovery without old-part attachment; Close stays closed.
+Native original Save bytes may complete. Saved-equal checkpoint remains hidden; Save no longer races
+new checkpoints with remove. Initial browser-poll and unit-renderer lifetime failures stay distinct
+from actual product baseline and final PASS. No full Model/Kernel/Viewer/browser/crash/tab proof.
+A05/wider Open ownership remains. Next selected D323: existing A04/#2236 canonical snapshot codec;
+remaining GPU stale readback2237 and clipping2239 retain their original ownership/evidence limits.
+Viewer proposals above are registered follow-ups, not a priority switch or design/product acceptance.
+
+### Viewer draft asserted UI evidence supplement — 2026-10-29
+
+[New external receipt and individual values](notes/viewer-app-design-intake-2026-10-29/asserted-ui-supplement/README.md)
+retain unchanged final HTML def73380 with asserted7PASS/0FAIL/0NOT_RUN: desktop/compact search,
+illustrated fit/orbit mode, structure Escape focus, reduced motion0s and errors[]. Root reads and
+checks source/result bindings; no root browser rerun. Prior19-before-failure/gate75/06:28 outcome-gap
+records remain. Static SVG/8mm UI proof does not qualify actual CAD/GPU/3D camera/files/PNG/product
+integration or remaining A/B/loading/refusal/recovery/API design. Draft and existing05/V mapping
+remain; D323 canonical snapshot repair stays selected and no duplicate task/issue is added.
+
+### D323 canonical snapshot qualification — 2026-10-29
+
+[Qualification](notes/canonical-version-snapshot-2026-10-29/qualification.json) connects only project
+version snapshot write/read to existing key-validating Model codecs. Omitted nextId, false/0/empty,
+optional data and original IDs/parents/revisions/keys survive admitted schema3 and actual route-bundle
+schema4 binary fixtures. Ordinary Open/autosave normalization and missing/corrupt/write-once guards
+remain. Unique related12/types/lint and existing actual CG6 project selected1+starter pass; docs/API
+pass. Original baseline and three fixture type failures are preserved. Binary byte matches are selected
+observations, not general raw equality. UI is a normal-version positive control, not rare-input creation.
+Whole suites and broader native/external-folder/crash proof are NOT_RUN. #2236 was already closed for
+transfer; its fresh full body is retained without mutation. Next D324:A07/#2237 delayed GPU instance
+readback under06/R2, maintaining its existing mock/actual boundary, then2239 and remaining priorities.
+
+### D322 independent author-receipt review supplement — 2026-10-29
+
+[Read report and retained verification](notes/independent-receipt-supplement-2026-10-29/README.md)
+attach APPROVE_BOUNDED_AUTHOR_RECEIPTS at27500e219 to existing12/CG6/O9 A02. External124 unique
+artifact files/230 overlapping reference checks are not tests; source7/runtime6/driver2 and19 native
+byte observations retain their provenance meaning. Root confirms two cited manifest hashes only;
+independent execution remains NOT_RUN and author398 already includes focused9. Same-document native
+autosave and New local recovery are separate proof paths; Close is session isolation. Full Open/switch/
+App ABA/natural failure/tab/external-folder/crash/dependency graph/A05/commercial gates remain open.
+No repeated successful test, issue or implementation is added. D324 GPU pick ownership stays selected.
+
+### D324 delayed GPU pick ownership qualification — 2026-10-29
+
+[Qualification](notes/gpu-pick-instance-ownership-2026-10-29/qualification.json): sourceCPU baseline
+controlPASS/shrinkTypeErrorFAIL preserved. Viewer-private revision rejects accepted active-instance or
+membership changes after original unmap. Normal47-file CPU runner357/357/0skip includes registered15
+new cases once; GPUemit/types/lint pass. Actual AppleWebGPU public pick selected1/6groups passes:
+unchanged and five mutation schedules, current fresh hits and selected unmap1→2. Root views actualPNG2.
+Before-fix native/other adapters/device-loss/full matrix/driver memory/performance remain NOT_RUN.
+Existing @internal sceneMoved optionalMesh has exactly3 reviewed inventory declaration changes, no
+added exposures/members; expected refresh and final CLI/API/docs pass are explicit, not hidden drift.
+No full Model/Kernel/Studio/Viewer/browser/remoteCI run. Next D325:A08/#2239 actual display/CPU pick
+clipping under05/V1/V2, then remaining priorities; incoming receipt review creates no task switch.
+
+### D321 independent review and Render-history evidence correction — 2026-10-29
+
+[Read source/receipt review and root raw inspection](notes/independent-receipt-supplement-2026-10-29/README.md)
+attach bounded approval ata386 to existingO9/12/16/#2242. Root confirms three retained Render snapshots
+omit history. Exclude their both-undefined comparison from actual Render Undo-history preservation PASS.
+Doc/recovery, Drawing/Model strings, source-before-history gate and public Undo/Redo remain separate
+valid evidence; no new product regression/issue is established. Required follow-up: actually record
+Render history, assert existence/type, then compare, or supply equivalent explicit public Undo/Redo
+preservation evidence. Original raw failures/receipts remain; independent runtime is NOT_RUN and389
+already includes focused17. Do not rerun whole suites or switch from D324 because of this review.
+
+### Studio modernization proposal intake — 2026-10-29
+
+[Exact incoming reviews, source hashes and evidence limits](notes/studio-modernization-intake-2026-10-29/README.md)
+attach SUX-1–7 to existing 15/20/21: named command discovery, active Inspector priority, readable
+numeric/unit/binding state, distinct operation/file status, workspace context, named read-only
+History and keyboard/focus behavior. Existing registry/dock/editors/Sketch/Drawing/Render controls
+remain the base; no framework, solver, schema or new workspace is implied. This is a proposal intake,
+not a priority switch, new issue, implemented redesign or product qualification. Preserve D321
+origin/refusal and its missing Render-history evidence caveat, and D322 late-Save/recovery ownership.
+The supplied runtime JSON retains initial setup failure/guard75/NOT_RUN; the later review reports
+separate d855 author observations: 6 PASS / 0 FAIL / Sketch NOT_RUN 1. No fresh runtime ran in this intake,
+and linked later raw receipts were not independently reviewed here. Implementation still needs
+actual edit/Undo/file/keyboard and viewport evidence under the existing 12/16 gates.
+
+
+### D325 clipping boundary and next priority — 2026-10-29
+
+[Qualification](notes/viewer-clipping-contract-2026-10-29/qualification.json) preserves the native
+current-source #2239 baseline FAIL and selected final PASS. The closed axial scene-unit interval now
+agrees across SDK display/CPU pick and actual Core GPU exact-far selection. Default auto infinite
+projection and strict duplicate-instance first hit remain. Camera.autoClip is one intentional additive
+field observed at3 existing exports; full expected delta reviewed. Unsupported manual finite grid,
+positive depth effects and active/creating path traces explicitly refuse before submission/creation.
+Native selected1 includes12 SDK observations, not12 unique tests; related CPU reruns overlap normal.
+Caps/effects/other adapters/full suites/numeric world-point conformance/performance remain unqualified.
+Next D326 selects existing12/O9 A05: current useProject openPart has no request/session guard after
+readPart/log/autosave/link awaits. Source-only evidence is not a reproduced failure. Baseline it before
+fixing; keep general File Open and New/Close/project switching in the ownership acceptance scope.
+A06 sender subscription/resource disposal follows; incoming Studio UX remains registered15/20/21.
+
+
+### Direct owner priority — App decomposition, 2026-10-29
+
+The owner directly requests urgent App.tsx refactoring because the single file is too large to inspect.
+After qualifying and preserving the current D326 Open ownership repair, select D327 App decomposition
+before A06 or optional extensions. Extract coherent document/file, workspace and interaction ownership
+into private hooks/components; keep App as the composition boundary. Preserve D321/D322/D326 request,
+document/history/refusal/Save/recovery semantics, React updater ordering and actual consumers. Do not
+move the whole component into another large file, introduce a generic callback bag/framework, or call
+line-count reduction behavioral acceptance. Register later incoming proposals without changing this
+new direct owner priority. Unqualified format/stage and other A05/A06 gates remain recorded.
+
+
+### D326 selected qualification — 2026-10-29
+
+[Evidence](notes/project-open-ownership-2026-10-29/qualification.json) preserves hook1PASS/6FAIL and
+actual original live B→A overwrite separately from unchanged native B file bytes. Final focused29
+and wholeStudio423 include new project20; types/lint pass. Actual selected5 preserves current model,
+name, real typed/present History, path/version/offer/dirty/recovery across project A→B/New/Close and
+file-input A→New/projectB. Asset-free completion observation is bounded; old promise is not exposed.
+Private request/session/store/path+App-scope guards and accepted-scope handoff preserve D321/D322.
+Serialized File verification uses actual document/opaque intent/dispatch ownership, not equal nodes.
+STEP/STL/OBJ/IGES/.barocad completion/stage, wider A05/version-write/linked stalls and A06 remain open.
+The newest direct owner priority selects D327 App.tsx decomposition next, before other optional work.
+
+
+### GPU material authoring and Studio evidence intake — 2026-10-29
+
+[Full supplied reports and exact copies](notes/gpu-material-authoring-intake-2026-10-29/README.md)
+attach GMAT-1–7 to existing06/G18.2/G18.3/G15-accept,05 SDK and R7.5b/Studio: current API/recipes/
+registration; optional typed frontend through existing CSS compiler; scene material-ID/PBR/stored shader;
+live sampler/UV/resource bridge; GPU last-good/stale-owner/cache measurements; bounded output/vertex/post;
+physical glass/pathtrace/backend subset. Reuse existing Material/Scene/compiler; no new language or queue.
+Existing CSS shader and Studio source editors, PBR/maps and public CPU TRS clip sampler are acknowledged.
+Reported actual fixed-d855 one quad/23 assertions validates uniform pixels and caller invalidDSL nonapply
+only; current D325/D326/App WIP, GPU swap/compile counts/loss/OOM/parity remain excluded. Later Studio
+fixed-d8556-view report supports existing15/20/21 SUX observations; preserve initial setupFAIL/guard75.
+Root read/copies all4 supplied documents, runs no product/runtime and sends no cross-chat reply.
+D327 App decomposition keeps the direct owner priority; these are registered followups, not a switch.
+
+
+### D327 direct-priority App decomposition — complete locally (2026-10-29)
+
+[Source map and qualification](notes/app-decomposition-2026-10-29/README.md): App4,012→2,308lines,
+42 cohesive modules. Central document/work/Open/Save/evaluation owners remain in App. Build/types/lint,
+Studio429(including route6), actual selectedUI11+starter and affectedOpen5 pass with per-run failures
+retained. D321 missing Render-history evidence remains open; no full-browser/performance acceptance.
+Normal feature push follows. Next: existing12/O9 remaining A05 nonserialized import/stage ownership,
+then A06; retain07→08→09 priority. No new queue from incoming messages.
+
+### Drawing assistant and material-map evidence intake — 2026-10-29
+
+[Full supplied reports and bounded external context](notes/drawing-assistant-maps-intake-2026-10-29/README.md)
+register DA-1 under existing CG5/DR1–8/O26/RS7.6: one fixed-bracket reviewable draft, original
+requirements/tolerances, proposal accept/reject/Undo, reference diagnostics, native semantic roundtrip,
+and same-sheet SVG/DXF/PDF provenance. Existing tools/planner/checker/export paths are recognized;
+source-only review is not live AI/runtime/manufacturing acceptance. DR7 standards and DR8 sets remain
+separate. Autodesk article is background only; no original standards or embedded tables imported.
+GMAT-1 supplementary author run at1266 reports1standalone test/50assertions, native map tolerances
+and disposal/rebind fallback; not50tests, not package test:browser/CI/fullGPU/parity/recovery/OOM.
+Root read exact4documents/740lines and retained copies; no independent runtime rerun or cross-chat
+reply. These attach to existing work and do not interrupt D327 or A05/A06 priority.
+
+
+### DA-1a supplementary document/API receipt — 2026-10-29
+
+Retain the [supplied report and summary](notes/drawing-assistant-maps-intake-2026-10-29/da1a-supplement/da1a-084920.md)
+under existing CG5/DR1–8/O26/RS7.6 DA-1. The author reports one isolated exact1266 CPU/API run with nine
+assertion groups passing: A4/four views, proposal ownership, native drawing/reference roundtrip and
+preserved outputs. This is not nine independent tests or Studio App/UI acceptance. Two TEXT_OVER_LINES
+errors and one DUPLICATE warning remain in the draft. Public issue-to-anchor details are NOT_EXPOSED.
+Next existing completion checks: independently inspect saved SVG/PDF, address residual layout using
+existing move/remove/fix paths while preserving manual references, then apply independent original
+dimension/hole oracles. UI/Undo/live AI/manufacturing acceptance remains open. Existing research issue
+[#2243 comment](https://github.com/barocss/barocss/issues/2243#issuecomment-6492346764) holds author evidence;
+no duplicate issue or immediate implementation. Root read both reports; no independent rerun or reply.
+Direct App decomposition and existing A05/A06 priority remain unchanged.
+
+
+### D328 second App decomposition — qualified (2026-10-29)
+
+[Source map and qualification](notes/app-decomposition-second-2026-10-29/README.md): App 2,308→2,046
+lines; seven modules expose nine clear domain blocks. Central document/evaluation/Open/Save/work
+owners stay in App. Build/types, production lint and Studio 429 pass. Eleven selected actual cases plus
+starter pass across preserved runs; initial A6.4 dialog-driver failure and final isolated pass remain
+separate. Initial leftover-dialog screenshots do not certify clean whole-screen acceptance. No whole
+browser/other-package/performance acceptance. Normal push follows. Resume existing A05/A06 priority;
+keep incoming DA-1a attached to existing CG5/DR1–8/O26/RS7.6, then original 07→08→09 order.
+
+
+### DA-1c supplementary fix and standalone SVG evidence — 2026-10-29
+
+Keep the [supplied report](notes/drawing-assistant-maps-intake-2026-10-29/da1c-supplement/da1c-085920.md)
+under existing CG5/DR1–8/O26/RS7.6 DA-1 and [research issue #2243](https://github.com/barocss/barocss/issues/2243#issuecomment-6492609845).
+The author reports one existing fix_drawing proposal/user acceptance and one Chrome156 standalone SVG
+session: checker issues 3→0, two 1.5 labels moved, auto d9 removed, ten retained dimensions and model
+nodes semantically preserved. Raw JSON.stringify key-order false-positive flags remain separate from
+retained-data deepStrictEqual comparison. The nine successful DA-1a check groups were not repeated.
+
+Required semantic acceptance remains OPEN: retained d3(top) references n0/n2; removed d9(right)
+references n0/n5. A shared base feature and equal axis/span do not prove equal hole-location intent.
+A separate Sol High review must establish duplicate-removal validity and dimension sufficiency using
+independent feature/geometry intent before accepting this deletion. Checker zero is not completion,
+manufacturing approval or a new confirmed defect. Manual dimensions were absent: manual-reference
+preservation NOT_TESTED. Actual Studio UI/Undo, independent numerical oracle, external PDF reader and
+post-fix native roundtrip remain unverified. Root read the full supplied report without rerunning or
+accepting its pixel/runtime claims. No immediate implementation, duplicate issue, closure or reply.
+Existing A05/A06 priority remains; schedule this semantic review with the existing drawing work.
+
+
+### DA-DUP-1 — P2 independent-hole location dimension removed as duplicate (2026-10-29)
+
+Status: **CONFIRMED DEFECT / FIX NOT STARTED** from the supplied Sol High review. This supersedes the
+pending defect judgment in the DA-1c entry above; execution priority remains after existing A05/A06.
+Keep this task under CG5/DR1–8/O26/RS7.6 DA-1 and [existing #2243 evidence](https://github.com/barocss/barocss/issues/2243#issuecomment-6492887434).
+[Full review and original FAIL receipt](notes/drawing-assistant-maps-intake-2026-10-29/duplicate-semantics/duplicate-semantics-091150.md)
+are retained. Root read them without independent reproduction or cross-chat reply.
+
+At exact5c965a118, d3(top) locates first hole n2 at Y15 and d9(right) locates second hole n5 at Y15.
+Their circle centers are independent constants with no constraint/parameter linking them. The checker
+proposes remove d9 because axis/span match and both references include stock n0. Existing exact1266
+fix evidence records actual deletion. Shared stock and equal coordinates do not establish the same
+measurement dependency. The public edit changes only n4.center[0] from15 to17 while retaining the
+first hole. Product path: packages/barocss-cad-model/src/drawing/issues.ts:601–612,621–626; coordinate-
+only coverage aggregation at635–644,682–684 may also cover one hole with the other's location value.
+
+Completion criteria:
+- Preserve both independent target location dimensions in the15/15 case.
+- After the15/17 edit, resolve each target's actual value and report no duplicate for this pair.
+- With d9 absent, do not satisfy the second hole's location coverage using an unrelated hole's Y15.
+- Preserve genuine same-measurement orthographic duplicate detection and manual/auto control cases.
+- Base removal on common measurement dependency or an explicit locating relation, not shared stock.
+
+Evidence limits remain explicit: the new runner is **FAIL / run1**, because its drawing deep equality
+assertion rejected20 legitimate reference sig additions. Baseline duplicate proposal and the one-model-
+coordinate edit are observed; edited resolved-dimension/coverage differentials are **NOT_RUN**. Raw
+FAIL remains in receipt.json and is not converted to PASS by static saved-output analysis. A bounded
+followup must allow legitimate sig metadata and save actual resolved output before assertions. No new
+geometric tolerance, independent numerical/manufacturing acceptance, product fix, browser/UI/Undo,
+full suite or remote CI is claimed by this intake. Do not rerun the already-passed DA-1a batch merely
+to acknowledge this report. Schedule implementation and differential checks at the existing drawing
+priority; no new issue or priority change.
+
+
+### DA-DUP-1 runtime differential supplement — 2026-10-29
+
+Status remains **CONFIRMED DEFECT / FIX NOT STARTED**, after existing A05/A06. The
+[supplied report and original receipt](notes/drawing-assistant-maps-intake-2026-10-29/duplicate-differential/duplicate-differential-092450.md)
+and [existing #2243 comment](https://github.com/barocss/barocss/issues/2243#issuecomment-6493092551)
+add exact4428c79a runtime evidence to the same task. No duplicate issue or new queue.
+
+The previously NOT_RUN differential and coverage paths now have author runtime observations:
+- A single public edit keeps d3 at15, changes d9 from15 to17, and removes this pair's DUPLICATE.
+- With d9 absent and the same ten annotations, hole Y15/15 yields zero location warnings; Y15/17
+  yields one right-view HOLE_NOT_LOCATED. An unrelated hole's equal coordinate masks the missing
+  independent target location. This confirms the coverage portion of DA-DUP-1 at runtime.
+- Four check groups give three PASS and one PRODUCT_CONTRACT FAIL, run exit1. The first failure is
+  equal_coordinate_missing_target_location_diagnostic. This run has no harness/support failure.
+  Twenty legitimate sig additions are checked as metadata. The earlier091150 harness FAIL remains
+  unchanged and is not retroactively converted to PASS. No retry, new tolerance or product fix.
+
+The owner repair must still pass at its exact repaired SHA: preserve both independent15/15 target
+location dimensions, resolve15/17 by target, require feature-aware location coverage, and retain genuine
+same-measurement orthographic duplicate and manual/auto controls. Do not repeat unchanged defective
+baseline reproduction merely to acknowledge this receipt. Studio UI/Undo, manual dimensions, external
+PDF, native roundtrip and independent numerical/manufacturing accuracy remain separate. Root read the
+full report/receipt; no independent execution, issue change or reply. Keep existing roadmap priority.
+
+
+### D323/A04 snapshot retained-receipt review — 2026-10-29
+
+Attach the [supplied bounded review and verification](notes/canonical-version-snapshot-2026-10-29/independent-receipt-review/d323-canonical-snapshot-receipt-review.md)
+to existing12/CG6/O9 and transferred #2236. Verdict: **APPROVE_BOUNDED_AUTHOR_RECEIPTS** for exact
+a5d1acfa source/test definitions and retained author logs. Actual Version write/read in project.ts
+use existing encodeStudioSnapshot/readStudioSnapshot; ordinary Open/autosave normalization and
+missing/corrupt/write-once protections remain. This is a source/retained-receipt review, not a new
+independent runtime or current whole-App acceptance.
+
+Counts: twelve unique related tests (five new snapshot, seven storage); final five repeat the earlier
+set and are not added. Author selected CG6 project1 and separate starter1, types/lint/docs receipts,
+original baseline FAIL and three fixture type errors remain. Reviewer reports33 unique artifact paths
+from45 references (twelve overlap) and eleven source bindings matching author Git bytes/hashes.
+Core project/container/version sources remain equivalent at the reviewed current head, while App,
+useProject and the full browser driver changed later. Do not extend author UI acceptance to latest App.
+
+Boundary: schema3/schema4 rare-input binary semantics and byte-equal:true are supported by test
+definitions and author execution logs. Actual binary input/output capsules are absent, so independent
+raw-byte/decode comparison remains incomplete. The complete consumer bundle graph is also absent.
+Normal CG6 UI does not establish rare-input creation. Whole suites, independent runtime, OS native
+folder, fresh context, cross-tab and crash/primary-file-loss are NOT_RUN. Transfer closure of #2236
+is not fix-acceptance evidence; no reopening or new issue is needed.
+
+Only if broader byte/provenance acceptance is required, preserve the original two fixture input/output
+bytes, hashes and executing source graph in that future scoped verification. Do not rerun successful
+checks merely to accept this bounded review. Root read/copies both supplied documents without product
+execution or cross-chat reply. Current roadmap priority remains unchanged.
+
+
+### D324/A07 delayed pick retained-receipt review — 2026-10-29
+
+Attach the [supplied review and verification](notes/gpu-pick-instance-ownership-2026-10-29/retained-receipt-review/d324-gpu-pick-receipt-review.md)
+to existing06/R2,05 SDK,G15-accept and transferred #2237. Verdict: **APPROVE_BOUNDED_AUTHOR_RECEIPTS**
+for exactd85558ce. Approved instance replacement and membership changes increment private ownership
+revision. The actual pickNow checks it after native GPU map/read/unmap and before metadata reconstruction.
+This is the product execution path, not a helper-only change. Preserve later clipping/camera/pick changes
+as separate evidence; the old native receipt does not certify the current GPU runtime.
+
+Counts: CPU357 includes the new15; native is one selected test with six groups, not six tests:
+unchanged, replacement, reorder, shrink, instances-null and mesh-removal. Author observations include
+real raster pixel[255,64,32,255], instance/face71/triangle0, delayed/fresh ownership and buffer unmap/reuse.
+Native instrumentation holds only the return after the original mapAsync Promise fulfills. GPU bytes,
+IDs and draw results are not replaced; this remains controlled scheduling, not natural GPU delay,
+driver failure or device-loss evidence. Reviewer reports47 unique artifact paths from63 references
+(sixteen overlap), six source bindings and three gzip capsules checked against exact Git bytes/hashes.
+Original CPU baseline1PASS/1FAIL and API IV001 old-expected FAIL remain. API adoption covers exactly
+three existing declarations; do not count candidate generation as final check acceptance.
+
+**Adapter wording correction:** Apple/metal-3 identifies a separate availability requestAdapter result.
+Actual Viewer adapter identity is **UNKNOWN**. Cleanup dispose after finished picks does not establish
+native dispose-during-pending-map behavior. Native clear/ABA/invalid-setter/dispose-pending cases outside
+the six groups, complete dist/import graph, current GPU runtime, recovery/device loss/VRAM/OOM,
+performance and whole suites remain outside this acceptance. Transfer closure of #2237 is not current
+fix-completion evidence; no reopening or duplicate issue.
+
+Only if expanding scope, capture the actual Viewer adapter, the specific missing native lifecycle case
+and executing input graph. Do not rerun successful checks for this bounded receipt review. Root read
+and retained both supplied documents without independent execution, remote action or reply. Existing
+A05/A06 and other roadmap priorities remain unchanged.
+
+
+### D325/A08 clipping retained-receipt review — 2026-10-29
+
+Connect the [supplied review and verification](notes/viewer-clipping-contract-2026-10-29/retained-receipt-review/d325-viewer-clipping-receipt-review.md)
+to existing05/V1/V2,06/G15-accept and transferred #2239. Verdict: **APPROVE_BOUNDED_AUTHOR_RECEIPTS**
+for exactf841c0c3. SDK closed scene-unit near/far reaches actual Camera/manual pipeline and CPU axial
+candidate filtering. At quantized fragment depth zero, manual GPU pick changes only the depth-test
+value to the minimum positive normal; raw depth remains zero and IDs/face/instance remain observable.
+This is not general exact-far accuracy for arbitrary floating-point profiles or a new tolerance.
+
+Native is one selected test: twelve SDK observations (six conditions at each of scales1/.001), plus
+Core and autoClip guard in that same test. Retain center colors, covered9600 versus0, face71/triangle0/
+instance0/raw0 and original tolerances. Apple/metal-3 is a separate availability-adapter observation;
+actual SDK/Core Viewer adapter identity remains **UNKNOWN**. Delaying a fulfilled map return is
+controlled scheduling, not natural readback/device failure.
+
+Reviewer reports77 retained artifact bytes checked against author Git; manifests have118 references,
+76 unique paths and42 overlaps. Original/decoded source and driver bindings, including six gzip
+capsules, are retained in the supplied review. These are provenance counts, not runtime tests.
+The reported581-input sourcegraph has only count/hash: full input manifest, actual bundle bytes and
+emitted GPU dist are absent. Critical source/driver binding does not certify the entire runtime graph.
+Current GPU/Viewer source equivalence at the reviewed head is not current whole-runtime acceptance.
+
+Keep the original native product FAIL; GPU357 initially355PASS/2fixtureFAIL; SDK background fixture
+FAIL; harness lint and API expected FAIL. Final display26/camera29 overlap the initial357 and are not
+additional unique tests. SDK11 is separate. There is no final wholeGPU rerun. CPU off-axis/orthographic/
+two-square fixtures differ from the native frontal square/triangle profile. Native orthographic,
+off-axis, two-square, boundary-crossing polygons, arbitrary f32 ratios, world-coordinate accuracy,
+full effects/caps/pathtrace combinations and broader adapter/recovery/OOM/performance remain outside
+acceptance. No new defect is inferred from these missing profiles.
+
+Only for a broader claim, collect the requested missing native profile and complete executing input/
+dist binding. Do not repeat the successful selected native case. Transfer closure of #2239 is not
+fix-acceptance evidence; no reopening or new issue. Root read and retained the supplied report and
+parsed verification without independent execution or reply. Existing A05/A06 priority remains.
+
+
+### D326 selected Open ownership retained-receipt review — 2026-10-29
+
+Attach the [supplied review and verification](notes/project-open-ownership-2026-10-29/retained-receipt-review/d326-project-open-receipt-review.md)
+to existing12/O9. Verdict: **APPROVE_BOUNDED_AUTHOR_RECEIPTS** for exact1266 project and serialized-file
+Open ownership. Actual paths check request/session/store/path/App scope after their awaits, retain the
+accepted-scope handoff, and guard late errors, versions/autosave/linked metadata and reference followup.
+D321/D322 contracts remain. This review does not accept all A05/A06 or current whole App runtime;
+D327/D328 qualifications remain separate receipts rather than extensions of the old1266 run.
+
+Counts: Studio423 includes focused29(project20+existingSave9). Earlier24 is an overlapping intermediate
+checkpoint. Final native TAP contains five actual cases and no separate starter; do not count six.
+Preserve hook baseline1PASS/6FAIL, first actual setup/schedule FAIL before A was armed, and second actual
+stale A-overwrites-live-B product FAIL while original B file bytes remain unchanged. These are different
+failure types, not disk data loss or extra successful coverage.
+
+Reviewer reports144 unique artifact paths from269 references (125 overlaps), five source bindings and
+eight gzip capsules checked against exact Git bytes/hashes. Five-case raw before/after fields are present
+and equal, including real typed nonempty History. Actual A/B file bytes and normal B parsed semantics
+are checked in that review. Offer null staying null is not nonempty-offer preservation. Original File
+arrayBuffer returns are held only after native fulfillment; real UI-saved bytes pass through public
+project/file-input flow with picker/input substitution. This is not synthetic document injection, but
+also not natural OS failure, OS chooser or actual external-folder proof.
+
+Retained .bcad files are asset-free plain JSON, not binary containers. The original operation Promise
+is NOT_EXPOSED. Trace/MessageChannel/UI-frame observations support only finite plain-JSON continuation,
+not arbitrary blob/crypto/linked I/O completion. Critical source/capsule hashes do not establish the
+complete executing Vite import graph. Reviewed useProject/OpenScope/focused drivers remain equivalent;
+App was refactored later, so current full-App acceptance requires its own bound evidence.
+
+Other import formats and stage A05, worker sender A06, native reference-remap negatives, metadata/linked
+stall matrices, actual native folder, fresh-context/cross-tab/crash and whole other-package/browser/CI
+or performance remain outside this review. Do not repeat the successful selected five to acknowledge
+it. Expand only with evidence for the requested actual path/file/runtime. Transfer closure is not
+fix acceptance; no issue reopening. Root read and retained the documents without independent execution
+or reply. Existing A05/A06 priority remains unchanged.
+
+
+### GPU003 fresh owned logical-device recovery evidence — 2026-10-29
+
+Attach the [supplied exact-source report and verification](notes/gpu-recovery-fresh-intake-2026-10-29/gpu-003-fresh-101421.md)
+to existing06/G15-accept and05 SDK/recovery. Status: **BOUNDED PASS, BASIC UNLIT NON-INSTANCED CORE
+ONLY** at exact54380af0. This does not close G15 or general recovery. Preserve the original e1f2 wrapper
+and outputs; the author used a separate immutable snapshot and one fresh probe, not a retroactive PASS.
+
+Author observations: valid baseline frame/capture/pick; one existing loseDeviceForTesting hook destroys
+only the owned logical GPUDevice; oldDevice.lost reason=destroyed; distinct replacement device; normal
+onRecover once; a new frame followed by fresh mapped capture. Original Mesh/Geometry identity remains,
+Geometry is not disposed, and the original single mesh remains. Both picks have instance=null, face71,
+triangle0; point delta[0,0,0]. Original point<=0.05 and channel<=3 policies remain. RGBA[208,48,32,255]
+and all65536 raw RGBA bytes match before/after, as reported and independently checked by the sender's
+parent. Root has not independently rerun or repeated the image/raw-byte comparison.
+
+This run reads apple/metal-3 from the actual owned oldDevice.adapterInfo, unlike the separate
+availability-adapter observations in D324/D325. Fallback adapter identity remains UNKNOWN. The author
+reports2237 immutable snapshot files and452 actual inputs (451 product source+one owned fixture),
+zero runtime imports/dist escape, one guard/probe, no first failure or retry, syntax/probe/release0.
+Owned Viewer.dispose leaves ready=false/device=null; page/context/browser/server are CLOSED. These
+are this bounded run's author receipts, not a whole-runtime or performance acceptance.
+
+Custom CSS/material shaders, maps, instanced buffers, SDK/App recovery UI, natural driver failures,
+OOM/VRAM and performance remain NOT_RUN. Existing logical-device hook injection does not prove natural
+physical-device failure. Next resource acceptance, when reached at existing GMAT-5/G15 priority, is one
+profile using the existing public materialShader/CSS recipe and live uniform values including zero,
+preserving the original mesh/geometry through device replacement. Do not repeat the basic success or
+historical suites merely to acknowledge this evidence. No new issue, immediate implementation or
+priority switch; existing A05/A06 order remains. Root read/copies the supplied documents only.
+
+
+### GPU004 custom CSS/live-uniform recovery evidence — 2026-10-29
+
+Attach the [supplied report and verification](notes/gpu-recovery-css-intake-2026-10-29/gpu-004-css-recovery-102421.md)
+to existing GMAT-5/G15-accept. Status: **BOUNDED PASS, ONE CORE CSS/LIVE-UNIFORM PROFILE** at exact1bc963c3.
+One attempt contains45 assertions and four captures, not45 tests. Existing public CSS wave recipe and
+neutral environment are unchanged. Independent expected colors and original tolerances were fixed
+before execution, not fitted to observations. This adds a specific material recovery result, not a new
+language, implementation, issue or general G15 completion.
+
+Author observations: time0 RGBA[166,102,95,255] changes to time1[224,128,32,255]; one owned logical-device
+hook causes old-device lost, distinct new device, one normal onRecover and a new frame preserving time1.
+Updating the same live params to zero after recovery restores time0. Each state has6084 covered pixels;
+before1/after1 raw65536 bytes match, and the sender's parent also reports per-time before/after equality
+and zero-versus-one inequality. Original Mesh/Geometry, face71/triangle0/instance=null, accepted shader
+wrapper and host Float32Array remain. Point delta is zero. The public factory is called once and the
+material patched once; the host does not recreate/reassign them after loss. **Native GPU module/pipeline
+creation counts are NOT_MEASURED** and must not be inferred from host factory counts.
+
+The author reports2237 snapshot files, actual548 inputs(product547+fixture1), zero external imports/dist
+escape, acceptance/harness hashes unchanged, no first failure or retry, all guard/syntax/build/probe/
+release exits zero and owned cleanup complete. Actual oldDevice.adapterInfo is apple/metal-3; replacement
+adapterInfo was not recorded and fallback identity remains UNKNOWN. Root read and retained the supplied
+documents; it has not independently repeated runtime, image, raw-byte or input-graph verification.
+
+Maps, instanced buffers, full PBR, SDK/App recovery UI, natural driver failure, OOM/VRAM/performance and
+Three.js parity remain NOT_RUN. Logical-device hook injection does not prove natural failure recovery.
+The next resource profile at existing priority is the original map fixture's Texture/Material binding
+through device replacement. Do not repeat successful CSS45/GPU003/historical suites for this intake.
+No immediate implementation, duplicate issue or priority switch; A05/A06 ordering remains unchanged.
+
+
+### GPU005 packed texture-map recovery evidence — 2026-10-29
+
+Connect the [supplied report and verification](notes/gpu-recovery-map-intake-2026-10-29/gpu-005-map-recovery-103521.md)
+to existing GMAT-5/G15-accept. Status: **BOUNDED PASS, ONE SHARED PACKED DATA-MAP CORE PROFILE** at
+exact86c7aff3. One attempt,28 assertions and four captures are one profile, not28 tests or a rerun of
+the full material-map suite. The original shared roughnessG128/metallicB64 raster row is reused.
+
+Author profile: one1×1 ImageTexture[7,128,64,255],srgb=false,nearest,mipmaps=false shared by two map slots.
+Original center16×16 RGB reference max<=1 and wrong-sRGB mean>3 were fixed before execution. Before and
+after recovery, literal-reference max/mean are0/0 and wrong-control mean is13; activeRGBA[117,72,55,255].
+These ROI checks are separate from recovery of the entire128×96 RGBA image:49152 bytes match with max
+channel delta0. Pick remains instance=null/face71/triangle0 with point delta0. No absolute world-point
+accuracy oracle is added.
+
+One owned logical-device hook leads to old-device lost, a distinct new device, onRecover once, a new
+frame and fresh mapped capture. Original Texture, normalized active Material, Mesh and Geometry remain;
+the two slots reference the same original Texture, not disposed during recovery. Public Texture creation
+count1 and active Material reassignment0 mean no host recreation/rebinding after loss. Native resource
+allocation and pipeline creation counts remain NOT_MEASURED; do not infer them from public call counts.
+
+Author reports2237 fixed source files, actual452 inputs(451 product+fixture1), zero external imports/
+dist escape, no first failure or retry, all guard/syntax/build/probe/release exits zero, and owned
+Texture-inclusive cleanup complete. The sender's parent reports49 artifact/input452 hash and four PNG/
+raw-byte checks. Actual oldDevice adapter is apple/metal-3; replacement adapter/fallback remain UNKNOWN.
+Root read and retained the supplied documents without independent runtime or source/image/raw-byte audit.
+
+Other maps/normal maps, dynamic Texture updates, progressive/full PBR, instancing, SDK/App recovery UI,
+natural driver failure, OOM/VRAM/performance and Three.js parity remain NOT_RUN. Do not close general
+map/G15/recovery acceptance. Next at existing resource priority: the two-instance profile's GPU buffer/
+selection continuity through device replacement and subsequent public instance replacement. Do not
+repeat packed-map/CSS45/GPU003/full-map successes for this intake. No new issue, immediate implementation
+or priority switch; existing A05/A06 order remains unchanged.
+
+
+### GPU006 two-instance recovery and reorder evidence — 2026-10-29
+
+Attach the [supplied report, execution verification and parent review](notes/gpu-recovery-instance-intake-2026-10-29/gpu-006-instance-recovery-104421.md)
+to existing GMAT-5/G15-accept and06/R2. BOUNDED PASS at exact5168183e8: one two-translation profile,
+one attempt,43 assertions/three captures, not43 tests. After valid baseline, one owned logical-device
+hook leads to old lost, distinct new device, onRecover and a new frame/mapped capture. Before any new
+setter, original Mesh/Geometry/Material and logical instance order/picks[0,1] remain. One public
+setInstances reorder then changes fresh picks to[1,0]. All307200 RGBA bytes and both point deltas remain
+zero; identical images alone are not reorder proof. Public count/pick behavior is separate from read-
+only internal CPU-state evidence and does not guarantee input-object identity or native buffer counts.
+
+The author/parent report2237 fixed source files,452 actual inputs(451+fixture1),47 artifacts and raw/PNG
+checks; original channel<=3/point<=0.05 policies, no first failure, guard/probe/release0 and owned cleanup.
+Actual old owned adapter is apple/metal-3; replacement/fallback remain UNKNOWN. Root read the report and
+parsed both verifications without independent execution or hash/image re-audit.
+
+General matrices/scale/reflection, shader/PBR combinations, SDK/App, natural failure, OOM/VRAM/
+performance and native allocations remain unaccepted. Do not extend this to D324 delayed readback race
+or whole GPU completion. Further SDK/App recovery-wiring research stays an intake at existing priority.
+No immediate implementation, success-suite repetition, duplicate issue or priority switch. A05/A06 stay
+first; DA-DUP-1 is still unfixed at the report's source.
+
+
+### D329 nonserialized import and stage ownership — qualified (2026-10-29)
+
+[Full evidence and source-drift boundary](notes/import-open-stage-ownership-2026-10-29/README.md) extends
+existing12/O9 A05: every import continuation/rejection, modal generation, accepted fit and stage Stop
+checks current ownership. Stop preserves the current doc/Undo/Redo and keeps surviving questions
+retryable. Build/types/lint and Studio460(new31 included) pass. Initial native5PASS/2FAIL is withheld for
+unexplained App source drift. Exact reviewed source restored and committed; final native7 and normal
+selected6+starter pass in sequence with no observed final source drift. Preserve all original failures.
+No full-browser/other-package/remoteCI/performance claim. Wider A05 matrices remain explicit. Next urgent
+existing A06: WireSender eviction subscription, restart/dispose/error/unmount ownership and retained maps.
+
+### Further App decomposition candidate — owner feedback, 2026-10-29
+
+The actual SceneViewport call has77 attributes including ref (76 ordinary props),20 on-events and nine
+inline callbacks. Keep this as the next App-specific structural target under existing App/workspace
+maintenance: separate scene data, selection interactions, sketch editing and analysis/presentation
+contracts; move each derived value and callback to its owning module. Preserve memo identities, fresh
+body provenance, current refs and event ordering. Also retain command start/apply/cancel and keyboard
+routing as coherent candidates. Complete active A05/A06 before optional structural changes; no new
+queue or automatic whole-App acceptance from moving JSX or wrapping all props in a bag.
+
+
+### Commercial-readiness issue intake and bounded Studio recovery — 2026-10-29
+
+See [scope, completion evidence and retained audit references](notes/commercial-readiness-intake-2026-10-29/README.md).
+User requested continued remaining-issue reading and additions to this existing roadmap. The first
+focused batch read26 issue details(18OPEN/8CLOSED);77 search discoveries are not77 complete discussions.
+
+| Existing issue | Existing target | Minimum remaining acceptance |
+| --- | --- | --- |
+| [#2107](https://github.com/barocss/barocss/issues/2107) Viewer initialization rejection cleanup |05 SDK/06 GPU/G15-accept; Viewer app4.3 | Compare current source first. Candidate no-context/later setup rejection must retire its device/context/buffer/listeners, preserve accepted Viewer and original error/cause; do not count harness orphan cleanup as product cleanup. |
+| [#2144](https://github.com/barocss/barocss/issues/2144) disposed image/source retention |06/GMAT-5/G15-accept lifetime +05 SDK; Rendering2135 dependency | Current fix NOT_VERIFIED. Original100-replacement/source-retention plateau with shared accepted/candidate and upload/failure/queuedframe/recovery/dispose controls; do not close caller sources or infer GC/VRAM. |
+
+Both were OPEN at audit time;#2144 remains BACKLOG/not dispatched. Preserve A05/A06, owner queue and
+Rendering HOLD. Closed transfer/intake is not implementation acceptance; no new issue or code dispatch.
+
+Separate actual Studio proof at exacta7264f0e: one profile/attempt/32 assertions passed for document,
+selection, History widget, dirty/recovery, camera, original resources and native RGBA continuity after
+explicit Core.frame/capture. Automatic host scheduling and full served/optimized/virtual/assets graph
+remain NOT_QUALIFIED. Raw32PASS is preserved. This does not qualify whole Studio, SDK/Viewer App native
+recovery, Undo/Redo, initialization rejection cleanup, repeated texture retention or commercial release.
+Next missing runtime gate observes spontaneous vs normal-user-triggered host presentation without
+explicit Core rendering first and with passive actual-response provenance prepared before execution.
+
+
+### D330 Worker and wire lifetime — qualified (2026-10-29)
+
+[Evidence and limits](notes/worker-wire-lifetime-2026-10-29/README.md) qualify lazy construction,
+terminal retirement, pending-request settlement, normal committed-root unmount, explicit public Retry
+and additive WireSender.dispose. Build/types/scoped lint/docs pass; Model1853 and Studio476 pass
+with zero failures/skips. API inventory accepts exactly one additive method under its six-rule
+SCOPED_PASS. Actual selected5 plus starter1 pass sequentially; each browser/server closes before
+the next case. No new full-browser, StrictMode, natural crash/OOM, heap/performance or remoteCI proof.
+Qualification records preserve baseline failures and source-watch boundaries. Normal push follows.
+
+Next selected existing confirmed defect: DA-DUP-1/#2243 under01/16. Reproduce current drawing
+duplicate and independent-hole location diagnostics before repair; keep numerical tolerances and
+legitimate orthographic duplicate controls. Incoming GPU2107/2144 and explicit-frame recovery reports
+remain intake at their existing owner/priority. Resume07→08→09 after urgent correctness work.
+
+
+### D331 independent drawing location ownership — qualified (2026-10-29)
+
+[Evidence and retained failures](notes/drawing-location-ownership-2026-10-29/README.md) closes the
+selected DA-DUP-1/#2243 repair: keep independent15/15 hole targets, actual15→17 Model edit, missing
+location diagnostics, manual preservation, counted direction and real compound-owner identity.
+Model/API and actual Studio issue/fix/fix-all/auto consumers use the same owner resolver.
+Final Model drawing248 and focused63 (overlap), Studio related28, types/build/scoped lint and generated
+checks pass. Exact API review records four added exports and three optional owner additions; six-rule
+SCOPED_PASS is bounded. New actual serial driver passes two profiles including Save/fresh Open/Undo/
+Redo and independent grid8locations/12dimensions. Existing selected3 plus separate starter pass across
+source-preserved runs; original stale History and ambiguous panel-selector timeouts remain. No whole
+package/browser, manufacturing, full assembly matrix, remoteCI or performance acceptance.
+A guard now rejects empty Model test selection before raw Node discovery; preserve the original invalid
+365-entry expansion and all earlier baseline/review failures. Normal feature push follows.
+
+### Direct owner priority: selection visibility — D332, 2026-10-29
+
+The owner asks why points/edges/faces/bodies use yellow and requests a more visible color. Existing
+yellow comes from the shared Studio accent, not a geometry requirement; no separate design reason was
+found. Select a dedicated cyan palette, stronger face tint and body outline, distinct point hover/
+selection markers, and consistent base/direct/instance routes across WebGPU/WebGL2 and dark/light.
+Keep general tool/section/mould accent semantics. Reuse current rendering mechanisms; no new GPU engine.
+D332 source and selected actual profiles are now qualified; see the bounded completion below.
+After this direct request, advance08 with the bounded rectangular two-axis cut feature grid candidate,
+then09; retain general07 extensions and the source-backed curve-pattern family separately.
+
+
+### D332 base selection visibility — qualified (2026-10-29)
+
+[Evidence and original startup failure](notes/selection-visibility-2026-10-29/README.md): distinct cyan
+selection palette for dark/light, stronger face tint,3.4px selected edges,3px body outline and6px point
+with contrasting ring versus4px hover. General tool/section/mould accent remains. Types/build/lint and
+existing facePaint3 pass. Four actual backend/theme profiles qualify across two serial invocations: first
+WebGPU2PASS, GL2-dark setupFAIL/lightNOTRUN; driver waits for accepted engine readiness, then GL2-only
+retake2PASS. Preserve failure and public pending-work refusal. No simultaneous browser execution.
+Root reviews representative actual captures including selected-face theme recolour; numeric contrast,
+full accessibility/display/assembly/direct/editor matrices and full suites are not accepted. WebGPU's
+global outline width also makes existing red contact outlines3px; priority remains. Normal push follows.
+Next regular08 candidate: editable rectangular two-axis cut feature grid using the existing cut-tool
+producer; preserve current linear pattern and do not repeat delivered07 work.
+
+Electron/WebGPU-only was asked as a feasibility question. Attach it to existing15 desktop support:
+select a bundled Chromium/Electron platform matrix, require startup adapter/device availability and
+document-preserving device-loss recovery. No wrapper, backend deletion or release is adopted here.
+
+### Existing Model/drawing review supplement — intake only, 2026-10-29
+
+[Retained supplied reports/status boundaries](notes/commercial-readiness-intake-2026-10-29/model-and-drawing-supplement/README.md)
+attach to existing12/16 acceptance and DA-DUP-1/#2243. External pinned CPU six-group PASS observations
+retain overall ORCHESTRATION FAIL and clean acceptance NOT_QUALIFIED. Separate source-only Model review
+adds no runtime or confirmed defect; register parameter fresh-session re-edit, atomic consumer ownership,
+reference/shared-revision saved meaning and release-binding evidence gaps under their existing IDs.
+MODEL-EVALMEMO-EVALUATOR-SCOPE remains conditional CONTRACT_GAP, not a reproduced defect; establish
+caller semantics before any check. No duplicate issue, implementation dispatch, cross-chat reply, remote
+state change, priority switch or repetition of passed checks. Owner/HOLD boundaries remain.
+
+
+### Electron execution validation — queued under15 desktop (owner, 2026-10-29)
+
+The owner explicitly requests roadmap registration of Electron execution, while regular08→09 work
+continues. Reuse the existing desktop scope; this is not an immediate wrapper/packaging restart or
+automatic WebGL2 deletion. When selected, pin an Electron/Chromium build and supported platform/GPU/
+driver profile. Verify actual packaged startup, observed WebGPU adapter/device/backend, Worker startup,
+public CAD edit/pick and native Save/fresh Open, document-preserving unsupported-device refusal and
+device-loss/retry/close cleanup. Record actual binary/version/platform and source, supported limits,
+owned process cleanup and original failures separately from Chrome browser receipts. Start with one
+supported local profile; Windows/Linux/general hardware acceptance needs its own actual evidence.
+Current Electron execution is NOT_RUN. Existing D332 four browser/theme profiles are reused only as
+Chrome evidence. Continue next08 rectangular cut feature grid, then09; no new parallel release queue.
+
+
+### D333 rectangular two-axis cut feature pattern — qualified (2026-10-29)
+
+[Bounded scope and retained failures](notes/rectangular-cut-pattern-2026-10-29/README.md) delivers one08
+profile: one editable pattern repeats the original CUT TOOL on two distinct global axes, skips the
+origin already present in the seed, and preserves one stock body. Counts1..64 have safe product<=64;
+both Model spacings support Dim bindings, counts remain literal. Reuse existing cutSource/affine/
+difference, with string suffix names instead of per-cell closures. No dependency/schema/WASM change.
+
+Final Kernel build and full tests2212PASS/0FAIL/6existingSKIP, Model related70 (focused14 overlap),
+Studio chat23, both types/Studio build/scoped lint and generated checks pass. API review records6added/
+12changed exposure rows and the snapshot feature-kind union; six-ruleSCOPED_PASS remains bounded.
+A candidate chat-admission file reverted before Model checks; causeUNKNOWN. Restore only exact captured
+changes, checkpointc99cb121, and retain before/after capsules. All reviewed inputs match Git; watch44
+matching observations bind22 changed inputs over two segments, not the full execution graph.
+
+Actual serial WebGPU prefix verifies preview/refusal/Cancel, Apply23040, Undo23840/Redo23040, Save/fresh
+Open. Original overallFAIL is a driver waiting for an editor already auto-closed after successful
+spacing edit. Resume only the saved-file edit tail: spacing2=12 with independent centroid, count=2
+produces four cuts23360, Save/freshOpen/re-edit fields12/2. One finite profile covered across prefix and
+tail, not one clean whole-flow run. Screenshots show six then four cuts at unchanged60×40×10 bounds.
+No whole Model/Studio/GPU/Viewer/browser, curve/general-fill/frame family, full64-cut geometry,
+performance/remoteCI/release acceptance. Normal push follows; remaining08 precedes09.
+
+### Existing API/domain boundary review — intake only, 2026-10-29
+
+[Supplied source-only review and20-file current delta](notes/commercial-readiness-intake-2026-10-29/api-boundary-supplement/README.md)
+attach to existingR4/R5/R7. Preserve closed batches/fingerprints, owner/HOLD and current priority.
+Pin0867 static179Studiofiles/188Modelsubpaths/702literaldeclarations are not runtime loads or a duplicate
+rate. Value-import cycles and distributed feature contracts remain source-boundary followups, not
+new runtime bugs or demands to merge every table. Selected snapshot/JSON/admission duplicate pairs
+need caller budgets, errors/order, signed-zero, UTF8/duplicate-key differential evidence before any
+own-data substitution. StudioPart remains a shared-CAD adapter. No new runtime, confirmed defect,
+issue, consolidation dispatch, cross-chat reply or priority switch is created by this intake.
+
+
+### D343 — Longitudinal mass and actual Offset result qualification (2026-10-30)
+
+Source checkpoints `f9c17c1461ad7814f89d6fefef0e358aac473596` (11 files), `3177950c40077de5b91c9965376636769417d830` (2 files) and `e1ff873c4e0de4dca628c6486c5e99e7b8bcc591` (3 files) touch14 distinct implementation paths. [Qualification](notes/prismatic-mass-stability-2026-10-30/qualification.json) preserves baseline and all first failures. Factored longitudinal h2/h3 fixes the captured outside-body normal centroid. A shared Offset postcondition validates the exact actual last target, native closure/cap levels and actual eager/deferred Model normal mass; a surviving witness cannot hide an empty target. No new minimum, geometry tolerance, schema or dependency.
+
+Chrome cap half-widths3 and3.0000000000000004 explain run01 VALUE refusal; complete four-span rational proof remains the circle authority. Exact stored cap heights preserve source/cutter identities and resolve run02 public-name alias. Same-level first-containing order stays unchanged; native geometry and mass are exactly unchanged apart from names. Final Kernel2325PASS/0FAIL/6existingSKIP (2331 total), Model86PASS/types/lint and Studio build pass. API adds one app helper with no removed/changed old shape. Unaffected API/generated/chat/Studio type receipts are reused with explicit scope.
+
+Run03 uses one Chrome/WebGPU process and3 serial contexts:14 observational states,6 native reads,4 independent interval/mass oracles,4 accepted Studio raw-mass reads,2 real mouse picks,2 cleared-selection checks and1 native Save/fresh Open. Undo/Redo and ordinary+2 control pass. Root separately reviews4 images as UI/render presence only; pixels cannot resolve the4ULP interval. Preserve run01 preview FAIL and run02 public identity FAIL. Frozen728/after/cleanup match from an initial13-file subset; errors/console/watchedchanges0.
+
+The separate native quadrature volume/tangent-centroid anomaly remains UNREPAIRED and next under existing16/CG10, with raw STEP validation consumer identified but export/readback NOT_RUN. The next plan is source-only until reproduced. Continue remaining08 afterward, then09; delivered07 and queued Electron15 remain unchanged. No full Model/Studio suite, performance, remoteCI, release or whole-roadmap acceptance. Normal push follows documentation qualification.
+
+
+### D344 — Native whole-patch conditioning and default STEP proof (2026-10-30)
+
+Source `fbf8a7afb555ee7302bd3c6a6ed9e034a9a8b51a` changes seven files; `28a80e8695a92e92e5e50f6a5d34c569a02c0e5f` corrects two overlapping verification files, seven distinct implementation paths. [qualification](notes/native-quadrature-conditioning-2026-10-30/qualification.json). The existing late integration-origin subtraction cannot restore information lost by absolute weighted control products and U-column sums. Independent exact stored-node and observed-intermediate arithmetic isolates that loss across 572 actual side nodes; both sides use wholePatch, both caps are planar, and meshed=false. Move the body-global origin before homogeneous products and pass local points to a shared field accumulator. Keep original native data, classification, nodes/rules, fallback conversions, density/method/errors, schema and dependencies.
+
+Old registered tests:6PASS/5FAIL; candidate:11PASS, related81PASS. Root full Kernel:2336PASS/0FAIL/6existingSKIP,2342 total. Model new STEP2+existing23=25PASS, types/lint and Studio types/build/driverlint pass. API/generated checks have no export-shape delta. Same-script CPU samples report ordinary median−0.15%, tiny+6.02%; seven batches do not establish a significant speed or regression result. Geometry/control data/names/counts/strict validity are unchanged, while previously wrong native mass intentionally changes.
+
+Actual run02 uses one Chrome and two serial contexts, ten observations/four native reads/three STEP exports plus one native save, one real cap pick/Offset, Undo/Redo/fresh Open. Default STEP metadata uses raw native quadrature with no upright-provider override; a target-only document prevents witness aggregation from hiding the tiny error. Volume6.278163296415527e-15 and corrected tangent center survive export; exact four-ULP cap planes, names and strict four-face closed-solid readback remain. Root separately views four images as UI presence only. Initial14-file subset expands to978 frozen entries, matching after/cleanup; page/console/watch errors0, all resources close.
+
+Preserve run01 FAIL: metadata box.maxZ5.345768900000001 differs one ulp from native cap5.3457689. Source/data prove sampled bounding growth, with exact exported/imported geometry retained. The test-only follow-up uses finite ordered strict enclosure and the existing1e-7 outward limit; actual cap/mass checks stay exact. No STEP product repair or tolerance change. Full Model/Studio suites, global central inertia/all11fields/extremes/universal quadrature/π accuracy, remoteCI and release remain unqualified. Continue remaining08, then09;07 delivered/Electron15 queued. Next polygon-hole mask plan is source-only.

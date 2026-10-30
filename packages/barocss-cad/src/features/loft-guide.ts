@@ -3,6 +3,7 @@
 import { BrepError } from '../brep/brep-core.js';
 import { ExtrudedProfileLimits } from './extruded-profile-solid.js';
 import type { loftSolid, LoftInput } from './loft.js';
+import type { LoftNurbsGuideInput } from './loft-nurbs-guide.js';
 import type { Point } from '../types.js';
 
 const fail = (detail: string): never => { throw new BrepError('INPUT', `loft: quadratic guide ${detail}`); };
@@ -50,4 +51,4 @@ export function admitLoftGuide(value: unknown, start: Point, end: Point, normal:
 // Internal callback only: public LoftInput and loftSolid retain their existing signatures.
 export type LoftGuide = ReturnType<typeof admitLoftGuide>;
 export type LoftGuideFactory = (start: Point, end: Point) => LoftGuide;
-export type LoftLegacyBuilder = (input: LoftInput, guide?: LoftGuideFactory) => ReturnType<typeof loftSolid>;
+export type LoftLegacyBuilder = (input: LoftInput, guide?: LoftGuideFactory, nurbsGuide?: LoftNurbsGuideInput) => ReturnType<typeof loftSolid>;

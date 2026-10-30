@@ -1,0 +1,178 @@
+{
+  "beforeExposures": 6830,
+  "afterExposures": 6833,
+  "added": [
+    {
+      "key": [
+        "@barocss/cad-model",
+        "./app/nativeOffsetFace",
+        "NativeOffsetFaceProfile"
+      ],
+      "after": [
+        {
+          "package": "@barocss/cad-model",
+          "subpath": "./app/nativeOffsetFace",
+          "exportName": "NativeOffsetFaceProfile",
+          "space": "type",
+          "observedRole": "unclassified-observed; no policy exemption",
+          "variants": [
+            {
+              "conditions": [
+                []
+              ],
+              "target": {
+                "package": "@barocss/cad-model",
+                "file": "src/app/nativeOffsetFace.ts",
+                "name": "NativeOffsetFaceProfile",
+                "kind": "interface"
+              },
+              "shape": {
+                "type": "NativeOffsetFaceProfile",
+                "declarationSignatures": [
+                  {
+                    "kind": "InterfaceDeclaration"
+                  }
+                ],
+                "members": [
+                  {
+                    "name": "axis",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": true,
+                    "type": "Axis"
+                  },
+                  {
+                    "name": "coordinate",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": true,
+                    "type": "number"
+                  },
+                  {
+                    "name": "kind",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": true,
+                    "type": "\"polygon\" | \"circle\""
+                  },
+                  {
+                    "name": "opposite",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": true,
+                    "type": "number"
+                  },
+                  {
+                    "name": "sign",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": true,
+                    "type": "1 | -1"
+                  },
+                  {
+                    "name": "sketch",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": true,
+                    "type": "SketchNode"
+                  },
+                  {
+                    "name": "thickness",
+                    "kind": "property",
+                    "optional": false,
+                    "readonly": true,
+                    "type": "number"
+                  }
+                ],
+                "indexSignatures": []
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": [
+        "@barocss/cad-model",
+        "./app/nativeOffsetFace",
+        "resolveNativeOffsetFace"
+      ],
+      "after": [
+        {
+          "package": "@barocss/cad-model",
+          "subpath": "./app/nativeOffsetFace",
+          "exportName": "resolveNativeOffsetFace",
+          "space": "value",
+          "observedRole": "unclassified-observed; no policy exemption",
+          "variants": [
+            {
+              "conditions": [
+                []
+              ],
+              "target": {
+                "package": "@barocss/cad-model",
+                "file": "src/app/nativeOffsetFace.ts",
+                "name": "resolveNativeOffsetFace",
+                "kind": "function"
+              },
+              "shape": {
+                "type": "(ctx: Ctx) => NativeOffsetFaceProfile",
+                "declarationSignatures": [
+                  {
+                    "kind": "FunctionDeclaration"
+                  }
+                ],
+                "callSignatures": [
+                  "(ctx: Ctx) => NativeOffsetFaceProfile"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": [
+        "@barocss/cad-model",
+        "./app/nativeOffsetFace",
+        "validateNativeOffsetDistance"
+      ],
+      "after": [
+        {
+          "package": "@barocss/cad-model",
+          "subpath": "./app/nativeOffsetFace",
+          "exportName": "validateNativeOffsetDistance",
+          "space": "value",
+          "observedRole": "unclassified-observed; no policy exemption",
+          "variants": [
+            {
+              "conditions": [
+                []
+              ],
+              "target": {
+                "package": "@barocss/cad-model",
+                "file": "src/app/nativeOffsetFace.ts",
+                "name": "validateNativeOffsetDistance",
+                "kind": "function"
+              },
+              "shape": {
+                "type": "(profile: NativeOffsetFaceProfile, distance: number) => void",
+                "declarationSignatures": [
+                  {
+                    "kind": "FunctionDeclaration"
+                  }
+                ],
+                "callSignatures": [
+                  "(profile: NativeOffsetFaceProfile, distance: number) => void"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "removed": [],
+  "changed": [],
+  "otherTopLevelChanges": []
+}

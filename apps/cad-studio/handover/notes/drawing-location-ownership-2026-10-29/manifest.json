@@ -1,0 +1,1648 @@
+{
+  "algorithm": "SHA-256",
+  "excludes": [
+    "manifest.json"
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 5146,
+      "sha256": "4bbf4c08834a7ebc85496d1927796e92c795fb9d1197c473fb604a2a87aba3d8"
+    },
+    {
+      "path": "agent-tools.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "agent-tools.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "api-adoption.json",
+      "bytes": 287,
+      "sha256": "b3bb1f88e626cb4e8925ad69cca0fe9acecd2143165333147ec7f48484e76501"
+    },
+    {
+      "path": "api-candidate.json.gz",
+      "bytes": 907383,
+      "sha256": "1a1e3851bd7c8d5ea773859d0c1d6b1f90585ad07c56d762348f75d35ce8b15d"
+    },
+    {
+      "path": "api-check.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "api-check.json",
+      "bytes": 626,
+      "sha256": "6561af8f83cd992da89fd6c17e5651c6cc77ff471ff0beeae8530a6d29d7f6af"
+    },
+    {
+      "path": "api-delta.diff",
+      "bytes": 2734,
+      "sha256": "25956f2cc9c5d812561b2ecbaa62c31df8b94a54e8bc0ffd9ac4cd0a7d5a9460"
+    },
+    {
+      "path": "api-delta.json",
+      "bytes": 840,
+      "sha256": "1b9bd76d9ecb77b893908261bee7c46b23bc7b22fdbff57f6c292e3f9fa520a2"
+    },
+    {
+      "path": "api-expected-before.json.gz",
+      "bytes": 907130,
+      "sha256": "767e12471c5e02c574c804a1f440fca0573b260cac72dd4b42cddc2379e98a44"
+    },
+    {
+      "path": "api-first-candidate.json.gz",
+      "bytes": 907298,
+      "sha256": "b3e8e60cf8580b4eae715e819273ea39570d6c0aaf431896da93461fe3232b30"
+    },
+    {
+      "path": "api-generate.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "api-generate.txt",
+      "bytes": 559,
+      "sha256": "b928d0692923cd4ab244dd35a673ac6ca17cde2dfd6cc7f6afbfa8dc2fef4df6"
+    },
+    {
+      "path": "baseline-acquire.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "baseline-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "baseline-source/auto.ts",
+      "bytes": 30779,
+      "sha256": "158e078a8699a8594466bf82a2cf94174679742d1edfb8ed3317460a86a2032a"
+    },
+    {
+      "path": "baseline-source/dimensions.ts",
+      "bytes": 13631,
+      "sha256": "7fa01279b49f182b96b83e9025d72dafaa5d4e95bfe1109b6e3b0926b8220ad2"
+    },
+    {
+      "path": "baseline-source/issues.ts",
+      "bytes": 70460,
+      "sha256": "6674bbfff06533d96f27bc142e21cacb10e1dd3a9598e5bd10a41a2ffe21fe0c"
+    },
+    {
+      "path": "baseline-valid-build.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "baseline-valid-build.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "baseline-valid-sources.json",
+      "bytes": 826685,
+      "sha256": "ef27a969f129a868a659113a56b321066e479afe36c3a8c887e5025db1c84bfe"
+    },
+    {
+      "path": "baseline-valid.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "baseline-valid.mjs",
+      "bytes": 1546,
+      "sha256": "28b9b4cf5fe6550688f88d263309c1320357a7b92b992ef58bfb313705bfa72a"
+    },
+    {
+      "path": "baseline-valid.test.mjs.gz",
+      "bytes": 1441886,
+      "sha256": "a032b697a0c07f6f5d960ee4d3200b116e9f5d503ea5bd294a2e17522fd62ff4"
+    },
+    {
+      "path": "baseline-valid.txt",
+      "bytes": 7363,
+      "sha256": "03828eaa4c8569325ecba32837e42479b38bcfe83375a777deceebd5bcddbd47"
+    },
+    {
+      "path": "baseline.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "baseline.sh",
+      "bytes": 627,
+      "sha256": "03996507cf77e456f7df5ad6996c2fb66a3f9be7c9f581b971700c36c492c51a"
+    },
+    {
+      "path": "baseline.txt",
+      "bytes": 3739,
+      "sha256": "2e469ef11e82fcd7320b746464d35435d571388b1123a2bbc659cbb870b6b93e"
+    },
+    {
+      "path": "check-acquire.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "check-acquire.txt",
+      "bytes": 44,
+      "sha256": "aecdf0a379895408d2660b5793dc161fd66ea8bb064fe55281cefbe6850f0921"
+    },
+    {
+      "path": "check-release.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "check-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "check-second.sh",
+      "bytes": 897,
+      "sha256": "6f1b2c363bda8a29a05b9fbdb66af6d1da03580223de0ec23feced4108011882"
+    },
+    {
+      "path": "check-third.sh",
+      "bytes": 921,
+      "sha256": "d16b6eed460e64c10d947c8f4c30a5dd20c7c743944dc5d6594a7c37d07503d7"
+    },
+    {
+      "path": "check.sh",
+      "bytes": 893,
+      "sha256": "faf3d044a623a067fe88b57036f3689d2315cac6cbde5902a1b1b55d4a715be3"
+    },
+    {
+      "path": "docs-acquire.txt",
+      "bytes": 44,
+      "sha256": "aaaea1363eba849db539d7ca6d802f9664d16048ca8fbc9669c92ce0a950b75e"
+    },
+    {
+      "path": "docs-final.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "docs-final.txt",
+      "bytes": 68,
+      "sha256": "311d9938df550c33b29d042bfd9e0824929872dd7f60d4e002305addf2e68041"
+    },
+    {
+      "path": "docs-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "empty-selection-guard-final.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "empty-selection-guard-final.txt",
+      "bytes": 47,
+      "sha256": "8518e8a71794c5d725aa3d4c09beadcc0f1a2461963566a97b6db5e5b0d79537"
+    },
+    {
+      "path": "empty-selection-guard.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "empty-selection-guard.txt",
+      "bytes": 47,
+      "sha256": "8518e8a71794c5d725aa3d4c09beadcc0f1a2461963566a97b6db5e5b0d79537"
+    },
+    {
+      "path": "empty-selection-original.txt",
+      "bytes": 570822,
+      "sha256": "914fa655141dd998475b2b3c4afe060c40e997f710146a00c60ed1afccd16431"
+    },
+    {
+      "path": "final-acquire.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "final-acquire.txt",
+      "bytes": 44,
+      "sha256": "e5defb15550dd12640d42fe53e22ece23a10f3e5f7e51abbd84f57274fc63e72"
+    },
+    {
+      "path": "final-check.sh",
+      "bytes": 1540,
+      "sha256": "d11cd5434f3f8f8bbe4b42db2d398919db4d231e501386a8597688ac08be059b"
+    },
+    {
+      "path": "final-release.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "final-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__App.tsx.gz",
+      "bytes": 56134,
+      "sha256": "d19a58a031ccbe626119b2de23240e814ad016a33acf897546cdd158fed006d4"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__engine__client.ts.gz",
+      "bytes": 5486,
+      "sha256": "6a32adac7b0b8ed9ed50008a279efcabdb78a0b45103c186dd45bb0f63be3362"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__ui__DrawingWorkspace.tsx.gz",
+      "bytes": 19213,
+      "sha256": "4c7f0a08fb06d030afe03962df31a9877ae91baef2c5edfeca5ee01ec0be8393"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__ui__drawing__BreaksList.tsx.gz",
+      "bytes": 1474,
+      "sha256": "59eafb57854bbd27d6dc0d62a585605f01312d6b65b5471ad54a7c93ee35a65d"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__ui__drawing__DatumTargetsEditor.tsx.gz",
+      "bytes": 2354,
+      "sha256": "3c1a2688996e3b4a0e7dd6a98b4973637b41cf77d3c4d6976850a8d7286b9b43"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__ui__drawing__DatumsEditor.tsx.gz",
+      "bytes": 1360,
+      "sha256": "e1087fcc6a8e0c51a7fd56cec641b5ccdeadc1c28e8cdf0f557b4b103359bdfb"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__ui__drawing__DetailsList.tsx.gz",
+      "bytes": 1270,
+      "sha256": "7ab01655039c03bb04106881eb70695e94f2288a14ea2b9840012018df10ca91"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__ui__drawing__DimensionsList.tsx.gz",
+      "bytes": 1227,
+      "sha256": "2e77f4314926ca3deafe334b647d5c47405d12b429e6dbacb4adc0f512fcd7c9"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__ui__drawing__DrawingMetadata.tsx.gz",
+      "bytes": 1643,
+      "sha256": "ccfa8139bed2839990520ef7d45bab368c11005d9762587a87ad4ea44ccfe7ad"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__ui__drawing__ExportActions.tsx.gz",
+      "bytes": 1124,
+      "sha256": "cedb4b71c209a14a87204c209c2ed660525f640aa8d2125f5dbc9790bb1a24a2"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__ui__drawing__FrameEditor.tsx.gz",
+      "bytes": 2879,
+      "sha256": "7bbc6b6fcb61060083cb5f0807cc01234f6e1fa8e449e5ce1bcae3f0c627ce0f"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__ui__drawing__IssuesList.tsx.gz",
+      "bytes": 1097,
+      "sha256": "84eba25deb3f7beb5fea2ec6565bf4fc3787c92f9e439e25e26bfbaa230f6a11"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__ui__drawing__NotesList.tsx.gz",
+      "bytes": 1124,
+      "sha256": "1c1615427dcc4823a7851fc954d3b08d8ebb4f82bb7eff4af07e4881dc7a5980"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__ui__drawing__SectionKind.tsx.gz",
+      "bytes": 2341,
+      "sha256": "dd90e894b11f43f81ae9d29c2780ec64722c3a1c168047797ab69e51b6d226ab"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__ui__drawing__SheetSettings.tsx.gz",
+      "bytes": 4372,
+      "sha256": "ac97ec3137a630e8bd11e869017a97fdf75ba71f6e74a88276633652cc8b8ecb"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__ui__drawing__StandaloneFramesEditor.tsx.gz",
+      "bytes": 1407,
+      "sha256": "a30127b983a8455f2e3590f55fb27716cf86a7f170506f4ee3ac7d628c2b875a"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__ui__drawing__ToleranceEditor.tsx.gz",
+      "bytes": 1410,
+      "sha256": "23c0df10e10c5224a564bc9220c0c203629943ea2a03973e1ad6937044fe6065"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__ui__drawing__TolerancingList.tsx.gz",
+      "bytes": 1265,
+      "sha256": "b97b6a4755fed524e0dfa2880e45e0bcb19f4712c05a3a517cadc367ff572c82"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__ui__drawing__sheetShared.ts.gz",
+      "bytes": 534,
+      "sha256": "c171b905e307c9cf03cb34f841bfb2bd40d17d6b07f989484a074b1645442046"
+    },
+    {
+      "path": "final-source/apps__cad-studio__src__ui__useDrawingSheet.ts.gz",
+      "bytes": 4032,
+      "sha256": "c2dbe549be0b72683e46dc0a1b7ded99301529572bde859b2c4bdee386c2e419"
+    },
+    {
+      "path": "final-source/apps__cad-studio__test__browser-flow.mjs.gz",
+      "bytes": 176939,
+      "sha256": "7d2d08f23345d0fc2d5ca44a453cbd5ac04d471f58040fc4d715072d2bda8ebb"
+    },
+    {
+      "path": "final-source/apps__cad-studio__test__drawing-independent-location-browser.mjs.gz",
+      "bytes": 5422,
+      "sha256": "f58a77a9da89bbf3b5716cf515c7a46510c9bf1450a8d6d3936ea04773821944"
+    },
+    {
+      "path": "final-source/apps__cad-studio__test__fixtures__drawing-independent-location.bcad.gz",
+      "bytes": 1557,
+      "sha256": "5ba212a08a85d422ff4118e16a4922c215c4a23aa12c8890c2df17526d70d4d7"
+    },
+    {
+      "path": "final-source/browser-flow.before-history-driver.mjs.gz",
+      "bytes": 176415,
+      "sha256": "ace2f9de307dfd01d6daf45bbbcc634b92ce9b7f6459d5d54b3fefae59f36edd"
+    },
+    {
+      "path": "final-source/browser-flow.mjs.before-final-driver-and-guard.gz",
+      "bytes": 176931,
+      "sha256": "dd540f1e5fb92368d6fd27741ad371213c5dd579c0683ec2df89b527ee85f5d7"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__README.md.gz",
+      "bytes": 2382,
+      "sha256": "f82cf00cf02765fd73e77a37f62da8879c6dd44db5bf317395242a2c70dbc1c9"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__scripts__test.mjs.gz",
+      "bytes": 875,
+      "sha256": "24269fb1052f7716fee0ec7abaa97cd9e2a7b5456618e5faf2422ccfbe31b86c"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__chat__drawing.ts.gz",
+      "bytes": 7459,
+      "sha256": "33939e221f79f6270f0fd2461677cdc5a5dfcf977b8123c27f629928624bbea1"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__annotations3d.ts.gz",
+      "bytes": 5936,
+      "sha256": "c50bf17247014267b7d506b11eb858e5fdef46107dc7f46a2800f8c6de9c919c"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__auto.ts.gz",
+      "bytes": 10648,
+      "sha256": "3c4e07861fcbe2f8f6b04848ce20d5e7c4b16f25bae27c796d5760f10fcea14a"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__balloons.ts.gz",
+      "bytes": 4406,
+      "sha256": "91bcf03d51e872863ceecec95546f996b903135a9d13c7a776e72f378a731856"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__breaks.ts.gz",
+      "bytes": 4082,
+      "sha256": "1917c1f2d5af7589fe7e472c395f1c240a82eba62e3be6e920d0fef25c07bd59"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__callout.ts.gz",
+      "bytes": 1829,
+      "sha256": "499ac8443ef71e3b20d082acf2e2750d59eaefad5e381af7ec8753dd9303b377"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__centres.ts.gz",
+      "bytes": 1432,
+      "sha256": "40ae9be6130555a512e05a5124198a084c0c126a092ce0c4fdd2c7d9a1477307"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__controls.ts.gz",
+      "bytes": 4553,
+      "sha256": "12f819c2ed556a85d6544d0448add8f7eca900142e1ef2b9e60c8d0aa8f98eba"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__datumTargets.ts.gz",
+      "bytes": 3398,
+      "sha256": "db1a5f5bd135cc491d2cd8a594bf05a52dfcbdc20703c8edff0ef764a920360a"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__datums.ts.gz",
+      "bytes": 2504,
+      "sha256": "04fc57876491daf511bb48cbf2799ca7b1086394589eb13e96b051bddc3b00dd"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__detail.ts.gz",
+      "bytes": 4412,
+      "sha256": "af9525013a4e230146c803d70df925a7f4847ec07f2f79408dbc8615c7a67db2"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__dimensions.ts.gz",
+      "bytes": 4722,
+      "sha256": "8042d3eee58649f807bbd594264321cb6430795180ca4f54d37790ce3f8c6186"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__elementCallouts.ts.gz",
+      "bytes": 2794,
+      "sha256": "119442f822a5d816b80d22e3b69211449160191ef6cdd8e480ab1655601f4997"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__elementTables.ts.gz",
+      "bytes": 2554,
+      "sha256": "effd607a4b4207b7f93150c76a73e07b320b176d313d6a596cbd8ecb60a7161b"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__fits.ts.gz",
+      "bytes": 1505,
+      "sha256": "975fc229a99a8b288ab9b0eca3c40ad928dd0107fc2c06ff059e0a9242cd6858"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__issues.ts.gz",
+      "bytes": 21299,
+      "sha256": "c335c7c9f6d806c02028a6f78ccfe6ba1d519dd0ce3d16f6e29c9a545aa255de"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__layout.ts.gz",
+      "bytes": 6245,
+      "sha256": "be076b15fec21801b25d02dfb8b644c90068e22475d0de5d26fe650b6eec7d9f"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__measurement.ts.gz",
+      "bytes": 1764,
+      "sha256": "bcaec302f37ead4d272f87eaf1cf967d8ecb36c204094655b4b716a7642451ed"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__metadata.ts.gz",
+      "bytes": 1687,
+      "sha256": "cc8d9f4462a2179ab4d1701b884a9131f89807b65470711acedbcac3fccbe630"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__options.ts.gz",
+      "bytes": 4922,
+      "sha256": "c6a158e2efce5fb126284de48bc862cbbe1925203a51807528a40a56ab99e510"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__project.ts.gz",
+      "bytes": 1077,
+      "sha256": "0476e5dd348460f3ced69537694b001fce83545dfb6870c617efa04fb1bf1acc"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__reorient.ts.gz",
+      "bytes": 3595,
+      "sha256": "b88392df821ff7a538b47e0a69f5b5f49b26ff0f85d65b8e63c03e116ea900bf"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__scope.ts.gz",
+      "bytes": 1696,
+      "sha256": "94597150aa51582793c4ec10ddcd61b6ab969faca8a258b679bc5464aa6bb32e"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__section.ts.gz",
+      "bytes": 5244,
+      "sha256": "58df6feadf2b5509f36670fb5b8498cde1f1202fb1de8c6e07840452b8e2f4e9"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__sheet.ts.gz",
+      "bytes": 23512,
+      "sha256": "b9350405ebb4a48221596d400944bdd5ead68fdec8a3d56b9b998ff82957bac4"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__table.ts.gz",
+      "bytes": 2027,
+      "sha256": "ebc51bad337b6dc16bc73c688302cfd762d09ef12eb1118286f1d7b595effa5b"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__tables.ts.gz",
+      "bytes": 2381,
+      "sha256": "edc3d991c7d34ae4c4cd17aa760ae36e8bd6bc558ffbd3a8e44f924bafbaee47"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__text.ts.gz",
+      "bytes": 1038,
+      "sha256": "584f3de1943677f6276334dcfbc439fdd03f891fe4053075e9f604138e4c9a4e"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__threads.ts.gz",
+      "bytes": 1672,
+      "sha256": "c71bc9ce24a34b50633283043ce700afa3955fc8f62418eb061d49794440a657"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__tolerance.ts.gz",
+      "bytes": 6107,
+      "sha256": "04821c51077947dc8e6e3d5360ec89a4c4bc6e146e81bee3284202d5dfac14c2"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__types.ts.gz",
+      "bytes": 8968,
+      "sha256": "543fc875ba1ebb8b7664e5344712213c9934d6a3695d96caeac5c234ae3db5a7"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__views.ts.gz",
+      "bytes": 5678,
+      "sha256": "e0d0b03ae51a96fe00007eca29b263bc4cd1c823d713426fa18122dc3143731a"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__src__drawing__welds.ts.gz",
+      "bytes": 4020,
+      "sha256": "533f22ec26dc3ee2132a405c7a78e1d20c64c084fd9ea95f82c41d2e9670e966"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__test__auto-dimension.test.ts.gz",
+      "bytes": 3636,
+      "sha256": "8177605aeb240382d76c014af37a49f8f76f980922a08aa62b249593c091976b"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__test__auto-layout.test.ts.gz",
+      "bytes": 3029,
+      "sha256": "767037dae38a5af979e2c4a1382783c37aff1c2120d07ac54b5ac88f0deba5ed"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__test__drawing-independent-locations.test.ts.gz",
+      "bytes": 3878,
+      "sha256": "cbe3552a6f968b10b4b7ef91784b5e21e2b17c83035b6e739a22069006c0bd4c"
+    },
+    {
+      "path": "final-source/packages__barocss-cad-model__test__drawing-issues.test.ts.gz",
+      "bytes": 3764,
+      "sha256": "0c9242704bacffd0bafb095d838f9f8d12dd6743e0b0b2b165956b4fff15d6fb"
+    },
+    {
+      "path": "final-source/packages__barocss-cad__conformance__r14__hole-row__case.json.gz",
+      "bytes": 807,
+      "sha256": "9fbd713291b2543317401f085babb6906dc01f472905047b39b12f7b5657e6a2"
+    },
+    {
+      "path": "final-source/packages__barocss-cad__conformance__r14__pcd-square-grid__case.json.gz",
+      "bytes": 756,
+      "sha256": "4490fd1e31cb8e60ac8141a054c556938217a6a9d6f4d1666a5671396215cb97"
+    },
+    {
+      "path": "final-source/profile-before-final-driver-and-guard.json",
+      "bytes": 22249,
+      "sha256": "143b22d3595fbbb55973cfa100e788d1479c4d7b63d33e8483fd82d1aa04031d"
+    },
+    {
+      "path": "final-source/profile-before-history-driver.json",
+      "bytes": 22249,
+      "sha256": "6885575c85889283198981269a8c1dcbfbaa3d6a9574f4c83d10ee9705c5ddab"
+    },
+    {
+      "path": "final-source/profile.json",
+      "bytes": 22249,
+      "sha256": "29639178c0ca0abbd62a6d87873cf09586fb090e4e2c1ce9f6c94fa7cfc30800"
+    },
+    {
+      "path": "final-source/test.mjs.before-final-driver-and-guard.gz",
+      "bytes": 871,
+      "sha256": "b176ebbdf488adfa3f145a364c7df9d74fbec6ee5edfb12a7f663130f7a28173"
+    },
+    {
+      "path": "first-api-generate.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "first-api-generate.txt",
+      "bytes": 559,
+      "sha256": "b928d0692923cd4ab244dd35a673ac6ca17cde2dfd6cc7f6afbfa8dc2fef4df6"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__src__App.tsx.gz",
+      "bytes": 56134,
+      "sha256": "f6aa29a05f2948513f8bfdd5c3a66b199f022a65ac16134ce5a6ea41c2dfe0de"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__src__engine__client.ts.gz",
+      "bytes": 5486,
+      "sha256": "d5f1e48c093852bf49d2536ac7323911f9316ece42d99d6740bd6757590b9da4"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__src__ui__drawing__BreaksList.tsx.gz",
+      "bytes": 1474,
+      "sha256": "1dc63155abee0751521a60ec9051f0001be079d3f3e0aebafdab4460f9b03455"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__src__ui__drawing__DatumTargetsEditor.tsx.gz",
+      "bytes": 2354,
+      "sha256": "dd96f149d85c6161ab4aefc8c5e2c678dc292704264468a0fc1ee1730031fdf6"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__src__ui__drawing__DatumsEditor.tsx.gz",
+      "bytes": 1360,
+      "sha256": "133d8e8ec5fcc8766c97bae8d3721cead02a21c59e5c3e3312287074b2982a44"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__src__ui__drawing__DetailsList.tsx.gz",
+      "bytes": 1270,
+      "sha256": "35571e345a3e7571da810af7f90ba10d3393534e027389b69862e93f051fb697"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__src__ui__drawing__DimensionsList.tsx.gz",
+      "bytes": 1227,
+      "sha256": "5bebea0dbadcf6c8bbaf4f3e26a747e97935244f843813866513c13467a829e6"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__src__ui__drawing__DrawingMetadata.tsx.gz",
+      "bytes": 1643,
+      "sha256": "804df44ad808effaee823cfa9d1a3a47e4685623485d9802792d34fbf78d8b53"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__src__ui__drawing__ExportActions.tsx.gz",
+      "bytes": 1124,
+      "sha256": "0453bd0701526bafc9c29a3146abd7766d2cd612de6ad7d8486bfdaaff7ccc5e"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__src__ui__drawing__FrameEditor.tsx.gz",
+      "bytes": 2879,
+      "sha256": "b19ed22a6deb337580acaae89f82dc7da35312d9b66ce2d73d8a2df387222696"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__src__ui__drawing__IssuesList.tsx.gz",
+      "bytes": 1097,
+      "sha256": "8524ea699eddecbc3775e6e4fd015bfd7ca6613f6195f42e38acfb26cd49c173"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__src__ui__drawing__NotesList.tsx.gz",
+      "bytes": 1124,
+      "sha256": "182e5d788139dc11e51854c9aa2daa6604820c19c34d54cfcdcd5a10dd337073"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__src__ui__drawing__SectionKind.tsx.gz",
+      "bytes": 2341,
+      "sha256": "01ea5d5d36696ba6b1c9a651e08929cbafd217051422cf5540f54464b0b3d9df"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__src__ui__drawing__SheetSettings.tsx.gz",
+      "bytes": 4372,
+      "sha256": "19d7423d79755b72866709ad5c49ee026638844ce1540434847dae02c43a4b14"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__src__ui__drawing__StandaloneFramesEditor.tsx.gz",
+      "bytes": 1407,
+      "sha256": "cad68c29daedea49775bf90e2448de34383d0ade751326d1b11f7229fb6f7fc1"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__src__ui__drawing__ToleranceEditor.tsx.gz",
+      "bytes": 1410,
+      "sha256": "bd168b4c2a3218daa136616feaf7c38f12fdd6d5e489fbfc5f24c6fbc817df99"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__src__ui__drawing__TolerancingList.tsx.gz",
+      "bytes": 1265,
+      "sha256": "6866338ff2d502d417270373c6c4f58bc5f423cd94318556375ab1701ae4fe1e"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__src__ui__drawing__sheetShared.ts.gz",
+      "bytes": 534,
+      "sha256": "1b153fe9524c84ccd3e5e1bb3f20b53ee03469d314c8c01e246bb501f4f455a8"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__src__ui__useDrawingSheet.ts.gz",
+      "bytes": 3955,
+      "sha256": "ab66a9036401cb811bcea90c71fe362157c9903717adad3aa6f6dc93688c3964"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__test__browser-flow.mjs.gz",
+      "bytes": 176415,
+      "sha256": "d46c75a387be3e4b33050662fec423ba0f77528870aff642d26b385728701c9b"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__test__drawing-independent-location-browser.mjs.gz",
+      "bytes": 5422,
+      "sha256": "7d17a47f4d7a0afeece11c60e48bb971aee4c530f4576cbb1053c6ded594202d"
+    },
+    {
+      "path": "first-candidate-source/apps__cad-studio__test__fixtures__drawing-independent-location.bcad.gz",
+      "bytes": 1557,
+      "sha256": "d8d5ffe70dda597c4c9a0391208aa66ff4770389194300bd1b3b0a27cb617460"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__annotations3d.ts.gz",
+      "bytes": 5936,
+      "sha256": "54c3dcadb36c2853191060fb587287042fe7ba7b29f4c0edebe863d10c7d1bb7"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__auto.ts.gz",
+      "bytes": 10606,
+      "sha256": "f95e9364c35df8ee5e0ae654c31ab98398251d4897489e3f96db1e9779e5ed0e"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__balloons.ts.gz",
+      "bytes": 4406,
+      "sha256": "4330f94a0a9b6ccff20fca77c8b44bf41cbbde21e14e08b4833257f2f4f47039"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__breaks.ts.gz",
+      "bytes": 4082,
+      "sha256": "400aa45fd35f1883fde8e73787d75b36b0ef5191e33bdba8e5c9906bd0425532"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__callout.ts.gz",
+      "bytes": 1350,
+      "sha256": "c0e1b4731a355062a20fce68543a8d0ab2cf020b917c80a564853256240ae5de"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__centres.ts.gz",
+      "bytes": 1432,
+      "sha256": "6d4a8ce6332eaa7ab234a99e48760ff30ef8bca92e3f782f05c4dc0f1e570fca"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__controls.ts.gz",
+      "bytes": 4553,
+      "sha256": "f9b79328da8794a87e0c84fdf7ced72c3c009e40b4a5b6521f509a299ffd1dfa"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__datumTargets.ts.gz",
+      "bytes": 3398,
+      "sha256": "ead33e4baac6943d195873c48abba485bd06d4bbc48775adcf071403ccbe58eb"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__datums.ts.gz",
+      "bytes": 2504,
+      "sha256": "187e934ce586805f570a97466c55eb9eace4056c980ea3211109f799701c8c82"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__detail.ts.gz",
+      "bytes": 4412,
+      "sha256": "ed2f5bfc83f230626663e8612a11f846122d5636458c1a5f201163b97b1a39c9"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__dimensions.ts.gz",
+      "bytes": 4722,
+      "sha256": "3bb8fa2a2949e35ff3be0034aae979eb5b8a90c0d84b4480c04620fd960a9177"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__elementCallouts.ts.gz",
+      "bytes": 2794,
+      "sha256": "9e92af3b68f6fc1f7f04dcfc92f6ea4c3aa06ca36cac553d7c87b0fe38ac7f20"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__elementTables.ts.gz",
+      "bytes": 2554,
+      "sha256": "6cd61f0a1d9532ccbefbd9f593afa9f1955b6cbf16cadf82adfa6de1a5117f97"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__fits.ts.gz",
+      "bytes": 1505,
+      "sha256": "449e18c2a489ff8990f55c6a6ba795ee6b6afacd68ff250afad0df3917caaf57"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__issues.ts.gz",
+      "bytes": 21201,
+      "sha256": "0dc336e65759ddb3437c7592ad2cea6f0f2cd7a109939fdadfc5dd4550c2f277"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__layout.ts.gz",
+      "bytes": 6234,
+      "sha256": "d22048c80aa95076e501e61940bae07ec15527dcf35d283625d81929ba942078"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__measurement.ts.gz",
+      "bytes": 1742,
+      "sha256": "11b6de58312c594f01d4ddb67e885f2c99b22554a53a39d7e952d42fb745aaec"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__metadata.ts.gz",
+      "bytes": 1687,
+      "sha256": "990cbbac9f8684f090a10b7188776cc78a7eb53ddc68b793e2456acc82fe0897"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__options.ts.gz",
+      "bytes": 4922,
+      "sha256": "d04bb8686322696a42f213b70444898cb244334313feaba230576adef45b775f"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__project.ts.gz",
+      "bytes": 1077,
+      "sha256": "dd7b386cc4a3451ee7c6328895dac970298d00401f8b3d30f42cb7344fc77c83"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__reorient.ts.gz",
+      "bytes": 3595,
+      "sha256": "1cb906939a08cb54e662c48b970afbcaf58e38181bce6214e1e3518af6e31918"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__scope.ts.gz",
+      "bytes": 1696,
+      "sha256": "7d9e741c245a54765e2c56b4079c6c2b6a0d55d78462ad7a4826ad8569d7b0f0"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__section.ts.gz",
+      "bytes": 5244,
+      "sha256": "213326aa8ab19fee531fb5fb21309db0228d3acf8b1c459426d54ac8935c8fd3"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__sheet.ts.gz",
+      "bytes": 23512,
+      "sha256": "9eeac2c602fc29e5a904fa14777cac0b42286346ff7954f9c695e3b9771d7927"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__table.ts.gz",
+      "bytes": 2027,
+      "sha256": "be6141e230e0693d250215338958117ca0646fc89d9c29f99545e9cf24b4367d"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__tables.ts.gz",
+      "bytes": 2381,
+      "sha256": "f5b9c11471ed7bab7b0f6e8fa1bf7f673f251ef0d6e990c358a5c052e1d881ec"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__text.ts.gz",
+      "bytes": 1038,
+      "sha256": "5925ae3366a0951c4ee03dc95397dd0f2d4bbe728ea33b30e2d022d4cde311af"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__threads.ts.gz",
+      "bytes": 1672,
+      "sha256": "797fed18df7f8d07748c8856f91b910a6bf7f66a02881d2e9d6dec508e50f996"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__tolerance.ts.gz",
+      "bytes": 6107,
+      "sha256": "010ff3dde92b8bea2d9741b1616c9fa09f3aa0c9ee7e9dd9e692f5096f693c0c"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__types.ts.gz",
+      "bytes": 8968,
+      "sha256": "1dd2d6f1906e055dbd012637fe499fc31f8c225e5c5ddab96cb8f6b651e596dd"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__views.ts.gz",
+      "bytes": 5678,
+      "sha256": "4d79259aa8b8fc165fd9a71521daad074a7af6bea19000804519da478fd02f9d"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__src__drawing__welds.ts.gz",
+      "bytes": 4020,
+      "sha256": "c9bafa2ce7da929dbf81047ad9e2d4fa50ab7a0f75678fd5d5c8fdfaeeddabb3"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad-model__test__drawing-independent-locations.test.ts.gz",
+      "bytes": 2698,
+      "sha256": "2227449bd3abcc1d1ebd95073a37fa665b4b67bcbc124936220869246a609ec6"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad__conformance__r14__hole-row__case.json.gz",
+      "bytes": 807,
+      "sha256": "58ec5f5497707775c6dfc63195711ecf26d9aa748e9eb8f945cee10c8eb8ea3d"
+    },
+    {
+      "path": "first-candidate-source/packages__barocss-cad__conformance__r14__pcd-square-grid__case.json.gz",
+      "bytes": 756,
+      "sha256": "c025e55a31d536bedd6805c44b9b2b0dc649f260d5a6d147e9244ef6e39b39f5"
+    },
+    {
+      "path": "first-candidate-source/profile.json",
+      "bytes": 19849,
+      "sha256": "f64e13e3ca1e6bcce237152c69a47cb3039e4356f4228dfe47f9bd6fe030f340"
+    },
+    {
+      "path": "first-model-drawing.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "first-model-drawing.txt",
+      "bytes": 65967,
+      "sha256": "20dd70146a26fadb9b9ccb6c876a82a4807691e19e7cf0bf4271826fac941614"
+    },
+    {
+      "path": "first-studio-build.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "first-studio-build.txt",
+      "bytes": 19003,
+      "sha256": "9a6c0f2540f20603b3650e0e0e58721caf28a3deb4d95919436e8616e77cb071"
+    },
+    {
+      "path": "first-studio-drawing.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "first-studio-drawing.txt",
+      "bytes": 29,
+      "sha256": "c8969fc3c37f35fe8c22db9256670f423686a51ac8924939dcfe5f13d77bb614"
+    },
+    {
+      "path": "first-studio-types.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "first-studio-types.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "focused-final.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "focused-final.txt",
+      "bytes": 13494,
+      "sha256": "e6b2b902081655a1f17fb2c56fc08ef74bebd44e7f9e267caed25a872272b95d"
+    },
+    {
+      "path": "focused-first.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "focused-first.txt",
+      "bytes": 22937,
+      "sha256": "8b860e1b6d31b9f9c14e26c54ebda9cf291b9a12944106b3ae60ed5c8df9bb6e"
+    },
+    {
+      "path": "focused-second.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "focused-second.txt",
+      "bytes": 19641,
+      "sha256": "5bedf2340ab59d6a75baf06090ad2584a746bbd1e3e4db7ad59f75c471d67688"
+    },
+    {
+      "path": "focused-third.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "focused-third.txt",
+      "bytes": 14174,
+      "sha256": "762f3a2f5abf04c0c5c913e67556846e3e44987d8d50488f61d9d0431bad1fd9"
+    },
+    {
+      "path": "generated-acquire.txt",
+      "bytes": 44,
+      "sha256": "6bf752e9a468d6a980870537899264bb4c1911d592bc7e371ae47665a7072b9c"
+    },
+    {
+      "path": "generated-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "grid-targets.json",
+      "bytes": 14727,
+      "sha256": "af332645bb8bcf16d8aff387aa094ac1571c48037572b673eb868f75f7b6c599"
+    },
+    {
+      "path": "guard-positive-final.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "guard-positive-final.txt",
+      "bytes": 3652,
+      "sha256": "5518f88fdada18961f447991acac592f9d64d71d3cb0b3f059efa952cce38e36"
+    },
+    {
+      "path": "history-driver-change.diff",
+      "bytes": 6989,
+      "sha256": "2778f1a2766e12831a5e3a96688d4115770c79fb21cd12289c499561b441f721"
+    },
+    {
+      "path": "lint-final.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "lint-final.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "model-drawing.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "model-drawing.txt",
+      "bytes": 69866,
+      "sha256": "ad73528b156794fabfebcaf04570ba4547d0a48acd97f4236710376c55a5dfde"
+    },
+    {
+      "path": "native-acquire.txt",
+      "bytes": 44,
+      "sha256": "f0bd28a969a525a6748010d884370f227d0ef93851b4609910669697cf3efbd2"
+    },
+    {
+      "path": "native-first/01-open-both.png",
+      "bytes": 150265,
+      "sha256": "1d3da40df8c2e91d92ee5e0cb088d2233997588c41fc15672d6713748f36f85c"
+    },
+    {
+      "path": "native-first/02-after-fix-all.png",
+      "bytes": 157059,
+      "sha256": "a3d7f5c55681b93ee42b30800cefd1b493c44afbda86df10c86f18ee4f6d0e85"
+    },
+    {
+      "path": "native-first/03-fresh-open-both.png",
+      "bytes": 149692,
+      "sha256": "590ab83747e45b6f55f08cce2ad915ca7e69f8c7c4986c3241a465faafa6f9a8"
+    },
+    {
+      "path": "native-first/04-missing-second-location.png",
+      "bytes": 155372,
+      "sha256": "c1450b45ff23f5520740a4857d6661de77256cea0eaafdc17e2c2497b6300738"
+    },
+    {
+      "path": "native-first/05-undo.png",
+      "bytes": 157462,
+      "sha256": "bc30ddec1523d92804f38895dd8d90965961a7e01c4efa4c79fb8c378a6abaf3"
+    },
+    {
+      "path": "native-first/06-redo.png",
+      "bytes": 155399,
+      "sha256": "37275335a50805e3fb0a76544d7b7dad60b49e9df2746d9e7ba409ad34aaf9a0"
+    },
+    {
+      "path": "native-first/07-fresh-open-missing.png",
+      "bytes": 150105,
+      "sha256": "6f8b90becc1900227922d2e602dca3c2bfb9562503d27201a96ebd8ffe3ca770"
+    },
+    {
+      "path": "native-first/08-location-auto-fix.png",
+      "bytes": 150751,
+      "sha256": "10801832efea984bdbf0d66823cd639d292a683f77b4d86cdbd38aef09f306ed"
+    },
+    {
+      "path": "native-first/09-grid-open-empty.png",
+      "bytes": 137697,
+      "sha256": "3c9f2f3152b92960461ead5ab9eff18f7d15d2250fb04594aa0e31af0a37782c"
+    },
+    {
+      "path": "native-first/10-grid-auto-dimension.png",
+      "bytes": 169940,
+      "sha256": "4d89f4f4d7f03a44f74d2b0737016a393f619d17de791b1e5276468ab0f88a0e"
+    },
+    {
+      "path": "native-first/both-targets.bcad",
+      "bytes": 10838,
+      "sha256": "c824b0344953e5ad6f12253619ae6b4305dcebc8095be89f6c183b31327d828f"
+    },
+    {
+      "path": "native-first/grid-input.bcad",
+      "bytes": 1271,
+      "sha256": "8cce90776f5fd05f5192b8b59537cdbe4a1761cc2956983b460f37277464f16e"
+    },
+    {
+      "path": "native-first/missing-second-target.bcad",
+      "bytes": 10237,
+      "sha256": "4208a22a9954a8b8164b3bbe9a9bc0df487935902e2f607d7f09f6a896c3128e"
+    },
+    {
+      "path": "native-first/receipt.json",
+      "bytes": 159082,
+      "sha256": "a32911c6d83ea6e8259c5069feea33d08463a13099c495c52cbcd4122cffcc3e"
+    },
+    {
+      "path": "native-first.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "native-first.txt",
+      "bytes": 313,
+      "sha256": "306f5b1c67c8a3cc170972bf2a70eaacccc95cfb2dde38bd58bcfb8e44b31b36"
+    },
+    {
+      "path": "native-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "native-source-after.txt",
+      "bytes": 61,
+      "sha256": "b5c7f58238efed94df2e22dd972926843544c229bf95ca9e127daef61c7de431"
+    },
+    {
+      "path": "native-source-before.txt",
+      "bytes": 61,
+      "sha256": "b5c7f58238efed94df2e22dd972926843544c229bf95ca9e127daef61c7de431"
+    },
+    {
+      "path": "normal-acquire.txt",
+      "bytes": 45,
+      "sha256": "a525c58c401cd30049fbe1b2c142a8641cfc475e864581cec4e4f11741065cd0"
+    },
+    {
+      "path": "normal-first/01-starter-plate-loads.png",
+      "bytes": 257393,
+      "sha256": "24c398b55e9389ff7003eb13209769255c2db896a6d054591b965d126fbdb489"
+    },
+    {
+      "path": "normal-first/227-r14-1-auto-dimension-places-overall-sizes-the-hole-position-and-its-callout-a-hand-placed-one-is-kept.png",
+      "bytes": 250041,
+      "sha256": "44e5648c5feaec5e9d8b7f24205220cb67fbba9e6bb2d7eacbca56ae010e9615"
+    },
+    {
+      "path": "normal-first/228-r14-2-the-issue-list-names-what-is-missing-and-what-repeats-fix-all-and-a-single-fix-clear-them.png",
+      "bytes": 249928,
+      "sha256": "a117d516e1315d3af5c18d8b86cbd6efc13e0cfb8119926923fb23626490faae"
+    },
+    {
+      "path": "normal-first/231-r14-5-a-flange-s-bolt-circle-is-dimensioned-by-its-pitch-circle-located-by-its-bore-clean-in-the-dxf.png",
+      "bytes": 328929,
+      "sha256": "b3f6c4b702356f2946f86c14f605d129ed560a2f2431e29a158fb96b57152b8b"
+    },
+    {
+      "path": "normal-first/231a-r14-pcd.png",
+      "bytes": 171047,
+      "sha256": "3ac3ac0db2be74c3d1aee9bd6ae11152ec8437f41667481f8089d9b1967410c6"
+    },
+    {
+      "path": "normal-first/display.json",
+      "bytes": 161,
+      "sha256": "52cf6d93babdc65bf357a917e2b25b91a79aece76fca76fe1f0c7a7223475c95"
+    },
+    {
+      "path": "normal-first/flange.bcad",
+      "bytes": 481,
+      "sha256": "b147ca8d63c2905f96ca2ad9922ef24f73f5a2a3ebd8b1b7b36ccc3d0f902be1"
+    },
+    {
+      "path": "normal-first.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "normal-first.txt",
+      "bytes": 646,
+      "sha256": "129b86b077c08763f90a755588a1f70d5871ef905ed426228b5282b87108621d"
+    },
+    {
+      "path": "normal-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "normal-retake/01-starter-plate-loads.png",
+      "bytes": 257514,
+      "sha256": "b4b9d41aec02e8bb62932a34252a3c7e127e044caafc0694cdfcf6a7b3afa2f2"
+    },
+    {
+      "path": "normal-retake/227-r14-1-auto-dimension-places-overall-sizes-the-hole-position-and-its-callout-a-hand-placed-one-is-kept.png",
+      "bytes": 282160,
+      "sha256": "9b87b46851ebd721d6530c01263573cac3b10a6f04b573b959b477db4c07464c"
+    },
+    {
+      "path": "normal-retake/228-r14-2-the-issue-list-names-what-is-missing-and-what-repeats-fix-all-and-a-single-fix-clear-them.png",
+      "bytes": 282160,
+      "sha256": "9b87b46851ebd721d6530c01263573cac3b10a6f04b573b959b477db4c07464c"
+    },
+    {
+      "path": "normal-retake/display.json",
+      "bytes": 161,
+      "sha256": "52cf6d93babdc65bf357a917e2b25b91a79aece76fca76fe1f0c7a7223475c95"
+    },
+    {
+      "path": "normal-retake-second/01-starter-plate-loads.png",
+      "bytes": 252635,
+      "sha256": "70b2d254faac5dd7cd7c67693f7c9ecf1654b6dfcf905c4a8bf2c54f530f2b35"
+    },
+    {
+      "path": "normal-retake-second/227-r14-1-auto-dimension-places-overall-sizes-the-hole-position-and-its-callout-a-hand-placed-one-is-kept.png",
+      "bytes": 295098,
+      "sha256": "5e80c98166583fca7546f771546ec5c7a6764349de31bbd38929ce04f9e7c813"
+    },
+    {
+      "path": "normal-retake-second/227a-o16-drawing-settings.png",
+      "bytes": 54875,
+      "sha256": "eb00c2981b7e8ef2805d1e0e98f2aaa17a5a0e76517dea1fd688211055184f91"
+    },
+    {
+      "path": "normal-retake-second/227a-r14-auto-dimension.png",
+      "bytes": 187590,
+      "sha256": "1e43b26f55f9f0a81515e82f54fc20f70ce29262375d8febf3471a6431a35516"
+    },
+    {
+      "path": "normal-retake-second/228-r14-2-the-issue-list-names-what-is-missing-and-what-repeats-fix-all-and-a-single-fix-clear-them.png",
+      "bytes": 293458,
+      "sha256": "5ddfd701b451e8c596a249d55814ee231f70768f39c5160dca0b082b22b0f0dd"
+    },
+    {
+      "path": "normal-retake-second/228a-r14-issues.png",
+      "bytes": 174237,
+      "sha256": "a8ec57ef428844f886c66a9adc9f053928131e3df2bae801cbe28df2d2fb0644"
+    },
+    {
+      "path": "normal-retake-second/display.json",
+      "bytes": 161,
+      "sha256": "52cf6d93babdc65bf357a917e2b25b91a79aece76fca76fe1f0c7a7223475c95"
+    },
+    {
+      "path": "normal-retake-second.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "normal-retake-second.txt",
+      "bytes": 432,
+      "sha256": "c24634e955b9eda01678dd8597e61e002fe597c5494130c8def8610d3f4b441e"
+    },
+    {
+      "path": "normal-retake.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "normal-retake.txt",
+      "bytes": 533,
+      "sha256": "95b7e37a9293e56c34f4c6aa1f6bb40403861a77750ef148f20a661c3b35b16b"
+    },
+    {
+      "path": "normal-source-after.txt",
+      "bytes": 61,
+      "sha256": "b5c7f58238efed94df2e22dd972926843544c229bf95ca9e127daef61c7de431"
+    },
+    {
+      "path": "normal-source-before.txt",
+      "bytes": 61,
+      "sha256": "b5c7f58238efed94df2e22dd972926843544c229bf95ca9e127daef61c7de431"
+    },
+    {
+      "path": "ownership-fix.py",
+      "bytes": 8771,
+      "sha256": "217fe8225f030e2e8006817073798eebe6be22800bd085e1d5fdaa791400b76d"
+    },
+    {
+      "path": "qualification.json",
+      "bytes": 4864,
+      "sha256": "87ef6ee145870bf2888bed383dce29d3678841457b5e2bdd7f321210cafef1eb"
+    },
+    {
+      "path": "refusals.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "refusals.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "retake-acquire.txt",
+      "bytes": 44,
+      "sha256": "fb13b01fdcc463ce190171e5681cd72f69c0ff2da195ee4de47e6ed6aa680e26"
+    },
+    {
+      "path": "retake-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "retake-second-acquire.txt",
+      "bytes": 44,
+      "sha256": "6e2170c088fe4771e2d63e585cc50b68be47461b8b3facbf58b1c9e34ad06fb8"
+    },
+    {
+      "path": "retake-second-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "retake-second-source-after.txt",
+      "bytes": 61,
+      "sha256": "b5c7f58238efed94df2e22dd972926843544c229bf95ca9e127daef61c7de431"
+    },
+    {
+      "path": "retake-second-source-before.txt",
+      "bytes": 61,
+      "sha256": "b5c7f58238efed94df2e22dd972926843544c229bf95ca9e127daef61c7de431"
+    },
+    {
+      "path": "retake-source-after.txt",
+      "bytes": 61,
+      "sha256": "b5c7f58238efed94df2e22dd972926843544c229bf95ca9e127daef61c7de431"
+    },
+    {
+      "path": "retake-source-before.txt",
+      "bytes": 61,
+      "sha256": "b5c7f58238efed94df2e22dd972926843544c229bf95ca9e127daef61c7de431"
+    },
+    {
+      "path": "review/command.txt",
+      "bytes": 187,
+      "sha256": "05f642630c07e80dd8effe8881f8a1c04ff755a977ed0e25a7cc2210ff3f2229"
+    },
+    {
+      "path": "review/report.md",
+      "bytes": 4756,
+      "sha256": "93b36194f5609046023735186e695f79081d3e2f7517a8428de725904f291795"
+    },
+    {
+      "path": "review/reproduce.mjs",
+      "bytes": 1988,
+      "sha256": "e0cb92f876b57127d6d381c1cbe9ffe2e5a06b90c923a57f14e1662d352bd2f4"
+    },
+    {
+      "path": "review/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "review/stdout.txt",
+      "bytes": 398,
+      "sha256": "0b6f33d6e4c2a7bcd671b831b9646d3ff7d5c655353910e581d0c59e47c3968c"
+    },
+    {
+      "path": "review-baseline-acquire.txt",
+      "bytes": 44,
+      "sha256": "79c38bcec64f7163e560ab4ea54e783cc2050b312a7c5fcb8e5f2837ff40790c"
+    },
+    {
+      "path": "review-baseline-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "review-baseline.exit",
+      "bytes": 2,
+      "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+    },
+    {
+      "path": "review-baseline.sh",
+      "bytes": 590,
+      "sha256": "d9763aeef103dcdba3534ec757067b979e9e16eac67b5d81f186f6192316f7b7"
+    },
+    {
+      "path": "review-baseline.txt",
+      "bytes": 4759,
+      "sha256": "486432ea95d4b3695c51ec668f684ca7fb24c510f8d5d4fe2867d83719e729f5"
+    },
+    {
+      "path": "review-check-acquire.txt",
+      "bytes": 44,
+      "sha256": "12cf024bee37811418c86d554df901826da9688d1777cf5e2cc80fce0411d4d0"
+    },
+    {
+      "path": "review-check-release.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "review-check-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "review-check.sh",
+      "bytes": 1649,
+      "sha256": "16faa8fa118735fb6726bb665035e0e20a90f828b1dd3e7bd3a42d9977fc7c21"
+    },
+    {
+      "path": "review-final/command.txt",
+      "bytes": 205,
+      "sha256": "56129e965b318f1e7de5bd64ed881d968f79de441115410665a9269665d6a948"
+    },
+    {
+      "path": "review-final/profile-comparison.json",
+      "bytes": 3189,
+      "sha256": "c63842b11ce3d21c606cc21798c149c290abbfda5313a1b3e066058c4fd1a990"
+    },
+    {
+      "path": "review-final/report.md",
+      "bytes": 4873,
+      "sha256": "7d4ea6ed9660c8393fd397d1b85b110cfeac88756c34ee955101f555fc481033"
+    },
+    {
+      "path": "review-final/reproduce.mjs",
+      "bytes": 5388,
+      "sha256": "f9326dfbbfc9a32e4487e8e3a191ff67a59543311825526cd07dce5189d86583"
+    },
+    {
+      "path": "review-final/source-hashes.json",
+      "bytes": 1112,
+      "sha256": "33319b8d10f54eda7e1939c5d74dabbc55d859326d70173c1632b65c3255b1f7"
+    },
+    {
+      "path": "review-final/stderr.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "review-final/stdout.txt",
+      "bytes": 1452,
+      "sha256": "23139dbb6e7be759333ae4057a7365afc5141f4d29085ebef3b515cbfaf62d3c"
+    },
+    {
+      "path": "review-final.sh",
+      "bytes": 1649,
+      "sha256": "3464c454c3245547a00b362772d421031423f060ba04539732bd59415263e9af"
+    },
+    {
+      "path": "review-focused-final.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "review-focused-final.txt",
+      "bytes": 19554,
+      "sha256": "06fafc4e9982e7129689ea79c09aa0a76ad60f785b6288b55f8d20faa71ca896"
+    },
+    {
+      "path": "review-focused-first.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "review-focused-first.txt",
+      "bytes": 19330,
+      "sha256": "e3e5c838af367801e387d61c40f8257ab9aa824bcd44d4e41a0ec559cc2e3b15"
+    },
+    {
+      "path": "review-lint-final.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "review-lint-final.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "review-lint-first.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "review-lint-first.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "review-types-final.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "review-types-final.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "review-types-first.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "review-types-first.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "root-acquire.txt",
+      "bytes": 44,
+      "sha256": "c5b9f6d3ed9750030f8215a7d9a91aba47417b126738ae6573f352c38f07fd80"
+    },
+    {
+      "path": "root-boundary.sh",
+      "bytes": 1389,
+      "sha256": "244196acb0c64eeeaf60444989067d9c86abc50933c6f6756814149dfd959f40"
+    },
+    {
+      "path": "root-evidence/baseline-drawing.tar.gz",
+      "bytes": 164657,
+      "sha256": "88ecd3e74ff7f52e71b7ea1d7e0464480637e43b3385019188bd1359514440c0"
+    },
+    {
+      "path": "root-final-boundary.sh",
+      "bytes": 1417,
+      "sha256": "1fccedfa84ba483fb79e64db38b13658b8e95cdb6341ce26ab6c6ff663875661"
+    },
+    {
+      "path": "root-release.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "root-scoped-lint-final.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "root-scoped-lint-final.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "root-scoped-lint.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "root-scoped-lint.txt",
+      "bytes": 232,
+      "sha256": "1fb4c84ef4e85bd661c67651220c78e2702bf4830f414ce25f8a00ce1f8835ef"
+    },
+    {
+      "path": "setup-limits.md",
+      "bytes": 987,
+      "sha256": "6a438805185f93d254ae335e6017339e6ea55f94b2449a631a90550cf4ca1d66"
+    },
+    {
+      "path": "source-freeze-review.json",
+      "bytes": 3903,
+      "sha256": "99424a61a20499b0eb2f3ce73495523adf9b8331bd7e1310a4a34c3a0ba9d2e1"
+    },
+    {
+      "path": "source-freeze.json",
+      "bytes": 2985,
+      "sha256": "f63201c606904f05e8dc625a9283359c3f72b6aeb1bb8d03d1903fbda10bcc11"
+    },
+    {
+      "path": "source-watch/events.jsonl",
+      "bytes": 108116,
+      "sha256": "4403d3ff387018aae8ddae06854b43cb256d6a3cc04b29dcd72b5ff7bf85d902"
+    },
+    {
+      "path": "studio-build.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "studio-build.txt",
+      "bytes": 19003,
+      "sha256": "ebdfb2111bcc91739cbd4235fb7b8ba24a5b7ba6b12f676ab81646aee9f7d155"
+    },
+    {
+      "path": "studio-drawing.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "studio-drawing.txt",
+      "bytes": 8291,
+      "sha256": "d15c20017b53ba5fadaea55fecf6cfeb237e9f53c17046f244fb10080876355e"
+    },
+    {
+      "path": "studio-types.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "studio-types.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "types-final.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "types-final.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "types-first.exit",
+      "bytes": 2,
+      "sha256": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3"
+    },
+    {
+      "path": "types-first.txt",
+      "bytes": 2444,
+      "sha256": "d96ebe19cc63e72953ff0498dbf906464efff41e63e1d62fe8ead61927083aa1"
+    },
+    {
+      "path": "types-second.exit",
+      "bytes": 2,
+      "sha256": "53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3"
+    },
+    {
+      "path": "types-second.txt",
+      "bytes": 857,
+      "sha256": "9aa330ed461293eeb6453a58f1ac44e8df771c80fcc392e513fcc93a623ab71d"
+    },
+    {
+      "path": "types-third.exit",
+      "bytes": 2,
+      "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+    },
+    {
+      "path": "types-third.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "verify.py",
+      "bytes": 321,
+      "sha256": "767dc4021780d1b9be7e14e4624d27ed2d33bbce7f4d11d2bddf5a40580c48ab"
+    },
+    {
+      "path": "watch-source.py",
+      "bytes": 770,
+      "sha256": "8b86e5dc4bb59c78086f65491d4816989e10f3e45e70743417092c208b39ae26"
+    }
+  ]
+}

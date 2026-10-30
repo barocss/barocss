@@ -1,0 +1,49 @@
+{
+  "beforeExposures": 6833,
+  "afterExposures": 6834,
+  "added": [
+    {
+      "key": [
+        "@barocss/cad-model",
+        "./app/nativeOffsetFace",
+        "validateNativeOffsetResult"
+      ],
+      "after": [
+        {
+          "package": "@barocss/cad-model",
+          "subpath": "./app/nativeOffsetFace",
+          "exportName": "validateNativeOffsetResult",
+          "space": "value",
+          "observedRole": "unclassified-observed; no policy exemption",
+          "variants": [
+            {
+              "conditions": [
+                []
+              ],
+              "target": {
+                "package": "@barocss/cad-model",
+                "file": "src/app/nativeOffsetFace.ts",
+                "name": "validateNativeOffsetResult",
+                "kind": "function"
+              },
+              "shape": {
+                "type": "(ctx: Ctx, candidate: StudioDoc, profile: NativeOffsetFaceProfile, distance: number) => void",
+                "declarationSignatures": [
+                  {
+                    "kind": "FunctionDeclaration"
+                  }
+                ],
+                "callSignatures": [
+                  "(ctx: Ctx, candidate: StudioDoc, profile: NativeOffsetFaceProfile, distance: number) => void"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "removed": [],
+  "changed": [],
+  "otherTopLevelChanges": []
+}

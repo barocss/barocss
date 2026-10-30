@@ -1,0 +1,44 @@
+
+> @barocss/cad-model@0.0.0-experimental test /Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model
+> node scripts/test.mjs "api-curve-feature-pattern"
+
+TAP version 13
+# Subtest: path cut public API preserves the source cut and fixed asymmetric orientation
+ok 1 - path cut public API preserves the source cut and fixed asymmetric orientation
+  ---
+  duration_ms: 92.7855
+  type: 'test'
+  ...
+# Subtest: live path references re-resolve current sources and survive hidden rename and native codec
+ok 2 - live path references re-resolve current sources and survive hidden rename and native codec
+  ---
+  duration_ms: 61.501291
+  type: 'test'
+  ...
+# Subtest: path admission refuses mixed variants, unsupported curves and nested live references
+ok 3 - path admission refuses mixed variants, unsupported curves and nested live references
+  ---
+  duration_ms: 30.51
+  type: 'test'
+  ...
+# Subtest: Path command authors a stable object reference and allows body-only selection
+ok 4 - Path command authors a stable object reference and allows body-only selection
+  ---
+  duration_ms: 18.77875
+  type: 'test'
+  ...
+# Subtest: quadratic midpoint admission is exact for rounded sums, cancellation and subnormals
+ok 5 - quadratic midpoint admission is exact for rounded sums, cancellation and subnormals
+  ---
+  duration_ms: 0.168209
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 335.934375

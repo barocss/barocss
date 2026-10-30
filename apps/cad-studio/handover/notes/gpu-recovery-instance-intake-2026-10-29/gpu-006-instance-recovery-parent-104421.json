@@ -1,0 +1,63 @@
+{
+  "status": "PASS_BOUNDED_PARENT_ARTIFACT_REVIEW",
+  "sourceCommit": "5168183e88c29d70468628b18bb91e5f7a10dbda",
+  "at": "2026-10-29T10:53:47.353541+00:00",
+  "artifactFilesVerified": 47,
+  "actualInputsVerified": 452,
+  "inputPathsOwned": true,
+  "rawRGBABytesEach": 307200,
+  "rawAllStagesEqual": true,
+  "rawSha256": "2176d6e981737c93a6ac4768c4eb35181c626385580454da49e9d4728677164a",
+  "pickIndices": {
+    "before": [
+      0,
+      1
+    ],
+    "after": [
+      0,
+      1
+    ],
+    "reordered": [
+      1,
+      0
+    ]
+  },
+  "pointDelta": 0,
+  "assertionEvaluations": 43,
+  "profileCount": 1,
+  "capturesViewed": [
+    "capture-before.png",
+    "capture-after.png",
+    "capture-reordered.png"
+  ],
+  "visualObservation": "two red triangles on dark background at all three stages; reorder proof uses fresh GPU indices, not image change",
+  "firstFailure": null,
+  "hookCalls": 1,
+  "postRecoverySetInstancesCalls": 1,
+  "originalTolerances": {
+    "recoveryChannelMax": 3,
+    "pointComponentDeltaMax": 0.05
+  },
+  "independentRuntime": "NOT_RUN_PARENT_HASH_REVIEW_ONLY",
+  "scope": "PASS_BOUNDED_TWO_INSTANCE_RECOVERY_PUBLIC_REORDER",
+  "notRun": [
+    "delayed readback race",
+    "matrix scale/reflection",
+    "normal maps",
+    "custom shader/PBR combos",
+    "SDK/App",
+    "natural driver failure",
+    "OOM/VRAM/performance",
+    "general instancing matrix",
+    "general geometric precision",
+    "input object identity contract",
+    "pipeline/native buffer allocation count",
+    "Three.js parity"
+  ],
+  "receiptSha256": "d20c572db318e2cd6f9421eff99d53ad57c217f3ab39000d9d4745a7ea305c9d",
+  "artifactManifestSha256": "bbfb8a713264e0e54014d2106b6dc561407b0f512f69be40379f416910cb5cc2",
+  "sourceResolutionSha256": "89f81290e299cc9b0b5b854e522c9acb4a029fa0b09112d480392acddeddb0a4",
+  "snapshotFilesVerifiedAgainstCommittedGitTree": 2237,
+  "sourceManifestSha256": "c814d6465b07da011ad7c772f767c2da295686e0a1f1a70c8936cd91152dbf65",
+  "workspaceLinksVerifiedInternal": 2
+}

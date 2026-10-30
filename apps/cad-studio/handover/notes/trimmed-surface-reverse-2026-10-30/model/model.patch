@@ -1,0 +1,142 @@
+diff --git a/packages/barocss-cad-model/README.md b/packages/barocss-cad-model/README.md
+index c1b5f046d..83ed502f0 100644
+--- a/packages/barocss-cad-model/README.md
++++ b/packages/barocss-cad-model/README.md
+@@ -115,9 +115,17 @@ The copied inline region and reference survive native Save/Open and nested part
+ 
+ ### Trimmed direct surfaces
+ 
+-`directOps.reverseSurface`, `splitSurface`, `surfaceRegion` and `extendSurface` refuse
+-surfaces with trims before making a new result. `surfaceIntersection` refuses either
+-trimmed operand. These operations do not yet map or clip trim boundaries.
++`directOps.reverseSurface` preserves one simple stored trim loop of 3..160 UV points on
++an affine planar degree-1, 2-by-2 support with equal positive weights. Both axes and
++nonunit domains are supported. It keeps the loop order and keep flag, maps the UV
++coordinates, and checks topology and world binding under the existing 1e-7 mm limit.
++The new object owns its trim arrays. The hidden original retains its source, name,
++ID and trims. Unsupported trimmed inputs refuse with `DIRECT_VALUE` before publication.
++This operation preserves the stored polyline, not an ideal trimming curve or a solid.
++
++`splitSurface`, `surfaceRegion` and `extendSurface` still refuse surfaces with trims.
++`surfaceIntersection` refuses either trimmed operand. These operations do not yet map
++or clip trim boundaries.
+ 
+ `directIGES` refuses the whole export when any visible surface has trims. Hidden trimmed
+ objects do not block export of the other visible curves and surfaces. Explicit `Untrim`
+diff --git a/packages/barocss-cad-model/src/engine/direct.ts b/packages/barocss-cad-model/src/engine/direct.ts
+index ed845176b..2e98155b9 100644
+--- a/packages/barocss-cad-model/src/engine/direct.ts
++++ b/packages/barocss-cad-model/src/engine/direct.ts
+@@ -3,7 +3,7 @@
+ // sources and objects; an operation that makes new objects hides the ones it was made from (so they
+ // can be shown again), one that refines an object's own source (poles, knots, degree, interval) moves the
+ // object to the refined source.
+-import { approximateCurvePlain, buildAlignedRationalRuledSurface, buildBezierCoonsSurface, buildMultiSectionLoftSurface, buildTranslationalSweepSurface, type CadAffineMatrix3x4, compileCadModel, type Curve, curveDomain, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide, elevateSourceCurveDegree, elevateSourceSurfaceAxisDegree, evaluateCurve, evaluateCurveCurvature, evaluateSurface, evaluateSurfaceCurvature, exportIGES, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, IGESImportError, importIGES, insertSourceCurveKnot, insertSourceSurfaceKnot, interpolateSurfacePlain, intersectPatches, joinCurves, type Model, removeCurveKnotPlain, reverseCurveWide, reverseSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter, type Surface, surfaceDomain, surfaceEvaluator, SurfaceIntersectionError, transformNativeGeometryAffine } from '@barocss/cad';
++import { approximateCurvePlain, buildAlignedRationalRuledSurface, buildBezierCoonsSurface, buildMultiSectionLoftSurface, buildTranslationalSweepSurface, type CadAffineMatrix3x4, compileCadModel, type Curve, curveDomain, editSourceCurveControlPolygon, editSourceSurfaceControlNetWide, elevateSourceCurveDegree, elevateSourceSurfaceAxisDegree, evaluateCurve, evaluateCurveCurvature, evaluateSurface, evaluateSurfaceCurvature, exportIGES, extractSourceCurveInterval, extractSurfaceIsoCurve, extractSurfaceRegion, IGESImportError, importIGES, insertSourceCurveKnot, insertSourceSurfaceKnot, interpolateSurfacePlain, intersectPatches, joinCurves, type Model, removeCurveKnotPlain, reverseCurveWide, reverseSurfaceAxis, reverseTrimmedSurfaceAxis, sampleCurve, splitCurveAtParameter, splitSurfaceAtParameter, type Surface, surfaceDomain, surfaceEvaluator, SurfaceIntersectionError, transformNativeGeometryAffine, TrimmedSurfaceAxisReversalError } from '@barocss/cad';
+ import { curvesSource, surfacesSource } from './curveSource';
+ import { keptAt, projectLoop, trimmedMesh, type TrimLoop } from './trim';
+ import { nextFreeId } from '../util/ids';
+@@ -95,12 +95,23 @@ function wholeSurfaceOf(d: DirectGeometry, id: string, operation: string): Surfa
+   return picked.surface;
+ }
+ 
++/** Copy accepted trim metadata before the new direct object is published. */
++function copyReversedTrimLoops(loops: readonly TrimLoop[]): TrimLoop[] {
++  const owned: TrimLoop[] = [];
++  for (const loop of loops) {
++    const uv: [number, number][] = [];
++    for (const point of loop.uv) uv.push([point[0], point[1]]);
++    owned.push({ keep: loop.keep, uv });
++  }
++  return owned;
++}
++
+ /** Add a result source with new objects; hide the objects they came from. */
+-function add(d: DirectGeometry, from: string[], text: string, made: { geometry: string; name: string }[]): DirectGeometry {
++function add(d: DirectGeometry, from: string[], text: string, made: { geometry: string; name: string; trims?: TrimLoop[] }[]): DirectGeometry {
+   const used = usedIds(d), key = fresh(new Set(Object.keys(d.sources)), 'src');
+   return {
+     sources: { ...d.sources, [key]: text },
+-    objects: [...d.objects.map(o => from.includes(o.id) ? { ...o, hidden: true } : o), ...made.map(m => ({ id: fresh(used, 'obj'), name: m.name, source: key, geometry: m.geometry }))],
++    objects: [...d.objects.map(o => from.includes(o.id) ? { ...o, hidden: true } : o), ...made.map(m => ({ id: fresh(used, 'obj'), name: m.name, source: key, geometry: m.geometry, ...(m.trims === undefined ? {} : { trims: m.trims }) }))],
+   };
+ }
+ /** Move an object to a refined source of its own (same geometry id). */
+@@ -159,7 +170,24 @@ export const directOps = {
+     return add(d, [], r.source, [{ geometry: r.curve.id, name: `${nameOf(d, id)} · ${axis} = ${p}` }]);
+   },
+   reverseSurface(d: DirectGeometry, id: string, axis: 'u' | 'v') {
+-    const s = wholeSurfaceOf(d, id, 'Reverse surface'), used = usedIds(d), r = reverseSurfaceAxis(s, { surfaceId: fresh(used, 'reversed'), axis, resultIdPrefix: freshPrefix(used, 'sr') });
++    const picked = selectedSurface(d, id), trims = picked.object.trims;
++    if (trims !== undefined && !Array.isArray(trims)) requireWholeSurface(picked.object, 'Reverse surface', 'DIRECT_VALUE');
++    const used = usedIds(d), options = { surfaceId: fresh(used, 'reversed'), axis, resultIdPrefix: freshPrefix(used, 'sr') };
++    if (trims && trims.length > 0) {
++      let matches = 0;
++      for (const candidate of d.objects) if (candidate.id === id) matches++;
++      if (matches !== 1) throw refusal('DIRECT_PICK', 'The selected surface object ID is ambiguous.');
++      let r;
++      try { r = reverseTrimmedSurfaceAxis(picked.surface, trims, options); }
++      catch (e) {
++        if (e instanceof TrimmedSurfaceAxisReversalError) throw refusal('DIRECT_VALUE', e.message);
++        throw e;
++      }
++      // Copy the sidecar before publishing the result; the hidden source retains its original trims.
++      const owned = copyReversedTrimLoops(r.trimLoops);
++      return add(d, [id], r.source, [{ geometry: r.surface.id, name: `${nameOf(d, id)} · ${axis} reversed`, trims: owned }]);
++    }
++    const r = reverseSurfaceAxis(picked.surface, options);
+     return add(d, [id], r.source, [{ geometry: r.surface.id, name: `${nameOf(d, id)} · ${axis} reversed` }]);
+   },
+   insertSurfaceKnot(d: DirectGeometry, id: string, axis: 'u' | 'v', knot: number) {
+diff --git a/packages/barocss-cad-model/test/direct-trim-guards.test.ts b/packages/barocss-cad-model/test/direct-trim-guards.test.ts
+index db0df9f60..9c6870ce7 100644
+--- a/packages/barocss-cad-model/test/direct-trim-guards.test.ts
++++ b/packages/barocss-cad-model/test/direct-trim-guards.test.ts
+@@ -24,7 +24,6 @@ function freezeDeep(value: unknown): void {
+   }
+ }
+ const consumers: { name: string; code: 'DIRECT_VALUE' | 'DIRECT_INTERSECT' | 'IGES_EXPORT'; run: (d: DirectGeometry) => unknown }[] = [
+-  { name: 'Reverse surface', code: 'DIRECT_VALUE', run: d => directOps.reverseSurface(d, panel, 'u') },
+   { name: 'Split surface', code: 'DIRECT_VALUE', run: d => directOps.splitSurface(d, panel, 'u', 2) },
+   { name: 'Extract region', code: 'DIRECT_VALUE', run: d => directOps.surfaceRegion(d, panel, [-1, 3], [1.5, 5.5]) },
+   { name: 'Extend surface', code: 'DIRECT_VALUE', run: d => directOps.extendSurface(d, panel, 'u-max', 5) },
+@@ -46,20 +45,21 @@ function assertRefusals(d: DirectGeometry): void {
+   }
+ }
+ 
+-test('direct trims: all six consumers refuse exact outside and inside loops without state changes', () => {
++test('direct trims: five unsupported consumers refuse exact outside and inside loops without state changes', () => {
+   assertRefusals(fixture('outside'));
+   assertRefusals(fixture('inside'));
+ });
+ 
+-test('direct trims: malformed non-array containers cannot bypass the six guards', () => {
++test('direct trims: malformed non-array containers cannot bypass the consumer guards', () => {
+   for (const trims of [null, {}, 'invalid']) {
+     const d = fixture();
+     d.objects[0].trims = trims as unknown as NonNullable<typeof d.objects[0]['trims']>;
+     assertRefusals(d);
++    assert.throws(() => directOps.reverseSurface(d, panel, 'u'), e => isRefusal(e, 'DIRECT_VALUE'));
+   }
+ });
+ 
+-test('direct trims: all six consumers refuse the actual public Trim by curve result', () => {
++test('direct trims: five unsupported consumers refuse the actual public Trim by curve result', () => {
+   const projected = directOps.trimByCurve(structuredClone(imported), panel, hole, 'outside');
+   assert.equal(projected.objects[0].trims?.[0].uv.length, 160);
+   assertRefusals(projected);
+@@ -100,11 +100,13 @@ test('direct trims: empty trims and explicit Untrim retain whole-surface operati
+   for (const d of [whole, empty]) {
+     const saved = structuredClone(d);
+     freezeDeep(d);
+-    for (const c of consumers.slice(0, 4)) {
++    for (const c of consumers.slice(0, 3)) {
+       const result = c.run(d) as DirectGeometry;
+       assert.equal(result.objects[0].hidden, true, c.name);
+       assert.ok(result.objects.length > d.objects.length, c.name);
+     }
++    const reversed = directOps.reverseSurface(d, panel, 'u');
++    assert.equal(reversed.objects.at(-1)!.trims, undefined);
+     assert.ok(surfaceIntersection(d, panel, wall).count > 0);
+     const reread = importIGESFile(emptyDirect(), directIGES(d), 'panel');
+     assert.equal(reread.surfaces, 1);

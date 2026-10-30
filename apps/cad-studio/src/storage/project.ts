@@ -6,7 +6,7 @@
 // A version log is written as recovery is (O9): its documents first, then the log naming them, so a log never names a
 // document that was not kept.
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
-import { encodeStudioFile, readStudioFile } from '@barocss/cad-model/engine/container';
+import { encodeStudioFile, readStudioFile, encodeStudioSnapshot, readStudioSnapshot } from '@barocss/cad-model/engine/container';
 import { checkVersions, type VersionLog } from '@barocss/cad-model/versions/log';
 import { refusal, type ProjectStore, type StoreEntry } from './store';
 
@@ -45,7 +45,7 @@ type LogFile = Omit<VersionLog, 'snapshots'>;
 /** A document's version log, its documents written first (those not kept yet), then the log; `expect` as writePart's. */
 export async function writeVersions(store: ProjectStore, part: string, log: VersionLog, o: { expect?: string | null } = {}): Promise<{ tag: string }> {
   const kept = new Set((await store.list(`${META}/snapshots`)).map(e => e.path));
-  for (const [key, doc] of Object.entries(log.snapshots)) if (!kept.has(snapshotPath(key))) await store.write(snapshotPath(key), encodeStudioFile(doc));
+  for (const [key, doc] of Object.entries(log.snapshots)) if (!kept.has(snapshotPath(key))) await store.write(snapshotPath(key), encodeStudioSnapshot(doc, key));
   const file: LogFile = { format: log.format, schema: log.schema, versions: log.versions, branches: log.branches, current: log.current };
   return store.write(versionsPath(part), new TextEncoder().encode(JSON.stringify(file, null, 1)), o);
 }
@@ -57,7 +57,9 @@ export async function readVersions(store: ProjectStore, part: string): Promise<{
   try { file = JSON.parse(new TextDecoder().decode(f.bytes)) as LogFile; } catch { return { error: `${versionsPath(part)} is not JSON` }; }
   const snapshots: Record<string, StudioDoc> = {};
   for (const key of new Set((Array.isArray(file?.versions) ? file.versions : []).map(v => v?.snapshot).filter((k): k is string => typeof k === 'string'))) {
-    const r = await readDoc(store, snapshotPath(key));
+    const stored = await store.read(snapshotPath(key));
+    if (!stored) continue;
+    const r = await readStudioSnapshot(stored.bytes, key);
     if (r && 'doc' in r) snapshots[key] = r.doc;
     else if (r) return { error: `${snapshotPath(key)}: ${r.error}` };
   }

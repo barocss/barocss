@@ -1,0 +1,34 @@
+{
+  "exposures": 6737,
+  "addedExposures": 0,
+  "removedExposures": 0,
+  "changedFields": 2,
+  "changes": [
+    {
+      "path": "$.exposures[142].variants[0].shape.type",
+      "exportName": "CAD_ERROR_CODES",
+      "oldMembers": 284,
+      "newMembers": 285,
+      "added": [
+        "UNRESOLVED"
+      ],
+      "removed": [],
+      "oldOrderPreserved": true
+    },
+    {
+      "path": "$.exposures[218].variants[0].shape.type",
+      "exportName": "CadErrorCode",
+      "oldMembers": 284,
+      "newMembers": 285,
+      "added": [
+        "UNRESOLVED"
+      ],
+      "removed": [],
+      "oldOrderPreserved": true
+    }
+  ],
+  "allOtherDataEqual": true,
+  "schemaPolicyPackageExportsAndCoreChecksEqual": true,
+  "initialReviewCorrection": "Both the value tuple and its public derived union change, not just the tuple. No candidate was copied before review assertions passed.",
+  "scope": "source inventory only; not runtime, geometry or full API convention qualification"
+}

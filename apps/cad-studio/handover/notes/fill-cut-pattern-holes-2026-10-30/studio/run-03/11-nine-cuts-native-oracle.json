@@ -1,0 +1,63 @@
+{
+  "status": "PASS",
+  "cells": [
+    [
+      0,
+      0
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      2,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      3,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      3,
+      2
+    ]
+  ],
+  "volume": 22650.0,
+  "centroid": [
+    30.327814569536425,
+    19.89072847682119,
+    5.0
+  ],
+  "exactCentroid": [
+    {
+      "n": "9159",
+      "d": "302"
+    },
+    {
+      "n": "6007",
+      "d": "302"
+    },
+    {
+      "n": "5",
+      "d": "1"
+    }
+  ],
+  "source": "Independent Fraction winding and exact integer prism moments",
+  "scope": "Reference point mask only; original seed retained; no clipping claim"
+}

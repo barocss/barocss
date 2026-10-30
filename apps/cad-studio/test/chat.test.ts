@@ -23,7 +23,7 @@ import { defaultRender } from '@barocss/cad-model/engine/render';
 import { defaultDrawing } from '@barocss/cad-model/drawing/types';
 import { receivePersonRowFiles } from '@barocss/cad-model/engine/rowFiles';
 import { loadPersonRows } from '@barocss/cad-model/chat/rows';
-import { part, Location } from '@barocss/cad-model/api';
+import { part, Location, fontFromBytes } from '@barocss/cad-model/api';
 import SAMPLE_FASTENER_SIZES from '@barocss/cad-model/samples/rows/fastener-sizes.json';
 import SAMPLE_MOUNTS_JSON from '@barocss/cad-model/samples/rows/mounts.json';
 const SAMPLE_MOUNTS = SAMPLE_MOUNTS_JSON as unknown as { rows: import('@barocss/cad-model/engine/mountRows').StudioMountRow[] };
@@ -74,6 +74,7 @@ test('tool schemas: every buildable command is exposed and documented with the H
     // (A face fillet takes two flat faces of one body, not parallel; a full round the flat top of a wall.)
     'face-fillet': sel({ faces: [{ body: 0, face: top.index }, { body: 0, face: s.bodies[0].mesh.faces.find(f => f.name === 'n1.side0')!.index }] }),
     'full-round': sel({ faces: [{ body: 0, face: top.index }] }),
+    'text-relief': sel({ faces: [{ body: 0, face: top.index }] }),
   };
   // The profile commands take the newest finished sketch: one drawn on the plate's top.
   const sketched = withNode(s.doc, { kind: 'sketch', profile: 'circle', center: [20, 16], radius: 4, plane: { origin: [0, 0, 8], normal: [0, 0, 1], xAxis: [1, 0, 0] }, on: { node: 1, side: 'solid' } });
@@ -105,6 +106,14 @@ test('tool schemas: every buildable command is exposed and documented with the H
   const driveRows = { version: 1 as const, rows: [{ kind: 'chain' as const, id: 'c', pitch: 12.7, rollerDiameter: 8.51, estimate: true }, { kind: 'flat-belt' as const, id: 'f', width: 40, thickness: 3, estimate: true }, { kind: 'coupling' as const, id: 'k', bore: [12, 12] as [number, number], outside: 30, length: 40, estimate: true }] };
   const chained = await stateOf({ ...withNode(withNode(emptyDoc(), { kind: 'sprocket', row: 'c', teeth: 17, tip: 75, width: 7, center: [0, 0], generator: 'sprocket@0' }), { kind: 'sprocket', row: 'c', teeth: 17, tip: 75, width: 7, center: [150, 0], generator: 'sprocket@0' }), drives: driveRows });
   for (const id of CHAT_COMMANDS) {
+    if (id === 'cylindrical-wrap') {
+      const cylinder = await stateOf(cylCmd.build!(blank, { r: 10, h: 30, x: 0, y: 0, z: 0 }));
+      const face = cylinder.bodies[0].mesh.faces.findIndex(f => f.name === 'n1.side0');
+      const ctx: Ctx = { doc: cylinder.doc, bodies: cylinder.bodies, selection: sel({ faces: [{ body: 0, face }] }) }, cmd = commandById(id)!;
+      assert.ok(cmd.available(ctx).ok, id);
+      assert.deepEqual(new Set(cmd.fields!(ctx).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
+      continue;
+    }
     const profile = ['extrude', 'revolve', 'pipe', 'sheet-plate'].includes(id);
     if (id === 'key' || id === 'keyway' || id === 'retaining-ring' || id === 'pin' || id === 'bearing') {
       // (A bearing takes the user's rows loaded: R12c.4, D158.)
@@ -158,7 +167,7 @@ test('tool schemas: every buildable command is exposed and documented with the H
       assert.deepEqual(keys, new Set(Object.keys(COMMAND_DOCS[id].values)), id);
       continue;
     }
-    if (id === 'linear-feature-pattern') {
+    if (id === 'fill-feature-pattern' || id === 'curve-feature-pattern' || id === 'linear-feature-pattern' || id === 'rectangular-feature-pattern') {
       // (A linear cut pattern takes the current result of a subtract: a plate with one slot cut.)
       const cut = await stateOf(part('slotted').box({ w: 60, d: 30, h: 10 }).subtract(p => p.box({ w: 4, d: 4, h: 10, x: 0, y: 8 }).moved(Location.at([8, 0, 0]))).doc);
       const ctx: Ctx = { doc: cut.doc, bodies: cut.bodies, selection: sel({ bodies: [0] }) }, cmd = commandById(id)!;
@@ -186,6 +195,22 @@ test('tool schemas: every buildable command is exposed and documented with the H
     assert.ok(cmd.available(ctx).ok, id);
     assert.deepEqual(new Set((cmd.fields?.(ctx) ?? []).map(f => f.key)), new Set(Object.keys(COMMAND_DOCS[id].values)), id);
   }
+});
+
+test('run_command text relief preserves the prepared original and atomically refuses unsupported placement', async () => {
+  const source = await fontFromBytes(new Uint8Array(readFileSync(join(process.cwd(), 'test/fixtures/fonts/abeezee/ABeeZee-Regular.ttf'))), { filename: 'ABeeZee-Regular.ttf', license: 'OFL-1.1' });
+  const base = await stateOf(rectanglePart(40, 30, 10)), before = structuredClone(base.doc);
+  const values = { text: 'A', font: JSON.stringify(source), size: 10, depth: 2, tolerance: 0.002, x: 5, y: 5, mode: 'emboss' };
+  const made = await runTool(base, 'run_command', { command: 'text-relief', faces: ['n1.top'], values }, evaluate);
+  assert.ok(!made.isError, made.content); assert.equal(made.changed, true);
+  const node = made.state.doc.nodes.at(-1); assert.ok(node?.kind === 'text-relief');
+  assert.equal(node.text, 'A'); assert.deepEqual(node.font, source); assert.deepEqual(node.faces, ['n1.top']); assert.ok(node.sigs?.['n1.top']);
+  assert.ok(Math.abs(volume(made.state) - 12029.7594) < 1e-8); assert.deepEqual(base.doc, before);
+  const bad = await runTool(base, 'run_command', { command: 'text-relief', faces: ['n1.top'], values: { ...values, x: 39 } }, evaluate);
+  assert.ok(bad.isError); assert.equal(bad.changed, false); assert.equal(bad.state, base); assert.deepEqual(base.doc, before);
+  assert.doesNotMatch(parse(bad.content).error, new RegExp(source.blob));
+  const side = await runTool(base, 'run_command', { command: 'text-relief', faces: ['n1.side0'], values }, evaluate);
+  assert.ok(side.isError); assert.equal(side.state, base);
 });
 
 test('run_command applies the UI’s rules: availability reasons, value keys and ranges, names, kernel refusals', async () => {
@@ -773,4 +798,28 @@ test('mesh blobs reach the chat server once a conversation: later turns name the
     const bad = await fetch(`${srv.url}/turn`, { method: 'POST', headers: JSON_POST, body: JSON.stringify({ text: 'x', doc, blobSession: 'fedcba9876543210', blobRefs: [P], blobs: { [P]: blobs[I] } }) });
     assert.equal(bad.status, 400);
   } finally { await srv.close(); }
+});
+
+
+test('general loft guide: chat feature admission and the HUD keep the polynomial guide contract', async () => {
+  const description = TOOLS.find(tool => tool.name === 'add_features')!.description;
+  assert.match(description, /"kind":"nurbs"/); assert.match(description, /vertex of each section/);
+  const guide = { kind: 'nurbs' as const, degree: 2, knots: [0, 0, 0, 0.5, 1, 1, 1], controlPoints: [[0, 0, 0], [6, 0, 5], [6, 0, 15], [0, 0, 20]] };
+  let doc = emptyDoc();
+  for (const x of [0, 6, 0]) doc = withNode(doc, { kind: 'sketch', profile: 'rectangle', min: [x, 0], max: [x + 10, 10] });
+  const state = await stateOf(doc), before = structuredClone(doc);
+  const node = { kind: 'loft', sections: [{ sketch: 0, z: 0 }, { sketch: 1, z: 10 }, { sketch: 2, z: 20 }], guide };
+  assert.equal(checkNode(node, doc.nodes, {}), null);
+  const result = await runTool(state, 'add_features', { features: [node] }, evaluate);
+  assert.equal(result.isError, false, result.content); assert.equal(result.state.bodies.length, 1);
+  assert.ok(Math.abs(volume(result.state) - 2000) < 1e-9); assert.deepEqual(doc, before);
+  for (const bad of [{ ...guide, degree: 6 }, { ...guide, weights: [1, 1, 1, 1] }, { ...guide, knots: [0, 1] }]) {
+    const refused = await runTool(state, 'add_features', { features: [{ ...node, guide: bad }] }, evaluate);
+    assert.equal(refused.isError, true); assert.equal(refused.state, state);
+  }
+  const hudDoc: StudioDoc = { ...doc, nodes: doc.nodes.map((node, index) => ({ ...node, plane: { origin: [0, 0, index * 10], normal: [0, 0, 1], xAxis: [1, 0, 0] } } as typeof node)) };
+  const cmd = commandById('loft')!, ctx: Ctx = { doc: hudDoc, bodies: [], selection: { faces: [], edges: [], bodies: [], sketches: [0, 1, 2] } };
+  assert.ok(cmd.available(ctx).ok);
+  assert.deepEqual(cmd.fields!(ctx).map(field => field.key), ['guide', 'smooth']);
+  assert.equal(CHAT_COMMANDS.includes('loft'), false, 'chat uses explicit feature sections; the HUD uses picked sketches');
 });

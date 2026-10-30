@@ -1,0 +1,19 @@
+{
+  "triangles": 12,
+  "volume": 2184,
+  "expectedVolume": 2184,
+  "downloads": [
+    "D327-exports-b1.stl",
+    "D327-exports.source.json"
+  ],
+  "source": {
+    "format": "barocss-source",
+    "version": 1,
+    "revision": "f7a26d3013761b68",
+    "digest": "1aef4c2a0ff1672d3110ffa2f6b68f13f535b5d1694bc60b47066b87e1d31204",
+    "files": [
+      "D327-exports-b1.stl"
+    ]
+  },
+  "pendingCancellation": "NOT_RUN; only option dialog cancellation tested"
+}

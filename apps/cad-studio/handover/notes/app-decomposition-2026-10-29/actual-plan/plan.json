@@ -1,0 +1,90 @@
+{
+  "status": "PLAN_ONLY_ACTUAL_NOT_RUN",
+  "catalogBaseCommit": "1266cdf24943acc5963bf5e346339e32c9f3da41",
+  "candidateProductionPaths": [
+    "apps/cad-studio/src/App.tsx",
+    "apps/cad-studio/src/app/bodyResults.ts",
+    "apps/cad-studio/src/app/commandState.ts",
+    "apps/cad-studio/src/app/directGeometry.ts",
+    "apps/cad-studio/src/app/documentChanges.ts",
+    "apps/cad-studio/src/app/routeSession.ts",
+    "apps/cad-studio/src/app/sketchControls.ts",
+    "apps/cad-studio/src/app/studioConstants.ts",
+    "apps/cad-studio/src/files/MeshFileDialogs.tsx",
+    "apps/cad-studio/src/files/ModelExportDialogs.tsx",
+    "apps/cad-studio/src/files/documentFile.ts",
+    "apps/cad-studio/src/files/useMeshImport.ts",
+    "apps/cad-studio/src/files/useModelExports.ts",
+    "apps/cad-studio/src/robot/RobotInspector.tsx",
+    "apps/cad-studio/src/robot/useRobotExports.ts",
+    "apps/cad-studio/src/sketch/useSketchActions.ts",
+    "apps/cad-studio/src/state/openOwnership.ts",
+    "apps/cad-studio/src/state/useCommandPreview.ts",
+    "apps/cad-studio/src/state/useFeatureHistory.ts",
+    "apps/cad-studio/src/state/useModelChecks.ts",
+    "apps/cad-studio/src/state/useProposalPreview.ts",
+    "apps/cad-studio/src/state/useRouteBundleEditor.ts",
+    "apps/cad-studio/src/storage/useProject.ts",
+    "apps/cad-studio/src/ui/BodyBrowserRows.tsx",
+    "apps/cad-studio/src/ui/CursorReadout.tsx",
+    "apps/cad-studio/src/ui/DesignHistory.tsx",
+    "apps/cad-studio/src/ui/DirectInspector.tsx",
+    "apps/cad-studio/src/ui/FeatureHistoryBar.tsx",
+    "apps/cad-studio/src/ui/FeatureHistoryMenu.tsx",
+    "apps/cad-studio/src/ui/MeasurementInspector.tsx",
+    "apps/cad-studio/src/ui/ModelTools.tsx",
+    "apps/cad-studio/src/ui/NodeEditor.tsx",
+    "apps/cad-studio/src/ui/PointTest.tsx",
+    "apps/cad-studio/src/ui/ProposalBrowser.tsx",
+    "apps/cad-studio/src/ui/ReferenceDecisions.tsx",
+    "apps/cad-studio/src/ui/RequirementsBrowser.tsx",
+    "apps/cad-studio/src/ui/SelectionInspector.tsx",
+    "apps/cad-studio/src/ui/TemplatePicker.tsx",
+    "apps/cad-studio/src/ui/ViewContextMenu.tsx",
+    "apps/cad-studio/src/ui/featureIcon.ts",
+    "apps/cad-studio/src/viewport/useCommandGizmos.ts",
+    "apps/cad-studio/src/viewport/useModelAppearance.ts",
+    "apps/cad-studio/src/viewport/useRenderPlayback.ts"
+  ],
+  "pathRule": "Sorted union: git diff --name-only --diff-filter=A 1266 -- apps/cad-studio/src; git ls-files --others --exclude-standard -- apps/cad-studio/src; explicit App/useProject/openOwnership. Keep .ts/.tsx. Recompute after final freeze, not just historical five runtime files.",
+  "drivers": [
+    "apps/cad-studio/test/browser-flow.mjs",
+    "apps/cad-studio/test/project-open-ownership-browser.mjs"
+  ],
+  "owners": {
+    "root": "Browser-flow selected positive regressions, serial execution approval/freeze",
+    "consumer": "D326 five native delayed Open cases and consumer notes only after explicit approval"
+  },
+  "sourceChecks": "Immediately before each actual command verify exact frozen path set and every source hash; immediately after compare again. Preserve exact executing driver gzip/hash and link the same immutable full production profile.",
+  "browserFlowSelection": "^(hole on a supported plate$|feature editor changes the sketch|a finished sketch reopens from the feature editor|export a box as 3MF:|a mesh with a hole:|STEP and meshes:|RM1:|RM4:|RM5:|D321:|D327:)",
+  "browserFlowCounts": {
+    "selected": 11,
+    "starterSmoke": 1,
+    "meaning": "Eleven selected including two prerequisite cases and affected D321 Stop regression; starter smoke one separately. D326 five standalone cases remain separate."
+  },
+  "dependencies": [
+    "hole on a supported plate \u2192 feature editor changes...",
+    "a mesh with a hole \u2192 STEP and meshes..."
+  ],
+  "independentCases": [
+    "a finished sketch reopens... begins New and authors its sketch",
+    "export a box as 3MF begins New and authors its box",
+    "RM1/RM4/RM5 each open their own existing genuine conformance file",
+    "D327 STL begins New and authors literal12\u00d713\u00d714 box"
+  ],
+  "delayedOpenCases": [
+    "project-to-B",
+    "project-to-new",
+    "project-to-close",
+    "file-to-new",
+    "file-to-project-B"
+  ],
+  "completionBoundary": "Existing D326 reviewed native-return\u2192MessageChannel plain-JSON microtask drain; operation Promise NOT_EXPOSED, no blob/crypto/linked generalization.",
+  "cleanup": "No overlapping heavy/browser commands. Each owner retains native cleanup/own namespace absence where implemented, process exit/PID, gate release, raw first failure and actual evidence before any source repair.",
+  "notRun": [
+    "Any actual D327 consumer command at plan time",
+    "Full browser/Model/Kernel campaigns",
+    "New features/cases beyond root chosen scope"
+  ],
+  "d321Boundary": "Original D321 Render raw-history missing-field caveat remains: both-undefined history equality is excluded from PASS evidence. Other actual Doc/work/refusal/Undo assertions qualify. No retroactive history gap closure or telemetry/test change."
+}

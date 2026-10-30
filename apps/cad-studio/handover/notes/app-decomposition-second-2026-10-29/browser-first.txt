@@ -1,0 +1,24 @@
+flow display: {"requestedDpr":1,"renderer":"webgpu","devicePixelRatio":1,"cssWidth":1140,"cssHeight":900,"backingWidth":1140,"backingHeight":900}
+page.waitForEvent: Timeout 15000ms exceeded while waiting for event "download"
+=========================== logs ===========================
+waiting for event "download"
+============================================================
+  G19 box section, GPU against CPU: {"pixels":1026000,"differ":1257,"strong":68,"max":117}
+  G19 two planes, GPU against CPU: {"pixels":1026000,"differ":1267,"strong":46,"max":213}
+  G3 (webgpu): modes shaded-with-edges, hidden-lines-removed, hidden-lines-dashed, wireframe, x-ray; centre picks [{"body":0,"face":5}]
+  G24 (webgpu): 6 annotations (dimension), 0 sheet-only; 0.50 % of the canvas changed
+  G22 (webgpu): designed, touching, overlap, near, clear; 0.17 % of the canvas changed
+  G23 print (webgpu): 100 layers at 0.2 mm, 40 at 0.5 mm; layer 21 at 10.250 mm; 12.65 % changed shown, 6.56 % moved
+ok 1 starter plate loads
+ok 114 requirements: the panel checks the brief, an assumption confirmed by the user is stated, a person's edit breaking a hard one is kept and said
+ok 250 A6.3: a STEP block added as a locked reference (ghosted, not a body of the part); a datum from its underside; an envelope keep-out clear, then violated as the part grows into it
+FAIL 251 A6.4: a hand-written DXF in inches added as a sketch draft (3 dimensions to confirm); one confirmed as it is, a hole re-driven to another diameter; an export says it is a draft — page.waitForEvent: Timeout 15000ms exceeded while waiting for event "download"
+ok 285 G6: the analysis maps — a moulded plate's wall thickness with its legend and the value under the pointer; its draft; what a 3-axis mill does not reach; its parting line; its two halves (48,000 mm³ above the parting plane), spread apart; off again
+ok 293 O9: the section plane dragged fast across a plate — the exact section shown is the last plane's, and stays so (a late reply never overwrites it)
+ok 294 G19.2: section modes — a box section (six planes, a face dragged), two planes (a quarter), a plane from a face; the exact section's volumes; GPU against CPU — on either renderer
+ok 301 G3 display modes: a plate and two placed pins — each CAD display mode drawn and the same pick on the plate's top face; isolate fades the plate, restore brings it back
+ok 302 G24 3D annotations: the r14 geometric plate's drawing on the model — its annotations drawn, a text clicked picks its annotation and selects its targets, the same annotations after Save, New and Open
+ok 303 G23 CNC: CNC8's pocket from its machining stock — NOT FOR PRODUCTION first; 0, the middle and the end of its program; no overcut, the floor reached; Print layers closes it; reopened, the same
+ok 304 G22 clearance: a shaft and its key (designed) and four pairs of boxes — in contact at once, then touching and overlap; near; clear; drawn on the model and gone when closed; Print layers refuses the assembly; the same after Save, New and Open
+ok 305 G23 print layers: CNC8's plate sliced — its layers drawn, the height set and the layer moved changing the view, printed-up-to off; the settings saved, the same layer after Save, New and Open
+screenshots: /tmp/d328/browser-first

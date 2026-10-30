@@ -1,3 +1,5 @@
+import { fillPatternDocumentProblem } from './fillFeaturePattern';
+import { curvePatternDocumentProblem, resolveCurveFeaturePatternPath } from './curveFeaturePattern';
 import { resolveShopTree } from './shopRows';
 // The studio document as a kernel part document: a node is the feature of its stable id (`n<k>`, see ids.ts),
 // so persistent face and edge names read `n1.side0`, `n1.top`, `n2.side0|n1.top` and keep their names as other
@@ -5,13 +7,16 @@ import { resolveShopTree } from './shopRows';
 // `b5_positive` (keyed by the id too); the solids of a STEP file holding several are `n5/k`, `b5_part<k>`.
 import type { BearingRow, ChainRow, ConnectorRow, DriveRow, FitTable, ORingRow } from '@barocss/cad';
 import { getBlob } from './blobs';
-import { CadPartError, evaluateCadPart, type CadPartSnapshot, type BearingReport } from '@barocss/cad';
+import { CadNumericPolicy, CadPartError, CadPartLimits, evaluateCadPart, type CadPartSnapshot, type BearingReport } from '@barocss/cad';
+import { readFontSource } from './font/source';
+import { buildFontProfiles, type FontProfileComponent, type FontProfileLine } from './font/profiles';
+import { cross, dot, scale, sub, unit } from './vec3';
 import { bearingContextOf, bearingDependencyKey, bearingHousingRef, bearingHousingTarget, withBearingContext } from './bearingContext';
 import { bearingInExternalHousing } from './bearingHousing';
 import { mirrorCage, sprocketPitchDiameter, timingPitchDiameter } from '@barocss/cad';
 import type { BendTable, BeadSharedComponent, CadPartDocument, CadPartFeature, CadPartFrameOverride, CadPartNameSignature, CadPartSection } from '@barocss/cad';
 import type { Sig } from './references';
-import { frameGeometry, holeCentres, bevelSpiral, prefixDoc, type SketchNode, type BodyRef, type FrameOverride, type InlineSection, type MemberSection, type ModelNode, type PartInstance, type StudioDoc } from './doc';
+import { frameGeometry, holeCentres, bevelSpiral, prefixDoc, rectangularPatternDocumentProblem, textDocumentProblem, textNodeProblem, textReliefNodeProblem, type TextNode, type TextReliefNode, type DocPlane, type Dim, type SketchNode, type BodyRef, type FrameOverride, type InlineSection, type MemberSection, type ModelNode, type PartInstance, type StudioDoc } from './doc';
 import { bodyNodeOf, featureId, nodeIndexOf, serialOf, withIds } from './ids';
 import { keyClasses } from './fits';
 import type { StudioRingRow } from './rings';
@@ -19,7 +24,7 @@ import { rotationSteps } from './placement';
 import { documentBeadOwnershipError } from '../frames/beadOwnership';
 import { canonical, modelContent } from '../util/revision';
 import { resolveSkeletons, SKELETON_CODES } from '../frames/skeleton';
-import { isRefusal, refusal } from './refusal';
+import { coded, isRefusal, refusal } from './refusal';
 import { assertRouteBundleDocument } from './routeBundle';
 import { bodyMesh } from './mesh';
 import { faceProfile } from '../app/faceProfile';
@@ -29,6 +34,7 @@ import { profileOf } from '../sketch/loops';
 
 // (The nodes being converted: a feature's id and its references' ids are read from them.)
 let current: readonly ModelNode[] = [];
+let curvePathDoc: Pick<StudioDoc, 'direct'> = {};
 // (FRc, O117: the document's section library, by id, that a frame's library section resolves from.)
 let library: ReadonlyMap<string, InlineSection> = new Map();
 /**
@@ -99,6 +105,8 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
   if (nodes) current = nodes;
   const at = { id: id(index) };
   switch (node.kind) {
+    case 'text': throw refusal('BAD_REFERENCE', 'Text solid: a text node requires complete feature expansion.', { source: 'text-solid' });
+    case 'text-relief': throw refusal('BAD_REFERENCE', 'Text relief: a text modifier requires complete feature expansion.', { source: 'text-relief' });
     // (FRf: a skeleton makes no feature — toPartDocument leaves it out; frames on it take its points.)
     case 'skeleton': throw new Error('a skeleton makes no kernel feature');
     // The drawn outline and its constraints are the studio's own (the kernel takes the solved profile).
@@ -112,6 +120,11 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'union': case 'intersect': return { ...at, kind: node.kind, target: ref(node.left), tool: ref(node.right) };
     case 'difference': return { ...at, kind: 'difference', target: ref(node.parent), tool: ref(node.tool) };
     case 'rib': return { ...at, kind: 'rib', target: ref(node.parent), min: structuredClone(node.min), max: structuredClone(node.max) };
+    case 'cylindrical-wrap': {
+      const name = node.faces[0], signature = node.sigs?.[name];
+      if (!signature || (signature.n ?? 1) !== 1) throw refusal('BAD_REFERENCE', 'Cylindrical wrap: the selected face needs its stored individual signature.');
+      return { ...at, kind: 'cylindrical-wrap', target: ref(node.parent), faces: [name], rectangle: structuredClone(node.rectangle), height: structuredClone(node.height), ...expectOf(node, node.faces) };
+    }
     case 'rectangular-relief': return { ...at, kind: 'rectangular-relief', target: ref(node.parent), min: structuredClone(node.min), max: structuredClone(node.max), depth: structuredClone(node.depth), mode: node.mode };
     case 'hole': return { ...at, kind: 'hole', target: ref(node.parent), center: node.center, radius: node.radius,
       ...(node.axis ? { axis: node.axis } : {}), ...(node.side ? { side: node.side } : {}), ...(node.depth === undefined ? {} : { depth: node.depth }), ...(node.countersink ? { countersink: node.countersink } : {}), ...(node.face ? { face: node.face } : {}) };
@@ -122,6 +135,9 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
     case 'scale': return { ...at, kind: 'scale', target: ref(node.parent), factor: node.factor, ...(node.pivot ? { pivot: node.pivot } : {}) };
     case 'linear-pattern': return { ...at, kind: 'linear-pattern', target: ref(node.parent), axis: node.axis, spacing: node.spacing, count: node.count };
     case 'linear-feature-pattern': return { ...at, kind: 'linear-feature-pattern', target: ref(node.parent), axis: node.axis, spacing: node.spacing, count: node.count };
+    case 'fill-feature-pattern': return { ...at, kind: 'fill-feature-pattern', target: ref(node.parent), region: node.region, anchor: node.anchor, spacing: node.spacing, count: node.count, spacing2: node.spacing2, count2: node.count2 };
+    case 'curve-feature-pattern': return { ...at, kind: 'curve-feature-pattern', target: ref(node.parent), path: resolveCurveFeaturePatternPath(curvePathDoc, node.path), spacing: node.spacing, count: node.count };
+    case 'rectangular-feature-pattern': return { ...at, kind: 'rectangular-feature-pattern', target: ref(node.parent), axis: node.axis, spacing: node.spacing, count: node.count, axis2: node.axis2, spacing2: node.spacing2, count2: node.count2 };
     case 'circular-pattern': return { ...at, kind: 'circular-pattern', target: ref(node.parent), axis: node.axis, angle: node.angle, count: node.count, ...(node.pivot ? { pivot: node.pivot } : {}) };
     case 'split': return { ...at, kind: 'split', target: ref(node.parent), ...(node.normal ? { normal: node.normal } : { axis: node.axis }), at: node.at };
     case 'separate': return { ...at, kind: 'separate', target: ref(node.parent) };
@@ -285,8 +301,126 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
   }
 }
 
-/** A node's kernel features: one, or a patterned hole's copies one after another (the last named `n<i>`). */
-function featuresOf(node: ModelNode, index: number): CadPartFeature[] {
+function textValue(value: Dim): number { return typeof value === 'number' ? value : params[value.parameter]; }
+function textSnap(point: [number, number, number]): [number, number, number] {
+  const out: [number, number, number] = [0, 0, 0];
+  for (let i = 0; i < 3; i++) out[i] = Math.abs(point[i]) < 1e-12 ? 0 : Math.abs(Math.abs(point[i]) - 1) < 1e-12 ? Math.sign(point[i]) : point[i];
+  return out;
+}
+/** Match the existing native sketch frame normalization before checking placed bottom/top coordinates. */
+function textAxes(plane?: DocPlane): readonly [readonly number[], readonly number[], readonly number[], readonly number[]] {
+  if (!plane) return [[1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 0]];
+  const normal = textSnap(unit(plane.normal)), x0 = unit(plane.xAxis), projection = dot(x0, normal);
+  if (Math.abs(projection) > 1e-9) throw refusal('BAD_VALUE', 'Text solid: the normalized plane axes must be perpendicular.', { source: 'text-solid' });
+  const x = textSnap(unit(sub(x0, scale(normal, projection)))), y = textSnap(cross(normal, x));
+  return [x, y, normal, plane.origin];
+}
+function textLoop(loop: readonly FontProfileLine[], height: number, axes: ReturnType<typeof textAxes>): void {
+  if (loop.length < 3 || loop.length > CadPartLimits.points) throw refusal('LIMIT', 'Text solid: a component boundary exceeds the native loop budget.', { source: 'text-solid' });
+  for (let i = 0; i < loop.length; i++) {
+    const point = loop[i].start, next = loop[(i + 1) % loop.length].start;
+    if (loop[i].kind !== 'line' || Math.hypot(point[0] - next[0], point[1] - next[1]) < 1e-4) throw refusal('BAD_VALUE', 'Text solid: a generated edge fails native line admission.', { source: 'text-solid' });
+    for (let k = 0; k < 2; k++) if (!Number.isFinite(point[k]) || Math.abs(point[k]) > CadPartLimits.length) throw refusal('LIMIT', 'Text solid: a profile coordinate exceeds the native range.', { source: 'text-solid' });
+    for (let k = 0; k < 3; k++) {
+      const bottom = axes[0][k] * point[0] + axes[1][k] * point[1] + axes[3][k], top = axes[0][k] * point[0] + axes[1][k] * point[1] + axes[2][k] * height + axes[3][k];
+      if (!Number.isFinite(bottom) || !Number.isFinite(top) || Math.abs(bottom) > CadNumericPolicy.coordinateAbs || Math.abs(top) > CadNumericPolicy.coordinateAbs) throw refusal('LIMIT', 'Text solid: a placed bottom or top coordinate exceeds the CAD range.', { source: 'text-solid' });
+    }
+  }
+}
+function textComponent(component: FontProfileComponent, height: number, axes: ReturnType<typeof textAxes>): void {
+  if (component.holes.length > CadPartLimits.edges) throw refusal('LIMIT', 'Text solid: a component exceeds the native hole-loop budget.', { source: 'text-solid' });
+  textLoop(component.outer, height, axes);
+  for (let i = 0; i < component.holes.length; i++) textLoop(component.holes[i], height, axes);
+}
+function textInternalId(prefix: string, role: 'sketch' | 'extrude' | 'union', reserved: ReadonlySet<string>): string {
+  const own = `${prefix}_${role}`;
+  if (own.length > 64 || !/^[A-Za-z_][A-Za-z0-9_-]*$/.test(own)) throw refusal('LIMIT', 'Text solid: an internal feature id exceeds native admission.', { source: 'text-solid' });
+  if (reserved.has(own)) throw refusal('BAD_REFERENCE', 'Text solid: an internal feature id conflicts with an authored feature.', { source: 'text-solid' });
+  return own;
+}
+function textProfiles(node: TextNode | TextReliefNode) {
+  return buildFontProfiles(readFontSource(node.font), node.text,
+    { size: textValue(node.size), tolerance: node.tolerance, ...(node.tracking === undefined ? {} : { tracking: textValue(node.tracking) }) });
+}
+function textFeatures(node: TextNode, index: number, available: number): CadPartFeature[] {
+  const problem = textNodeProblem(node, params);
+  if (problem) throw refusal('BAD_VALUE', problem, { source: 'text-solid' });
+  const height = textValue(node.height), run = textProfiles(node);
+  let count = 0;
+  for (let g = 0; g < run.glyphs.length; g++) count += run.glyphs[g].components.length;
+  if (!count) throw refusal('BAD_VALUE', 'Text solid: the scalar run has no filled component.', { source: 'text-solid' });
+  const needed = count === 1 ? 3 : 3 * count - 1;
+  if (needed > available) throw refusal('LIMIT', 'Text solid: expanded components exceed the native 512-feature budget.', { source: 'text-solid' });
+  const root = id(index), reserved = new Set<string>(), axes = textAxes(node.plane), features: CadPartFeature[] = [];
+  for (let i = 0; i < current.length; i++) reserved.add(featureId(current, i));
+  let target = '', emitted = 0;
+  for (let g = 0; g < run.glyphs.length; g++) for (let c = 0; c < run.glyphs[g].components.length; c++) {
+    const component = run.glyphs[g].components[c], prefix = `${root}_g${g}_c${c}`;
+    textComponent(component, height, axes);
+    const sketch = textInternalId(prefix, 'sketch', reserved), solid = textInternalId(prefix, 'extrude', reserved);
+    const plane = node.plane ? { origin: [...node.plane.origin] as [number, number, number], normal: [...node.plane.normal] as [number, number, number], xAxis: [...node.plane.xAxis] as [number, number, number] } : undefined;
+    features.push({ id: sketch, kind: 'sketch', profile: 'loop', segments: component.outer, ...(component.holes.length ? { holes: component.holes } : {}), ...(plane ? { plane } : {}) } as CadPartFeature);
+    features.push({ id: solid, kind: 'extrude', sketch, height } as CadPartFeature);
+    emitted++;
+    if (!target) target = solid;
+    else {
+      const combined = emitted === count ? root : textInternalId(prefix, 'union', reserved);
+      features.push({ id: combined, kind: 'union', target, tool: solid } as CadPartFeature); target = combined;
+    }
+  }
+  if (count === 1) features.push({ id: root, kind: 'translate', target, offset: [0, 0, 0] } as CadPartFeature);
+  return features;
+}
+function reliefLoop(loop: readonly FontProfileLine[], at: readonly [number, number]): FontProfileLine[] {
+  const out: FontProfileLine[] = [];
+  for (let i = 0; i < loop.length; i++) out.push({ kind: 'line', start: [loop[i].start[0] + at[0], loop[i].start[1] + at[1]] });
+  return out;
+}
+function textReliefFeatures(node: TextReliefNode & Pick<ModelNode, 'sigs'>, index: number, available: number): CadPartFeature[] {
+  const problem = textReliefNodeProblem(node, params);
+  if (problem) throw refusal('BAD_VALUE', problem, { source: 'text-relief' });
+  const name = node.faces[0], signature = node.sigs?.[name];
+  if (!signature || (signature.n ?? 1) !== 1) throw refusal('BAD_REFERENCE', 'Text relief: the selected face requires its own stored signature.', { source: 'text-relief' });
+  const expected = expectOf(node, node.faces);
+  if (!expected.expect?.[name]) throw refusal('BAD_REFERENCE', 'Text relief: the selected face expectation is unavailable.', { source: 'text-relief' });
+  const run = textProfiles(node), at: [number, number] = [textValue(node.at[0]), textValue(node.at[1])];
+  let count = 0;
+  for (let g = 0; g < run.glyphs.length; g++) count += run.glyphs[g].components.length;
+  if (!count) throw refusal('BAD_VALUE', 'Text relief: the scalar run has no filled component.', { source: 'text-relief' });
+  if (count > CadPartLimits.edges) throw refusal('LIMIT', 'Text relief: the run exceeds the native 64-component relief budget.', { source: 'text-relief' });
+  if (count + 1 > available) throw refusal('LIMIT', 'Text relief: expanded components exceed the native 512-feature budget.', { source: 'text-relief' });
+  const root = id(index), reserved = new Set<string>(), axes = textAxes(), features: CadPartFeature[] = [], sketches: string[] = [];
+  for (let i = 0; i < current.length; i++) reserved.add(featureId(current, i));
+  for (let g = 0; g < run.glyphs.length; g++) for (let c = 0; c < run.glyphs[g].components.length; c++) {
+    const component = run.glyphs[g].components[c], holes: FontProfileLine[][] = [];
+    for (let h = 0; h < component.holes.length; h++) holes.push(reliefLoop(component.holes[h], at));
+    const placed: FontProfileComponent = { outer: reliefLoop(component.outer, at), holes };
+    // Native relief derives the actual top/tool Z bounds. Model checks the placed XY profile here only.
+    textComponent(placed, 0, axes);
+    const sketch = textInternalId(`${root}_g${g}_c${c}`, 'sketch', reserved);
+    sketches.push(sketch);
+    features.push({ id: sketch, kind: 'sketch', profile: 'loop', segments: placed.outer, ...(holes.length ? { holes } : {}) });
+  }
+  features.push({ id: root, kind: 'profile-relief', target: ref(node.parent), faces: [name], sketches,
+    depth: structuredClone(node.depth), mode: node.mode, clearance: node.tolerance, ...expected });
+  return features;
+}
+function checkTextExpansion(features: readonly CadPartFeature[]): void {
+  if (features.length > CadPartLimits.features) throw refusal('LIMIT', 'Text solid: the complete part exceeds the native 512-feature budget.', { source: 'text-solid' });
+  const parameters = Object.keys(params);
+  if (parameters.length > CadPartLimits.parameters) throw refusal('LIMIT', 'Text solid: the part exceeds the native parameter budget.', { source: 'text-solid' });
+  for (const name of parameters) if (!/^[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(name) || !Number.isFinite(params[name]) || Math.abs(params[name]) > CadPartLimits.length) throw refusal('BAD_VALUE', 'Text solid: a part parameter fails native admission.', { source: 'text-solid' });
+  const ids = new Set<string>();
+  for (const feature of features) {
+    if (!/^[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(feature.id)) throw refusal('BAD_REFERENCE', 'Text solid: an expanded feature id fails native admission.', { source: 'text-solid' });
+    if (ids.has(feature.id)) throw refusal('BAD_REFERENCE', 'Text solid: expanded feature ids are not unique.', { source: 'text-solid' });
+    ids.add(feature.id);
+  }
+}
+/** A node's kernel features; generated text components remain distinct sketches with local holes. */
+function featuresOf(node: ModelNode, index: number, available: number = CadPartLimits.features): CadPartFeature[] {
+  if (node.kind === 'text') return textFeatures(node, index, available);
+  if (node.kind === 'text-relief') return textReliefFeatures(node, index, available);
   if (node.kind === 'library') return [...node.features, ...placementOf(node), featureOf(node, index, current)];
   if (node.kind !== 'hole' || !node.pattern || node.pattern.count <= 1) return [featureOf(node, index, current)];
   const centres = holeCentres(node.center.map(Number), node.pattern), base = featureOf(node, index, current) as CadPartFeature & { target: string };
@@ -367,6 +501,15 @@ export function resolveAssociativeSketch(doc: StudioDoc, index: number): SketchN
 export function toPartDocument(doc: StudioDoc): CadPartDocument { return buildPartDocument(doc); }
 
 function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
+  const fillProblem = fillPatternDocumentProblem(doc);
+  if (fillProblem) throw coded(fillProblem.startsWith('[BAD_REFERENCE]') ? 'BAD_REFERENCE' : 'VALUE', fillProblem);
+  const curveProblem = curvePatternDocumentProblem(doc);
+  if (curveProblem) throw coded(curveProblem.startsWith('[BAD_REFERENCE]') ? 'BAD_REFERENCE' : 'VALUE', curveProblem);
+  curvePathDoc = doc;
+  const patternProblem = rectangularPatternDocumentProblem(doc);
+  if (patternProblem) throw coded(patternProblem.startsWith('[BAD_REFERENCE]') ? 'BAD_REFERENCE' : 'VALUE', patternProblem);
+  const textProblem = textDocumentProblem(doc);
+  if (textProblem) throw refusal('BAD_VALUE', textProblem, { source: 'text-solid' });
   assertRouteBundleDocument(doc);
   doc = resolveShopTree(doc);
   assertRouteBundleDocument(doc);
@@ -376,29 +519,33 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
   if (ownershipError) throw new CadPartError('PARAMETER', null, ownershipError);
   doc = withIds(doc); current = doc.nodes; library = new Map((doc.frames?.sections ?? []).map(r => [r.id, r.section])); bearingRows = new Map((doc.bearings?.rows ?? []).map(r => [r.id, r])); oringRows = new Map((doc.orings?.rows ?? []).map(r => [r.id, r])); driveRows = new Map((doc.drives?.rows ?? []).map(r => [r.id, r])); connectorRows = new Map((doc.connectors?.rows ?? []).map(r => [r.id, r])); fitTables = doc.fits?.tables ?? []; fitFaces = doc.fits?.faces ?? []; ringRows = new Map((doc.rings?.rows ?? []).map(r => [r.id, r])); params = doc.parameters ?? {}; partsNow = doc.instances ?? [];
   const gone = new Set<number>(), features: CadPartFeature[] = [], prefixEnds = new Map<number, number>();
+  let hasText = false;
+  for (const node of doc.nodes) if (node.kind === 'text' || node.kind === 'text-relief') { hasText = true; break; }
   // Only this validated document path may remove a linked sweep's marker for kernel conversion.
   const convert = (node: ModelNode, index: number): CadPartFeature[] => {
-    if (node.kind !== 'sweep-curve' || !Object.prototype.hasOwnProperty.call(node, 'routeBundleMember')) return featuresOf(node, index);
+    if (node.kind !== 'sweep-curve' || !Object.prototype.hasOwnProperty.call(node, 'routeBundleMember')) return featuresOf(node, index, CadPartLimits.features - features.length);
     const snapshot = { ...node };
     delete snapshot.routeBundleMember;
-    return featuresOf(snapshot, index);
+    return featuresOf(snapshot, index, CadPartLimits.features - features.length);
   };
   const pass = (i: number, r: BodyRef) => features.push({ id: id(i), kind: 'translate', target: ref(r), offset: [0, 0, 0] } as CadPartFeature);
   doc.nodes.forEach((node, i) => {
     if (i >= limit) return;
+    if (hasText && features.length > CadPartLimits.features) checkTextExpansion(features);
     prefixEnds.set(i, features.length);
     if (node.kind === 'skeleton') return;
     if (node.kind === 'sketch') {
       if (node.association !== undefined) {
         const source = associationSource(doc, i), end = prefixEnds.get(source + 1);
         if (gone.has(source) || end === undefined) throw associationError('the source solid is unavailable in the evaluated prefix.');
+        if (hasText) checkTextExpansion(features.slice(0, end));
         const resolved = associativeProfile(doc, i, features.slice(0, end));
         delete resolved.association;
-        features.push(...featuresOf(resolved, i));
-      } else features.push(...featuresOf(node, i));
+        features.push(...featuresOf(resolved, i, CadPartLimits.features - features.length));
+      } else features.push(...featuresOf(node, i, CadPartLimits.features - features.length));
       return;
     }
-    const makes = node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'sprocket' || node.kind === 'pulley' || node.kind === 'belt' || node.kind === 'coupling' || node.kind === 'connector-body' || node.kind === 'gusset' || node.kind === 'end-cap' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
+    const makes = node.kind === 'text' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'sprocket' || node.kind === 'pulley' || node.kind === 'belt' || node.kind === 'coupling' || node.kind === 'connector-body' || node.kind === 'gusset' || node.kind === 'end-cap' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
     const two = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : null;
     if (two) {
       const [a, b] = two, ga = gone.has(a.node), gb = gone.has(b.node);
@@ -408,21 +555,21 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
       if (node.kind === 'difference') { if (ga) { gone.add(i); return; } if (gb) { pass(i, a); return; } }
       else if (node.kind === 'intersect') { if (ga || gb) { gone.add(i); return; } }
       else if (ga || gb) { pass(i, ga ? b : a); return; }
-      features.push(...featuresOf(node, i)); return;
+      features.push(...featuresOf(node, i, CadPartLimits.features - features.length)); return;
     }
     if (makes) {
       // (A library part added to a body, suppressed or its body gone: the body passes on as it was, or is gone.)
-      if (node.kind === 'library' && node.addTo) { if (gone.has(node.addTo.node)) { gone.add(i); return; } if (node.suppressed) { pass(i, node.addTo); return; } features.push(...featuresOf(node, i)); return; }
+      if (node.kind === 'library' && node.addTo) { if (gone.has(node.addTo.node)) { gone.add(i); return; } if (node.suppressed) { pass(i, node.addTo); return; } features.push(...featuresOf(node, i, CadPartLimits.features - features.length)); return; }
       if (node.suppressed || ('from' in node && Array.isArray(node.from) && node.from.some(p => gone.has(p))) || ((node.kind === 'gear' || node.kind === 'rack' || node.kind === 'bevel-gear' || node.kind === 'worm') && node.mesh && gone.has(node.mesh.gear))) { gone.add(i); return; }
       features.push(...convert(node, i)); return;
     }
     // Active cut patterns, ribs and reliefs must reach kernel source admission even when their parent is gone.
     // Suppressing the pattern itself keeps the ordinary parent pass-through below.
-    if ((node.kind === 'linear-feature-pattern' || node.kind === 'rib' || node.kind === 'rectangular-relief') && !node.suppressed) { features.push(...featuresOf(node, i)); return; }
+    if ((node.kind === 'fill-feature-pattern' || node.kind === 'curve-feature-pattern' || node.kind === 'linear-feature-pattern' || node.kind === 'rectangular-feature-pattern' || node.kind === 'rib' || node.kind === 'rectangular-relief' || node.kind === 'text-relief') && !node.suppressed) { features.push(...featuresOf(node, i, CadPartLimits.features - features.length)); return; }
     const parent = (node as { parent: BodyRef }).parent;
     if (gone.has(parent.node)) { gone.add(i); return; }
     if (node.suppressed) { pass(i, parent); return; }
-    features.push(...featuresOf(node, i));
+    features.push(...featuresOf(node, i, CadPartLimits.features - features.length));
   });
   // Derived weld bodies follow authored nodes. Each retry sends the complete remaining per-frame manifest.
   const active = beadsOf(limit < doc.nodes.length ? prefixDoc(doc, limit) : doc, gone).filter(b => !refusedBeads.has(b.key));
@@ -434,6 +581,7 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
       features.push({ ...f, sharing: { ...doc.frames.beadOwnership, joints } });
     } else features.push(f);
   }
+  if (hasText) checkTextExpansion(features);
   return { format: 'barocss-cad-part', version: 1, units: 'mm', parameters: doc.parameters, features };
 }
 

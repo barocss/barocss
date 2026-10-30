@@ -1,0 +1,6 @@
+{
+  "status": "passed",
+  "cases": 9,
+  "scope": "Every actual BRep, name, coordinate, knot, weight and mass Number bit, including signed zero; original source snapshots, no source pins in suite",
+  "sha256": "004710816424f32edb80b270b897e6b936a125db4ac6f9d114b97203bfffbfe7"
+}

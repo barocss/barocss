@@ -1,0 +1,1 @@
+import {build} from '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/node_modules/esbuild/lib/main.js';await build({entryPoints:['/tmp/d343-circle-browser/import-probe.ts'],outfile:'/tmp/d343-circle-browser/import-probe.mjs',bundle:true,platform:'node',format:'esm',target:'node22'});

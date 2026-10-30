@@ -1,0 +1,52 @@
+TAP version 13
+# Subtest: A05 imported Open ownership: step-read-new
+ok 1 - A05 imported Open ownership: step-read-new
+  ---
+  duration_ms: 18918.772292
+  type: 'test'
+  ...
+# Subtest: A05 imported Open ownership: stl-read-new
+ok 2 - A05 imported Open ownership: stl-read-new
+  ---
+  duration_ms: 16098.931083
+  type: 'test'
+  ...
+# Subtest: A05 imported Open ownership: direct-read-new
+ok 3 - A05 imported Open ownership: direct-read-new
+  ---
+  duration_ms: 18961.023333
+  type: 'test'
+  ...
+# Subtest: A05 imported Open ownership: step-stage-new
+ok 4 - A05 imported Open ownership: step-stage-new
+  ---
+  duration_ms: 17064.890542
+  type: 'test'
+  ...
+# Subtest: A05 imported Open ownership: step-stage-stop
+ok 5 - A05 imported Open ownership: step-stage-stop
+  ---
+  duration_ms: 14397.316333
+  type: 'test'
+  ...
+# Subtest: A05 imported Open ownership: mesh-dialog-new
+ok 6 - A05 imported Open ownership: mesh-dialog-new
+  ---
+  duration_ms: 17739.479166
+  type: 'test'
+  ...
+# Subtest: A05 imported Open ownership: mesh-diagnose-stop-retry
+ok 7 - A05 imported Open ownership: mesh-diagnose-stop-retry
+  ---
+  duration_ms: 20367.347209
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 7
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 123919.188792

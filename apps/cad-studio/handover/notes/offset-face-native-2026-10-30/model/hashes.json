@@ -1,0 +1,15 @@
+{
+  "status": "MODEL_BINDING_FINAL_64PASS_TYPES_LINT_PASS_SOURCE_FROZEN",
+  "files": [
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/src/app/profileCommands.ts",
+      "sha256": "02d45c17dd1b436e82594a31eb01bd3abae5468364adece39c6d641b90d3a8cf",
+      "bytes": 21718
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/test/offset-face-native.test.ts",
+      "sha256": "ff6b63edd3fe12f20cebf053e0af044923836cd0b2c3d93d60cb0a14492171f5",
+      "bytes": 18103
+    }
+  ]
+}

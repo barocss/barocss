@@ -1,0 +1,10 @@
+{
+  "hashes": {
+    "packages/barocss-cad/src/brep/brep-bounds.ts": "bb0eda30921ef8552907d2e52f646ed790fec727f9cc61919d7b95b4499b120c",
+    "packages/barocss-cad/src/core/math.ts": "90613a0504b96bd31a0869af1193299b088df99e4ada0f135eaf78c5bff992bf",
+    "packages/barocss-cad/src/io/step.ts": "4f175e4293ae4310100f017c1b978bb70baa401fedf4d1380e811a6bf4970db8",
+    "packages/barocss-cad/src/brep/brep-mass-quadrature.ts": "696ec924bc4f1d7b74862533676af5e4c0b8a2a284a8a249ea7007dade4c8ed5",
+    "packages/barocss-cad/dist/brep/brep-bounds.js": "8f374ced7cbf688444a66844d3522e744c36c45d861de25543b8fbfe78f2819a"
+  },
+  "unchanged": true
+}

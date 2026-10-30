@@ -1,0 +1,510 @@
+{
+  "meaning": "Evidence integrity only, not product acceptance",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 2339,
+      "sha256": "d2adf781e00785815112613844f0881bcade19d44b53ddf5d2069861bfed9b25"
+    },
+    {
+      "path": "browser-dxf-final/01-starter-plate-loads.png",
+      "bytes": 257480,
+      "sha256": "9b592c75a0cd7150a54fcfa26ab5b86526ecfae5ece6cdfdd6c327f638a6c707"
+    },
+    {
+      "path": "browser-dxf-final/251-a6-4-a-hand-written-dxf-in-inches-added-as-a-sketch-draft-3-dimensions-to-confirm-one-confirmed-as-it-is-a-hole-re-driven-to-another-diameter-an-export-says-it-is-a-draft.png",
+      "bytes": 361278,
+      "sha256": "a7de2fe752384c43c2202a8ee8d86d1dd53069946b046e76b197cd18ce4cd78b"
+    },
+    {
+      "path": "browser-dxf-final/251a-a6-4-drafts.png",
+      "bytes": 255760,
+      "sha256": "a69d4dc513c1505f035e16e1879c90eae951145a93a3a49a1246223c3be78909"
+    },
+    {
+      "path": "browser-dxf-final/251a-o16-drafts.png",
+      "bytes": 12583,
+      "sha256": "a2e8f4fd7c3ab85aa8dc69d5fb674d6cefb8d83b1a2da85f4ffd4a0b6090cc78"
+    },
+    {
+      "path": "browser-dxf-final/display.json",
+      "bytes": 161,
+      "sha256": "52cf6d93babdc65bf357a917e2b25b91a79aece76fca76fe1f0c7a7223475c95"
+    },
+    {
+      "path": "browser-dxf-final/draft-plate.bcad",
+      "bytes": 1400,
+      "sha256": "5d2cbe2a526e7f0f76162c6aa2e5303f9344bc6766fbaab2d49a634c8e7bd5bf"
+    },
+    {
+      "path": "browser-dxf-final-exit.json",
+      "bytes": 11,
+      "sha256": "8105264899a6cef65d89313cb15b88d73fd58d892a3de899d3767c0698a98cf7"
+    },
+    {
+      "path": "browser-dxf-final-source-after.txt",
+      "bytes": 31,
+      "sha256": "7d5551a90b24da8a0531094351c881ff8d5f9a9f3c1141cb980e45dce82eea90"
+    },
+    {
+      "path": "browser-dxf-final.txt",
+      "bytes": 396,
+      "sha256": "cfb3a8ef3b327ab6c70774e420f096ccb9b0a78f6fd98b0f464e363aea60d55d"
+    },
+    {
+      "path": "browser-first/01-starter-plate-loads.png",
+      "bytes": 257495,
+      "sha256": "a5c5fe1cb9bda7c207948c6357b8365bc0e4f14d84b7aa8e06d70455cfc428a1"
+    },
+    {
+      "path": "browser-first/114-requirements-the-panel-checks-the-brief-an-assumption-confirmed-by-the-user-is-stated-a-person-s-edit-breaking-a-hard-one-is-kept-and-said.png",
+      "bytes": 225565,
+      "sha256": "3b03af8dc43a2b59be7fbf3c53675979f0491ba48391836b6cff525c025c1a9a"
+    },
+    {
+      "path": "browser-first/250-a6-3-a-step-block-added-as-a-locked-reference-ghosted-not-a-body-of-the-part-a-datum-from-its-underside-an-envelope-keep-out-clear-then-violated-as-the-part-grows-into-it.png",
+      "bytes": 308684,
+      "sha256": "4d6ec94b1a766234e549bc99e238f5f1c7e61caba34be2af845f97e52b1f1727"
+    },
+    {
+      "path": "browser-first/250a-a6-3-reference.png",
+      "bytes": 204297,
+      "sha256": "e36046d07a7c1510b0a54e22b2e9bef4f0cfff139fb39de2a92f8c765604f5dd"
+    },
+    {
+      "path": "browser-first/250a-o16-references.png",
+      "bytes": 19806,
+      "sha256": "8c7d5698cb6e9a47a26c807fc047abea7728a45b459621eaab6b26fdc043c200"
+    },
+    {
+      "path": "browser-first/251-a6-4-a-hand-written-dxf-in-inches-added-as-a-sketch-draft-3-dimensions-to-confirm-one-confirmed-as-it-is-a-hole-re-driven-to-another-diameter-an-export-says-it-is-a-draft.png",
+      "bytes": 358364,
+      "sha256": "010d05f0fdab4d542d0cf53b0cd8a9bf97557cfd46b42ee6ff6c3a9c1299178f"
+    },
+    {
+      "path": "browser-first/251a-a6-4-drafts.png",
+      "bytes": 282185,
+      "sha256": "0c4c8f4dcb990f28da02a671ae81e691690c43555ba4414b56dfb5b84d6bd126"
+    },
+    {
+      "path": "browser-first/251a-o16-drafts.png",
+      "bytes": 12583,
+      "sha256": "a2e8f4fd7c3ab85aa8dc69d5fb674d6cefb8d83b1a2da85f4ffd4a0b6090cc78"
+    },
+    {
+      "path": "browser-first/285-g6-the-analysis-maps-a-moulded-plate-s-wall-thickness-with-its-legend-and-the-value-under-the-pointer-its-draft-what-a-3-axis-mill-does-not-reach-its-parting-line-its-two-halves-48-000-mm-above-the-parting-plane-spread-apart-off-again.png",
+      "bytes": 264959,
+      "sha256": "241509f88f125f4bb147946aa80d0f759a668c3eff440a6f0888378fa564891c"
+    },
+    {
+      "path": "browser-first/285a-g6-access.png",
+      "bytes": 273706,
+      "sha256": "1461d0bfb1c3db1ab5b78614a4b33398ae46d8598335f79b111e549bda616d59"
+    },
+    {
+      "path": "browser-first/285a-g6-draft.png",
+      "bytes": 269177,
+      "sha256": "d7c545a574e42b4fa562548c285c0904ebf97ecd1940100dcde3fe34a108e9b7"
+    },
+    {
+      "path": "browser-first/285a-g6-halves.png",
+      "bytes": 312132,
+      "sha256": "5085854e404748d9935ef1583bce4d2b8994e60415592c9c98aa281d62a2f606"
+    },
+    {
+      "path": "browser-first/285a-g6-parting.png",
+      "bytes": 274371,
+      "sha256": "e77352373bb275f9de7bae53b6e48c7536d305f0c40c8edd5d169e1535b7ae6d"
+    },
+    {
+      "path": "browser-first/285a-g6-thickness.png",
+      "bytes": 270733,
+      "sha256": "1e4fbc586690d9ec8621a5201df6847bcbb544cc2f3b13d0108e7b57a1f805d4"
+    },
+    {
+      "path": "browser-first/285a-o16-map-legend.png",
+      "bytes": 3388,
+      "sha256": "d7cb396616b95f872f293fa10ce6c41c8f6258a8160bc41a91beb111d1440932"
+    },
+    {
+      "path": "browser-first/293-o9-the-section-plane-dragged-fast-across-a-plate-the-exact-section-shown-is-the-last-plane-s-and-stays-so-a-late-reply-never-overwrites-it-.png",
+      "bytes": 213857,
+      "sha256": "cd147ae631df17e56ad38d877b52c6448ebfb5f4fd4f84d30b2ecc86b63499d8"
+    },
+    {
+      "path": "browser-first/294-g19-2-section-modes-a-box-section-six-planes-a-face-dragged-two-planes-a-quarter-a-plane-from-a-face-the-exact-section-s-volumes-gpu-against-cpu-on-either-renderer.png",
+      "bytes": 222156,
+      "sha256": "1e52e9af4ce810065d8182de21d0e8b68d3c6f84de060ea6b476402d29580ff2"
+    },
+    {
+      "path": "browser-first/294a-g19-box-cpu.png",
+      "bytes": 197413,
+      "sha256": "61b60e24a51708c85f9a820dc5a54f2082387de3c3f03716225a3bd3d8e2f219"
+    },
+    {
+      "path": "browser-first/294a-g19-box-gpu.png",
+      "bytes": 198740,
+      "sha256": "b480f54a23e12b3f1aae1c1eceba18fd3a6e052d911b4b882852afceb5ddcced"
+    },
+    {
+      "path": "browser-first/294a-g19-box.png",
+      "bytes": 261437,
+      "sha256": "abc9b62c69967b47ffb2932ed21cd289eff79ba85626ebab5b205fdbf37395f2"
+    },
+    {
+      "path": "browser-first/294a-g19-planes-cpu.png",
+      "bytes": 197324,
+      "sha256": "9ae719910f29dd8708aeed74cf776e293bfb8a3c9db13b422ac97e6c80fc36bf"
+    },
+    {
+      "path": "browser-first/294a-g19-planes-gpu.png",
+      "bytes": 197925,
+      "sha256": "e8f131732c3e5ed88902d99f169443ca3d9f97ede3e01dc97540e8be94bfcb5d"
+    },
+    {
+      "path": "browser-first/294a-g19-planes.png",
+      "bytes": 248218,
+      "sha256": "2f6e05b7ca6a63fac5fcc49405c50363031360cbe3eee410fb67f866fbe19a8f"
+    },
+    {
+      "path": "browser-first/301-g3-display-modes-a-plate-and-two-placed-pins-each-cad-display-mode-drawn-and-the-same-pick-on-the-plate-s-top-face-isolate-fades-the-plate-restore-brings-it-back.png",
+      "bytes": 163020,
+      "sha256": "046e02eb7f340c09982c51f65eacc2025d4c1d7883a8a452d72d22f2173d80aa"
+    },
+    {
+      "path": "browser-first/301a-g3-framed.png",
+      "bytes": 143026,
+      "sha256": "f337beac5afa8d24bb0a4da726e4349c233206dbd9995a3b30566fce5c4e97dc"
+    },
+    {
+      "path": "browser-first/301a-g3-hidden-lines-dashed.png",
+      "bytes": 149195,
+      "sha256": "89577110e331a08021876fc32cad3d841c354ed97e9cf87bab222d0ae17d0054"
+    },
+    {
+      "path": "browser-first/301a-g3-hidden-lines-removed.png",
+      "bytes": 146387,
+      "sha256": "eb07cab79d7dbea8c0948354a0490dfbb671421767f19a65e8459b69126e492c"
+    },
+    {
+      "path": "browser-first/301a-g3-isolate.png",
+      "bytes": 143070,
+      "sha256": "12df3fd9ed08a13a7fbad7f46d7949055b2fe398d9fc195aabe8783b6b2197df"
+    },
+    {
+      "path": "browser-first/301a-g3-opened.png",
+      "bytes": 170194,
+      "sha256": "656b309f13f37c02433154821455f1c5b7bc6126cc2d77b220e5c6ed3f18ddf8"
+    },
+    {
+      "path": "browser-first/301a-g3-shaded-with-edges.png",
+      "bytes": 146783,
+      "sha256": "d1f658d4fa6d43232ea7846601c19f9b026a63bceab99c5a810906b8e4baddde"
+    },
+    {
+      "path": "browser-first/301a-g3-wireframe.png",
+      "bytes": 147552,
+      "sha256": "cebf10b545917fc3059b7760ab751cf0afbe90b9dfb9c16b5d6df42fd880ae1e"
+    },
+    {
+      "path": "browser-first/301a-g3-x-ray.png",
+      "bytes": 153241,
+      "sha256": "f742a6084baa9730c86d51d6f00ad08dc8cc777e9b82f34069771c8613b8d4d2"
+    },
+    {
+      "path": "browser-first/302-g24-3d-annotations-the-r14-geometric-plate-s-drawing-on-the-model-its-annotations-drawn-a-text-clicked-picks-its-annotation-and-selects-its-targets-the-same-annotations-after-save-new-and-open.png",
+      "bytes": 96285,
+      "sha256": "3fe412f0aea21919ca767b03f11187872986a03f2b9988f3b097848f5f2ce3c0"
+    },
+    {
+      "path": "browser-first/302a-g24-picked.png",
+      "bytes": 139628,
+      "sha256": "1846982f726ac97cc0d705e39a27955948d1c31d8e9409711d9d3d230da032db"
+    },
+    {
+      "path": "browser-first/302a-g24-shown.png",
+      "bytes": 110414,
+      "sha256": "c506b3d10682dfbc15064b9c257b59e651d830aab03e03ff5c89f1f80a6ae59c"
+    },
+    {
+      "path": "browser-first/303-g23-cnc-cnc8-s-pocket-from-its-machining-stock-not-for-production-first-0-the-middle-and-the-end-of-its-program-no-overcut-the-floor-reached-print-layers-closes-it-reopened-the-same.png",
+      "bytes": 350062,
+      "sha256": "e69e0369ca98c71ebc0feda8c4e3356c1acc07641ef08c2ca6afed96e1ed5c95"
+    },
+    {
+      "path": "browser-first/303a-g23-cnc-end.png",
+      "bytes": 421256,
+      "sha256": "ab20dc94e0d605f23c28c69a3ed16e0e8f3816aad7b8c97e3667e1bb672aec81"
+    },
+    {
+      "path": "browser-first/303a-g23-cnc-middle.png",
+      "bytes": 414102,
+      "sha256": "b048a46dcfd222894e1f3b3ef18d24e11cbbd37743a4cf268d9b9c677e4973a9"
+    },
+    {
+      "path": "browser-first/304-g22-clearance-a-shaft-and-its-key-designed-and-four-pairs-of-boxes-in-contact-at-once-then-touching-and-overlap-near-clear-drawn-on-the-model-and-gone-when-closed-print-layers-refuses-the-assembly-the-same-after-save-new-and-open.png",
+      "bytes": 773390,
+      "sha256": "85d53bc24cab95b5f92994747d35fb07dc2ce4d247180de44961cdefa1430579"
+    },
+    {
+      "path": "browser-first/304a-g22-clearance.png",
+      "bytes": 806591,
+      "sha256": "b35adc84efb0e70f83cab64ef1a0faa983f072d510e775e03af2bd983a055096"
+    },
+    {
+      "path": "browser-first/305-g23-print-layers-cnc8-s-plate-sliced-its-layers-drawn-the-height-set-and-the-layer-moved-changing-the-view-printed-up-to-off-the-settings-saved-the-same-layer-after-save-new-and-open.png",
+      "bytes": 350784,
+      "sha256": "9315bf7de113a5e096ba68ad62525fa47d814b9b88187e65cda8378f686025f1"
+    },
+    {
+      "path": "browser-first/305a-g23-print-middle.png",
+      "bytes": 382744,
+      "sha256": "4f89892751d07a3ec305e38db8da1c72fc7ac5712286cedb45d3a8843cc9f342"
+    },
+    {
+      "path": "browser-first/brief.bcad",
+      "bytes": 671,
+      "sha256": "cc49e630eef7904654770d775710b9af10887e545b3f069866941543eceb7c08"
+    },
+    {
+      "path": "browser-first/cube-10.bcad",
+      "bytes": 232,
+      "sha256": "cc23aa3dc333ceebc0823b45954048572578aeadf0a9c353b0b0decfccb2de18"
+    },
+    {
+      "path": "browser-first/display.json",
+      "bytes": 161,
+      "sha256": "52cf6d93babdc65bf357a917e2b25b91a79aece76fca76fe1f0c7a7223475c95"
+    },
+    {
+      "path": "browser-first/draft-plate.bcad",
+      "bytes": 1400,
+      "sha256": "b126fde0c51781208fd20088b942c62f3c1fa569248e24db891b3848957ce898"
+    },
+    {
+      "path": "browser-first/g19-plate.bcad",
+      "bytes": 232,
+      "sha256": "60b491f65ae992f63120c5b7355e003a8bac6136891db08e077bda2be50952d7"
+    },
+    {
+      "path": "browser-first/g24-plate.bcad",
+      "bytes": 1666,
+      "sha256": "915f4000c5bf71bcf935552b34ca197f7029f0249b7aee0a3b44b1b25300fef0"
+    },
+    {
+      "path": "browser-first/g3-display.bcad",
+      "bytes": 849,
+      "sha256": "b69df5b4f20e65bb82bd0ba924b6a5b67435626147e5e82e5e77b59ae6849920"
+    },
+    {
+      "path": "browser-first/g6-plate.bcad",
+      "bytes": 387,
+      "sha256": "90c1bb6f5b297a2465913b9314c7d463b49ea3f863a1f1899d7f29e335360264"
+    },
+    {
+      "path": "browser-first/grown.bcad",
+      "bytes": 11597,
+      "sha256": "72b0d5a097df88d93cc550584f876e2a81cfe0963731193738cfd8a946964292"
+    },
+    {
+      "path": "browser-first/o9-plate.bcad",
+      "bytes": 232,
+      "sha256": "60b491f65ae992f63120c5b7355e003a8bac6136891db08e077bda2be50952d7"
+    },
+    {
+      "path": "browser-first/saved-g22-clearance.bcad",
+      "bytes": 8077,
+      "sha256": "aa4338ab173df8db511e9edb57caea176c6ca197e6f42746845071b72015e0cd"
+    },
+    {
+      "path": "browser-first/saved-g23-print.bcad",
+      "bytes": 1749,
+      "sha256": "342027f37a1f774e74e07823704ba72814d46bdffb1c271000f6a7cac1126c0c"
+    },
+    {
+      "path": "browser-first/saved-g24-plate.bcad",
+      "bytes": 3778,
+      "sha256": "4c7cb47e43ecd1b89fa753921ad38e2ef7adee40d5a25401d1eba0cc12eef6fb"
+    },
+    {
+      "path": "browser-first-exit.json",
+      "bytes": 11,
+      "sha256": "66f8dc51d13ba3ee81b71913528824d9c1a3812c325fc59d4b60dda8e8520d2b"
+    },
+    {
+      "path": "browser-first-source-after.txt",
+      "bytes": 783,
+      "sha256": "27f76f2416e9c0128ac4fd1cb972978ed1761e3ccd002ede3b6a27f1e05d1a6b"
+    },
+    {
+      "path": "browser-first.txt",
+      "bytes": 3284,
+      "sha256": "2c7326f8e68a143ba50caf4effa49757d1208c07f11ccb61c62b938165a11a73"
+    },
+    {
+      "path": "build-final-exit.json",
+      "bytes": 11,
+      "sha256": "8105264899a6cef65d89313cb15b88d73fd58d892a3de899d3767c0698a98cf7"
+    },
+    {
+      "path": "build-final.txt",
+      "bytes": 19003,
+      "sha256": "f19a3f5b0014227d4ad75af5a7a31f2fe79697725d9bb480e5a6b06a05cedc73"
+    },
+    {
+      "path": "docs-final-exit.json",
+      "bytes": 11,
+      "sha256": "8105264899a6cef65d89313cb15b88d73fd58d892a3de899d3767c0698a98cf7"
+    },
+    {
+      "path": "docs-final.txt",
+      "bytes": 68,
+      "sha256": "311d9938df550c33b29d042bfd9e0824929872dd7f60d4e002305addf2e68041"
+    },
+    {
+      "path": "driver-final/browser-flow.mjs.gz",
+      "bytes": 176418,
+      "sha256": "fedd1302c8ddc9c5a553576566fbf97ccf4160dac4798284dcbef6da80ac2ebc"
+    },
+    {
+      "path": "driver-final/profile.json",
+      "bytes": 153,
+      "sha256": "5ba159da28bf66f9237419a421691fb31880f592b2cae8909d1e2ad8085dd406"
+    },
+    {
+      "path": "driver-lint-exit.json",
+      "bytes": 11,
+      "sha256": "8105264899a6cef65d89313cb15b88d73fd58d892a3de899d3767c0698a98cf7"
+    },
+    {
+      "path": "driver-lint.txt",
+      "bytes": 2961,
+      "sha256": "abb38c8398930e9d563bd78b2bf85ad26d54e21bd50d6d5444b52bb4291c5712"
+    },
+    {
+      "path": "first-driver-profile.json",
+      "bytes": 223,
+      "sha256": "d0d5200d0a34917d96e237279f68cd23e85b903c30de02211f7e3ba3350f64d9"
+    },
+    {
+      "path": "frozen/apps__cad-studio__src__App.tsx.gz",
+      "bytes": 55595,
+      "sha256": "9ce68bc4d0cc596a65ab2c0dd2c7c4caceda7ee4ca6a530b14e6987b04ffa027"
+    },
+    {
+      "path": "frozen/apps__cad-studio__src__state__useSpecificationActions.ts.gz",
+      "bytes": 2143,
+      "sha256": "5f2ec991d8900fe3c2b10408f1caa7584c04fc0e4ac7a941f382d6d9ea5eef1d"
+    },
+    {
+      "path": "frozen/apps__cad-studio__src__viewport__useAnalysisMaps.ts.gz",
+      "bytes": 1475,
+      "sha256": "2eb3ec733878ee7737060b119df74b1f1eb74c7fac8cfa5a5a78d554214f6a79"
+    },
+    {
+      "path": "frozen/apps__cad-studio__src__viewport__useSectionDisplay.ts.gz",
+      "bytes": 1153,
+      "sha256": "241480984a4b453e5e3aecda53c72762deb13a11c0c32311ec2c5f68b793d464"
+    },
+    {
+      "path": "frozen/apps__cad-studio__src__viewport__useSectionEvaluation.ts.gz",
+      "bytes": 1372,
+      "sha256": "b988d43356b9f5971f959051eb9a9d22f8b13c8f395ff3d79f42f0e6015511ca"
+    },
+    {
+      "path": "frozen/apps__cad-studio__src__viewport__useSectionState.ts.gz",
+      "bytes": 1212,
+      "sha256": "99fed96f4a5ac09f066486abef3c93aea07ec3207eba0ae07886fea097528179"
+    },
+    {
+      "path": "frozen/apps__cad-studio__src__viewport__useViewportPicking.ts.gz",
+      "bytes": 2509,
+      "sha256": "2d15871c9bdb5ac40fb55d977114cda284415ecfe712058c7ed5aafe692de4f8"
+    },
+    {
+      "path": "frozen/apps__cad-studio__src__viewport__useWorkspacePreviews.ts.gz",
+      "bytes": 4151,
+      "sha256": "a047123efd8928193a444701c53ad848d206874872135f140ef0162ba1a48b42"
+    },
+    {
+      "path": "frozen/browser-flow.mjs.gz",
+      "bytes": 176334,
+      "sha256": "b73619757d46acd4f22305b8dcdd6782f8d7f8bf5a5270e7ffc92b6dbcdc20a8"
+    },
+    {
+      "path": "frozen/profile.json",
+      "bytes": 2357,
+      "sha256": "09231951f937ac89a75ee5c426241f323f69af0c49a56ddb7f93e08d8c943769"
+    },
+    {
+      "path": "lint-final-exit.json",
+      "bytes": 12,
+      "sha256": "5bc232b82de377a5655a39a2af9d7ae0fc868de5b9df957e18905cb914606c88"
+    },
+    {
+      "path": "lint-final.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "lint-first-exit.json",
+      "bytes": 11,
+      "sha256": "66f8dc51d13ba3ee81b71913528824d9c1a3812c325fc59d4b60dda8e8520d2b"
+    },
+    {
+      "path": "lint-first.txt",
+      "bytes": 263,
+      "sha256": "7bd9c73186a877a1270610f53e9a8190aff81e5c5b41e48c5caeb8b2ecd82426"
+    },
+    {
+      "path": "plan.json",
+      "bytes": 902,
+      "sha256": "788e6ef35b394645d1e142ad3e5d84197b5c7517f60035713197d50fd5eed551"
+    },
+    {
+      "path": "production-final-verify.txt",
+      "bytes": 31,
+      "sha256": "7d5551a90b24da8a0531094351c881ff8d5f9a9f3c1141cb980e45dce82eea90"
+    },
+    {
+      "path": "qualification.json",
+      "bytes": 2989,
+      "sha256": "bcbf8655e925c8a781a2c5c14d76ebc3bf5dd1a4fd4cfdba8a8c6b58deca7ca2"
+    },
+    {
+      "path": "run-browser.sh",
+      "bytes": 1029,
+      "sha256": "c80b93f5f61a8ce477cb6cab26770e498bd7e7cac12fad268f568433fd8d4e48"
+    },
+    {
+      "path": "source-map.md",
+      "bytes": 1502,
+      "sha256": "7da3e288a023d700bcf9ead69984ec79d884fe67c85ecb07f91a0d87de7c04cc"
+    },
+    {
+      "path": "source-review.md",
+      "bytes": 1083,
+      "sha256": "6cce0181746ead8fef83b40e6b6198636e6516b4a1e327ca5ac48bcb7d89979b"
+    },
+    {
+      "path": "studio-all-exit.json",
+      "bytes": 11,
+      "sha256": "8105264899a6cef65d89313cb15b88d73fd58d892a3de899d3767c0698a98cf7"
+    },
+    {
+      "path": "studio-all.txt",
+      "bytes": 129815,
+      "sha256": "7a36131bd06b41794a9f652797ae4308aeb6167843bfaead58260270825316e5"
+    },
+    {
+      "path": "types-first-exit.json",
+      "bytes": 11,
+      "sha256": "66f8dc51d13ba3ee81b71913528824d9c1a3812c325fc59d4b60dda8e8520d2b"
+    },
+    {
+      "path": "types-first.txt",
+      "bytes": 1042,
+      "sha256": "9c418e1e9a5f7b1e16158491a469ee660e2c14a2ab5c7a61d87907630a2f000b"
+    }
+  ]
+}

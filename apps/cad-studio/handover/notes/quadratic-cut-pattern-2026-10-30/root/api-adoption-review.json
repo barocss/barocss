@@ -1,0 +1,8 @@
+{
+  "status": "REVIEWED_ADOPTED",
+  "addedExports": 2,
+  "removedExports": 0,
+  "changedOldExports": 0,
+  "meaning": "One shared owned plain path query plus its named result type, offsets + truthful length lower/upper/estimate. No method/spec/node/schema change.",
+  "scope": "All other inventory metadata and6834 existing exposures unchanged; source callback lift leaves these signatures unchanged, subsequent --check verifies."
+}

@@ -1,0 +1,32 @@
+TAP version 13
+# Subtest: D320 native OPFS serializes same-adapter exact-path write ownership through returned tag read
+not ok 1 - D320 native OPFS serializes same-adapter exact-path write ownership through returned tag read
+  ---
+  duration_ms: 3987.539917
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/handle-store-opfs-browser.test.mjs:15:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    {"name":"TypeError","message":"Cannot read properties of undefined (reading 'code')","stack":"TypeError: Cannot read properties of undefined (reading 'code')\n    at eval (eval at evaluate (:311:30), <anonymous>:8:133)\n    at async eval (eval at evaluate (:311:30), <anonymous>:92:24)\n    at async <anonymous>:337:30"}
+    
+    'FAIL' !== 'PASS'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'PASS'
+  actual: 'FAIL'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/handle-store-opfs-browser.test.mjs:155:12)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:296:3)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4070.682584

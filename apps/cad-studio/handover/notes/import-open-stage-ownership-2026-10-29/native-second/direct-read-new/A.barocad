@@ -1,0 +1,11 @@
+@model study {
+  version: 0;
+  length-unit: mm;
+  @curve #arc { type: nurbs; degree: 2; knots: [0,0,0,1,1,1]; control-points: [[0,0,0],[10,10,0],[20,0,0]]; weights: [1,1,1]; }
+  @curve #top { type: nurbs; degree: 1; knots: [0,0,1,1]; control-points: [[0,0,10],[20,0,10]]; weights: [1,1]; }
+  @curve #base { type: nurbs; degree: 1; knots: [0,0,1,1]; control-points: [[0,5,0],[20,5,0]]; weights: [1,1]; }
+  @surface #panel {
+    type: nurbs; degree-u: 1; degree-v: 1; knots-u: [0,0,1,1]; knots-v: [0,0,1,1];
+    control-points: [[[0,0,-5],[0,20,-5]],[[20,0,-5],[20,20,-5]]]; weights: [[1,1],[1,1]];
+  }
+}

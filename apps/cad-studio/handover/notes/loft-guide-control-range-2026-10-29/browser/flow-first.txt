@@ -1,0 +1,5 @@
+flow display: {"requestedDpr":1,"renderer":"webgpu","devicePixelRatio":1,"cssWidth":1140,"cssHeight":900,"backingWidth":1140,"backingHeight":900}
+ok 1 starter plate loads
+ok 32 D315: copied cubic guide with 17 controls previews, applies, undoes and reopens
+ok 33 D315: copied cubic guide with 64 controls previews, applies, undoes and reopens
+screenshots: /tmp/d315-studio-first

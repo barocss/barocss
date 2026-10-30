@@ -1,0 +1,6485 @@
+{
+  "status": "PASS",
+  "fixtureSHA256": "6b2cb00f30dcb17943164dfab0843e94677317d425cad9c764a649792c21b4b1",
+  "renderer": "webgpu",
+  "states": [
+    {
+      "label": "01-open-both",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sheet-contour",
+            "path": [
+              [
+                -1.83697019872103e-15,
+                30
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                40,
+                0
+              ]
+            ],
+            "side": "left",
+            "width": 30,
+            "thickness": 1.5,
+            "bendRadius": 1.5,
+            "kFactor": 0.44,
+            "plane": {
+              "origin": [
+                0,
+                30,
+                0
+              ],
+              "normal": [
+                0,
+                -1,
+                0
+              ],
+              "xAxis": [
+                1,
+                0,
+                0
+              ]
+            },
+            "id": "n0"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              25,
+              15
+            ],
+            "radius": 2.75,
+            "plane": {
+              "origin": [
+                0,
+                0,
+                -1
+              ],
+              "normal": [
+                0,
+                0,
+                1
+              ],
+              "xAxis": [
+                1,
+                0,
+                0
+              ]
+            },
+            "id": "n1"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 1,
+            "height": 4,
+            "id": "n2"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 0,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 2,
+              "side": "solid"
+            },
+            "id": "n3"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              15,
+              20
+            ],
+            "radius": 2.75,
+            "plane": {
+              "origin": [
+                -1,
+                0,
+                0
+              ],
+              "normal": [
+                1,
+                0,
+                0
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ]
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 4,
+            "height": 4,
+            "id": "n5"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 5,
+              "side": "solid"
+            },
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7,
+        "proposals": [
+          {
+            "id": "P1",
+            "title": "DA-1a drawing draft",
+            "status": "accepted",
+            "by": {
+              "agent": "chat"
+            },
+            "at": "2026-10-29T08:52:49.918Z",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "base": "eaa408fc",
+            "ops": [
+              {
+                "tool": "set_drawing",
+                "args": {
+                  "scope": {
+                    "kind": "part"
+                  },
+                  "sheet": "A4",
+                  "projection": "third",
+                  "front": "y-",
+                  "views": [
+                    "front",
+                    "top",
+                    "right",
+                    "iso"
+                  ],
+                  "scale": "auto",
+                  "title": "DA-1a sheet L-bracket draft"
+                }
+              },
+              {
+                "tool": "auto_dimension",
+                "args": {
+                  "layout": false
+                }
+              }
+            ],
+            "orders": [
+              [
+                "n0",
+                "n1",
+                "n2",
+                "n3",
+                "n4",
+                "n5",
+                "n6"
+              ],
+              [
+                "n0",
+                "n1",
+                "n2",
+                "n3",
+                "n4",
+                "n5",
+                "n6"
+              ]
+            ],
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "summary": "no change",
+            "decided": {
+              "by": "user",
+              "at": "2026-10-29T08:52:49.961Z",
+              "model_hash": "eaa408fc"
+            }
+          }
+        ],
+        "history": [
+          {
+            "kind": "proposal",
+            "by": {
+              "agent": "chat"
+            },
+            "proposal": "P1",
+            "summary": "P1 DA-1a drawing draft: no change",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "id": "h1",
+            "at": "2026-10-29T08:52:49.918Z"
+          },
+          {
+            "kind": "accept",
+            "by": {
+              "agent": "user"
+            },
+            "proposed_by": {
+              "agent": "chat"
+            },
+            "proposal": "P1",
+            "model_hash": "eaa408fc",
+            "summary": "P1 DA-1a drawing draft",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "id": "h2",
+            "at": "2026-10-29T08:52:49.961Z"
+          }
+        ],
+        "drawing": {
+          "sheet": "A4",
+          "scope": {
+            "kind": "part"
+          },
+          "projection": "third",
+          "hidden": true,
+          "title": "DA-1a sheet L-bracket draft",
+          "dimensions": [
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.b|n0.start",
+                "at": "end",
+                "near": [
+                  1.4999999999999982,
+                  30,
+                  30
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                0.749999999999999,
+                40
+              ],
+              "id": "d1",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg1.a|n2.side0#2",
+                "at": "center",
+                "near": [
+                  25,
+                  15,
+                  -1.8003616615543075e-16
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                12.5,
+                48
+              ],
+              "id": "d2",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg1.a|n2.side0#2",
+                "at": "center",
+                "near": [
+                  25,
+                  15,
+                  -1.8003616615543075e-16
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -10.000000000000002,
+                7.5
+              ],
+              "id": "d3",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  30,
+                  3
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -18.000000000000004,
+                15
+              ],
+              "id": "d4",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "diameter",
+              "edge": "n0.leg1.a|n2.side0#2",
+              "near": [
+                25,
+                15,
+                -1.8003616615543075e-16
+              ],
+              "place": [
+                33.75,
+                -6
+              ],
+              "id": "d5",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  30,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.front|n0.leg1.a",
+                "at": "end",
+                "near": [
+                  40,
+                  30,
+                  0
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                20,
+                -10
+              ],
+              "id": "d6",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  30,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.back|n0.leg1.b",
+                "at": "end",
+                "near": [
+                  40,
+                  0,
+                  1.5
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -10.000000000000002,
+                0.7499999999999998
+              ],
+              "id": "d7",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  30,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.front|n0.start",
+                "at": "end",
+                "near": [
+                  -1.83697019872103e-15,
+                  30,
+                  30
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -18.000000000000004,
+                15
+              ],
+              "id": "d8",
+              "auto": true
+            },
+            {
+              "view": "right",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  0,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.a|n5.side0#2",
+                "at": "center",
+                "near": [
+                  -1.2246467991473535e-15,
+                  15,
+                  20
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                7.5,
+                -10
+              ],
+              "id": "d9",
+              "auto": true
+            },
+            {
+              "view": "right",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  0,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.a|n5.side0#2",
+                "at": "center",
+                "near": [
+                  -1.2246467991473535e-15,
+                  15,
+                  20
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                40,
+                10
+              ],
+              "id": "d10",
+              "auto": true
+            },
+            {
+              "view": "right",
+              "kind": "diameter",
+              "edge": "n0.leg0.a|n5.side0#2",
+              "near": [
+                -1.2246467991473535e-15,
+                15,
+                20
+              ],
+              "place": [
+                6.25,
+                36
+              ],
+              "id": "d11",
+              "auto": true
+            }
+          ]
+        }
+      },
+      "sheet": {
+        "scale": 1,
+        "dimensions": [
+          {
+            "id": "d1",
+            "text": "1.5",
+            "value": 1.4999999999999984
+          },
+          {
+            "id": "d2",
+            "text": "25",
+            "value": 25
+          },
+          {
+            "id": "d3",
+            "text": "15",
+            "value": 15
+          },
+          {
+            "id": "d4",
+            "text": "30",
+            "value": 30
+          },
+          {
+            "id": "d5",
+            "text": "Ø5.5",
+            "value": 5.500000000000001
+          },
+          {
+            "id": "d6",
+            "text": "40",
+            "value": 40
+          },
+          {
+            "id": "d7",
+            "text": "1.5",
+            "value": 1.5000000000000004
+          },
+          {
+            "id": "d8",
+            "text": "30",
+            "value": 30
+          },
+          {
+            "id": "d9",
+            "text": "15",
+            "value": 15
+          },
+          {
+            "id": "d10",
+            "text": "20",
+            "value": 20
+          },
+          {
+            "id": "d11",
+            "text": "Ø5.5",
+            "value": 5.500000000000001
+          }
+        ],
+        "hidden": {
+          "front": 4,
+          "top": 2,
+          "right": 2,
+          "iso": 11
+        },
+        "section": null,
+        "sections": [],
+        "placedSections": [],
+        "apartSections": [],
+        "details": [],
+        "boxes": {
+          "front": [
+            92.75126265847084,
+            111.5361388801511,
+            132.75126265847084,
+            141.5361388801511
+          ],
+          "top": [
+            92.75126265847084,
+            48,
+            132.75126265847084,
+            78
+          ],
+          "right": [
+            164.5,
+            111.5361388801511,
+            194.5,
+            141.5361388801511
+          ],
+          "iso": [
+            154.75126265847084,
+            36.4638611198489,
+            204.24873734152916,
+            89.5361388801511
+          ]
+        },
+        "breaks": {},
+        "issues": [
+          {
+            "code": "TEXT_OVER_LINES",
+            "severity": "error",
+            "fix": "move"
+          },
+          {
+            "code": "TEXT_OVER_LINES",
+            "severity": "error",
+            "fix": "move"
+          }
+        ],
+        "tables": [],
+        "suggestions": [
+          {
+            "id": "general-note",
+            "kind": "general-note",
+            "estimate": true
+          },
+          {
+            "id": "hole-pm-d5",
+            "kind": "hole-plus-minus",
+            "estimate": true
+          },
+          {
+            "id": "hole-pm-d11",
+            "kind": "hole-plus-minus",
+            "estimate": true
+          }
+        ]
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 2967.7682447596635,
+            "centroid": [
+              12.141098054079967,
+              14.999999999999996,
+              7.007842511441253
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "rendererObserved": "webgpu",
+      "publicStats": "Perspective · 1 solid · 20 ms",
+      "issueRows": [
+        {
+          "code": "TEXT_OVER_LINES",
+          "text": "errorThe text of dimension 1.5 lies over lines of the drawing.Move"
+        },
+        {
+          "code": "TEXT_OVER_LINES",
+          "text": "errorThe text of dimension 1.5 lies over lines of the drawing.Move"
+        }
+      ],
+      "visibleIssues": "errorThe text of dimension 1.5 lies over lines of the drawing.MoveerrorThe text of dimension 1.5 lies over lines of the drawing.Move"
+    },
+    {
+      "label": "02-after-fix-all",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sheet-contour",
+            "path": [
+              [
+                -1.83697019872103e-15,
+                30
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                40,
+                0
+              ]
+            ],
+            "side": "left",
+            "width": 30,
+            "thickness": 1.5,
+            "bendRadius": 1.5,
+            "kFactor": 0.44,
+            "plane": {
+              "origin": [
+                0,
+                30,
+                0
+              ],
+              "normal": [
+                0,
+                -1,
+                0
+              ],
+              "xAxis": [
+                1,
+                0,
+                0
+              ]
+            },
+            "id": "n0"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              25,
+              15
+            ],
+            "radius": 2.75,
+            "plane": {
+              "origin": [
+                0,
+                0,
+                -1
+              ],
+              "normal": [
+                0,
+                0,
+                1
+              ],
+              "xAxis": [
+                1,
+                0,
+                0
+              ]
+            },
+            "id": "n1"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 1,
+            "height": 4,
+            "id": "n2"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 0,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 2,
+              "side": "solid"
+            },
+            "id": "n3"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              15,
+              20
+            ],
+            "radius": 2.75,
+            "plane": {
+              "origin": [
+                -1,
+                0,
+                0
+              ],
+              "normal": [
+                1,
+                0,
+                0
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ]
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 4,
+            "height": 4,
+            "id": "n5"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 5,
+              "side": "solid"
+            },
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7,
+        "proposals": [
+          {
+            "id": "P1",
+            "title": "DA-1a drawing draft",
+            "status": "accepted",
+            "by": {
+              "agent": "chat"
+            },
+            "at": "2026-10-29T08:52:49.918Z",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "base": "eaa408fc",
+            "ops": [
+              {
+                "tool": "set_drawing",
+                "args": {
+                  "scope": {
+                    "kind": "part"
+                  },
+                  "sheet": "A4",
+                  "projection": "third",
+                  "front": "y-",
+                  "views": [
+                    "front",
+                    "top",
+                    "right",
+                    "iso"
+                  ],
+                  "scale": "auto",
+                  "title": "DA-1a sheet L-bracket draft"
+                }
+              },
+              {
+                "tool": "auto_dimension",
+                "args": {
+                  "layout": false
+                }
+              }
+            ],
+            "orders": [
+              [
+                "n0",
+                "n1",
+                "n2",
+                "n3",
+                "n4",
+                "n5",
+                "n6"
+              ],
+              [
+                "n0",
+                "n1",
+                "n2",
+                "n3",
+                "n4",
+                "n5",
+                "n6"
+              ]
+            ],
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "summary": "no change",
+            "decided": {
+              "by": "user",
+              "at": "2026-10-29T08:52:49.961Z",
+              "model_hash": "eaa408fc"
+            }
+          }
+        ],
+        "history": [
+          {
+            "kind": "proposal",
+            "by": {
+              "agent": "chat"
+            },
+            "proposal": "P1",
+            "summary": "P1 DA-1a drawing draft: no change",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "id": "h1",
+            "at": "2026-10-29T08:52:49.918Z"
+          },
+          {
+            "kind": "accept",
+            "by": {
+              "agent": "user"
+            },
+            "proposed_by": {
+              "agent": "chat"
+            },
+            "proposal": "P1",
+            "model_hash": "eaa408fc",
+            "summary": "P1 DA-1a drawing draft",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "id": "h2",
+            "at": "2026-10-29T08:52:49.961Z"
+          }
+        ],
+        "drawing": {
+          "sheet": "A4",
+          "scope": {
+            "kind": "part"
+          },
+          "projection": "third",
+          "hidden": true,
+          "title": "DA-1a sheet L-bracket draft",
+          "dimensions": [
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.b|n0.start",
+                "at": "end",
+                "near": [
+                  1.4999999999999982,
+                  30,
+                  30
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                0.749999999999999,
+                56
+              ],
+              "id": "d1",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg1.a|n2.side0#2",
+                "at": "center",
+                "near": [
+                  25,
+                  15,
+                  -1.8003616615543075e-16
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                12.5,
+                48
+              ],
+              "id": "d2",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg1.a|n2.side0#2",
+                "at": "center",
+                "near": [
+                  25,
+                  15,
+                  -1.8003616615543075e-16
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -10.000000000000002,
+                7.5
+              ],
+              "id": "d3",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  30,
+                  3
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -18.000000000000004,
+                15
+              ],
+              "id": "d4",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "diameter",
+              "edge": "n0.leg1.a|n2.side0#2",
+              "near": [
+                25,
+                15,
+                -1.8003616615543075e-16
+              ],
+              "place": [
+                33.75,
+                -6
+              ],
+              "id": "d5",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  30,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.front|n0.leg1.a",
+                "at": "end",
+                "near": [
+                  40,
+                  30,
+                  0
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                20,
+                -10
+              ],
+              "id": "d6",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  30,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.back|n0.leg1.b",
+                "at": "end",
+                "near": [
+                  40,
+                  0,
+                  1.5
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -26,
+                0.7499999999999998
+              ],
+              "id": "d7",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  30,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.front|n0.start",
+                "at": "end",
+                "near": [
+                  -1.83697019872103e-15,
+                  30,
+                  30
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -18.000000000000004,
+                15
+              ],
+              "id": "d8",
+              "auto": true
+            },
+            {
+              "view": "right",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  0,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.a|n5.side0#2",
+                "at": "center",
+                "near": [
+                  -1.2246467991473535e-15,
+                  15,
+                  20
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                7.5,
+                -10
+              ],
+              "id": "d9",
+              "auto": true
+            },
+            {
+              "view": "right",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  0,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.a|n5.side0#2",
+                "at": "center",
+                "near": [
+                  -1.2246467991473535e-15,
+                  15,
+                  20
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                40,
+                10
+              ],
+              "id": "d10",
+              "auto": true
+            },
+            {
+              "view": "right",
+              "kind": "diameter",
+              "edge": "n0.leg0.a|n5.side0#2",
+              "near": [
+                -1.2246467991473535e-15,
+                15,
+                20
+              ],
+              "place": [
+                6.25,
+                36
+              ],
+              "id": "d11",
+              "auto": true
+            }
+          ]
+        }
+      },
+      "sheet": {
+        "scale": 1,
+        "dimensions": [
+          {
+            "id": "d1",
+            "text": "1.5",
+            "value": 1.4999999999999984
+          },
+          {
+            "id": "d2",
+            "text": "25",
+            "value": 25
+          },
+          {
+            "id": "d3",
+            "text": "15",
+            "value": 15
+          },
+          {
+            "id": "d4",
+            "text": "30",
+            "value": 30
+          },
+          {
+            "id": "d5",
+            "text": "Ø5.5",
+            "value": 5.500000000000001
+          },
+          {
+            "id": "d6",
+            "text": "40",
+            "value": 40
+          },
+          {
+            "id": "d7",
+            "text": "1.5",
+            "value": 1.5000000000000004
+          },
+          {
+            "id": "d8",
+            "text": "30",
+            "value": 30
+          },
+          {
+            "id": "d9",
+            "text": "15",
+            "value": 15
+          },
+          {
+            "id": "d10",
+            "text": "20",
+            "value": 20
+          },
+          {
+            "id": "d11",
+            "text": "Ø5.5",
+            "value": 5.500000000000001
+          }
+        ],
+        "hidden": {
+          "front": 4,
+          "top": 2,
+          "right": 2,
+          "iso": 11
+        },
+        "section": null,
+        "sections": [],
+        "placedSections": [],
+        "apartSections": [],
+        "details": [],
+        "boxes": {
+          "front": [
+            92.75126265847084,
+            111.5361388801511,
+            132.75126265847084,
+            141.5361388801511
+          ],
+          "top": [
+            92.75126265847084,
+            48,
+            132.75126265847084,
+            78
+          ],
+          "right": [
+            164.5,
+            111.5361388801511,
+            194.5,
+            141.5361388801511
+          ],
+          "iso": [
+            154.75126265847084,
+            36.4638611198489,
+            204.24873734152916,
+            89.5361388801511
+          ]
+        },
+        "breaks": {},
+        "issues": [],
+        "tables": [],
+        "suggestions": [
+          {
+            "id": "general-note",
+            "kind": "general-note",
+            "estimate": true
+          },
+          {
+            "id": "hole-pm-d5",
+            "kind": "hole-plus-minus",
+            "estimate": true
+          },
+          {
+            "id": "hole-pm-d11",
+            "kind": "hole-plus-minus",
+            "estimate": true
+          }
+        ]
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 2967.7682447596635,
+            "centroid": [
+              12.141098054079967,
+              14.999999999999996,
+              7.007842511441253
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "rendererObserved": "webgpu",
+      "publicStats": "Perspective · 1 solid · 20 ms",
+      "issueRows": [],
+      "visibleIssues": "No issues: nothing overlaps or is lost, and every hole, step and overall size is given."
+    },
+    {
+      "label": "03-fresh-open-both",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sheet-contour",
+            "path": [
+              [
+                -1.83697019872103e-15,
+                30
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                40,
+                0
+              ]
+            ],
+            "side": "left",
+            "width": 30,
+            "thickness": 1.5,
+            "bendRadius": 1.5,
+            "kFactor": 0.44,
+            "plane": {
+              "origin": [
+                0,
+                30,
+                0
+              ],
+              "normal": [
+                0,
+                -1,
+                0
+              ],
+              "xAxis": [
+                1,
+                0,
+                0
+              ]
+            },
+            "id": "n0"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              25,
+              15
+            ],
+            "radius": 2.75,
+            "plane": {
+              "origin": [
+                0,
+                0,
+                -1
+              ],
+              "normal": [
+                0,
+                0,
+                1
+              ],
+              "xAxis": [
+                1,
+                0,
+                0
+              ]
+            },
+            "id": "n1"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 1,
+            "height": 4,
+            "id": "n2"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 0,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 2,
+              "side": "solid"
+            },
+            "id": "n3"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              15,
+              20
+            ],
+            "radius": 2.75,
+            "plane": {
+              "origin": [
+                -1,
+                0,
+                0
+              ],
+              "normal": [
+                1,
+                0,
+                0
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ]
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 4,
+            "height": 4,
+            "id": "n5"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 5,
+              "side": "solid"
+            },
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7,
+        "proposals": [
+          {
+            "id": "P1",
+            "title": "DA-1a drawing draft",
+            "status": "accepted",
+            "by": {
+              "agent": "chat"
+            },
+            "at": "2026-10-29T08:52:49.918Z",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "base": "eaa408fc",
+            "ops": [
+              {
+                "tool": "set_drawing",
+                "args": {
+                  "scope": {
+                    "kind": "part"
+                  },
+                  "sheet": "A4",
+                  "projection": "third",
+                  "front": "y-",
+                  "views": [
+                    "front",
+                    "top",
+                    "right",
+                    "iso"
+                  ],
+                  "scale": "auto",
+                  "title": "DA-1a sheet L-bracket draft"
+                }
+              },
+              {
+                "tool": "auto_dimension",
+                "args": {
+                  "layout": false
+                }
+              }
+            ],
+            "orders": [
+              [
+                "n0",
+                "n1",
+                "n2",
+                "n3",
+                "n4",
+                "n5",
+                "n6"
+              ],
+              [
+                "n0",
+                "n1",
+                "n2",
+                "n3",
+                "n4",
+                "n5",
+                "n6"
+              ]
+            ],
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "summary": "no change",
+            "decided": {
+              "by": "user",
+              "at": "2026-10-29T08:52:49.961Z",
+              "model_hash": "eaa408fc"
+            }
+          }
+        ],
+        "history": [
+          {
+            "kind": "proposal",
+            "by": {
+              "agent": "chat"
+            },
+            "proposal": "P1",
+            "summary": "P1 DA-1a drawing draft: no change",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "id": "h1",
+            "at": "2026-10-29T08:52:49.918Z"
+          },
+          {
+            "kind": "accept",
+            "by": {
+              "agent": "user"
+            },
+            "proposed_by": {
+              "agent": "chat"
+            },
+            "proposal": "P1",
+            "model_hash": "eaa408fc",
+            "summary": "P1 DA-1a drawing draft",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "id": "h2",
+            "at": "2026-10-29T08:52:49.961Z"
+          }
+        ],
+        "drawing": {
+          "sheet": "A4",
+          "scope": {
+            "kind": "part"
+          },
+          "projection": "third",
+          "hidden": true,
+          "title": "DA-1a sheet L-bracket draft",
+          "dimensions": [
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.b|n0.start",
+                "at": "end",
+                "near": [
+                  1.4999999999999982,
+                  30,
+                  30
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                0.749999999999999,
+                56
+              ],
+              "id": "d1",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg1.a|n2.side0#2",
+                "at": "center",
+                "near": [
+                  25,
+                  15,
+                  -1.8003616615543075e-16
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                12.5,
+                48
+              ],
+              "id": "d2",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg1.a|n2.side0#2",
+                "at": "center",
+                "near": [
+                  25,
+                  15,
+                  -1.8003616615543075e-16
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -10.000000000000002,
+                7.5
+              ],
+              "id": "d3",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  30,
+                  3
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -18.000000000000004,
+                15
+              ],
+              "id": "d4",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "diameter",
+              "edge": "n0.leg1.a|n2.side0#2",
+              "near": [
+                25,
+                15,
+                -1.8003616615543075e-16
+              ],
+              "place": [
+                33.75,
+                -6
+              ],
+              "id": "d5",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  30,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.front|n0.leg1.a",
+                "at": "end",
+                "near": [
+                  40,
+                  30,
+                  0
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                20,
+                -10
+              ],
+              "id": "d6",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  30,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.back|n0.leg1.b",
+                "at": "end",
+                "near": [
+                  40,
+                  0,
+                  1.5
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -26,
+                0.7499999999999998
+              ],
+              "id": "d7",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  30,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.front|n0.start",
+                "at": "end",
+                "near": [
+                  -1.83697019872103e-15,
+                  30,
+                  30
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -18.000000000000004,
+                15
+              ],
+              "id": "d8",
+              "auto": true
+            },
+            {
+              "view": "right",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  0,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.a|n5.side0#2",
+                "at": "center",
+                "near": [
+                  -1.2246467991473535e-15,
+                  15,
+                  20
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                7.5,
+                -10
+              ],
+              "id": "d9",
+              "auto": true
+            },
+            {
+              "view": "right",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  0,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.a|n5.side0#2",
+                "at": "center",
+                "near": [
+                  -1.2246467991473535e-15,
+                  15,
+                  20
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                40,
+                10
+              ],
+              "id": "d10",
+              "auto": true
+            },
+            {
+              "view": "right",
+              "kind": "diameter",
+              "edge": "n0.leg0.a|n5.side0#2",
+              "near": [
+                -1.2246467991473535e-15,
+                15,
+                20
+              ],
+              "place": [
+                6.25,
+                36
+              ],
+              "id": "d11",
+              "auto": true
+            }
+          ]
+        }
+      },
+      "sheet": {
+        "scale": 1,
+        "dimensions": [
+          {
+            "id": "d1",
+            "text": "1.5",
+            "value": 1.4999999999999984
+          },
+          {
+            "id": "d2",
+            "text": "25",
+            "value": 25
+          },
+          {
+            "id": "d3",
+            "text": "15",
+            "value": 15
+          },
+          {
+            "id": "d4",
+            "text": "30",
+            "value": 30
+          },
+          {
+            "id": "d5",
+            "text": "Ø5.5",
+            "value": 5.500000000000001
+          },
+          {
+            "id": "d6",
+            "text": "40",
+            "value": 40
+          },
+          {
+            "id": "d7",
+            "text": "1.5",
+            "value": 1.5000000000000004
+          },
+          {
+            "id": "d8",
+            "text": "30",
+            "value": 30
+          },
+          {
+            "id": "d9",
+            "text": "15",
+            "value": 15
+          },
+          {
+            "id": "d10",
+            "text": "20",
+            "value": 20
+          },
+          {
+            "id": "d11",
+            "text": "Ø5.5",
+            "value": 5.500000000000001
+          }
+        ],
+        "hidden": {
+          "front": 4,
+          "top": 2,
+          "right": 2,
+          "iso": 11
+        },
+        "section": null,
+        "sections": [],
+        "placedSections": [],
+        "apartSections": [],
+        "details": [],
+        "boxes": {
+          "front": [
+            92.75126265847084,
+            111.5361388801511,
+            132.75126265847084,
+            141.5361388801511
+          ],
+          "top": [
+            92.75126265847084,
+            48,
+            132.75126265847084,
+            78
+          ],
+          "right": [
+            164.5,
+            111.5361388801511,
+            194.5,
+            141.5361388801511
+          ],
+          "iso": [
+            154.75126265847084,
+            36.4638611198489,
+            204.24873734152916,
+            89.5361388801511
+          ]
+        },
+        "breaks": {},
+        "issues": [],
+        "tables": [],
+        "suggestions": [
+          {
+            "id": "general-note",
+            "kind": "general-note",
+            "estimate": true
+          },
+          {
+            "id": "hole-pm-d5",
+            "kind": "hole-plus-minus",
+            "estimate": true
+          },
+          {
+            "id": "hole-pm-d11",
+            "kind": "hole-plus-minus",
+            "estimate": true
+          }
+        ]
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 2967.7682447596635,
+            "centroid": [
+              12.141098054079967,
+              14.999999999999996,
+              7.007842511441253
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "rendererObserved": "webgpu",
+      "publicStats": "Perspective · 1 solid · 20 ms",
+      "issueRows": [],
+      "visibleIssues": "No issues: nothing overlaps or is lost, and every hole, step and overall size is given."
+    },
+    {
+      "label": "04-missing-second-location",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sheet-contour",
+            "path": [
+              [
+                -1.83697019872103e-15,
+                30
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                40,
+                0
+              ]
+            ],
+            "side": "left",
+            "width": 30,
+            "thickness": 1.5,
+            "bendRadius": 1.5,
+            "kFactor": 0.44,
+            "plane": {
+              "origin": [
+                0,
+                30,
+                0
+              ],
+              "normal": [
+                0,
+                -1,
+                0
+              ],
+              "xAxis": [
+                1,
+                0,
+                0
+              ]
+            },
+            "id": "n0"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              25,
+              15
+            ],
+            "radius": 2.75,
+            "plane": {
+              "origin": [
+                0,
+                0,
+                -1
+              ],
+              "normal": [
+                0,
+                0,
+                1
+              ],
+              "xAxis": [
+                1,
+                0,
+                0
+              ]
+            },
+            "id": "n1"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 1,
+            "height": 4,
+            "id": "n2"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 0,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 2,
+              "side": "solid"
+            },
+            "id": "n3"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              15,
+              20
+            ],
+            "radius": 2.75,
+            "plane": {
+              "origin": [
+                -1,
+                0,
+                0
+              ],
+              "normal": [
+                1,
+                0,
+                0
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ]
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 4,
+            "height": 4,
+            "id": "n5"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 5,
+              "side": "solid"
+            },
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7,
+        "proposals": [
+          {
+            "id": "P1",
+            "title": "DA-1a drawing draft",
+            "status": "accepted",
+            "by": {
+              "agent": "chat"
+            },
+            "at": "2026-10-29T08:52:49.918Z",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "base": "eaa408fc",
+            "ops": [
+              {
+                "tool": "set_drawing",
+                "args": {
+                  "scope": {
+                    "kind": "part"
+                  },
+                  "sheet": "A4",
+                  "projection": "third",
+                  "front": "y-",
+                  "views": [
+                    "front",
+                    "top",
+                    "right",
+                    "iso"
+                  ],
+                  "scale": "auto",
+                  "title": "DA-1a sheet L-bracket draft"
+                }
+              },
+              {
+                "tool": "auto_dimension",
+                "args": {
+                  "layout": false
+                }
+              }
+            ],
+            "orders": [
+              [
+                "n0",
+                "n1",
+                "n2",
+                "n3",
+                "n4",
+                "n5",
+                "n6"
+              ],
+              [
+                "n0",
+                "n1",
+                "n2",
+                "n3",
+                "n4",
+                "n5",
+                "n6"
+              ]
+            ],
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "summary": "no change",
+            "decided": {
+              "by": "user",
+              "at": "2026-10-29T08:52:49.961Z",
+              "model_hash": "eaa408fc"
+            }
+          }
+        ],
+        "history": [
+          {
+            "kind": "proposal",
+            "by": {
+              "agent": "chat"
+            },
+            "proposal": "P1",
+            "summary": "P1 DA-1a drawing draft: no change",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "id": "h1",
+            "at": "2026-10-29T08:52:49.918Z"
+          },
+          {
+            "kind": "accept",
+            "by": {
+              "agent": "user"
+            },
+            "proposed_by": {
+              "agent": "chat"
+            },
+            "proposal": "P1",
+            "model_hash": "eaa408fc",
+            "summary": "P1 DA-1a drawing draft",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "id": "h2",
+            "at": "2026-10-29T08:52:49.961Z"
+          }
+        ],
+        "drawing": {
+          "sheet": "A4",
+          "scope": {
+            "kind": "part"
+          },
+          "projection": "third",
+          "hidden": true,
+          "title": "DA-1a sheet L-bracket draft",
+          "dimensions": [
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.b|n0.start",
+                "at": "end",
+                "near": [
+                  1.4999999999999982,
+                  30,
+                  30
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                0.749999999999999,
+                56
+              ],
+              "id": "d1",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg1.a|n2.side0#2",
+                "at": "center",
+                "near": [
+                  25,
+                  15,
+                  -1.8003616615543075e-16
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                12.5,
+                48
+              ],
+              "id": "d2",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg1.a|n2.side0#2",
+                "at": "center",
+                "near": [
+                  25,
+                  15,
+                  -1.8003616615543075e-16
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -10.000000000000002,
+                7.5
+              ],
+              "id": "d3",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  30,
+                  3
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -18.000000000000004,
+                15
+              ],
+              "id": "d4",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "diameter",
+              "edge": "n0.leg1.a|n2.side0#2",
+              "near": [
+                25,
+                15,
+                -1.8003616615543075e-16
+              ],
+              "place": [
+                33.75,
+                -6
+              ],
+              "id": "d5",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  30,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.front|n0.leg1.a",
+                "at": "end",
+                "near": [
+                  40,
+                  30,
+                  0
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                20,
+                -10
+              ],
+              "id": "d6",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  30,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.back|n0.leg1.b",
+                "at": "end",
+                "near": [
+                  40,
+                  0,
+                  1.5
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -26,
+                0.7499999999999998
+              ],
+              "id": "d7",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  30,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.front|n0.start",
+                "at": "end",
+                "near": [
+                  -1.83697019872103e-15,
+                  30,
+                  30
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -18.000000000000004,
+                15
+              ],
+              "id": "d8",
+              "auto": true
+            },
+            {
+              "view": "right",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  0,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.a|n5.side0#2",
+                "at": "center",
+                "near": [
+                  -1.2246467991473535e-15,
+                  15,
+                  20
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                40,
+                10
+              ],
+              "id": "d10",
+              "auto": true
+            },
+            {
+              "view": "right",
+              "kind": "diameter",
+              "edge": "n0.leg0.a|n5.side0#2",
+              "near": [
+                -1.2246467991473535e-15,
+                15,
+                20
+              ],
+              "place": [
+                6.25,
+                36
+              ],
+              "id": "d11",
+              "auto": true
+            }
+          ]
+        }
+      },
+      "sheet": {
+        "scale": 1,
+        "dimensions": [
+          {
+            "id": "d1",
+            "text": "1.5",
+            "value": 1.4999999999999984
+          },
+          {
+            "id": "d2",
+            "text": "25",
+            "value": 25
+          },
+          {
+            "id": "d3",
+            "text": "15",
+            "value": 15
+          },
+          {
+            "id": "d4",
+            "text": "30",
+            "value": 30
+          },
+          {
+            "id": "d5",
+            "text": "Ø5.5",
+            "value": 5.500000000000001
+          },
+          {
+            "id": "d6",
+            "text": "40",
+            "value": 40
+          },
+          {
+            "id": "d7",
+            "text": "1.5",
+            "value": 1.5000000000000004
+          },
+          {
+            "id": "d8",
+            "text": "30",
+            "value": 30
+          },
+          {
+            "id": "d10",
+            "text": "20",
+            "value": 20
+          },
+          {
+            "id": "d11",
+            "text": "Ø5.5",
+            "value": 5.500000000000001
+          }
+        ],
+        "hidden": {
+          "front": 4,
+          "top": 2,
+          "right": 2,
+          "iso": 11
+        },
+        "section": null,
+        "sections": [],
+        "placedSections": [],
+        "apartSections": [],
+        "details": [],
+        "boxes": {
+          "front": [
+            92.75126265847084,
+            111.5361388801511,
+            132.75126265847084,
+            141.5361388801511
+          ],
+          "top": [
+            92.75126265847084,
+            48,
+            132.75126265847084,
+            78
+          ],
+          "right": [
+            164.5,
+            111.5361388801511,
+            194.5,
+            141.5361388801511
+          ],
+          "iso": [
+            154.75126265847084,
+            36.4638611198489,
+            204.24873734152916,
+            89.5361388801511
+          ]
+        },
+        "breaks": {},
+        "issues": [
+          {
+            "code": "HOLE_NOT_LOCATED",
+            "severity": "warning",
+            "fix": "auto-dimension"
+          }
+        ],
+        "tables": [],
+        "suggestions": [
+          {
+            "id": "general-note",
+            "kind": "general-note",
+            "estimate": true
+          },
+          {
+            "id": "hole-pm-d5",
+            "kind": "hole-plus-minus",
+            "estimate": true
+          },
+          {
+            "id": "hole-pm-d11",
+            "kind": "hole-plus-minus",
+            "estimate": true
+          }
+        ]
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 2967.7682447596635,
+            "centroid": [
+              12.141098054079967,
+              14.999999999999996,
+              7.007842511441253
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "rendererObserved": "webgpu",
+      "publicStats": "Perspective · 1 solid · 20 ms",
+      "issueRows": [
+        {
+          "code": "HOLE_NOT_LOCATED",
+          "text": "warning1 hole is not located (a position across or up is missing).Auto"
+        }
+      ],
+      "visibleIssues": "warning1 hole is not located (a position across or up is missing).Auto"
+    },
+    {
+      "label": "05-undo",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sheet-contour",
+            "path": [
+              [
+                -1.83697019872103e-15,
+                30
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                40,
+                0
+              ]
+            ],
+            "side": "left",
+            "width": 30,
+            "thickness": 1.5,
+            "bendRadius": 1.5,
+            "kFactor": 0.44,
+            "plane": {
+              "origin": [
+                0,
+                30,
+                0
+              ],
+              "normal": [
+                0,
+                -1,
+                0
+              ],
+              "xAxis": [
+                1,
+                0,
+                0
+              ]
+            },
+            "id": "n0"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              25,
+              15
+            ],
+            "radius": 2.75,
+            "plane": {
+              "origin": [
+                0,
+                0,
+                -1
+              ],
+              "normal": [
+                0,
+                0,
+                1
+              ],
+              "xAxis": [
+                1,
+                0,
+                0
+              ]
+            },
+            "id": "n1"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 1,
+            "height": 4,
+            "id": "n2"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 0,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 2,
+              "side": "solid"
+            },
+            "id": "n3"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              15,
+              20
+            ],
+            "radius": 2.75,
+            "plane": {
+              "origin": [
+                -1,
+                0,
+                0
+              ],
+              "normal": [
+                1,
+                0,
+                0
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ]
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 4,
+            "height": 4,
+            "id": "n5"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 5,
+              "side": "solid"
+            },
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7,
+        "proposals": [
+          {
+            "id": "P1",
+            "title": "DA-1a drawing draft",
+            "status": "accepted",
+            "by": {
+              "agent": "chat"
+            },
+            "at": "2026-10-29T08:52:49.918Z",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "base": "eaa408fc",
+            "ops": [
+              {
+                "tool": "set_drawing",
+                "args": {
+                  "scope": {
+                    "kind": "part"
+                  },
+                  "sheet": "A4",
+                  "projection": "third",
+                  "front": "y-",
+                  "views": [
+                    "front",
+                    "top",
+                    "right",
+                    "iso"
+                  ],
+                  "scale": "auto",
+                  "title": "DA-1a sheet L-bracket draft"
+                }
+              },
+              {
+                "tool": "auto_dimension",
+                "args": {
+                  "layout": false
+                }
+              }
+            ],
+            "orders": [
+              [
+                "n0",
+                "n1",
+                "n2",
+                "n3",
+                "n4",
+                "n5",
+                "n6"
+              ],
+              [
+                "n0",
+                "n1",
+                "n2",
+                "n3",
+                "n4",
+                "n5",
+                "n6"
+              ]
+            ],
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "summary": "no change",
+            "decided": {
+              "by": "user",
+              "at": "2026-10-29T08:52:49.961Z",
+              "model_hash": "eaa408fc"
+            }
+          }
+        ],
+        "history": [
+          {
+            "kind": "proposal",
+            "by": {
+              "agent": "chat"
+            },
+            "proposal": "P1",
+            "summary": "P1 DA-1a drawing draft: no change",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "id": "h1",
+            "at": "2026-10-29T08:52:49.918Z"
+          },
+          {
+            "kind": "accept",
+            "by": {
+              "agent": "user"
+            },
+            "proposed_by": {
+              "agent": "chat"
+            },
+            "proposal": "P1",
+            "model_hash": "eaa408fc",
+            "summary": "P1 DA-1a drawing draft",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "id": "h2",
+            "at": "2026-10-29T08:52:49.961Z"
+          }
+        ],
+        "drawing": {
+          "sheet": "A4",
+          "scope": {
+            "kind": "part"
+          },
+          "projection": "third",
+          "hidden": true,
+          "title": "DA-1a sheet L-bracket draft",
+          "dimensions": [
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.b|n0.start",
+                "at": "end",
+                "near": [
+                  1.4999999999999982,
+                  30,
+                  30
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                0.749999999999999,
+                56
+              ],
+              "id": "d1",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg1.a|n2.side0#2",
+                "at": "center",
+                "near": [
+                  25,
+                  15,
+                  -1.8003616615543075e-16
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                12.5,
+                48
+              ],
+              "id": "d2",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg1.a|n2.side0#2",
+                "at": "center",
+                "near": [
+                  25,
+                  15,
+                  -1.8003616615543075e-16
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -10.000000000000002,
+                7.5
+              ],
+              "id": "d3",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  30,
+                  3
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -18.000000000000004,
+                15
+              ],
+              "id": "d4",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "diameter",
+              "edge": "n0.leg1.a|n2.side0#2",
+              "near": [
+                25,
+                15,
+                -1.8003616615543075e-16
+              ],
+              "place": [
+                33.75,
+                -6
+              ],
+              "id": "d5",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  30,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.front|n0.leg1.a",
+                "at": "end",
+                "near": [
+                  40,
+                  30,
+                  0
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                20,
+                -10
+              ],
+              "id": "d6",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  30,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.back|n0.leg1.b",
+                "at": "end",
+                "near": [
+                  40,
+                  0,
+                  1.5
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -26,
+                0.7499999999999998
+              ],
+              "id": "d7",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  30,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.front|n0.start",
+                "at": "end",
+                "near": [
+                  -1.83697019872103e-15,
+                  30,
+                  30
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -18.000000000000004,
+                15
+              ],
+              "id": "d8",
+              "auto": true
+            },
+            {
+              "view": "right",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  0,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.a|n5.side0#2",
+                "at": "center",
+                "near": [
+                  -1.2246467991473535e-15,
+                  15,
+                  20
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                7.5,
+                -10
+              ],
+              "id": "d9",
+              "auto": true
+            },
+            {
+              "view": "right",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  0,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.a|n5.side0#2",
+                "at": "center",
+                "near": [
+                  -1.2246467991473535e-15,
+                  15,
+                  20
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                40,
+                10
+              ],
+              "id": "d10",
+              "auto": true
+            },
+            {
+              "view": "right",
+              "kind": "diameter",
+              "edge": "n0.leg0.a|n5.side0#2",
+              "near": [
+                -1.2246467991473535e-15,
+                15,
+                20
+              ],
+              "place": [
+                6.25,
+                36
+              ],
+              "id": "d11",
+              "auto": true
+            }
+          ]
+        }
+      },
+      "sheet": {
+        "scale": 1,
+        "dimensions": [
+          {
+            "id": "d1",
+            "text": "1.5",
+            "value": 1.4999999999999984
+          },
+          {
+            "id": "d2",
+            "text": "25",
+            "value": 25
+          },
+          {
+            "id": "d3",
+            "text": "15",
+            "value": 15
+          },
+          {
+            "id": "d4",
+            "text": "30",
+            "value": 30
+          },
+          {
+            "id": "d5",
+            "text": "Ø5.5",
+            "value": 5.500000000000001
+          },
+          {
+            "id": "d6",
+            "text": "40",
+            "value": 40
+          },
+          {
+            "id": "d7",
+            "text": "1.5",
+            "value": 1.5000000000000004
+          },
+          {
+            "id": "d8",
+            "text": "30",
+            "value": 30
+          },
+          {
+            "id": "d9",
+            "text": "15",
+            "value": 15
+          },
+          {
+            "id": "d10",
+            "text": "20",
+            "value": 20
+          },
+          {
+            "id": "d11",
+            "text": "Ø5.5",
+            "value": 5.500000000000001
+          }
+        ],
+        "hidden": {
+          "front": 4,
+          "top": 2,
+          "right": 2,
+          "iso": 11
+        },
+        "section": null,
+        "sections": [],
+        "placedSections": [],
+        "apartSections": [],
+        "details": [],
+        "boxes": {
+          "front": [
+            92.75126265847084,
+            111.5361388801511,
+            132.75126265847084,
+            141.5361388801511
+          ],
+          "top": [
+            92.75126265847084,
+            48,
+            132.75126265847084,
+            78
+          ],
+          "right": [
+            164.5,
+            111.5361388801511,
+            194.5,
+            141.5361388801511
+          ],
+          "iso": [
+            154.75126265847084,
+            36.4638611198489,
+            204.24873734152916,
+            89.5361388801511
+          ]
+        },
+        "breaks": {},
+        "issues": [],
+        "tables": [],
+        "suggestions": [
+          {
+            "id": "general-note",
+            "kind": "general-note",
+            "estimate": true
+          },
+          {
+            "id": "hole-pm-d5",
+            "kind": "hole-plus-minus",
+            "estimate": true
+          },
+          {
+            "id": "hole-pm-d11",
+            "kind": "hole-plus-minus",
+            "estimate": true
+          }
+        ]
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 2967.7682447596635,
+            "centroid": [
+              12.141098054079967,
+              14.999999999999996,
+              7.007842511441253
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "rendererObserved": "webgpu",
+      "publicStats": "Perspective · 1 solid · 20 ms",
+      "issueRows": [],
+      "visibleIssues": "No issues: nothing overlaps or is lost, and every hole, step and overall size is given."
+    },
+    {
+      "label": "06-redo",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sheet-contour",
+            "path": [
+              [
+                -1.83697019872103e-15,
+                30
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                40,
+                0
+              ]
+            ],
+            "side": "left",
+            "width": 30,
+            "thickness": 1.5,
+            "bendRadius": 1.5,
+            "kFactor": 0.44,
+            "plane": {
+              "origin": [
+                0,
+                30,
+                0
+              ],
+              "normal": [
+                0,
+                -1,
+                0
+              ],
+              "xAxis": [
+                1,
+                0,
+                0
+              ]
+            },
+            "id": "n0"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              25,
+              15
+            ],
+            "radius": 2.75,
+            "plane": {
+              "origin": [
+                0,
+                0,
+                -1
+              ],
+              "normal": [
+                0,
+                0,
+                1
+              ],
+              "xAxis": [
+                1,
+                0,
+                0
+              ]
+            },
+            "id": "n1"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 1,
+            "height": 4,
+            "id": "n2"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 0,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 2,
+              "side": "solid"
+            },
+            "id": "n3"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              15,
+              20
+            ],
+            "radius": 2.75,
+            "plane": {
+              "origin": [
+                -1,
+                0,
+                0
+              ],
+              "normal": [
+                1,
+                0,
+                0
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ]
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 4,
+            "height": 4,
+            "id": "n5"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 5,
+              "side": "solid"
+            },
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7,
+        "proposals": [
+          {
+            "id": "P1",
+            "title": "DA-1a drawing draft",
+            "status": "accepted",
+            "by": {
+              "agent": "chat"
+            },
+            "at": "2026-10-29T08:52:49.918Z",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "base": "eaa408fc",
+            "ops": [
+              {
+                "tool": "set_drawing",
+                "args": {
+                  "scope": {
+                    "kind": "part"
+                  },
+                  "sheet": "A4",
+                  "projection": "third",
+                  "front": "y-",
+                  "views": [
+                    "front",
+                    "top",
+                    "right",
+                    "iso"
+                  ],
+                  "scale": "auto",
+                  "title": "DA-1a sheet L-bracket draft"
+                }
+              },
+              {
+                "tool": "auto_dimension",
+                "args": {
+                  "layout": false
+                }
+              }
+            ],
+            "orders": [
+              [
+                "n0",
+                "n1",
+                "n2",
+                "n3",
+                "n4",
+                "n5",
+                "n6"
+              ],
+              [
+                "n0",
+                "n1",
+                "n2",
+                "n3",
+                "n4",
+                "n5",
+                "n6"
+              ]
+            ],
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "summary": "no change",
+            "decided": {
+              "by": "user",
+              "at": "2026-10-29T08:52:49.961Z",
+              "model_hash": "eaa408fc"
+            }
+          }
+        ],
+        "history": [
+          {
+            "kind": "proposal",
+            "by": {
+              "agent": "chat"
+            },
+            "proposal": "P1",
+            "summary": "P1 DA-1a drawing draft: no change",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "id": "h1",
+            "at": "2026-10-29T08:52:49.918Z"
+          },
+          {
+            "kind": "accept",
+            "by": {
+              "agent": "user"
+            },
+            "proposed_by": {
+              "agent": "chat"
+            },
+            "proposal": "P1",
+            "model_hash": "eaa408fc",
+            "summary": "P1 DA-1a drawing draft",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "id": "h2",
+            "at": "2026-10-29T08:52:49.961Z"
+          }
+        ],
+        "drawing": {
+          "sheet": "A4",
+          "scope": {
+            "kind": "part"
+          },
+          "projection": "third",
+          "hidden": true,
+          "title": "DA-1a sheet L-bracket draft",
+          "dimensions": [
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.b|n0.start",
+                "at": "end",
+                "near": [
+                  1.4999999999999982,
+                  30,
+                  30
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                0.749999999999999,
+                56
+              ],
+              "id": "d1",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg1.a|n2.side0#2",
+                "at": "center",
+                "near": [
+                  25,
+                  15,
+                  -1.8003616615543075e-16
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                12.5,
+                48
+              ],
+              "id": "d2",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg1.a|n2.side0#2",
+                "at": "center",
+                "near": [
+                  25,
+                  15,
+                  -1.8003616615543075e-16
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -10.000000000000002,
+                7.5
+              ],
+              "id": "d3",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  30,
+                  3
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -18.000000000000004,
+                15
+              ],
+              "id": "d4",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "diameter",
+              "edge": "n0.leg1.a|n2.side0#2",
+              "near": [
+                25,
+                15,
+                -1.8003616615543075e-16
+              ],
+              "place": [
+                33.75,
+                -6
+              ],
+              "id": "d5",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  30,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.front|n0.leg1.a",
+                "at": "end",
+                "near": [
+                  40,
+                  30,
+                  0
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                20,
+                -10
+              ],
+              "id": "d6",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  30,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.back|n0.leg1.b",
+                "at": "end",
+                "near": [
+                  40,
+                  0,
+                  1.5
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -26,
+                0.7499999999999998
+              ],
+              "id": "d7",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  30,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.front|n0.start",
+                "at": "end",
+                "near": [
+                  -1.83697019872103e-15,
+                  30,
+                  30
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -18.000000000000004,
+                15
+              ],
+              "id": "d8",
+              "auto": true
+            },
+            {
+              "view": "right",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  0,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.a|n5.side0#2",
+                "at": "center",
+                "near": [
+                  -1.2246467991473535e-15,
+                  15,
+                  20
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                40,
+                10
+              ],
+              "id": "d10",
+              "auto": true
+            },
+            {
+              "view": "right",
+              "kind": "diameter",
+              "edge": "n0.leg0.a|n5.side0#2",
+              "near": [
+                -1.2246467991473535e-15,
+                15,
+                20
+              ],
+              "place": [
+                6.25,
+                36
+              ],
+              "id": "d11",
+              "auto": true
+            }
+          ]
+        }
+      },
+      "sheet": {
+        "scale": 1,
+        "dimensions": [
+          {
+            "id": "d1",
+            "text": "1.5",
+            "value": 1.4999999999999984
+          },
+          {
+            "id": "d2",
+            "text": "25",
+            "value": 25
+          },
+          {
+            "id": "d3",
+            "text": "15",
+            "value": 15
+          },
+          {
+            "id": "d4",
+            "text": "30",
+            "value": 30
+          },
+          {
+            "id": "d5",
+            "text": "Ø5.5",
+            "value": 5.500000000000001
+          },
+          {
+            "id": "d6",
+            "text": "40",
+            "value": 40
+          },
+          {
+            "id": "d7",
+            "text": "1.5",
+            "value": 1.5000000000000004
+          },
+          {
+            "id": "d8",
+            "text": "30",
+            "value": 30
+          },
+          {
+            "id": "d10",
+            "text": "20",
+            "value": 20
+          },
+          {
+            "id": "d11",
+            "text": "Ø5.5",
+            "value": 5.500000000000001
+          }
+        ],
+        "hidden": {
+          "front": 4,
+          "top": 2,
+          "right": 2,
+          "iso": 11
+        },
+        "section": null,
+        "sections": [],
+        "placedSections": [],
+        "apartSections": [],
+        "details": [],
+        "boxes": {
+          "front": [
+            92.75126265847084,
+            111.5361388801511,
+            132.75126265847084,
+            141.5361388801511
+          ],
+          "top": [
+            92.75126265847084,
+            48,
+            132.75126265847084,
+            78
+          ],
+          "right": [
+            164.5,
+            111.5361388801511,
+            194.5,
+            141.5361388801511
+          ],
+          "iso": [
+            154.75126265847084,
+            36.4638611198489,
+            204.24873734152916,
+            89.5361388801511
+          ]
+        },
+        "breaks": {},
+        "issues": [
+          {
+            "code": "HOLE_NOT_LOCATED",
+            "severity": "warning",
+            "fix": "auto-dimension"
+          }
+        ],
+        "tables": [],
+        "suggestions": [
+          {
+            "id": "general-note",
+            "kind": "general-note",
+            "estimate": true
+          },
+          {
+            "id": "hole-pm-d5",
+            "kind": "hole-plus-minus",
+            "estimate": true
+          },
+          {
+            "id": "hole-pm-d11",
+            "kind": "hole-plus-minus",
+            "estimate": true
+          }
+        ]
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 2967.7682447596635,
+            "centroid": [
+              12.141098054079967,
+              14.999999999999996,
+              7.007842511441253
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "rendererObserved": "webgpu",
+      "publicStats": "Perspective · 1 solid · 20 ms",
+      "issueRows": [
+        {
+          "code": "HOLE_NOT_LOCATED",
+          "text": "warning1 hole is not located (a position across or up is missing).Auto"
+        }
+      ],
+      "visibleIssues": "warning1 hole is not located (a position across or up is missing).Auto"
+    },
+    {
+      "label": "07-fresh-open-missing",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sheet-contour",
+            "path": [
+              [
+                -1.83697019872103e-15,
+                30
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                40,
+                0
+              ]
+            ],
+            "side": "left",
+            "width": 30,
+            "thickness": 1.5,
+            "bendRadius": 1.5,
+            "kFactor": 0.44,
+            "plane": {
+              "origin": [
+                0,
+                30,
+                0
+              ],
+              "normal": [
+                0,
+                -1,
+                0
+              ],
+              "xAxis": [
+                1,
+                0,
+                0
+              ]
+            },
+            "id": "n0"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              25,
+              15
+            ],
+            "radius": 2.75,
+            "plane": {
+              "origin": [
+                0,
+                0,
+                -1
+              ],
+              "normal": [
+                0,
+                0,
+                1
+              ],
+              "xAxis": [
+                1,
+                0,
+                0
+              ]
+            },
+            "id": "n1"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 1,
+            "height": 4,
+            "id": "n2"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 0,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 2,
+              "side": "solid"
+            },
+            "id": "n3"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              15,
+              20
+            ],
+            "radius": 2.75,
+            "plane": {
+              "origin": [
+                -1,
+                0,
+                0
+              ],
+              "normal": [
+                1,
+                0,
+                0
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ]
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 4,
+            "height": 4,
+            "id": "n5"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 5,
+              "side": "solid"
+            },
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7,
+        "proposals": [
+          {
+            "id": "P1",
+            "title": "DA-1a drawing draft",
+            "status": "accepted",
+            "by": {
+              "agent": "chat"
+            },
+            "at": "2026-10-29T08:52:49.918Z",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "base": "eaa408fc",
+            "ops": [
+              {
+                "tool": "set_drawing",
+                "args": {
+                  "scope": {
+                    "kind": "part"
+                  },
+                  "sheet": "A4",
+                  "projection": "third",
+                  "front": "y-",
+                  "views": [
+                    "front",
+                    "top",
+                    "right",
+                    "iso"
+                  ],
+                  "scale": "auto",
+                  "title": "DA-1a sheet L-bracket draft"
+                }
+              },
+              {
+                "tool": "auto_dimension",
+                "args": {
+                  "layout": false
+                }
+              }
+            ],
+            "orders": [
+              [
+                "n0",
+                "n1",
+                "n2",
+                "n3",
+                "n4",
+                "n5",
+                "n6"
+              ],
+              [
+                "n0",
+                "n1",
+                "n2",
+                "n3",
+                "n4",
+                "n5",
+                "n6"
+              ]
+            ],
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "summary": "no change",
+            "decided": {
+              "by": "user",
+              "at": "2026-10-29T08:52:49.961Z",
+              "model_hash": "eaa408fc"
+            }
+          }
+        ],
+        "history": [
+          {
+            "kind": "proposal",
+            "by": {
+              "agent": "chat"
+            },
+            "proposal": "P1",
+            "summary": "P1 DA-1a drawing draft: no change",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "id": "h1",
+            "at": "2026-10-29T08:52:49.918Z"
+          },
+          {
+            "kind": "accept",
+            "by": {
+              "agent": "user"
+            },
+            "proposed_by": {
+              "agent": "chat"
+            },
+            "proposal": "P1",
+            "model_hash": "eaa408fc",
+            "summary": "P1 DA-1a drawing draft",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "id": "h2",
+            "at": "2026-10-29T08:52:49.961Z"
+          }
+        ],
+        "drawing": {
+          "sheet": "A4",
+          "scope": {
+            "kind": "part"
+          },
+          "projection": "third",
+          "hidden": true,
+          "title": "DA-1a sheet L-bracket draft",
+          "dimensions": [
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.b|n0.start",
+                "at": "end",
+                "near": [
+                  1.4999999999999982,
+                  30,
+                  30
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                0.749999999999999,
+                56
+              ],
+              "id": "d1",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg1.a|n2.side0#2",
+                "at": "center",
+                "near": [
+                  25,
+                  15,
+                  -1.8003616615543075e-16
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                12.5,
+                48
+              ],
+              "id": "d2",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg1.a|n2.side0#2",
+                "at": "center",
+                "near": [
+                  25,
+                  15,
+                  -1.8003616615543075e-16
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -10.000000000000002,
+                7.5
+              ],
+              "id": "d3",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  30,
+                  3
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -18.000000000000004,
+                15
+              ],
+              "id": "d4",
+              "auto": true
+            },
+            {
+              "view": "top",
+              "kind": "diameter",
+              "edge": "n0.leg1.a|n2.side0#2",
+              "near": [
+                25,
+                15,
+                -1.8003616615543075e-16
+              ],
+              "place": [
+                33.75,
+                -6
+              ],
+              "id": "d5",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  30,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.front|n0.leg1.a",
+                "at": "end",
+                "near": [
+                  40,
+                  30,
+                  0
+                ]
+              },
+              "orient": "horizontal",
+              "place": [
+                20,
+                -10
+              ],
+              "id": "d6",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  30,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.back|n0.leg1.b",
+                "at": "end",
+                "near": [
+                  40,
+                  0,
+                  1.5
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -26,
+                0.7499999999999998
+              ],
+              "id": "d7",
+              "auto": true
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  30,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.front|n0.start",
+                "at": "end",
+                "near": [
+                  -1.83697019872103e-15,
+                  30,
+                  30
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                -18.000000000000004,
+                15
+              ],
+              "id": "d8",
+              "auto": true
+            },
+            {
+              "view": "right",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  0,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.a|n5.side0#2",
+                "at": "center",
+                "near": [
+                  -1.2246467991473535e-15,
+                  15,
+                  20
+                ]
+              },
+              "orient": "vertical",
+              "place": [
+                40,
+                10
+              ],
+              "id": "d10",
+              "auto": true
+            },
+            {
+              "view": "right",
+              "kind": "diameter",
+              "edge": "n0.leg0.a|n5.side0#2",
+              "near": [
+                -1.2246467991473535e-15,
+                15,
+                20
+              ],
+              "place": [
+                6.25,
+                36
+              ],
+              "id": "d11",
+              "auto": true
+            }
+          ]
+        }
+      },
+      "sheet": {
+        "scale": 1,
+        "dimensions": [
+          {
+            "id": "d1",
+            "text": "1.5",
+            "value": 1.4999999999999984
+          },
+          {
+            "id": "d2",
+            "text": "25",
+            "value": 25
+          },
+          {
+            "id": "d3",
+            "text": "15",
+            "value": 15
+          },
+          {
+            "id": "d4",
+            "text": "30",
+            "value": 30
+          },
+          {
+            "id": "d5",
+            "text": "Ø5.5",
+            "value": 5.500000000000001
+          },
+          {
+            "id": "d6",
+            "text": "40",
+            "value": 40
+          },
+          {
+            "id": "d7",
+            "text": "1.5",
+            "value": 1.5000000000000004
+          },
+          {
+            "id": "d8",
+            "text": "30",
+            "value": 30
+          },
+          {
+            "id": "d10",
+            "text": "20",
+            "value": 20
+          },
+          {
+            "id": "d11",
+            "text": "Ø5.5",
+            "value": 5.500000000000001
+          }
+        ],
+        "hidden": {
+          "front": 4,
+          "top": 2,
+          "right": 2,
+          "iso": 11
+        },
+        "section": null,
+        "sections": [],
+        "placedSections": [],
+        "apartSections": [],
+        "details": [],
+        "boxes": {
+          "front": [
+            92.75126265847084,
+            111.5361388801511,
+            132.75126265847084,
+            141.5361388801511
+          ],
+          "top": [
+            92.75126265847084,
+            48,
+            132.75126265847084,
+            78
+          ],
+          "right": [
+            164.5,
+            111.5361388801511,
+            194.5,
+            141.5361388801511
+          ],
+          "iso": [
+            154.75126265847084,
+            36.4638611198489,
+            204.24873734152916,
+            89.5361388801511
+          ]
+        },
+        "breaks": {},
+        "issues": [
+          {
+            "code": "HOLE_NOT_LOCATED",
+            "severity": "warning",
+            "fix": "auto-dimension"
+          }
+        ],
+        "tables": [],
+        "suggestions": [
+          {
+            "id": "general-note",
+            "kind": "general-note",
+            "estimate": true
+          },
+          {
+            "id": "hole-pm-d5",
+            "kind": "hole-plus-minus",
+            "estimate": true
+          },
+          {
+            "id": "hole-pm-d11",
+            "kind": "hole-plus-minus",
+            "estimate": true
+          }
+        ]
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 2967.7682447596635,
+            "centroid": [
+              12.141098054079967,
+              14.999999999999996,
+              7.007842511441253
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "rendererObserved": "webgpu",
+      "publicStats": "Perspective · 1 solid · 19 ms",
+      "issueRows": [
+        {
+          "code": "HOLE_NOT_LOCATED",
+          "text": "warning1 hole is not located (a position across or up is missing).Auto"
+        }
+      ],
+      "visibleIssues": "warning1 hole is not located (a position across or up is missing).Auto"
+    },
+    {
+      "label": "08-location-auto-fix",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sheet-contour",
+            "path": [
+              [
+                -1.83697019872103e-15,
+                30
+              ],
+              [
+                0,
+                0
+              ],
+              [
+                40,
+                0
+              ]
+            ],
+            "side": "left",
+            "width": 30,
+            "thickness": 1.5,
+            "bendRadius": 1.5,
+            "kFactor": 0.44,
+            "plane": {
+              "origin": [
+                0,
+                30,
+                0
+              ],
+              "normal": [
+                0,
+                -1,
+                0
+              ],
+              "xAxis": [
+                1,
+                0,
+                0
+              ]
+            },
+            "id": "n0"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              25,
+              15
+            ],
+            "radius": 2.75,
+            "plane": {
+              "origin": [
+                0,
+                0,
+                -1
+              ],
+              "normal": [
+                0,
+                0,
+                1
+              ],
+              "xAxis": [
+                1,
+                0,
+                0
+              ]
+            },
+            "id": "n1"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 1,
+            "height": 4,
+            "id": "n2"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 0,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 2,
+              "side": "solid"
+            },
+            "id": "n3"
+          },
+          {
+            "kind": "sketch",
+            "profile": "circle",
+            "center": [
+              15,
+              20
+            ],
+            "radius": 2.75,
+            "plane": {
+              "origin": [
+                -1,
+                0,
+                0
+              ],
+              "normal": [
+                1,
+                0,
+                0
+              ],
+              "xAxis": [
+                0,
+                1,
+                0
+              ]
+            },
+            "id": "n4"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 4,
+            "height": 4,
+            "id": "n5"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 5,
+              "side": "solid"
+            },
+            "id": "n6"
+          }
+        ],
+        "outputs": {
+          "b6": {
+            "node": 6,
+            "side": "solid"
+          }
+        },
+        "nextId": 7,
+        "proposals": [
+          {
+            "id": "P1",
+            "title": "DA-1a drawing draft",
+            "status": "accepted",
+            "by": {
+              "agent": "chat"
+            },
+            "at": "2026-10-29T08:52:49.918Z",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "base": "eaa408fc",
+            "ops": [
+              {
+                "tool": "set_drawing",
+                "args": {
+                  "scope": {
+                    "kind": "part"
+                  },
+                  "sheet": "A4",
+                  "projection": "third",
+                  "front": "y-",
+                  "views": [
+                    "front",
+                    "top",
+                    "right",
+                    "iso"
+                  ],
+                  "scale": "auto",
+                  "title": "DA-1a sheet L-bracket draft"
+                }
+              },
+              {
+                "tool": "auto_dimension",
+                "args": {
+                  "layout": false
+                }
+              }
+            ],
+            "orders": [
+              [
+                "n0",
+                "n1",
+                "n2",
+                "n3",
+                "n4",
+                "n5",
+                "n6"
+              ],
+              [
+                "n0",
+                "n1",
+                "n2",
+                "n3",
+                "n4",
+                "n5",
+                "n6"
+              ]
+            ],
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "summary": "no change",
+            "decided": {
+              "by": "user",
+              "at": "2026-10-29T08:52:49.961Z",
+              "model_hash": "eaa408fc"
+            }
+          }
+        ],
+        "history": [
+          {
+            "kind": "proposal",
+            "by": {
+              "agent": "chat"
+            },
+            "proposal": "P1",
+            "summary": "P1 DA-1a drawing draft: no change",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "id": "h1",
+            "at": "2026-10-29T08:52:49.918Z"
+          },
+          {
+            "kind": "accept",
+            "by": {
+              "agent": "user"
+            },
+            "proposed_by": {
+              "agent": "chat"
+            },
+            "proposal": "P1",
+            "model_hash": "eaa408fc",
+            "summary": "P1 DA-1a drawing draft",
+            "plan": "Keep A4/fourviews; dimension for review.",
+            "risk": {
+              "level": "low",
+              "features_touched": 0,
+              "references_broken": 0,
+              "hard_requirements_changed": [],
+              "approval": [
+                "drawing"
+              ]
+            },
+            "id": "h2",
+            "at": "2026-10-29T08:52:49.961Z"
+          }
+        ],
+        "drawing": {
+          "sheet": "A4",
+          "scope": {
+            "kind": "part"
+          },
+          "projection": "third",
+          "hidden": true,
+          "title": "DA-1a sheet L-bracket draft",
+          "dimensions": [
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.b|n0.start",
+                "at": "end",
+                "near": [
+                  1.4999999999999982,
+                  30,
+                  30
+                ]
+              },
+              "orient": "horizontal",
+              "auto": true,
+              "place": [
+                0.749999999999999,
+                40
+              ],
+              "id": "d1"
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg1.a|n2.side0#2",
+                "at": "center",
+                "near": [
+                  25,
+                  15,
+                  -1.8003616615543075e-16
+                ]
+              },
+              "orient": "horizontal",
+              "auto": true,
+              "place": [
+                12.5,
+                48
+              ],
+              "id": "d2"
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.leg1.a|n2.side0#2",
+                "at": "center",
+                "near": [
+                  25,
+                  15,
+                  -1.8003616615543075e-16
+                ]
+              },
+              "orient": "vertical",
+              "auto": true,
+              "place": [
+                -10.000000000000002,
+                7.5
+              ],
+              "id": "d3"
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  0,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  30,
+                  3
+                ]
+              },
+              "orient": "vertical",
+              "auto": true,
+              "place": [
+                -18.000000000000004,
+                15
+              ],
+              "id": "d4"
+            },
+            {
+              "view": "top",
+              "kind": "diameter",
+              "edge": "n0.leg1.a|n2.side0#2",
+              "near": [
+                25,
+                15,
+                -1.8003616615543075e-16
+              ],
+              "auto": true,
+              "place": [
+                33.75,
+                -6
+              ],
+              "id": "d5"
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  -1.8369701987210272e-16,
+                  30,
+                  3
+                ]
+              },
+              "b": {
+                "edge": "n0.front|n0.leg1.a",
+                "at": "end",
+                "near": [
+                  40,
+                  30,
+                  0
+                ]
+              },
+              "orient": "horizontal",
+              "auto": true,
+              "place": [
+                20,
+                -10
+              ],
+              "id": "d6"
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  30,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.back|n0.leg1.b",
+                "at": "end",
+                "near": [
+                  40,
+                  0,
+                  1.5
+                ]
+              },
+              "orient": "vertical",
+              "auto": true,
+              "place": [
+                -10.000000000000002,
+                0.7499999999999998
+              ],
+              "id": "d7"
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.bend1.outer|n0.front",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  30,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.front|n0.start",
+                "at": "end",
+                "near": [
+                  -1.83697019872103e-15,
+                  30,
+                  30
+                ]
+              },
+              "orient": "vertical",
+              "auto": true,
+              "place": [
+                -18.000000000000004,
+                15
+              ],
+              "id": "d8"
+            },
+            {
+              "view": "right",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  0,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.a|n5.side0#2",
+                "at": "center",
+                "near": [
+                  -1.2246467991473535e-15,
+                  15,
+                  20
+                ]
+              },
+              "orient": "horizontal",
+              "auto": true,
+              "place": [
+                7.5,
+                -10
+              ],
+              "id": "d9"
+            },
+            {
+              "view": "right",
+              "kind": "linear",
+              "a": {
+                "edge": "n0.back|n0.bend1.outer",
+                "at": "end",
+                "near": [
+                  2.9999999999999996,
+                  0,
+                  -4.440892098500626e-16
+                ]
+              },
+              "b": {
+                "edge": "n0.leg0.a|n5.side0#2",
+                "at": "center",
+                "near": [
+                  -1.2246467991473535e-15,
+                  15,
+                  20
+                ]
+              },
+              "orient": "vertical",
+              "auto": true,
+              "place": [
+                40,
+                10
+              ],
+              "id": "d10"
+            },
+            {
+              "view": "right",
+              "kind": "diameter",
+              "edge": "n0.leg0.a|n5.side0#2",
+              "near": [
+                -1.2246467991473535e-15,
+                15,
+                20
+              ],
+              "auto": true,
+              "place": [
+                6.25,
+                36
+              ],
+              "id": "d11"
+            }
+          ]
+        }
+      },
+      "sheet": {
+        "scale": 1,
+        "dimensions": [
+          {
+            "id": "d1",
+            "text": "1.5",
+            "value": 1.4999999999999984
+          },
+          {
+            "id": "d2",
+            "text": "25",
+            "value": 25
+          },
+          {
+            "id": "d3",
+            "text": "15",
+            "value": 15
+          },
+          {
+            "id": "d4",
+            "text": "30",
+            "value": 30
+          },
+          {
+            "id": "d5",
+            "text": "Ø5.5",
+            "value": 5.500000000000001
+          },
+          {
+            "id": "d6",
+            "text": "40",
+            "value": 40
+          },
+          {
+            "id": "d7",
+            "text": "1.5",
+            "value": 1.5000000000000004
+          },
+          {
+            "id": "d8",
+            "text": "30",
+            "value": 30
+          },
+          {
+            "id": "d9",
+            "text": "15",
+            "value": 15
+          },
+          {
+            "id": "d10",
+            "text": "20",
+            "value": 20
+          },
+          {
+            "id": "d11",
+            "text": "Ø5.5",
+            "value": 5.500000000000001
+          }
+        ],
+        "hidden": {
+          "front": 4,
+          "top": 2,
+          "right": 2,
+          "iso": 11
+        },
+        "section": null,
+        "sections": [],
+        "placedSections": [],
+        "apartSections": [],
+        "details": [],
+        "boxes": {
+          "front": [
+            92.75126265847084,
+            111.5361388801511,
+            132.75126265847084,
+            141.5361388801511
+          ],
+          "top": [
+            92.75126265847084,
+            48,
+            132.75126265847084,
+            78
+          ],
+          "right": [
+            164.5,
+            111.5361388801511,
+            194.5,
+            141.5361388801511
+          ],
+          "iso": [
+            154.75126265847084,
+            36.4638611198489,
+            204.24873734152916,
+            89.5361388801511
+          ]
+        },
+        "breaks": {},
+        "issues": [
+          {
+            "code": "TEXT_OVER_LINES",
+            "severity": "error",
+            "fix": "move"
+          },
+          {
+            "code": "TEXT_OVER_LINES",
+            "severity": "error",
+            "fix": "move"
+          }
+        ],
+        "tables": [],
+        "suggestions": [
+          {
+            "id": "general-note",
+            "kind": "general-note",
+            "estimate": true
+          },
+          {
+            "id": "hole-pm-d5",
+            "kind": "hole-plus-minus",
+            "estimate": true
+          },
+          {
+            "id": "hole-pm-d11",
+            "kind": "hole-plus-minus",
+            "estimate": true
+          }
+        ]
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b6",
+            "volume": 2967.7682447596635,
+            "centroid": [
+              12.141098054079967,
+              14.999999999999996,
+              7.007842511441253
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "rendererObserved": "webgpu",
+      "publicStats": "Perspective · 1 solid · 19 ms",
+      "issueRows": [
+        {
+          "code": "TEXT_OVER_LINES",
+          "text": "errorThe text of dimension 1.5 lies over lines of the drawing.Move"
+        },
+        {
+          "code": "TEXT_OVER_LINES",
+          "text": "errorThe text of dimension 1.5 lies over lines of the drawing.Move"
+        }
+      ],
+      "visibleIssues": "errorThe text of dimension 1.5 lies over lines of the drawing.MoveerrorThe text of dimension 1.5 lies over lines of the drawing.Move"
+    },
+    {
+      "label": "09-grid-open-empty",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              60
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 8,
+            "id": "n1"
+          },
+          {
+            "kind": "hole",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "center": [
+              15,
+              15
+            ],
+            "radius": 3,
+            "id": "n2"
+          },
+          {
+            "kind": "hole",
+            "parent": {
+              "node": 2,
+              "side": "solid"
+            },
+            "center": [
+              45,
+              15
+            ],
+            "radius": 3,
+            "id": "n3"
+          },
+          {
+            "kind": "hole",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "center": [
+              45,
+              45
+            ],
+            "radius": 3,
+            "id": "n4"
+          },
+          {
+            "kind": "hole",
+            "parent": {
+              "node": 4,
+              "side": "solid"
+            },
+            "center": [
+              15,
+              45
+            ],
+            "radius": 3,
+            "id": "n5"
+          }
+        ],
+        "nextId": 6,
+        "outputs": {
+          "b5": {
+            "node": 5,
+            "side": "solid"
+          }
+        },
+        "drawing": {
+          "sheet": "A4",
+          "projection": "third",
+          "hidden": true,
+          "dimensions": []
+        }
+      },
+      "sheet": {
+        "scale": 1,
+        "dimensions": [],
+        "hidden": {
+          "front": 8,
+          "top": 0,
+          "right": 8,
+          "iso": 19
+        },
+        "section": null,
+        "sections": [],
+        "placedSections": [],
+        "apartSections": [],
+        "details": [],
+        "boxes": {
+          "front": [
+            65.07359312880715,
+            126,
+            125.07359312880715,
+            134
+          ],
+          "top": [
+            65.07359312880715,
+            44,
+            125.07359312880715,
+            104
+          ],
+          "right": [
+            159.5,
+            126,
+            219.5,
+            134
+          ],
+          "iso": [
+            147.07359312880715,
+            46.23911624845731,
+            231.92640687119285,
+            101.76088375154269
+          ]
+        },
+        "breaks": {},
+        "issues": [
+          {
+            "code": "HOLE_SIZE_MISSING",
+            "severity": "warning",
+            "fix": "auto-dimension"
+          },
+          {
+            "code": "HOLE_NOT_LOCATED",
+            "severity": "warning",
+            "fix": "auto-dimension"
+          },
+          {
+            "code": "OVERALL_MISSING",
+            "severity": "warning",
+            "fix": "auto-dimension"
+          }
+        ],
+        "tables": [],
+        "suggestions": [
+          {
+            "id": "general-note",
+            "kind": "general-note",
+            "estimate": true
+          }
+        ]
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b5",
+            "volume": 27895.221315766175,
+            "centroid": [
+              29.999999999999943,
+              29.999999999999932,
+              4
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "rendererObserved": "webgpu",
+      "publicStats": "Perspective · 1 solid · 13 ms",
+      "issueRows": [
+        {
+          "code": "HOLE_SIZE_MISSING",
+          "text": "warning4 holes have no size on the drawing.Auto"
+        },
+        {
+          "code": "HOLE_NOT_LOCATED",
+          "text": "warning4 holes are not located (a position across or up is missing).Auto"
+        },
+        {
+          "code": "OVERALL_MISSING",
+          "text": "warningThe part’s overall width, height, depth are not given.Auto"
+        }
+      ],
+      "visibleIssues": "warning4 holes have no size on the drawing.Autowarning4 holes are not located (a position across or up is missing).AutowarningThe part’s overall width, height, depth are not given.Auto"
+    },
+    {
+      "label": "10-grid-auto-dimension",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              60
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 8,
+            "id": "n1"
+          },
+          {
+            "kind": "hole",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "center": [
+              15,
+              15
+            ],
+            "radius": 3,
+            "id": "n2"
+          },
+          {
+            "kind": "hole",
+            "parent": {
+              "node": 2,
+              "side": "solid"
+            },
+            "center": [
+              45,
+              15
+            ],
+            "radius": 3,
+            "id": "n3"
+          },
+          {
+            "kind": "hole",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "center": [
+              45,
+              45
+            ],
+            "radius": 3,
+            "id": "n4"
+          },
+          {
+            "kind": "hole",
+            "parent": {
+              "node": 4,
+              "side": "solid"
+            },
+            "center": [
+              15,
+              45
+            ],
+            "radius": 3,
+            "id": "n5"
+          }
+        ],
+        "nextId": 6,
+        "outputs": {
+          "b5": {
+            "node": 5,
+            "side": "solid"
+          }
+        },
+        "drawing": {
+          "sheet": "A4",
+          "projection": "third",
+          "hidden": true,
+          "dimensions": [
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n1.bottom|n1.side0",
+                "at": "end",
+                "near": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "b": {
+                "edge": "n1.bottom|n2.side0#2",
+                "at": "center",
+                "near": [
+                  15,
+                  15,
+                  0
+                ]
+              },
+              "orient": "horizontal",
+              "auto": true,
+              "place": [
+                7.5,
+                -10
+              ],
+              "id": "d1"
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n1.bottom|n1.side0",
+                "at": "end",
+                "near": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "b": {
+                "edge": "n1.bottom|n5.side0#2",
+                "at": "center",
+                "near": [
+                  15,
+                  45,
+                  0
+                ]
+              },
+              "orient": "horizontal",
+              "auto": true,
+              "place": [
+                7.5,
+                70
+              ],
+              "id": "d2"
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n1.bottom|n1.side0",
+                "at": "end",
+                "near": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "b": {
+                "edge": "n1.bottom|n3.side0#2",
+                "at": "center",
+                "near": [
+                  45,
+                  15,
+                  0
+                ]
+              },
+              "orient": "horizontal",
+              "auto": true,
+              "place": [
+                22.5,
+                78
+              ],
+              "id": "d3"
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n1.bottom|n1.side0",
+                "at": "end",
+                "near": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "b": {
+                "edge": "n1.bottom|n4.side0#2",
+                "at": "center",
+                "near": [
+                  45,
+                  45,
+                  0
+                ]
+              },
+              "orient": "horizontal",
+              "auto": true,
+              "place": [
+                22.5,
+                86
+              ],
+              "id": "d4"
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n1.bottom|n1.side0",
+                "at": "end",
+                "near": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "b": {
+                "edge": "n1.bottom|n2.side0#2",
+                "at": "center",
+                "near": [
+                  15,
+                  15,
+                  0
+                ]
+              },
+              "orient": "vertical",
+              "auto": true,
+              "place": [
+                -10,
+                7.5
+              ],
+              "id": "d5"
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n1.bottom|n1.side0",
+                "at": "end",
+                "near": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "b": {
+                "edge": "n1.bottom|n3.side0#2",
+                "at": "center",
+                "near": [
+                  45,
+                  15,
+                  0
+                ]
+              },
+              "orient": "vertical",
+              "auto": true,
+              "place": [
+                -18,
+                7.5
+              ],
+              "id": "d6"
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n1.bottom|n1.side0",
+                "at": "end",
+                "near": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "b": {
+                "edge": "n1.bottom|n4.side0#2",
+                "at": "center",
+                "near": [
+                  45,
+                  45,
+                  0
+                ]
+              },
+              "orient": "vertical",
+              "auto": true,
+              "place": [
+                -26,
+                22.5
+              ],
+              "id": "d7"
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n1.bottom|n1.side0",
+                "at": "end",
+                "near": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "b": {
+                "edge": "n1.bottom|n5.side0#2",
+                "at": "center",
+                "near": [
+                  15,
+                  45,
+                  0
+                ]
+              },
+              "orient": "vertical",
+              "auto": true,
+              "place": [
+                -34,
+                22.5
+              ],
+              "id": "d8"
+            },
+            {
+              "view": "top",
+              "kind": "linear",
+              "a": {
+                "edge": "n1.bottom|n1.side0",
+                "at": "end",
+                "near": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "b": {
+                "edge": "n1.bottom|n1.side2",
+                "at": "end",
+                "near": [
+                  0,
+                  60,
+                  0
+                ]
+              },
+              "orient": "vertical",
+              "auto": true,
+              "place": [
+                -42,
+                30
+              ],
+              "id": "d9"
+            },
+            {
+              "view": "top",
+              "kind": "diameter",
+              "edge": "n1.bottom|n2.side0#2",
+              "near": [
+                15,
+                15,
+                0
+              ],
+              "count": 4,
+              "auto": true,
+              "place": [
+                24,
+                -14
+              ],
+              "id": "d10"
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n1.bottom|n1.side0",
+                "at": "end",
+                "near": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "b": {
+                "edge": "n1.bottom|n1.side0",
+                "at": "end",
+                "near": [
+                  60,
+                  0,
+                  0
+                ]
+              },
+              "orient": "horizontal",
+              "auto": true,
+              "place": [
+                30,
+                -10
+              ],
+              "id": "d11"
+            },
+            {
+              "view": "front",
+              "kind": "linear",
+              "a": {
+                "edge": "n1.bottom|n1.side0",
+                "at": "end",
+                "near": [
+                  0,
+                  0,
+                  0
+                ]
+              },
+              "b": {
+                "edge": "n1.side0|n1.top",
+                "at": "end",
+                "near": [
+                  0,
+                  0,
+                  8
+                ]
+              },
+              "orient": "vertical",
+              "auto": true,
+              "place": [
+                70,
+                4
+              ],
+              "id": "d12"
+            }
+          ],
+          "views": [
+            "front",
+            "top",
+            "iso"
+          ],
+          "room": {
+            "front": {
+              "below": 14,
+              "right": 14
+            },
+            "top": {
+              "above": 30,
+              "below": 18,
+              "left": 46
+            }
+          },
+          "scope": {
+            "kind": "part"
+          }
+        }
+      },
+      "sheet": {
+        "scale": 1,
+        "dimensions": [
+          {
+            "id": "d1",
+            "text": "15",
+            "value": 15
+          },
+          {
+            "id": "d2",
+            "text": "15",
+            "value": 15
+          },
+          {
+            "id": "d3",
+            "text": "45",
+            "value": 45
+          },
+          {
+            "id": "d4",
+            "text": "45",
+            "value": 45
+          },
+          {
+            "id": "d5",
+            "text": "15",
+            "value": 15
+          },
+          {
+            "id": "d6",
+            "text": "15",
+            "value": 15
+          },
+          {
+            "id": "d7",
+            "text": "45",
+            "value": 45
+          },
+          {
+            "id": "d8",
+            "text": "45",
+            "value": 45
+          },
+          {
+            "id": "d9",
+            "text": "60",
+            "value": 60
+          },
+          {
+            "id": "d10",
+            "text": "4× Ø6 THRU",
+            "value": 6.000000000000001
+          },
+          {
+            "id": "d11",
+            "text": "60",
+            "value": 60
+          },
+          {
+            "id": "d12",
+            "text": "8",
+            "value": 8
+          }
+        ],
+        "hidden": {
+          "front": 8,
+          "top": 0,
+          "right": 8,
+          "iso": 19
+        },
+        "section": null,
+        "sections": [],
+        "placedSections": [],
+        "apartSections": [],
+        "details": [],
+        "boxes": {
+          "front": [
+            82.57359312880715,
+            133.5,
+            142.57359312880715,
+            141.5
+          ],
+          "top": [
+            82.57359312880715,
+            45.5,
+            142.57359312880715,
+            105.5
+          ],
+          "right": [
+            164.57359312880715,
+            133.5,
+            164.57359312880715,
+            133.5
+          ],
+          "iso": [
+            164.57359312880715,
+            47.73911624845731,
+            249.42640687119285,
+            103.26088375154269
+          ]
+        },
+        "breaks": {},
+        "issues": [],
+        "tables": [],
+        "suggestions": [
+          {
+            "id": "general-note",
+            "kind": "general-note",
+            "estimate": true
+          },
+          {
+            "id": "hole-pm-d10",
+            "kind": "hole-plus-minus",
+            "estimate": true
+          }
+        ]
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b5",
+            "volume": 27895.221315766175,
+            "centroid": [
+              29.999999999999943,
+              29.999999999999932,
+              4
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "rendererObserved": "webgpu",
+      "publicStats": "Perspective · 1 solid · 13 ms",
+      "issueRows": [],
+      "visibleIssues": "No issues: nothing overlaps or is lost, and every hole, step and overall size is given."
+    }
+  ],
+  "errors": [],
+  "consoleErrors": [],
+  "changes": [],
+  "cleanup": {
+    "context": "CLOSED",
+    "browser": "CLOSED",
+    "server": "CLOSED",
+    "priorContexts": [
+      "CLOSED",
+      "CLOSED",
+      "CLOSED"
+    ]
+  },
+  "limits": [
+    "Finite captured sheet L-bracket and authored square-grid cases",
+    "No model edit differential or independent geometry accuracy claim",
+    "No PDF, remote CI or live AI verification"
+  ],
+  "rendererObserved": "webgpu",
+  "fixAllOffered": true,
+  "grid": {
+    "source": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/conformance/r14/pcd-square-grid/case.json",
+    "sourceSHA256": "c18050fd1441a88402eacd153a1965e157b9b466f00a79c4cf299d5ddc204db6",
+    "inputFile": "/tmp/d331/native-first/grid-input.bcad",
+    "inputSHA256": "8cce90776f5fd05f5192b8b59537cdbe4a1761cc2956983b460f37277464f16e",
+    "coverage": "PASS",
+    "inputConstruction": "input.document plus input.drawing with explicit empty dimensions; no generated runtime result supplied",
+    "rendererObserved": "webgpu",
+    "issues": [],
+    "placementIssues": [],
+    "placementStatus": "NO_PLACEMENT_ISSUES_OBSERVED",
+    "overallDrawingAcceptance": "NOT_CLAIMED"
+  },
+  "phase": "public grid Auto-dimension preserves each independent hole position"
+}

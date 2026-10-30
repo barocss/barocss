@@ -1,0 +1,101 @@
+{
+  "repository": "barocss/barocss",
+  "authorization": "Owner explicitly authorized closing issues once their contents and remaining acceptance are registered in the roadmap; external messages must not immediately change the execution order.",
+  "meaning": "Roadmap transfer completed; defect fixes and product acceptance remain incomplete.",
+  "commentWrites": 0,
+  "bodyWrites": 0,
+  "updates": [
+    {
+      "number": 2235,
+      "url": "https://github.com/barocss/barocss/issues/2235",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T04:10:34Z",
+      "updatedAt": "2026-10-29T04:10:34Z",
+      "bodyPreserved": true
+    },
+    {
+      "number": 2236,
+      "url": "https://github.com/barocss/barocss/issues/2236",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T04:10:36Z",
+      "updatedAt": "2026-10-29T04:10:36Z",
+      "bodyPreserved": true
+    },
+    {
+      "number": 2237,
+      "url": "https://github.com/barocss/barocss/issues/2237",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T04:10:38Z",
+      "updatedAt": "2026-10-29T04:10:38Z",
+      "bodyPreserved": true
+    },
+    {
+      "number": 2238,
+      "url": "https://github.com/barocss/barocss/issues/2238",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T04:10:39Z",
+      "updatedAt": "2026-10-29T04:10:40Z",
+      "bodyPreserved": true
+    },
+    {
+      "number": 2239,
+      "url": "https://github.com/barocss/barocss/issues/2239",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T04:10:41Z",
+      "updatedAt": "2026-10-29T04:10:41Z",
+      "bodyPreserved": true
+    },
+    {
+      "number": 2240,
+      "url": "https://github.com/barocss/barocss/issues/2240",
+      "state": "closed",
+      "stateReason": "completed",
+      "closedAt": "2026-10-29T04:10:43Z",
+      "updatedAt": "2026-10-29T04:10:43Z",
+      "bodyPreserved": true
+    }
+  ],
+  "verification": [
+    {
+      "number": 2235,
+      "state": "closed",
+      "closedAt": "2026-10-29T04:10:34Z",
+      "bodyPreserved": true
+    },
+    {
+      "number": 2236,
+      "state": "closed",
+      "closedAt": "2026-10-29T04:10:36Z",
+      "bodyPreserved": true
+    },
+    {
+      "number": 2237,
+      "state": "closed",
+      "closedAt": "2026-10-29T04:10:38Z",
+      "bodyPreserved": true
+    },
+    {
+      "number": 2238,
+      "state": "closed",
+      "closedAt": "2026-10-29T04:10:39Z",
+      "bodyPreserved": true
+    },
+    {
+      "number": 2239,
+      "state": "closed",
+      "closedAt": "2026-10-29T04:10:41Z",
+      "bodyPreserved": true
+    },
+    {
+      "number": 2240,
+      "state": "closed",
+      "closedAt": "2026-10-29T04:10:43Z",
+      "bodyPreserved": true
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "status": "MODEL_STUDIO_SOURCE_GATES_PASS_BROWSER_NOT_RUN",
+  "heavyGate": "RELEASED; holder none observed",
+  "checks": {
+    "newStepTests": {
+      "passed": 2,
+      "failed": 0,
+      "log": "new-first.log",
+      "exit": 0
+    },
+    "affectedModelTests": {
+      "passed": 23,
+      "failed": 0,
+      "log": "affected-first.log",
+      "exit": 0
+    },
+    "modelTypes": {
+      "status": "PASS",
+      "log": "types-first.log"
+    },
+    "newTestLint": {
+      "status": "PASS",
+      "errors": 0,
+      "warnings": 0,
+      "log": "lint-first.log"
+    },
+    "studioTypes": {
+      "status": "PASS",
+      "log": "studio-types-first.log"
+    },
+    "studioVite": {
+      "status": "PASS",
+      "log": "studio-vite-first.log",
+      "warnings": "existing module directives and ineffective dynamic imports"
+    },
+    "driverLint": {
+      "status": "PASS",
+      "errors": 0,
+      "warnings": 1,
+      "log": "studio-driver-lint-first.log"
+    },
+    "browser": "NOT_RUN"
+  },
+  "affectedSelectors": [
+    "r7-findings.test",
+    "r7-mmgs.test",
+    "step-reference-units.test",
+    "step-units.test",
+    "r4-caches.test",
+    "mass.test",
+    "mass-longitudinal.test",
+    "native-mass-wire.test"
+  ],
+  "sourceHashes": {
+    "packages/barocss-cad-model/test/native-quadrature-step.test.ts": "233d899441bb53850bcc5ffca42c666ed54cec7734c53d8f71b8dec014dbdf78",
+    "apps/cad-studio/test/native-quadrature-step-browser.mjs": "7286429630f31b3daa966c0dce86f2c443d8097b0b3a8b47a2ba7f1e48ab3a09",
+    "packages/barocss-cad/scripts/perf-bench.mjs": "37d81a207f097d7cb35d859200db64f716d0c38d30ed8a79b3d79e60ab4c39a9",
+    "packages/barocss-cad/src/brep/brep-mass-quadrature.ts": "696ec924bc4f1d7b74862533676af5e4c0b8a2a284a8a249ea7007dade4c8ed5",
+    "packages/barocss-cad/src/brep/solid-mass.ts": "19ec118c7f6096f738d246e5ca46095b42dd9bf7f67e341bcc6f735690141eac"
+  },
+  "testRunnerAdaptation": "Independent helper resolves from import.meta.dirname, which existing bundled runner maps to actual test source directory. import.meta.url would point to the temporary bundle. Corrected before runtime.",
+  "failurePreservation": "No first runtime failure occurred in this stage. All first logs preserved. Earlier perf lint/path observations remain in /tmp/d344-perf.",
+  "nodeConsumerProof": "actual-step-proof.json",
+  "scope": "Actual Offset command build, target-only default native STEP validation metadata, independent stored-node oracle, normal interval, units, strict import geometry/counts/names; actual mouse/worker/download browser flow remains unexecuted."
+}

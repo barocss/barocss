@@ -1,0 +1,10 @@
+{
+  "observedBytes": 189283,
+  "observedSha256": "04a883cc8cae037b4724bb6d44358b19cab7cb8796a1263bdd82d114ee0cd0c3",
+  "frozenBytes": 189661,
+  "frozenSha256": "d669b9138128b2684f36a3fa1fdd8c0dfd19f8f39e647f61a23c13b7143e1fda",
+  "mtime": 1793271927.4496243,
+  "recordedAt": "2026-10-29T11:08:11.662554+00:00",
+  "rootAppWritesSinceFreeze": 0,
+  "runtimeAcceptance": "WITHHELD_SOURCE_DRIFT"
+}

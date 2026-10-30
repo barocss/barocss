@@ -1,0 +1,1796 @@
+{
+  "status": "passed",
+  "lengthUnit": "mm",
+  "tolerance": 1e-9,
+  "oracle": "Independent homogeneous de Boor on original unvalidated coefficient tables; actual production child evaluateSurface; all original knots/midpoints/adjacent floats and grid",
+  "cases": [
+    {
+      "index": 0,
+      "degree": 1,
+      "count": 17,
+      "rationalU": false,
+      "samples": 1584,
+      "maximumDifference": 4.440892098500626e-16,
+      "massBits": {
+        "volume": "4002aaaaaaaaaaae",
+        "mass": "3f92c19ab1386369",
+        "centroid": [
+          "3fe77d1abd463a86",
+          "3fe847cae408343b",
+          "3fe36db6db6db6da"
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            "3f770a11f8943eee",
+            "bf1c0dc3fb7bb2f9",
+            "bf284f8f928ecd2f"
+          ],
+          [
+            "bf1c0dc3fb7bb2f9",
+            "3f76ac926205d12b",
+            "bf40bc22826de230"
+          ],
+          [
+            "bf284f8f928ecd2f",
+            "bf40bc22826de230",
+            "3f814989dbf150e9"
+          ]
+        ]
+      },
+      "patches": [
+        {
+          "name": "L.side0#1",
+          "domain": [
+            0,
+            0.9375
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side0#2",
+          "domain": [
+            0.9375,
+            1
+          ],
+          "controls": 2
+        },
+        {
+          "name": "L.side1#1",
+          "domain": [
+            0,
+            0.9375
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#2",
+          "domain": [
+            0.9375,
+            1
+          ],
+          "controls": 2
+        },
+        {
+          "name": "L.side2#1",
+          "domain": [
+            0,
+            0.9375
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#2",
+          "domain": [
+            0.9375,
+            1
+          ],
+          "controls": 2
+        },
+        {
+          "name": "L.side3#1",
+          "domain": [
+            0,
+            0.9375
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#2",
+          "domain": [
+            0.9375,
+            1
+          ],
+          "controls": 2
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "degree": 1,
+      "count": 64,
+      "rationalU": false,
+      "samples": 6888,
+      "maximumDifference": 6.661338147750939e-16,
+      "massBits": {
+        "volume": "4002aaaaaaaaaaa6",
+        "mass": "3f92c19ab1386360",
+        "centroid": [
+          "3fe703afe985c996",
+          "3fe80b455720285c",
+          "3fe36db6db6db6e7"
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            "3f76de0e03aceae5",
+            "bf0a2141292facfd",
+            "bf185fea826a7871"
+          ],
+          [
+            "bf0a2141292facfd",
+            "3f766d709ea50889",
+            "bf3e6bfa1d976beb"
+          ],
+          [
+            "bf185fea826a7871",
+            "bf3e6bfa1d976beb",
+            "3f8113f6ffcd42a9"
+          ]
+        ]
+      },
+      "patches": [
+        {
+          "name": "L.side0#1",
+          "domain": [
+            0,
+            0.23809523809523814
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side0#2",
+          "domain": [
+            0.23809523809523814,
+            0.4761904761904761
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side0#3",
+          "domain": [
+            0.4761904761904761,
+            0.7142857142857141
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side0#4",
+          "domain": [
+            0.7142857142857141,
+            0.9523809523809522
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side0#5",
+          "domain": [
+            0.9523809523809522,
+            1
+          ],
+          "controls": 4
+        },
+        {
+          "name": "L.side1#1",
+          "domain": [
+            0,
+            0.23809523809523814
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#2",
+          "domain": [
+            0.23809523809523814,
+            0.4761904761904761
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#3",
+          "domain": [
+            0.4761904761904761,
+            0.7142857142857141
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#4",
+          "domain": [
+            0.7142857142857141,
+            0.9523809523809522
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#5",
+          "domain": [
+            0.9523809523809522,
+            1
+          ],
+          "controls": 4
+        },
+        {
+          "name": "L.side2#1",
+          "domain": [
+            0,
+            0.23809523809523814
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#2",
+          "domain": [
+            0.23809523809523814,
+            0.4761904761904761
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#3",
+          "domain": [
+            0.4761904761904761,
+            0.7142857142857141
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#4",
+          "domain": [
+            0.7142857142857141,
+            0.9523809523809522
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#5",
+          "domain": [
+            0.9523809523809522,
+            1
+          ],
+          "controls": 4
+        },
+        {
+          "name": "L.side3#1",
+          "domain": [
+            0,
+            0.23809523809523814
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#2",
+          "domain": [
+            0.23809523809523814,
+            0.4761904761904761
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#3",
+          "domain": [
+            0.4761904761904761,
+            0.7142857142857141
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#4",
+          "domain": [
+            0.7142857142857141,
+            0.9523809523809522
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#5",
+          "domain": [
+            0.9523809523809522,
+            1
+          ],
+          "controls": 4
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "degree": 2,
+      "count": 17,
+      "rationalU": false,
+      "samples": 1200,
+      "maximumDifference": 6.661338147750939e-16,
+      "massBits": {
+        "volume": "4002aaaaaaaaaab0",
+        "mass": "3f92c19ab138636b",
+        "centroid": [
+          "3fe7b1489a380993",
+          "3fe8606f393772b2",
+          "3fe36db6db6db6d9"
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            "3f7716792c3ef08b",
+            "bf1ff9cd7951bdf6",
+            "bf2c92ffb9533ce2"
+          ],
+          [
+            "bf1ff9cd7951bdf6",
+            "3f76b6ac09801866",
+            "bf413e2be186d3d8"
+          ],
+          [
+            "bf2c92ffb9533ce2",
+            "bf413e2be186d3d8",
+            "3f8154ca4983cd55"
+          ]
+        ]
+      },
+      "patches": [
+        {
+          "name": "L.side0#1",
+          "domain": [
+            0,
+            0.875
+          ],
+          "controls": 15
+        },
+        {
+          "name": "L.side0#2",
+          "domain": [
+            0.875,
+            1
+          ],
+          "controls": 3
+        },
+        {
+          "name": "L.side1#1",
+          "domain": [
+            0,
+            0.875
+          ],
+          "controls": 15
+        },
+        {
+          "name": "L.side1#2",
+          "domain": [
+            0.875,
+            1
+          ],
+          "controls": 3
+        },
+        {
+          "name": "L.side2#1",
+          "domain": [
+            0,
+            0.875
+          ],
+          "controls": 15
+        },
+        {
+          "name": "L.side2#2",
+          "domain": [
+            0.875,
+            1
+          ],
+          "controls": 3
+        },
+        {
+          "name": "L.side3#1",
+          "domain": [
+            0,
+            0.875
+          ],
+          "controls": 15
+        },
+        {
+          "name": "L.side3#2",
+          "domain": [
+            0.875,
+            1
+          ],
+          "controls": 3
+        }
+      ]
+    },
+    {
+      "index": 3,
+      "degree": 2,
+      "count": 64,
+      "rationalU": false,
+      "samples": 3192,
+      "maximumDifference": 6.661338147750939e-16,
+      "massBits": {
+        "volume": "4002aaaaaaaaaab0",
+        "mass": "3f92c19ab138636b",
+        "centroid": [
+          "3fe70ae009c8a79f",
+          "3fe80ed8898ec26e",
+          "3fe36db6db6db6dd"
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            "3f76e0a63ece6158",
+            "bf0bde25102c760a",
+            "bf19e549c841f4d2"
+          ],
+          [
+            "bf0bde25102c760a",
+            "3f7670e6e9ecaf34",
+            "bf3e9cf65f113f5b"
+          ],
+          [
+            "bf19e549c841f4d2",
+            "bf3e9cf65f113f5b",
+            "3f8116fe4301d136"
+          ]
+        ]
+      },
+      "patches": [
+        {
+          "name": "L.side0#1",
+          "domain": [
+            0,
+            0.21875
+          ],
+          "controls": 15
+        },
+        {
+          "name": "L.side0#2",
+          "domain": [
+            0.21875,
+            0.4375
+          ],
+          "controls": 15
+        },
+        {
+          "name": "L.side0#3",
+          "domain": [
+            0.4375,
+            0.65625
+          ],
+          "controls": 15
+        },
+        {
+          "name": "L.side0#4",
+          "domain": [
+            0.65625,
+            0.875
+          ],
+          "controls": 15
+        },
+        {
+          "name": "L.side0#5",
+          "domain": [
+            0.875,
+            1
+          ],
+          "controls": 8
+        },
+        {
+          "name": "L.side1#1",
+          "domain": [
+            0,
+            0.21875
+          ],
+          "controls": 15
+        },
+        {
+          "name": "L.side1#2",
+          "domain": [
+            0.21875,
+            0.4375
+          ],
+          "controls": 15
+        },
+        {
+          "name": "L.side1#3",
+          "domain": [
+            0.4375,
+            0.65625
+          ],
+          "controls": 15
+        },
+        {
+          "name": "L.side1#4",
+          "domain": [
+            0.65625,
+            0.875
+          ],
+          "controls": 15
+        },
+        {
+          "name": "L.side1#5",
+          "domain": [
+            0.875,
+            1
+          ],
+          "controls": 8
+        },
+        {
+          "name": "L.side2#1",
+          "domain": [
+            0,
+            0.21875
+          ],
+          "controls": 15
+        },
+        {
+          "name": "L.side2#2",
+          "domain": [
+            0.21875,
+            0.4375
+          ],
+          "controls": 15
+        },
+        {
+          "name": "L.side2#3",
+          "domain": [
+            0.4375,
+            0.65625
+          ],
+          "controls": 15
+        },
+        {
+          "name": "L.side2#4",
+          "domain": [
+            0.65625,
+            0.875
+          ],
+          "controls": 15
+        },
+        {
+          "name": "L.side2#5",
+          "domain": [
+            0.875,
+            1
+          ],
+          "controls": 8
+        },
+        {
+          "name": "L.side3#1",
+          "domain": [
+            0,
+            0.21875
+          ],
+          "controls": 15
+        },
+        {
+          "name": "L.side3#2",
+          "domain": [
+            0.21875,
+            0.4375
+          ],
+          "controls": 15
+        },
+        {
+          "name": "L.side3#3",
+          "domain": [
+            0.4375,
+            0.65625
+          ],
+          "controls": 15
+        },
+        {
+          "name": "L.side3#4",
+          "domain": [
+            0.65625,
+            0.875
+          ],
+          "controls": 15
+        },
+        {
+          "name": "L.side3#5",
+          "domain": [
+            0.875,
+            1
+          ],
+          "controls": 8
+        }
+      ]
+    },
+    {
+      "index": 4,
+      "degree": 3,
+      "count": 17,
+      "rationalU": false,
+      "samples": 1296,
+      "maximumDifference": 6.661338147750939e-16,
+      "massBits": {
+        "volume": "4002aaaaaaaaaaae",
+        "mass": "3f92c19ab1386369",
+        "centroid": [
+          "3fe7a81b170c82b7",
+          "3fe85b35cf9fc111",
+          "3fe36db6db6db6db"
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            "3f7713c5e2141286",
+            "bf1f45d8dc3eb7f7",
+            "bf2c04e93bab565c"
+          ],
+          [
+            "bf1f45d8dc3eb7f7",
+            "3f76b363c32a0ea0",
+            "bf4125292c420e74"
+          ],
+          [
+            "bf2c04e93bab565c",
+            "bf4125292c420e74",
+            "3f8151cc81435972"
+          ]
+        ]
+      },
+      "patches": [
+        {
+          "name": "L.side0#1",
+          "domain": [
+            0,
+            0.8333333333333334
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side0#2",
+          "domain": [
+            0.8333333333333334,
+            1
+          ],
+          "controls": 4
+        },
+        {
+          "name": "L.side1#1",
+          "domain": [
+            0,
+            0.8333333333333334
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#2",
+          "domain": [
+            0.8333333333333334,
+            1
+          ],
+          "controls": 4
+        },
+        {
+          "name": "L.side2#1",
+          "domain": [
+            0,
+            0.8333333333333334
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#2",
+          "domain": [
+            0.8333333333333334,
+            1
+          ],
+          "controls": 4
+        },
+        {
+          "name": "L.side3#1",
+          "domain": [
+            0,
+            0.8333333333333334
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#2",
+          "domain": [
+            0.8333333333333334,
+            1
+          ],
+          "controls": 4
+        }
+      ]
+    },
+    {
+      "index": 5,
+      "degree": 3,
+      "count": 64,
+      "rationalU": false,
+      "samples": 2856,
+      "maximumDifference": 1.1102230246251565e-15,
+      "massBits": {
+        "volume": "4002aaaaaaaaaab6",
+        "mass": "3f92c19ab1386371",
+        "centroid": [
+          "3fe718b18b03b54b",
+          "3fe815d49d252cb1",
+          "3fe36db6db6db6d8"
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            "3f76e57e1e828ea5",
+            "bf0f0f91a7462058",
+            "bf1cbfe8fd20713c"
+          ],
+          [
+            "bf0f0f91a7462058",
+            "3f767724561197d4",
+            "bf3ef958c4c17832"
+          ],
+          [
+            "bf1cbfe8fd20713c",
+            "bf3ef958c4c17832",
+            "3f811c88e8ee5c1d"
+          ]
+        ]
+      },
+      "patches": [
+        {
+          "name": "L.side0#1",
+          "domain": [
+            0,
+            0.23809523809523814
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side0#2",
+          "domain": [
+            0.23809523809523814,
+            0.4761904761904761
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side0#3",
+          "domain": [
+            0.4761904761904761,
+            0.7142857142857141
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side0#4",
+          "domain": [
+            0.7142857142857141,
+            0.9523809523809522
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side0#5",
+          "domain": [
+            0.9523809523809522,
+            1
+          ],
+          "controls": 4
+        },
+        {
+          "name": "L.side1#1",
+          "domain": [
+            0,
+            0.23809523809523814
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#2",
+          "domain": [
+            0.23809523809523814,
+            0.4761904761904761
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#3",
+          "domain": [
+            0.4761904761904761,
+            0.7142857142857141
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#4",
+          "domain": [
+            0.7142857142857141,
+            0.9523809523809522
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#5",
+          "domain": [
+            0.9523809523809522,
+            1
+          ],
+          "controls": 4
+        },
+        {
+          "name": "L.side2#1",
+          "domain": [
+            0,
+            0.23809523809523814
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#2",
+          "domain": [
+            0.23809523809523814,
+            0.4761904761904761
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#3",
+          "domain": [
+            0.4761904761904761,
+            0.7142857142857141
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#4",
+          "domain": [
+            0.7142857142857141,
+            0.9523809523809522
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#5",
+          "domain": [
+            0.9523809523809522,
+            1
+          ],
+          "controls": 4
+        },
+        {
+          "name": "L.side3#1",
+          "domain": [
+            0,
+            0.23809523809523814
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#2",
+          "domain": [
+            0.23809523809523814,
+            0.4761904761904761
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#3",
+          "domain": [
+            0.4761904761904761,
+            0.7142857142857141
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#4",
+          "domain": [
+            0.7142857142857141,
+            0.9523809523809522
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#5",
+          "domain": [
+            0.9523809523809522,
+            1
+          ],
+          "controls": 4
+        }
+      ]
+    },
+    {
+      "index": 6,
+      "degree": 4,
+      "count": 17,
+      "rationalU": false,
+      "samples": 1008,
+      "maximumDifference": 1.1102230246251565e-15,
+      "massBits": {
+        "volume": "4002aaaaaaaaaaaa",
+        "mass": "3f92c19ab1386364",
+        "centroid": [
+          "3fe7dfa749504c80",
+          "3fe87460c5c7e7eb",
+          "3fe36db6db6db6d9"
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            "3f771d8273da739e",
+            "bf2129e9b379bf41",
+            "bf2fdeca28aa5310"
+          ],
+          [
+            "bf2129e9b379bf41",
+            "3f76b82ab90a7c05",
+            "bf41913202215c3f"
+          ],
+          [
+            "bf2fdeca28aa5310",
+            "bf41913202215c3f",
+            "3f81590e4516c0b2"
+          ]
+        ]
+      },
+      "patches": [
+        {
+          "name": "L.side0#1",
+          "domain": [
+            0,
+            0.75
+          ],
+          "controls": 13
+        },
+        {
+          "name": "L.side0#2",
+          "domain": [
+            0.75,
+            1
+          ],
+          "controls": 5
+        },
+        {
+          "name": "L.side1#1",
+          "domain": [
+            0,
+            0.75
+          ],
+          "controls": 13
+        },
+        {
+          "name": "L.side1#2",
+          "domain": [
+            0.75,
+            1
+          ],
+          "controls": 5
+        },
+        {
+          "name": "L.side2#1",
+          "domain": [
+            0,
+            0.75
+          ],
+          "controls": 13
+        },
+        {
+          "name": "L.side2#2",
+          "domain": [
+            0.75,
+            1
+          ],
+          "controls": 5
+        },
+        {
+          "name": "L.side3#1",
+          "domain": [
+            0,
+            0.75
+          ],
+          "controls": 13
+        },
+        {
+          "name": "L.side3#2",
+          "domain": [
+            0.75,
+            1
+          ],
+          "controls": 5
+        }
+      ]
+    },
+    {
+      "index": 7,
+      "degree": 4,
+      "count": 64,
+      "rationalU": false,
+      "samples": 1656,
+      "maximumDifference": 1.1102230246251565e-15,
+      "massBits": {
+        "volume": "4002aaaaaaaaaaac",
+        "mass": "3f92c19ab1386367",
+        "centroid": [
+          "3fe71c730845426e",
+          "3fe817aa667eaace",
+          "3fe36db6db6db6d6"
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            "3f76e6acdf62376d",
+            "bf0fda1ab44d4481",
+            "bf1d7fbdcb10e441"
+          ],
+          [
+            "bf0fda1ab44d4481",
+            "3f76788df045e281",
+            "bf3f106b76a755c7"
+          ],
+          [
+            "bf1d7fbdcb10e441",
+            "bf3f106b76a755c7",
+            "3f811dd5167855cb"
+          ]
+        ]
+      },
+      "patches": [
+        {
+          "name": "L.side0#1",
+          "domain": [
+            0,
+            0.1875
+          ],
+          "controls": 13
+        },
+        {
+          "name": "L.side0#2",
+          "domain": [
+            0.1875,
+            0.375
+          ],
+          "controls": 13
+        },
+        {
+          "name": "L.side0#3",
+          "domain": [
+            0.375,
+            0.5625
+          ],
+          "controls": 13
+        },
+        {
+          "name": "L.side0#4",
+          "domain": [
+            0.5625,
+            0.75
+          ],
+          "controls": 13
+        },
+        {
+          "name": "L.side0#5",
+          "domain": [
+            0.75,
+            1
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#1",
+          "domain": [
+            0,
+            0.1875
+          ],
+          "controls": 13
+        },
+        {
+          "name": "L.side1#2",
+          "domain": [
+            0.1875,
+            0.375
+          ],
+          "controls": 13
+        },
+        {
+          "name": "L.side1#3",
+          "domain": [
+            0.375,
+            0.5625
+          ],
+          "controls": 13
+        },
+        {
+          "name": "L.side1#4",
+          "domain": [
+            0.5625,
+            0.75
+          ],
+          "controls": 13
+        },
+        {
+          "name": "L.side1#5",
+          "domain": [
+            0.75,
+            1
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#1",
+          "domain": [
+            0,
+            0.1875
+          ],
+          "controls": 13
+        },
+        {
+          "name": "L.side2#2",
+          "domain": [
+            0.1875,
+            0.375
+          ],
+          "controls": 13
+        },
+        {
+          "name": "L.side2#3",
+          "domain": [
+            0.375,
+            0.5625
+          ],
+          "controls": 13
+        },
+        {
+          "name": "L.side2#4",
+          "domain": [
+            0.5625,
+            0.75
+          ],
+          "controls": 13
+        },
+        {
+          "name": "L.side2#5",
+          "domain": [
+            0.75,
+            1
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#1",
+          "domain": [
+            0,
+            0.1875
+          ],
+          "controls": 13
+        },
+        {
+          "name": "L.side3#2",
+          "domain": [
+            0.1875,
+            0.375
+          ],
+          "controls": 13
+        },
+        {
+          "name": "L.side3#3",
+          "domain": [
+            0.375,
+            0.5625
+          ],
+          "controls": 13
+        },
+        {
+          "name": "L.side3#4",
+          "domain": [
+            0.5625,
+            0.75
+          ],
+          "controls": 13
+        },
+        {
+          "name": "L.side3#5",
+          "domain": [
+            0.75,
+            1
+          ],
+          "controls": 16
+        }
+      ]
+    },
+    {
+      "index": 8,
+      "degree": 5,
+      "count": 17,
+      "rationalU": false,
+      "samples": 1008,
+      "maximumDifference": 6.661338147750939e-16,
+      "massBits": {
+        "volume": "4002aaaaaaaaaaab",
+        "mass": "3f92c19ab1386365",
+        "centroid": [
+          "3fe7bbc6665fc832",
+          "3fe863071fa51a4a",
+          "3fe36db6db6db6da"
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            "3f771658ae9283e7",
+            "bf2024bbbb2aa24b",
+            "bf2da634fa3e7b5a"
+          ],
+          [
+            "bf2024bbbb2aa24b",
+            "3f76b261717e11fc",
+            "bf41458514121121"
+          ],
+          [
+            "bf2da634fa3e7b5a",
+            "bf41458514121121",
+            "3f815294beac93d1"
+          ]
+        ]
+      },
+      "patches": [
+        {
+          "name": "L.side0#1",
+          "domain": [
+            0,
+            0.75
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side0#2",
+          "domain": [
+            0.75,
+            1
+          ],
+          "controls": 6
+        },
+        {
+          "name": "L.side1#1",
+          "domain": [
+            0,
+            0.75
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#2",
+          "domain": [
+            0.75,
+            1
+          ],
+          "controls": 6
+        },
+        {
+          "name": "L.side2#1",
+          "domain": [
+            0,
+            0.75
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#2",
+          "domain": [
+            0.75,
+            1
+          ],
+          "controls": 6
+        },
+        {
+          "name": "L.side3#1",
+          "domain": [
+            0,
+            0.75
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#2",
+          "domain": [
+            0.75,
+            1
+          ],
+          "controls": 6
+        }
+      ]
+    },
+    {
+      "index": 9,
+      "degree": 5,
+      "count": 64,
+      "rationalU": false,
+      "samples": 2088,
+      "maximumDifference": 1.3322676295501878e-15,
+      "massBits": {
+        "volume": "4002aaaaaaaaaaa5",
+        "mass": "3f92c19ab138635f",
+        "centroid": [
+          "3fe71eda2dbc75a3",
+          "3fe818d44d882646",
+          "3fe36db6db6db6dd"
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            "3f76e764be83ed83",
+            "bf102b92456b25a4",
+            "bf1df98ff6fb4587"
+          ],
+          [
+            "bf102b92456b25a4",
+            "3f76796302c51c09",
+            "bf3f1e87a2dab742"
+          ],
+          [
+            "bf1df98ff6fb4587",
+            "bf3f1e87a2dab742",
+            "3f811e9b8f48cdaa"
+          ]
+        ]
+      },
+      "patches": [
+        {
+          "name": "L.side0#1",
+          "domain": [
+            0,
+            0.23076923076923084
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side0#2",
+          "domain": [
+            0.23076923076923084,
+            0.4615384615384615
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side0#3",
+          "domain": [
+            0.4615384615384615,
+            0.6923076923076922
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side0#4",
+          "domain": [
+            0.6923076923076922,
+            0.923076923076923
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side0#5",
+          "domain": [
+            0.923076923076923,
+            1
+          ],
+          "controls": 6
+        },
+        {
+          "name": "L.side1#1",
+          "domain": [
+            0,
+            0.23076923076923084
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#2",
+          "domain": [
+            0.23076923076923084,
+            0.4615384615384615
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#3",
+          "domain": [
+            0.4615384615384615,
+            0.6923076923076922
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#4",
+          "domain": [
+            0.6923076923076922,
+            0.923076923076923
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#5",
+          "domain": [
+            0.923076923076923,
+            1
+          ],
+          "controls": 6
+        },
+        {
+          "name": "L.side2#1",
+          "domain": [
+            0,
+            0.23076923076923084
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#2",
+          "domain": [
+            0.23076923076923084,
+            0.4615384615384615
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#3",
+          "domain": [
+            0.4615384615384615,
+            0.6923076923076922
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#4",
+          "domain": [
+            0.6923076923076922,
+            0.923076923076923
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#5",
+          "domain": [
+            0.923076923076923,
+            1
+          ],
+          "controls": 6
+        },
+        {
+          "name": "L.side3#1",
+          "domain": [
+            0,
+            0.23076923076923084
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#2",
+          "domain": [
+            0.23076923076923084,
+            0.4615384615384615
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#3",
+          "domain": [
+            0.4615384615384615,
+            0.6923076923076922
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#4",
+          "domain": [
+            0.6923076923076922,
+            0.923076923076923
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#5",
+          "domain": [
+            0.923076923076923,
+            1
+          ],
+          "controls": 6
+        }
+      ]
+    },
+    {
+      "index": 10,
+      "degree": 3,
+      "count": 17,
+      "rationalU": true,
+      "samples": 2064,
+      "maximumDifference": 1.3322676295501878e-15,
+      "massBits": {
+        "volume": "401d524fe24f89f0",
+        "mass": "3fad7657a3e8b390",
+        "centroid": [
+          "bfc70e533b28b6c8",
+          "bfc05595ecbc8e2d",
+          "3fe36db6db6db6e3"
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            "3fa64664d05744b6",
+            "bf7294faa7e13763",
+            "3f8142c7445cec02"
+          ],
+          [
+            "bf7294faa7e13763",
+            "3fb0dc8b5cf919ff",
+            "3f5855f9d7a076e8"
+          ],
+          [
+            "3f8142c7445cec02",
+            "3f5855f9d7a076e8",
+            "3fb9cfd67b0010bb"
+          ]
+        ]
+      },
+      "patches": [
+        {
+          "name": "L.side0#1",
+          "domain": [
+            0,
+            0.9285714285714286
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side0#2",
+          "domain": [
+            0.9285714285714286,
+            1
+          ],
+          "controls": 4
+        },
+        {
+          "name": "L.side1#1",
+          "domain": [
+            0,
+            0.9285714285714286
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#2",
+          "domain": [
+            0.9285714285714286,
+            1
+          ],
+          "controls": 4
+        },
+        {
+          "name": "L.side2#1",
+          "domain": [
+            0,
+            0.9285714285714286
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#2",
+          "domain": [
+            0.9285714285714286,
+            1
+          ],
+          "controls": 4
+        },
+        {
+          "name": "L.side3#1",
+          "domain": [
+            0,
+            0.9285714285714286
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#2",
+          "domain": [
+            0.9285714285714286,
+            1
+          ],
+          "controls": 4
+        }
+      ]
+    },
+    {
+      "index": 11,
+      "degree": 3,
+      "count": 64,
+      "rationalU": true,
+      "samples": 6696,
+      "maximumDifference": 1.7763568394002505e-15,
+      "massBits": {
+        "volume": "401d524fe24f8a07",
+        "mass": "3fad7657a3e8b3a6",
+        "centroid": [
+          "bfd164e7d0e90547",
+          "bfc3cd32d693a851",
+          "3fe36db6db6db6cc"
+        ],
+        "method": "quadrature",
+        "inertia": [
+          [
+            "3fa65f43fe67cd08",
+            "bf76c001d8c58b64",
+            "3f84cf7c60a05a90"
+          ],
+          [
+            "bf76c001d8c58b64",
+            "3fb21cee0ca4a867",
+            "3f60546f7fa74379"
+          ],
+          [
+            "3f84cf7c60a05a90",
+            "3f60546f7fa74379",
+            "3fbb1ca8c1b3e33f"
+          ]
+        ]
+      },
+      "patches": [
+        {
+          "name": "L.side0#1",
+          "domain": [
+            0,
+            0.21311475409836064
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side0#2",
+          "domain": [
+            0.21311475409836064,
+            0.4262295081967213
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side0#3",
+          "domain": [
+            0.4262295081967213,
+            0.639344262295082
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side0#4",
+          "domain": [
+            0.639344262295082,
+            0.8524590163934426
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side0#5",
+          "domain": [
+            0.8524590163934426,
+            1
+          ],
+          "controls": 12
+        },
+        {
+          "name": "L.side1#1",
+          "domain": [
+            0,
+            0.21311475409836064
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#2",
+          "domain": [
+            0.21311475409836064,
+            0.4262295081967213
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#3",
+          "domain": [
+            0.4262295081967213,
+            0.639344262295082
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#4",
+          "domain": [
+            0.639344262295082,
+            0.8524590163934426
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side1#5",
+          "domain": [
+            0.8524590163934426,
+            1
+          ],
+          "controls": 12
+        },
+        {
+          "name": "L.side2#1",
+          "domain": [
+            0,
+            0.21311475409836064
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#2",
+          "domain": [
+            0.21311475409836064,
+            0.4262295081967213
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#3",
+          "domain": [
+            0.4262295081967213,
+            0.639344262295082
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#4",
+          "domain": [
+            0.639344262295082,
+            0.8524590163934426
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side2#5",
+          "domain": [
+            0.8524590163934426,
+            1
+          ],
+          "controls": 12
+        },
+        {
+          "name": "L.side3#1",
+          "domain": [
+            0,
+            0.21311475409836064
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#2",
+          "domain": [
+            0.21311475409836064,
+            0.4262295081967213
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#3",
+          "domain": [
+            0.4262295081967213,
+            0.639344262295082
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#4",
+          "domain": [
+            0.639344262295082,
+            0.8524590163934426
+          ],
+          "controls": 16
+        },
+        {
+          "name": "L.side3#5",
+          "domain": [
+            0.8524590163934426,
+            1
+          ],
+          "controls": 12
+        }
+      ]
+    }
+  ]
+}

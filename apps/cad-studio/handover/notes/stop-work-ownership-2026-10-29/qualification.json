@@ -1,0 +1,79 @@
+{
+  "workId": "D321",
+  "status": "SCOPED_PASS",
+  "baseline": "e1f2b05d62b8011412a1d8ee9c1cc73256737177",
+  "runtime": "Node22.19.0",
+  "policy": "Refuse unsupported independent document edits before acceptance while main computation is pending; Stop replays only its originating accepted transition",
+  "sourceScope": [
+    "apps/cad-studio/src/App.tsx",
+    "apps/cad-studio/src/state/workOwnership.ts"
+  ],
+  "focusedUnit": {
+    "newHelper": 13,
+    "existingLanes": 4,
+    "pass": 17,
+    "failed": 0,
+    "skipped": 0,
+    "scope": "Helper and lane semantics; not App integration"
+  },
+  "rootFinalStudio": {
+    "command": "TEST_CONCURRENCY=4 node scripts/test.mjs",
+    "tests": 389,
+    "passed": 389,
+    "failed": 0,
+    "skipped": 0,
+    "duration": 26073.720375,
+    "timeUnit": "ms",
+    "log": "root-studio-full.txt"
+  },
+  "types": "PASS final App/helper source",
+  "changedLint": "PASS; browser harness retains existing console warnings",
+  "actualStudio": {
+    "browser": "Chrome156/WebGPU/DPR1",
+    "selectedD321": 1,
+    "selectedD318Regression": 1,
+    "starterSmoke": "One separate starter load per run; not included in selected counts",
+    "status": "PASS third D321 and same-source D318",
+    "scope": "Real native Worker computation with controlled FIFO client-delivery hold, real UI actions; no fake geometry or released/replayed held events",
+    "acceptedState": "Grid twice and Drawing Sheet size refuse before acceptance; current doc/recovery retained; camera/workspace usable",
+    "stopRedo": "Owned rollback, dirty/recovery, new worker result/mass, public Redo, normal Grid/Undo/Redo, second normal Stop, later normal Box Apply and Undo",
+    "rootVisual": "Three actual D321 PNGs viewed; not exact viewport geometry provenance"
+  },
+  "firstFailures": {
+    "lint": "Unused helper argument, preserved in lint-production.txt; identifier-only correction",
+    "browserFirst": "History DOM fixture mismatch; original failing harness source not retained, limitation declared",
+    "browserSecond": "Actual Redo product regression: live doc ref captured inside queued updater; fixed with synchronous immutable entry; exact intermediate App and harness preserved"
+  },
+  "docs": {
+    "status": "PASS",
+    "pages": 68,
+    "shots": 55,
+    "shotKB": 4811,
+    "labels": 859,
+    "log": "root-docs-check.txt",
+    "generatedAgentTools": "PASS via check-docs child",
+    "generatedRefusals": "PASS via check-docs child",
+    "apiInventory": "PASS unchanged six-rule scoped inventory"
+  },
+  "notRun": [
+    "whole Kernel/Model/Viewer suites",
+    "whole Studio browser suite",
+    "exact completed-run versus Stop-click UI race",
+    "actual async-image, initial/variant/parameter Stop matrix",
+    "complete Undo/New/Open invalidation UI matrix",
+    "all Drawing/assembly/repair-stage worker-restart paths",
+    "exact viewport geometry provenance and full Undo-depth instrumentation",
+    "natural slow-computation timing or performance benchmark"
+  ],
+  "sourceHashes": {
+    "apps/cad-studio/src/App.tsx": "fe99a2a25719148774ee15e69c9493c743c3e88226289cf1dcb89333a3149a1b",
+    "apps/cad-studio/src/state/workOwnership.ts": "d95db66ed196df304ce29d2b6d497b589eca361160812cb5cbca30da376f6ed8",
+    "apps/cad-studio/test/stop-work-ownership.test.ts": "986f3fc5cb8cfe650831940f52ed622eacc50c31ad79e5b96171bf6a9f96ac3f",
+    "apps/cad-studio/test/browser-flow.mjs": "9a031f112e8b0388bdbd16ba5d215fe0bb3a5d58456da85ad2cd0f87cf039a4c",
+    "apps/cad-studio/test/stop-work-native-worker.mjs": "752e73f84a1a0d7d05e88ce7299f5f43aa9f5dddf485caabeec503c6682e5dc2",
+    "apps/library-docs/docs/studio/features.md": "a6cc39aabd5a2a91c3163ad1a7956059416c926371161ca022a09de3f95743a9"
+  },
+  "hashMeaning": "Source/artifact provenance only; no checksum acceptance unit test",
+  "nextPriority": "A02/P1 delayed Save completion ownership reproduction under existing12/CG6/O9; source-only candidate until reproduced",
+  "publication": "Normal per-feature push authorized; no PR/release"
+}

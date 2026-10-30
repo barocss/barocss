@@ -1,0 +1,99 @@
+{
+  "status": "PASS",
+  "commit": "54380af01506ac01de5607e19782e812a50c1a4d",
+  "endObservedHead": "54380af01506ac01de5607e19782e812a50c1a4d",
+  "endDirty": "?? .claude/\n",
+  "sourceManifestSha256": "478f59b5f03e0f5b51f16f2011e7b11c9cad3c70f25218f6d52380870da31096",
+  "snapshotFiles": 2237,
+  "allGitBlobAndSha256Match": true,
+  "bundleInputs": 452,
+  "productInputsByPackage": {
+    "barocss-gpu": 38,
+    "barocss-cad": 413
+  },
+  "harnessInputs": 1,
+  "browserRuntimeImports": "self-contained bundle; metafile outputs have no imports",
+  "assertions": {
+    "frozenSourceGitBlobAndSha256": "PASS",
+    "actualMetafileInputsFrozenOnly": "PASS",
+    "baselineFrameCaptureRedBackgroundAndPick": "PASS",
+    "supportedOwnedLogicalHookOnce": "PASS",
+    "oldDeviceLostPromise": "PASS",
+    "distinctReplacementDevice": "PASS",
+    "oneNormalRecoveryCallback": "PASS",
+    "newFrameAfterRecovery": "PASS",
+    "freshMappedPixelCapture": "PASS",
+    "pixelChannelContinuityTolerance3": "PASS",
+    "originalMeshAndGeometryIdentity": "PASS",
+    "instanceNullFace71Triangle0": "PASS",
+    "worldPointTolerance005": "PASS",
+    "pointContinuityTolerance005": "PASS",
+    "browserDiagnosticsEmpty": "PASS",
+    "ownedViewerDispose": "PASS",
+    "ownedBrowserContextServerClose": "PASS",
+    "leaseRelease": "PASS",
+    "SDKAppRecoveryUI": "NOT_RUN",
+    "naturalDriverFailureOOMVRAM": "NOT_RUN",
+    "customShaderMapsInstancedResourceRecovery": "NOT_RUN",
+    "performance": "NOT_RUN"
+  },
+  "firstFailure": null,
+  "originalTolerances": {
+    "interiorRedDominance": 40,
+    "backgroundChannel": 3,
+    "recoveryPixelChannel": 3,
+    "absoluteWorldPoint": 0.05,
+    "recoveryPointDelta": 0.05
+  },
+  "hookCalls": 1,
+  "baselineRGBA": [
+    208,
+    48,
+    32,
+    255
+  ],
+  "afterRGBA": [
+    208,
+    48,
+    32,
+    255
+  ],
+  "pixelDelta": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "pointDelta": [
+    0,
+    0,
+    0
+  ],
+  "rawRGBABytesEqual": true,
+  "actualOwnedDeviceAdapterInfo": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "",
+    "description": ""
+  },
+  "fallbackAdapterIdentity": "UNKNOWN",
+  "visualReview": "both actual captured PNGs opened; red square on dark background",
+  "cleanup": {
+    "page": "CLOSED",
+    "context": "CLOSED",
+    "browser": "CLOSED",
+    "server": "CLOSED"
+  },
+  "viewerCleanup": {
+    "disposed": true,
+    "ready": false,
+    "deviceNull": true
+  },
+  "guardAcquire": 0,
+  "guardRelease": 0,
+  "probeExit": 0,
+  "runtime": "one attempt, no retry/override/softwarefallback",
+  "historicalEvidenceMutation": false,
+  "productMutation": false,
+  "nextCheckpoint": "Parent records bounded Core basic unlit recovery PASS; custom material/maps/instanced resources and SDK/App/natural failure remain separate gates"
+}

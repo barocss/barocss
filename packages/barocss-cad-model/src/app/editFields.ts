@@ -1,3 +1,7 @@
+import { sewTolerance } from '../engine/sew';
+import { eligibleFillPatternRegions, fillRegionSnapshot } from '../engine/fillFeaturePattern';
+import { eligibleCurvePatternPaths } from '../engine/curveFeaturePattern';
+import type { StudioDoc } from '../engine/doc';
 // The editable dimensions of a feature, including those of the sketch it is made from: each field
 // reads its value from the document's nodes and writes a changed copy of them (sketch edits change the
 // sketch node, so every feature made from it follows).
@@ -83,17 +87,18 @@ export type BindableField = Extract<EditField, { kind: 'number' }> & { param(nod
  * Where a part-scoped edit stands (O167, F6), when no assembly input is given: the part draft's bearing context (its
  * occurrence and the other parts, as the bearing command reads it) and the fit tables the draft sees.
  */
-export interface EditScope { readonly context?: BearingAssemblyContext; readonly fits?: StudioFits }
+export interface EditScope { readonly context?: BearingAssemblyContext; readonly fits?: StudioFits; readonly doc?: Pick<StudioDoc, 'direct'> & Partial<Pick<StudioDoc, 'parameters'>> }
 export function editFields(nodes: Nodes, i: number, params?: Record<string, number>, bearingAssembly?: BearingAssemblyInput, scope?: EditScope): EditField[] {
-  const raw = editFieldsRaw(nodes, i, bearingAssembly, scope);
+  const raw = editFieldsRaw(nodes, i, bearingAssembly, scope, params ?? scope?.doc?.parameters ?? {});
   if (!params) return raw;
-  return raw.map(f => f.kind !== 'number' ? f : {
+  return raw.map(f => f.kind !== 'number' || (nodes[i]?.kind === 'sew' && f.key === 'tol') ? f : {
     ...f,
     get: n => within(params, () => f.get(n)).value,
     set: (n, v) => within(params, () => f.set(n, v)).value,
     param: (n: Nodes) => { const r = within(params, () => f.get(n)); return r.seen.length === 1 ? r.seen[0] : null; },
     bind: (n: Nodes, name: string) => {
-      if (n[i]?.kind === 'linear-feature-pattern' && f.key === 'count') return null;
+      if (((n[i]?.kind === 'linear-feature-pattern' || n[i]?.kind === 'curve-feature-pattern') && f.key === 'count') || ((n[i]?.kind === 'rectangular-feature-pattern' || n[i]?.kind === 'fill-feature-pattern') && (f.key === 'count' || f.key === 'count2'))) return null;
+      if (n[i]?.kind === 'fill-feature-pattern' && (f.key === 'anchorX' || f.key === 'anchorY')) return null;
       if (!(name in params)) return null;
       const next = within(params, () => f.set(n, params[name])).value;
       // (The value must land as it is in one place: then that place holds the reference.)
@@ -117,7 +122,7 @@ const MEMBER_FIELD_LABELS: Record<string, string> = {
   legX: 'Leg along x', legY: 'Leg along y', thickness: 'Thickness', rootRadius: 'Root radius', toeRadius: 'Toe radius', web: 'Web', flange: 'Flange thickness at overhang midpoint', flangeSlope: 'Flange slope (rise/run)',
   size: 'Size', opening: 'Slot opening', lip: 'Slot lip', undercut: 'Slot undercut', depth: 'Slot depth', bore: 'Core bore',
 };
-function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssemblyInput, scope?: EditScope): EditField[] {
+function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssemblyInput, scope?: EditScope, parameters: Record<string, number> = {}): EditField[] {
   const node = nodes[i], out: EditField[] = [];
   if (!node) return out;
   const self = <T extends ModelNode>(n: Nodes) => n[i] as T;
@@ -525,8 +530,17 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       if (node.offsets) [0, 1].forEach(k => number('o' + k, k ? 'Offset at end' : 'Offset at start', 'mm', n => num((n as F).offsets![k]), (n, v) => { const o = [...(n as F).offsets!] as [Dim, Dim]; o[k] = v; return { ...(n as F), offsets: o }; }));
       break;
     }
-    case 'thicken': number('t', 'Thickness', 'mm', n => num((n as typeof node).thickness), (n, v) => ({ ...(n as typeof node), thickness: v })); break;
-    case 'sew': number('tol', 'Tolerance', 'mm', n => (n as typeof node).tolerance ?? 0, (n, v) => { const next = { ...(n as typeof node) }; if (v > 0) next.tolerance = Math.min(1, v); else delete next.tolerance; return next; }); break;
+    case 'thicken':
+      number('t', 'Thickness', 'mm', n => num((n as typeof node).thickness), (n, v) => ({ ...(n as typeof node), thickness: v }));
+      out.push({ kind: 'choice', key: 'side', label: 'Side', options: [{ value: 'normal', label: 'Normal' }, { value: 'reverse', label: 'Reverse' }, { value: 'both', label: 'Both' }],
+        get: ns => self<typeof node>(ns).side ?? 'normal', set: (ns, value) => {
+          if (!['normal', 'reverse', 'both'].includes(value)) throw new Error('[VALUE] Thicken side is normal, reverse or both.');
+          const next = { ...self<typeof node>(ns) };
+          if (value === 'normal') delete next.side; else next.side = value as 'reverse' | 'both';
+          return replace(ns, i, next);
+        } });
+      break;
+    case 'sew': number('tol', 'Tolerance', 'mm', n => (n as typeof node).tolerance ?? 0, (n, v) => { const next = { ...(n as typeof node) }; sewTolerance(next.surfaces, v); if (v > 0) next.tolerance = v; else delete next.tolerance; return next; }); break;
     case 'draft':
       number('deg', 'Angle', '°', n => (n as typeof node).angle, (n, v) => ({ ...(n as typeof node), angle: v }));
       if (node.neutral !== undefined) number('neutral', 'Neutral coordinate', 'mm', n => num((n as typeof node).neutral!), (n, v) => ({ ...(n as typeof node), neutral: v }));
@@ -551,6 +565,27 @@ function editFieldsRaw(nodes: Nodes, i: number, bearingAssembly?: BearingAssembl
       out.push({ kind: 'choice', key: 'plane', label: 'Plane', options: [{ value: 'yz', label: 'YZ' }, { value: 'xz', label: 'XZ' }, { value: 'xy', label: 'XY' }], get: n => self<typeof node>(n).plane, set: (n, v) => replace(n, i, { ...self<typeof node>(n), plane: v as typeof node.plane }) });
       break;
     case 'scale': number('k', 'Factor', undefined, n => (n as typeof node).factor, (n, v) => ({ ...(n as typeof node), factor: v })); break;
+    case 'fill-feature-pattern':
+      out.push({ kind: 'choice', key: 'region', label: 'Region snapshot', options: [{ value: '', label: 'Current region snapshot' }, ...eligibleFillPatternRegions({ nodes: [...nodes], parameters })], get: () => '', set: (n, v) => v === '' ? [...n] : replace(n, i, { ...self<typeof node>(n), region: fillRegionSnapshot({ nodes: [...n], parameters }, Number(v)) }) });
+      [0, 1].forEach(k => number('anchor' + 'XY'[k], 'Reference ' + 'XY'[k], undefined, n => (n as typeof node).anchor[k], (n, v) => { const anchor = [...(n as typeof node).anchor] as [number, number]; anchor[k] = v; return { ...(n as typeof node), anchor }; }));
+      number('spacing', 'X spacing', 'mm', n => num((n as typeof node).spacing), (n, v) => ({ ...(n as typeof node), spacing: v }));
+      number('count', 'Columns', undefined, n => (n as typeof node).count, (n, v) => ({ ...(n as typeof node), count: v }));
+      number('spacing2', 'Y spacing', 'mm', n => num((n as typeof node).spacing2), (n, v) => ({ ...(n as typeof node), spacing2: v }));
+      number('count2', 'Rows', undefined, n => (n as typeof node).count2, (n, v) => ({ ...(n as typeof node), count2: v }));
+      break;
+    case 'curve-feature-pattern':
+      out.push({ kind: 'choice', key: 'path', label: 'Path', options: [...('objectId' in node.path ? [] : [{ value: '', label: 'Inline path' }]), ...eligibleCurvePatternPaths(scope?.doc ?? {})], get: n => { const p = self<typeof node>(n).path; return 'objectId' in p ? p.objectId : ''; }, set: (n, v) => v === '' ? [...n] : replace(n, i, { ...self<typeof node>(n), path: { objectId: v } }) });
+      number('spacing', 'Spacing', 'mm', n => num((n as typeof node).spacing), (n, v) => ({ ...(n as typeof node), spacing: v }));
+      number('count', 'Count', undefined, n => (n as typeof node).count, (n, v) => ({ ...(n as typeof node), count: v }));
+      break;
+    case 'rectangular-feature-pattern':
+      out.push({ kind: 'choice', key: 'axis', label: 'First direction', options: axes(['x', 'y', 'z']), get: n => self<typeof node>(n).axis, set: (n, v) => replace(n, i, { ...self<typeof node>(n), axis: v as Axis }) });
+      number('spacing', 'First spacing', 'mm', n => num((n as typeof node).spacing), (n, v) => ({ ...(n as typeof node), spacing: v }));
+      number('count', 'First count', undefined, n => (n as typeof node).count, (n, v) => ({ ...(n as typeof node), count: v }));
+      out.push({ kind: 'choice', key: 'axis2', label: 'Second direction', options: axes(['x', 'y', 'z']), get: n => self<typeof node>(n).axis2, set: (n, v) => replace(n, i, { ...self<typeof node>(n), axis2: v as Axis }) });
+      number('spacing2', 'Second spacing', 'mm', n => num((n as typeof node).spacing2), (n, v) => ({ ...(n as typeof node), spacing2: v }));
+      number('count2', 'Second count', undefined, n => (n as typeof node).count2, (n, v) => ({ ...(n as typeof node), count2: v }));
+      break;
     case 'linear-feature-pattern':
       out.push({ kind: 'choice', key: 'axis', label: 'Direction', options: axes(['x', 'y', 'z']), get: n => self<typeof node>(n).axis, set: (n, v) => replace(n, i, { ...self<typeof node>(n), axis: v as Axis }) });
       number('spacing', 'Spacing', 'mm', n => num((n as typeof node).spacing), (n, v) => ({ ...(n as typeof node), spacing: v }));

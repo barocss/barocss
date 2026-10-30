@@ -1,0 +1,116 @@
+{
+  "workId": "D319-presenter-geometry-lifetime-consumers",
+  "status": "scoped_pass",
+  "updatedAt": "2026-10-29T04:55:27.476703+00:00",
+  "execution": {
+    "node": "22.19.0",
+    "browser": "156.0.8078.48",
+    "backend": "actual Chrome WebGPU default adapter",
+    "adapter": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "",
+      "description": ""
+    },
+    "DPR": 1,
+    "selectedTests": 1,
+    "pass": 1,
+    "fail": 0,
+    "skip": 0,
+    "browserExit": 0,
+    "postRunSyntaxExit": 0,
+    "finalChangedHarnessLintExit": 0,
+    "wholeSuite": "NOT_RUN",
+    "otherExistingBrowserTest": "NOT_SELECTED; no capability skip",
+    "errors": [],
+    "cleanup": "cleanup.json",
+    "duration": 4522.139292,
+    "testDuration": 4440.569375,
+    "timeUnit": "ms"
+  },
+  "source": {
+    "currentWorktree": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+    "actualBundledInputs": 580,
+    "outsideProductSource": 0,
+    "metafile": "final-run/metafile.json",
+    "inputHashes": "final-run/source-inputs.json",
+    "presenterSHA256": "96ce81cb3be6bc06060a7114a518a0b9925f139c7ce71ce9e7fab3ca0a8a3892",
+    "historicalBaseline": "historical-baseline/receipt.json",
+    "relevantBaselineIdentity": "historical-baseline/source-identity.json"
+  },
+  "checks": {
+    "actualPixelReadbacks": 122,
+    "cameraIterations": 64,
+    "cameraOperationsEachIteration": [
+      "orbit",
+      "pan",
+      "zoom"
+    ],
+    "directSetView": 3,
+    "packetReplacements": 16,
+    "curveOnlyOrbitReadbacks": 16,
+    "fluidDotUpdates": 16,
+    "dots": 256,
+    "countsInvariant": "After every actual capture, retained Geometry == Geometry with non-null gpu == active Mesh. The normal/curve scene stays1, plane+dots stays2.",
+    "createdClearDispose": {
+      "retained": 0,
+      "resident": 0,
+      "active": 0
+    },
+    "surfacePick": {
+      "modelId": "lifetime",
+      "surfaceId": "lifetime_patch"
+    },
+    "curvePick": {
+      "modelId": "native_loader_demo",
+      "curveId": "reference_edge"
+    },
+    "sameSourceArrayEditChangesPixels": true,
+    "publicDotsChangePixels": true,
+    "clearCoveredPixels": 0,
+    "actualCapturePNGs": [
+      "final-run/surface.png",
+      "final-run/edited.png",
+      "final-run/curves.png",
+      "final-run/dots.png",
+      "final-run/clear.png"
+    ],
+    "visualReview": {
+      "reviewer": "consumer agent",
+      "actualImages": 5,
+      "result": "PASS: visible source square, edited corner, curve-only line, actual256dots, empty clear background."
+    }
+  },
+  "firstFailure": {
+    "log": "browser-first-failure.txt",
+    "exit": 1,
+    "message": "RangeError: Fluid layer requires a qualified native scene",
+    "cause": "New dot fixture used legacy loadNative, which does not meet public setFluidFrame qualified-native-scene admission.",
+    "repair": "Use existing public loadModelSetUrls to load the same authored plane as a qualified native scene. No private mutation, mock, production change or relaxed assertion.",
+    "partialPassClaim": false,
+    "rawCountReceipt": "NOT_RETURNED: page.evaluate threw at dot fixture preparation; first run is FAIL, not partial PASS."
+  },
+  "proofBoundary": {
+    "measurement": "Test-only TS-private Geometry Set/mesh count/non-nullgpu-object observations. Not driver bytes, VRAM, leak bytes, OOM or recovery proof.",
+    "actualPath": "Current-worktree Viewer SDK source in a real browser; not the entire apps/cad-viewer UI.",
+    "failurePaths": "Presenter allocation/add failure cleanup is covered by separate High focused tests, not by this browser case.",
+    "historicalBaseline": "Reused original actual1->33->clear36 receipt. Relevant pre-fix Presenter/index/Core source identity verified. Whole bundle identity and new before-browser rerun are not claimed."
+  },
+  "notRun": [
+    "full unit or browser suites",
+    "other browsers/DPR/adapter profiles",
+    "apps/cad-viewer complete UI flow",
+    "natural device loss/recovery",
+    "driver memory bytes/VRAM/OOM",
+    "additional explorations",
+    "remote acceptance/release"
+  ],
+  "localNameCleanup": {
+    "status": "PASS",
+    "actualBrowserRerun": "NOT_RUN: successful second browser run reused for a name-only cleanup",
+    "proof": "local-name-equivalence.json",
+    "syntaxExit": 0,
+    "changedHarnessLintExit": 0,
+    "frozenHarnessSHA256": "1e955b886c0990a939df2d5727df6149ba8c9d16407959be6de8af318df2a1cf"
+  }
+}

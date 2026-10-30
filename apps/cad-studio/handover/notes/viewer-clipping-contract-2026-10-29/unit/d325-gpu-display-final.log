@@ -1,0 +1,166 @@
+TAP version 13
+# Subtest: hidden dash has its own CSS-pixel packing at DPR 1; omitted style follows visible dash
+ok 1 - hidden dash has its own CSS-pixel packing at DPR 1; omitted style follows visible dash
+  ---
+  duration_ms: 1.998958
+  type: 'test'
+  ...
+# Subtest: hidden dash has its own CSS-pixel packing at DPR 2; omitted style follows visible dash
+ok 2 - hidden dash has its own CSS-pixel packing at DPR 2; omitted style follows visible dash
+  ---
+  duration_ms: 0.371792
+  type: 'test'
+  ...
+# Subtest: G15a: a surface finish, clear coat and oil film packed after the hatch; none, or on lines, zeros
+ok 3 - G15a: a surface finish, clear coat and oil film packed after the hatch; none, or on lines, zeros
+  ---
+  duration_ms: 0.673875
+  type: 'test'
+  ...
+# Subtest: depth-only surface and cap pipelines retain depth with colour writes disabled; pick pipelines stay unchanged
+ok 4 - depth-only surface and cap pipelines retain depth with colour writes disabled; pick pipelines stay unchanged
+  ---
+  duration_ms: 1.690542
+  type: 'test'
+  ...
+# Subtest: wireframe all-depth lines can explicitly retain ordinary depth-aware edge picking
+ok 5 - wireframe all-depth lines can explicitly retain ordinary depth-aware edge picking
+  ---
+  duration_ms: 0.704375
+  type: 'test'
+  ...
+# Subtest: shaded-with-edges preserves G20 quarter front mesh metadata and restores default
+ok 6 - shaded-with-edges preserves G20 quarter front mesh metadata and restores default
+  ---
+  duration_ms: 2.191917
+  type: 'test'
+  ...
+# Subtest: shaded-with-edges preserves G20 quarter front instance 1 metadata and restores default
+ok 7 - shaded-with-edges preserves G20 quarter front instance 1 metadata and restores default
+  ---
+  duration_ms: 0.709958
+  type: 'test'
+  ...
+# Subtest: shaded-with-edges preserves G20 quarter cap mesh metadata and restores default
+ok 8 - shaded-with-edges preserves G20 quarter cap mesh metadata and restores default
+  ---
+  duration_ms: 0.610208
+  type: 'test'
+  ...
+# Subtest: shaded-with-edges preserves G20 quarter cap instance 1 metadata and restores default
+ok 9 - shaded-with-edges preserves G20 quarter cap instance 1 metadata and restores default
+  ---
+  duration_ms: 1.32575
+  type: 'test'
+  ...
+# Subtest: hidden-lines-removed preserves G20 quarter front mesh metadata and restores default
+ok 10 - hidden-lines-removed preserves G20 quarter front mesh metadata and restores default
+  ---
+  duration_ms: 0.64725
+  type: 'test'
+  ...
+# Subtest: hidden-lines-removed preserves G20 quarter front instance 1 metadata and restores default
+ok 11 - hidden-lines-removed preserves G20 quarter front instance 1 metadata and restores default
+  ---
+  duration_ms: 0.636709
+  type: 'test'
+  ...
+# Subtest: hidden-lines-removed preserves G20 quarter cap mesh metadata and restores default
+ok 12 - hidden-lines-removed preserves G20 quarter cap mesh metadata and restores default
+  ---
+  duration_ms: 0.243917
+  type: 'test'
+  ...
+# Subtest: hidden-lines-removed preserves G20 quarter cap instance 1 metadata and restores default
+ok 13 - hidden-lines-removed preserves G20 quarter cap instance 1 metadata and restores default
+  ---
+  duration_ms: 0.406333
+  type: 'test'
+  ...
+# Subtest: hidden-lines-dashed preserves G20 quarter front mesh metadata and restores default
+ok 14 - hidden-lines-dashed preserves G20 quarter front mesh metadata and restores default
+  ---
+  duration_ms: 0.376667
+  type: 'test'
+  ...
+# Subtest: hidden-lines-dashed preserves G20 quarter front instance 1 metadata and restores default
+ok 15 - hidden-lines-dashed preserves G20 quarter front instance 1 metadata and restores default
+  ---
+  duration_ms: 0.27825
+  type: 'test'
+  ...
+# Subtest: hidden-lines-dashed preserves G20 quarter cap mesh metadata and restores default
+ok 16 - hidden-lines-dashed preserves G20 quarter cap mesh metadata and restores default
+  ---
+  duration_ms: 0.194041
+  type: 'test'
+  ...
+# Subtest: hidden-lines-dashed preserves G20 quarter cap instance 1 metadata and restores default
+ok 17 - hidden-lines-dashed preserves G20 quarter cap instance 1 metadata and restores default
+  ---
+  duration_ms: 0.213
+  type: 'test'
+  ...
+# Subtest: wireframe preserves G20 quarter front mesh metadata and restores default
+ok 18 - wireframe preserves G20 quarter front mesh metadata and restores default
+  ---
+  duration_ms: 0.326916
+  type: 'test'
+  ...
+# Subtest: wireframe preserves G20 quarter front instance 1 metadata and restores default
+ok 19 - wireframe preserves G20 quarter front instance 1 metadata and restores default
+  ---
+  duration_ms: 0.212042
+  type: 'test'
+  ...
+# Subtest: wireframe preserves G20 quarter cap mesh metadata and restores default
+ok 20 - wireframe preserves G20 quarter cap mesh metadata and restores default
+  ---
+  duration_ms: 0.566416
+  type: 'test'
+  ...
+# Subtest: wireframe preserves G20 quarter cap instance 1 metadata and restores default
+ok 21 - wireframe preserves G20 quarter cap instance 1 metadata and restores default
+  ---
+  duration_ms: 0.190916
+  type: 'test'
+  ...
+# Subtest: x-ray preserves G20 quarter front mesh metadata and restores default
+ok 22 - x-ray preserves G20 quarter front mesh metadata and restores default
+  ---
+  duration_ms: 0.247167
+  type: 'test'
+  ...
+# Subtest: x-ray preserves G20 quarter front instance 1 metadata and restores default
+ok 23 - x-ray preserves G20 quarter front instance 1 metadata and restores default
+  ---
+  duration_ms: 0.202
+  type: 'test'
+  ...
+# Subtest: x-ray preserves G20 quarter cap mesh metadata and restores default
+ok 24 - x-ray preserves G20 quarter cap mesh metadata and restores default
+  ---
+  duration_ms: 0.169334
+  type: 'test'
+  ...
+# Subtest: x-ray preserves G20 quarter cap instance 1 metadata and restores default
+ok 25 - x-ray preserves G20 quarter cap instance 1 metadata and restores default
+  ---
+  duration_ms: 0.203291
+  type: 'test'
+  ...
+# Subtest: x-ray cap pick pass draws the visually transparent mesh when its original picking opacity is opaque
+ok 26 - x-ray cap pick pass draws the visually transparent mesh when its original picking opacity is opaque
+  ---
+  duration_ms: 0.216208
+  type: 'test'
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 26
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2160.836292

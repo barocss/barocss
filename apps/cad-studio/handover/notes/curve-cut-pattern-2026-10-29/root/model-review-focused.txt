@@ -1,0 +1,94 @@
+TAP version 13
+# Subtest: the assembly facade writes what the agent's assembly tools write, byte for byte
+ok 1 - the assembly facade writes what the agent's assembly tools write, byte for byte
+  ---
+  duration_ms: 134.889291
+  type: 'test'
+  ...
+# Subtest: its placements, unmet mates, variant, frame poses and meshes are the core's on that document
+ok 2 - its placements, unmet mates, variant, frame poses and meshes are the core's on that document
+  ---
+  duration_ms: 96.506042
+  type: 'test'
+  ...
+# Subtest: every method returns a new assembly; a part reads back as a studio part in its own coordinates
+ok 3 - every method returns a new assembly; a part reads back as a studio part in its own coordinates
+  ---
+  duration_ms: 22.853208
+  type: 'test'
+  ...
+# Subtest: the assembly's refusals are typed: the facade's own, and the core's passed through with its code
+ok 4 - the assembly's refusals are typed: the facade's own, and the core's passed through with its code
+  ---
+  duration_ms: 210.517834
+  type: 'test'
+  ...
+# Subtest: lock: the studio's Lock — the mate it writes, the part carried along when the other moves, a fixed joint
+ok 5 - lock: the studio's Lock — the mate it writes, the part carried along when the other moves, a fixed joint
+  ---
+  duration_ms: 22.5315
+  type: 'test'
+  ...
+# Subtest: path cut public API preserves the source cut and fixed asymmetric orientation
+ok 6 - path cut public API preserves the source cut and fixed asymmetric orientation
+  ---
+  duration_ms: 90.915291
+  type: 'test'
+  ...
+# Subtest: live path references re-resolve current sources and survive hidden rename and native codec
+ok 7 - live path references re-resolve current sources and survive hidden rename and native codec
+  ---
+  duration_ms: 62.47125
+  type: 'test'
+  ...
+# Subtest: path admission refuses mixed variants, unsupported curves and nested live references
+ok 8 - path admission refuses mixed variants, unsupported curves and nested live references
+  ---
+  duration_ms: 32.459417
+  type: 'test'
+  ...
+# Subtest: Path command authors a stable object reference and allows body-only selection
+ok 9 - Path command authors a stable object reference and allows body-only selection
+  ---
+  duration_ms: 19.166958
+  type: 'test'
+  ...
+# Subtest: chat Path edits rebind to a current curve while retaining the feature identity
+ok 10 - chat Path edits rebind to a current curve while retaining the feature identity
+  ---
+  duration_ms: 24.981375
+  type: 'test'
+  ...
+# Subtest: placement helpers refuse live references before dropping their source context
+ok 11 - placement helpers refuse live references before dropping their source context
+  ---
+  duration_ms: 33.695417
+  type: 'test'
+  ...
+# Subtest: quadratic midpoint admission is exact for rounded sums, cancellation and subnormals
+ok 12 - quadratic midpoint admission is exact for rounded sums, cancellation and subnormals
+  ---
+  duration_ms: 0.268875
+  type: 'test'
+  ...
+# Subtest: shared definitions: a waiting revision changes nothing until it is accepted, then every sharer takes it where it is
+ok 13 - shared definitions: a waiting revision changes nothing until it is accepted, then every sharer takes it where it is
+  ---
+  duration_ms: 1.073542
+  type: 'test'
+  ...
+# Subtest: a copy made independent keeps its revision but no longer follows the shared one; the same file is no update
+ok 14 - a copy made independent keeps its revision but no longer follows the shared one; the same file is no update
+  ---
+  duration_ms: 0.257292
+  type: 'test'
+  ...
+1..14
+# tests 14
+# suites 0
+# pass 14
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 638.82825

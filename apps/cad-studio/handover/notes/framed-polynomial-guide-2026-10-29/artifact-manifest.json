@@ -1,0 +1,124 @@
+{
+  "artifacts": {
+    "README.md": {
+      "sha256": "182a7350edb672042722d8aab1f3505026e53a4539c4c8086d9e70bdad7b7c05",
+      "bytes": 5810
+    },
+    "after-baseline.mjs": {
+      "sha256": "b8b265008b3e0f44319904baf4301a4aaed1d42dc6123b649f25b0d7f1f98831",
+      "bytes": 1166
+    },
+    "after-baseline.txt": {
+      "sha256": "eb748789d9ed2710fe2be69607564b0039f41054c475433fb9c85b3bccfc2538",
+      "bytes": 315
+    },
+    "after-results.json": {
+      "sha256": "53fe701099607ed4b8083bf829efad7c37613a6875e54e4953bb6d4db8aac621",
+      "bytes": 612349
+    },
+    "baseline-identity.json": {
+      "sha256": "477316323c9493fb122196b4c7b26c4c0bcded8e7370e1703c0bc4f584375357",
+      "bytes": 1386
+    },
+    "baseline-results.json": {
+      "sha256": "fae5ccb4732a72ec5cfb716c9c7e9b3169c4b6b9b9358c7a723d4bedc5228192",
+      "bytes": 29752
+    },
+    "baseline-results.txt": {
+      "sha256": "d3411fce0c519ca1ebda2f14f646b9e62b4213141ce673c240f82306cc565d30",
+      "bytes": 1136
+    },
+    "build-final.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "build-initial.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "focused-initial.txt": {
+      "sha256": "30351be324eee9799f708a18ea29ff2ae577c6b064509fe84f2eb08d0d34c4a2",
+      "bytes": 3307
+    },
+    "legacy-bits-final.txt": {
+      "sha256": "4aa5d81ea7999a9334d3abc62e37ed30c0de1d8500eb939e7cc4eb23dc176cc7",
+      "bytes": 811
+    },
+    "legacy-bits-results.json.gz": {
+      "sha256": "90dc31dd0895dca4f66af94f115442088d338983752a3e2c316b76f7246b61c8",
+      "bytes": 254849
+    },
+    "legacy-bits.mjs": {
+      "sha256": "39507a2ac27e8ba7975bb9a2bbdfaea8c50905b89ea7fec3390e7bbb12b6b7ee",
+      "bytes": 4208
+    },
+    "legacy-bits.txt": {
+      "sha256": "5217f021ca62492391a1fbf311979e42a0898252d8d996cb9a0c9b7a28e110eb",
+      "bytes": 724
+    },
+    "lint-final.txt": {
+      "sha256": "3c562e8828bade2cfd6b382013ce051a6863efcffffd63750511a4275451dc64",
+      "bytes": 94
+    },
+    "lint.txt": {
+      "sha256": "3c562e8828bade2cfd6b382013ce051a6863efcffffd63750511a4275451dc64",
+      "bytes": 94
+    },
+    "original-framed-mixed-loft.mjs": {
+      "sha256": "6e239598ffbac4534c2e3015e936bd292199927c4c0e7f2ef7c877460611c384",
+      "bytes": 8729
+    },
+    "original-framed-mixed-loft.ts": {
+      "sha256": "8e24fbfa2b476152c77e2271c3c8ff8189aff66b99d0fea07494078bd5292519",
+      "bytes": 8721
+    },
+    "original-loft-guide.mjs": {
+      "sha256": "b2e5ff7c3b32ab8f0f0fa667932c47dfe0b1bf25749b9ddfcf5c503dc7c1a1e8",
+      "bytes": 4069
+    },
+    "original-loft-guide.ts": {
+      "sha256": "76ea2772f8b575b47eab49659b39483df402558445d8af16ade56da8fa8c7cea",
+      "bytes": 4526
+    },
+    "original-loft-nurbs-guide.mjs": {
+      "sha256": "e988ea582b23f091dc20285c7c71b59e6db97921bd34c81a05cf71b4dc983afc",
+      "bytes": 8511
+    },
+    "original-loft-nurbs-guide.ts": {
+      "sha256": "28467889c6adf2b3bdee0f84eea26a9f889942ab2f7b2039923dedd2f6792add",
+      "bytes": 9565
+    },
+    "original-loft.mjs": {
+      "sha256": "1e652cb8cb2f8b153bf0511ab41ac1d6622cd41bd182e6a7afbf5f685e762a00",
+      "bytes": 24242
+    },
+    "original-loft.ts": {
+      "sha256": "650b9948fe1d0a9d0302a2fdb67fd315ddee961fef560e87dd0989c321b7fae6",
+      "bytes": 26472
+    },
+    "original-oriented-loft.mjs": {
+      "sha256": "4bd4a6a39158c2c71c8ac4f5ecb99fb83e7eae309b4d75edc85bedbc96347f21",
+      "bytes": 13692
+    },
+    "original-oriented-loft.ts": {
+      "sha256": "0fbf4201abf74462d57df0f9670e6d771142766c463257291611fff920aa24fa",
+      "bytes": 13851
+    },
+    "related-tests-final.txt": {
+      "sha256": "4453861c0fa7600e7f24192c1d2e0e883396b2970a78fad4c35f2ad0f0fd098c",
+      "bytes": 25625
+    },
+    "related-tests.txt": {
+      "sha256": "a402143064b4a6ca56c87239af5be1b10910303a9d55a460198bf903c6a39589",
+      "bytes": 25076
+    },
+    "reproduce.mjs": {
+      "sha256": "dbde0b0c09d0139a7eee6cfdb0f41fd9111a357e834b0b703c4d471914cbfc95",
+      "bytes": 1749
+    },
+    "verification.json": {
+      "sha256": "1dc46648cb97a336c5b130a5cf333005a8aebb42735a25388bbd2a864d4b6621",
+      "bytes": 2395
+    }
+  }
+}

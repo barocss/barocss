@@ -1,0 +1,8 @@
+{
+  "head": "4ce1b35c753952010eb6961c62ccd6c6490bd01e",
+  "files": {
+    "packages/barocss-cad-model/src/app/nativeOffsetFace.ts": "dcd035d18bf4c549b345f0e7054422b021a200e1c835fcb567f528b758bbaafc",
+    "packages/barocss-cad-model/src/app/profileCommands.ts": "8a1fdc9adb080cae39edc1ed34c1c591e5e87095b79e79cc53e48df94be231fd",
+    "packages/barocss-cad/src/brep/solid-mass.ts": "19ec118c7f6096f738d246e5ca46095b42dd9bf7f67e341bcc6f735690141eac"
+  }
+}

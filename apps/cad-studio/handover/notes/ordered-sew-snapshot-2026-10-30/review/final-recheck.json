@@ -1,0 +1,14 @@
+{
+  "comparedTo": "snapshot.json original files table",
+  "delta": [
+    {
+      "path": "packages/barocss-cad-model/test/api-sew.test.ts",
+      "reviewedSHA256": "dd13fcb199dd637f5ffdc764a5adcc150c5ccae18fe0b890b7d69079de5d6c3b",
+      "finalSHA256": "8750a6dac9031c7a5799cad66b4fac03b453b802c73e5ee5734222bacbc04364"
+    }
+  ],
+  "workerOwnedHashMismatch": [],
+  "productionChanged": false,
+  "reviewerRuntime": "NOT_RUN",
+  "claim": "Final 35 listed hashes are this table; original table retained separately."
+}

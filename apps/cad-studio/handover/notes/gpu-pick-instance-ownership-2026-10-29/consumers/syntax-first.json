@@ -1,0 +1,11 @@
+{
+  "status": "SYNTAX_PASS_ACTUAL_NOT_RUN",
+  "node": "22.19.0",
+  "command": "node --check packages/barocss-gpu/tests/pick-instance-readback-browser.test.mjs",
+  "exit": 0,
+  "source": "packages/barocss-gpu/tests/pick-instance-readback-browser.test.mjs",
+  "sha256": "5939c7d77118ecceaacfa99c76bdd9fd7b1a63eeec65c447bc880d41490d8213",
+  "lint": "NOT_RUN",
+  "nativeBrowser": "NOT_RUN",
+  "productionBuildCpuChecks": "Other owner; not claimed here."
+}

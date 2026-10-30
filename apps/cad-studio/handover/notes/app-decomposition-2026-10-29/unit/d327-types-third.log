@@ -1,0 +1,13 @@
+src/App.tsx(1697,44): error TS2322: Type 'RefObject<PersonRowFiles | undefined>' is not assignable to type 'RefObject<PersonRowFiles | null>'.
+  Type 'PersonRowFiles | undefined' is not assignable to type 'PersonRowFiles | null'.
+    Type 'undefined' is not assignable to type 'PersonRowFiles | null'.
+src/App.tsx(1963,306): error TS2304: Cannot find name 'proposalTint'.
+src/App.tsx(1965,299): error TS2304: Cannot find name 'proposalTint'.
+src/state/useProposalPreview.ts(40,119): error TS2322: Type 'PersonRowFiles | null' is not assignable to type 'PersonRowFiles | undefined'.
+  Type 'null' is not assignable to type 'PersonRowFiles | undefined'.
+src/state/useProposalPreview.ts(49,99): error TS2322: Type 'PersonRowFiles | null' is not assignable to type 'PersonRowFiles | undefined'.
+  Type 'null' is not assignable to type 'PersonRowFiles | undefined'.
+src/state/useProposalPreview.ts(81,99): error TS2322: Type 'PersonRowFiles | null' is not assignable to type 'PersonRowFiles | undefined'.
+  Type 'null' is not assignable to type 'PersonRowFiles | undefined'.
+src/viewport/useCommandGizmos.ts(70,52): error TS2304: Cannot find name 'editNode'.
+src/viewport/useCommandGizmos.ts(72,93): error TS2304: Cannot find name 'editNode'.

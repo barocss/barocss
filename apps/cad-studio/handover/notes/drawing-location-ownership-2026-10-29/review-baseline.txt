@@ -1,0 +1,126 @@
+TAP version 13
+# Subtest: independent cross-view hole locations with equal values are retained; missing target remains diagnosed
+ok 1 - independent cross-view hole locations with equal values are retained; missing target remains diagnosed
+  ---
+  duration_ms: 253.12875
+  type: 'test'
+  ...
+# Subtest: public edit changes only the second hole location from 15 to 17; both targets remain independently covered
+ok 2 - public edit changes only the second hole location from 15 to 17; both targets remain independently covered
+  ---
+  duration_ms: 214.925458
+  type: 'test'
+  ...
+# Subtest: manual first-hole location does not suppress automatic location of an independent equal-value target
+ok 3 - manual first-hole location does not suppress automatic location of an independent equal-value target
+  ---
+  duration_ms: 73.785584
+  type: 'test'
+  ...
+# Subtest: a later repeat of the second target is found after an independent target with the same span
+ok 4 - a later repeat of the second target is found after an independent target with the same span
+  ---
+  duration_ms: 67.48725
+  type: 'test'
+  ...
+# Subtest: independently authored square-grid holes each retain two target-owned locations and distinct placement rows
+ok 5 - independently authored square-grid holes each retain two target-owned locations and distinct placement rows
+  ---
+  duration_ms: 148.4
+  type: 'test'
+  ...
+# Subtest: same-target orthographic repeat keeps manual reference and removes its automatic repeat
+ok 6 - same-target orthographic repeat keeps manual reference and removes its automatic repeat
+  ---
+  duration_ms: 69.873
+  type: 'test'
+  ...
+# Subtest: a common hole target does not merge measurements from two independent coincident datum features
+ok 7 - a common hole target does not merge measurements from two independent coincident datum features
+  ---
+  duration_ms: 70.066584
+  type: 'test'
+  ...
+# Subtest: reversing a counted pitch changes its extension direction and does not offer a duplicate removal
+ok 8 - reversing a counted pitch changes its extension direction and does not offer a duplicate removal
+  ---
+  duration_ms: 69.329833
+  type: 'test'
+  ...
+# Subtest: same-owner endpoint pitches keep direction and count; a same-direction repeat prefers the manual dimension
+not ok 9 - same-owner endpoint pitches keep direction and count; a same-direction repeat prefers the manual dimension
+  ---
+  duration_ms: 64.717125
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-IPrJmP/drawing-independent-locations.test.mjs:106731:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   {
+    +     code: 'DUPLICATE',
+    +     dims: [
+    +       'd6',
+    +       'reverse-endpoints'
+    +     ],
+    +     fix: {
+    +       dim: 'reverse-endpoints',
+    +       kind: 'remove'
+    +     },
+    +     message: '3× 40 is given twice (front and front view).',
+    +     severity: 'warning',
+    +     view: 'front'
+    +   }
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0:
+      code: 'DUPLICATE'
+      severity: 'warning'
+      message: '3× 40 is given twice (front and front view).'
+      dims:
+        0: 'd6'
+        1: 'reverse-endpoints'
+      view: 'front'
+      fix:
+        kind: 'remove'
+        dim: 'reverse-endpoints'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-IPrJmP/drawing-independent-locations.test.mjs:106738:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: a manual endpoint count does not suppress a generated overall size with a different count or direction
+not ok 10 - a manual endpoint count does not suppress a generated overall size with a different count or direction
+  ---
+  duration_ms: 63.828334
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-IPrJmP/drawing-independent-locations.test.mjs:106745:1'
+  failureType: 'testCodeFailure'
+  error: 'false == true'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-IPrJmP/drawing-independent-locations.test.mjs:106753:10)
+    async Test.run (node:internal/test_runner/test:1054:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 8
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1328.462958

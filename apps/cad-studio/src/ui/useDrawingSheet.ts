@@ -17,7 +17,7 @@ import type { Bom } from '@barocss/cad-model/bom/core';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import { buildSheet, sectionExtents, sheetSections } from '@barocss/cad-model/drawing/sheet';
 import { bodyFacesOf } from '@barocss/cad-model/drawing/balloons';
-import { holeCallout } from '@barocss/cad-model/drawing/callout';
+import { holeCallout, holeCalloutOwnerOf } from '@barocss/cad-model/drawing/callout';
 import { threadsOf } from '@barocss/cad-model/app/threads';
 import { fastenerSizesOf } from '@barocss/cad-model/engine/fastenerSizeRows';
 import { revisionOf } from '@barocss/cad-model/util/revision';
@@ -96,6 +96,8 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   // (O145: and the machine elements' callouts — a bearing's seat, a ring's groove.)
   const elements = useMemo(() => elementsOfBodies(doc.nodes, bodies ?? []), [doc.nodes, bodies]);
   const callout = useMemo(() => withElements(doc, withFit(doc, (edge: string) => holeCallout(doc.nodes, edge, doc.parameters)), elements), [doc.nodes, doc.parameters, doc.fits, elements]);
+  // Physical hole ownership is independent of the formatted size/counterbore callout.
+  const locationOwner = useMemo(() => (edge: string) => holeCalloutOwnerOf(doc, edge), [doc]);
   const fitMissOf = useMemo(() => fitMiss(doc), [doc.fits]);
   // (FRf2, O125: frames following a placed part's sketch that changed since linked.)
   const followedChanged = useMemo(() => scoped.authored ? followedStale(scoped.authored).map(staleText) : [], [scoped.authored]);
@@ -126,5 +128,5 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   const sheet = useMemo(() => views && layout && buildSheet(views, layout, settings, { title, date: today(), source, callout, threads, tableContent: tableContentOf, welds: weldJoints, bodyFaces, ...(bom ? { bom } : {}) }, cuts), [views, layout, settings, title, cuts, callout, threads, tableContentOf, weldJoints, bodyFaces, bom]);
   const annotations = useMemo<ModelAnnotations | null>(() => active && wantAnnotations && sheet && layout && views ? modelAnnotations({ views, layout, settings, sheet, ...(weldJoints ? { welds: weldJoints } : {}) }) : null,
     [active, wantAnnotations, sheet, layout, views, settings, weldJoints]);
-  return { source, scopeRead, scope, scopeKey, scoped, doc, model, currentModel, bodies, projected, views, cutsMade, sectionList, sectionKey, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, fitMissOf, followedChanged, threads, wantsBom, bom, sourced, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet, annotations };
+  return { source, scopeRead, scope, scopeKey, scoped, doc, model, currentModel, bodies, projected, views, cutsMade, sectionList, sectionKey, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, locationOwner, fitMissOf, followedChanged, threads, wantsBom, bom, sourced, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet, annotations };
 }

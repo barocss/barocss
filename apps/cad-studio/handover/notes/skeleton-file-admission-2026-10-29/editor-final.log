@@ -1,0 +1,16 @@
+TAP version 13
+# Subtest: 3D sketch Apply preserves the existing feature identity and metadata while replacing geometry
+ok 1 - 3D sketch Apply preserves the existing feature identity and metadata while replacing geometry
+  ---
+  duration_ms: 0.770875
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 69.635958

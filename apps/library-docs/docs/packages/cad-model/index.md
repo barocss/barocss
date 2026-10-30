@@ -22,6 +22,17 @@ The package is public module by module. Import each module by its path; the pack
 - **Data files.** JSON data is imported by path too, such as `@barocss/cad-model/library/builtin/materials.json`, and
   the shipped sample rows are under `@barocss/cad-model/samples/rows/`.
 
+The `engine/font/trueType` reader takes a copied, bounded static TTF input and returns metrics and unhinted
+quadratic contours. `engine/font/source` stores original bytes with supplied filename/source/license metadata;
+`engine/font/profiles` converts admitted glyphs to component profiles at an explicit chord tolerance. The
+`kind: 'text'` recipe and `part().text()` build an independent native solid that stays editable after Save/Open.
+One authored output can hold several physical bodies. No top-level font registry or new document/container
+version is added. Studio supplies font upload and the Text HUD; the original test fonts are not runtime defaults.
+The separate `text-relief` modifier and `part().textRelief()` share the source/profile path for bounded +Z cap
+emboss or engrave; they retain one physical target solid and require actual material/selected-face containment.
+Shaping, kerning, bidi, normalization, general/curved face relief and text wrap remain unsupported. See
+[Text from font outlines](/how/text) and the [Text API example](/packages/api#text-from-a-font-file).
+
 | Module | What it holds |
 |---|---|
 | `api/` | The object facade over the data-and-functions core, imported as `@barocss/cad-model/api`. `part()` makes an immutable studio part and `assembly()` an immutable assembly, each method returning a new one, with typed edge and face selectors, `.doc`, plain results and one error class, `BarocssError`. See [Object API](/packages/api) |
@@ -187,6 +198,29 @@ For robot exports, read `handSet` when present; its omission does not mean the r
 Keep the record with the files it names and keep the editable `.bcad` document separately. The record is not a
 saved document and cannot reconstruct the model from its revision or digest.
 
+## Bounded cylindrical wrap
+
+The Model facade selects the usual merged cylinder wall. The operation uses its original +Y
+half, first native quarter, and stores that individual native face and its signature.
+
+```ts
+import { part } from '@barocss/cad-model/api';
+
+const wrapped = part('Wrapped cylinder')
+  .cylinder({ r: 10, h: 30 })
+  .cylindricalWrap(body => body.faces().curved(), {
+    u0: 0.1, u1: 0.4, v0: 0.2, v1: 0.7, height: 10,
+  });
+const doc = wrapped.doc;
+```
+
+This supports one rectangle on an original upright cylinder centered on the world Z axis.
+Original UV must satisfy `0 < u0 < u1 < 0.5` and `0 < v0 < v1 < 1`; height must equal the
+source radius. Mass comes from the evaluated closed reference. Literal stored-coefficient
+closure/mass and native-SI accuracy are not certified. Further consuming features refuse.
+Reopening the recipe rebuilds its provider; a copied output cannot supply mass authority.
+See the [Studio flow and remaining limits](/studio/features#cylindrical-wrap).
+
 ## Solid lofts with a copied guide
 
 `part(...).loft(sections, options)` builds a solid from closed sketches. It returns a new part with the new body
@@ -242,6 +276,15 @@ unbaked transforms, and nonconstant rational weights are refused.
 Frames and guide controls are copied snapshots. A separately imported source curve does not become a live
 reference. Later changes to that curve or the caller's arrays do not update the stored loft. This construction
 does not certify manufacturing suitability.
+
+A polynomial `guide: { kind: 'nurbs', degree, knots, controlPoints }` uses the separate 2–8 ruled-height-section
+path. It supports degree 1–5 and up to 64 controls under the original monotone-height and section-vertex rules.
+A common non-XY sketch plane is supported. Raw explicit frames also admit two to eight ruled line/arc sections
+with identical certified rigid axes, positive ordered separation and exact world/local reconstruction of
+origins and guide controls. Circle and mixed arc profiles retain their original correspondence rules; inline
+ellipse objects, different axes and failed reconstruction witnesses are refused. The adapter builds and places
+the loft once, preserving the mass method and existing native SI `transformed` refusal. Studio can reopen the
+recipe and edit the source profile through existing Width/Depth fields. The source is copied without a new schema. See the [tested polynomial example and actual Studio preview](/how/loft-sweep#one-polynomial-guide-on-height-sections).
 
 ## Direct sweep and loft surfaces
 

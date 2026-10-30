@@ -1,0 +1,3 @@
+holder: none
+slots: 0 of 3
+load: { 11.98 9.19 7.96 }

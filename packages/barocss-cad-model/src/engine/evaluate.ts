@@ -5,7 +5,7 @@ import { fitNotes } from './fits';
 import { boughtOf, elementOf, type BodyElement } from './elements';
 import type { FaceTable } from '../assembly/mates';
 import { massPropertiesOf, reevaluate, exportStl, type CadPartOutput, brepSurfaceArea, cutPiece, evaluateCadPart, transformBrep, FACET_PREVIEW_TRIANGLES, type Brep, type CadPartFeatureProfile, type CadPartSnapshot, type FlatPattern, type GearPlacement, type RackPlacement, type SubdSummary, type CutPiece, exportStep } from '@barocss/cad';
-import { bodyMesh, type DisplayEdge, type DisplayMesh } from './mesh';
+import { bodyMesh, withoutNativeFaces, type DisplayEdge, type DisplayMesh } from './mesh';
 import { lumpTouches } from './lumps';
 import { friendlyCause, type FriendlyError } from './errors';
 import { bodyKeyOf, partSnapshot } from './part';
@@ -39,6 +39,8 @@ export interface BodyResult {
   ref?: BodyRef;
   /** 'upright' (Z-prismatic: holes, fillets, curved Booleans), 'planar' or 'curved' (general B-rep). */
   family: string; mesh: DisplayMesh;
+  /** Mass belongs to the closed radial reference; literal stored coefficient closure is not asserted. */
+  cylindricalWrap?: CadPartOutput['cylindricalWrap'];
   /** 'infill' (O60): a print infill body (its node's role) — in the mass and 3MF, left out of STEP. */
   role?: 'infill';
   volume: number | null; mass: number | null;
@@ -207,6 +209,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   const node = at.ref ? doc.nodes[at.ref.node] : undefined, sheet = o.sheet ? sheetOf(o) : null;
   const notes: NonNullable<BodyResult['notes']> = [
     ...(libNotes ?? []),
+    ...(o.cylindricalWrap ? [{ text: 'Wrap mass uses the closed reference. Surface joins follow the model tolerance. Further features are not supported for this wrap yet.' }] : []),
     ...(o.gear ? [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] : []),
     ...(o.internalGear ? internalGearNotes(o.internalGear, node) : []),
     ...(o.worm ? [...wormNotes(o.worm), ...wormMeshNotes(o.wormPlacement)] : []),
@@ -232,7 +235,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
     ...(o.member ? memberNotes(o.member, lib ?? node, doc.frames?.sections, doc.nodes, at.ref ? staleOf(doc).get(at.ref.node) : undefined, counts) : []),
   ];
   const element = elementOf(o, node);
-  return { ...at, ...(notes.length ? { notes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...areaOf(A, o.brep, revision, quality), ...(o.bodyCount > 1 ? { pieces: o.bodyCount, ...touchField(o.brep, meshOf(o.brep, revision, quality)) } : {}),
+  return { ...at, ...(o.cylindricalWrap ? { cylindricalWrap: o.cylindricalWrap } : {}), ...(notes.length ? { notes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...areaOf(A, o.brep, revision, quality), ...(o.bodyCount > 1 ? { pieces: o.bodyCount, ...touchField(o.brep, meshOf(o.brep, revision, quality)) } : {}),
     ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.bevelGear?.idealModel ? { idealModel: o.bevelGear.diagnostics.find(x => x.code === 'IDEAL_MODEL')?.message ?? 'an ideal model' } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}),
     ...(o.subd && o.subd.caps ? { subd: o.subd } : {}), ...(sheet ? sheetFields(sheet) : {}), ...(o.member && m ? { cutPiece: cutPiece(o, { volume: m.volume }) } : {}), ...(element ? { element } : {}) };
 }
@@ -433,7 +436,7 @@ export function placeBody(b: BodyResult, m: readonly number[], t: readonly numbe
   moveAll(positions, m, t); moveAll(normals, m, null); moveAll(edgeLines, m, t);
   const min: [number, number, number] = [Infinity, Infinity, Infinity], max: [number, number, number] = [-Infinity, -Infinity, -Infinity];
   for (let i = 0; i < positions.length; i += 3) for (let k = 0; k < 3; k++) { const v = positions[i + k]; if (v < min[k]) min[k] = v; if (v > max[k]) max[k] = v; }
-  const faces = src.faces.map(f => ({ ...f, normal: turn(m, f.normal), centroid: move(m, t, f.centroid), ...(f.exact ? { exact: f.exact.kind === 'plane' ? { kind: 'plane' as const, o: move(m, t, f.exact.o), n: turn(m, f.exact.n) } : { kind: 'cylinder' as const, c: move(m, t, f.exact.c), a: turn(m, f.exact.a), r: f.exact.r } } : {}) }));
+  const faces = src.faces.map(f => ({ ...withoutNativeFaces(f), normal: turn(m, f.normal), centroid: move(m, t, f.centroid), ...(f.exact ? { exact: f.exact.kind === 'plane' ? { kind: 'plane' as const, o: move(m, t, f.exact.o), n: turn(m, f.exact.n) } : { kind: 'cylinder' as const, c: move(m, t, f.exact.c), a: turn(m, f.exact.a), r: f.exact.r } } : {}) }));
   const edges = src.edges.map(e => {
     const a = move(m, t, e.a), z = move(m, t, e.b), d = [z[0] - a[0], z[1] - a[1], z[2] - a[2]], l = Math.hypot(d[0], d[1], d[2]) || 1;
     // (The axis an edge runs along, as the mesh reads it: a unit direction within 1e-9 of one.)

@@ -1,0 +1,1 @@
+node /tmp/d331/review-final/reproduce.mjs /Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b > /tmp/d331/review-final/stdout.txt 2> /tmp/d331/review-final/stderr.txt

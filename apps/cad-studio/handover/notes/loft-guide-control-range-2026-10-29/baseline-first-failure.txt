@@ -1,0 +1,18 @@
+{"name":"cubic-16-prism","maximumSurfacePoles":16,"strictValid":true,"mass":1.0000000000000018}
+{"name":"cubic-16-taper","maximumSurfacePoles":16,"strictValid":true,"mass":2.3333333333333344}
+file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/math.js:4
+        throw new Error(message);
+              ^
+
+Error: Surface V control point count must be in 2..16
+    at requireValue (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/math.js:4:15)
+    at validateSurface (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/math.js:59:5)
+    at surfaceDomain (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/core/math.js:98:5)
+    at surfaceNormalAtCentre (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/brep/brep-core.js:40:22)
+    at checkBrep (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/dist/brep/brep-core.js:388:81)
+    at file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/handover/notes/loft-guide-control-range-2026-10-29/reproduce.mjs:13:19
+    at ModuleJob.run (node:internal/modules/esm/module_job:345:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:651:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.19.0

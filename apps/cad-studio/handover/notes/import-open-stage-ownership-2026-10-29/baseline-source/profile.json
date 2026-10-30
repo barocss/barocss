@@ -1,0 +1,37 @@
+[
+  {
+    "path": "apps/cad-studio/src/App.tsx",
+    "commit": "5168183e8",
+    "bytes": 188513,
+    "sha256": "d100518493b456e2f5ab055b1c552642341e07b5471753b52aac7e24aaeebfd2",
+    "capsule": "apps__cad-studio__src__App.tsx.gz"
+  },
+  {
+    "path": "apps/cad-studio/src/files/importedFile.ts",
+    "commit": "5168183e8",
+    "bytes": 7162,
+    "sha256": "27d8abd6a4c548e1699f8cf9f7de3dcb7a67153a963bdd97ac2c3374efa54c87",
+    "capsule": "apps__cad-studio__src__files__importedFile.ts.gz"
+  },
+  {
+    "path": "apps/cad-studio/src/files/useMeshImport.ts",
+    "commit": "5168183e8",
+    "bytes": 9570,
+    "sha256": "211e0144388acfc001535b410de48d8da2ecdedebd7d1b2443967fecf9c24f0a",
+    "capsule": "apps__cad-studio__src__files__useMeshImport.ts.gz"
+  },
+  {
+    "path": "apps/cad-studio/src/files/MeshFileDialogs.tsx",
+    "commit": "5168183e8",
+    "bytes": 2408,
+    "sha256": "b3d029596273144d970d86b081e73e4bfb7dcbe7c665d35142d31a83444fc621",
+    "capsule": "apps__cad-studio__src__files__MeshFileDialogs.tsx.gz"
+  },
+  {
+    "path": "apps/cad-studio/test/imported-file-ownership.test.ts",
+    "bytes": 3656,
+    "sha256": "381c8514bec0398a18d0a1abfc03fd82160d39d13b1f1c44f7de13c4cdbf0c9c",
+    "capsule": "imported-file-ownership.test.ts.gz",
+    "origin": "new root-executed5testbaseline"
+  }
+]

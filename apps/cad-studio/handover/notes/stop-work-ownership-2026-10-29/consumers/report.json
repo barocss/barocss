@@ -1,0 +1,172 @@
+{
+  "workId": "D321-stop-work-ownership-consumers",
+  "status": "scoped_pass",
+  "updatedAt": "2026-10-29T05:55:36.806730+00:00",
+  "execution": {
+    "node": "22.19.0",
+    "browser": "Chrome156.0.8078.48",
+    "renderer": "actual WebGPU",
+    "DPR": 1,
+    "sourceProfile": "third-run/source-profile.json",
+    "appSHA256": "fe99a2a25719148774ee15e69c9493c743c3e88226289cf1dcb89333a3149a1b",
+    "ownerHelperSHA256": "d95db66ed196df304ce29d2b6d497b589eca361160812cb5cbca30da376f6ed8",
+    "d321": {
+      "selectedPass": 1,
+      "selectedFail": 0,
+      "selectedSkip": 0,
+      "starterSmokePass": 1,
+      "exit": 0,
+      "log": "browser-third-pass.txt"
+    },
+    "d318ChangedAppIntegrationRegression": {
+      "selectedPass": 1,
+      "selectedFail": 0,
+      "selectedSkip": 0,
+      "starterSmokePass": 1,
+      "exit": 0,
+      "log": "regression/d318/browser-pass.txt",
+      "sameFrozenSource": true,
+      "freshContexts": 2,
+      "nativeWorkerHoldHelper": "not installed; D321 callback is unselected"
+    },
+    "syntaxExit": 0,
+    "nativeHelperSyntaxExit": 0,
+    "changedHarnessLintExit": 0,
+    "lintWarnings": 45,
+    "lintErrors": 0,
+    "lintWarningScope": "existing no-console warnings in the large pre-existing runner; raw output retained",
+    "runtimeSourceChangedAfterFinalChecks": false,
+    "browserServerClosed": true,
+    "serialHeavyGatesReturned": true
+  },
+  "checks": {
+    "gridAttempts": {
+      "count": 2,
+      "status": "PASS",
+      "docHistoryRecoveryUnaccepted": true,
+      "refusal": "Change not applied / Wait for the computation to finish, or stop it, before changing the document."
+    },
+    "drawingSheetSizeAttempt": {
+      "status": "PASS",
+      "refusal": "info\nChange not applied\nWait for the computation to finish, or stop it, before changing the document.\nclose"
+    },
+    "cameraAndWorkspaceNonDocumentActions": "PASS: Top and Model/Render/Drawing switching remain usable",
+    "ownedStop": {
+      "status": "PASS",
+      "d0": "2 nodes / 1 fresh body / volume1000",
+      "d1Pending": "4 nodes, native result+mass completed but client delivery held; fresh false",
+      "target": "exact D0 doc, dirty true and completed D0 recovery",
+      "publicRedo": "exact D1 doc,2fresh bodies,totalvolume2000"
+    },
+    "newBackend": {
+      "submit": {
+        "sequence": 40,
+        "time": 6493.200000047684,
+        "kind": "submit",
+        "key": 3,
+        "type": "evaluate",
+        "id": 11,
+        "revision": 9,
+        "nativeSource": {
+          "epoch": 2,
+          "requestId": 11,
+          "revision": 9,
+          "slot": "evaluate"
+        },
+        "sourceNodeCount": 2,
+        "sourceNodes": [
+          {
+            "wireId": 1,
+            "id": "n0",
+            "kind": "sketch"
+          },
+          {
+            "wireId": 2,
+            "id": "n1",
+            "kind": "extrude"
+          }
+        ]
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b1",
+            "volume": 1000.0000000000001,
+            "centroid": [
+              4.999999999999999,
+              4.999999999999999,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "viewportExactProvenance": "NOT_EXPOSED"
+    },
+    "normalGridNoUnnecessaryMainEvaluation": {
+      "evaluationsBeforeGrid": 6,
+      "evaluationsAfterGrid": 6
+    },
+    "normalNoGridStop": "PASS: third Box pending ->Stop exactD1 ->Redo third Box ->Undo exactD1",
+    "normalSubsequentBoxApplyUndo": "PASS: unarmed12x10x10Box gives3fresh bodies,totalvolume3200 ->Undo exactD1/2000",
+    "nativeSchedule": "native-schedule-summary.json",
+    "nativeResultMassHeldFIFO": true,
+    "payloadReplacementOrReplay": false,
+    "oldHeldPayloadDeliveredAfterClaim": [
+      0,
+      0
+    ],
+    "visualReview": {
+      "d321MeaningfulPNGs": 3,
+      "d318RegressionPNGs": 4,
+      "consumerReviewed": "all7 directly inspected",
+      "parentReviewed": "D321three main screenshots per parent report",
+      "boundary": "single point legitimately has zero solid bodies; not a visible-solid assertion"
+    }
+  },
+  "failures": [
+    {
+      "run": "first",
+      "class": "HARNESS_WORKSPACE_DOM_COMPARISON",
+      "sourceApp": "b86265aafcb141b91e214e92be63c4bff75bd60cfa36d5e90e41163f97132115",
+      "log": "browser-first-failure.txt",
+      "details": "first-run-binding.json",
+      "fullDriverExactSource": "NOT_RETAINED; no reconstructed/exact full replay claim",
+      "exactAppSource": "first-run/source-App-at-first-browser.ts.gz"
+    },
+    {
+      "run": "second",
+      "class": "PRODUCT_REDO_REGRESSION",
+      "sourceApp": "09e402caf8e6fa163f4ec8b181ff872c8369f9969298b046e66d34dd1a02bf7c",
+      "log": "browser-second-failure.txt",
+      "details": "second-run-observation.json",
+      "sourceProfile": "second-run/production-source.json",
+      "driverSource": "second-run/harness-source.json",
+      "afterRedoRawState": "NOT_RETAINED; last raw snapshot is successful StopD0, failure log/PNG preserved",
+      "repair": "Production captures redoEntry synchronously before docNow ref assignment; no consumer Doc/Redo/mass assertion weakened."
+    }
+  ],
+  "proofBoundary": {
+    "control": "Real native Worker source/result/mass payloads and transfers; only FIFO client delivery schedule held by test. Termination discards old events; no replay/fake geometry.",
+    "timing": "First native result arrives about44.8ms after submission, then client delivery is held about3294.4ms. Second about48.6ms then1487.7ms hold. Not natural long computation.",
+    "freshAndMassReady": "Pending docD1 fresh=false; massReady applies to currently reported body state and alone does not certify D1 provider. After Stop: fresh=true/massReady=true/volume1000 on newly submitted and delivered epoch2D0 evaluation.",
+    "nativeProviderExactIdentity": "NOT_EXPOSED",
+    "viewportExactGeometryProvenance": "NOT_EXPOSED",
+    "fullUndoDepth": "NOT_EXPOSED; inspectable history DOM plus actual exact Undo/Redo document transitions only",
+    "sourceHelperTests": "Separate source/focused unit proof is not expanded into App actual wiring evidence."
+  },
+  "notRun": [
+    "exact completed-run late Stop click race",
+    "async environment-image stale completion actual matrix",
+    "initial unowned/variant/parameter candidate actual matrix",
+    "all Undo/New/Open invalidations actual matrix",
+    "repair-stage Stop actual matrix",
+    "natural long computation scheduling",
+    "other browsers/DPR values",
+    "full browser flow",
+    "remote acceptance/release"
+  ]
+}

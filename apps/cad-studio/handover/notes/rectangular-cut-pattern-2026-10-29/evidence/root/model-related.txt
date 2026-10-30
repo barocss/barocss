@@ -1,0 +1,430 @@
+TAP version 13
+# Subtest: Robot snapshots external nested document input before later caller edits
+ok 1 - Robot snapshots external nested document input before later caller edits
+  ---
+  duration_ms: 1.05875
+  type: 'test'
+  ...
+# Subtest: Robot document getter edits cannot alter its constructor snapshot
+ok 2 - Robot document getter edits cannot alter its constructor snapshot
+  ---
+  duration_ms: 0.278584
+  type: 'test'
+  ...
+# Subtest: Assembly snapshots nested input, part identities and placement tuples
+ok 3 - Assembly snapshots nested input, part identities and placement tuples
+  ---
+  duration_ms: 0.186916
+  type: 'test'
+  ...
+# Subtest: Assembly document and placement getters cannot expose its stored document
+ok 4 - Assembly document and placement getters cannot expose its stored document
+  ---
+  duration_ms: 0.118916
+  type: 'test'
+  ...
+# Subtest: direct RobotPath keeps the document joint bounds from construction
+ok 5 - direct RobotPath keeps the document joint bounds from construction
+  ---
+  duration_ms: 269.223084
+  type: 'test'
+  ...
+# Subtest: public linear feature pattern: real command append stores one cut pattern with original history and spacing Dim
+ok 6 - public linear feature pattern: real command append stores one cut pattern with original history and spacing Dim
+  ---
+  duration_ms: 77.092792
+  type: 'test'
+  ...
+# Subtest: public linear feature pattern: seed and spacing parameter edits move fixed cut walls with unchanged volume and bounds
+ok 7 - public linear feature pattern: seed and spacing parameter edits move fixed cut walls with unchanged volume and bounds
+  ---
+  duration_ms: 77.324
+  type: 'test'
+  ...
+# Subtest: public linear feature pattern: codec read and public reopen preserve refs, Dim bindings and reevaluation
+ok 8 - public linear feature pattern: codec read and public reopen preserve refs, Dim bindings and reevaluation
+  ---
+  duration_ms: 98.256958
+  type: 'test'
+  ...
+# Subtest: public linear feature pattern: typed refusals preserve accepted input and results, including non-bindable count
+ok 9 - public linear feature pattern: typed refusals preserve accepted input and results, including non-bindable count
+  ---
+  duration_ms: 46.307333
+  type: 'test'
+  ...
+# Subtest: material snapshot compatibility: old schema-one records keep absent metadata absent without current-catalogue backfill
+ok 10 - material snapshot compatibility: old schema-one records keep absent metadata absent without current-catalogue backfill
+  ---
+  duration_ms: 4.919667
+  type: 'test'
+  ...
+# Subtest: material snapshot compatibility: optional finite JSON metadata survives the unknown report without extending the typed preview
+ok 11 - material snapshot compatibility: optional finite JSON metadata survives the unknown report without extending the typed preview
+  ---
+  duration_ms: 1.672208
+  type: 'test'
+  ...
+# Subtest: material snapshot compatibility: an actually applied inertia callback changes its source but not the mass-density snapshot
+ok 12 - material snapshot compatibility: an actually applied inertia callback changes its source but not the mass-density snapshot
+  ---
+  duration_ms: 28.4065
+  type: 'test'
+  ...
+# Subtest: material snapshot record: the pure rod retains the density actually used in its independent mass oracle
+ok 13 - material snapshot record: the pure rod retains the density actually used in its independent mass oracle
+  ---
+  duration_ms: 42.894667
+  type: 'test'
+  ...
+# Subtest: material snapshot record: caller edits to report and exported metadata do not alter the past calculation
+ok 14 - material snapshot record: caller edits to report and exported metadata do not alter the past calculation
+  ---
+  duration_ms: 10.763334
+  type: 'test'
+  ...
+# Subtest: material snapshot record: later catalogue density changes affect only a new calculation
+ok 15 - material snapshot record: later catalogue density changes affect only a new calculation
+  ---
+  duration_ms: 11.00425
+  type: 'test'
+  ...
+# Subtest: material snapshot: an authored rod retains the density actually used by the original mass formula
+ok 16 - material snapshot: an authored rod retains the density actually used by the original mass formula
+  ---
+  duration_ms: 39.311041
+  type: 'test'
+  ...
+# Subtest: material snapshot: an unset material records the real fallback without changing assumed mass or issues
+ok 17 - material snapshot: an unset material records the real fallback without changing assumed mass or issues
+  ---
+  duration_ms: 5.015125
+  type: 'test'
+  ...
+# Subtest: material snapshot: an unknown requested id stays distinct from the selected density and keeps existing assumed semantics
+ok 18 - material snapshot: an unknown requested id stays distinct from the selected density and keeps existing assumed semantics
+  ---
+  duration_ms: 1.63025
+  type: 'test'
+  ...
+# Subtest: bound values: what the panel and the ƒ editor write after the agent's commands, byte for byte
+ok 19 - bound values: what the panel and the ƒ editor write after the agent's commands, byte for byte
+  ---
+  duration_ms: 184.758959
+  type: 'test'
+  ...
+# Subtest: withParameters: the panel's value written; the part has the shape built with the new numbers, its stored names kept
+ok 20 - withParameters: the panel's value written; the part has the shape built with the new numbers, its stored names kept
+  ---
+  duration_ms: 62.202291
+  type: 'test'
+  ...
+# Subtest: configurations: the panel's Save and Apply
+ok 21 - configurations: the panel's Save and Apply
+  ---
+  duration_ms: 37.879458
+  type: 'test'
+  ...
+# Subtest: features by their stable ids; suppressed as the History toggle writes it, and back
+ok 22 - features by their stable ids; suppressed as the History toggle writes it, and back
+  ---
+  duration_ms: 18.928167
+  type: 'test'
+  ...
+# Subtest: the refusals are typed: unknown, misnamed and unbindable parameters, and what the History offers no toggle for
+ok 23 - the refusals are typed: unknown, misnamed and unbindable parameters, and what the History offers no toggle for
+  ---
+  duration_ms: 35.385875
+  type: 'test'
+  ...
+# Subtest: public rectangular feature pattern: real command append stores one cut pattern with original history and spacing Dim
+ok 24 - public rectangular feature pattern: real command append stores one cut pattern with original history and spacing Dim
+  ---
+  duration_ms: 88.758083
+  type: 'test'
+  ...
+# Subtest: public rectangular feature pattern: seed and spacing parameter edits move fixed cut walls with unchanged volume and bounds
+ok 25 - public rectangular feature pattern: seed and spacing parameter edits move fixed cut walls with unchanged volume and bounds
+  ---
+  duration_ms: 120.931291
+  type: 'test'
+  ...
+# Subtest: public rectangular feature pattern: codec read and public reopen preserve refs, Dim bindings and reevaluation
+ok 26 - public rectangular feature pattern: codec read and public reopen preserve refs, Dim bindings and reevaluation
+  ---
+  duration_ms: 149.419125
+  type: 'test'
+  ...
+# Subtest: public rectangular feature pattern: typed refusals preserve accepted input and results, including non-bindable count
+ok 27 - public rectangular feature pattern: typed refusals preserve accepted input and results, including non-bindable count
+  ---
+  duration_ms: 41.638542
+  type: 'test'
+  ...
+# Subtest: rectangular cut pattern: second spacing, feature edits and stable names use the same document path
+ok 28 - rectangular cut pattern: second spacing, feature edits and stable names use the same document path
+  ---
+  duration_ms: 51.431708
+  type: 'test'
+  ...
+# Subtest: rectangular cut pattern: raw/chat admission and codec reject invalid recipes atomically
+ok 29 - rectangular cut pattern: raw/chat admission and codec reject invalid recipes atomically
+  ---
+  duration_ms: 16.925791
+  type: 'test'
+  ...
+# Subtest: an old file (inline arrays) and the same part as blobs in the container: the same bodies, volumes and names
+ok 30 - an old file (inline arrays) and the same part as blobs in the container: the same bodies, volumes and names
+  ---
+  duration_ms: 50.263208
+  type: 'test'
+  ...
+# Subtest: the container: blobs deduplicated (two nodes, one mesh), checked against their hash, a missing one refused, a newer version refused
+ok 31 - the container: blobs deduplicated (two nodes, one mesh), checked against their hash, a missing one refused, a newer version refused
+  ---
+  duration_ms: 7.572833
+  type: 'test'
+  ...
+# Subtest: blobs cross to the worker once, and to the chat server as base64 (checked)
+ok 32 - blobs cross to the worker once, and to the chat server as base64 (checked)
+  ---
+  duration_ms: 5.491333
+  type: 'test'
+  ...
+# Subtest: fixture pair: block-inline.bcad (inline arrays, as before M1) and block-container.bcad (blobs) open as the same part
+ok 33 - fixture pair: block-inline.bcad (inline arrays, as before M1) and block-container.bcad (blobs) open as the same part
+  ---
+  duration_ms: 103.886292
+  type: 'test'
+  ...
+# Subtest: a parameter-bound blind-hole depth draws the same callout as its literal five-mm value
+ok 34 - a parameter-bound blind-hole depth draws the same callout as its literal five-mm value
+  ---
+  duration_ms: 133.621
+  type: 'test'
+  ...
+# Subtest: a parameter-bound tap-drill radius retains the nominal callout and three-decimal depth rounding
+ok 35 - a parameter-bound tap-drill radius retains the nominal callout and three-decimal depth rounding
+  ---
+  duration_ms: 122.027333
+  type: 'test'
+  ...
+# Subtest: linear cut pattern command: the real registry builds one append with original base and tool history intact
+ok 36 - linear cut pattern command: the real registry builds one append with original base and tool history intact
+  ---
+  duration_ms: 60.049666
+  type: 'test'
+  ...
+# Subtest: linear cut pattern command: invalid values and direct, missing, stale or suppressed selections refuse atomically
+ok 37 - linear cut pattern command: invalid values and direct, missing, stale or suppressed selections refuse atomically
+  ---
+  duration_ms: 66.696291
+  type: 'test'
+  ...
+# Subtest: O21: add, set, rename and remove, each refusing as the facade does
+ok 38 - O21: add, set, rename and remove, each refusing as the facade does
+  ---
+  duration_ms: 1.393
+  type: 'test'
+  ...
+# Subtest: O21: bind a feature's value; rename follows the use; remove keeps the value in place
+ok 39 - O21: bind a feature's value; rename follows the use; remove keeps the value in place
+  ---
+  duration_ms: 1.430958
+  type: 'test'
+  ...
+# Subtest: O21: features.parameters through the agent: add, bind, set — the volume follows; all or nothing
+ok 40 - O21: features.parameters through the agent: add, bind, set — the volume follows; all or nothing
+  ---
+  duration_ms: 29.079125
+  type: 'test'
+  ...
+# Subtest: O24 c: revolved sphere and cone, box edges, circular rims and face centres match closed forms
+ok 41 - O24 c: revolved sphere and cone, box edges, circular rims and face centres match closed forms
+  ---
+  duration_ms: 33.833542
+  type: 'test'
+  ...
+# Subtest: O24 c: edge merging preserves open arcs and refuses gaps between straight pieces
+ok 42 - O24 c: edge merging preserves open arcs and refuses gaps between straight pieces
+  ---
+  duration_ms: 0.497833
+  type: 'test'
+  ...
+# Subtest: O24 c: edge classification is invariant under translation and does not flatten a distant arc
+ok 43 - O24 c: edge classification is invariant under translation and does not flatten a distant arc
+  ---
+  duration_ms: 0.081208
+  type: 'test'
+  ...
+# Subtest: O24 c: a flat face with an off-centre circular hole has its analytic area centroid
+ok 44 - O24 c: a flat face with an off-centre circular hole has its analytic area centroid
+  ---
+  duration_ms: 3.770875
+  type: 'test'
+  ...
+# Subtest: O24 c: sphere and cone classification survives a large translation; a torus stays unmateable
+ok 45 - O24 c: sphere and cone classification survives a large translation; a torus stays unmateable
+  ---
+  duration_ms: 31.815083
+  type: 'test'
+  ...
+# Subtest: O24 c: cone/circle concentric, edge/plane coincident and sphere tangency solve without drift
+ok 46 - O24 c: cone/circle concentric, edge/plane coincident and sphere tangency solve without drift
+  ---
+  duration_ms: 53.998209
+  type: 'test'
+  ...
+# Subtest: O24 c: v2 assembly reads new references, adds a mate, saves, reopens and builds its joint tree
+ok 47 - O24 c: v2 assembly reads new references, adds a mate, saves, reopens and builds its joint tree
+  ---
+  duration_ms: 60.154875
+  type: 'test'
+  ...
+# Subtest: parameters: a feature value bound to a parameter reads its value; the part follows the parameter
+ok 48 - parameters: a feature value bound to a parameter reads its value; the part follows the parameter
+  ---
+  duration_ms: 96.497333
+  type: 'test'
+  ...
+# Subtest: rectangular cut pattern command: the real registry builds one append with original base and tool history intact
+ok 49 - rectangular cut pattern command: the real registry builds one append with original base and tool history intact
+  ---
+  duration_ms: 81.263875
+  type: 'test'
+  ...
+# Subtest: rectangular cut pattern command: invalid values and direct, missing, stale or suppressed selections refuse atomically
+ok 50 - rectangular cut pattern command: invalid values and direct, missing, stale or suppressed selections refuse atomically
+  ---
+  duration_ms: 54.946583
+  type: 'test'
+  ...
+# Subtest: datums from a STEP reference's faces against their closed forms (1e-9): the top plane, the hole's axis and radius, a vertex — placed and turned
+ok 51 - datums from a STEP reference's faces against their closed forms (1e-9): the top plane, the hole's axis and radius, a vertex — placed and turned
+  ---
+  duration_ms: 131.050292
+  type: 'test'
+  ...
+# Subtest: the reference is locked: no feature may use it (REFERENCE_LOCKED), it is not in the tree, the mass, the facts or the STEP export
+ok 52 - the reference is locked: no feature may use it (REFERENCE_LOCKED), it is not in the tree, the mass, the facts or the STEP export
+  ---
+  duration_ms: 37.440917
+  type: 'test'
+  ...
+# Subtest: a mesh reference: a datum plane from a flat region exact, an axis refused from it; its chord tolerance 0
+ok 53 - a mesh reference: a datum plane from a flat region exact, an axis refused from it; its chord tolerance 0
+  ---
+  duration_ms: 6.390208
+  type: 'test'
+  ...
+# Subtest: keep-out verdicts against closed forms: box ∩ box overlap 125 mm³ exact; a box 2 mm away; a cylinder 5 mm away within its chord tolerance undecided
+ok 54 - keep-out verdicts against closed forms: box ∩ box overlap 125 mm³ exact; a box 2 mm away; a cylinder 5 mm away within its chord tolerance undecided
+  ---
+  duration_ms: 17.271708
+  type: 'test'
+  ...
+# Subtest: the requirement query keepout (undecided within the chord tolerance), datum_distance, a sketch on a datum plane; the conformance case (a6/references/block-keepout)
+ok 55 - the requirement query keepout (undecided within the chord tolerance), datum_distance, a sketch on a datum plane; the conformance case (a6/references/block-keepout)
+  ---
+  duration_ms: 34.275917
+  type: 'test'
+  ...
+# Subtest: O75 (A6.3): datums as mate targets — a pin on an axis datum and flush on a plane datum through add_mate; get_assembly lists them on the base part; a point datum does not mate
+ok 56 - O75 (A6.3): datums as mate targets — a pin on an axis datum and flush on a plane datum through add_mate; get_assembly lists them on the base part; a point datum does not mate
+  ---
+  duration_ms: 15.859666
+  type: 'test'
+  ...
+# Subtest: signatures: written with a reference from the bodies it was picked on; a re-matched one is not refreshed
+ok 57 - signatures: written with a reference from the bodies it was picked on; a re-matched one is not refreshed
+  ---
+  duration_ms: 71.414791
+  type: 'test'
+  ...
+# Subtest: conformance a1-refs-ambiguous: A mate's signature as near two faces alike (the tops of two boxes): the document opens as it is; the mate is listed as needing a choice, with both.
+ok 58 - conformance a1-refs-ambiguous: A mate's signature as near two faces alike (the tops of two boxes): the document opens as it is; the mate is listed as needing a choice, with both.
+  ---
+  duration_ms: 3.266917
+  type: 'test'
+  ...
+# Subtest: conformance a1-refs-edit-reopen: A fillet's edge after a dimension edit (signatures refreshed by the accepted edit), then reopened: no reference is matched again.
+ok 59 - conformance a1-refs-edit-reopen: A fillet's edge after a dimension edit (signatures refreshed by the accepted edit), then reopened: no reference is matched again.
+  ---
+  duration_ms: 22.721125
+  type: 'test'
+  ...
+# Subtest: conformance a1-refs-gone: A fillet whose stored edge is gone (nothing alike its signature is left): the document still opens, that fillet is held (suppressed, saying why) and listed with its error, and the rest of the part builds.
+ok 60 - conformance a1-refs-gone: A fillet whose stored edge is gone (nothing alike its signature is left): the document still opens, that fillet is held (suppressed, saying why) and listed with its error, and the rest of the part builds.
+  ---
+  duration_ms: 5.843042
+  type: 'test'
+  ...
+# Subtest: conformance a1-refs-jitter: A signature 1e-9 mm off the face it names (a kernel's accuracy changed): the name stands, nothing is matched again.
+ok 61 - conformance a1-refs-jitter: A signature 1e-9 mm off the face it names (a kernel's accuracy changed): the name stands, nothing is matched again.
+  ---
+  duration_ms: 1.648375
+  type: 'test'
+  ...
+# Subtest: conformance a1-refs-mate-renumbered: A mate's stored face name now names another face (as a kernel numbering faces otherwise would), its signature the face it was picked on: on open, with no prior document, it is matched to that face again and marked.
+ok 62 - conformance a1-refs-mate-renumbered: A mate's stored face name now names another face (as a kernel numbering faces otherwise would), its signature the face it was picked on: on open, with no prior document, it is matched to that face again and marked.
+  ---
+  duration_ms: 0.604416
+  type: 'test'
+  ...
+# Subtest: verification preserves only aliases of the same live drawing edge, without accepting other matches
+ok 63 - verification preserves only aliases of the same live drawing edge, without accepting other matches
+  ---
+  duration_ms: 1.139458
+  type: 'test'
+  ...
+# Subtest: the setters change the copy only; untouched nodes are shared; the read-only walk is the document itself
+ok 64 - the setters change the copy only; untouched nodes are shared; the read-only walk is the document itself
+  ---
+  duration_ms: 1.509209
+  type: 'test'
+  ...
+# Subtest: modelHash: kept by the objects it reads, the same value as the whole walk
+ok 65 - modelHash: kept by the objects it reads, the same value as the whole walk
+  ---
+  duration_ms: 0.348083
+  type: 'test'
+  ...
+# Subtest: unsupported STEP length declarations refuse reference admission before evaluation and preserve accepted state
+ok 66 - unsupported STEP length declarations refuse reference admission before evaluation and preserve accepted state
+  ---
+  duration_ms: 24.662333
+  type: 'test'
+  ...
+# Subtest: supported STEP references keep exact source text and physical scale through the document codec
+ok 67 - supported STEP references keep exact source text and physical scale through the document codec
+  ---
+  duration_ms: 16.091209
+  type: 'test'
+  ...
+# Subtest: version snapshot identity: raw reads preserve the document and mutable version labels
+ok 68 - version snapshot identity: raw reads preserve the document and mutable version labels
+  ---
+  duration_ms: 1.171166
+  type: 'test'
+  ...
+# Subtest: version snapshot identity: key, revision and version-id edits refuse without rewriting the log
+ok 69 - version snapshot identity: key, revision and version-id edits refuse without rewriting the log
+  ---
+  duration_ms: 0.72725
+  type: 'test'
+  ...
+# Subtest: version snapshot identity: fast-forward checks the incoming raw snapshot before returning work
+ok 70 - version snapshot identity: fast-forward checks the incoming raw snapshot before returning work
+  ---
+  duration_ms: 2.147916
+  type: 'test'
+  ...
+1..70
+# tests 70
+# suites 0
+# pass 70
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 918.289375

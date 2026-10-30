@@ -1,0 +1,31 @@
+TAP version 13
+# Subtest: D319 Viewer keeps only active Geometry through camera changes, replacements, curves, dots and clear
+not ok 1 - D319 Viewer keeps only active Geometry through camera changes, replacements, curves, dots and clear
+  ---
+  duration_ms: 5033.315791
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-viewer/tests/viewer-browser.test.mjs:121:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    page.evaluate: RangeError: Fluid layer requires a qualified native scene
+        at check46 (http://127.0.0.1:63587/viewer.js:49507:18)
+        at Viewer2.setFluidFrame (http://127.0.0.1:63587/viewer.js:51116:5)
+        at eval (eval at evaluate (:311:30), <anonymous>:51:16)
+        at async <anonymous>:337:30
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    check46 (http://127.0.0.1:63587/viewer.js:49507:18)
+    Viewer2.setFluidFrame (http://127.0.0.1:63587/viewer.js:51116:5)
+    eval (eval at evaluate (:311:30), <anonymous>:51:16)
+    async <anonymous>:337:30
+    TestContext.<anonymous> (/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-viewer/tests/viewer-browser.test.mjs:133:28)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5111.739292

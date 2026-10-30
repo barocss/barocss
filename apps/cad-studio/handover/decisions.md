@@ -14693,3 +14693,2150 @@ studio 351/351.
 
 **Records.** `packages/barocss-cad/src/brep/analytic-boolean.ts` (`joinPieces`, `seamHalves`);
 `conformance/r10/translational-rod-across-disc.json`; `apps/library-docs/docs/how/naming.md` §4; research note §8.
+
+## D288 — One polynomial B-spline guide reaches Studio Loft (2026-10-28)
+
+**Result.** CG1.3's kernel WIP `bbc921cf7` now reaches Model/API, chat and the Studio Loft command. One copied
+polynomial guide takes 2–8 ruled height sections. Degree is 1–5, with at most 64 controls, clamped knots and exactly
+equal positive source weights. Controls must rise along the section normal. The guide must meet a vertex of each
+section. Two guides, smooth guided sections, general guides on explicit frames and rational guides remain open.
+
+**Model and Studio.** `copyLoftGuide` keeps the existing encoding of a single quadratic or cubic Bezier span. Other
+polynomial curves copy degree, knots and controls as `nurbs`. Arrays are independent snapshots. Loft uses height
+sections for a nurbs guide, sorted along the sketches' common normal. Existing Bezier guides keep their framed path.
+The HUD states the vertex condition. Chat documents the same guide fields. Raw height sections refer to sketches on
+one common plane; the HUD carries picked sketches onto that plane.
+
+**A kernel error found in the WIP.** Its section interpolation used parameter λ while height used Gz(λ). A taper
+therefore changed with the guide's height parameterization. The failing independent frustum oracle reported:
+`volume 2.7333333333333347 != 2.3333333333333335`. Rulings now use normalized height
+h(λ) = (Gz(λ) − Gz(0)) / (Gz(1) − Gz(0)), in both the control net and mass integration. Its basis coefficients are
+the normalized control heights. Each slice is the corresponding ruled slice translated by the guide minus its chord.
+The moment integrands, including dz, have degree at most 5p−1. The Gauss rule now uses
+max(2p + 2, ceil(5p / 2)) points per knot interval: 13 at degree 5, where 12 did not cover degree 24.
+
+**Independent oracles.**
+- The inherited six kernel guide cases use Cavalieri volume, independent de Boor/midpoint centroid integration,
+  strict B-rep validity, watertight triangles and typed refusals.
+- A square taper from width 1 at z=0 to width 2 at z=1, under a straight quadratic guide with nonlinear height:
+  V=7/3, centroid (45/56,45/56,17/28), exact rational inertia, and a native side point obeying x=1+z.
+- A degree-5 bow, x controls (0,−10000,10000,−10000,10000,0), z controls (0,.001,.002,.003,.004,1): independently
+  integrated rational power polynomials give its centroid and inertia. The wide bow exposes insufficient quadrature.
+- Two and three translated 10 × 10 squares under a two-span quadratic: V=2000, centroid (9,5,10), to 1e-9.
+- Public API, codec reopen, independent copied arrays and degree-1/4/5 copy cases. The taper's displayed Float32
+  vertices satisfy the six frustum planes and interior bounds. Its allowance is four Float32 ulps at unit scale.
+  An initial assertion on display face `kind` was discarded: representation labels do not prove geometric planarity.
+  No existing numeric tolerance or geometric expectation was loosened.
+
+**Source checksum tests retired (owner, 2026-10-28).** The owner questioned their need for this work. The two source
+pins in one `oriented-loft.test.mjs` case were removed. A source hash is not a geometry oracle. The first full run
+had 1960 pass, one obsolete source-pin failure and six skips (1967 tests). The corrected full run had 1963 pass,
+zero failures and six skips (1969 tests), including that source-only case. After its removal, 84 targeted tests
+(guide, oriented loft, NURBS demos and two native Split consumers) passed with filesystem-write diagnosis enabled.
+The pure source-read case was not removed by changing a geometric tolerance. No extra full run was made just for
+its deletion. Five one-time before/after B-rep + mass fingerprints stayed identical: plain square taper, smooth,
+circle frustum, quadratic framed guide and cubic framed guide. They are observations, not new frozen hash tests.
+
+**Browser.** Real Chrome, WebGPU, desktop 1440 × 900, DPR 1. An authored fixture loads through the file control.
+Loft selects its direct guide, previews, applies, undoes/redoes and reopens its saved file. Saved nodes equal the
+applied nodes; visible volume is 2000 and centre of mass is (9,5,10). This is browser execution on synthetic input,
+not person-input acceptance. The legacy rectangle-to-circle flow also passes. Stale runner selectors were corrected:
+the plane heading includes the tool name, the offset input must lose focus before C, History may be collapsed, and
+Static gravity precedes BODY. First failures: `page.waitForFunction: Timeout 30000ms exceeded.`, `NaN !== 2000`, and
+`page.waitForFunction: Timeout 20000ms exceeded.` Only failed steps and their startup prerequisite were rerun.
+
+**Environment and source restoration.** PR #2226 failed IV001 (`Canonical public inventory differs`). Reviewed
+regeneration changed 14 values for D285/D286's refusal types and the inherited guide type. Only fix `111b7d58c` was
+pushed under the owner's CI-fix permission. Checks passed; #2226 merged as `a780578a2`, then local/cad-dev fast-forwarded.
+The guide source returned to inherited content three times. The owner confirmed no other writer or open editor tab.
+The writer was not identified. A temporary manifest comparison was removed from normal verification. A Node write
+trace over the 84 targeted tests recorded only a TypeScript read. It does not establish the cause elsewhere.
+WIP commit `89fb7bf76` preserves the correction. After reapplying with the file-edit tool, the current-source geometry
+checks and final full checks passed; no further source reversion was observed in that verification window.
+No feature push, new PR or release.
+
+**Checks.** Node 22.19.0, through the heavy gate, one run at a time.
+- Kernel: `node scripts/tool.mjs build`, `node scripts/tool.mjs lint`, then
+  `node --test --test-concurrency=4 test/*.test.mjs`: 1963 pass, 0 fail, 6 skip, as qualified above.
+- Model: `TEST_CONCURRENCY=4 node scripts/test.mjs`: 1716/1716. Focused loft-guide 16/16 after the final geometry
+  assertions; tsc passes; src/test lint has 0 errors and 20 warnings.
+- Studio: `TEST_CONCURRENCY=4 node scripts/test.mjs`: 352/352. Chat focused 22/22; tsc passes; chat-test lint has
+  0 errors and 32 warnings on lines preceding the new block.
+- Current-source API guide test: 6/6 after the full runs. The final model/Studio run uses a temporary Node filesystem-call trace;
+  it records writes to the one source path and leaves arguments and return values unchanged.
+- Docs: `node apps/library-docs/scripts/agent-tools.mjs --check`, `refusals.mjs --check`, `check-docs.mjs`: pass (67 pages, 50 shots, 828 labels).
+- Browser: `CAD_STUDIO_CHAT_PORT=52591 CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+  PW_DIR=$HOME/.cache/barocss-playwright/node_modules/playwright FLOW_ONLY='CG1.3' node test/browser-flow.mjs <scratch>`.
+  Legacy Loft was rerun separately with `FLOW_ONLY='loft a rectangle'`.
+
+**Not run.** Full Studio browser suite, WebGL2 flow, mobile checks, GPU package suite, RB/fuzz/commutativity, and a
+performance A/B run. This is a guide correctness change; it makes no speed claim. Images and raw logs remain in the
+session scratchpad. No evidence files, local .claude settings or lockfile are committed.
+
+## D289 — Open fillets can run past a single polynomial Bezier face end (2026-10-28)
+
+**Problem.** On the quintic guided square loft used below, the plane and its neighbouring curved side meet along
+an open spatial curve. The rolling ball reached the body's end, but its solve surface stopped at the polynomial
+face's knot domain. A radius 0.5 face fillet failed with `CONTACT_LEAVES_FACE` near `(0, 0, 0)`.
+
+**Decision.** For the open-chain solve only, carry a degree 2–5, single clamped polynomial Bezier direction one
+quarter of its parameter range past each end. Two de Casteljau splits compute the controls of exactly the same
+polynomial on the wider interval; the knots move with them. Equal weights along that direction are required.
+Closed, multi-span and rational directions keep their existing treatment. The existing linear run and cylinder
+whole-turn paths remain. The body's source surfaces and trim loops are not replaced. Inside-trim allowance uses
+the original face domain, so widening the solve domain does not widen it. Contact/section fit tolerances and the
+4096-station ceiling are unchanged. Helpers live at module scope, with no new loop closures or dependencies.
+
+**Independent expectation.** A 20×20 square translated along
+`C(t) = (20t²(1−t)²(1−2t), 0, 20t)`, 0≤t≤1, has volume 8000. Its plane/curved-side corner is square. The round
+removes `r²(1−π/4) L`; the integrated signed-curvature term vanishes because both end tangents are vertical, and
+the end planes are normal to those tangents. Simpson integration of
+`sqrt(400 + (40t−240t²+400t³−200t⁴)²)` gives `L = 20.06333624702397` (4096/16384/65536 intervals agree at the
+shown precision). At r=0.5, expected volume is `7998.923592798254`, kernel output `7998.923592765548`.
+This expectation does not use kernel surface evaluation, fitted fillet controls or mass quadrature. The tests
+also cover either face order, r=0.25, native save/open, Model/API names and signatures, and Studio command admission.
+
+**Research boundary.** A scratch prototype that extended all polynomial spans preserved sampled source points
+within `9e-15`, but the multi-span fillet failed `APPROX_TOLERANCE_NOT_MET` at 4096 stations. It is not adopted.
+A direct ball tool on the non-adjacent quintic pair (over a smaller round) also succeeded in scratch, but the public
+feature still refuses that pair: a general, bounded corner-replacement contract and guide construction are not
+implemented. This decision does not close free-form face fillets as a whole or roadmap 07.
+
+**First failures preserved.** The new native-codec test initially passed a document where `saveCadPart` requires
+an evaluated snapshot: `error: 'malformed JSON'`, `code: 'FORMAT'`. It now follows the existing snapshot API.
+Model and browser save/open comparisons first found `+ 0` / `- -0` in computed face signatures. They now compare
+against JSON-normalised saved data; authored face names, radius and geometry checks remain. Kernel lint first
+reported `src/blend/polynomial-run.ts: loop-spread 0 → 2`; explicit three-coordinate copies remove both patterns.
+
+**Review corrections.** A small offset knot domain (`[1, 1+5*EPSILON]`) rounds the requested quarter-domain
+extension. Control computation now uses the actual represented new knots; the old ideal factors changed the endpoint
+by about 0.0357. A regression checks the original polynomial on that domain. A second regression covers a valid
+surface at the 1e6 geometry-coordinate boundary: an extrapolated control outside the existing limit makes the helper
+keep the original surface rather than causing `Coordinates must be finite and within 1e6 mm`. Unrepresentable end
+margins are also skipped. An independent read-only review found no further actionable defect after these fixes.
+
+**Verification.** Node 22.19.0, heavy gate, serial runs on the final source:
+- Kernel build and whole-source lint pass. Whole suite: 1974 total, 1968 pass, 0 fail, 6 existing skips. Six new
+  polynomial tests include the independent volume, codec, original-parameter preservation and domain/range guards.
+- Model: tsc and the new test's lint pass; whole suite 1718/1718. Studio: tsc and whole suite 352/352.
+- Real desktop Chrome/WebGPU, 1440×900 DPR1: an authored quintic loft fixture is opened; one face is selected by the
+  existing named-face test hook and the visible second face by Shift-click. Face fillet r0.5 previews and applies;
+  named faces and signatures are stored. Visible volume is 7999, Undo restores 8000, Redo and Save/Open restore the
+  accepted node and 7999. The rounded front corner is visible in the saved screenshot. This is synthetic browser
+  execution, not person-input acceptance. Only this flow and its startup prerequisite ran.
+- Agent tools/refusals checks pass without regeneration. Full docs pass: 67 pages, 50 shots, 829 labels. The first
+  docs run reported `studio/features.md: broken link /how/fillets/#5-face-fillets`; the link now uses `/how/fillets`.
+- One validation attempt used a package-relative path from the package directory, producing `FileNotFoundError`.
+  Its own test PID and children were stopped, then the corrected source was rebuilt and the final whole run passed.
+
+**Not run.** Full Studio browser suite, WebGL2/mobile flows, GPU package suite, RB/fuzz/commutativity, and a fillet
+performance A/B. This change makes no speed claim. The next thread work has only a fresh baseline/profile so far.
+No feature push, new PR or release; no screenshot/log/checksum manifests, local .claude files or lockfile are committed.
+
+
+## D290 — Stop a cached boundary scan once a sample is close enough (2026-10-28)
+
+**Decision.** `nearBoundary` in `brep-mass-quadrature.ts` returns true immediately when an existing cached sample's
+unchanged `Math.hypot` distance satisfies the unchanged `d <= near`. Previously all4×65 samples were scanned before
+returning the same result. When none qualifies, nearest-sample selection, strict-`<` tie handling and golden-section
+refinement remain unchanged. The loop reads cached arrays and never calls the surface evaluator; early success
+therefore preserves evaluator state too. No allocation, approximation, tolerance or dependency is added. The whole
+patch test, including all other boundary samples and perimeter checks, still runs as before. STEP bounds uses the
+same predicate. Independent read-only review found no semantic change.
+
+**Measurements.** Existing `perf-bench.mjs` cases, Node22.19.0, same local host, serial heavy gate. Two A/B series,
+median7 in fresh Node processes: shaft641→559ms (−12.8%) and674→581ms (−13.8%); tapped hole662→576ms (−13.0%)
+and649→572ms (−11.9%). External host load was not controlled. Separate V8 profiles show the intended scan's self
+sample time about0.42→0.21s. See [the conditions, full table and interpretation](notes/report-thread-boundary-early-hit-2026-10-28.md).
+
+**Acceptance.** Both series retain the existing whole-B-rep JSON fingerprints. Shape records retain validity,
+body/face/edge/vertex counts, volume and centroid. A separate snapshot retains every face/edge ID and name and all
+mass-property binary64 bit strings, including signed zero and inertia. The temporary snapshot's first assertion
+failed only because its readable JSON value wrote −0 as0; normalising that readable value on both sides while
+retaining every explicit bit string makes the comparison pass. No source checksum pin is added to the test suite.
+
+**Verification.** Build and whole kernel lint pass. Whole kernel:1974 total,1968 pass,0 fail,6 existing skips.
+Model `node scripts/test.mjs api-face-thread threads fasteners hole-thread-depth`:23/23. Agent-tools/refusals and
+whole docs checks pass (67 pages,50 shots,829 labels). No new implementation-mirroring unit test is needed for this
+pure early return; existing geometry, mass, thread, bounds and STEP tests plus exact result comparison cover it.
+
+**Not run.** Whole Model/Studio and browser flows were not repeated for this one-line optimisation; D289's earlier
+whole Model1718/1718, Studio352/352 and browser flow keep that earlier scope. Other performance cases, the old upper
+thread timing range, Studio latency, WebGL2/mobile/GPU, RB/fuzz and release were not measured or qualified here.
+No push, PR or release.
+
+
+## D291 — Replace a bounded polynomial corner strip with a larger round (2026-10-28)
+
+**Problem and scope.** D289's adjacent quintic round worked, but r0.5 across its existing r0.25 round still returned
+`FACE_FILLET_FACE`. The new path handles one planar face and one polynomial translational face, one face piece each,
+a convex square corner, an open regular guide, and exactly two planar end caps normal to its end tangents. The
+curved chart is linear across and has one clamped polynomial span of degree2–5 along the guide. Existing analytic
+corner restoration keeps priority. This does not close general free-form face fillets.
+
+**Exact admission.** The helper recognises planarity from all represented poles and proves parameter-normal
+orientation for regular polynomial translational charts. This includes the quintic fixture's planar side that
+`faceGeometry` currently classifies as `other`; the global classifier is unchanged. Row differences must be the
+same translation, parallel to the plane normal, with common positive weights. The projected intersection row is
+exactly a stored endpoint row, so its guide is copied without another rounding. Derivative-pole projection proves
+regular monotone progress. Exact Bernstein half-space signs keep the guide from re-entering either end cap.
+Input and result must be closed solid bodies.
+
+**Replacement proof boundary.** The old bridge must be one connected hole-free disk strip: Euler1, one boundary,
+no branching/seam edge, and exactly one chain per selected side/end cap in cyclic side-cap-side-cap order. The
+rolling ball starts with one face on each side; its returned non-deduplicated side list must still have length2.
+Complete, conservative Boolean provenance must exclude every old bridge face. New faces must come only from the
+tool's round faces and form the same strip against the selected sides/caps. Unrelated faces must each retain one
+singleton source, the same surface/sense/name and exact oriented curve/pcurve trim correspondence. A positive
+volume change above the existing body-relative floor and the kernel's strict checks are also required. These
+checks retain the kernel's sampling and fit limits; they are not a global mathematical solid certificate.
+
+**Provenance implementation.** WIP `37da7011f` adds an internal traced entrypoint; public options, package entrypoint
+and B-rep JSON are unchanged. A request-local WeakMap tracks original operand+face IDs through pieces, merging and
+cylinder seam splitting. Merged clusters retain a conservative source union. Every new Piece must inherit a receipt
+explicitly; missing data is incomplete. Final body/shell/face IDs are checked against build order. Only the final
+accepted result's receipt is returned. Source presence does not prove positive area contribution; source absence
+is the conservative removal check. Tests cover identical A/B IDs, split/reversed sources, plane/cylinder merging,
+freeze settings, cavity shells, empty results and an existing tangent fixture. They do not instrument a real
+freeze-fallback/rejudge branch count.
+
+**Protected representatives.** The first exact-trim attempt refused the fixture because one shared representative
+x moved19.999999999999957→19.999999999999915 while surface/curve/knots/pcurves were identical. Before any restoration,
+raw strict validity and complete sources are required. Unique cyclic curve correspondence builds global bijective
+edge/vertex ID maps. Exact squared distance must fit the minimum of source tolerance, result tolerance and the
+existing scale-aware linear limit. Only those proven corresponding representative coordinates are copied from the
+source into new vertex records; result IDs/tolerances stay intact. Both operands/raw result remain unchanged. Full
+strict surface/trim/vertex checks, strip checks and strict result validity run again. No tolerance is increased.
+
+**Evidence so far.** WIP `f6e265886`: build/lint, focused kernel19/19, Model3/3 and desktop Chrome/WebGPU pass. The
+independent oracle is D289's swept-square corner: `8000−r²(1−π/4)*20.06333624702397`; expected r0.5 volume
+`7998.923592798254`. Face pick order, native/API Save/Open, source immutability, exact protected coordinates,
+equal/smaller-round refusal, cap holes and sheet metadata are covered. Real Studio uses the existing named-face
+hook for the first pick and Shift-click for the visible second: preview/apply, Undo/Redo and Save/Open pass; visible
+volume7999, Undo to the smaller round8000. This is synthetic browser execution, not person-input acceptance.
+
+**First failures.** Initial kernel candidate:18 total,14 pass/4 fail with `FACE_FILLET_FACE` and `assert.ok(output)`:
+the exact plane check was gated on the narrower global classifier. After coefficient admission:19 total,16 pass/
+3 fail with `[FACE_FILLET_NOT_CLEAR] an unrelated face or its oriented trim changed during polynomial corner
+replacement`. Inspection found the representative drift above. The protected-coordinate restoration makes19/19
+pass. The Model replacement baseline similarly began2 pass/1 `FACE_FILLET_FACE` failure, then passed3/3.
+
+**Final verification.** The serial Node22 window on the combined WIP source at `cf3d02151` passes kernel build,
+whole kernel lint and1987 tests:1981 pass,0 fail,6 existing skips. Model tsc, changed-file lint and1729/1729 pass;
+Studio tsc and352/352 pass. The earlier focused desktop Chrome/WebGPU startup+replacement flow used the same
+unchanged replacement source; its saved reopened image was inspected. Full browser, WebGL2/mobile/GPU, RB/fuzz
+and release were not repeated. Final generated-tools/refusals and whole docs results are recorded with D292.
+
+**Remaining.** General pairs, concave corners, multiple pieces per support, rational/multi-span guides, cap/side
+holes, other contacted faces, ambiguous provenance and protected reparameterisation remain refused. No feature
+push, PR or release.
+
+## D292 — Read bounded static TrueType data from the selected font originals (2026-10-28)
+
+**Decision.** `engine/font/trueType.ts` reads an independent copied Uint8Array snapshot and returns metrics plus one
+Unicode scalar's glyph ID, advance, bearing and unhinted on/off quadratic contour points in font design units.
+`copyBytes` and every glyph query return independent data. Metrics are frozen. The existing BarocssError class
+carries local TTF codes and `details.source='true-type'`. The package export map is unchanged; its existing wildcard
+exposes this engine module's six type declarations and two functions. No document schema or UI is changed.
+
+**Profile.** One static sfnt with head/maxp/hhea/hmtx/cmap4-or12/short-or-long-loca/glyf; format12 has priority.
+Simple delta/repeated flags and limited XY composites with affine transforms are supported. Nonidentity transform
+plus nonzero offset needs an explicit offset policy. Instructions are bounded and skipped. No missing-glyph
+substitution occurs; mapped space can remain empty. WOFF/CFF/TTC/variable fonts, point attachment, ROUND_XY_TO_GRID,
+USE_MY_METRICS, conflicting/reserved flags, malformed extents, cycles and budget excess are explicitly refused.
+Overlap flags are reported; their absence does not certify disjoint contours.
+
+Budgets:8MiB input,64 tables/encoding records,65536 cmap12 groups/expanded points,4096 contours,256 components,
+512 glyph visits and16 component levels per query; finite coordinates within2^31 design units. Source length uses
+an intrinsic typed-array getter before allocation; detached/proxy/prototype-disguised input is typed as TTF_INPUT.
+No runtime dependency, WASM, built-in glyph data or copied standards table is added.
+
+**Originals and oracle.** The owner delegated selecting open-source fonts. Unmodified ABeeZee Regular, Nanum Gothic
+Regular and Nanum Myeongjo Regular plus OFL originals are in fixture commit `9fe4be221`, pinned to Google Fonts
+commit133ccbee9a8b408eb71f31a36ccb9116f5c695ad. Their glyphCount/unitsPerEm are268/1000,13297/1000,14695/1024.
+Independent fontTools4.67.0 was already present in a local uv cache; it was used read-only, with no installation or
+candidate import, to extract limited real-font observations. Small expectations cover Latin, space, precomposed
+Korean and a supported XY composite; ABeeZee's USE_MY_METRICS composite is an explicit refusal. Authored format4/12,
+loca, delta/repeat, transform, snapshot, malformed/cycle/budget fixtures cover parser boundaries. No source or font
+checksum pin is used as a functional glyph test. Original extraction notes/data remain in the session scratchpad.
+
+**Evidence so far.** WIP `cf3d02151`: Model tsc/lint and10/10 focused tests pass. The parser lives under the engine
+implementation rather than opening a top-level text module before recipe integration.
+
+**Final verification.** The shared serial Node22 window passes kernel build/lint and1981 pass/0 fail/6 existing
+skips (1987 total), Model tsc/changed-file lint and1729/1729, Studio tsc and352/352. This data reader adds no Studio
+flow; the earlier browser result belongs to D291's replacement feature. Generated-tools/refusals and whole docs
+checks pass after the reviewed inventory refresh:67 pages,50 shots,829 labels. The original IV001 output remains
+in `/tmp/barocss-d291-d292-docs.log`; final logs use the `-final.log` suffix. No new full browser, actual font
+asset/file workflow, WebGL2/mobile/GPU, RB/fuzz or release validation is implied.
+
+**Inventory review.** The first docs check reported IV001, `Canonical public inventory differs`, at
+`$.coreResultChecks[0].directMembers[30].type`: expected `"planar" | "upright" | "faceted" | "curved"`, actual
+`"planar" | "curved" | "upright" | "faceted"`. The regenerated inventory changes6689→6697 exposures: the reader's
+six types/two functions, no removals. Existing374 rows have445 textual fields changed;78 are union order and367
+are TypeScript's escaped well-known-symbol IDs (iterator308, unscopables51, toStringTag8). The core-result union
+adds one more notation field. A separate TypeScript AST comparison preserves nested structure and all tokens
+except direct union-child order; all446 notation differences are equivalent. Existing calls/returns/members,
+readonly/optional flags, declarations, conditions, roles and targets have no other change. The generator itself
+is unchanged. Review artifacts remain under `/tmp/barocss-d291-d292-api-inventory-review.*`.
+
+**Not implemented.** Font asset persistence/worker transfer/recovery, text profiles, normalization/shaping/kerning/
+bidi, flattening and nonzero-fill classification, model-coordinate conversion, emboss/wrap and Studio text input.
+Font coverage is not equivalent to this reader's admitted composite profile. No push, PR or release.
+
+## D293 — Carry original byte assets through the existing blob paths (2026-10-28)
+
+**Decision.** Add `Uint8Array`/`u8` to BlobArray, the blob store and the current BCADPACK codec. Byte chunks use
+width 1 and bounded integer counts. Base64, worker data, recovery and container Save/Open reuse the existing
+paths. Container version stays 1; document schema handling is unchanged. No top-level font registry, dtype hash namespace,
+runtime dependency or WASM is added. Existing raw-byte content addressing is unchanged.
+
+**Font ownership.** `engine/font/source.ts` admits only the explicit descriptor `{blob,filename,source?,license?}`.
+`fontFromBytes` copies and validates input bytes and metadata before its first await, stores the original bytes,
+then checks the stored byte view. `readFontSource` always reads an explicit Uint8Array view, even when a same-byte
+cache entry has another array class; the TrueType reader makes its own snapshot. Metadata is preserved as
+supplied. It does not establish a license or glyph coverage.
+
+**References.** `fontRefs` and `blobRefs` share traversal of nodes, instances, pending parts and open proposals.
+The precise prepared `run_command`/`text` font-JSON boundary is collected through existing nested apply_ops/propose
+paths. JSON is bounded to 512KiB in UTF-8; malformed values are skipped without breaking collection. This is
+conservative asset retention, not text admission. Accepted/rejected proposals do not retain assets alone. Undo
+documents, base64/recovery and native Save/Open keep referenced font bytes. Templates explicitly refuse such
+documents because their current path cannot carry fonts; existing raw stored template entries are preserved.
+
+**Evidence.** Checkpoint `0f836e8f2` includes focused Model 63/63 and Studio 15/15 for the integrated text boundary.
+Synthetic u8 chunk tests exercise the codec without claiming a font workflow. Actual font workflow evidence is
+recorded in D295. The initial upload fixture path failed with 1 pass/2 fail:
+`ENOENT: no such file or directory, open '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-studio-test-rqXat6/fixtures/fonts/abeezee/ABeeZee-Regular.ttf'`.
+Using the test source cwd fixed the path: 3/3 then 4/4 with the later upload boundary case. The original log remains
+in `/tmp/barocss-font-upload-focused.log`. No source/original-font checksum pin is used as a glyph test;
+content-address integrity remains required. Final combined verification passes: kernel1981/0/6 skips (1987 total), Model1792/1792, Studio364/364;
+generated tools/refusals and whole docs pass (68 pages,51 shots,838 labels). See D295 for source and inventory scope.
+
+## D294 — Build bounded line profiles from original TrueType quadratics (2026-10-28)
+
+**Decision.** `engine/font/profiles.ts` converts a scalar run using explicit em size, tracking and chord tolerance.
+The original input string and font stay authoritative. Implied on-curve points and recursive quadratic subdivision
+produce native line profiles; the bound includes arithmetic uncertainty. Tolerance is never enlarged. Size means
+em height in mm, not ink bounds; tracking is added between scalars only. Browser glyph rendering is not used.
+
+**Topology and limits.** Separation/control-hull checks precede the kernel nonzero-fill arrangement. Each glyph
+occurrence returns components with their own outer boundary and holes, so an island inside a hole survives as a
+separate component. Profiles are not globally unioned here. The run admits at most 256 printable Unicode scalars,
+4096 contours, 65536 raw points per glyph, 4096 flattened glyph segments, 8192 run segments, 1048576 pair-work steps
+and 20 subdivision levels. Native loops are bounded to 1024 segments and edges at least 1e-4 mm; coordinates stay
+within 10000 mm. Tolerance must be finite, at least 1e-7 mm and no greater than size/8. Unsupported topology,
+uncertain boundary proximity and excess work are typed refusals, not permission to relax tolerance.
+
+**Evidence.** Profile checkpoint `8dbd9103d` passed Model tsc/lint, eight profile tests and ten reader tests
+(18/18 combined). Limited independent
+fontTools4.67.0 metrics/area/topology observations complement authored boundary fixtures and native geometry
+checks. These observations cover selected glyphs, not all glyphs in ABeeZee/Nanum Gothic/Nanum Myeongjo or arbitrary
+fonts. No glyph coordinate tables or original-file checksum baselines are embedded in runtime code. The original
+fonts/OFL remain unchanged in `9fe4be221`. Shaping, kerning, bidi, normalization and hinting are not implemented.
+Final combined verification passes: kernel1981/0/6 skips (1987 total), Model1792/1792, Studio364/364;
+generated tools/refusals and whole docs pass (68 pages,51 shots,838 labels). See D295 for source and inventory scope.
+
+## D295 — Keep standalone Text editable from its source after Save/Open (2026-10-28)
+
+**Decision.** The current-schema standalone `kind:'text'` node stores text, FontSource, em `size`, positive `height`,
+explicit `tolerance`, optional `tracking` and optional `plane`. Existing NodeExtras and Dim bindings are preserved.
+No parent/Made authority, new schema or container version is introduced. Component sketches and positive extrusions
+feed the existing union contract; one component uses an identity placement. The final native ID is the authored
+Text ID. Generated glyph-occurrence/component IDs map internal names back to that authored feature. One authored
+output can contain several separate physical bodies. Complete-part 512-feature, coordinates, plane, loop and hole
+budgets are checked before evaluation. Empty/space-only runs and zero drawable components are refused.
+
+**Consumers.** `StudioPart.text(font,text,{size,h,tolerance?,tracking?,plane?})` creates a fresh output and keeps
+existing bodies. The Text command/upload/HUD, source editing, parameter bindings, ID/remap/merge/assembly/flatten,
+proposal/blob retention and save/recovery paths consume the recipe. Font metadata remains supplied data. The HUD
+omits numeric edits for bound dimensions; use Parameters. Templates refuse font sources explicitly. No fallback
+font, normalization, shaping, kerning, bidi, text emboss/engrave or wrap is claimed.
+
+**Focused and browser evidence.** Implementation checkpoint `0f836e8f2`: Model 63/63, Studio 15/15. Actual desktop
+Chrome/WebGPU at 1440x900/DPR1 passes startup and flows 34/35. ABeeZee ` A ` at default em 10/h 2 gives volume 29.7594;
+editing to ` AA ` gives 59.5188, keeps the later Box, and passes Undo/Redo. Raw-TTF BCADPACK Save/Open keeps the source and
+allows editing again. Nanum Gothic and Nanum Myeongjo `가한` at em 20/tolerance 0.002/h 2 both create and reopen.
+The unchanged public shot is `/shots/studio/features/text-applied.png` (178171 bytes). The 261007-byte Myeongjo
+reopened original exceeds the public shot cap and is preserved under `notes/text-solid-2026-10-28/` instead.
+These are automated browser actions, not human-input acceptance or full-font certification. Composition Enter
+guards use synthetic events; native OS IME input is **NOT RUN**.
+
+**First failures.** Model type checking initially reported the following errors:
+
+```text
+src/engine/part.ts(469,137): error TS2345: Argument of type 'number' is not assignable to parameter of type '512'.
+test/text-solid.test.ts(49,115): error TS2769: No overload matches this call.
+```
+
+Explicit numeric allowance and a defined assertion message fixed them. Lint reported `'_tracking' is assigned a value but never used  @typescript-eslint/no-unused-vars`;
+the unused binding was removed. Initial focused execution had 41 pass/1 file fail:
+`TypeError: Cannot read properties of undefined (reading 'values')`.
+The missing `text` COMMAND_DOCS entry caused tool-definition boot failure; adding it fixed the integration.
+Original logs remain under `/tmp/barocss-text-recipe-{types-first,lint-second,focused-third}.log`.
+
+**Final verification.** The serial Node22 window on `0f836e8f2` passes kernel build and whole kernel lint;
+1987 kernel tests give1981 pass,0 fail,6 existing skips. Model tsc and1792/1792 pass; Studio tsc and364/364 pass.
+Changed Model/Studio source lint, including the final edit guard, passes. Browser flows above used the same frozen
+runtime source; only documentation and generated artifacts changed after the implementation checkpoint.
+Generated agent-tools/refusals checks and whole docs pass:68 pages,51 shots,4035KiB of shots,838 labels.
+Logs use `/tmp/barocss-text-final-{kernel,model,studio}*` and `/tmp/barocss-text-{tools,refusals,docs}-final.log`.
+
+**Generated review.** Agent-tools was current. The refusal check first reported
+`docs/reference/_refusals.md differs from the sources: run node scripts/refusals.mjs`; regeneration adds engine
+use of BAD_VALUE and the engine LIMIT row, with no other catalogue change. API inventory6697→6729 adds exactly32
+expected exports, removes none and changes19 fields across10 existing rows for intentional Text/Field/u8/helper
+contracts. The six changed member arrays retain all618 old records and add30. There is no notation-only drift,
+unclassified difference or unrelated semantic change. The artifact review's169 checks are metadata comparison,
+not runtime tests. The package export maps and inventory generator are unchanged. See the persistent review under
+`notes/text-solid-2026-10-28/api-inventory-review.md`; scratch baseline/candidate/script paths remain in that report.
+
+**Not run and remaining.** Full browser suite, WebGL2/mobile/GPU fault matrix, RB/fuzz, native OS IME and arbitrary
+fonts/all glyphs are not qualified here. Text emboss/engrave and wrap are not implemented in this checkpoint.
+No push, new PR or release. Next decision: **D296**.
+
+## D296 — Bound text emboss/engrave to one supported +Z cap (2026-10-28)
+
+**Decision.** Add native `profile-relief` over existing component sketches, and Model `kind:'text-relief'` over the
+original scalar/font source. The authored modifier stores parent, exactly one exact unmerged faces name,
+text/FontSource/em size/flatness/tracking, world-XY baseline at, positive depth, mode and existing NodeExtras/sigs.
+There is no plane, copied top Z, Made authority, font registry, schema/container version bump or runtime dependency.
+The default font is still absent. Existing standalone Text expansion, IDs and disconnected-body semantics stay
+separate; relief requires one physical solid before and after.
+
+**Native support and checks.** One native line-only upright slab with a closed strict-valid B-rep is admitted.
+The selected exact face must be a +Z plane at its current top. Its outer/inner oriented loops define F; the actual
+slab material including holes/concavities defines M. For every filled component C, exact finite-polygon checks
+require C minus M and C minus F empty. Full polygons are used, not a bounding box or only vertex containment.
+Requested font flatness is additional clearance above the existing scale-aware native linear policy; the exact
+sum is rounded upward. Native tolerance is not enlarged. Pair separation accounts for both component bounds.
+Overlapping/touching/near components and partial/floating support are refused before any temporary operation.
+
+Emboss requires a represented positive raised height and basal seat. Engrave depth stays below the slab thickness
+and leaves a bottom web above native linear policy. All levels and coordinates must be representable and bounded.
+Each component needs full positive basal overlap and the intended signed area-times-represented-depth change.
+Direct emboss slabs or one batched 2D engraving difference commit only after one closed physical result and strict checks. Rational slab/straight-B-rep
+volume agreement and bounded reported mass error are audited; this is not full set equivalence or a universal
+geometry certificate. A caller forcing mutation through readonly output types is not protected by runtime freezing.
+The split-coplanar-cap regression exercises the internal helper, not an independently authored public native document.
+
+**Remove duplicate work without raising limits.** Exact orientation reuses the existing homogeneous predicate and
+request-local point cache. Dyadic area sums integer crosses at one common power-of-two denominator and calls rat
+once. Directed-endpoint multisets provide a linear boundary fast path, with exact split/merge coverage fallback.
+Emboss constructs supported slabs without Boolean calls; engrave performs one batched planar difference. Exact
+oriented frontier equality checks the complete source-minus-component boundary, including counters; a dyadic 3D
+audit checks the straight B-rep volume. Existing numeric policies and work/count/bit limits stay unchanged.
+
+**Model and consumers.** The shared original-font/profile pipeline retains component-local holes. Relief emits one
+default-XY/Z0 sketch per translated component and one final profile-relief with clearance=tolerance and individual
+expect, within 64-component/512-native-feature and existing profile/coordinate budgets. Generated sketch IDs map to
+the authored modifier only in the proper node context, with exact authored IDs first. A missing selected signature
+is structurally readable but native expansion refuses BAD_REFERENCE; editor/API capture before evaluation.
+Reference signatures identify the authored selected face, not fixed geometry: an ordinary source-height edit can
+track its new top. Parent/uses/output/suppression/active-orphan, flatten/remap, current reader, source refs/proposals,
+worker/recovery/container and parameter paths consume the recipe. Text/font remain opaque during remapping.
+
+The public call is `.textRelief(b=>b.faces().facing('+z'),font,text,{size,depth,at:[x,y],mode,tolerance?,tracking?})`.
+Studio provides Text relief with original font/text, em size, depth, flatness, tracking, baseline X/Y and operation.
+Bound dimensions are edited through Parameters. Font metadata remains supplied values. Full fonts/glyphs, curved or
+general faces, rational/smooth wrapping, shaping, kerning, bidi, normalization and hinting are not qualified.
+
+**Final runtime evidence.** Runtime source is fixed at `62069bbd1`. Kernel build/lint and 19/19 related tests
+pass. The final whole run has 2000 total/1994 pass/0 fail/6 existing skips (256904.582958 ms). Model tsc and
+1822/1822 complete tests pass (239424.624417 ms); Studio tsc and365/365 complete tests pass (24200.915291 ms).
+Focused Model75/75 and Studio35/35 pass. Changed-source lint has zero errors; 32 pre-existing chat.test.ts any
+warnings remain, with no new test any added. The earlier initial kernel1994/0/6 run predates the final helper.
+
+Actual desktop Chrome/WebGPU1440x900/DPR1 (canvas1140x900) startup and flows36/37 pass. Latin A at tolerance0.002
+covers supported emboss, outside-stroke refusal preserving the base, History mode/depth edit, Undo/Redo,
+BCADPACK Save/Open and re-edit with the original font. Both Korean originals cover 가한 emboss/engrave at
+explicit tolerance0.01 and Save/Open. Later-node preservation is a Model fixture; these new browser flows do
+not exercise an additional later independent body. Unmodified original screenshots are saved in the evidence
+folder and docs/public. Native OS IME, full browser/GPU matrices and arbitrary fonts/all glyphs are NOT RUN.
+Generated tools/refusals/inventory checks pass. Docs pass:68 pages/53 shots/4488 KiB/852 labels.
+
+The independent ABeeZee A area is 148797 design units squared at unitsPerEm 1000. On 40x30x10 at [5,5], em 10/depth 2,
+fixed reference volumes are 12029.7594 emboss /11970.2406 engrave, one physical solid. Native/API/codec/refs A checks
+pass in the focused Model set. Both selected Korean fonts pass `가한` emboss/engrave at em 10/at [5,5]/depth 2 and
+the explicit default tolerance 0.01. Myeongjo engraving at 0.002 remains an INPUT work-budget refusal with the node
+tolerance 0.002 unchanged. The 75-test set includes this refusal. No automatic flatness relaxation occurred.
+
+The reviewed public inventory has 6737 keys: 8 new, 0 removals/duplicates. Existing 36 rows change 53 fields: 12 intended
+semantic changes and 41 union-order AST notation differences; the top-level kind addition is one separate change.
+All 847 prior members remain and 9 are added. The 212 contract checks pass. This inventory review is not browser or
+geometry evidence. D295 standalone browser flows do not qualify relief. No push, PR or release.
+
+**First failures.** The first focused run could not load `test/profile-relief.test.mjs:196`: an authored join string
+contained an unintended newline. The original output was:
+
+```text
+# SyntaxError: Invalid or unexpected token
+```
+
+After fixing the string, 12/13 passed. The circle/arc capability case was classified as INPUT before CAPABILITY,
+and the assertion reported:
+
+```text
+The validation function is expected to return "true". Received false
+
+Caught error:
+
+CadPartError: relief: profile relief needs 3..1024 line edges per loop
+```
+
+Checking unsupported curves before line-count admission fixes the typed refusal order; focused 13/13 then pass.
+Original logs: `/tmp/barocss-text-relief-kernel-focused-{first,second,third}.log`; related 19/19:
+`/tmp/barocss-text-relief-kernel-related.log`. The first Model type check then reported:
+
+```text
+src/app/textReliefCommand.ts(50,46): error TS2345: Argument of type '"TEXT_RELIEF_PICK"' is not assignable to parameter of type 'CadModelCode'.
+test/text-relief-command.test.ts(77,229): error TS2345: Argument of type '{ mode: string; depth?: undefined; x?: undefined; y?: undefined; text?: undefined; font?: undefined; } | { depth: number; mode?: undefined; x?: undefined; y?: undefined; text?: undefined; font?: undefined; } | { ...; } | { ...; } | { ...; } | { ...; }' is not assignable to parameter of type 'Values'.
+  Type '{ mode: string; depth?: undefined; x?: undefined; y?: undefined; text?: undefined; font?: undefined; }' is not assignable to type 'Values'.
+    Property 'depth' is incompatible with index signature.
+      Type 'undefined' is not assignable to type 'string | number'.
+```
+
+Root registered TEXT_RELIEF_PICK in the existing CadModelCode union and annotated the invalid command fixture
+array as Values[]. Those fixes are applied; the second Model type check passes. Original output:
+`/tmp/barocss-text-relief-model-types-first.log`. **Integration attempts and retained limit.** Focused Model runs first–fifth each had 74 tests, 73 pass/1 fail on
+the original tighter Korean request. First/second failed exact arithmetic; third reached repeated native Boolean
+work, fourth exact coverage work, and fifth pocketRegions work. Their original error outputs were:
+
+```text
+error: 'n2: profile relief: Exact rational operation budget exceeded'
+code: 'INPUT'
+```
+
+```text
+error: 'n2: profile relief exceeds its boundary/Boolean work budget'
+code: 'INPUT'
+```
+
+The first two logs identify orient/inRing and area respectively; the next three identify nativeBoolean, covered/
+sameBoundary and pocketRegions. A wrong local edit path left the old test unchanged before the sixth run, which
+repeated 73/74 rather than testing the intended update. The original edit error was `FileNotFoundError: [Errno 2] No such file or directory: 'packages/barocss-cad-model/test/text-relief-engine.test.ts'`;
+the sixth native failure remains in its original log. The seventh run explicitly changes the admitted Korean
+fixture to 0.01 and adds a separate 0.002 unchanged-tolerance refusal: 75/75 pass. It does not turn 0.002 into success.
+Original logs: `/tmp/barocss-text-relief-model-focused-{first,second,third,fourth,fifth,sixth,seventh}.log`.
+
+The batch kernel candidate first passed 18/19 with `Missing expected exception.`: 64 small components no longer
+exhausted redundant work. The replacement positive fixture proves 64 components, volume 11710.72, strict validity
+and one physical body; 65 components still refuse, and a separate 1024-edge request still refuses the work budget.
+After separating count/work admission from the old duplication-dependent expectation, 19/19 pass. Original logs:
+`/tmp/barocss-text-relief-kernel-focused-batch{,-second}.log`.
+
+The performance report is `notes/report-text-relief-performance-2026-10-28.md`. One paired RUNS=7 comparison gives
+emboss 7→6 ms (-14.3% from rounded medians) and engrave 6→6 ms. Both B-rep fingerprints remain
+09a6c59c60709781/e00ff354203f64ff. Strict validity, one physical body, face/edge/vertex counts, sorted face/edge names,
+volume and centroid shape records are SAME. This single pair and integer-ms rounding do not establish a stable
+speedup or Studio latency improvement. Final logs: `/tmp/barocss-text-relief-perf-final.log` and
+`/tmp/barocss-text-relief-shape-final.log`. Final runtime evidence above qualifies the fixed source; earlier failures remain separate observations. Final generated checks pass: tools/refusals/inventory; docs68 pages/53 shots/4488 KiB/852 labels. Refusal
+regeneration added TEXT_RELIEF_PICK. First docs check failed with `studio/features.md: the label **Baseline X/Y**
+is not in the studio's sources`; the actual separate labels resolve it. Original failure blocks and screenshots
+are preserved in `notes/text-relief-2026-10-28/`. No push, PR or release. Next decision: **D297**.
+
+
+### D296 follow-up — edit-time face registry (2026-10-29)
+
+`text-relief` was missing from `engine/rematch.ts`'s named-face registry even though capture/open references
+were registered. Add the existing kind. Two new bounded matcher tests first fail0/2 (`0 !== 2` and
+`error: 'ambiguous'`); after the one-line fix focused53/53, Model types/changed lint and complete
+Model1824/1824 (225281.689292 ms)/Studio365/365 (23673.303125 ms) pass on Node22.19.0. Authored replacement
+names on an actual box qualify registry dispatch, unique/ambiguous/gone matching and source immutability;
+they do not qualify an actual native topology-renaming browser flow. No new browser or kernel-geometry run
+for this Model-only fix. Source base739978a27; unrelated private wrap WIP is outside these results.
+Original failure/output boundaries: `notes/text-relief-rematch-2026-10-29/README.md`. No push, PR or release.
+
+## D297 — Private cylindrical inverse map and rational trim composition (2026-10-29)
+
+**Decision.** Adopt the private foundations in `features/cylindrical-wrap-map.ts` and
+`features/cylindrical-wrap-curve.ts`, with the native carrier connection fixture. The map certifies exact
+Bernstein/atan interval bounds on the original stored near-quarter, its radial/length defect and nominal
+piecewise-affine arclength approximation; exactly representable native U values retain the original domain.
+The composer normalizes native UV only in exact rational arithmetic, builds a degree-three homogeneous
+curve and certifies its stored coefficient cross-residual, including shared endpoint overrides. The edge
+and original-UV pcurve retain the same canonical parameter direction. Original coefficients and existing
+linear/exact/work budgets are not changed. These modules are not exported through the public index.
+
+The native fixture keeps the actual positive-Y semicircle's direct-copy quarter U=[0,0.5]. Both native
+semicircles start at +X; the first fixture selected the negative-Y carrier with its one-ulp-different
+middle weight. First focused result33/34 reported unchanged SUPPORT:
+`Cylindrical wrap map: One rational quadratic quarter with native weight bits[1,sqrt(1/2),1] is required`.
+Selecting the geometrically intended original positive-Y carrier repairs the fixture without widening
+admission or regenerating any poles. Final focused34/34 and whole2022 total/2016 pass/0 fail/6 existing
+skips pass (272290.539416 ms), after Node22.19.0 build/changed lint. Generated tools/refusals pass and the
+unchanged inventory returns its six-rule SCOPED_PASS. Original outputs and independent read-only reviews:
+`notes/cylindrical-wrap-foundation-2026-10-29/README.md`.
+
+This is not a wrapped B-rep, physical solid, native Part feature, Model/API or Studio implementation.
+The exact affine/stored-rational receipts do not certify global Number evaluation, source producer
+provenance, trim embedding, side Jacobian, topology, aggregate glyph work or mass properties. Source-body
+validity/volume assertions in the connection test concern only the original cylinder. Samples are regression
+observations, not production admission proofs. Model/Studio/browser are NOT RUN for D297; D296's results
+remain attached to runtime62069bbd1. Performance is NOT RUN and no speedup is claimed. No push, PR or release.
+Next decision: **D298**, bounded native wrapped-solid provider and its independent topology/mass proof.
+
+
+## D298 — Private native cylinder diagnostics and added-band moment bounds (2026-10-29)
+
+**Decision.** Adopt internal source/assembly/moment helpers on runtime `0edecf9d5`. They do not add a native
+Part feature, Model/API/Studio command or qualified physical wrap. Native single-slab source and every cached
+B-rep field/bit must match the existing producer; its real second half-turn parameters and original negative-Y
+weight are retained. Historical producer authenticity is false. The separate coefficient-only UV source skips
+unused inverse work; selected complete full-map receipts/counts/refusals match739978a27. A native R100 inverse
+at tolerance0.01 still refuses BUDGET; UV coefficient admission does not satisfy that inverse request.
+
+The assembly is original-native-UV rectilinear, strictly separated, factor2 XY only (height=radius), with
+counter basal faces and protected original records. XY-projection templates, exact affine Z, direct unit-weight
+vertical cubics, exact dyadic angular coefficients, canonical pcurve directions, shared edges/endpoints and
+repeated-ray reuse retain the whole-span stored-model bounds. Native tolerance is unchanged. The ring+stroke
+strict diagnostic has V28/E42/F19/L22/coedges84, one body/shell, genus0, and185431 aggregate operations under
+200000. `solidQualified`, represented-volume, general-text and global-evaluator flags remain false.
+
+A separate helper encloses ten scale2 added-band raw moments over at most8 explicit disjoint parameter
+rectangles. Exact native-domain normalization, signed Z integration, outward128-bit Leibniz/quotient derivative
+bounds and the Simpson fourth-derivative theorem cover remainder/rounding. Raw homogeneous integer node
+fractions match selected prior receipts exactly and preserve200k/8192-bit limits. An actual native rectangle at
+panels8 has added V2192.3394307508997 +/-1.9005899585893957 using180216 operations. This is neither full source
+nor assembled B-rep mass; the width does not establish native geometry precision. No combined assembly+mass
+request, arbitrary ring cover, centroid/inertia propagation or general glyph embedding is qualified.
+
+Node22.19.0 build/changed lint and49/49 focused pass. Whole kernel2049 total/2043 pass/0 fail/6 existing skips
+passes (248547.438375 ms). Tools/refusals and unchanged six-rule API inventory pass. Earlier assumptions,
+TS2322, frozen fixture, propagated map-BUDGET and actual work-budget failures are retained unchanged in
+`notes/cylindrical-wrap-native-2026-10-29/README.md`. Successful checks qualify only the final source.
+Model/Studio are NOT RUN for D298; their previous1824/1824 and365/365 belong to76a5d5c59's text-relief rematch
+correction. Browser/performance benchmark are NOT RUN. No latency/stable-speedup claim, push, PR or release.
+Next decision: **D299**, diagonal embedding and the complete native error/mass contract before product wiring.
+
+
+## D299 — Private exact stored projected curve-pair certificates (2026-10-29)
+
+**Decision.** Runtime901b4ce45 adds private exact psi=(Y/X,Z/W) curve preparation, complete nonadjacent
+parameter-product separation and shared-endpoint Bernstein cone proofs. Stored clamped cubics, positive X/Y,
+weights[0.5,1], strict K or L progress, context-owned frozen graphs and uniform-scale exact halves retain
+original coefficients/domain. One200000-operation/8192-bit/1m-work ledger covers both preparations and proofs;
+2 curves/256 nodes/depth8 and tighter-only options remain fixed. Strict complete boxes or opposite exact
+factored cone signs admit; rounded normal candidates/samples never admit. Contact/uncertainty refuses.
+The wrapper preserves explicit0/false, original canonical direction and independent immutable copies.
+
+Actual original-quarter diagonal fixtures certify selected disjoint/shared pairs at3917/4649 operations,
+excluding source/composition/other pairs. Loop embedding, carrier/native trim binding, topology, physical
+solid, represented volume, native evaluator error and general text flags remain false. No wrap Part/Model/
+public API/Studio command is added. Complete component orientation/containment is a separate obligation.
+
+Node22.19.0 build/changed lint/focused34 pass. Whole kernel2080 total/2074 pass/0 fail/6 existing skips
+(247892.975667 ms), Model types and1824/1824 (220054.057208 ms), Studio types and365/365 (23170.923708 ms)
+pass. Initial TS2551, prefer-const, missing error registry entry, generated refusal and inventory failures
+are retained unchanged in notes/cylindrical-wrap-chart-2026-10-29/README.md. The existing registry test is
+unchanged; UNRESOLVED is declared. Reviewed API baseline changes only CAD_ERROR_CODES and derived CadErrorCode
+shape.type, adding that member284->285; all6737 exposures and every other field remain unchanged. Generated
+tools/refusals and six-rule source-inventory SCOPED_PASS pass. Independent mathematical source reviews find
+no material false acceptance within their scope. Browser/performance are NOT RUN; no product/speed claim.
+No push, PR or release. Next decision: **D300**, complete projected component cycles/pair coverage/winding
+and hole containment under one ledger, then native trim/error/mass binding before product wiring.
+
+
+## D300 — Complete private stored projected component certificates (2026-10-29)
+
+**Decision.** Runtime225005fd57cccf90e788e460bc63d6e7b2562a04 certifies complete bounded components in exact stored psi=(Y/X,Z/W),
+without a native wrap Part/Model/API/Studio feature. Canonical Curve data is used once with explicit sense;
+Object.is endpoints close every cycle, including signed zeros. Rings require at least3 uses. All N(N-1)/2
+pairs are proved: N adjacent whole-interval cones and every remaining original-domain strict separation.
+Together with individual progress this proves disjoint Jordan rings in the projection only.
+
+The ordinary pair constructor remains fixed2; a separate private factory directly initializes a fresh fixed32
+family context. Both retain200000 rational/direct operations,8192 bits,1m work,256 global nodes/depth8 and
+only tighter options. All preparation, pairs and winding share that one ledger and cached geometry. Height
+fallback must prove exact constant q; otherwise winding refuses SUPPORT. Exact upward-ray winding uses
+minimum-inclusive/maximum-exclusive q ranges and minus the oriented delta-q sign above the query. Vertex
+and vertical boundaries are checked first; unique roots use exact dyadic brackets/hulls, never rounded roots.
+Equality/depth uncertainty remains UNRESOLVED and resource exhaustion BUDGET.
+
+Outer/hole candidate winding must be+1/-1. After full pair separation, one deterministic owned hole vertex
+proves outer containment; each hole pair needs mutual representative winding0. Connected Jordan-ring
+separation makes that one-vertex rule sufficient. Hints certify individual ring orientation/interior only,
+never material placement; an outer hint may lie in a hole. Results and owned originals are frozen. Only
+projected embedding/containment become true. Native source/UV binding, physical B-rep/solid, represented mass,
+global Number evaluator, general text and combined construction-budget flags stay false.
+
+Node22.19.0 first build/changed lint/focused57/57 pass (3124.599 ms). Whole kernel2103 total/2097 pass/0 fail/
+6 existing skips passes (249990.372709 ms). Code-shape/generated tools/refusals and unchanged six-rule API
+SCOPED_PASS pass; docs68 pages/53 shots/4488 KiB/852 labels. Independent static reviews find no concrete
+false acceptance; a closing-pair receipt order ambiguity was fixed before first build. Exact receipts and
+review boundaries are in notes/cylindrical-wrap-component-2026-10-29/README.md. No source checksum test,
+tolerance relaxation or new runtime dependency is added. Model/Studio/browser/performance are NOT RUN for
+D300; previous1824/1824 and365/365 plus types belong to D299901b4ce45, not a new wrap product flow.
+No speedup claim, push, PR or release. Next decision: **D301**, original-native trim/error binding, radial-side
+transfer/physical assembly and full source/added-band mass contract before product wiring. Owner07->08->09 unchanged.
+
+
+## D301 — Exact stored radial side-family continuation (2026-10-29)
+
+**Decision.** Runtime8ecc692bc binds actual base/outer/side coefficients to an authentic complete D300
+component through a private result-identity WeakMap. Copied flags are not authority. Every certified base
+matches once by all field/number bits. Actual outer basis/weights are unchanged with exact(2x,2y,z) poles;
+actual degree(3,1) Surface has the original U knots, radial[0,0,1,1] and all duplicated-weight[base,outer] rows.
+This proves H(t,r)=((1+r)Bx,(1+r)By,Bz). Positive X and D300 projected embedding imply regular/injective
+patches, nonadjacent disjointness and exactly the prescribed shared radial segments for adjacent sides.
+
+The original live context covers prior D300 work and this continuation under200k/8192-bit/1m limits. Old
+componentCounts is a cumulative prefix; startedCounts includes earlier attempts and final counts is
+ authoritative. Failed/repeated calls never reset budget. Own inputs and returned geometry are independent
+and deeply frozen. Source/carrier/native-UV/retained-face closure, B-rep incidence/physical solid, represented
+mass, global evaluator, general text and combined full construction-budget flags remain false.
+
+Node22.19.0 first build/changed lint/focused63/63 pass (3405.949208 ms). Whole kernel2109 total/2103 pass/
+0 fail/6 existing skips passes (247350.96925 ms). Code-shape/generated tools/refusals and unchanged six-rule
+API SCOPED_PASS pass; docs68 pages/53 shots/4488 KiB/852 labels. Four selected complete D300 receipts/counts
+are unchanged. Independent homogeneous/tensor oracles and actual D298 installed sides are covered. The
+native4-side example uses9933 component-prefix and10669 final operations, excluding the earlier67093-operation
+assembly. Full construction is not qualified by summing separate receipts. Evidence and independent reviews:
+notes/cylindrical-wrap-side-family-2026-10-29/README.md. Adjacent future plans are read-only proposals.
+
+Model/Studio/browser/performance are NOT RUN; last product suites/types remain D299901b4ce45. No speedup,
+source checksum test, new runtime dependency, tolerance increase, push, PR or release. Next decision:D302,
+whole-domain unchanged-native D0 evaluator bounds, then actual coedge/source closure and a complete chosen
+source/added-band mass authority before Part/Model/API/Studio wiring. Owner07->08->09 remains unchanged.
+
+
+## D302 — Whole-domain unchanged-native D0 error bounds (2026-10-29)
+
+**Decision.** Runtime2f727cdd6 certifies actual core/math position evaluation for one clamped Bezier
+curve degree1..3 and tensor degreeU1..3 by V1, exact spans0.5/1 within[-1,1], weights[0.5,1] and coordinates
+within10000. The existing evaluator is unchanged. The actual distance/fraction/saved-basis/tensor/factor/
+ordered-sum/projection path is bounded using rho(B)=2^-53*B+2^-1074, outward128 positive arithmetic and exact
+positive denominator lower differences. Finite-range and minimumWeight/2 guards precede any constant-axis
+Object.is shortcut. Each admitted binary64 parameter in the closed stored domain is covered; regression
+samples are not the global proof. Original two-span half-walls remain unsupported in this standalone slice.
+
+One200k rational/direct,8192-bit,1m-work ledger includes quantization and outward Number conversion. Options
+only tighten the existing linear-floor1e-7 admission budget or operation limit. Owned frozen source, exact/
+outward axis/L1 bounds and counts retain target and unit semantics. Pcurve numeric error is in parameter
+coordinate units and requires exact carrier Lipschitz/range/residual binding before a world tolerance can be
+claimed. Derivatives, pcurve binding, topology/mass and full wrapped product remain uncertified.
+
+Node22.19.0 first build/changed lint/focused22/22 pass (3108.717833 ms); whole kernel2119 total/2113 pass/
+0 fail/6 existing skips passes (247123.052458 ms). Code-shape/generated tools/refusals and unchanged six-rule
+API SCOPED_PASS pass; docs68 pages/53 shots/4488 KiB/852 labels. Independent exact Bernstein oracles exercise
+unchanged evaluate/cached paths including MIN_VALUE/negative-zero/native quarter/extreme inputs. Static
+arithmetic review finds no material false acceptance within scope. Actual R10/H30 quarter L1<=9.381302440636469e-12
+uses43306 operations; native diagonal cubic<=5.924682966381498e-12 uses41492. The extreme3x1 tensor bound
+2.0843327064320024e-8 uses55289. Each is a separate request, excluding source/composition/assembly/moments.
+Evidence: notes/native-d0-bound-2026-10-29/README.md. No source checksum test or evaluator/tolerance changes.
+
+Model/Studio/browser/performance NOT RUN; their last whole/types remain D299901b4ce45. No speedup, push, PR
+or release. Next:D303 one actual-native family envelope with explicit two-span half-wall support and preserved
+repeated pcurve IDs by slot/full data, then coedge/source/closed-reference/mass integration before product wiring.
+Owner07->08->09 remains unchanged.
+
+
+## D303 — One bounded actual-native D0 family envelope (2026-10-29)
+
+**Decision.** Runtime4e8516b78 adds a private family entrypoint with64 objects/512 stored poles. It
+preserves D302 standalone policy/results/counts and adds explicit quadratic5-pole/5x2 two-half-span templates
+with exact widths0.5, scale1, original full domain[a,b] and actual repeated-knot right-span selection. All
+poles/weight bits and original IDs are copied unchanged. Repeated pcurve IDs are normal; ordered kind/index
+slots and full snapshots establish coverage, never ID dedup/rename or caller-certified flags.
+
+One actual-global min/max-weight/axis-absolute envelope feeds the monotone degree3x1/count8 positive
+outward128 recurrence, conservatively dominating every supported curve/tensor branch. Family constant axes
+are always false; a local active-span constant cannot masquerade as a full-source Object.is invariant.
+One200k exact/direct,8192-bit,1m-work ledger covers admission/domain/envelope/bound/conversion, with separate
+weighted structuralWork included in work and never mislabeled as exact operations. No fresh allowance per
+source. Source snapshots, slots and bounds are independently owned and deeply frozen. World/UV share only a
+numeric envelope; each bound retains its own coordinate units. Pcurve binding/topology/mass remain false.
+
+Node22.19.0 first build/changed lint/focused29/29 pass (3356.215125 ms). Whole kernel2126 total/2120 pass/
+0 fail/6 existing skips passes (246978.425 ms). Code-shape/generated tools/refusals and unchanged six-rule
+API SCOPED_PASS pass; docs68 pages/53 shots/4488 KiB/852 labels. Exact piecewise Bernstein fixtures cover both
+spans, m-ulp/m/m+ulp, full-domain/cap/index/ID/work/tight-budget boundaries. Five selected complete D302
+receipts/counts equal the preserved earlier-version runtime, beyond same-version noninterference tests.
+Independent design/source reviews find no material defect in scope. Draft structural charging was corrected
+before first execution; no failed runtime result is omitted.
+
+Actual one-pad BRep family:63 objects/214 poles,52 unique IDs retained across all slots, L1<=3.438973512255934e-11,
+57349 exact/direct operations and109361 work including9043 structural work. Its earlier67093-operation
+assembly, source/composition, separate side proof, coedge range/Lipschitz/residual and mass are excluded.
+Evidence: notes/native-d0-family-2026-10-29/README.md. No complete wrap/closed-solid or combined construction
+acceptance follows from these separate receipts. Model/Studio/browser/performance NOT RUN; last product
+whole/types remain D299901b4ce45. No source checksum test, dependency/tolerance change, speedup, push, PR or
+release. Next:D304 complete actual coedge/vertex native binding with original tolerances/clamp path and
+remaining-budget accounting, then closed-reference/mass/Part/Model/API/Studio integration. Owner07->08->09 unchanged.
+
+
+## D304 — Fresh complete one-pad native position binding (2026-10-29)
+
+**Decision.** Runtimed1980e892 adds a fixed one-four-edge/no-hole, height==radius wrapper around a
+private assembly run. Fresh private operands/residuals are consumed before exposure; caller receipts or
+flags are not accepted. Only the new path captures a detached source baseline, freezes exact operands and
+meters UV determinants through q. The old builder retains policy, full selected results/refusals/counts and
+mutability. Six prior-version outcomes match exactly with signed-zero/BigInt/undefined preserved.
+
+All63 actual geometry slots feed one D303 envelope. Complete installed side coefficients feed one D300/D301
+proof whose final count includes its component prefix. All36 actual coedges are classified (8 wall/4 cap/
+4 base/4 outer/16 side) and bound by stored residual+2*D0L1+LU*eU+LV*eV <= actual edge tolerance. Affine cap
+lift retains rounded inverse residuals; actual source half-spans/weights, canonical pcurves and original
+UV domains are preserved. Exact pcurve hulls lie in-domain and hull+D0 stays inside actual rounded1e-9
+checker thresholds; subsequent clamp is nonexpansive. All36 edge-end/vertex relations separately meet the
+actual vertex tolerance, stronger than the old checker max rule. Native D1, Math.hypot, surface endpoint/
+vertex72 relations, source-global/retained-face closure, closed reference, physical solid/mass and product
+flags stay false. Position output L1 is the precise true guarantee.
+
+One complete native request meters source/carrier/composition/assembly, side final, D0 final, all binding/
+Lipschitz/range/endpoint math and conservative GCD/float-search/structural work under200k/8192-bit/1m. Actual
+R10/H30 one-pad uses196857 operations (70435 host rational+172 integer+126250 helpers), work383279, bits1187.
+Native assembly prefix67783, side/component10752 and D0 family57349 are each counted once. Max coedge bound
+is approximately1.5839180270766223e-8 and endpoint approximately3.438973512255934e-11 versus unchanged1e-7
+entity tolerances; exact fractions are recorded. Only3143 operations remain for additional proof on this input.
+
+Node22.19.0 first build passes. Original missing-parenthesis and constant-logical-expression test lint
+failures are retained unchanged. After oracle fixes lint and49/49 focused pass (3334.894916 ms). Whole kernel
+2141 total/2135 pass/0 fail/6 existing skips passes (247910.000417 ms); code-shape/generated tools/refusals/
+unchanged six-rule API SCOPED_PASS and docs68 pages/53 shots/4488 KiB/852 labels pass. Independent reviews
+find no material false acceptance in scope. Evidence: notes/native-position-binding-2026-10-29/README.md.
+Model/Studio/browser/performance NOT RUN; last product whole/types remain D299901b4ce45. No source checksum
+test, dependency/tolerance increase, speedup, push, PR or release. Next:D305 measured exact duplicate proof-
+work reduction with perf-bench and complete shape/numeric invariance, then closed-reference/formal mass and
+Part/Model/API/Studio integration. Owner07->08->09 remains unchanged.
+
+
+## D305 — Native proof budget headroom with unchanged bounds (2026-10-29)
+
+**Decision.** Runtime21510468f skips exact zero coordinate residuals only after finite/owned
+admission, preserving normalized independent endpoint results. Family-only fixed128-to-Number
+conversion uses bounded nearest power-of-two scaling, exact comparison and at most one positive
+IEEE successor. Generic standalone paths and full coefficients/bounds/tolerances stay unchanged.
+Independent review found five uncharged comparisons per bound; final code includes all20.
+No cap or tolerance increases, new dependency, public export or source-checksum unit pin.
+
+The required existing perf-bench has a fresh fixed one-pad workload. RUNS7 medians25ms before,
+26ms intermediate and25ms final establish no stable speedup. Actual B-rep fingerprint, strict
+shape/names/counts/diagnostic volume/centroid and complete64-bit Number result fields match.
+Only13 explicit proof ledger fields differ; six complete legacy outcomes/counters, five
+standalone D0 receipts/counters and full family output except counts match prior-build data.
+Benchmark197043->179287 exact operations,386199->363775 work. The distinct D304 standard
+fixture196857->179831 leaves20169 of200000; future reference/mass fit is not established.
+
+Final build/lint/code-shape, focused42/42, whole2137pass/0fail/6existing skips (2143total),
+tools/refusals/unchanged API SCOPED_PASS/docs68pages/53shots/4488KiB/852labels pass. Setup
+shell/patch failures are recorded separately. Model/Studio/types/browser NOT RUN; latest
+whole consumer suites/types remain D299901b4ce45. Evidence: notes/native-position-proof-budget-2026-10-29/README.md.
+Actual global closure, closed-reference transfer, physical solid/mass and product wrap remain
+open. No push/PR/release. Next D306: private formal reference mass with explicit scalar error
+budgets and complete work ledger, then actual closed-reference/product integration. Owner07->08->09 unchanged.
+
+
+## D306 — Private formal native-cylinder plus one-pad mass (2026-10-29)
+
+**Decision.** Runtime2ab2f6a67 derives fresh actual source data and a strict original-UV rectangle
+to calculate the formal circle cylinder union an ideal scale2 annular sector. Actual endpoint
+rays, exact affineZ, signed fixed128 intervals,24-term bounded atan/Machin constants and guarded
+integer-square-root normalization enclose all10 raw moments; added volume lower>0. Existing
+Number solidMassFromIntegrals plus translated centroid and retained native basis supply actual
+returned properties. Exact density/1000 target audits every volume/mass/centroid/inertia Number
+under mandatory absolute scalar budgets. Underflow/nonfinite values and overflowing existing
+SI density intermediate refuse. selectedQuarterRadial/Outer metadata is not a global bound,
+and its representation error is excluded from the formal-reference evaluation error.
+
+One200k/8192/1048576 ledger imports source q/direct operations and fully normalized work once;
+local GCD/float-search/direct/structural work are included in one totalWork used by admission
+and output. Original source reconstruction/checker Number work has its existing declared
+accounting boundary. Independent review found the draft work omissions and quarter naming
+ambiguity; both were fixed before the first build. No native tolerance or cap increases.
+
+Independent256-bit/160-term atan, distinct pi identity, generic Bernstein and complex Laurent
+angular oracle verify all10 source/pad/total moments and final scalar errors. First build/lint/
+focused24/24, whole2148pass/0fail/6existing skips (2154total), generated/unchanged API/docs pass.
+D305 full native result/counts/64-bit values remain identical. Standard separate mass request
+40919ops=11544source+26369q+3006direct,69733work,1153bits; asymmetric negativeZ/density7.85 case
+52029ops/89192work. Those are separate requests, not combined native binding/mass approval.
+
+Evidence: notes/formal-pad-reference-mass-2026-10-29/README.md, including original evidence
+script missing-destination failure. Model/Studio/types/browser/performance NOT RUN; latest whole
+consumers/types remain D299901b4ce45. Literal stored-B-rep mass/global closure/physical solid/
+Part provider/product wrap/native SI accuracy remain unqualified. No source-checksum test,
+dependency, push/PR/release. Next D307 measures midpoint conversion reduction with exact full
+receipt preservation, then closed-reference/global source and cumulative integration. Owner07->08->09 unchanged.
+
+
+## D307 — Bounded bit-identical formal raw midpoint conversion (2026-10-29)
+
+**Decision.** Runtime5eea67247 replaces only10 raw fixed128 generic nearest searches by a
+guarded Number(n)/2^129 conversion. Exact charged n=lo+hi is either zero(+0) or abs(n)<2^256;
+normal-range exact power2 scaling preserves signed nearest/ties-even including binade edges.
+Success charges12 direct primitives, zero2. zCenter, source, interval formulas, mandatory
+budgets, scalar audits, basis transfer and false qualification flags are unchanged.
+Independent review finds no mathematical/accounting defect. No cap/tolerance increase.
+
+Mandatory existing perf-bench fixed fresh negativeZ/density7.85 workload RUNS7 median9->9ms,
+mass-property fingerprint4ee49b3a32aa9a46 unchanged: no stable/Studio speedup. Two complete
+prior-build receipts encode every Number by all64bits and match except final counts, including
+actual source geometry, exact intervals/errors, raw/public Number outputs and metadata. Generic
+nearest regression covers actual positive/negative/zero moments. No source-checksum unit pin.
+Standard formal40919->33095ops,69733->60142work; asymmetric52029->40804ops,89192->75385work.
+Source11544 is unchanged; standard local21551 plus native179831=201382 still exceeds200k
+before additional reference work. These are separate requests, not cumulative approval.
+
+Build/lint/code-shape, focused25/25, whole2149pass/0fail/6existing skips (2155total), generated/
+unchanged API/docs68pages/53shots/4488KiB/852labels pass. No new validation failure. Evidence:
+notes/formal-pad-midpoint-2026-10-29/README.md. Model/Studio/types/browser NOT RUN; latest whole
+consumers/types D299901b4ce45. Hidden SI basis is not separately serialized by the differential;
+unchanged deterministic estimate/density inputs/provider path and existing basis tests remain
+separate from native SI accuracy, which stays false. Actual global source/cap/whole-shell closure,
+reference-to-B-rep mass transfer/Part provider/product wrap remain open. No dependency/schema
+migration/push/PR/release. Next D308 measures family-only direct exact fixed128 recurrence work
+with unchanged bounds and standalone receipts, then applies the preserved global-source plan
+under the same complete request before consumer integration. Owner07->08->09 unchanged.
+
+
+## D308 — Reuse common family denominator and equal-axis error work (2026-10-29)
+
+**Decision.** Runtime5a8f839c2 retains existing Context/exact arithmetic/standalone axisError/finish
+and rounds at the same points. Family factor/denominator error/half-minimum guard/positive lower
+are axis-independent and computed once. Axis numerator/residual/projection work is reused only
+for an equal exact magnitude envelope and equal constant flag. L1 still adds all3 axis bounds.
+Private R sharing is read-only; output records remain separately owned/frozen. Flag comparisons
+and exact q.compare use the same ledger. No new arithmetic Context/module, cap/tolerance change.
+
+Mandatory native-bound-pad RUNS7 median26->25ms, actual B-rep fingerprint37a018051624ef8e SAME;
+one rounded local pair is not stable/Studio speedup. Full native binary64-bit result/shape/all
+proof fields match except10 explicit ledger fields. Full family except counts, five serialized
+standalone receipts/counts and two formal full-bit receipts/counts match. Benchmark179287->159588
+ops/work363775->327381; D0 family53915->34216ops. Distinct standard native179831->160132ops.
+Formal33095 includes its own fresh source11544: full separate-child sum193227 leaves6773 before
+outer work, but no combined execution or shared-prefix authority has yet been implemented.
+
+Independent expanded fractions/ceil128 recompute the entire old recurrence for30 envelopes,
+including zero/tiny/MIN_VALUE/10000-neighbor/10000, every equal-pair and unique axes. Actual63
+slots/54 curves/pcurves/9 Surfaces and both half-wall weight variants retain source semantics.
+Complete family total reservation passes; total-1 refuses. Build/lint/focused35/35/whole2150pass/
+0fail/6existing skips (2156total), generated/unchanged API/docs pass. No new validation failure.
+Evidence: notes/native-d0-common-work-2026-10-29/README.md. Model/Studio/types/browser NOT RUN;
+latest whole consumers/types D299901b4ce45. No source pin/dependency/schema change/push/PR/release.
+Actual global source/cap/shell/reference mass/Part/product wrap remain unqualified. Next D309
+counts both fresh child source executions on one owned frozen input and passes only actual
+remaining operations to the formal child, then applies saved source-global/closure work before
+consumer wiring. Existing Part.mass/makeOutput/massPropertiesOf route is source evidence only.
+Owner07->08->09 unchanged.
+
+
+## D309 — Actual fresh native/formal bound-reference request (2026-10-29)
+
+**Decision.** Runtime343cbf976 owns/freezes Part/components/options before two synchronous
+fresh child calls. Native validates the fixed4-corner/no-hole/height==R profile. Original
+Number extrema and four unique corner pairs bind its region to the formal rectangle.
+Native full nativeBinding.counts, formal full counts(including its own source) and63 outer
+direct operations are each counted once. Only actual remaining operations reach formal;
+no new200k allowance, source subtraction, copied certificate flag or shared-prefix brand.
+Aggregate accepted ops/work/maxbits meet requested<=200k/1m/8192. Child contexts remain
+separate; existing Number reconstruction and bounded refusal checkpoint limits are explicit.
+
+Actual Z0/U[1/16,5/16]/V[1/4,3/4]/density1 request193290ops=160132+33095+63, work395157,
+bits1187; native/formal reservations199983/39805. Centered Z-5/U[.125,.375]/V[.25,.75]/
+density7.85 request192736ops, work393834,bits1178; formal reservation40349. Both formal
+children retain11544 source ops. Z-7/U[.1,.4]/V[.2,.7]/density7.85 refuses BUDGET in formal
+at the unchanged cap; original data/message are retained. No generic-offset guarantee.
+
+First focused23pass/1fail exposed ORDER global mutation: first formal result freeze visited
+10 previously unfrozen string children, subsequent call skipped them (work60100/60090).
+ORDER is now frozen at module declaration; mathematical/operator/Number outputs stay equal.
+The full comparison assertion remains. Original failing TAP is preserved unmodified. Native
+complete bit/count receipt stays equal; formal first work60142->60132 is the only old receipt
+difference, second formal including counters stays equal. Final build/lint/focused24/24,
+whole2158pass/0fail/6existing skips (2164total), generated/unchanged API/docs pass.
+
+Formal fixed perf RUNS7 median9->10ms, fingerprint4ee49b3a32aa9a46 SAME: no speedup or stable
+regression claim; coupled timing NOT RUN. Evidence: notes/cylindrical-wrap-bound-reference-2026-10-29/README.md.
+Parent preserves all child false flags and adds no closed-reference/physical B-rep/retained
+face/represented mass/Part/provider/product qualification. Model/Studio/types/browser NOT RUN;
+latest whole consumers/types D299901b4ce45. No source-checksum test/dependency/schema change
+or push/PR/release. Next D310 uses actual fresh formal.source to certify the preserved4-span
+wall radial graph/winding/radial error under remaining budget, then cap/shell/reference mass
+transfer before product/general text wrap. Owner07->08->09 remains unchanged.
+
+
+## D310 — Complete original wall radial graph and outward span orientation (2026-10-29)
+
+**Decision.** Runtime db529cb77 adds a private continuation from the actual fresh D309
+formal.source, retaining both complete source/native/formal costs. Both original wall
+Surfaces retain their five-row/two-half-span structure, affine positive Z, exact top/bottom
+edge and pcurve coefficients, original vertex ownership and actual face/use senses. Four
+directed coefficient windows join one bit-exact cycle; no arrays, weights, IDs or tolerances
+change. In particular lower0.7071067811865477 is not replaced by upper0.7071067811865476.
+
+Exact dyadic homogeneous alignment and bounded integer products compute degree4 circle
+defect and degree2 directed angular coefficients. All W and oriented K coefficients are
+positive; one open half-plane contains each complete span. Its increase is in(0,pi), so the
+complete four-span positive cycle has winding1. The XY radial graph is simple; common
+positive affine Z proves embedded source walls with piecewise outward actual face sense.
+No C1 seam/native D1 proof is claimed. Whole-wall max radial is8/1061508612087629 for R10;
+this is an exact stored-rational coefficient bound, not a native evaluator radial claim.
+
+First general-rational implementation refused the unchanged200k cap in both standard
+requests. Actual common-denominator arithmetic removes repeated intermediate reductions,
+with integer/bit/limb/predicate work counted; fractions are reduced at the receipt boundary.
+Final std198489ops=193290 full reference+3399 rational+1800 direct, work410309/local15152,
+bits1187. Centered197935/work408986/bits1178. Asymmetric case retains original formal BUDGET.
+No budget/tolerance/precision/test weakening or source-cost deduction. Existing constructors
+are unchanged; direct actual child equality and retained serialized receipts match D309.
+
+Independent generic Bernstein products/derivatives/elevation check all coefficients/margins/
+radial bounds at six actual radii; negative topology/orientation/perturbation and aggregate
+exact-total/total-1 tests pass. Build/lint/focused36/36, whole2171total/2165pass/0fail/6existing
+skips, generated/unchanged API SCOPED_PASS/docs pass. First candidate refusals and a premature
+read-only receipt FileNotFoundError are retained; no unit/build/lint failure. Evidence:
+notes/cylindrical-wrap-source-walls-2026-10-29/README.md.
+
+Model/Studio/types/browser/performance NOT RUN; latest whole consumers/types D299901b4ce45.
+No timing claim, source-checksum test, dependency/schema/public API change, push/PR/release.
+Cap trim embedding/source-shell/retained-face closure/reference mass transfer/Part/product
+remain false, and radial error is not included in mass. Next D311 must cover actual cap and
+source reference closure, then complete wrapped reference/mass. Std allowance left1511;
+no next-proof fit guarantee. Broader07 fillet/thread/glyph ranges precede08->09 as before.
+
+
+## D311 — Cap correspondence, complete closed reference and mass transfer (2026-10-29)
+
+**Decision.** Runtime `749b1b666` constructs one fresh immutable native source, retains its
+complete native cost, then continues formal mass on that same source. No source extraction
+runs in the continuation and sourceOperations=0; no executed cost is subtracted. The old
+D309/D310 entries still execute both source checks and retain their complete results/counts.
+The final private constructor accepts original inputs only, never caller receipt/authority flags.
+
+Actual cap affine nets, pcurve hulls/weights/domains, exact top/bottom transposition, outward
+uses and both complete extrusion seams bind the original caps to the4-span source radial
+graph. Exact homogeneous(2u-1,2v-1) coefficients prove simple radial cap cycles. Matched
+boundary parameters and radial disk extension give a whole-cap homeomorphism to the source
+reference within the actual affine residual1.7763568394002505e-15 for all four R10 fixtures.
+Literal rounded cap/wall coincidence is not asserted; no coefficient or tolerance changes.
+
+The closed reference is the original radial prism united with the factor2 pad over the same
+strict UV rectangle. Exact original hole/outer pcurves, outward side senses, full reciprocal
+36-coedge incidence, scaled outer coefficients and fresh D301/D304 side bindings establish
+the9-face decomposition without an internal material interface. Every actual face maps to
+its reference: source/outer model error0, caps actual residual, sides2*base residual. Adding
+one fresh native D0 L1 bound gives max3.43925e-11 standard/3.19361e-11 centered under1e-7.
+Domain is the admitted exact face trim domain, not arbitrary untrimmed UV or renderer clipping.
+
+For raw monomial degree d in XY and c in centered Z, complete radial geometry error is bounded
+by2^(d+5)*H*delta*(R+delta)^(d+1)*(H/2)^c, with the same angle/Z partition as formal mass.
+Outward128 arithmetic expands all ten raw intervals, then propagates density/1000, centroid
+and central inertia. Exact actual-Number distances meet the original11 scalar budgets.
+The unchanged returned formal properties now have a complete closed-reference geometry and
+arithmetic audit. Literal stored-B-rep closure/mass, native SI, Part/provider/product flags
+remain false. No public index/API/schema change or general glyph wrap qualification.
+
+First candidate exceeded200000. Counted immutable entity indices remove repeated scans;
+exact output ratios retain positive common denominators instead of unnecessary serialization
+GCDs. All primitive/bit/structural/GCD work remains accounted under the same caps. Actual std
+196425ops=186945 prior+4629q+4851direct,work424858,bits1187; centered195846/work423416/bits1178.
+Lower/upper axial pads use199120/199168ops and430791/430879work, with opposite nonzero Ixz/Iyz
++/-33.58622741273295. Old Z-7/U[.1,.4]/V[.2,.7]/density7.85 retains original formal BUDGET.
+No tolerance, precision or assertion relaxation; accounting retains prior Number-work limits.
+
+Build/lint/code-shape PASS; whole2179total/2173pass/0fail/6existing skips. Only signed-height
+test data expanded afterward; final focused39/39 includes independent fraction/Bernstein,
+radial-shell moment and Number-error oracles, malformed cap/side/topology and total-limit tests.
+Generated checks/unchanged API SCOPED_PASS/docs pass. Perf-bench RUNS7 old wall-only31ms to
+complete28ms, actual B-rep fingerprint3dc47a62fa4c37a6 SAME; one rounded local pair, no stable
+speedup/Studio claim. First budget refusals and wrong-cwd write/build diagnostics are
+preserved verbatim; later correct build/tests pass. No source-checksum pin or dependency.
+
+Evidence: notes/cylindrical-wrap-closed-reference-2026-10-29/README.md. Model/Studio/types/browser
+NOT RUN; latest whole consumers/types D299901b4ce45. No push/PR/release. Next D312 connects the
+bounded reference to Part/provider/API/Model/Studio with explicit physical/trim/render admission
+and consumer/browser checks. General text/rational/smooth wrap and broader07 remain open before
+08->09. Existing Part.mass/makeOutput/massPropertiesOf route is still source evidence only.
+
+
+## D312 — Exact arithmetic makes the asymmetric reference fit its original budget (2026-10-29)
+
+**Decision.** Runtime `7a1a462ca` fixes D311's R10/H30/Z-7/U[.1,.4]/V[.2,.7]/density7.85
+refusal without raising any operation, work, bit or accuracy cap. The input still has nine
+faces and four pad edges. Long exact fractions from decimal binary64 inputs increase the
+cost of repeated Euclidean reduction; generic full-code float searches add conversion work.
+Before the fix native189532+separately measured formal29260 already exceed200000. These are
+diagnostic child measurements, not a previously accepted complete request.
+
+The shared private SectionRationalContext now reduces positive power-of-two denominators by
+removing exact common trailing powers of two. Denominator1 returns the already-sized integer.
+Sign, zero and8192-bit input checks remain first; other denominators retain Euclid. A floating
+ratio may propose a binary64 floor code, but exact rational current/next comparisons alone
+certify it. At most three local corrections are attempted; nonfinite/unresolved estimates
+retain the original whole-code search. Maximum-finite guarding, exact nearest distance,
+even-code ties, upward bounds and every new operation remain accounted. No approximate
+coefficient, relaxed budget, test-only flag or Number candidate supplies proof authority.
+
+The candidate conversion alone still refused the combined case. With exact dyadic reduction,
+actual native120515/formal15475/full150147ops,319917work,bits1284 pass. Mirrored V[.3,.8]
+uses150161ops/work319755. Standard/centered/lower/upper complete requests now use137555/
+136559/137149/137153ops. Original200k/1m/8192 limits and all11 scalar budgets are unchanged.
+Full old/new Object.is comparison preserves every non-ledger field, including geometry,
+names, fractions, proof/error bounds and mass Number bits, for four old complete successes.
+Native/formal fields also match for both former complete refusals; no old complete result
+exists for those inputs. Every changed counter/reservation path is retained in the evidence.
+
+Mandatory perf-bench median15 local runs: asymmetric native27->21ms, centered complete25->22ms,
+formal7->6ms, centered native22->18ms. All actual geometry/properties fingerprints are SAME.
+These measured12–22% reductions are local observations, not Studio or hardware-independent
+latency guarantees. The newly accepted complete asymmetric case has no successful old timing.
+
+Independent generic Euclid and whole-code conversion oracles cover signed/mixed/unreduced
+fractions,8192-bit boundaries, binary64 ties/subnormals/range/negative zero, finite two-code
+candidate correction, overflow fallback and operation guards. All six complete references
+pass independent cap and geometric mass error oracles. Old R100 inverse BUDGET expectations
+became successes; tests now assert source/domain preservation and full interpolation/endpoint
+error bounds at unchanged0.01. Invalid-source and exact-total-minus-one refusals remain.
+
+Full build/lint/code-shape pass; focused185/185, kernel2185total/2179pass/0fail/6existing
+skips, Model1824/1824 and Studio365/365 pass. Sol Medium ran consumer suites serially;
+no production source changed during them. Generated agent-tools/refusals/unchanged API SCOPED_PASS/docs
+pass. Consumer type checks/browser NOT RUN. The new complete asymmetric benchmark is24ms
+median15, with the same actual B-rep as its native baseline. Non-wrap controls median7:
+planar Boolean23->21ms and shaft thread583->578ms, both fingerprints SAME; no meaningful
+thread speedup is claimed.
+
+Sol High read-only review found no P0–P2 issue and supplied the two-code correction fixture.
+Original focused184/182pass/2fail, subsequent test-ID mismatch and first comparison-ledger
+classification failure remain recorded verbatim; the final focused185/185 passes. No source
+checksum pin, dependency, WASM, lockfile, schema change, push, PR or release. Evidence:
+notes/exact-rational-wrap-performance-2026-10-29/README.md. Literal stored-B-rep closure/mass,
+native SI and Part/provider/product integration remain unqualified. Next D313 is bounded
+Part/provider/API/Model/Studio integration with physical/trim/render admission and actual
+product checks, followed by remaining07 before08->09.
+
+
+## D313 — Connect the bounded cylindrical reference to the product (2026-10-29)
+
+**Decision.** Runtime `f29df9217` exposes `cylindrical-wrap` through Part, both public facades, the current Model
+recipe, the shared agent command and Studio. The input is one original origin-centered upright
+circle extrusion, its exact original +Y half-wall, and one rectangle strictly inside the first
+native quarter: 0<u0<u1<0.5 and0<v0<v1<1. Outward height equals the source radius, giving radial
+factor2. General depth, text, holes, engraving, seams and tilted sources remain unsupported.
+
+A fresh evaluation owns the frozen source and complete closed-reference mass provider. Density1
+uses its initial audited result; other densities run a fresh complete proof. Serialized/copied
+outputs have no mass authority. Re-evaluating a saved recipe reconstructs the provider. The
+public report explicitly retains false literalStoredBrepClosureCertified/literalStoredBrepMass/
+nativeSIAccuracy flags. Public native-SI provenance reads refuse with reason combined; private
+MMGS proof values are unchanged. Further consuming features refuse atomically. This is a bounded
+product reference, not an exact rounded-coefficient shell or general glyph-wrap qualification.
+
+The ordinary merged display wall remains unchanged. Canonical quality8 member geometry resolves
+the positive-Y native half without suffix inference; only wrap reference matching admits these
+individual candidates. Placed/exploded display bodies omit source-space member metadata. Authored
+circle radius supplies the default height. Create/edit HUDs show Region and Limits; History opens
+the command editor. Current-schema recipe/signature/parameter and existing JSON/package paths
+are reused without a version increase or migration.
+
+Actual Chrome exposed a valid affine cap with original bounds[-10.000000000000002,10], where the
+Node fixture had centered bounds. The old ideal +/-R binding refused it. The correction proves
+the actual four poles, unit knots/weights, positive affine spans and outward paired cap frames.
+The whole-disk map includes exact center displacement; its L1 bound is the maximum of center
+shift and the fresh boundary residual. No original coefficient is changed and no tolerance or
+work/scalar cap is raised. Complete standard/centered/lower/upper/asymmetric/mirrored requests
+use138001/137005/137595/137599/150593/150607 operations under the original200000 cap.
+
+Actual Chrome/WebGPU scripted startup and selected wrap flow pass. A separate normal canvas
+selection/input pass verifies preview, Apply, Undo/Redo, History edit, real Save/fresh Open and
+re-edit. The asset-free saved file is current-schema JSON with full semantic document equality.
+After fresh Open and V-end.75 edit, independent sector volume and returned volume both equal
+11443.322154307714. Invalid height/UV refuse without changing the accepted document; Cancel
+restores values. Screenshots at1440x900 and1024x768 show the full controls and result. Page errors
+are empty. An interactive-driver selector timeout required a fresh context and repeated checks;
+it is recorded separately from product failures. Unsupported-modifier UI, other browsers/DPRs,
+WebGL2 and arbitrary material-density accuracy are NOT_RUN, not implied by focused contracts.
+
+Final full kernel build passes;2193total/2187pass/0fail/6existing skips,308293.825625ms.
+Whole Model1833/1833,236112.783583ms and Studio365/365,24258.692542ms pass without failures
+or skips. Model/Studio type checks and focused lint pass. Generated tools/refusals and reviewed API six-rule SCOPED_PASS pass. Inventory6737->6751
+adds14 exposures with no removals;154 prior rows change,16 for the wrap contract and138 only
+for equivalent union/member/property order. Package exports are unchanged; CadPartOutput gains
+one optional report. Docs pass:68 pages,54 shots,4668KiB,858 labels. The initial IV001 inventory
+drift is retained separately from the reviewed refresh.
+Evidence: notes/cylindrical-wrap-product-2026-10-29/README.md. Initial focused fixture/type/lint
+and four browser failures remain verbatim with their corrections. No source checksum pin,
+dependency, WASM, lockfile/schema change, push, PR or release. Next D314 measures call-local
+quadrature basis reuse for thread performance. After this implementation is qualified, reconcile
+existing GitHub investigation issues into the roadmap, then continue remaining07 before08->09.
+
+
+## D314 — Prune boundary distances only after measured thread benefit (2026-10-29)
+
+**Decision.** Runtime `bb92da70b` keeps a strict component lower bound before a cached boundary sample's
+Math.hypot in brep-mass-quadrature.nearBoundary. Preserve the three subtraction order,
+threshold, strict nearest-sample tie, early hit and golden-section refinement. If any absolute
+component exceeds bestD, that sample cannot win or become an earlier near hit. Equality still
+runs the original hypot. No squared-distance approximation, new tolerance, cache, evaluator,
+quadrature order, summation order, support cap, public export or dependency is introduced.
+
+The first candidate reused identical basis tables within one quadrature call. A488-face long
+thread repeats two tables474 times each, but spanBases uses only0.04s of the11.41s combined
+profile. A1/B1/B2/A2 median7 fresh construction+firstmass271/274/272/272ms shows no consistent
+benefit. That candidate is absent from the retained production source; its original source,
+actual results and negative measurements remain in the evidence.
+
+The retained four-added/one-removed-line change targets nearBoundary's larger measured cost.
+Two paired/reversed median7 comparisons use the same original/retained Node22 builds:
+longshaft2060->2005 and2134->2044ms; longhole1295->1259 and1305->1270ms; fresh direct long
+construction+firstmass272->254 and273->261ms. These are local2.7–4.2% and4.4–6.6% improvements
+for the named workloads. Short shaft/hole and construction-only show no consistent improvement.
+The direct case includes fresh construction; subtracting construction medians would not prove
+pure mass latency. External host load is uncontrolled and logs retain rounded medians, not
+confidence intervals. No Studio or hardware-independent speedup is claimed.
+
+All six independently constructed before/after outputs have equal complete geometry/name/
+pole/knot/weight/vertex bits, mass/nativeSI/area bits, validity and counts. Eleven old-module
+fixtures also match full raw11 integrals at8/16 segments, meshed/squared/cubed/dropped state,
+public mass/area/nativeSI and actual boundary/refinement argument traces. Fresh clones avoid
+the existing immutable-Brep public mass cache. Pole/knot/weight mutation across fresh raw calls
+retains isolation. The frozen22-face partial trim, polynomial/rational/multi-span/signed-zero
+and left-thread controls are included, not replaced by timing fingerprints alone.
+
+Five tests call the actual built private predicate through a memory-only export and compare an
+independent pre-optimization scan and every evaluator argument bit. Threshold/adjacent-float/
+first-tie/refinement/evaluator failure, NaN/infinity/overflow/subnormal/signed-zero/negative
+threshold cases and120 cached grids pass. The current Node22/V8 hypot component-bound premise
+passes729 boundary combinations and10000 binary64 triples. Other engines are NOT_RUN; this is
+not an exhaustive proof of every implementation of Math.hypot. There is no source checksum pin.
+
+Full Node22 build and lint/code-shape pass; focused27/27 and full kernel2198total/2192pass/
+0fail/6existing skips pass (247815.458666ms). Model1833/1833(232937.926667ms),
+Studio365/365(28517.577459ms), generated tools/refusals/unchanged API six-rule check and
+docs68pages/54shots/858labels pass. Consumer type checks retain unchanged D313 contracts. Browser/performance UI is NOT_RUN; D313's actual bounded wrap flow remains its
+separate receipt. The first build-launch path/reserved-variable failure and snapshot-harness
+file-URL failure are preserved, not numerical failures. Evidence:
+notes/thread-basis-performance-2026-10-29/README.md. No lockfile/schema/runtime dependency,
+push, PR or release. Next D315 first reproduces a source-inspection candidate in the existing polynomial guide:
+admission allows64 controls while a generated Surface allows16. Original17/64-control prism
+and taper requests now reproduce successful construction/mass followed by strict-check/evaluator/
+tessellation failure: `Surface V control point count must be in 2..16`. The16-control controls pass.
+D315 preserves original source and caps while repairing this mismatch; explicit parallel-frame
+guide support and remaining07 follow before08->09.
+
+
+## D315 — Make the existing64-control guide contract renderable (2026-10-29)
+
+**Decision.** Runtime `dbfe93216` repairs an existing D288 wrong-success without changing public
+inputs, schema, global Curve/Surface capacities, work limits, tolerance or mass integration.
+At baseline `bb92da70b`,16-control prism/taper requests are valid. The same17/64-control requests
+construct and return mass but strict checking, native evaluation and tessellation throw
+`Surface V control point count must be in 2..16`; public Part cannot produce a usable result.
+A64-control/three-section request also hits `Curve control point count must be in 2..64` when
+whole-Curve temporary knot refinement crosses the source cap. Original recipes/B-reps/errors
+and the first probe's thrown-check harness failure are retained.
+
+Only oversized guided sides are partitioned at original knots using existing curvePiece.
+Each native child has at most16 V controls and retains its original parameter subinterval.
+Canonical ruling segments, cut vertices and boundary rows are shared by adjacent sides;
+internal rings create reciprocal shared coedges. Caps and section rings remain. Polynomial
+V rows are split with unit weights while their original positive constant U weights stay
+outside the restriction, preserving originally admitted rational-U arc sides. There is no
+fitting, flattening, degree reduction, reparameterization or global-cap bypass. Section cuts
+use direct child restrictions only when temporary whole refinement would exceed64; existing
+successful paths remain. All helpers are at module scope with no per-element callback factory.
+
+Original guide/profile/knots/weights remain copied in the recipe. guidedSpanMoments is unchanged.
+Nine original complete B-rep/name/knot/weight/coordinate/mass bit trees match, including signed
+zero. Independent homogeneous de Boor comparisons cover12 fixtures and31536 native points;
+maximum observed difference is1.7763568394002505e-15mm. A separate Python Fraction restriction
+and positive-weight convex-hull comparison bounds whole ideal coefficient-defined geometry
+for168 tested child Surfaces below5e-16mm. That bound concerns ideal stored-coefficient geometry;
+native evaluator roundoff remains a separate observation, not an all-input native error proof.
+Degrees1–5,17/64 controls, repeated/non-unit knots, nonlinear height, bows, rational-U arc sides,
+64-control three/eight-section cuts, one closed genus0 body, exact shared endpoints/coedges,
+watertight actual triangles, independent V/C/I and input/refusal atomicity pass.
+
+Final Node22 full build and lint/code-shape are reused on the frozen source. Kernel related
+five-file suite94/94 and final whole kernel2203total/2197pass/0fail/6existing skips pass;
+whole duration260291.518875ms. Model coverage19 is API7 retained plus final command12; the
+combined19 and repeated command12 are overlapping receipts, not31 unique tests. New test types
+and changed-file lint pass. The first readonly-assignment TS2540/TS2542 test diagnostics remain;
+Reflect.set plus explicit true-return assertions preserve the intended caller-mutation check.
+
+Actual Chrome/WebGPU/DPR1 normal file/History/Guide controls run17/64 first-attempt flows:
+preview, Apply, fresh producer/massReady/one body, independent V=7/3 and centroid, Undo/Redo,
+actual asset-free JSON Save/New/Open and complete guide/source preservation. Root viewed the
+six preview/applied/reopened PNGs. Tiny fixture UI mass rounds to0g; raw mass/volume/centroid
+checks are separate. Other engines/DPRs and additional exploratory browser passes are NOT_RUN.
+Model/Studio whole suites are intentionally not repeated for unchanged production contracts.
+The final kernel whole suite ran once after focused and real-consumer checks. Generated tools/
+refusals/unchanged API six-rule check and docs pass:68pages,55shots,4811KiB,858labels.
+
+Evidence: notes/loft-guide-control-range-2026-10-29/README.md. No new runtime dependency, WASM,
+lockfile/schema change, push, PR or release. Existing height-guide2–8 sections include non-XY
+common sketch planes and remain supported. Next D316 is the distinct raw explicit-frame
+polynomial-guide dispatch gap, reusing common-frame/legacy/mass providers and existing Studio
+file/profile-edit consumers, before remaining07->08->09. No new authoring mode is assumed.
+
+
+## D316 — Reuse the height loft for certified raw polynomial frames (2026-10-29)
+
+The remaining dispatch gap was raw explicit section frames with `kind: 'nurbs'`, not the existing
+non-XY height authoring path. Six original 2/3/8-section polygon/circle inputs were refused before
+construction. Admit2–8 ruled line/arc sections with identical certified rigid axes and an exact
+world/local reconstruction witness for every frame origin and guide control. Preserve supplied
+order, positive separation, degree1–5/2–64 controls, original knots and every existing guide rule.
+No projection, normalization, wider tolerance, global cap, schema or dependency is added.
+
+Extract the existing mixed-frame placement/mass algebra. Copy profiles and world guide controls
+into one common frame, call the legacy height builder once with the admitted polynomial guide,
+and transform its B-rep once. Keep the original mass method and native SI `transformed` refusal.
+Circle/mixed arcs keep their correspondence rules. Inline ellipse objects, rational guide
+weights, smooth interpolation, different axes and failed reconstruction witnesses remain refused.
+Single-span quadratic/cubic authoring retains its existing Bezier encoding and height/non-XY
+commands retain their existing route.
+
+Node22 final build and lint/code-shape pass. Six related Kernel files pass102/102. Archived
+original modules match21 complete B-rep/name/two-density mass binary64 trees, including signed
+zero and caller preservation. Six former refusal fixtures now pass strict B-rep/finite mesh and
+independent expected volume. Independent analytic prism and affine-taper slice V/C/I and tensor
+rotation checks pass; other surface/mass comparisons are explicitly differential, not independent
+local integration or a whole-domain floating-point proof. The first5/6 test run failed with
+`Parameter is outside the knot domain`: the harness used one face's endpoint in another face's
+slightly different domain. Mapping normalized coordinates through each actual domain fixes the
+oracle; that repair changed no production coefficient or tolerance.
+
+Model focused4/4, types and changed-test lint pass. Actual Chrome/WebGPU/DPR1 first-run file
+flows pass for2sections/17controls and8sections/64controls: Open, existing generic Width/Depth
+edit, Apply, Undo/Redo, real JSON Save/New/Open and reopened fields. Raw volume1→6mm³ and
+centroid are checked separately from tiny-fixture UI0g rounding. Root reviewed six actual PNGs.
+No dedicated frame/guide HUD, other renderer/DPR or extra exploratory proof is claimed.
+
+The root final full-Kernel and generated/docs receipts are recorded in
+`notes/framed-polynomial-guide-2026-10-29/qualification.json`; Kernel lane and consumer lane
+receipts remain immutable and retain their own NOT_RUN boundaries. Full Model/Studio suites
+are intentionally not repeated for unchanged production contracts. The API inventory delta is
+only two display-order leaves in the same DrawingSettings union; no exposure is added/removed.
+Source checksum metadata binds artifacts only; no source hash is a unit-test acceptance oracle.
+
+Push the qualified feature with a normal `local/cad-dev` push under the owner's per-feature
+instruction. No PR or release is authorized. Incoming package/Stop assessments are registered
+in existing roadmap scopes and do not initiate work on arrival. Next priority is the registered
+silent STEP unit-declaration loss (#2240,13/16), then resume remaining07→08→09 extensions.
+
+
+## D317 — Refuse declared unsupported STEP SI lengths before Open (2026-10-29)
+
+The file-level unit reader matched NANO declarations but fell back to undeclared millimetres.
+Reject every unsupported SI length prefix recognized by the existing length matcher with the
+existing typed NOT_READ code. Scan all matches before selecting a known unit, so a supported
+SI or conversion declaration cannot hide an unsupported one. Preserve supported factors,
+conversion precedence, no-prefix metres, angle exclusion and genuine undeclared-mm fallback.
+This is a bounded admission repair, not a representation-context or conversion-unit parser.
+
+Studio reads the unit once immediately after file.text(), before mesh/worker/repair/document
+replacement, and reuses it for both STEP routes. Keep the Kernel importer and scale algebra
+unchanged: supported conversion still occurs at the existing one boundary. Reference admission
+uses the same reader and rejects before evaluation/insertion. Original STEP bytes are not rewritten.
+
+The new regression on original source had3pass/1fail, `Missing expected exception.` After the
+repair, the two affected Model files pass6/6; final reference2/2 overlaps that coverage after a
+test-only union-narrowing assertion. First Model types failed with TS2339 on ReferenceSource.step;
+adding the assertion repairs the test without changing acceptance expectations. Final Model and
+Studio types and all changed-file lint pass. Logs retain first failures and empty successful output.
+
+Actual first-run Chrome/WebGPU/DPR1 Open tests use public-exported1000-coordinate B-rep and
+AP242 cube files, replacing only MILLI with NANO for rejection. Dirty B-rep and clean AP242
+attempts preserve document, bodies, history, filename, dirty and Undo/Redo, and actual subsequent
+Undo/Redo works. Supported MICRO B-rep opens as side1mm/V1mm³ with one scale operation;
+undeclared AP242 retains side1000mm/V1e9mm³. Both preserve original STEP text and complete
+semantic JSON through real Save/New/Open. Root reviews six actual screenshots separately.
+General unit contexts, unknown conversion units, external STEP-reader conformance, other
+browsers/DPRs and full suites are NOT_RUN. The Kernel source is unchanged, so no whole Kernel
+repeat is required. Full Model/Studio repeats would add no selected admission evidence.
+
+Evidence: notes/step-declared-unit-admission-2026-10-29/qualification.json and consumers/.
+Generated NOT_READ docs add its engine producer; final generated/API/docs checks are recorded
+there. The owner authorizes a normal per-feature push. No PR/release or schema/dependency/cap/
+tolerance change. #2240 remains archived for transfer; this bounded repair supplies its selected
+unit-loss acceptance. Next priority: #2235 skeleton Save/fresh Open/re-edit identity under09/12.
+
+
+## D318 — Admit saved skeletons without changing authored data (2026-10-29)
+
+The reader's kind set omitted the skeleton that Studio already saved. Admit it in the existing
+schema3/4 reader with private module-level structural helpers. Retain UI-valid single points,
+zero segments, empty constraints and parameter coordinates. Check nested constraint vectors,
+references and own finite parameter bindings; reuse only the pure sketch3dRefusal validator,
+never the solver. Keep conflicting/redundant authored constraints and geometric degeneracy
+separate from structural admission. This does not promise successful solving or physical frames.
+
+Check nested instance/pending documents iteratively with their own parameters. Preserve forward
+skeleton followers, enforce an unambiguous follows discriminator, and validate required saved
+cache arrays in all existing straight/through/center segment forms. Keep stale cache values;
+do not synthesize or refresh them on read. Public FrameNode requires those arrays and its public
+authors store them with withFollowed; cache omission is an explicit refusal, not a new accepted
+format. No new schema, migration, public Model export, coordinate limit or dependency is added.
+
+Studio's actual Apply initializer preserves prior ID and metadata. An empty edited constraint
+list explicitly removes old constraints. New point copies and repeated validation helpers are
+at module scope. Read-only Sol High review found and resolved mixed follower discriminators
+and deep recursion; root reviewed final cache structure/loop changes. Source review is separate
+from runtime proof. All original unknown-kind/ID/fixture/type/browser failures remain verbatim.
+
+Affected unique coverage is Model41=existing34 plus final reader7, Studio7=existing6 plus final
+Apply1. Types and changed-file lint pass; successful unchanged checks are reused. Actual
+Chrome/WebGPU/DPR1 tests use two fresh contexts: single-point Apply/Save/Open/re-edit and an
+actual UI constrained polyline file with two explicitly authored followers, fresh Open, length
+40→50, stable identity/followers, Undo/Redo and Save/New/Open. Four per-member A*L volumes sum
+6720→7840mm³. Root viewed four actual PNGs. The single-point file correctly has zero solid bodies.
+The first browser fixture omitted its output map; specifying the actual four schema references
+repairs the fixture without weakening full document, ID or volume assertions.
+
+Evidence: notes/skeleton-file-admission-2026-10-29/qualification.json and lane reports. Final
+generated/API/docs checks pass; no expected inventory change. Semantic JSON equality is not
+raw saved-byte identity. Whole suites, other browsers/DPRs, actual schema4/parameter UI and
+physical/interference acceptance remain NOT_RUN. Push normally under the per-feature instruction.
+No PR/release. Incoming OPFS2241 is roadmap-only and archived after transfer, not fixed. Next
+priority is existing P1 #2238 Presenter Geometry lifetime under05/V1/R2. Next decision:D319.
+
+
+## D319 — Release Presenter-owned Geometry on drawing replacement (2026-10-29)
+
+Presenter repeatedly created Geometry with core.add(rawInput), removed only Meshes, and left
+old Geometry registered until Core disposal. Preserve Core's intentional shared-Geometry
+contract. Explicitly create each Presenter-owned Geometry, track its successful Mesh immediately,
+and on add failure dispose only that new Geometry before propagating the original error.
+Drawing replacement removes the old Mesh then disposes its owned Geometry. Keep partial-show/
+outer rollback policy, external material/texture ownership and camera/render arithmetic unchanged.
+No identity cache is added: reusing caller arrays after in-place edits must still update drawing.
+
+Actual Core scene methods without a device reproduce1→33→33→0 retained Geometry before and
+1→1→0→0 after. Mesh-construction failure orphan1 becomes0. Full Viewer build/types,40 affected
+checks and final overlapping texture target1 pass; changed files lint passes. Source callbacks
+and recording buffers are not driver measurements. First ownership regressions and corrected
+fault-injection timing are retained separately, not erased as product results.
+
+Actual SDK Chrome/WebGPU Apple metal-3/DPR1 selected1 passes with0skip.122 actual pixel readbacks
+and124 count snapshots show retained=non-nullgpu=active Mesh: surface/curve1, plane+256dots2,
+created/clear/dispose0. Camera cycles, setView, replacements, curves/dots, public CPU picks and
+same-array edit pixel changes pass. Root views five actual PNGs. SDK proof does not qualify the
+whole Viewer app UI, GPU-pick race safety, device recovery, driver bytes/VRAM/OOM or speedup.
+The first dot fixture used an unqualified path; the existing public ModelSet loader repairs it.
+Later local naming cleanup is exact source equivalence plus syntax/lint only; raw evidence stays.
+
+Evidence: notes/presenter-geometry-lifetime-2026-10-29/qualification.json and separate lanes.
+Generated/API/docs pass with no public inventory change. No whole suite or kernel benchmark is
+claimed for this resource-correctness repair. GPU Core sources remain unchanged. Normal push is
+authorized; no PR/release. Incoming Stop2242 is roadmap-only and archived after transfer; independent
+original skeleton reader proof is a D318 supplement, not another implementation. Next priority:
+D320/#2241 per-store/path conditional-write ownership, then2242 originating-work Stop. Next ID:D320.
+
+
+## D320 — Hold same-path write ownership through the returned tag (2026-10-29)
+
+The native OPFS report showed two writes passing the same expected-tag check, then both
+committing. Add a nonrejecting completion-token queue local to one handleStore instance and
+exact validated path. Reserve before waiting, check the captured expect inside ownership,
+and retain it through lookup, native write/close and final returned-tag getFile. Unconditional
+writes use the same queue; other paths remain independent. Finally removes only its latest tail
+and releases successors after both success and errors. No new API/dependency/schema/mode/
+timeout/global root-name lock or tag format is added. Caller remove, separate instances/tabs,
+external programs and indistinguishable size/time tag collisions remain outside this guarantee.
+
+Baseline9 tests have3pass/6fail. Final10/10, Studio types and changed-file lint pass. The extra
+three-writer test checks tail ownership; original failing logs remain. Write/close/abort failure
+and post-commit tag-read failure release the queue. The latter can reject after bytes commit;
+no rollback success is claimed, and stale/fresh recovery controls remain. Original errors persist.
+
+Actual Chrome156 secure-context native OPFS selected1 test/5 groups/0skip passes. A same-tag
+write commits; B refuses STORAGE_CHANGED and native A bytes stay. Other-path progress, seed
+read before A commits, fresh-tag/serial-stale/expected-absent creates, unconditional order and
+returned tag snapshots pass. Genuine native abort rejects undefined in this Chrome; the first
+formatter's error.code access failed. Optional recording repairs only the test and preserves
+native IO/reason/assertions. Native11 streams use zero-argument createWritable and observe siloed
+in this run. Named namespace removal/absence and owned context/browser/server cleanup pass.
+
+Evidence: notes/opfs-write-ownership-2026-10-29/qualification.json and separate lanes. The test
+dashboard is native IO evidence, not Studio UI. Current bundle156 inputs stay in the worktree
+product boundary. Generated/API/docs pass; whole suites, actual Studio save scheduling, wider
+coordination, physical user-file loss and performance are NOT_RUN. Normal push is authorized;
+no PR/release. Next D321/#2242: explicit unsupported-edit refusal before history acceptance and
+origin-bound Stop, preserving normal/candidate/initial/variant and dirty/recovery distinctions.
+
+
+## D321 — Bind Stop to its originating accepted change (2026-10-29)
+
+Use policy B for #2242: explicitly refuse unsupported independent document edits before history acceptance
+while the main computation is pending. Reserve the accepted transition synchronously before its effect.
+Claim it only for the exact changed evaluated input; candidates/initial/variant work borrow no old history.
+Stop matches generation/document/input/top-entry identity, invalidates before restart, and captures Redo
+synchronously before mutating the live ref. Gate stale callbacks/candidate completion and token cleanup.
+Keep worker-bound caches stale across selected restart; placed loops follow the matching worker session,
+not unrelated history generations. A noactive Stop changes no ownership/history/cache. No new public API,
+schema, Undo framework or runtime dependency is introduced.
+
+Final Studio389/389/0skip, types/lint and generated/API/docs pass. Actual Chrome/WebGPU/DPR1 selected
+D321 plus same-source D318 regression pass, each with a separate starter smoke. Native computation is real;
+the scheduler holds actual result/mass client delivery and discards it on termination. Grid twice/Drawing
+refuse; camera/workspace work; Doc/recovery stay; Stop/Redo/fresh masses/further edits pass. Root views three
+actual PNGs. Earlier fixture failure and actual Redo regression, source capsules and raw logs are preserved.
+Focused17 overlaps the final suite. No whole Kernel/Model/Viewer or full browser matrix is claimed.
+
+Evidence: notes/stop-work-ownership-2026-10-29/qualification.json. Exact completed-click UI race,
+initial/variant/parameter/async-image full matrix, all restart paths, full Undo depth and exact viewport
+provenance remain NOT_RUN. No performance claim. Normal per-feature push authorized, no PR/release.
+Next:D322 existing A02/P1 late Save ownership reproduction, still source-only; no duplicate issue.
+
+
+## D322 — Preserve current work across late project Save completion (2026-10-29)
+
+The selected A02/P1 native OPFS baseline reproduces old Save A clearing newer B's dirty flag and
+completed autosave while live B/saved A remain. Separate initial async-poll harness failure is kept.
+Bind App clean/recovery to its render-bound document acceptance token, savedDoc identity and filename.
+Dispatch invalidates tokens, including history/Stop/system/no-op, independently of evaluation. Keep
+functional React updater semantics. Bind project Save to session/path and ordered successful receipts;
+current same-file success advances its tag after edits. Close/detach/use/openPart invalidate; guard
+selected version/list reads after await and final synchronous callback. Retain one checkpoint instead
+of physical Save remove; existing saved-equal filtering hides it. No library API/schema/dependency or
+generalized Open coordination is added.
+
+Focused9 and final Studio398/398/0skip, types/lint, actual Chrome/WebGPU/DPR1 Save3/3 and same-source
+D321 selected1 plus separate starter pass. Same-doc next Save B succeeds; New V2184/fresh/mass with
+exact local recovery stays detached; Close stays closed. Root views baseline2/final3 PNGs. First SSR
+browser renderer leaves MessageChannel; owned PID termination/file failure stays, test-only edge import
+allows clean focused exit. Reuse unchanged production checks; overlapping results are not aggregated.
+Generated/API/docs pass. Evidence: notes/late-save-ownership-2026-10-29/qualification.json.
+
+Actual project/path-switch/Open/ABA timing matrix, generic A05 ownership, tabs/external folders/crash/
+permanent loss and full Model/Kernel/Viewer/browser/performance remain unqualified. Incoming Viewer
+source/design draft is read and attached to existing05/V scopes, not executed as current priority.
+Normal per-feature push authorized; no PR/release. Next:D323 A04/#2236 canonical snapshot codec.
+
+
+## D323 — Keep canonical identity in project version snapshots (2026-10-29)
+
+Actual memoryStore writeVersions/readVersions reproduces admitted nextId omission changing the
+snapshot content key and refusing the log. The existing encodeStudioSnapshot/readStudioSnapshot
+control passes. Connect only project version snapshot write/read to these existing codecs with the
+original key. Keep ordinary Save/part/autosave/Open normalization, existing stored write-once behavior,
+read-only data and missing/corrupt key refusals. No new codec/API/schema/migration/dependency/lockfile.
+
+Unique related12 pass: retained storage7 and final snapshot5. Schema3 and genuine route-bundle schema4
+binary mesh preserve omission/false/0/empty/optional/canonical document and version IDs/parents/revisions.
+First fixture types3 fail; repair actual curve name/defaultDrawing/union narrowing only, final types/lint
+pass with unchanged production. Two binary re-encode byte matches are observations, not general equality.
+Actual existing CG6 project UI selected1 plus starter1 passes through native OPFS picker fixture with
+Save/two versions/Compare/Restore/reload/reopen/autosave Restore. Root views compare/versions PNG2.
+Rare omitted-nextId input remains API evidence, not UI-authored. Folder removal is awaited, not separately
+absence-probed; owned browser/server/gate cleanup completes. Generated/API/docs pass.
+
+Evidence: notes/canonical-version-snapshot-2026-10-29/qualification.json. Whole suites, native rare-input
+matrix, external folders/tabs/crash/primary-file loss and performance remain NOT_RUN. Version-key checks
+are actual log contract, not source-checksum tests. #2236 fresh body retained; already CLOSED for transfer,
+no mutation. Viewer static asserted7 supplement stays draft and attached without priority switch. Normal
+feature push authorized; no PR/release. Next D324:A07/#2237 delayed GPU instance readback ownership.
+
+
+## D324 — Reject readback after accepted instance or membership changes (2026-10-29)
+
+The current-source CPU reconstruction baseline has unchanged controlPASS and shrink TypeErrorFAIL,
+with one map/unmap each. Capture a Viewer-private pick scene revision; advance on add/remove/nonempty
+clear and active successful instance replacement. Return null after original unmap if changed, before
+reading current instance matrices. Keep camera/clip/canvas/base/serial queue/error behavior. Invalid,
+already-null and detached changes retain valid ownership; accepted equal replacement and ABA invalidate.
+No new arithmetic, dependency/WASM/schema or global resource framework.
+
+The existing @internal sceneMoved gains optionalMesh signaling. R7 observes that declaration at root,
+source and viewer exports despite @internal. Root reviews exactly3 type leaves and no added exposures/
+members, adopts only that expected delta, and records original FAIL/IV001 plus candidate/adoption hashes.
+This is a narrow exception to the original unchanged-signature implementation goal, not an unchanged
+observed API claim. No new public entrypoint is added. Final CLI check passes via generated/docs.
+
+GPU emit/types0 and normal CPU357PASS/0FAIL/0SKIP(top343+nested14) include new15 exactly once in47
+registered files; lint passes. Actual Chrome/Apple metal-3/DPR1 public pick selected1/6groups passes:
+real pixels/positive hit, unchanged, matrix replace/reorder/shrink/null/mesh remove stale null, current
+fresh hit metadata and finite point/depth, unmap1→2 reuse. Root views PNG2. Source/dist binding and owned
+viewer/browser/server/PID/gate cleanup retained. Evidence: notes/gpu-pick-instance-ownership-2026-10-29/
+qualification.json. No before-fix native/device-loss/full matrix/coordinate certification/driver memory/
+performance or full other-package/remoteCI acceptance. D322 independent review is attached without
+repeating successful checks. Normal feature push authorized; no PR/release. Next D325:A08/#2239 clipping.
+
+
+D324 boundary supplement: incoming D321 exacta386 review finds no product regression but confirms
+three Render raw states omit history. Exclude both-undefined equality from actual history PASS and
+attach presence/type-before-comparison or equivalent public Undo/Redo proof to existingO9/12/16/#2242.
+Keep original receipts and separate Doc/recovery/Drawing/Model/source guards. No whole-suite rerun or
+priority switch. Source/receipt review is not independent runtime or current-HEAD acceptance.
+
+
+## D325 — Align SDK display and selection clipping (2026-10-29)
+
+The current d855 native baseline reproduces #2239: excluded near7/far5 square remains rendered while
+CPU pick returns null. Presenter forwards admitted scene-unit near/far and sets new Camera.autoClip=false;
+default true retains original scene fitting/infinite reversed projection. Manual finite projection
+uses closed axial near<=depth<=far; invalid manual ranges refuse existing CLIP_INVALID, with valid
+orthographic negative near/signed zero preserved. Geometry scale does not rescale clip values.
+
+Manual pick fragments retain raw far-depth0 while a separate exact-zero fragment-depth minimum normal
+passes the cleared buffer once. Strict greater preserves first-hit equal-instance order. autoClip joins
+existing pending-readback camera guards; stale return follows unmap. Core CPU raycast stays geometric.
+Manual finite grid, positive SSAO/contact and enabled DOF refuse CLIP_INVALID before submission;
+active/creating path trace and new trace creation refuse PATH_TRACE_UNSUPPORTED, with post-await
+rechecks and unpublished-session disposal/finally ownership release. No new codes/schema/dependencies.
+
+GPU emit/types and SDK types/lint pass. Normal GPU first355/357 has2 missing-Camera fixture failures;
+actual Camera fixture plus related display26/camera29 reruns pass. SDK final11 pass, with initial8/10
+background-normalization test-fixture failure retained. Counts overlap and no final full-GPU runner
+is claimed. New SDK script registers the CPU file; affected CI still excludes runtime package tests.
+API complete delta is only Camera.autoClip:boolean at3 existing GPU exposures; root reviews/adopts
+exact generated expected bytes, retaining original expected mismatch.
+
+Actual Chrome156/Apple metal-3/DPR1 selected1 passes12 SDK observations at scale1/.001, including
+closed near/far and restoration; excluded coverage0/CPU null. Actual public Core GPU exact-far depth0,
+face71/instance0/triangle0 and strict duplicate tie pass. Native fulfilled map return held across only
+autoClip change yields stale null/unmap1, then fresh far hit/unmap2. Root views PNG3. Owned cleanup and
+source/driver binding retained. Evidence: notes/viewer-clipping-contract-2026-10-29/qualification.json.
+Full other-package/browser suites, caps/effects/orthographic/native off-axis/two-square, other environments,
+world-coordinate certification, device loss/memory/performance remain NOT_RUN. Incoming Studio UX maps
+existing15/20/21 only; preserve D321 Render-history gap and D322 ownership. Normal feature push is
+authorized; no PR/release. Next D326: existing12/O9 A05 late Open request ownership, baseline first.
+
+
+## D326 — Bind project and serialized Open completion to its current owner (2026-10-29)
+
+At f841 the actual hook/codec baseline control passes and6 stale ownership cases fail. Native Studio
+reproduces B(volume2184/doc/name/path/version/real History) being replaced by A(volume1000) after a
+held original A read return. Native B bytes remain; first actual setup mass-pending failure is separate.
+Retain both baselines. Add opaque request/session/store/path and shared App intent checks through
+picker/use/refresh/part/log/autosave/linked/errors. Close/detach invalidate even empty; Check captures
+read-only scope without minting new intent. onOpened synchronously hands off its accepted scope.
+
+App dispatch rotates Open scope independently of D321 work and D322 Save ownership. Serialized
+bcad/json/extensionless reads check both awaits; old errors and fit cannot apply to a newer owner.
+verifyOpened captures actual accepted doc/intent/dispatch and checks after awaits before reference
+problems/dirty/direct update; equal nodes are not ownership and no ref is mutated inside an updater.
+Keep existing D321 replacement/Stop/Undo and D322 Save receipt/tag/queued React semantics.
+
+High source-only review identifies and resolves missing reopen owner and standalone Check external
+scope before final validation. Focused29(new20+Save9), wholeStudio423/0fail/0skip, types/lint pass;
+focused counts overlap whole. Actual Chrome156/WebGPU/DPR1 selected5 passes projectA→B/New/Close
+and genuine fileinputA→New/projectB, actual current recovery/history/native B bytes retained. Root
+views baseline2/final3 PNGs. Native data/results are unchanged; only original fulfilled read return
+is delayed. Asset-free plain JSON completion uses native-return+MessageChannel/UI observation;
+old operation promise is not exposed, no general blob/crypto/linked completion claim. Own5namespaces
+removed/absence checked, browser/server/PID/gate cleanup retained. Evidence: notes/project-open-ownership-
+2026-10-29/qualification.json. No other-format/stage/allA05/native negative matrix/fullotherpackage/
+remoteCI/performance acceptance. No schema/dependency/WASM/public telemetry. Normal feature push
+is authorized; no PR/release. New direct owner priority selects D327 urgent App.tsx decomposition,
+keeping D321/D322/D326 semantics, remaining A05/A06 and07→08→09 scopes explicit.
+
+
+## D327 — Decompose App into cohesive controllers and panels (2026-10-29)
+
+Direct owner priority: make App readable before optional roadmap work. Reduce App from4,012 to2,308
+lines and385,325 to214,011 bytes through42 production modules. Keep central document dispatch,
+work/Open/Save owners, evaluation handoff, Undo/Redo/Stop and adoption in App. Extract file IO,
+exports/robot/mesh, route/sketch/preview/check controllers, viewport helpers and leaf panels.
+Preserve module-private cache lifetime, effect ordering, lazy setter lookup, optional values and
+post-await owner checks; serialized fallback acquires no imported-file Promise boundary.
+
+Final source-only High review has no remaining required findings. Build/types and scoped lint pass;
+fullStudio429/0fail/0skip includes route6. Existing console45/bundler warnings retained. Actual
+Chrome156/WebGPU/DPR1 selected11 plus starter pass across source-identical preserved runs; separate
+affected Open5/5 passes. Initial7PASS/5FAIL, targeted5PASS/1FAIL and isolatedSketch1PASS/1FAIL retain
+raw driver failures. FinalSketch2PASS/0FAIL and isolatedStop2PASS/0FAIL close selected flow checks.
+No single whole-browser PASS claim. Existing D321 missing Render-history equality is excluded.
+No other-format/stage A05, A06, native route geometry, STL pending-generation cancel, full other-
+package suites, remote CI or performance acceptance. No schema/dependency/WASM/API changes.
+Evidence: notes/app-decomposition-2026-10-29/qualification.json. Normal feature push authorized;
+no PR/release. Resume existing A05/A06 priority, then07→08→09; incoming reports are roadmap intake.
+
+
+## D328 — Separate remaining App domain controllers (2026-10-29)
+
+The owner requests another App refactor. Reduce App from 2,308 to 2,046 lines and from 214,011 to
+188,513 bytes. Seven modules group specification/reference actions, viewport picking, section state,
+section evaluation, section display, analysis maps and workspace previews. The preview module exposes
+three separate domain hooks for clearance, manufacturing previews and PMI. Central document adoption,
+evaluation, Open/Save/work ownership, Undo/Redo and Stop remain in App.
+
+Sol Medium implements; Sol High reviews baseline 30fa825a3 against the final source. Preserve effect
+order, dependency lists, cleanup, memo conditions, current refs and render-captured async inputs. Fix
+intermediate eager-ref access, wrong tuple/nullable input types and unused destructure before final
+qualification. No schema, dependency, public package API or runtime-value changes.
+
+Final build/types and changed-production lint pass. Studio suite: 429 PASS, 0 FAIL, 0 SKIP. Actual
+Chrome/WebGPU selected 11 unique cases plus starter pass across two source-identical runs. First run
+11 PASS / 1 FAIL includes starter; old A6.4 skipped the existing STL dialog confirmation. Correct only
+the driver and rerun that case: 2 PASS / 0 FAIL includes starter. Original raw timeout remains. Later
+first-run captures retain that dialog, so domain assertion PASS is not clean whole-screen acceptance.
+Preserve the root post-run wrong-directory receipt error; correct-root checks confirm all eight frozen
+production files unchanged. No whole other-package/browser suites, remote CI or performance claim.
+Prior D321 Render-history gap and remaining A05/A06 remain open. Evidence:
+notes/app-decomposition-second-2026-10-29/qualification.json. Normal feature push is authorized; no PR
+or release. Incoming DA-1a results attach to the existing drawing roadmap without changing priority.
+
+
+## D329 — Bind nonserialized import and mesh-stage completion to current ownership (2026-10-29)
+
+A05 followup at baseline5168183e8: actual importedFile regression tests expose five stale continuation
+failures. Guard every file/loadDirect/worker/blob await and rejection by captured Open intent, document
+dispatch and worker session. Only admitted direct/replacement changes emit success or accepted fit.
+Mesh workflow is a private controller with immutable useSyncExternalStore snapshots and synchronous
+question/task generations. Cancel/units/steps/new question/Stop revoke old work. Stop revokes before
+restart, hands retryable questions to the new owner, and uses a stage-only current-model re-evaluation
+trigger. It does not roll back unrelated Undo entries or change central D321 Stop semantics. Unmount
+and repair entry supersede older intents. No schema/dependency/WASM/geometry policy changes.
+
+Sol Medium implements; Sol High source-only review passes. Build/types/scoped lint pass; Studio460
+includes new31 (0FAIL/0SKIP). Initial type fixture errors and root driver lint failure remain. Initial
+native batch5PASS/2FAIL is withheld because App changed from frozen d669 to earlyWIP04a883 during the
+run; cause UNKNOWN. Preserve both capsules/diff/raw failures. Restore only owned missing guards after
+browser closure and commit a7264f0e5. High confirms all4 restored source paths equal frozen/Git bytes.
+Final native7PASS/0FAIL sequential cases include public Stop Undo/Redo and retry; normal selected6 plus
+starter pass sequentially. External metadata watch/final hashes show no final-run source drift. Do not
+count repeats or claim whole-browser acceptance. Normal original file/event return scheduling is held;
+no fabricated bytes/results, OS chooser or natural failure proof. Existing exact-source build/test
+receipts are reused after byte-identical restoration.
+
+Evidence: notes/import-open-stage-ownership-2026-10-29/qualification.json. Wider A05/version-write/linked
+matrices, native IGES/fit/project negatives, A06 resources, full other-package/browser suites, remoteCI
+and performance/heap remain outside scope. Normal feature push authorized; no PR/release. Next A06
+sender/worker disposal. Record the owner's77-prop SceneViewport feedback as further App decomposition.
+
+
+## D330 — Release worker and wire resources on retirement (2026-10-29)
+
+A06 starts at baseline 3420adb4f. EngineClient now allocates its worker and sender lazily. Retirement
+invalidates the epoch, detaches handlers, terminates the worker, disposes the sender subscription,
+clears transport state and settles pending callers. Final disposal is idempotent and terminal.
+Constructor, error, messageerror, pack and post failures require explicit restart. App owns disposal
+on committed unmount and the public Retry path. WireSender.dispose releases its eviction subscription
+and state without clearing the shared blob store. The bounded API inventory records this one added
+public method. No schema, dependency or WASM change. Source commits 2ae761831 and e88e6af9f preserve
+implementation and the API/native-driver followup.
+
+Raw baseline Model 0 PASS / 2 FAIL and Studio 2 PASS / 8 FAIL remain. Focused Model 12 and Studio 17
+overlap full Model 1853 PASS / 0 FAIL / 0 SKIP and Studio 476 PASS / 0 FAIL / 0 SKIP. Build, types and
+scoped lint pass. API changes from FAIL to SCOPED_PASS for its six listed rules. Preserve the first
+harness PASS-versus-SCOPED_PASS assertion as a root explanatory excerpt; the complete original tool
+log is unavailable. Final docs receipt exit 0 (68 pages / 55 shots / 4811 KB / 860 labels) predates
+assembly of this note. Source review is reported separately; no raw review receipt is in this bundle.
+
+Serial native lifecycle 1, stage 2 and main 2 plus starter 1 pass: 5 selected cases and 1 starter.
+Three real App committed mount/unmount cycles terminate owned native workers; unused construction
+allocates none. A controlled ErrorEvent retires the transport and public Retry recovers. Public
+Undo/Redo, D329 Stop/retry, D321 Stop and D327 STL export pass in the selected cases. Source watch
+21 observations and three final checks match scoped 3 production and 4 driver/fixture paths. This
+does not freeze the full dependency graph. Evidence: notes/worker-wire-lifetime-2026-10-29/
+qualification.json and manifest.json. No StrictMode, natural crash, OOM, heap/performance, full
+kernel/GPU/Viewer/browser or remote CI acceptance. Wider A05/A06 paths need their own evidence.
+No PR or release.
+
+
+## D331 — Preserve independent drawing location dependencies (2026-10-29)
+
+Fix existing DA-DUP-1/#2243 from2084eeb99. A shared stock feature or equal coordinate/value is not
+an authored locating relationship. Duplicate buckets retain independent groups; manual suppression
+and coverage compare actual targets and both endpoints. Auto generation retains each independent
+hole position. Explicit pattern/PCD/count relations, counted direction, opposite rims and structurally
+associated compound holes retain their contracts. Compound identity comes from actual parent/center/
+radius/depth association, with doc-aware instance resolution and conservative unknown-prefix refusal,
+never formatted CBORE text. Model/API and actual Studio issue/fix/auto paths share this callback.
+No tolerance, schema, runtime dependency or kernel algorithm change. Hole-row expected positions3→4,
+grid4→8 (total8→12); authored fixture inputs unchanged. Four helper exposures and three optional owner
+contracts are intentionally reviewed under wildcard exports; API policy remains six-rule SCOPED_PASS.
+
+Sol High implementation and independent review resolve two additional synthetic findings. Final
+related Model drawing248, focused63 (overlap), Studio chat/section28, types/build/lint/generated pass.
+Valid original-source baseline2PASS/6FAIL, earlier invalid auto:false fixture/type errors, review red
+8PASS/2FAIL and first candidate runs remain. Empty selection accidentally discovered365 raw entries
+(2PASS/363 import failures), an invalid harness expansion; runner now exits before build/discovery.
+Its final positive13 and expected negative exit1 are separate overlapping controls.
+
+Actual serial WebGPU new driver passes two profiles including public Open/Fix all/Save/fresh Open,
+missing d9/Undo/Redo/Auto and independent grid. Existing selected3 and starter pass across retained
+runs; first stale History timeouts and first retake ambiguous panel timeouts remain. Final failed-only
+retake changes setup observations, preserves drawing assertions and passes2 plus starter. Four runs
+watch64 listed inputs (256 matching observations), with planned driver/guard changes between runs;
+not full served graph or product checksum tests. Grid reserve top-below remains; no actual grid
+placement issue observed, but snapshots may retain transient toasts. No whole-screen/manufacturing,
+full assembly matrix, full suites, remoteCI or performance acceptance. Runtimeccbdf285e; driver/guard
+followup5907c3931. Evidence: notes/drawing-location-ownership-2026-10-29/qualification.json.
+Normal feature push authorized; no PR/release. Next direct D332 selection visibility, then08→09.
+
+
+## D332 — Give base viewport selection its own visible palette (2026-10-29)
+
+The owner requests clearer point/edge/face/body selection. Existing yellow reuses the UI accent; no
+separate rationale was found in the inspected decisions. Introduce darkcyan#22d3ee/lightcyan#007f9e
+selection tokens shared by both renderers and SVG/outliner; preserve general tool/section/mould accent.
+Face tintshare0.64, selectededge3.4px, bodyoutline3px, selectedpoint6px with contrastingring versus
+hover4px. Avoid drawing a hover marker over an already selected vertex. Theme changes invalidate face
+paint cache and recolour selected direct objects while preserving unlit/width/doubleSided/roughness.
+WebGL2 uses its existing visible-edge pass for selected bodyedges; GPU globaloutlinewidth also affects
+red contact outlines3px, preserving colour and priority. No geometry/Model/GPU-package/schema/dependency
+changes. Apply React rendering guidance without new state or per-element nested functions.
+
+Node22types/build/scopedlint and existing facePaint3 pass; existing bundler warnings retained. Actual
+Chrome serialWebGPUdark/light2PASS precede GL2-dark startupFAIL (lightNOTRUN): Box command was refused
+while initial computation was pending. Preserve rawtimeout/publictoast and zero page/console errors.
+Driver-only readiness wait then GL2-only retake2PASS; reuse both WebGPU successes. Four distinct finite
+profiles across two invocations, not one whole-run PASS; one browser/context at a time. Actual public
+mouse/filter/Escape/theme operations preserve document, selection and geometry; hooks only observe.
+Root reviews eight representative captures including live selected-face theme recolour. Sourcewatch12
+matching observations binds five changed modules and driver only, not full servedgraph. No numeric
+contrast/accessibility certification, direct/instance/editor actual matrix, contact-specific run, full
+suites, naturalfailure/OOM/performance, Electron runtime or remoteCI/release acceptance.
+Source d5c5d7a20; readinessfollowup5f845139c. Evidence: notes/selection-visibility-2026-10-29/qualification.json.
+Normal push authorized. Electron/WebGPU-only question is feasible support-policy discussion under15,
+not an adopted wrapper/backend-removal action. Next regular08 bounded two-axis cut feature pattern.
+
+
+## D333 — Repeat the original cut on two global axes (2026-10-29)
+
+Add one editable rectangular-feature-pattern node and public Part.rectangularFeaturePattern over the
+existing difference seed/tool path. Use two distinct global axes; positive public spacings<=10000,
+finite nonzero signed direct-core spacings with absolute value<=10000; safe counts1..64 and safe
+product<=64 including the original cut. Both Model spacings bind; count bindings refuse. Translate
+original tools, never stock copies. Stable string suffixes retain transform callbacks without per-cell
+rename closures. Default3×2XY; no schema bump, new engine, dependency or WASM change.
+
+Final candidate Kernel build and whole tests2212PASS/0FAIL/6existingSKIP (2218total, finalrectangular9),
+related Model70 and focused14 overlap; Studiochat23, types/build/scopedlint/APItools/refusals pass.
+Six-ruleAPI SCOPED_PASS is bounded; reviewed inventory adds6 exposure rows/changes12/removes0,
+coreResultChecks changes only snapshot feature-kind union. Independent review closes missing
+raw/chat wiring after exact three-piece restoration from preserved candidate. Retain initial missing
+API-export import failure and strict1×1 rawBrepID test failure. Earlier source flip cause UNKNOWN;
+44 matching sourcewatch observations cover22 listed inputs across2 segments, excluding that flip.
+Final wholeKernel started on the working-tree candidate; c99cb121 checkpoint metadata was committed
+during that run without changing Kernel bytes. Tests finished afterward. Changed inputs match
+before/after, without a full-graph claim. Latest22 listed inputs match Git, with the intentional
+tracked API expected not-profile baseline follow-up.
+
+Actual WebGPU creation prefix proves preview/seed23840, refusal/Cancel, product66 refusal/repair,
+Apply23040, Undo/Redo and Save/freshOpen. Entire first invocation remains FAIL: after spacing2 edit
+Apply auto-closed editor but obsolete Close editor click timed out. Resumed edit-tail PASS reopens
+original accepted.bcad and checks only spacing2=12 with authored volume+independent centroid,
+then count=2/fourcuts23360, Save/freshOpen/reeditable12/2. Old-centroid same-volume snapshot is not
+new-mass-readiness proof; corrected driver waits authored geometry oracle, not a product fix.
+One finite profile across retained prefix+tail, not one clean whole-flow PASS; captures/states are not
+testcases. Both receipts close all contexts/browser/server with0page/console errors/sourcechanges.
+Root views six-hole applied and four-hole fresh-open captures. Featurec99cb121c; API/driver17493e8f6.
+No fullModel/Studio/GPU/Viewer/assembly, wholeCG2, perf, naturalfailure, remoteCI/release or commercial
+acceptance. Post-assembly docs check exits0 (68pages/55shots/4811KB/860labels). Evidence:
+notes/rectangular-cut-pattern-2026-10-29/qualification.json. IncomingAPIboundary intake is separate.
+
+
+## D334 — Repeat the original cut along an open polyline (2026-10-29)
+
+Qualify one fixed-orientation CUT pattern under08. Retain the original CUT and translate its tools by
+point(k*spacing)-pathStart without rotation. Admit open degree1 unit-weight raw paths or exact-midpoint
+degree2 unit-weight C0 straight spans, at most64 native controls. Count1..64 includes the original;
+positive spacing<=10000 binds in Model, while count binding refuses PARAMETER_UNBINDABLE. No extension
+epsilon or extrapolation. Kernel raw-only references refuse typed CAPABILITY; Model also resolves
+stable base-only {objectId} from current direct geometry each evaluation. Consumed-source changes use
+the existing candidate Worker before commit. Placed/flatten/copy/revision helpers preflight before
+source loss. Failure/Cancel/Stop/Open ownership is reused. No dependency/schema/WASM change.
+
+Kernel whole2218PASS/0FAIL/6existingSKIP (2224total) precedes the final endpoint snap; retained helper
+bytes identify that scope. Final rebuild and focused7PASS cover the repair. Earlier actor17PASS and
+build/types/lint remain scoped. Model affected36, positive5 and Studiochat23 pass as overlapping runs;
+root review fixes14 and final Modeltypes pass after retained TS4104 repair. Studio initial55/types/
+build/lint precede cache repair; final cache-focused7/types/build/lint pass. Four independent review
+findings are SOURCE_RESOLVED, with reviewer runtime NOT_RUN. Retain first TS2352, tool-path
+MODULE_NOT_FOUND, fixture-label and boolean-widening failures. Root/driver lint0errors1consolewarning;
+agent-tools/refusals exit0. API six-rule SCOPED_PASS remains bounded: raw390changed, reviewed17added,
+0removed,12actual API changes plus VerifierView property order. Other raw differences are TypeScript
+internal well-known-symbol IDs and union order; keep inventory instability under existing16/R7.
+
+Actual native-first FAIL exposes stale Studio evaluated memo: public exact five-pole L path exists,
+but Path choices are empty. Studio fix uses semantic live-geometry key and current-command direct
+context. Retake first10states pass seed23920/public path/preview/count6 refusal/Cancel/retry/Apply23600/
+UndoRedo/SavefreshOpen/count4=23680/SavefreshOpen. Retake remains FAIL after actual Move because the
+driver assumes one curve in the transformed source; two are valid. Decoder probePASS selects current
+object.geometry through public compileCadModel. RESUME_LIVE_PATH_TAIL PASS reopens count4, checks
+Move[3,4,0] invariant mass/centroid and UndoRedo, consumed-path Delete refusal with no Undo entry,
+valid Move[-2,1,0] retry/UndoRedo, Stretch[2,1,1] same23680volume but independent changed centroid and
+holes[8,8],[16,8],[24,8],[32,8], UndoRedo and SavefreshOpen. Independent stock-minus-prisms volume and
+centroid tolerance1e-7. Root views applied five-hole and fresh-open four-hole captures. Three receipts
+record0page/console errors/sourcechanges and CLOSED contexts/browser/server; one browser/serialcontexts.
+One bounded profile across retained prefixes+tail, not a clean whole-flow PASS or whole08 completion.
+
+First/retake before-after capsules match30/30 listed inputs. Tail pre-launch commit/capsule command
+failed from mixed cwd/path; no commit occurred. Planned driver header differs from prior capsule
+(29/30); startup captures actual30 during the run and final30/30match. No edits during flows. Final
+listed30match Git; capsules do not attest the full served graph. Hashes prove integrity, not geometry.
+Source10a2b99b6; contextfixeabb827b9; driverfollowup053897880. Full SHAs and retained evidence are in
+notes/curve-cut-pattern-2026-10-29/qualification.json. Documentation assembly has its own coordinator
+check. No real native Boolean failure, stale/Stop whole matrix, full final suites, performance,
+remoteCI/release/commercial or wholeCG2 acceptance. Continue remaining08 before09. Electron15 stays
+queued with no implementation; no new queue.
+
+
+## D335 — Mask a finite cut grid with an owned XY region snapshot (2026-10-30)
+
+Qualify one fixed-XY reference-point fill CUT pattern under08. Own a copied snapshot of3..16
+finite binary64 points in a simple concave-capable world-XY loop, admitted by the native qualifier.
+No holes, curves or arbitrary frames. Test the exact rational authored anchor plus each represented
+grid offset; inside or exact boundary admits. This tests reference points, permits tools to cross
+the boundary and does not clip tools or prove full-tool containment. Retain the original CUT even
+when its anchor is outside. Check safe counts1..64 and count×count2<=64 BEFORE masking. Public
+spacings are positive<=10000; core retains D333 signed nonzero absolute<=10000. No new cumulative
+offset cap. Both Model spacings bind; count and anchor bindings refuse. Fixed translation reuses
+original tools and stable original-grid @i,j names. cutSource validates a current active unsuppressed
+one-solid difference before all no-op/empty-tool returns; empty tools retain stock. Snapshot hints
+state that source edits do not update the feature; editor reselection takes a new numeric straight
+world-XY snapshot. Nested/placed snapshots use strict admission before flatten/copy/revision source
+loss. No schema, migration, dependency or WASM change.
+
+WholeKernel at feature1fc5c496 passes2229/0FAIL/6existingSKIP (2235total), with buildPASS. Later
+Studio identity/driver/API metadata changes leave Kernel bytes unchanged. Initial focused28 records
+23PASS/5FAIL from a test treating shell IDs as objects; fixture-only repair reruns fill10PASS and
+reuses related18PASS. Model final fill8 plus related15 and Studiochat23 pass; initial eligibility/
+empty-tool fixture failures remain. Root final code-shape8/types pass overlap fill coverage. The
+review's P3 empty-vector vacuous every guard is source-resolved by dense finite3-component canonical
+XY checks and strict holes containers. EditScope keeps parameters optional for prior direct-only
+callers. Studio initial25:24PASS/1FAIL lacks HV fixture metadata; corrected fill5PASS reuses curve7
+and Stop13. Initial docPick/parameters types fail; final Model/Studio types/build/lint pass. Source
+review has no remaining actionable finding in its bounded scope; reviewer runtime NOT_RUN. API
+six-rule SCOPED_PASS adds11/removes0, changes13 raw/12 semantic rows; the remaining row is
+FinitePlaneCylinderEquation union order. coreResultChecks changes only the feature-kind union.
+Agent-tools/refusals exit0. There is no performance claim.
+
+Four actual serial Chrome/WebGPU invocations retain three FAIL receipts. Native-first proves public
+L creation, preview, product66 refusal, Cancel/repair, ten-cut Apply22500/UndoRedo/SavefreshOpen,
+Yspacing12 eightcuts22800 and Undo to base. It then fails because the driver selects a free sketch
+by a nonexistent data-node-index. Native-tail fails on assumed History label Sketch6 instead of
+Sketch · outline; no new product proof. Driver preparation SyntaxError is retained separately and
+fixed before browser use. Native-tail-retake proves snapshot lifetime during source notch28→16,
+explicit nine-cut reselection22650, UndoRedo/Save, but fresh Open exposes REAL PRODUCT ID LOSS:
+ordinary source edit drops n5; reader allocates n7 and advances nextId7→8. Geometry is correct;
+semantic equality is not normalized to hide this defect. The existing Finish sketch path now retains
+the prior id for every edited existing sketch. New-node allocation is unchanged. Actual hook SSR
+and real native encode/read move from1PASS/1FAIL to2PASS/0FAIL; separate source review finds no issue.
+
+Native-identity-retake PASS resumes the original accepted ten-cut file. Source edit preserves n5,
+nextId7 and snapshot28/ten cuts; explicit reselect gives snapshot16/nine cuts with stable filln6/parent.
+UndoRedo, native Save/freshOpen, semantic document identity and reeditable fields pass. Independent
+stock-minus-prism Fraction volume/centroid tolerance1e-7: ten22500/[4559/150,607/30,5], eight22800/
+[61/2,765/38,5], nine22650/[9159/302,6127/302,5]. Planning oracle files are PLANNING, not runtime PASS.
+Root views applied ten-hole and final fresh-open nine-hole images. All four receipts record0page/
+console errors/sourcechanges and CLOSED contexts/browser/server; one browser, serial contexts.
+One bounded profile across retained creation prefix and final saved-prefix retake; no clean whole-flow
+PASS, raw-byte identity or whole08 acceptance.
+
+Checkpoint32 inputs match feature1fc5c496. First and first-tail before/after33 match. Failed identity
+retake retains before33 plus later prior-commit match, not a working-tree after attestation. Final
+before/after35 and Git35/35 match at0e76152de; no edits during flows. Capsules do not attest the full
+served graph, and hashes do not prove geometry. Feature1fc5c49615399bc7cf247f9563226481e157de23;
+API7a94b4aaeec623a8c9482c3016ecba22545c7272; selector733c9a68185308859d88d08b7c93ed11291ad5da;
+label84c30e0aa12fce5ffaf1a1f9d7f9525a8dd31ce4; identity0e76152def0b24bb97615c4a3301ee1f8ee0a316.
+Evidence: notes/fill-cut-pattern-2026-10-30/qualification.json and artifact-manifest.json; compressed
+provenance retains original hashes. Docs status is PENDING coordinator post-assembly check. No actual
+natural Boolean failure, full stale/Stop matrix, full Model/Studio/GPU/Viewer suites, performance,
+remoteCI/release/commercial or wholeCG2 acceptance. The identity repair also belongs to existing09/12;
+it does not complete those scopes. Next D336 selects a remaining08 consumer gap before09. Broader
+curve/fill, holes/curves/frames/containment and direct-face/surface gaps remain. Electron15 stays queued
+with no implementation. No new queue.
+
+
+## D336 — Refuse operations that discard direct-surface trims (2026-10-30)
+
+Qualify six existing consumers at `7ab1a23c9ed2aed24d8281430eff04591f118171` under08, with scoped loss/robustness notes under13/16. [Qualification](notes/direct-surface-trim-guards-2026-10-30/qualification.json) and the retained manifest carry check status and provenance. The final documentation check is recorded in that qualification.
+
+The immutable pre-fix probe at1fb2d11e9e4713bac3bfbc1131fc45302aa558f3 confirms unsafe returned success for Reverse/Split/Region/Extend, IGES and intersection. Its exit0 is successful defect reproduction. Four editing operations create visible objects without trims; the old original remains stored WITH trims and hidden. Actual IGES public reimport has full-support area1200; independent kept material area is1100. Intersection emits12 segments overlapping10mm of the removed hole. No conclusion relies only on IGES entity count. The original sampled display area1100.081380233 is approximate. Six main cases use exact authored metadata; separate public trimByCurve evidence returns160 UV samples and does not prove the UI producer.
+
+Repair only private Model guards: DIRECT_VALUE for four edits, DIRECT_INTERSECT for both selected operands, IGES_EXPORT for all visible surfaces before writing. Pick/kind resolves first; intersection resolves both picks before guard. Extend keeps positive-distance validation first. Trimmed invalid axis/interval may now refuse trim support before native validation. Nonempty arrays and defined non-array containers refuse; empty arrays pass. Guard precedes native output work, add and ID/source allocation. Hidden trimmed originals do not block other visible untrimmed exports. Explicit Untrim remains intentional and undoable. No UV transport/clipping, new engine, Kernel, Studio production, schema, runtime dependency or public API signature change. Existing DirectPanel.run and App export catch paths already handle synchronous refusal; no new stale-export helper was introduced.
+
+First Model related24PASS; after malformed-container coverage, affected7PASS. Types/lint/diff pass; no first failing run. High source review has no actionable finding, reviewer runtime NOT_RUN. API six-rule SCOPED_PASS uses unchanged expected inventory. Studio types/build pass with retained existing bundler warnings. Lint0errors/1console warning; agent-tools/refusals exit0. D335 whole-Kernel2229PASS/6SKIP is the earlier unchanged-Kernel baseline, not a D336 rerun.
+
+One clean actual serial Chrome/WebGPU FULL_FLOW PASS records17 observational states, not17 tests. Six fresh refusal notices preserve doc and DOM direct selection with no download. Baseline and after-all-guards native Save/fresh Open retain exact trims. Untrim removes only panel.trims; Reverse then hides old untrimmed/adds new untrimmed. Two Undo restore both actions and exact loops; two Redo reproduce. Final native Save/fresh Open is semantically equal. Four downloads are three native files and positive IGES; actual public built Kernel reimport finds2 intentionally untrimmed surfaces/0curves. No trim-export support or raw-byte identity claim. Witness keyb1/volume420/centroid[86,.5,3.5]/exact names stays stable; tolerance1e-7 applies to this unrelated solid only. Four contexts/browser/server close;0pageerrors/consoleerrors/sourcechanges. Coordinator viewed authored trim, IGES refusal and final native PNGs.
+
+Pre-fix496 listed inputs match before/after; final browser11 listed inputs match before/after/Git at7ab. These are not whole-repository or complete served-graph attestations. Hashes prove provenance, not geometry. Large bundles/HTML are gzip with decoded and stored hashes; unsafe IGES bytes and actual reimport remain retained. Thicken UI allowance is NOT_PROVEN. No full Model/Studio/GPU/Viewer, natural Boolean failure, performance, remoteCI/release/commercial or whole08/09/12/13/16 acceptance. Existing12/O9/R4 keeps the source-only async direct-export ownership candidate at lower priority, NOT_REPRODUCED. D337 investigates remaining08 consumers/generality before09. Electron15 stays queued with no implementation. No new queue.
+
+
+## D337 — Preserve one planar stored trim loop through surface Reverse (2026-10-30)
+
+Qualify a functional roadmap08 extension at481105e400d713e2b79f7160c307836fc65bd13a, with driver fix7cd5726657b7823356f213dbe8e35c40422499d2 and baseline92413878961db4f5886097fcf43439761c11452d. [Qualification](notes/trimmed-surface-reverse-2026-10-30/qualification.json) records final documentation status; manifest/provenance retain receipts and hashes. D336 evidence is unchanged.
+
+Reuse existing Kernel surface reversal, Model directOps and actual DirectPanel. New reverseTrimmedSurfaceAxis transports one simple stored3..160-point loop on an exact affine degree1×1 four-equal-positive-weight nondegenerate plane. Both axes/keep flags and nonunit domains pass. Interior reflection uses exact rational a+(b-t) then one nearest rounding; endpoints copy partners and nonselected coordinate bits stay unchanged. Original separate1e-7 UV/world limits and exact topology/winding checks remain. Forward collinear samples pass; repeated/backtracking/crossing/touching/overlapping/zero-area or malformed loops refuse. Output owns mapped loops; hidden original retains full source/id/name/trim. Publication follows successful transport. Parent128-observation and separate trim budgets stay separate. No schema, package export-map key, core-result check, new Part solid verb or runtime dependency change. Seven new public named exports are the actual API delta, not seven new export-map keys.
+
+Model helper-specific errors map to DIRECT_VALUE; other native errors propagate. Duplicate selected IDs refuse DIRECT_PICK on the trimmed route. Untrimmed routing stays. D336's other five consumer guards and trimmed Thicken/Sew refusal remain. Curved/nonaffine support, unequal weights, multiple loops, oversized sidecars and failed binding/topology remain unsupported. This is no generic trim engine or whole08 completion.
+
+Kernel focused8/related19, build/types/lint PASS; whole2237PASS/0FAIL/6existingSKIP,2243total. Model33PASS/0FAIL and types PASS supersede the retained earlier handoff NOT_RUN scope. Independent High review has NO_REQUIRED_FINDINGS over12 listed inputs; reviewer runtime NOT_RUN. API six-rule SCOPED_PASS:7added/0removed/0changed, metadata unchanged. Studio types/build PASS with existing bundler warnings; lint0errors/1existing console warning. Initial cp from package cwd failed due to a relative path, then corrected from root cwd; exact orchestration failure text is retained. It is no product failure.
+
+Browser run-01 FAIL occurs before browser/server launch: capsule opens a virtual stdin seed path and gets ENOENT. Preserve exact receipt/log. Driver excludes that virtual input. Run-02 is one clean FULL_FLOW PASS, one Chrome WebGPU process, six serial contexts and29 observational states, not29 tests. Actual public Trim by the curve generates160 points. Outside U/UndoRedo/V, inside U/V and concave U/V preserve captured world material. Outside/inside areas1100/100; concave stored hole130.95906250000002 differs from design131. Double reversal is geometric under original limits, not bitwise UV involution. Sampled trim meshes and solid mass are separate; surface solid mass NOT_APPLICABLE.
+
+Four actual refusals cover IGES, Thicken, Sew and nonplanar Reverse, preserving doc/selection/no-download. Thicken/Sew each have eligible count1 and refuse. Undo proves no guard history item. Nonplanar refusal has UndoRedo and valid retry. One actual native Save/download and fresh Open preserve accepted UV/flags/IDs/source semantically and permit reselect; no raw-byte identity claim. Witnessb1/420/[86,.5,3.5] remains stable, unrelated solid only. Pageerrors/consoleerrors/sourcechanges0. Six contexts/browser/server close. Coordinator viewed06 ReverseV PNG.
+
+The9 before-generation inputs match their frozen subset;720 frozen seed-bundle and selected UI inputs match after-browser and cleanup. This is no complete served-graph attestation. Hashes prove provenance, not geometry. Deterministic gzip retains decoded and stored hashes; nested manifests are included, only this note's top-level manifest excludes itself. Large generated API candidate is represented by exact hash plus delta/check rather than a duplicate17MB inventory. No full Model/Studio/GPU/Viewer, performance, remoteCI/release/commercial or whole08/12/13/16 acceptance. Continue remaining08 consumer/generality gaps before09. Existing12/O9/R4 lower-priority stale-export source candidate stays NOT_REPRODUCED. Electron15 stays queued. No new queue.
+
+
+## D338 — Add an owned whole-surface Thicken recipe through the shared facade (2026-10-30)
+
+Qualify source0396200d313670aa711e50a5ba21f0d5008dc5db (22files), baseline publishedD3378c0710d7ab0cce6e09d4fb9c8c7379dba1f3d717. [Qualification](notes/surface-thicken-snapshot-2026-10-30/qualification.json) records final docs/generated-check status. D337 evidence is unchanged.
+
+Use inherited Part.thicken(surface,{t,side}) for KernelPart and StudioPart. A strict owned RawNurbsSurface snapshot captures exactly degreeU/degreeV/knotsU/knotsV/controlPoints/weights, rejects wrappers/metadata/accessors/foreign containers and reuses existing validateSurface. #make adds one body, retaining chosen-body and TOOL semantics. Onlyt binds. Normal/reverse/both remain editable; defaultnormal is omitted. Existing Core grid40/fold/geometry behavior remains. Five geometry files match base bytes; no tolerance change or exact curved-offset claim.
+
+Model command/raw context and selected Direct UI share thickenSpec admission/construction. Selected current unique Direct source checks trim metadata before compilation/copy, including malformed containers. The accepted recipe is independent of later source changes. DirectInspector opens existing App preview/Cancel/Apply; source-current Apply guard prevents stale acceptance and selection clears only after successful commit. Checked features.add admits strict raw nodes. chat run_command lacks raw/selection arguments, so thicken is excluded from CHAT_COMMANDS, with no new tool blobs. Schema, package export-map keys and core-result checks stay unchanged. API inventory12added/0removed/7changed, no old member removal; new FeatureSpec case/inherited methods/optional Ctx snapshot explain changed rows. Six-rule SCOPED_PASS is scoped inventory acceptance only.
+
+Kernel final new6+api-verbs16=22PASS; prior controls9 plus foldcontrol1=10PASS. Model final6/related7/Studio20PASS, both types/lint pass; rootchat23/build pass, lint0errors/1existing console warning. Root agent-tools/refusals --check both pass. Final review snapshot32 inputs remain unchanged. High source NO_REQUIRED_FINDINGS32inputs; reviewer runtimeNOT_RUN. Preserve all first test failures/retries: exact float bounds/mass assumptions, fold category/mapping guesses, wrong edit cwd, native73 names,10001FORMAT, Locationtuple/stockY fixture, wrong tsc launcher; Model native73/public6 count and wrong regex assumptions. Corrections are test/launcher-only with no production/tolerance repair.
+
+Native73 facet names and Model6 composite display groups are distinct existing exact-native-coplanarity versus display-merge policies. Preserve each set in its proper evidence. Native Core fold has OFFSET_FOLDS/categoryCAPABILITY; Kernel facade exposes OFFSET_FOLDS/whereevaluate/details.kernelCode, while Model mapped error has details.friendly without kernelCode/category. No adapter rewrite.
+
+Actual run-01 is first-invocation clean FULL_FLOW PASS:1ChromeWebGPU,5serialcontexts,25observationalstates,10acceptedpublicgeometryreads. Not25tests; no browserFAIL. Preview total shownmesh2820 minuswitness420 givesplate2400 withdocunchanged. Preview centroid is NOT_PROVEN. Accepted plate2400/[30,9,4]; actual literalThickness3 gives3600/[30,9,4.5]; SideBoth gives3600/[30,9,3],z1.5..4.5. Cancel/retry/Apply/UndoRedo, UI editable Save/fresh Open and sourceMove/delete preserve accepted snapshot/body/public names. Two native Save/download/fresh Open recipes are semantically equal; no byte identity claim.
+
+Actual160point trimmed context refuses. Quarterradius10/wall12 fails preview, expanded Kernel detail shows OFFSET_FOLDS and Apply isdisabled. Both refusal flows preserve accepted doc/selection/nohistory/no-download; validretry succeeds. PublicAPIseed wall2 bound recipe saves/freshOpens/reopens Thicknessparameterwall/Side. Named parameter value mutation is focusedModeltest proof, NOT actualUIparameter edit; browser edits literalThickness/Side only. Actual public6composite names remain. Browser native checkBrep provesvalidclosed, not native73name assertion. Witnessb1/sixnames/420/[86,.5,3.5]stable.0errors/consoleerrors/watchedchanges; all5contexts/browser/serverCLOSED. Coordinator viewed02-preview.png,09-both.png and18-fold-refusal.png.
+
+Initial19source subset matchesfrozen721; frozen721matches afterbrowser/cleanup. No721before-generation or complete served-graph claim. Hashes prove provenance, notgeometry. Largebundle/HTMLdeterministicgzip retains decoded/storedhashes; all firstfailure/retry outputs preserved. Manifest excludes onlytop-levelitself, nestedmanifests remain included. Generated17MBAPIcandidate represented by exacthash plus delta/memberdelta/check. No fullKernel/Model/Studio/GPU/Viewer, exactcurvedoffset/trimsolid/Sewfacade/performance/remoteCI/release/commercial or whole08/12/16 acceptance. Continue remaining08before09; Electron15staysqueued. No newqueue.
+
+
+## D339 — Sew owned ordered whole-surface snapshots through the shared facade (2026-10-30)
+
+Qualification is BOUNDED_QUALIFIED after held visual failure and repair for source883b9027003d4f97572830217cc9e68548ea49af (23files), baseline publishedD338fec23cf2acef80210c28092981f54e6191e90eeb. [Qualification](notes/ordered-sew-snapshot-2026-10-30/qualification.json) records final docs/generated checks. D338 evidence is unchanged. Initial product qualification was held: coordinator run01/02-preview visual review FAILS with severe coplanar source/preview z-fighting. Keep automated run01 PASS and visualFAIL unchanged. Final display repair and retake below resolve this bounded acceptance.
+
+Inherited Part.sew(surfaces,{tol}) captures2..64 strict owned six-field snapshots in caller order. Preserve existing Core natural edges, first-corner/paired-boundary authority, sampled matching/orientation and original tolerance. No sort/deduplication/reorientation. Numeric tol omitted/0 omits native tolerance for existing auto; finite explicit(0,1] copies exactly without clamp. No Dim binding: known Param PARAMETER_UNBINDABLE; unknown PARAMETER_UNKNOWN; editor ƒ disabled. #make preserves chosen focus/TOOL behavior. Raw API hides no Direct object.
+
+Selected Direct capture validates every original trim container before source loading/support copying, preserves source order/labels, and hides only captured IDs in an unaccepted candidate. Successful Apply commits source hide and new body together. Existing preview/Cancel/Apply/source-current guard retains acceptance ownership. Checked features.add admits strict raw nodes; exclude Sew from CHAT_COMMANDS because run_command has no raw/Direct arguments. No new tool blob, schema, live reference, geometry algorithm or tolerance change. Source-current guard is source/ownership-control evidence; no new actual stale attempt is claimed.
+
+Kernel build/new7/related18/declarations/lint PASS; Model new6 first-run PASS, related28/Studio7/both types/lint PASS. Rootchat23/build PASS. API10added/0removed/7extensions, no old member removed, metadata unchanged; six-rule SCOPED_PASS only. High NO_REQUIRED_FINDINGS35 listed inputs/runtimeNOT_RUN. Final test-only type annotations differ after initial capsule; production unchanged and worker final hashes match. Six Core files match base bytes. Preserve Kernel first21PASS/3FAIL shell-ID-as-object, unchanged retry after wrong edit path and optional FaceInfo.area assumption; corrected tests use native surfaceAreaOf/tessellation. Model initial TS7022 nodes/node test annotations are corrected. First browser-driver lint1unused oldTol is fixed before checkpoint; retry0errors/1existing console warning. No production repair for these assertion/launcher/type failures.
+
+Initial run-01 passes its automated numeric/workflow checks but fails coordinator visual review due to severe source/preview overlap; it is not accepted product qualification. That automated receipt records1ChromeWebGPU/5serialcontexts/25observationalstates/11accepted public-native geometry reads. Not25tests; no browserFAIL. Main six Direct sources preserve authored order with.01. Shown preview totalmesh14820=14400+witness420 with accepted doc/visibility/selection unchanged; no preview centroid proof. Cancel/retry/Apply hides6 sources and adds body in one Undo item; Undo restores exact visible originals and Redo restores body/hidden flags. Actual tolerance.01→.02→0auto omits native tolerance, Save/fresh Open reopens editable0 with no ƒ widget despite unrelated parameter. Two Save/download/fresh Open recipes preserve semantic identity, not byte identity. Separate raw facade.01 file has ordered generic labels and no source hiding. Source SHOW/Move/Delete leaves accepted copied nodes/body/names unchanged.
+
+Open-five preview refuses/Apply disabled with expanded Kernel-detail closure words. Last-member actual Trim by curve160 refuses before command. Both retain accepted doc/visibility/selection/no-download/no-extra-Undo and valid retry. Browser HUD words do not establish SEW or GEOMETRY structured codes; focused facade negatives separately observe GEOMETRY. Actual UI prefixn2 is read from the accepted document; native/public ordered six .surface names, unchanged ordered six-field coefficients,8V12E6F/closedEuler2/checkBrepvalid/volume14400/center[30,9,9]/area4080 and ordered physical face areas/normals/centroids pass. Kernel focused prefixsew1 and Model empty focused prefixn0 remain separate. Witnessb1/native-public6names/420/[86,.5,3.5]stable.0pageerrors/consoleerrors/watchedchanges; all5contexts/browser/server CLOSED. Coordinator viewed05-applied.
+
+Initial18source subset matches frozen723; frozen723 matches afterbrowser/cleanup. No723before-generation/full served-graph claim. Hashes prove provenance only. Raw stdout logs retain original bytes in deterministic gzip with decoded/stored hashes. Current documentation uses .log.gz; copied raw historical receipts retain original temporary filenames mapped by provenance. Manifest excludes only top-level itself, includes nested manifests. Duplicate17MBAPIcandidate is represented by exact hash/delta/member-delta/check. No full suites/performance/broad curved healing/trim solid/exact tolerant-gap mass/remoteCI/release/commercial or whole08/12/16 acceptance. D340 is functional trim Split plan only, High/source/tmp; no new implementation. Keep08before09 and Electron15queued. No new queue.
+
+
+D339 visual supplement: fixecb2b86192ce7704faebd882d026743c0e15cf18 changes5 files. A pure helper/App postfilter affects only SceneViewport.direct while the captured selected Sew candidate is actually drawn, retaining cached original direct meshes/memo. No doc/selection/Undo change. Cancel/error/no candidate/route/cage override/raw context restores original display; a retained busy candidate keeps its matching filter. New3+relatedDirect7=10PASS, Studio types/lint/finalbuild PASS. No whole Kernel/Model repeat after this render-only fix; original Core/Model receipts remain valid. Initial High35 review covers initial feature, not new App/helper. Root final-source-review.txt supplies separate source/product assessment.
+
+Actual run02 FULL_FLOW_PASS:1ChromeWebGPU/5serialcontexts/28observations, not28tests;11geometryreads/2nativeSave-download-freshOpen recipes/2refusals. Original geometry/order/names/closed-topology/mass/area/file checks pass. Existing readonly directAt top[30,9,15] gives7probes:obj2baseline/nullpreview/obj2Cancel/nullretry/obj2refused/nullvalidretry/nullrawexplicitHide. Probe, helper/source inspection and actual CLEAN preview image jointly support the display boundary. Coordinator viewedrun02/02-preview.png and23a-facade-explicit-hide.png CLEAN.0page/consoleerrors/watchedchanges; all5contexts/browser/server CLOSED. Initial19subset/frozen724/after-cleanup match; no724before-generation/fullgraph claim. Run01 automated25states/18subset/frozen723 and visualFAIL remain retained separately.
+
+Raw facade snapshot has no DirectIDs and retains authored visible6coplanar supports; initial raw unchanged-visibility assertion remains. The retake explicitly uses user Hide6/UndoRedo before Save/freshOpen, preserving raw API contract and node/snapshot identity. Initial raw23 image can intentionally overlap; no automatic raw-source hide or universal duplicate-visibility repair is claimed. Saved visibility and transient selected preview filtering are distinct. Final generated checks reuse valid unchanged-input receipts; docs status stays in qualification. D340 remains High/source/tmp functional trim Split plan only.
+
+
+## D340 — Preserve material components through affine trimmed Surface Split (2026-10-30)
+
+Qualify source `5a8515aa0af0b74524670b75467b35cadececbfa` (16 files), baseline published D339 `477d76eae2d7401388755fcb625a64a0fd86c508`. [Qualification](notes/trimmed-surface-split-2026-10-30/qualification.json) records final documentation status. Earlier D339 next-plan files remain historical SOURCE_PLAN_ONLY evidence.
+
+Reuse native support Split and an exact-decision leaf of the existing segment/half-edge arrangement. One original exact affine degree1x1 equal-positive-weight support with one simple stored3..160-point loop admits both axes and keep flags. Emit lower then upper components in exact canonical order. Each positive interior-connected component uses inside outer AND outside holes; empty sides add no object. Keep old original/source/trim hidden, own all result masks and preserve shared lower/upper source references. Legacy arrangement branch, untrimmed Split, parent128 and D337 Reverse160 remain unchanged. No new B-rep/solid engine, schema, runtime dependency or WASM.
+
+Actual native children need not be exact affine. Nine H-W*A Bernstein coefficients divided by minimum positive weight bound the whole child against original affine authority. Combine this with one-rounding UV displacement under the original1e-7 world allowance, spent once, plus separate1e-7 UV. Positive actual weights, strict convex projected corners and nine positive projected Jacobian coefficients certify each used child's admitted rational-bilinear regularity. Exact-to-stored graph checks reject changed incidence/nesting/orientation and distinct-vertex collapse. Fixed request200000/GCD8192 contexts do not reset per vertex. Structural326/651/434/1302 ceilings are source-reviewed derivations, not measured maxima.
+
+Old public-parent x9998..9999/cut1e-16 and MIN_VALUE probe returns rank-one children with tiny observations and a not-certified report. This is no parent bug claim. The new consumer refuses used collapse; unused empty support may remain. Positive thin/nonexact-affine children and a separate generated-intersection UV-collapse/refusal/retry witness are retained. Old probe892 src/dist matches before/after without rebuilding source at probe time. New-helper checks are separate.
+
+Kernel exact-arrangement5/Split8=13PASS, related legacy3/polyhedral6/Reverse8=17PASS; build/types/lint pass, no first Kernel failure. Root whole Kernel2263PASS/0FAIL/6existingSKIP,2269total once after final source freeze. Model first46PASS/0FAIL/0SKIP includes13Split tests; types/lint pass. Source-only High review has no required production finding across7 unchanged production hashes; requested UV-collapse coverage is closed in final test source. Reviewer runtime NOT_RUN. Independent Node BigInt slab oracle has no product import/Python process. Earlier area-sort note was fixed before first runtime by area+centroid matching. Initial Python test preparation was NOT_RUN and removed before testing. Root guide8point sanity3PASS is reference-only; first string Fraction TypeError is retained/corrected by integer parsing without product change.
+
+Kernel public Curve160/Fraction material comparison is a scoped pass, not actual Model producer evidence. Actual Studio Trim by curve160 now separately feeds the independent stored-material oracle. One Chrome WebGPU invocation,9 serial contexts,30 observational states,7 independent material reads,4 native files/downloads and4 refusals pass. Thirty observations are not thirty tests. Actual V3.7 inside lower1/upper2 and outside lower2/upper1 retain the pocket; V5.7 inside lower1/upper0 creates no unused upper object. U-axis actual browser is NOT_RUN; U/bothflags remain focused Kernel/Model evidence. Undo restores exact original160, Redo components. Inside, renamed/reeditable, outside-pocket and empty-upper Save/fresh Open preserve semantic doc/IDs/order/UV/keep/shared support refs; no raw-byte identity claim. Component IGES/Thicken/Sew and unsupported nonaffine original Split refuse without doc/selection/download changes, then valid retry passes.
+
+Maximum local coordinate error7.105427357601002e-15 and mask counts166inside/174outside/160empty are fixture observations. Local vertex checks do not replace whole-child coefficient/Jacobian evidence. Surface material moments are not closed-solid mass or exact generic curved area. Witnessb1/sixnames/420/[86,.5,3.5] remains separate and stable. Page/console errors/watched changes0; all9contexts/browser/server close. Root separately views inside03/outside-pocket14/empty18/renamed09/nonaffine-refusal images: scoped visual PASS, no visible missing regions/z-fighting. Purple rectangular support boundary is selection overlay, not filled material; U-shaped description concerns the loop shape, not U-axis execution. Raw numeric/UI receipt remains unmodified, visual-review.json supplements it.
+
+API6 new root exports/0removals/0semantic existing changes and7union-order-only existing records are justified adoption; six-rule scoped check passes. Studiochat23/types/build/driverlint and generated tools/refusals pass, with retained existing build warnings. Initial15subset matches frozen726, frozen726 matches after browser/cleanup; no726before-generation/full served-graph claim. Hashes prove provenance only. All logs retain raw bytes in deterministic gzip; decoded/stored hashes, nested manifests and exact API before/candidate hashes/deltas are retained. No full Model/Studio/GPU/Viewer, performance, remoteCI/release/commercial, generic curved/multi-loop/repeated Split or whole08 acceptance. Continue remaining08 before09; delivered07 and queued Electron15 stay unchanged. No new queue.
+
+
+## D341 — Preserve trim material through rectangular Extract region (2026-10-30)
+
+Qualify initial feature `ecab49052b3adfe114aeaef663d586e0f85a99e2` (14files), display correction `53a2007084b79b1448d01689193f6c7a95b364e1` (4files), baseline published D340 `91edfdfe72e866d1a3b4eb7b0595013a990ead90`. [Qualification](notes/trimmed-surface-region-2026-10-30/qualification.json) records final docs status. Preserve initial run01 numeric/UI PASS and separate root visual FAIL; there was no clean first product PASS.
+
+Existing native Region runs once; unchanged D340 exact trim/crop rectangle arrangement yields canonical positive components on one final native support/source. Each uses independently owned inside outer AND outside holes. One original exact affine degree1x1/equal-positive-weight simple3..160loop admits ordinary nonunit/fractional input. After valid native staging, empty cropped material atomically refuses own DOMAIN mapped DIRECT_VALUE before proof/publication, retaining original/source/visibility/selection/Undo. Native errors retain earlier NATIVE precedence; tiny collapsed support fails native D1/BINDING first, not a claimed Jacobian guard or forced DOMAIN. Untrimmed route remains. Whole retained rectangles stay explicitly masked with existing trim guards.
+
+Reuse original-authority whole-final H-W*A residual, positive weights/convex projected corners/nine Jacobian coefficients and nearest-once graph rounding under old joint1e-7 world/separate1e-7 UV. Fixed200k/8192, native128, Reverse160 unchanged. Private ring bound484 leaves D340 default326/report unchanged. Contact-inclusive structural484V804E1608occurrences536components are source-reviewed ceilings, not measured maxima. Comb160 actually yields476V788E/78inside79outside, each component independently matched; maxima85966arrangement/42875material/149458binding remain below old arithmetic cap. Nonexact finalpolez0.3/1.2999999999999998 admits jointbound1.942890293094024e-16, one bounded control.
+
+Kernel first9PASS/1FAIL is a comb equal-area matcher pairing633.999 with-6; test-only matching repair gives final10PASS plus related14/types/build/lint. Model first64=63PASS/1FAIL expected wrong native priority; two assertions/title changed only. Repaired Region18PASS and unaffected first46PASS give64unique tests, not clean first64. Types/lint pass. Initial High source review has no required finding,6final hashes match/9parent files unchanged, runtimeNOT_RUN. Independent Node rectangle slab oracle uses perpendicular-border switchlevels, no product imports/Pythonprocess. No new fullKernel run; earlier D340 whole result is a separate prior baseline.
+
+API6new/0removed/0existing semantic or presentation changes and Studiochat23/types/build/driverlint/generated checks pass. Postfix Studio types/build/driverlint pass; prior API/chat/generated receipts remain valid because the correction adds only module-private display sampling and no generator/public inventory input. Keep existing build warnings and exact reuse assessment.
+
+Run01 numeric/material/files passed but root images18hole/22rectangle had no filled surface. Actual diagnosis: generated grid/iso values6.200000000000001>6.2 and1.6000000000000005>1.6 caused native Parameter-outside refusal; displayOf caught it and returned no surface. Two module-private samplers copy exact endpoints and bound generated interior display coordinates only. AuthoredUV/sidecar/source/nativegeometry/tolerance/API unchanged. Preserve first baseline harness ERR_MODULE_NOT_FOUND separately, immutable baseline2PASS2FAIL missing-surface results and repaired new4PASS. Related57PASS ran before the newtestfile, so new4 remain separate. Modeltypes/lint pass. Independent High display review has no required finding/3hash match/runtimeNOT_RUN; root postfix source assessment is separate. No performance or exact clipping claim.
+
+Run02 numeric/UI PASS:1ChromeWebGPU/10serialcontexts/33observationalstates/10independentmaterialreads(9positive+emptyoracle)/5nativefiles-downloads/5refusals/16readonlyrendererprobes allPASS. Not33tests. Actual publictrim160/represented crop bounds feed independent rectangle slabs/Green/ray-parity checks: inside2arms, outsidepocket2, outsidehole1, retained explicitrectangle1 and insideempty refusal/validretry. UndoRedo/nativeSavefreshOpen/rename/reopen/reselect preserve masks/sharedrefs/IDs/order/labels semantically; no raw-byte identity. Existing component IGES/Thicken/Sew refuse with doc/visibility/selection/source/no-download/noextraUndo preservation. Witnessb1/sixnames/420/[86,.5,3.5]stable, unrelated solid only.
+
+Root separately views run02 images03/14/18/19/22/23: scoped visualPASS including hole/rectangle after freshOpen. Sixteen sampled renderer pick probes supplement source/regression/images; not every raster point or exact clipping. Original cyan guide remains authored/visible. Raw numeric receipts retain ROOT_MUST_VIEW_SCREENSHOTS; separate initial/final review files close that boundary honestly. Sampled holemesh552.1118096508944 is distinct from ideal8pointguide552 and actualstored160 exactarea89567120809725791629670217469133475/162259276829213363391578010288128 (displayed552.0000000000001). Surface material moments/local evaluator observations are not closed-solid mass or whole-support proof.
+
+Errors/consoleerrors/watchedchanges0; all10contexts/browser/server close. Each run initial16subset/frozen727/after727/cleanup727 matches, not727before-generation/fullservedgraph. Logs retain raw bytes as deterministicgzip, decoded/stored hashes and nested manifests; only top-level manifest excludes itself. API before/candidate duplicates are exacthash+delta/adoption evidence. Whole08, generic curved/multi-loop/repeatedclosure/trimExtend/SSI/IGES/solids/fullsuites/performance/remoteCI/release remain open. D342 is unrun source plan only, not delivered. Continue08before09, delivered07/Electron15queue unchanged; no new queue.
+
+
+## D342 — Repair Offset face with current native cap authority (2026-10-30)
+
+Qualify feature `bd9d5715bd2c1cfdb3d2f1ca7b6d58722718c6ff` (7 files), Studio acceptance correction `7e3d0a229810e036d80fc9b07f52fd0e17616c3d` (2 files), 8 distinct implementation paths, baseline D341 `8adbbbfa5515b76769f6adc9412f65c017b7ec38`. [Qualification](notes/offset-face-native-2026-10-30/qualification.json) records final docs status. Preserve run01 numeric PASS and selection FLOW FAIL; no clean first product PASS.
+
+Immutable existing-command/native probe returns four successes: fractional footprint loss/thin ledge, translated gap/native two solids-two shells, drafted side-continuation mismatch, and a legitimate integer-cylinder control. Fractional native volume1400.0014999999999 differs from endpoint oracle about1400.0021; translated plane5.3456789 rounds to5.346 and leaves0.00032109999999985206 gap. Native validity alone is not requested geometry correctness. Actual504 bundle inputs are435 Kernel source+68 Model source+1 harness, no Kernel dist execution; wider1249 capsule includes dist but is not the execution graph. Historical PENDING and root nonexistentBrep.solids reader KeyError remain separate raw evidence.
+
+Resolve unique current native body/cap identity and own a frozen right-prism/cylinder profile. Exact dyadic footprint/normal rounding and bounded circle quotient retain old1e-7; trusted factory proof and per-distance checks precede one-last-next cache. Unsupported draft/identity/distance/collapse refuses with existing VALUE/BAD_REFERENCE/FACE_DISTANCE. Generic faceProfile/planeOfFace/Extrude/Core unchanged. No new schema, tolerance, minimum thickness or public shared Part verb.
+
+Real near-full positive2.22e-16 target initially built strict-invalid polygon side loops and Model centroid outside its interval; a separate strict-valid circle had wrong mass. Prospective guard reconstructs the FULL remaining target at exact absolute WORLDlo/hi, not removal tool or roundedthickness+d. Existing native unit PrismaticSolid section/slab/cap records own exact endpoints; the same target gets strict checker and existing mass finite-positive/physical-interval/exact-midpoint admission under old1e-7. This is not every actual Boolean/mass provider/all-axis/global inertia certification. Preserve guard ordinary X-/Y-+2.125 regression: lo+(hi-lo) changedhi one ULP; explicit native owned slabz0/z1 and capSource.z restore exact levels without relaxing checks.
+
+Final64 affected PASS/0FAIL/0SKIP =helper15+command23+existing26, Modeltypes/lint/gate released. Preserve first54PASS/4FAIL test-oracle zero-fraction/NaN and translated-span assumptions separately from guard61PASS/2FAIL real ordinary binding regression. Two original ordinary public requests now strict-success. Boundary24 records have12 FACE_DISTANCE refusals (collapse/crossing and positive residues mixed) plus12 strict-valid positives; not12 positive-residue cases. Approximately.001 retry is not a product floor. Historical no-test-match, signed-zero5/1, earlier11/14 freezes remain scoped evidence. High final updated2 hashes match, no required source finding, runtime NOT_RUN. Callback removal/explicit loops add no performance claim.
+
+API3 Model app helper exports/0removals/0existing changes, Studiochat23/types/build/lint and generated checks pass. First stale FACE_DISTANCE generated example and two unused driver declarations fail then repaired PASS; exact logs retained. Final browser numeric assertions differ from old High browser-source hash; root source/diff assessment and runtime are separate. Studio-only followup does not change Model/Core/API; valid prior receipts reused, postfix types/build/App-driverlint pass.
+
+Run01 numeric/native PASS failed actual selection flow: old body0/face5 selection persisted while [targetb1,witnessb3] became [witnessb3,resultb6], selecting the witness. Clear consumed geometry picks only after successful Offset commit; Cancel/refusal keep selection. Captured source guard reuses existing ownership pattern, but actual concurrent source mutation is NOT_RUN/source-only. No generic selection remapper or Shift-Enter repeat policy acceptance.
+
+Run02:1Chrome WebGPU/7 serial contexts/29 observations/13 native reads/7 Fraction box oracles/8 actual Studio mass captures/1 cylinder triple-mass guide/7 actual mouse face picks/1 draft refusal/2 native files-downloads/4 accepted selection checks all PASS, no witness alias. Not29 tests. Core native/public Part/accepted Studio raw volume and centroid share the same ORIGINAL native-endpoint oracle; rounded inspector labels are not precision oracles. Outward+2/inward-1, added Distance3/existing offsetDistance binding, UndoRedo/native Save-fresh Open/reselection, draft refusal/source-edit Undo marker/valid retry and integer-cylinder control pass. One strict-valid native solid/closed shell, support-plane membership/no exposed old cap and independent moments establish geometry; coplanar provenance partitions do not imply fixed8V12E6F.
+
+Root separately views04iso/12reeditable/16inward/20draft refusal/29cylinder as scoped visual/selection PASS. Images cannot resolve30nm ledges or0.0003211mm gaps; native support/topology and independent numerics are authority. Witnessb3/native-public6 names/420/[86,.5,3.5] stable. Page/console errors/watched changes0, all7contexts/browser/server closed. Each run initial12subset/frozen728/after728/cleanup728 match, not728before-generation or full served graph. Raw numeric receipts keep ROOT_MUST_VIEW_SCREENSHOTS; separate flow reviews preserve first fail and final pass.
+
+All raw logs retain bytes in deterministic gzip with decoded/stored hashes. Nested manifests included, only note-root manifest excludes itself. Large API inventory duplicates are exacthash+delta/adoption evidence. Confirmed longitudinal h2/h3 cancellation attaches [urgent D343 SOURCE_ONLY plan](notes/offset-face-native-2026-10-30/next-plan/plan.md) and mass review to existing16/CG10, not a new queue. Not implemented; re-pin after published D342. It does not fix central inertia/Green moments generally or relax D342 guard. Delivered07/08open/09after08/Electron15queued unchanged. No full suites/performance/remoteCI/release/commercial or whole08 acceptance.
+
+
+## D343 — Stabilize longitudinal mass and certify actual Offset results (2026-10-30)
+
+Qualify bounded source `e1ff873c4e0de4dca628c6486c5e99e7b8bcc591`, following `f9c17c1461ad7814f89d6fefef0e358aac473596` and `3177950c40077de5b91c9965376636769417d830` (14 distinct implementation paths). [Evidence](notes/prismatic-mass-stability-2026-10-30/qualification.json). Preserve both actual product failures before clean run03.
+
+Replace subtraction of close squared/cubed endpoints with factored h2/h3 in the existing prismatic provider. Independent Node rational tests require physical interval containment as well as bounded midpoint error, ordinary tensor and unequal-area weighted controls. The captured [.3456789,.34567890000000023] center changes from.34375 to.3456789000000001.43 shared recorded volume/mass bit pairs are unchanged; hashes establish provenance only. Global central inertia, other providers and extreme finite/subnormal behavior are not certified.
+
+The corrected prospective mass exposed empty actual X/Y Offset targets. Add a shared build-time postcondition on the exact last Boolean output key/ref and owned source/sketch/tool recipe, strict closed native target, exact complete cap support levels, bounded actual boundary and actual eager/deferred Model normal centroid. A retained unrelated witness cannot certify the target. The old distance function and original1e-7 policy remain. Trimmed side supports can extend beyond used material; their unused poles are not material bounds. One weak last-candidate witness is bounded and content checked. This is not a persisted Offset feature or a general later Boolean/file/edit guard.
+
+Run01 revealed Chrome cap half-spans3 vs3.0000000000000004. Remove their exact bounding-box equality while retaining finite positive bounds and the existing both-cap all-four-span quotient/side certificate. Public authored unequal-halfspan signed controls and ellipse refusal are registered. Run02 then exposed distinct physical caps named n1.bottom#1/#2 but public aliases n1.bottom/n1.bottom. Match cap provenance to its exact stored height, consistent with normalize and the source contract; retain same-level region/first-source precedence and fallback. Actual geometry/solid/mass are exactly unchanged except names. Public source/cutter cap names become distinct and survive actual Save/Open.
+
+Final shared Kernel gate:2325PASS/0FAIL/6existingSKIP,2331 total; the earlier2317PASS full run is historical before cap identity repair. Model86PASS with public facing-cap selection/name uniqueness and file stability, types/lint; Studio build and retained scoped chat23/API/generated/type receipts pass. API adds one app helper; no removed/changed old export shape, dependency, schema or geometric tolerance. Independent High reviews distinguish source-only verdicts and retained v1 integration failures.
+
+Actual run03 is one Chrome/WebGPU process with3 sequential contexts,14 observations/6 native reads/4 independent scalar oracles/4 raw accepted Studio mass reads/2 actual mouse picks/2 cleared-selection checks/1 native file-download. Apply, Undo/Redo, fresh Open and ordinary+2 control pass. Root reviews4 images separately; tiny4ULP thickness is not a pixel/Float32 claim. Browser actual volume differs from Node reconstruction by one ulp; both meet the independent guide and same normal interval. Witnessb4/420/[86,.5,3.5]/names is retained. Frozen728/after/cleanup match after an initial13-file subset; no page/console/watcher error, all resources close.
+
+Keep native B-rep quadrature UNREPAIRED: its raw provider and STEP validation metadata consumer remain a separate existing16/CG10 priority. [Next source-only reproduction plan](notes/prismatic-mass-stability-2026-10-30/next-plan/bounded-reproduction-plan.md). No claim of native quadrature/tangent-centroid/inertia accuracy, full Model/Studio suites, performance, remoteCI, release or whole08 completion. Continue remaining08 after confirmed accuracy defects, then09; Electron15 stays queued.
+
+
+## D344 — Center native whole-patch integration before weighting (2026-10-30)
+
+Qualify bounded source `fbf8a7afb555ee7302bd3c6a6ed9e034a9a8b51a` (seven files) and verification follow-up `28a80e8695a92e92e5e50f6a5d34c569a02c0e5f` (two overlapping files). [Evidence](notes/native-quadrature-conditioning-2026-10-30/qualification.json). No new public export, schema, dependency, geometry tolerance, integration rule or method. Native geometry/control points/mesh/names remain unchanged.
+
+On the captured four-ULP cylinder, raw native volume6.180191251439208e-15 and tangent center[.10042170557,-.2683917743] were wrong despite the corrected upright provider. Trace the actual two wholePatch sides/two planar caps/meshed=false path at572 side nodes. Independent native stored-node Bernstein arithmetic and exact arithmetic over observed basis/intermediates isolate errors in absolute weighted products and U-column sums, before the quotient. The original late center subtraction cannot recover that information.
+
+Subtract the common body-global origin before Pw multiplication. Integrate the resulting local patch point through a private scalar accumulator; other face paths subtract the same origin. Preserve existing classification, basis, nodes, normals/orientation, fallback and fromCentre conversions. The captured no-rest total is restored once; existing rest/squared/cubed handling stays unchanged. This is not a face-local origin transform or a global central-inertia rewrite.
+
+Registered old-source result6PASS/5FAIL becomes11PASS; relevant mass/area/native-SI checks81PASS. Root full Kernel2336PASS/0FAIL/6existingSKIP (2342 total), affected Model25PASS, Model/Studio types/build/lints and API/generated checks pass. Independent source/oracle review has no required finding. Full Model/Studio suites are NOT_RUN. Same frozen benchmark script, Node22, three warm-ups/seven batches of32 fresh BReps gives ordinary−0.15% and tiny+6.02% local medians. No significant speed/regression claim follows from this pair; accuracy correction and geometry equality are separate from timing.
+
+Actual default Studio STEP export is a real consumer of raw native quadrature, without an upright mass override. Use one target body so an unrelated large body cannot hide the tiny contribution. Run02: one Chrome/two serial contexts/ten observations/four native reads/three actual STEP downloads plus one native file, one real cap pick/Offset, Undo/Redo and fresh Open. Exported volume6.278163296415527e-15 and center[.12345670000000014,-.23456779999999966,.3456789000000001] meet the independent native-node reference. Strict readback retains one closed solid/four faces/names/exact cap levels[.3456789,.34567890000000023]. Fresh Open metadata is semantically identical; STEP header bytes may differ.
+
+Run01 is preserved as an overstrict metadata-box oracle failure. A sampled bound grew one ulp outward while actual STEP/control/native/import cap coordinates stayed exact. Require finite ordered enclosure and outward normal expansion within the original1e-7; retain strict geometry, mass and four-ULP assertions. This follow-up changes only verification code. Root views four images separately as UI/export presence, never four-ULP geometry or scalar evidence. Initial14/frozen978/after978/cleanup978 maps match; errors/console/watch0, all resources close.
+
+Do not generalize to exactπ, all11integral fields, global central inertia, arbitrary trims/fallbacks, extreme finite/subnormal data or universal quadrature accuracy. RemoteCI/release remain NOT_RUN. Return to remaining08 before09; delivered07 and queued Electron15 stay unchanged. [Next source-only polygon-hole mask plan](notes/native-quadrature-conditioning-2026-10-30/next-plan/plan.md) preserves the existing total16vertex work budget, seed/order/name and reference-point semantics; it is not implemented.
+
+
+## D345 — Preserve polygon-hole masks through Fill CUT consumers (2026-10-30)
+
+Qualify source `eaa1ec299`, driver correction `b22f7ba2e` and successful-Fill selection correction `283b48afb` (nine distinct implementation paths). [Evidence](notes/fill-cut-pattern-holes-2026-10-30/qualification.json). Extend only the existing shared region type with optional readonly numeric holes; API has zero added/removed exports and three changed exposures of that single field. No schema/dependency/tolerance/global-budget change.
+
+Each simple straight ring has at least three vertices; outer plus holes share the existing16-vertex cap. Exact finite segment contact and strict containment reject crossing/touching/nested holes while allowing disjoint collinear extensions. Additional reference points inside or on holes are skipped; outer boundary remains included. Original source CUT is unconditional, even outside the mask; row order and original @i,j suffixes remain. This is reference filtering, not clipping or full-tool containment. Structural pair/edge bounds are source-derived, not measured throughput maxima.
+
+Own-data numeric snapshots reject accessors without invoking them. Explicit empty region.holes stays invalid; empty SketchNode.holes is omitted in canonical no-hole snapshots. Model resolves straight worldXY hole coordinates/parameters, checks the aggregate limit before coordinate reads, and delegates topology to Core. Source edits do not mutate the accepted snapshot; explicit existing editor reselection replaces it. Saved/wire/flatten/suppressed/nested admission and original unsupported frame/curve/association refusals remain.
+
+Kernel clean build/new9/related22 and Model new6/related87 PASS; types and scoped lint pass. Root API/agent-tools/refusals checks, Studio types/build/chat23 pass. Independent High source/oracle review has no blocking finding; its runtime is NOT_RUN. No new full Kernel/Model/Studio or performance claim; prior D344 full Kernel is historical context only.
+
+Run01 is retained: wrapped label includes mm, so exact Corner X locator timed out despite the correct visible rectangle. Use actual public input IDs and readback without weakening geometry assertions. Run02 then reproduces real consumed-selection alias: target b4 at index0 is replaced by [witnessb6,resultb8], but bodies[0] selects witness420. Root views failure image and native observed keys. Clear geometry selection only after successful Fill commit, matching existing Offset policy; Cancel/refusal remain unchanged. Postfix Studio types/build/lint/chat23 pass before clean run03.
+
+Run03 uses one Chrome/WebGPU process with four serial contexts,15 observations,8 native reads,6 independent Fraction stock-minus-disjoint-prism geometry/moment checks and two actual native Save/fresh Opens. Actual UI authors rectangle and triangular holes, excludes17-total-vertex picker source, refuses spacing0 atomically, previews/Cancels/retries/Applies, edits7→9cuts, then changes the same source outer edge while accepted7 stays independent. Explicit reselection gives5cuts while retaining the original anchor outside the new outer. Hole-coordinate numeric UI editing is not claimed. UndoRedo/native names/IDs/corners/strict closed target/retained420witness/editable file all pass. Expected volumes22950/22650/23250 and centroids use independent rational arithmetic under existing1e-7 checks. Root views six final images separately; rounded UI labels are not numeric evidence. Initial9 expands to976frozen/after/cleanup maps with no changes; page/console/watch0, all resources close.
+
+Continue remaining08 consumer/generality gaps before09. Whole08, curved/arbitrary-frame masks, full-tool containment, generic selection remapping, universal Boolean/mass correctness, remoteCI, PR and release remain unqualified. Delivered07 and queued Electron15 are unchanged.
+
+
+## D346 — Certify one polynomial quadratic CUT path across consumers (2026-10-30)
+
+Qualify `aed4d1535` plus successful-Path selection correction `24fb68ff4` (15 distinct implementation paths). [Evidence](notes/quadratic-cut-pattern-2026-10-30/qualification.json). One clamped3-pole/unit-weight/noncollinear XY trace at constant finiteZ; fixed tool orientation, original CUT, P0-relative offsets and @k names remain. Arbitrary finite clamped domains are supported, while rational/multispan/nonconstant-Z/cusp/closed profiles remain refused. No schema/dependency/WASM/global policy increase.
+
+Use exact represented-coordinate dyadics, verified integer-sqrt neighbors, Simpson fourth-derivative enclosures, request-aware prefixes and bracketed inversion. Floating sqrt/previous positions propose candidates only. Actual arc residual plus exact output-conversion error fits original1e-7. One planner query shares200000 checked work/8192bits,16384 speed evaluations,512 integration splits/depth16 across all placements; this is not all Model/Studio actions or native Boolean work combined. Initial64 refusals led to candidate/constant/root-proposal reuse without changing caps/cost units. Final public64=196882,63-pole half-coordinate legacy=28477; no all64-workload acceptance claim.
+
+Preserve original Core straight calculation body byte-for-byte after name normalization and15 captured exact behavior cases. New public query and named result are two added exports, zero removed/changed old exports. Truthful lower/upper length bounds enclose actual length and the legacy Number estimate. The curved estimate is request-dependent diagnostic data, not an accurate scalar measurement or admission authority. Model uses the full shared plan for new placement/endpoint checks; raw/live ownership, nested/suppressed/file boundaries and original source remain.
+
+Independent initial audit requires changes:8192 admission reserve missed binary64Dyadic trailing-zero loops, and numeric own array keys outside length passed a regex. Move midpoint certification to the same checked owner before adapting qualified quadratic endpoints to the unchanged Number line leaf; preserve original range/weights/odd-pole/C0 admission before adaptation. Use a proved16384 same-owner reserve and canonical index bounds. Add63-pole/.5, out-of-range keys/getter0, original rational/C0 refusals, reflections and axis swaps. Initial CHANGES_REQUIRED and old source/dist remain immutable evidence; final reviewed v2 passes.
+
+Kernel12new+19related=31unique PASS, build/types/lint; Model8new+89related=97unique PASS, types/lint. Preserve initial missing-fixture/public-budget failures, wrong lint path, Model88PASS/1FAIL collinear-message mismatch and test-only TS/lint failures. Two old assertions now require typed VALUE plus the specific new reason; valid cancellation/subnormal controls actually pass. Root module-level failure callback and stale test-comment/diagnostic cleanup change no assertion; postfix Corebuild/new12/types/lint and Modelnew8 pass. Studio types/build/chat23, API and generated checks pass. These reruns do not increase unique counts; no new full suites.
+
+Prescribed perf-bench fixed3CUT native-construction cases use Node22/warmup3/seven samples/batch1, input allocation outside timer. Held D346 WIP baseline, not published D345: curved5.135833→4.430542ms(−13.73%), straight2.591125→2.506709ms(−3.26%). Shape/counts/names/V23550/centroid SAME; curved bits differ, straight bits match. Independent geometry remains authority. These are local observations, not universal speed or Studio latency.64 has no accepted pre-optimization shape; work refusal→success is separately recorded.
+
+Actual run01 reproduces body-index alias after consuming targetb4: output order[b6,b7] leaves bodies[0] pointing at witness420. Clear geometry picks only after successful Path commit, keeping Cancel/refusal/failed commit unchanged. Run02 uses identical driver/contract/oracle and changes only App in the initial subset. One Chrome/three sequential contexts,12 observations/9 native reads/6 independent Decimal80 analytic checks/2 native Save-fresh Opens pass. Actual Line→Makecurves→P1 edit authors the real curve; preview/refusal/Cancel/Apply, spacing10→12, liveP1Y0→5, exact represented translation[3,4,0], UndoRedo and editable files retain original source IDs, fixed cutter corners/names/strict target and separate b6 witness. Decimal is ordinary high-precision cross-check, not universal interval proof;6 reference points lie in independent certified balls. Root six-image review is separate; guide stroke atZ0 is occluded by stock. Initial12→979 frozen/after/cleanup maps match current files; errors/console/watch0/all resources close.
+
+At the owner's request stop new feature work, commit the evidence/handoff and integrate to develop. D347 Extend is an incomplete read-only plan, not a defect or delivered implementation. Reconcile08 with existing bounded profiles: retained-ID source replacement is the admitted current consumer, while the adopted research intake explicitly excludes a generic surface/B-rep replacement project. Qualify positive untrimmed Extend next, then assess08 exit before09; further generality does not automatically reopen delivery.07 remains delivered/Electron15 queued. Full Kernel/Model/Studio, all quadratic/copy workloads, universal mass/rendering, general selection remapping and release remain outside this qualification; remote CI/merge are the separate integration step.

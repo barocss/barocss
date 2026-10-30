@@ -1,0 +1,264 @@
+{
+  "baseline": "1266cdf24943acc5963bf5e346339e32c9f3da41",
+  "status": "SOURCE_FROZEN_PENDING_ROOT_CHECKS",
+  "files": [
+    {
+      "path": "src/App.tsx",
+      "lines": 2308,
+      "bytes": 214011,
+      "sha256": "146924cb202a1014b8eeaeea1cf228e91fc719f54d4e2b76d4c23bcbd7582af4"
+    },
+    {
+      "path": "src/app/bodyResults.ts",
+      "lines": 49,
+      "bytes": 2904,
+      "sha256": "e556fbe737312839d57f3bb24a43b7e655c3204aaf1f489de0338070742d43ca"
+    },
+    {
+      "path": "src/app/commandState.ts",
+      "lines": 26,
+      "bytes": 1771,
+      "sha256": "1105a397f72fa7e39ce1ad2fd040f783e1e095e0fea83b3b3327d2b56982e105"
+    },
+    {
+      "path": "src/app/directGeometry.ts",
+      "lines": 2,
+      "bytes": 153,
+      "sha256": "8d2a849da71a8ef4ee08dd1dc45b6d680b319f772c7033037529d8a46c5ba885"
+    },
+    {
+      "path": "src/app/documentChanges.ts",
+      "lines": 7,
+      "bytes": 518,
+      "sha256": "e9a4d83529e2bd819998261389ed2b1a0962afa4bf59494d089e086a282546ce"
+    },
+    {
+      "path": "src/app/routeSession.ts",
+      "lines": 26,
+      "bytes": 1709,
+      "sha256": "68216d13030362eef290563126b2b33f41c46daf8d6e325e5aa1e5fcb36e191e"
+    },
+    {
+      "path": "src/app/sketchControls.ts",
+      "lines": 48,
+      "bytes": 4683,
+      "sha256": "bb86d10fbd4093943c63e05e57b9a433bfdbbe0bdfcbf9ba7f1dfac8ede29cb1"
+    },
+    {
+      "path": "src/app/studioConstants.ts",
+      "lines": 28,
+      "bytes": 1751,
+      "sha256": "bbfb8a5e543c310ead3fa93a8cb741b3257b906093e7251f02cd4c85fa762e66"
+    },
+    {
+      "path": "src/files/MeshFileDialogs.tsx",
+      "lines": 32,
+      "bytes": 2408,
+      "sha256": "b3d029596273144d970d86b081e73e4bfb7dcbe7c665d35142d31a83444fc621"
+    },
+    {
+      "path": "src/files/ModelExportDialogs.tsx",
+      "lines": 33,
+      "bytes": 2806,
+      "sha256": "fc501e263e1c001b16570b4a0a88d965e335341450f288955bd85ec020a4070a"
+    },
+    {
+      "path": "src/files/documentFile.ts",
+      "lines": 28,
+      "bytes": 1645,
+      "sha256": "779bd092bdc1cc0376cdc104e718c658463e67ecb7162de6ef6813e4888ddf71"
+    },
+    {
+      "path": "src/files/importedFile.ts",
+      "lines": 83,
+      "bytes": 7162,
+      "sha256": "27d8abd6a4c548e1699f8cf9f7de3dcb7a67153a963bdd97ac2c3374efa54c87"
+    },
+    {
+      "path": "src/files/useMeshImport.ts",
+      "lines": 133,
+      "bytes": 9570,
+      "sha256": "211e0144388acfc001535b410de48d8da2ecdedebd7d1b2443967fecf9c24f0a"
+    },
+    {
+      "path": "src/files/useModelExports.ts",
+      "lines": 131,
+      "bytes": 10711,
+      "sha256": "d6792a33289aa85b8430b9b9b92fa3d0760be995604c8bafe093a9bb00276e96"
+    },
+    {
+      "path": "src/robot/RobotInspector.tsx",
+      "lines": 103,
+      "bytes": 9478,
+      "sha256": "d0f893f7839ce0ca1631d6dccd17583f05d768ab694f7973350015effcedb129"
+    },
+    {
+      "path": "src/robot/useRobotExports.ts",
+      "lines": 100,
+      "bytes": 8698,
+      "sha256": "d55773278216fc49fbae2de0561c34b5051519c659d9f3847e6e5f54baf4d679"
+    },
+    {
+      "path": "src/sketch/useSketchActions.ts",
+      "lines": 153,
+      "bytes": 13746,
+      "sha256": "174257b2944f913d40e213f0d61bdd9cf7d13d881f54628b64a868ff288187e9"
+    },
+    {
+      "path": "src/state/useCommandPreview.ts",
+      "lines": 106,
+      "bytes": 7497,
+      "sha256": "0c481d82435203744e48f068eb0838828d7866c8de6bb53aa511e32230a154c9"
+    },
+    {
+      "path": "src/state/useFeatureHistory.ts",
+      "lines": 115,
+      "bytes": 8082,
+      "sha256": "7f3d77d085bfc7886538181e538210dab41342b520b8dc0263506267779adb6e"
+    },
+    {
+      "path": "src/state/useModelChecks.ts",
+      "lines": 71,
+      "bytes": 5509,
+      "sha256": "ae52d89213a8091bacf6b5a7afeed9103a69b955fa760ea80275331c832d968e"
+    },
+    {
+      "path": "src/state/useProposalPreview.ts",
+      "lines": 89,
+      "bytes": 7193,
+      "sha256": "7af3e15c816d1a452a4f137d5ef6a19d36cff9a355c60f0de646fe457671899c"
+    },
+    {
+      "path": "src/state/useRouteBundleEditor.ts",
+      "lines": 271,
+      "bytes": 18915,
+      "sha256": "dc9073f8f27e067da627a415baf33b2d6e0f607a39ea971af79b4ebb1e716faf"
+    },
+    {
+      "path": "src/ui/BodyBrowserRows.tsx",
+      "lines": 50,
+      "bytes": 5021,
+      "sha256": "5888d1845f20e45df55eb344a488f1d659979bf2c520cbc56bc206edb4bf0ac4"
+    },
+    {
+      "path": "src/ui/CursorReadout.tsx",
+      "lines": 10,
+      "bytes": 607,
+      "sha256": "936a85875abef5c37fe3ccc8c5773eb0f7219394c530b199529adbf1071db203"
+    },
+    {
+      "path": "src/ui/DesignHistory.tsx",
+      "lines": 17,
+      "bytes": 1673,
+      "sha256": "c84a03dbbb31ab869bb01fe1d327d71a3fc55259df0a942bca1754f8ebacaaf6"
+    },
+    {
+      "path": "src/ui/DirectInspector.tsx",
+      "lines": 39,
+      "bytes": 3563,
+      "sha256": "01926adf85aa8c05645f6a24743c8f2dcfb1ba066bb1b83c7808985293b81ebc"
+    },
+    {
+      "path": "src/ui/FeatureHistoryBar.tsx",
+      "lines": 38,
+      "bytes": 4572,
+      "sha256": "83453901bd2c5c55333688b2f4e0bcd56467c9bd91478e8d754596176e1ec387"
+    },
+    {
+      "path": "src/ui/FeatureHistoryMenu.tsx",
+      "lines": 37,
+      "bytes": 3129,
+      "sha256": "ef70d082305730fb8e2124ce2550d6da2ffb88c24ece681c222119754ddb46a7"
+    },
+    {
+      "path": "src/ui/MeasurementInspector.tsx",
+      "lines": 41,
+      "bytes": 4134,
+      "sha256": "ab38757e7893f89ed812389057d24d3d6ca246deb5ae7ff144dafa3f513ab14e"
+    },
+    {
+      "path": "src/ui/ModelTools.tsx",
+      "lines": 39,
+      "bytes": 4343,
+      "sha256": "16a5b1ad8a6f04c5a1e81512ffc549e296d22586b9d0acdac520e4f9ee47beeb"
+    },
+    {
+      "path": "src/ui/NodeEditor.tsx",
+      "lines": 35,
+      "bytes": 4597,
+      "sha256": "329e148cf2b1eea0191af0905c3565cda69c6090af59b3c233758bd24b20da6a"
+    },
+    {
+      "path": "src/ui/PointTest.tsx",
+      "lines": 14,
+      "bytes": 1200,
+      "sha256": "f09b68985b6a50565aa8b5349578fa6b273f9b505b73c30639ba58606a2edcbf"
+    },
+    {
+      "path": "src/ui/ProposalBrowser.tsx",
+      "lines": 42,
+      "bytes": 5192,
+      "sha256": "d03b35a15f1eca9fc5a7b91cb4a3d5f8e46d491c89d47e39466e5516f73a361f"
+    },
+    {
+      "path": "src/ui/ReferenceDecisions.tsx",
+      "lines": 64,
+      "bytes": 6052,
+      "sha256": "5586365bd7507e1869acbf1004045229cb243d6da361530ca872893223a9bf30"
+    },
+    {
+      "path": "src/ui/RequirementsBrowser.tsx",
+      "lines": 43,
+      "bytes": 3486,
+      "sha256": "365671935a0ef105cbd874222eee636ce6d770f2e09ede51805ea32b3f193617"
+    },
+    {
+      "path": "src/ui/SelectionInspector.tsx",
+      "lines": 119,
+      "bytes": 16979,
+      "sha256": "f3185da0ded7baef8ae5174b843c623f64d132e4387a5e8823e4744427679036"
+    },
+    {
+      "path": "src/ui/TemplatePicker.tsx",
+      "lines": 36,
+      "bytes": 3834,
+      "sha256": "cddbcb732efe69045484e53ded2b619232e75913dbabe4aaf4cb67018dd0edc2"
+    },
+    {
+      "path": "src/ui/ViewContextMenu.tsx",
+      "lines": 41,
+      "bytes": 3431,
+      "sha256": "afd7b627e32c8c195eeafc8a3ab09bca1c0f8cad0c9d811e75cc34e70fa565e4"
+    },
+    {
+      "path": "src/ui/ViewDisplayControls.tsx",
+      "lines": 160,
+      "bytes": 13204,
+      "sha256": "ac335753af7da7202b16ef7f38b8d785d58f5fe2350f5004f4011e68202cd9b5"
+    },
+    {
+      "path": "src/ui/featureIcon.ts",
+      "lines": 7,
+      "bytes": 1148,
+      "sha256": "ffe081f74b2cdd6dbe81e045860f36060dcd36ef38b0f389ad7a769f35d44489"
+    },
+    {
+      "path": "src/viewport/useCommandGizmos.ts",
+      "lines": 107,
+      "bytes": 9052,
+      "sha256": "450a38072698ed8ba970733e2f388e191a83067907acfc47ebdf24ed876e04ac"
+    },
+    {
+      "path": "src/viewport/useModelAppearance.ts",
+      "lines": 94,
+      "bytes": 6642,
+      "sha256": "298fbfdd6080487842469026bc3744cea3d972612ae1704aefd7a72b1766c3c2"
+    },
+    {
+      "path": "src/viewport/useRenderPlayback.ts",
+      "lines": 59,
+      "bytes": 3518,
+      "sha256": "f36c1ed683d9f3f0f8400b20f71e9387e1502ff5a69e829edef89d265e61a393"
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "workId": "D317-step-declared-unit-admission-consumers",
+  "status": "scoped_pass",
+  "updatedAt": "2026-10-29T04:31:27.101860+00:00",
+  "runtimeBaseline": "800ff27f9ab65daec84fc7bf0ff11dd482a10b79 with scoped D317 changes",
+  "execution": {
+    "node": "22.19.0",
+    "renderer": "Chrome WebGPU",
+    "DPR": 1,
+    "display": "browser/display.json",
+    "serialHeavyGate": true,
+    "gateReturned": true,
+    "browserExited": true,
+    "flowOnly": "D317:",
+    "flowExit": 0,
+    "postFlowScriptSyntaxExit": 0,
+    "rawLog": "flow-first.txt",
+    "firstRun": true,
+    "firstFailures": []
+  },
+  "checks": {
+    "starter": "PASS",
+    "nanoBrep": {
+      "status": "PASS",
+      "acceptedDirty": true
+    },
+    "nanoAP242": {
+      "status": "PASS",
+      "acceptedDirty": false
+    },
+    "refusalPreserves": [
+      "complete accepted document",
+      "raw fresh body state and deferred massReady",
+      "history text",
+      "filename",
+      "dirty flag",
+      "Undo/Redo availability"
+    ],
+    "actualUndoRedoAfterEachRefusal": {
+      "originalVolume": 1000,
+      "editedVolume": 1200,
+      "status": "PASS"
+    },
+    "noMeshRepairDialogOrViewportError": "PASS",
+    "nanoFixtureGeometryBytes": "Public export side1000 cube, B-rep and AP242. Each NANO file differs from its corresponding MILLI original only by one exact SI_UNIT prefix replacement. Byte equality verified.",
+    "microBrep": {
+      "status": "PASS",
+      "sourceCubeSide": 1000,
+      "declaredFactor": 0.001,
+      "resultBounds": [
+        1,
+        1,
+        1
+      ],
+      "resultVolume": 1,
+      "resultCentroid": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "undeclaredAP242": {
+      "status": "PASS",
+      "sourceCubeSide": 1000,
+      "fallbackFactor": 1,
+      "resultBounds": [
+        1000,
+        1000,
+        1000
+      ],
+      "resultVolume": 1000000000,
+      "resultCentroid": [
+        500,
+        500,
+        500
+      ],
+      "fixtureConstruction": "Remove only length-unit entity and global-unit/uncertainty context references; geometric entities remain unchanged."
+    },
+    "positiveSaveOpen": {
+      "status": "PASS",
+      "originalSTEPTextExact": true,
+      "completeSemanticJSONEquality": true,
+      "strictUTF8Decode": true,
+      "assetFreeCurrentSchemaWriter": true
+    },
+    "visualReview": {
+      "reviewer": "consumer agent",
+      "actualImages": 6,
+      "status": "PASS",
+      "observed": "NANO error and retained12x10x10body, dirty vs clean indicators; MICRO1cube and undeclared1000cube; reopened geometry, one body and COM."
+    }
+  },
+  "proofBoundary": {
+    "sourceAndFocusedModelReceipts": "Parent/Model lane; not repeated here. Browser proof does not instrument worker call counts.",
+    "massDisplay": "MICRO1mm3 cube UI mass rounds to0g; raw browser assertions are volume and centroid, not a new mass proof.",
+    "policy": "Existing file-level SI matcher only. No representation-context resolver or general STEP parser claim."
+  },
+  "notRun": [
+    "full Kernel/Model/Studio suites",
+    "other browsers or DPR values",
+    "other supported or unsupported prefixes in actual UI",
+    "INCH/FOOT actual UI",
+    "mixed-unit representation contexts",
+    "unknown conversion units",
+    "performance or additional exploratory cases",
+    "remote acceptance/release"
+  ]
+}

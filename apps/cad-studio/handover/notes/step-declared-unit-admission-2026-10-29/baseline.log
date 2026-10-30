@@ -1,0 +1,47 @@
+TAP version 13
+# Subtest: STEP length units: millimetres, metres, inches, none declared
+ok 1 - STEP length units: millimetres, metres, inches, none declared
+  ---
+  duration_ms: 0.888875
+  type: 'test'
+  ...
+# Subtest: PDF: characters its standard fonts cannot show are found
+ok 2 - PDF: characters its standard fonts cannot show are found
+  ---
+  duration_ms: 0.127916
+  type: 'test'
+  ...
+# Subtest: STEP supported prefixes and no-prefix declarations retain their exact factors in either entity order
+ok 3 - STEP supported prefixes and no-prefix declarations retain their exact factors in either entity order
+  ---
+  duration_ms: 0.185584
+  type: 'test'
+  ...
+# Subtest: STEP declared unsupported SI length prefixes are typed refusals even beside supported length declarations
+not ok 4 - STEP declared unsupported SI length prefixes are typed refusals even beside supported length declarations
+  ---
+  duration_ms: 0.287208
+  type: 'test'
+  location: '/private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-dzQ8vk/step-units.test.mjs:21207:1'
+  failureType: 'testCodeFailure'
+  error: 'Missing expected exception.'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  stack: |-
+    TestContext.<anonymous> (file:///private/var/folders/kd/q2hh9cdj51zblmfh_3pd0p_h0000gn/T/cad-model-test-dzQ8vk/step-units.test.mjs:21212:107)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 3
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 61.312667

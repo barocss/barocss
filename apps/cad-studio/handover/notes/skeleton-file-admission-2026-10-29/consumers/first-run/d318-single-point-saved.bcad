@@ -1,0 +1,22 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": {},
+  "nodes": [
+    {
+      "kind": "skeleton",
+      "points": [
+        [
+          0,
+          0,
+          0
+        ]
+      ],
+      "segments": [],
+      "id": "n0"
+    }
+  ],
+  "outputs": {},
+  "nextId": 1
+}

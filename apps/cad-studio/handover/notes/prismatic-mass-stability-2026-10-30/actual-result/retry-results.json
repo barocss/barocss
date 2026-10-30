@@ -1,0 +1,5748 @@
+[
+  {
+    "axis": 0,
+    "distance": -5.00009,
+    "sourceKey": "b3",
+    "witnessKey": "b5",
+    "targetKey": "b8",
+    "status": "SUCCESS",
+    "outputKeys": [
+      "b5"
+    ],
+    "model": [
+      {
+        "key": "b5",
+        "volume": 420.00000000000074,
+        "centroid": [
+          102.9999999999997,
+          104.99999999999989,
+          3.5
+        ],
+        "family": "upright"
+      }
+    ],
+    "targetCheck": null,
+    "candidate": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+        {
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3,
+          "id": "n0"
+        },
+        {
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 5.00009,
+          "id": "n1"
+        },
+        {
+          "kind": "rotate",
+          "parent": {
+            "node": 1,
+            "side": "solid"
+          },
+          "axis": "y",
+          "angle": 90,
+          "id": "n2"
+        },
+        {
+          "kind": "translate",
+          "parent": {
+            "node": 2,
+            "side": "solid"
+          },
+          "offset": [
+            0.1234567,
+            -0.2345678,
+            0.3456789
+          ],
+          "id": "n3"
+        },
+        {
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            100,
+            100
+          ],
+          "max": [
+            106,
+            110
+          ],
+          "id": "n4"
+        },
+        {
+          "kind": "extrude",
+          "sketch": 4,
+          "height": 7,
+          "id": "n5"
+        },
+        {
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "arc",
+              "start": [
+                2.7654322000000002,
+                0.34567890000000023
+              ],
+              "center": [
+                -0.23456779999999977,
+                0.34567890000000023
+              ],
+              "direction": "ccw"
+            }
+          ],
+          "plane": {
+            "origin": [
+              5.1235467,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          },
+          "on": {
+            "node": 3,
+            "side": "solid"
+          },
+          "id": "n6"
+        },
+        {
+          "kind": "extrude",
+          "sketch": 6,
+          "height": 5.00009,
+          "from": -5.00009,
+          "id": "n7"
+        },
+        {
+          "kind": "difference",
+          "parent": {
+            "node": 3,
+            "side": "solid"
+          },
+          "tool": {
+            "node": 7,
+            "side": "solid"
+          },
+          "id": "n8"
+        }
+      ],
+      "outputs": {
+        "b5": {
+          "node": 5,
+          "side": "solid"
+        },
+        "b8": {
+          "node": 8,
+          "side": "solid"
+        }
+      },
+      "nextId": 9
+    },
+    "elapsed": 42.13529200000001
+  },
+  {
+    "axis": 0,
+    "distance": -4.99909,
+    "sourceKey": "b3",
+    "witnessKey": "b5",
+    "targetKey": "b8",
+    "status": "SUCCESS",
+    "outputKeys": [
+      "b5",
+      "b8"
+    ],
+    "model": [
+      {
+        "key": "b5",
+        "volume": 420.00000000000074,
+        "centroid": [
+          102.9999999999997,
+          104.99999999999989,
+          3.5
+        ],
+        "family": "upright"
+      },
+      {
+        "key": "b8",
+        "volume": 0.028274333882323067,
+        "centroid": [
+          0.12395670000000027,
+          -0.23456779999999927,
+          0.34567890000000306
+        ],
+        "family": "curved"
+      }
+    ],
+    "target": {
+      "format": "barocss-brep",
+      "version": 0,
+      "lengthUnit": "mm",
+      "source": {
+        "family": "analytic-boolean",
+        "id": "n8"
+      },
+      "bodies": [
+        {
+          "id": "n8_body0",
+          "kind": "solid",
+          "shells": [
+            "n8_body0/s0"
+          ]
+        }
+      ],
+      "shells": [
+        {
+          "id": "n8_body0/s0",
+          "body": "n8_body0",
+          "faces": [
+            "n8_body0/s0/f0",
+            "n8_body0/s0/f1",
+            "n8_body0/s0/f2",
+            "n8_body0/s0/f3"
+          ],
+          "closed": true
+        }
+      ],
+      "faces": [
+        {
+          "id": "n8_body0/s0/f0",
+          "shell": "n8_body0/s0",
+          "surface": {
+            "kind": "surface",
+            "id": "n8_s0",
+            "degreeU": 2,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  0.1234567,
+                  -0.23456780000000135,
+                  -2.6543210999999993
+                ],
+                [
+                  0.12445670000000053,
+                  -0.23456780000000135,
+                  -2.6543210999999993
+                ]
+              ],
+              [
+                [
+                  0.1234567,
+                  2.765432199999999,
+                  -2.6543211
+                ],
+                [
+                  0.12445670000000053,
+                  2.765432199999999,
+                  -2.6543211
+                ]
+              ],
+              [
+                [
+                  0.1234567,
+                  2.7654322000000002,
+                  0.3456788999999998
+                ],
+                [
+                  0.12445670000000053,
+                  2.7654322000000002,
+                  0.3456788999999998
+                ]
+              ],
+              [
+                [
+                  0.1234567,
+                  2.765432200000001,
+                  3.3456789000000002
+                ],
+                [
+                  0.12445670000000053,
+                  2.765432200000001,
+                  3.3456789000000002
+                ]
+              ],
+              [
+                [
+                  0.1234567,
+                  -0.2345677999999987,
+                  3.3456789000000016
+                ],
+                [
+                  0.12445670000000053,
+                  -0.2345677999999987,
+                  3.3456789000000016
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                0.7071067811865476,
+                0.7071067811865476
+              ],
+              [
+                1,
+                1
+              ],
+              [
+                0.7071067811865476,
+                0.7071067811865476
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "sense": "forward",
+          "loops": [
+            "n8_body0/s0/f0/l0"
+          ],
+          "name": "n1.side0#2"
+        },
+        {
+          "id": "n8_body0/s0/f1",
+          "shell": "n8_body0/s0",
+          "surface": {
+            "kind": "surface",
+            "id": "n8_s1",
+            "degreeU": 2,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  0.1234567,
+                  -0.23456779999999855,
+                  3.3456789000000016
+                ],
+                [
+                  0.12445670000000053,
+                  -0.23456779999999855,
+                  3.3456789000000016
+                ]
+              ],
+              [
+                [
+                  0.1234567,
+                  -3.234567799999997,
+                  3.345678900000001
+                ],
+                [
+                  0.12445670000000053,
+                  -3.234567799999997,
+                  3.345678900000001
+                ]
+              ],
+              [
+                [
+                  0.1234567,
+                  -3.234567799999999,
+                  0.34567890000000295
+                ],
+                [
+                  0.12445670000000053,
+                  -3.234567799999999,
+                  0.34567890000000295
+                ]
+              ],
+              [
+                [
+                  0.1234567,
+                  -3.2345678000000015,
+                  -2.6543210999999953
+                ],
+                [
+                  0.12445670000000053,
+                  -3.2345678000000015,
+                  -2.6543210999999953
+                ]
+              ],
+              [
+                [
+                  0.1234567,
+                  -0.23456780000000313,
+                  -2.6543211
+                ],
+                [
+                  0.12445670000000053,
+                  -0.23456780000000313,
+                  -2.6543211
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                0.7071067811865478,
+                0.7071067811865478
+              ],
+              [
+                1,
+                1
+              ],
+              [
+                0.7071067811865478,
+                0.7071067811865478
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "sense": "forward",
+          "loops": [
+            "n8_body0/s0/f1/l0"
+          ],
+          "name": "n1.side0#1"
+        },
+        {
+          "id": "n8_body0/s0/f2",
+          "shell": "n8_body0/s0",
+          "surface": {
+            "kind": "surface",
+            "id": "n8_s2",
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  0.1234567,
+                  -3.2345677999999998,
+                  3.3456789000000002
+                ],
+                [
+                  0.1234567,
+                  -3.2345677999999998,
+                  -2.6543210999999998
+                ]
+              ],
+              [
+                [
+                  0.1234567,
+                  2.7654322000000002,
+                  3.3456789000000002
+                ],
+                [
+                  0.1234567,
+                  2.7654322000000002,
+                  -2.6543210999999998
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "sense": "forward",
+          "loops": [
+            "n8_body0/s0/f2/l0"
+          ],
+          "name": "n1.bottom"
+        },
+        {
+          "id": "n8_body0/s0/f3",
+          "shell": "n8_body0/s0",
+          "surface": {
+            "kind": "surface",
+            "id": "n8_s3",
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  0.12445670000000053,
+                  -3.2345687999999995,
+                  -2.6543221000000004
+                ],
+                [
+                  0.12445670000000053,
+                  2.7654332000000013,
+                  -2.6543221000000004
+                ]
+              ],
+              [
+                [
+                  0.12445670000000053,
+                  -3.2345687999999995,
+                  3.345679900000002
+                ],
+                [
+                  0.12445670000000053,
+                  2.7654332000000013,
+                  3.345679900000002
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "sense": "reversed",
+          "loops": [
+            "n8_body0/s0/f3/l0"
+          ],
+          "name": "n7.bottom"
+        }
+      ],
+      "loops": [
+        {
+          "id": "n8_body0/s0/f0/l0",
+          "face": "n8_body0/s0/f0",
+          "kind": "outer",
+          "coedges": [
+            "n8_body0/s0/f0/l0/c0",
+            "n8_body0/s0/f0/l0/c1",
+            "n8_body0/s0/f0/l0/c2",
+            "n8_body0/s0/f0/l0/c3",
+            "n8_body0/s0/f0/l0/c4"
+          ]
+        },
+        {
+          "id": "n8_body0/s0/f1/l0",
+          "face": "n8_body0/s0/f1",
+          "kind": "outer",
+          "coedges": [
+            "n8_body0/s0/f1/l0/c0",
+            "n8_body0/s0/f1/l0/c1",
+            "n8_body0/s0/f1/l0/c2",
+            "n8_body0/s0/f1/l0/c3",
+            "n8_body0/s0/f1/l0/c4"
+          ]
+        },
+        {
+          "id": "n8_body0/s0/f2/l0",
+          "face": "n8_body0/s0/f2",
+          "kind": "outer",
+          "coedges": [
+            "n8_body0/s0/f2/l0/c0",
+            "n8_body0/s0/f2/l0/c1"
+          ]
+        },
+        {
+          "id": "n8_body0/s0/f3/l0",
+          "face": "n8_body0/s0/f3",
+          "kind": "outer",
+          "coedges": [
+            "n8_body0/s0/f3/l0/c0",
+            "n8_body0/s0/f3/l0/c1",
+            "n8_body0/s0/f3/l0/c2",
+            "n8_body0/s0/f3/l0/c3"
+          ]
+        }
+      ],
+      "coedges": [
+        {
+          "id": "n8_body0/s0/f0/l0/c0",
+          "edge": "n8_e1",
+          "sense": "forward",
+          "loop": "n8_body0/s0/f0/l0",
+          "next": "n8_body0/s0/f0/l0/c1",
+          "prev": "n8_body0/s0/f0/l0/c4",
+          "twin": "n8_body0/s0/f2/l0/c1",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f0/l0/c1",
+          "edge": "n8_e2",
+          "sense": "forward",
+          "loop": "n8_body0/s0/f0/l0",
+          "next": "n8_body0/s0/f0/l0/c2",
+          "prev": "n8_body0/s0/f0/l0/c0",
+          "twin": "n8_body0/s0/f1/l0/c4",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f0/l0/c2",
+          "edge": "n8_e3",
+          "sense": "forward",
+          "loop": "n8_body0/s0/f0/l0",
+          "next": "n8_body0/s0/f0/l0/c3",
+          "prev": "n8_body0/s0/f0/l0/c1",
+          "twin": "n8_body0/s0/f3/l0/c0",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f0/l0/c3",
+          "edge": "n8_e4",
+          "sense": "forward",
+          "loop": "n8_body0/s0/f0/l0",
+          "next": "n8_body0/s0/f0/l0/c4",
+          "prev": "n8_body0/s0/f0/l0/c2",
+          "twin": "n8_body0/s0/f3/l0/c3",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f0/l0/c4",
+          "edge": "n8_e5",
+          "sense": "forward",
+          "loop": "n8_body0/s0/f0/l0",
+          "next": "n8_body0/s0/f0/l0/c0",
+          "prev": "n8_body0/s0/f0/l0/c3",
+          "twin": "n8_body0/s0/f1/l0/c1",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f1/l0/c0",
+          "edge": "n8_e0",
+          "sense": "reversed",
+          "loop": "n8_body0/s0/f1/l0",
+          "next": "n8_body0/s0/f1/l0/c1",
+          "prev": "n8_body0/s0/f1/l0/c4",
+          "twin": "n8_body0/s0/f2/l0/c0",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f1/l0/c1",
+          "edge": "n8_e5",
+          "sense": "reversed",
+          "loop": "n8_body0/s0/f1/l0",
+          "next": "n8_body0/s0/f1/l0/c2",
+          "prev": "n8_body0/s0/f1/l0/c0",
+          "twin": "n8_body0/s0/f0/l0/c4",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f1/l0/c2",
+          "edge": "n8_e6",
+          "sense": "forward",
+          "loop": "n8_body0/s0/f1/l0",
+          "next": "n8_body0/s0/f1/l0/c3",
+          "prev": "n8_body0/s0/f1/l0/c1",
+          "twin": "n8_body0/s0/f3/l0/c2",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f1/l0/c3",
+          "edge": "n8_e7",
+          "sense": "forward",
+          "loop": "n8_body0/s0/f1/l0",
+          "next": "n8_body0/s0/f1/l0/c4",
+          "prev": "n8_body0/s0/f1/l0/c2",
+          "twin": "n8_body0/s0/f3/l0/c1",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f1/l0/c4",
+          "edge": "n8_e2",
+          "sense": "reversed",
+          "loop": "n8_body0/s0/f1/l0",
+          "next": "n8_body0/s0/f1/l0/c0",
+          "prev": "n8_body0/s0/f1/l0/c3",
+          "twin": "n8_body0/s0/f0/l0/c1",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f2/l0/c0",
+          "edge": "n8_e0",
+          "sense": "forward",
+          "loop": "n8_body0/s0/f2/l0",
+          "next": "n8_body0/s0/f2/l0/c1",
+          "prev": "n8_body0/s0/f2/l0/c1",
+          "twin": "n8_body0/s0/f1/l0/c0",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f2/l0/c1",
+          "edge": "n8_e1",
+          "sense": "reversed",
+          "loop": "n8_body0/s0/f2/l0",
+          "next": "n8_body0/s0/f2/l0/c0",
+          "prev": "n8_body0/s0/f2/l0/c0",
+          "twin": "n8_body0/s0/f0/l0/c0",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f3/l0/c0",
+          "edge": "n8_e3",
+          "sense": "reversed",
+          "loop": "n8_body0/s0/f3/l0",
+          "next": "n8_body0/s0/f3/l0/c1",
+          "prev": "n8_body0/s0/f3/l0/c3",
+          "twin": "n8_body0/s0/f0/l0/c2",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f3/l0/c1",
+          "edge": "n8_e7",
+          "sense": "reversed",
+          "loop": "n8_body0/s0/f3/l0",
+          "next": "n8_body0/s0/f3/l0/c2",
+          "prev": "n8_body0/s0/f3/l0/c0",
+          "twin": "n8_body0/s0/f1/l0/c3",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f3/l0/c2",
+          "edge": "n8_e6",
+          "sense": "reversed",
+          "loop": "n8_body0/s0/f3/l0",
+          "next": "n8_body0/s0/f3/l0/c3",
+          "prev": "n8_body0/s0/f3/l0/c1",
+          "twin": "n8_body0/s0/f1/l0/c2",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f3/l0/c3",
+          "edge": "n8_e4",
+          "sense": "reversed",
+          "loop": "n8_body0/s0/f3/l0",
+          "next": "n8_body0/s0/f3/l0/c0",
+          "prev": "n8_body0/s0/f3/l0/c2",
+          "twin": "n8_body0/s0/f0/l0/c3",
+          "pcurve": null
+        }
+      ],
+      "edges": [
+        {
+          "id": "n8_e0",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e0",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0.1234567,
+                -0.2345678,
+                -2.6543210999999998
+              ],
+              [
+                0.1234567,
+                -3.2345677999999998,
+                -2.654321099999998
+              ],
+              [
+                0.1234567,
+                -3.2345677999999998,
+                0.34567890000000057
+              ],
+              [
+                0.1234567,
+                -3.234567799999999,
+                3.3456789000000002
+              ],
+              [
+                0.1234567,
+                -0.23456779999999963,
+                3.3456789000000002
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865477,
+              1,
+              0.7071067811865477,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v0",
+            "n8_v1"
+          ],
+          "tolerance": 0.000001,
+          "name": "n1.bottom|n1.side0#1"
+        },
+        {
+          "id": "n8_e1",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e1",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0.1234567,
+                -0.2345678,
+                -2.6543210999999998
+              ],
+              [
+                0.1234567,
+                2.7654321999999993,
+                -2.6543210999999998
+              ],
+              [
+                0.1234567,
+                2.7654322000000002,
+                0.34567889999999984
+              ],
+              [
+                0.1234567,
+                2.7654322000000002,
+                3.3456788999999993
+              ],
+              [
+                0.1234567,
+                -0.23456779999999963,
+                3.3456789000000002
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865476,
+              1,
+              0.7071067811865476,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v0",
+            "n8_v1"
+          ],
+          "tolerance": 0.000001,
+          "name": "n1.bottom|n1.side0#2"
+        },
+        {
+          "id": "n8_e2",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e2",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0.1234567,
+                -0.2345677999999987,
+                3.3456789000000016
+              ],
+              [
+                0.12445670000000053,
+                -0.23456779999999935,
+                3.3456789000000016
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v1",
+            "n8_v2"
+          ],
+          "tolerance": 0.000001,
+          "name": "n1.side0#1|n1.side0#2#2"
+        },
+        {
+          "id": "n8_e3",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e3",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0.12445670000000053,
+                -0.23456779999999935,
+                3.3456789000000016
+              ],
+              [
+                0.12445670000000053,
+                2.765432200000001,
+                3.3456789000000002
+              ],
+              [
+                0.12445670000000053,
+                2.7654322000000002,
+                0.3456788999999998
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865476,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v2",
+            "n8_v3"
+          ],
+          "tolerance": 0.000001,
+          "name": "n1.side0#2|n7.bottom#2"
+        },
+        {
+          "id": "n8_e4",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e4",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0.12445670000000053,
+                2.7654322000000002,
+                0.3456788999999998
+              ],
+              [
+                0.12445670000000043,
+                2.765432199999999,
+                -2.6543211
+              ],
+              [
+                0.12445670000000043,
+                -0.2345678000000013,
+                -2.6543210999999993
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865476,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v3",
+            "n8_v4"
+          ],
+          "tolerance": 0.000001,
+          "name": "n1.side0#2|n7.bottom#1"
+        },
+        {
+          "id": "n8_e5",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e5",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0.12445670000000043,
+                -0.2345678000000013,
+                -2.6543210999999993
+              ],
+              [
+                0.1234567,
+                -0.23456780000000135,
+                -2.6543210999999993
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v4",
+            "n8_v0"
+          ],
+          "tolerance": 0.000001,
+          "name": "n1.side0#1|n1.side0#2#1"
+        },
+        {
+          "id": "n8_e6",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e6",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0.12445670000000043,
+                -0.2345678000000013,
+                -2.6543210999999993
+              ],
+              [
+                0.12445670000000053,
+                -3.2345677999999993,
+                -2.654321099999995
+              ],
+              [
+                0.12445670000000053,
+                -3.234567799999999,
+                0.3456789000000016
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865481,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v4",
+            "n8_v5"
+          ],
+          "tolerance": 0.000001,
+          "name": "n1.side0#1|n7.bottom#1"
+        },
+        {
+          "id": "n8_e7",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e7",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0.12445670000000053,
+                -3.234567799999999,
+                0.3456789000000016
+              ],
+              [
+                0.12445670000000043,
+                -3.2345677999999984,
+                3.345678899999999
+              ],
+              [
+                0.12445670000000053,
+                -0.23456779999999935,
+                3.3456789000000016
+              ]
+            ],
+            "weights": [
+              1,
+              0.707106781186548,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v5",
+            "n8_v2"
+          ],
+          "tolerance": 0.000001,
+          "name": "n1.side0#1|n7.bottom#2"
+        }
+      ],
+      "vertices": [
+        {
+          "id": "n8_v0",
+          "point": [
+            0.1234567,
+            -0.23456780000000135,
+            -2.6543210999999993
+          ],
+          "tolerance": 0.000001
+        },
+        {
+          "id": "n8_v1",
+          "point": [
+            0.1234567,
+            -0.2345677999999987,
+            3.3456789000000016
+          ],
+          "tolerance": 0.000001
+        },
+        {
+          "id": "n8_v2",
+          "point": [
+            0.12445670000000053,
+            -0.23456779999999935,
+            3.3456789000000016
+          ],
+          "tolerance": 0.000001
+        },
+        {
+          "id": "n8_v3",
+          "point": [
+            0.12445670000000053,
+            2.7654322000000002,
+            0.3456788999999998
+          ],
+          "tolerance": 0.000001
+        },
+        {
+          "id": "n8_v4",
+          "point": [
+            0.12445670000000043,
+            -0.2345678000000013,
+            -2.6543210999999993
+          ],
+          "tolerance": 0.000001
+        },
+        {
+          "id": "n8_v5",
+          "point": [
+            0.12445670000000053,
+            -3.234567799999999,
+            0.3456789000000016
+          ],
+          "tolerance": 0.000001
+        }
+      ]
+    },
+    "targetCheck": {
+      "valid": true,
+      "issues": [],
+      "counts": {
+        "bodies": 1,
+        "shells": 1,
+        "faces": 4,
+        "loops": 4,
+        "coedges": 16,
+        "edges": 8,
+        "vertices": 6
+      },
+      "topology": [
+        {
+          "body": "n8_body0",
+          "vertices": 6,
+          "edges": 8,
+          "faces": 4,
+          "loops": 4,
+          "shells": 1,
+          "genus": 0
+        }
+      ],
+      "maximumVertexGap": 1.6326319374041212e-15,
+      "maximumPcurveGap": 0,
+      "maximumEdgeSurfaceGap": 3.1676639673831405e-15
+    },
+    "candidate": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+        {
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3,
+          "id": "n0"
+        },
+        {
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 5.00009,
+          "id": "n1"
+        },
+        {
+          "kind": "rotate",
+          "parent": {
+            "node": 1,
+            "side": "solid"
+          },
+          "axis": "y",
+          "angle": 90,
+          "id": "n2"
+        },
+        {
+          "kind": "translate",
+          "parent": {
+            "node": 2,
+            "side": "solid"
+          },
+          "offset": [
+            0.1234567,
+            -0.2345678,
+            0.3456789
+          ],
+          "id": "n3"
+        },
+        {
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            100,
+            100
+          ],
+          "max": [
+            106,
+            110
+          ],
+          "id": "n4"
+        },
+        {
+          "kind": "extrude",
+          "sketch": 4,
+          "height": 7,
+          "id": "n5"
+        },
+        {
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "arc",
+              "start": [
+                2.7654322000000002,
+                0.34567890000000023
+              ],
+              "center": [
+                -0.23456779999999977,
+                0.34567890000000023
+              ],
+              "direction": "ccw"
+            }
+          ],
+          "plane": {
+            "origin": [
+              5.1235467,
+              0,
+              0
+            ],
+            "normal": [
+              1,
+              0,
+              0
+            ],
+            "xAxis": [
+              0,
+              1,
+              0
+            ]
+          },
+          "on": {
+            "node": 3,
+            "side": "solid"
+          },
+          "id": "n6"
+        },
+        {
+          "kind": "extrude",
+          "sketch": 6,
+          "height": 4.99909,
+          "from": -4.99909,
+          "id": "n7"
+        },
+        {
+          "kind": "difference",
+          "parent": {
+            "node": 3,
+            "side": "solid"
+          },
+          "tool": {
+            "node": 7,
+            "side": "solid"
+          },
+          "id": "n8"
+        }
+      ],
+      "outputs": {
+        "b5": {
+          "node": 5,
+          "side": "solid"
+        },
+        "b8": {
+          "node": 8,
+          "side": "solid"
+        }
+      },
+      "nextId": 9
+    },
+    "elapsed": 28.999499999999998
+  },
+  {
+    "axis": 1,
+    "distance": -5.00009,
+    "sourceKey": "b3",
+    "witnessKey": "b5",
+    "targetKey": "b8",
+    "status": "SUCCESS",
+    "outputKeys": [
+      "b5"
+    ],
+    "model": [
+      {
+        "key": "b5",
+        "volume": 420.00000000000074,
+        "centroid": [
+          102.9999999999997,
+          104.99999999999989,
+          3.5
+        ],
+        "family": "upright"
+      }
+    ],
+    "targetCheck": null,
+    "candidate": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+        {
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3,
+          "id": "n0"
+        },
+        {
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 5.00009,
+          "id": "n1"
+        },
+        {
+          "kind": "rotate",
+          "parent": {
+            "node": 1,
+            "side": "solid"
+          },
+          "axis": "x",
+          "angle": -90,
+          "id": "n2"
+        },
+        {
+          "kind": "translate",
+          "parent": {
+            "node": 2,
+            "side": "solid"
+          },
+          "offset": [
+            0.1234567,
+            -0.2345678,
+            0.3456789
+          ],
+          "id": "n3"
+        },
+        {
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            100,
+            100
+          ],
+          "max": [
+            106,
+            110
+          ],
+          "id": "n4"
+        },
+        {
+          "kind": "extrude",
+          "sketch": 4,
+          "height": 7,
+          "id": "n5"
+        },
+        {
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "arc",
+              "start": [
+                3.3456789000000002,
+                0.1234567000000002
+              ],
+              "center": [
+                0.34567890000000023,
+                0.1234567000000002
+              ],
+              "direction": "ccw"
+            }
+          ],
+          "plane": {
+            "origin": [
+              0,
+              4.7655222,
+              0
+            ],
+            "normal": [
+              0,
+              1,
+              0
+            ],
+            "xAxis": [
+              0,
+              0,
+              1
+            ]
+          },
+          "on": {
+            "node": 3,
+            "side": "solid"
+          },
+          "id": "n6"
+        },
+        {
+          "kind": "extrude",
+          "sketch": 6,
+          "height": 5.00009,
+          "from": -5.00009,
+          "id": "n7"
+        },
+        {
+          "kind": "difference",
+          "parent": {
+            "node": 3,
+            "side": "solid"
+          },
+          "tool": {
+            "node": 7,
+            "side": "solid"
+          },
+          "id": "n8"
+        }
+      ],
+      "outputs": {
+        "b5": {
+          "node": 5,
+          "side": "solid"
+        },
+        "b8": {
+          "node": 8,
+          "side": "solid"
+        }
+      },
+      "nextId": 9
+    },
+    "elapsed": 17.910459000000003
+  },
+  {
+    "axis": 1,
+    "distance": -4.99909,
+    "sourceKey": "b3",
+    "witnessKey": "b5",
+    "targetKey": "b8",
+    "status": "SUCCESS",
+    "outputKeys": [
+      "b5",
+      "b8"
+    ],
+    "model": [
+      {
+        "key": "b5",
+        "volume": 420.00000000000074,
+        "centroid": [
+          102.9999999999997,
+          104.99999999999989,
+          3.5
+        ],
+        "family": "upright"
+      },
+      {
+        "key": "b8",
+        "volume": 0.02827433388232377,
+        "centroid": [
+          0.12345669999999592,
+          -0.23406779999999971,
+          0.3456788999999992
+        ],
+        "family": "curved"
+      }
+    ],
+    "target": {
+      "format": "barocss-brep",
+      "version": 0,
+      "lengthUnit": "mm",
+      "source": {
+        "family": "analytic-boolean",
+        "id": "n8"
+      },
+      "bodies": [
+        {
+          "id": "n8_body0",
+          "kind": "solid",
+          "shells": [
+            "n8_body0/s0"
+          ]
+        }
+      ],
+      "shells": [
+        {
+          "id": "n8_body0/s0",
+          "body": "n8_body0",
+          "faces": [
+            "n8_body0/s0/f0",
+            "n8_body0/s0/f1",
+            "n8_body0/s0/f2",
+            "n8_body0/s0/f3"
+          ],
+          "closed": true
+        }
+      ],
+      "faces": [
+        {
+          "id": "n8_body0/s0/f0",
+          "shell": "n8_body0/s0",
+          "surface": {
+            "kind": "surface",
+            "id": "n8_s0",
+            "degreeU": 2,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  -2.876543300000001,
+                  -0.2345678,
+                  0.3456788999999984
+                ],
+                [
+                  -2.876543300000001,
+                  -0.23356779999999944,
+                  0.3456788999999984
+                ]
+              ],
+              [
+                [
+                  -2.876543300000003,
+                  -0.2345678,
+                  3.3456788999999993
+                ],
+                [
+                  -2.876543300000003,
+                  -0.23356779999999944,
+                  3.3456788999999993
+                ]
+              ],
+              [
+                [
+                  0.1234566999999986,
+                  -0.2345678,
+                  3.3456789000000002
+                ],
+                [
+                  0.1234566999999986,
+                  -0.23356779999999944,
+                  3.3456789000000002
+                ]
+              ],
+              [
+                [
+                  3.1234566999999998,
+                  -0.2345678,
+                  3.345678900000002
+                ],
+                [
+                  3.1234566999999998,
+                  -0.23356779999999944,
+                  3.345678900000002
+                ]
+              ],
+              [
+                [
+                  3.1234567000000006,
+                  -0.2345678,
+                  0.3456789000000007
+                ],
+                [
+                  3.1234567000000006,
+                  -0.23356779999999944,
+                  0.3456789000000007
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                0.7071067811865476,
+                0.7071067811865476
+              ],
+              [
+                1,
+                1
+              ],
+              [
+                0.7071067811865476,
+                0.7071067811865476
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "sense": "forward",
+          "loops": [
+            "n8_body0/s0/f0/l0"
+          ],
+          "name": "n1.side0#2"
+        },
+        {
+          "id": "n8_body0/s0/f1",
+          "shell": "n8_body0/s0",
+          "surface": {
+            "kind": "surface",
+            "id": "n8_s1",
+            "degreeU": 2,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  3.1234567000000006,
+                  -0.2345678,
+                  0.34567890000000445
+                ],
+                [
+                  3.1234567000000006,
+                  -0.23356779999999944,
+                  0.34567890000000445
+                ]
+              ],
+              [
+                [
+                  3.123456700000005,
+                  -0.2345678,
+                  -2.6543210999999975
+                ],
+                [
+                  3.123456700000005,
+                  -0.23356779999999944,
+                  -2.6543210999999975
+                ]
+              ],
+              [
+                [
+                  0.12345670000000282,
+                  -0.2345678,
+                  -2.6543211
+                ],
+                [
+                  0.12345670000000282,
+                  -0.23356779999999944,
+                  -2.6543211
+                ]
+              ],
+              [
+                [
+                  -2.8765433,
+                  -0.2345678,
+                  -2.6543211000000024
+                ],
+                [
+                  -2.8765433,
+                  -0.23356779999999944,
+                  -2.6543211000000024
+                ]
+              ],
+              [
+                [
+                  -2.8765432999999994,
+                  -0.2345678,
+                  0.34567890000000007
+                ],
+                [
+                  -2.8765432999999994,
+                  -0.23356779999999944,
+                  0.34567890000000007
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                0.7071067811865472,
+                0.7071067811865472
+              ],
+              [
+                1,
+                1
+              ],
+              [
+                0.7071067811865472,
+                0.7071067811865472
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "sense": "forward",
+          "loops": [
+            "n8_body0/s0/f1/l0"
+          ],
+          "name": "n1.side0#1"
+        },
+        {
+          "id": "n8_body0/s0/f2",
+          "shell": "n8_body0/s0",
+          "surface": {
+            "kind": "surface",
+            "id": "n8_s2",
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  -2.8765433,
+                  -0.2345678,
+                  3.3456789000000002
+                ],
+                [
+                  3.1234567,
+                  -0.2345678,
+                  3.3456789000000002
+                ]
+              ],
+              [
+                [
+                  -2.8765433,
+                  -0.2345678,
+                  -2.6543210999999998
+                ],
+                [
+                  3.1234567,
+                  -0.2345678,
+                  -2.6543210999999998
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "sense": "forward",
+          "loops": [
+            "n8_body0/s0/f2/l0"
+          ],
+          "name": "n1.bottom"
+        },
+        {
+          "id": "n8_body0/s0/f3",
+          "shell": "n8_body0/s0",
+          "surface": {
+            "kind": "surface",
+            "id": "n8_s3",
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  -2.8765443000000026,
+                  -0.23356779999999944,
+                  -2.6543221000000012
+                ],
+                [
+                  -2.8765443000000026,
+                  -0.23356779999999944,
+                  3.3456799000000004
+                ]
+              ],
+              [
+                [
+                  3.1234577000000003,
+                  -0.23356779999999944,
+                  -2.6543221000000012
+                ],
+                [
+                  3.1234577000000003,
+                  -0.23356779999999944,
+                  3.3456799000000004
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "sense": "reversed",
+          "loops": [
+            "n8_body0/s0/f3/l0"
+          ],
+          "name": "n7.bottom"
+        }
+      ],
+      "loops": [
+        {
+          "id": "n8_body0/s0/f0/l0",
+          "face": "n8_body0/s0/f0",
+          "kind": "outer",
+          "coedges": [
+            "n8_body0/s0/f0/l0/c0",
+            "n8_body0/s0/f0/l0/c1",
+            "n8_body0/s0/f0/l0/c2",
+            "n8_body0/s0/f0/l0/c3",
+            "n8_body0/s0/f0/l0/c4"
+          ]
+        },
+        {
+          "id": "n8_body0/s0/f1/l0",
+          "face": "n8_body0/s0/f1",
+          "kind": "outer",
+          "coedges": [
+            "n8_body0/s0/f1/l0/c0",
+            "n8_body0/s0/f1/l0/c1",
+            "n8_body0/s0/f1/l0/c2",
+            "n8_body0/s0/f1/l0/c3",
+            "n8_body0/s0/f1/l0/c4"
+          ]
+        },
+        {
+          "id": "n8_body0/s0/f2/l0",
+          "face": "n8_body0/s0/f2",
+          "kind": "outer",
+          "coedges": [
+            "n8_body0/s0/f2/l0/c0",
+            "n8_body0/s0/f2/l0/c1"
+          ]
+        },
+        {
+          "id": "n8_body0/s0/f3/l0",
+          "face": "n8_body0/s0/f3",
+          "kind": "outer",
+          "coedges": [
+            "n8_body0/s0/f3/l0/c0",
+            "n8_body0/s0/f3/l0/c1",
+            "n8_body0/s0/f3/l0/c2",
+            "n8_body0/s0/f3/l0/c3"
+          ]
+        }
+      ],
+      "coedges": [
+        {
+          "id": "n8_body0/s0/f0/l0/c0",
+          "edge": "n8_e0",
+          "sense": "reversed",
+          "loop": "n8_body0/s0/f0/l0",
+          "next": "n8_body0/s0/f0/l0/c1",
+          "prev": "n8_body0/s0/f0/l0/c4",
+          "twin": "n8_body0/s0/f2/l0/c0",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f0/l0/c1",
+          "edge": "n8_e2",
+          "sense": "forward",
+          "loop": "n8_body0/s0/f0/l0",
+          "next": "n8_body0/s0/f0/l0/c2",
+          "prev": "n8_body0/s0/f0/l0/c0",
+          "twin": "n8_body0/s0/f1/l0/c4",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f0/l0/c2",
+          "edge": "n8_e3",
+          "sense": "forward",
+          "loop": "n8_body0/s0/f0/l0",
+          "next": "n8_body0/s0/f0/l0/c3",
+          "prev": "n8_body0/s0/f0/l0/c1",
+          "twin": "n8_body0/s0/f3/l0/c0",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f0/l0/c3",
+          "edge": "n8_e4",
+          "sense": "forward",
+          "loop": "n8_body0/s0/f0/l0",
+          "next": "n8_body0/s0/f0/l0/c4",
+          "prev": "n8_body0/s0/f0/l0/c2",
+          "twin": "n8_body0/s0/f3/l0/c3",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f0/l0/c4",
+          "edge": "n8_e5",
+          "sense": "forward",
+          "loop": "n8_body0/s0/f0/l0",
+          "next": "n8_body0/s0/f0/l0/c0",
+          "prev": "n8_body0/s0/f0/l0/c3",
+          "twin": "n8_body0/s0/f1/l0/c1",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f1/l0/c0",
+          "edge": "n8_e1",
+          "sense": "forward",
+          "loop": "n8_body0/s0/f1/l0",
+          "next": "n8_body0/s0/f1/l0/c1",
+          "prev": "n8_body0/s0/f1/l0/c4",
+          "twin": "n8_body0/s0/f2/l0/c1",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f1/l0/c1",
+          "edge": "n8_e5",
+          "sense": "reversed",
+          "loop": "n8_body0/s0/f1/l0",
+          "next": "n8_body0/s0/f1/l0/c2",
+          "prev": "n8_body0/s0/f1/l0/c0",
+          "twin": "n8_body0/s0/f0/l0/c4",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f1/l0/c2",
+          "edge": "n8_e6",
+          "sense": "forward",
+          "loop": "n8_body0/s0/f1/l0",
+          "next": "n8_body0/s0/f1/l0/c3",
+          "prev": "n8_body0/s0/f1/l0/c1",
+          "twin": "n8_body0/s0/f3/l0/c2",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f1/l0/c3",
+          "edge": "n8_e7",
+          "sense": "forward",
+          "loop": "n8_body0/s0/f1/l0",
+          "next": "n8_body0/s0/f1/l0/c4",
+          "prev": "n8_body0/s0/f1/l0/c2",
+          "twin": "n8_body0/s0/f3/l0/c1",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f1/l0/c4",
+          "edge": "n8_e2",
+          "sense": "reversed",
+          "loop": "n8_body0/s0/f1/l0",
+          "next": "n8_body0/s0/f1/l0/c0",
+          "prev": "n8_body0/s0/f1/l0/c3",
+          "twin": "n8_body0/s0/f0/l0/c1",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f2/l0/c0",
+          "edge": "n8_e0",
+          "sense": "forward",
+          "loop": "n8_body0/s0/f2/l0",
+          "next": "n8_body0/s0/f2/l0/c1",
+          "prev": "n8_body0/s0/f2/l0/c1",
+          "twin": "n8_body0/s0/f0/l0/c0",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f2/l0/c1",
+          "edge": "n8_e1",
+          "sense": "reversed",
+          "loop": "n8_body0/s0/f2/l0",
+          "next": "n8_body0/s0/f2/l0/c0",
+          "prev": "n8_body0/s0/f2/l0/c0",
+          "twin": "n8_body0/s0/f1/l0/c0",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f3/l0/c0",
+          "edge": "n8_e3",
+          "sense": "reversed",
+          "loop": "n8_body0/s0/f3/l0",
+          "next": "n8_body0/s0/f3/l0/c1",
+          "prev": "n8_body0/s0/f3/l0/c3",
+          "twin": "n8_body0/s0/f0/l0/c2",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f3/l0/c1",
+          "edge": "n8_e7",
+          "sense": "reversed",
+          "loop": "n8_body0/s0/f3/l0",
+          "next": "n8_body0/s0/f3/l0/c2",
+          "prev": "n8_body0/s0/f3/l0/c0",
+          "twin": "n8_body0/s0/f1/l0/c3",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f3/l0/c2",
+          "edge": "n8_e6",
+          "sense": "reversed",
+          "loop": "n8_body0/s0/f3/l0",
+          "next": "n8_body0/s0/f3/l0/c3",
+          "prev": "n8_body0/s0/f3/l0/c1",
+          "twin": "n8_body0/s0/f1/l0/c2",
+          "pcurve": null
+        },
+        {
+          "id": "n8_body0/s0/f3/l0/c3",
+          "edge": "n8_e4",
+          "sense": "reversed",
+          "loop": "n8_body0/s0/f3/l0",
+          "next": "n8_body0/s0/f3/l0/c0",
+          "prev": "n8_body0/s0/f3/l0/c2",
+          "twin": "n8_body0/s0/f0/l0/c3",
+          "pcurve": null
+        }
+      ],
+      "edges": [
+        {
+          "id": "n8_e0",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e0",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                3.1234567,
+                -0.2345678,
+                0.3456789
+              ],
+              [
+                3.1234566999999984,
+                -0.2345678,
+                3.3456789000000002
+              ],
+              [
+                0.12345669999999945,
+                -0.2345678,
+                3.3456789000000002
+              ],
+              [
+                -2.8765433,
+                -0.2345678,
+                3.3456788999999985
+              ],
+              [
+                -2.8765433,
+                -0.2345678,
+                0.3456788999999996
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865477,
+              1,
+              0.7071067811865477,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v0",
+            "n8_v1"
+          ],
+          "tolerance": 0.000001,
+          "name": "n1.bottom|n1.side0#2"
+        },
+        {
+          "id": "n8_e1",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e1",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                3.1234567,
+                -0.2345678,
+                0.3456789
+              ],
+              [
+                3.1234567,
+                -0.2345678,
+                -2.6543210999999998
+              ],
+              [
+                0.12345670000000018,
+                -0.2345678,
+                -2.6543210999999998
+              ],
+              [
+                -2.8765432999999994,
+                -0.2345678,
+                -2.6543210999999998
+              ],
+              [
+                -2.8765433,
+                -0.2345678,
+                0.3456788999999996
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865476,
+              1,
+              0.7071067811865476,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v0",
+            "n8_v1"
+          ],
+          "tolerance": 0.000001,
+          "name": "n1.bottom|n1.side0#1"
+        },
+        {
+          "id": "n8_e2",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e2",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                3.1234567000000006,
+                -0.2345678,
+                0.34567890000000334
+              ],
+              [
+                3.1234567000000006,
+                -0.23356779999999944,
+                0.34567890000000145
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v0",
+            "n8_v2"
+          ],
+          "tolerance": 0.000001,
+          "name": "n1.side0#1|n1.side0#2#2"
+        },
+        {
+          "id": "n8_e3",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e3",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                3.1234567000000006,
+                -0.23356779999999944,
+                0.34567890000000145
+              ],
+              [
+                3.1234567,
+                -0.23356779999999944,
+                3.3456789000000007
+              ],
+              [
+                0.12345669999999927,
+                -0.23356779999999944,
+                3.3456789000000002
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865476,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v2",
+            "n8_v3"
+          ],
+          "tolerance": 0.000001,
+          "name": "n1.side0#2|n7.bottom#2"
+        },
+        {
+          "id": "n8_e4",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e4",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0.12345669999999927,
+                -0.23356779999999944,
+                3.3456789000000002
+              ],
+              [
+                -2.8765433000000025,
+                -0.23356779999999955,
+                3.3456789
+              ],
+              [
+                -2.876543300000001,
+                -0.23356779999999955,
+                0.3456788999999984
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865475,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v3",
+            "n8_v4"
+          ],
+          "tolerance": 0.000001,
+          "name": "n1.side0#2|n7.bottom#1"
+        },
+        {
+          "id": "n8_e5",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e5",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                -2.876543300000001,
+                -0.23356779999999955,
+                0.3456788999999984
+              ],
+              [
+                -2.876543300000001,
+                -0.2345678,
+                0.3456788999999984
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v4",
+            "n8_v1"
+          ],
+          "tolerance": 0.000001,
+          "name": "n1.side0#1|n1.side0#2#1"
+        },
+        {
+          "id": "n8_e6",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e6",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                -2.876543300000001,
+                -0.23356779999999955,
+                0.3456788999999984
+              ],
+              [
+                -2.876543299999998,
+                -0.23356779999999944,
+                -2.6543210999999993
+              ],
+              [
+                0.12345670000000016,
+                -0.23356779999999944,
+                -2.6543211
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865477,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v4",
+            "n8_v5"
+          ],
+          "tolerance": 0.000001,
+          "name": "n1.side0#1|n7.bottom#1"
+        },
+        {
+          "id": "n8_e7",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e7",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0.12345670000000016,
+                -0.23356779999999944,
+                -2.6543211
+              ],
+              [
+                3.1234566999999998,
+                -0.23356779999999955,
+                -2.654321100000001
+              ],
+              [
+                3.1234567000000006,
+                -0.23356779999999944,
+                0.34567890000000145
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865476,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v5",
+            "n8_v2"
+          ],
+          "tolerance": 0.000001,
+          "name": "n1.side0#1|n7.bottom#2"
+        }
+      ],
+      "vertices": [
+        {
+          "id": "n8_v0",
+          "point": [
+            3.1234567000000006,
+            -0.2345678,
+            0.34567890000000334
+          ],
+          "tolerance": 0.000001
+        },
+        {
+          "id": "n8_v1",
+          "point": [
+            -2.876543300000001,
+            -0.2345678,
+            0.3456788999999984
+          ],
+          "tolerance": 0.000001
+        },
+        {
+          "id": "n8_v2",
+          "point": [
+            3.1234567000000006,
+            -0.23356779999999944,
+            0.34567890000000145
+          ],
+          "tolerance": 0.000001
+        },
+        {
+          "id": "n8_v3",
+          "point": [
+            0.12345669999999927,
+            -0.23356779999999944,
+            3.3456789000000002
+          ],
+          "tolerance": 0.000001
+        },
+        {
+          "id": "n8_v4",
+          "point": [
+            -2.876543300000001,
+            -0.23356779999999955,
+            0.3456788999999984
+          ],
+          "tolerance": 0.000001
+        },
+        {
+          "id": "n8_v5",
+          "point": [
+            0.12345670000000016,
+            -0.23356779999999944,
+            -2.6543211
+          ],
+          "tolerance": 0.000001
+        }
+      ]
+    },
+    "targetCheck": {
+      "valid": true,
+      "issues": [],
+      "counts": {
+        "bodies": 1,
+        "shells": 1,
+        "faces": 4,
+        "loops": 4,
+        "coedges": 16,
+        "edges": 8,
+        "vertices": 6
+      },
+      "topology": [
+        {
+          "body": "n8_body0",
+          "vertices": 6,
+          "edges": 8,
+          "faces": 4,
+          "loops": 4,
+          "shells": 1,
+          "genus": 0
+        }
+      ],
+      "maximumVertexGap": 3.3601445959922215e-15,
+      "maximumPcurveGap": 0,
+      "maximumEdgeSurfaceGap": 1.8742721836921976e-15
+    },
+    "candidate": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+        {
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3,
+          "id": "n0"
+        },
+        {
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 5.00009,
+          "id": "n1"
+        },
+        {
+          "kind": "rotate",
+          "parent": {
+            "node": 1,
+            "side": "solid"
+          },
+          "axis": "x",
+          "angle": -90,
+          "id": "n2"
+        },
+        {
+          "kind": "translate",
+          "parent": {
+            "node": 2,
+            "side": "solid"
+          },
+          "offset": [
+            0.1234567,
+            -0.2345678,
+            0.3456789
+          ],
+          "id": "n3"
+        },
+        {
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            100,
+            100
+          ],
+          "max": [
+            106,
+            110
+          ],
+          "id": "n4"
+        },
+        {
+          "kind": "extrude",
+          "sketch": 4,
+          "height": 7,
+          "id": "n5"
+        },
+        {
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "arc",
+              "start": [
+                3.3456789000000002,
+                0.1234567000000002
+              ],
+              "center": [
+                0.34567890000000023,
+                0.1234567000000002
+              ],
+              "direction": "ccw"
+            }
+          ],
+          "plane": {
+            "origin": [
+              0,
+              4.7655222,
+              0
+            ],
+            "normal": [
+              0,
+              1,
+              0
+            ],
+            "xAxis": [
+              0,
+              0,
+              1
+            ]
+          },
+          "on": {
+            "node": 3,
+            "side": "solid"
+          },
+          "id": "n6"
+        },
+        {
+          "kind": "extrude",
+          "sketch": 6,
+          "height": 4.99909,
+          "from": -4.99909,
+          "id": "n7"
+        },
+        {
+          "kind": "difference",
+          "parent": {
+            "node": 3,
+            "side": "solid"
+          },
+          "tool": {
+            "node": 7,
+            "side": "solid"
+          },
+          "id": "n8"
+        }
+      ],
+      "outputs": {
+        "b5": {
+          "node": 5,
+          "side": "solid"
+        },
+        "b8": {
+          "node": 8,
+          "side": "solid"
+        }
+      },
+      "nextId": 9
+    },
+    "elapsed": 17.795625
+  },
+  {
+    "axis": 2,
+    "distance": -5.00009,
+    "sourceKey": "b3",
+    "witnessKey": "b5",
+    "targetKey": "b8",
+    "status": "SUCCESS",
+    "outputKeys": [
+      "b5",
+      "b8"
+    ],
+    "model": [
+      {
+        "key": "b5",
+        "volume": 420.00000000000074,
+        "centroid": [
+          102.9999999999997,
+          104.99999999999989,
+          3.5
+        ],
+        "family": "upright"
+      },
+      {
+        "key": "b8",
+        "volume": 6.278163296415536e-15,
+        "centroid": [
+          0.12345670000000006,
+          -0.23456779999999994,
+          0.3456789000000001
+        ],
+        "family": "upright"
+      }
+    ],
+    "target": {
+      "format": "barocss-brep",
+      "version": 0,
+      "lengthUnit": "mm",
+      "source": {
+        "family": "prismatic-solid",
+        "id": "n8"
+      },
+      "bodies": [
+        {
+          "id": "n8_b0",
+          "kind": "solid",
+          "shells": [
+            "n8_b0/n8_b0_s0"
+          ]
+        }
+      ],
+      "shells": [
+        {
+          "id": "n8_b0/n8_b0_s0",
+          "body": "n8_b0",
+          "faces": [
+            "n8_b0/n8_b0_s0/n8_w0_0_0_0",
+            "n8_b0/n8_b0_s0/n8_w0_0_0_1",
+            "n8_b0/n8_b0_s0/n8_d0_0",
+            "n8_b0/n8_b0_s0/n8_u1_0"
+          ],
+          "closed": true
+        }
+      ],
+      "faces": [
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_0",
+          "shell": "n8_b0/n8_b0_s0",
+          "surface": {
+            "kind": "surface",
+            "id": "n8_w0_0_0_0",
+            "degreeU": 2,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  3.1234567,
+                  -0.2345678,
+                  0.3456789
+                ],
+                [
+                  3.1234567,
+                  -0.2345678,
+                  0.34567890000000023
+                ]
+              ],
+              [
+                [
+                  3.1234567,
+                  2.7654321999999993,
+                  0.3456789
+                ],
+                [
+                  3.1234567,
+                  2.7654321999999993,
+                  0.34567890000000023
+                ]
+              ],
+              [
+                [
+                  0.12345670000000018,
+                  2.7654322000000002,
+                  0.3456789
+                ],
+                [
+                  0.12345670000000018,
+                  2.7654322000000002,
+                  0.34567890000000023
+                ]
+              ],
+              [
+                [
+                  -2.8765432999999994,
+                  2.7654322000000002,
+                  0.3456789
+                ],
+                [
+                  -2.8765432999999994,
+                  2.7654322000000002,
+                  0.34567890000000023
+                ]
+              ],
+              [
+                [
+                  -2.8765433,
+                  -0.23456779999999963,
+                  0.3456789
+                ],
+                [
+                  -2.8765433,
+                  -0.23456779999999963,
+                  0.34567890000000023
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                0.7071067811865476,
+                0.7071067811865476
+              ],
+              [
+                1,
+                1
+              ],
+              [
+                0.7071067811865476,
+                0.7071067811865476
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "sense": "forward",
+          "loops": [
+            "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0"
+          ],
+          "name": "n1.side0#2"
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_1",
+          "shell": "n8_b0/n8_b0_s0",
+          "surface": {
+            "kind": "surface",
+            "id": "n8_w0_0_0_1",
+            "degreeU": 2,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  3.1234567,
+                  -0.2345678,
+                  0.3456789
+                ],
+                [
+                  3.1234567,
+                  -0.2345678,
+                  0.34567890000000023
+                ]
+              ],
+              [
+                [
+                  3.123456699999998,
+                  -3.2345677999999998,
+                  0.3456789
+                ],
+                [
+                  3.123456699999998,
+                  -3.2345677999999998,
+                  0.34567890000000023
+                ]
+              ],
+              [
+                [
+                  0.12345669999999952,
+                  -3.2345677999999998,
+                  0.3456789
+                ],
+                [
+                  0.12345669999999952,
+                  -3.2345677999999998,
+                  0.34567890000000023
+                ]
+              ],
+              [
+                [
+                  -2.8765432999999985,
+                  -3.234567799999999,
+                  0.3456789
+                ],
+                [
+                  -2.8765432999999985,
+                  -3.234567799999999,
+                  0.34567890000000023
+                ]
+              ],
+              [
+                [
+                  -2.8765433,
+                  -0.23456779999999963,
+                  0.3456789
+                ],
+                [
+                  -2.8765433,
+                  -0.23456779999999963,
+                  0.34567890000000023
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                0.7071067811865477,
+                0.7071067811865477
+              ],
+              [
+                1,
+                1
+              ],
+              [
+                0.7071067811865477,
+                0.7071067811865477
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "sense": "reversed",
+          "loops": [
+            "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0"
+          ],
+          "name": "n1.side0#1"
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_d0_0",
+          "shell": "n8_b0/n8_b0_s0",
+          "surface": {
+            "kind": "surface",
+            "id": "n8_d0_0",
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  -2.8765433,
+                  -3.2345677999999998,
+                  0.3456789
+                ],
+                [
+                  3.1234567,
+                  -3.2345677999999998,
+                  0.3456789
+                ]
+              ],
+              [
+                [
+                  -2.8765433,
+                  2.7654322000000002,
+                  0.3456789
+                ],
+                [
+                  3.1234567,
+                  2.7654322000000002,
+                  0.3456789
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "sense": "forward",
+          "loops": [
+            "n8_b0/n8_b0_s0/n8_d0_0/l0"
+          ],
+          "name": "n1.bottom#1"
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_u1_0",
+          "shell": "n8_b0/n8_b0_s0",
+          "surface": {
+            "kind": "surface",
+            "id": "n8_u1_0",
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  -2.8765433,
+                  -3.2345677999999998,
+                  0.34567890000000023
+                ],
+                [
+                  -2.8765433,
+                  2.7654322000000002,
+                  0.34567890000000023
+                ]
+              ],
+              [
+                [
+                  3.1234567,
+                  -3.2345677999999998,
+                  0.34567890000000023
+                ],
+                [
+                  3.1234567,
+                  2.7654322000000002,
+                  0.34567890000000023
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "sense": "forward",
+          "loops": [
+            "n8_b0/n8_b0_s0/n8_u1_0/l0"
+          ],
+          "name": "n1.bottom#2"
+        }
+      ],
+      "loops": [
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0",
+          "face": "n8_b0/n8_b0_s0/n8_w0_0_0_0",
+          "kind": "outer",
+          "coedges": [
+            "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c0",
+            "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c1",
+            "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c2",
+            "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c3"
+          ]
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0",
+          "face": "n8_b0/n8_b0_s0/n8_w0_0_0_1",
+          "kind": "outer",
+          "coedges": [
+            "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c0",
+            "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c1",
+            "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c2",
+            "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c3"
+          ]
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_d0_0/l0",
+          "face": "n8_b0/n8_b0_s0/n8_d0_0",
+          "kind": "outer",
+          "coedges": [
+            "n8_b0/n8_b0_s0/n8_d0_0/l0/c0",
+            "n8_b0/n8_b0_s0/n8_d0_0/l0/c1"
+          ]
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_u1_0/l0",
+          "face": "n8_b0/n8_b0_s0/n8_u1_0",
+          "kind": "outer",
+          "coedges": [
+            "n8_b0/n8_b0_s0/n8_u1_0/l0/c0",
+            "n8_b0/n8_b0_s0/n8_u1_0/l0/c1"
+          ]
+        }
+      ],
+      "coedges": [
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c0",
+          "edge": "n8_e0",
+          "sense": "forward",
+          "loop": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0",
+          "next": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c1",
+          "prev": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c3",
+          "twin": "n8_b0/n8_b0_s0/n8_d0_0/l0/c1",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                1,
+                0,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c1",
+          "edge": "n8_e1",
+          "sense": "forward",
+          "loop": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0",
+          "next": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c2",
+          "prev": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c0",
+          "twin": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c3",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                1,
+                1,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c2",
+          "edge": "n8_e2",
+          "sense": "reversed",
+          "loop": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0",
+          "next": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c3",
+          "prev": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c1",
+          "twin": "n8_b0/n8_b0_s0/n8_u1_0/l0/c0",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                1,
+                1,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c3",
+          "edge": "n8_e3",
+          "sense": "reversed",
+          "loop": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0",
+          "next": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c0",
+          "prev": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c2",
+          "twin": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c1",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c0",
+          "edge": "n8_e4",
+          "sense": "reversed",
+          "loop": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0",
+          "next": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c1",
+          "prev": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c3",
+          "twin": "n8_b0/n8_b0_s0/n8_d0_0/l0/c0",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                1,
+                0,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c1",
+          "edge": "n8_e3",
+          "sense": "forward",
+          "loop": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0",
+          "next": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c2",
+          "prev": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c0",
+          "twin": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c3",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c2",
+          "edge": "n8_e5",
+          "sense": "forward",
+          "loop": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0",
+          "next": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c3",
+          "prev": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c1",
+          "twin": "n8_b0/n8_b0_s0/n8_u1_0/l0/c1",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                1,
+                1,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c3",
+          "edge": "n8_e1",
+          "sense": "reversed",
+          "loop": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0",
+          "next": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c0",
+          "prev": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c2",
+          "twin": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c1",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                1,
+                1,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_d0_0/l0/c0",
+          "edge": "n8_e4",
+          "sense": "forward",
+          "loop": "n8_b0/n8_b0_s0/n8_d0_0/l0",
+          "next": "n8_b0/n8_b0_s0/n8_d0_0/l0/c1",
+          "prev": "n8_b0/n8_b0_s0/n8_d0_0/l0/c1",
+          "twin": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c0",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0.5,
+                1,
+                0
+              ],
+              [
+                0,
+                0.9999999999999997,
+                0
+              ],
+              [
+                0,
+                0.49999999999999983,
+                0
+              ],
+              [
+                1.4802973661668753e-16,
+                2.220446049250313e-16,
+                0
+              ],
+              [
+                0.5,
+                0,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865477,
+              1,
+              0.7071067811865477,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_d0_0/l0/c1",
+          "edge": "n8_e0",
+          "sense": "reversed",
+          "loop": "n8_b0/n8_b0_s0/n8_d0_0/l0",
+          "next": "n8_b0/n8_b0_s0/n8_d0_0/l0/c0",
+          "prev": "n8_b0/n8_b0_s0/n8_d0_0/l0/c0",
+          "twin": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c0",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0.5,
+                1,
+                0
+              ],
+              [
+                0.9999999999999999,
+                1,
+                0
+              ],
+              [
+                1,
+                0.5,
+                0
+              ],
+              [
+                1,
+                7.401486830834377e-17,
+                0
+              ],
+              [
+                0.5,
+                0,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865476,
+              1,
+              0.7071067811865476,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_u1_0/l0/c0",
+          "edge": "n8_e2",
+          "sense": "forward",
+          "loop": "n8_b0/n8_b0_s0/n8_u1_0/l0",
+          "next": "n8_b0/n8_b0_s0/n8_u1_0/l0/c1",
+          "prev": "n8_b0/n8_b0_s0/n8_u1_0/l0/c1",
+          "twin": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c2",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                1,
+                0.5,
+                0
+              ],
+              [
+                1,
+                0.9999999999999999,
+                0
+              ],
+              [
+                0.5,
+                1,
+                0
+              ],
+              [
+                7.401486830834377e-17,
+                1,
+                0
+              ],
+              [
+                0,
+                0.5,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865476,
+              1,
+              0.7071067811865476,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_u1_0/l0/c1",
+          "edge": "n8_e5",
+          "sense": "reversed",
+          "loop": "n8_b0/n8_b0_s0/n8_u1_0/l0",
+          "next": "n8_b0/n8_b0_s0/n8_u1_0/l0/c0",
+          "prev": "n8_b0/n8_b0_s0/n8_u1_0/l0/c0",
+          "twin": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c2",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                1,
+                0.5,
+                0
+              ],
+              [
+                0.9999999999999997,
+                0,
+                0
+              ],
+              [
+                0.49999999999999983,
+                0,
+                0
+              ],
+              [
+                2.220446049250313e-16,
+                1.4802973661668753e-16,
+                0
+              ],
+              [
+                0,
+                0.5,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865477,
+              1,
+              0.7071067811865477,
+              1
+            ]
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "n8_e0",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e0",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                3.1234567,
+                -0.2345678,
+                0.3456789
+              ],
+              [
+                3.1234567,
+                2.7654321999999993,
+                0.3456789
+              ],
+              [
+                0.12345670000000018,
+                2.7654322000000002,
+                0.3456789
+              ],
+              [
+                -2.8765432999999994,
+                2.7654322000000002,
+                0.3456789
+              ],
+              [
+                -2.8765433,
+                -0.23456779999999963,
+                0.3456789
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865476,
+              1,
+              0.7071067811865476,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v0",
+            "n8_v1"
+          ],
+          "tolerance": 1e-7,
+          "name": "n1.bottom#1|n1.side0#2"
+        },
+        {
+          "id": "n8_e1",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e1",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                -2.8765433,
+                -0.23456779999999963,
+                0.3456789
+              ],
+              [
+                -2.8765433,
+                -0.23456779999999963,
+                0.34567890000000023
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v1",
+            "n8_v2"
+          ],
+          "tolerance": 1e-7,
+          "name": "n1.side0#1|n1.side0#2#1"
+        },
+        {
+          "id": "n8_e2",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e2",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                3.1234567,
+                -0.2345678,
+                0.34567890000000023
+              ],
+              [
+                3.1234567,
+                2.7654321999999993,
+                0.34567890000000023
+              ],
+              [
+                0.12345670000000018,
+                2.7654322000000002,
+                0.34567890000000023
+              ],
+              [
+                -2.8765432999999994,
+                2.7654322000000002,
+                0.34567890000000023
+              ],
+              [
+                -2.8765433,
+                -0.23456779999999963,
+                0.34567890000000023
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865476,
+              1,
+              0.7071067811865476,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v3",
+            "n8_v2"
+          ],
+          "tolerance": 1e-7,
+          "name": "n1.bottom#2|n1.side0#2"
+        },
+        {
+          "id": "n8_e3",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e3",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                3.1234567,
+                -0.2345678,
+                0.3456789
+              ],
+              [
+                3.1234567,
+                -0.2345678,
+                0.34567890000000023
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v0",
+            "n8_v3"
+          ],
+          "tolerance": 1e-7,
+          "name": "n1.side0#1|n1.side0#2#2"
+        },
+        {
+          "id": "n8_e4",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e4",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                3.1234567,
+                -0.2345678,
+                0.3456789
+              ],
+              [
+                3.123456699999998,
+                -3.2345677999999998,
+                0.3456789
+              ],
+              [
+                0.12345669999999952,
+                -3.2345677999999998,
+                0.3456789
+              ],
+              [
+                -2.8765432999999985,
+                -3.234567799999999,
+                0.3456789
+              ],
+              [
+                -2.8765433,
+                -0.23456779999999963,
+                0.3456789
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865477,
+              1,
+              0.7071067811865477,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v0",
+            "n8_v1"
+          ],
+          "tolerance": 1e-7,
+          "name": "n1.bottom#1|n1.side0#1"
+        },
+        {
+          "id": "n8_e5",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e5",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                3.1234567,
+                -0.2345678,
+                0.34567890000000023
+              ],
+              [
+                3.123456699999998,
+                -3.2345677999999998,
+                0.34567890000000023
+              ],
+              [
+                0.12345669999999952,
+                -3.2345677999999998,
+                0.34567890000000023
+              ],
+              [
+                -2.8765432999999985,
+                -3.234567799999999,
+                0.34567890000000023
+              ],
+              [
+                -2.8765433,
+                -0.23456779999999963,
+                0.34567890000000023
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865477,
+              1,
+              0.7071067811865477,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v3",
+            "n8_v2"
+          ],
+          "tolerance": 1e-7,
+          "name": "n1.bottom#2|n1.side0#1"
+        }
+      ],
+      "vertices": [
+        {
+          "id": "n8_v0",
+          "point": [
+            3.1234567,
+            -0.2345678,
+            0.3456789
+          ],
+          "tolerance": 1e-7
+        },
+        {
+          "id": "n8_v1",
+          "point": [
+            -2.8765433,
+            -0.23456779999999963,
+            0.3456789
+          ],
+          "tolerance": 1e-7
+        },
+        {
+          "id": "n8_v2",
+          "point": [
+            -2.8765433,
+            -0.23456779999999963,
+            0.34567890000000023
+          ],
+          "tolerance": 1e-7
+        },
+        {
+          "id": "n8_v3",
+          "point": [
+            3.1234567,
+            -0.2345678,
+            0.34567890000000023
+          ],
+          "tolerance": 1e-7
+        }
+      ]
+    },
+    "targetCheck": {
+      "valid": true,
+      "issues": [],
+      "counts": {
+        "bodies": 1,
+        "shells": 1,
+        "faces": 4,
+        "loops": 4,
+        "coedges": 12,
+        "edges": 6,
+        "vertices": 4
+      },
+      "topology": [
+        {
+          "body": "n8_b0",
+          "vertices": 4,
+          "edges": 6,
+          "faces": 4,
+          "loops": 4,
+          "shells": 1,
+          "genus": 0
+        }
+      ],
+      "maximumVertexGap": 0,
+      "maximumPcurveGap": 4.440892098500626e-16,
+      "maximumEdgeSurfaceGap": 1.1443916996305594e-16
+    },
+    "candidate": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+        {
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3,
+          "id": "n0"
+        },
+        {
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 5.00009,
+          "id": "n1"
+        },
+        {
+          "kind": "rotate",
+          "parent": {
+            "node": 1,
+            "side": "solid"
+          },
+          "axis": "z",
+          "angle": 0,
+          "id": "n2"
+        },
+        {
+          "kind": "translate",
+          "parent": {
+            "node": 2,
+            "side": "solid"
+          },
+          "offset": [
+            0.1234567,
+            -0.2345678,
+            0.3456789
+          ],
+          "id": "n3"
+        },
+        {
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            100,
+            100
+          ],
+          "max": [
+            106,
+            110
+          ],
+          "id": "n4"
+        },
+        {
+          "kind": "extrude",
+          "sketch": 4,
+          "height": 7,
+          "id": "n5"
+        },
+        {
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "arc",
+              "start": [
+                3.1234567,
+                -0.23456779999999977
+              ],
+              "center": [
+                0.1234567000000002,
+                -0.23456779999999977
+              ],
+              "direction": "ccw"
+            }
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              5.3457689
+            ],
+            "normal": [
+              0,
+              0,
+              1
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          },
+          "on": {
+            "node": 3,
+            "side": "solid"
+          },
+          "id": "n6"
+        },
+        {
+          "kind": "extrude",
+          "sketch": 6,
+          "height": 5.00009,
+          "from": -5.00009,
+          "id": "n7"
+        },
+        {
+          "kind": "difference",
+          "parent": {
+            "node": 3,
+            "side": "solid"
+          },
+          "tool": {
+            "node": 7,
+            "side": "solid"
+          },
+          "id": "n8"
+        }
+      ],
+      "outputs": {
+        "b5": {
+          "node": 5,
+          "side": "solid"
+        },
+        "b8": {
+          "node": 8,
+          "side": "solid"
+        }
+      },
+      "nextId": 9
+    },
+    "elapsed": 12.891291999999993
+  },
+  {
+    "axis": 2,
+    "distance": -4.99909,
+    "sourceKey": "b3",
+    "witnessKey": "b5",
+    "targetKey": "b8",
+    "status": "SUCCESS",
+    "outputKeys": [
+      "b5",
+      "b8"
+    ],
+    "model": [
+      {
+        "key": "b5",
+        "volume": 420.00000000000074,
+        "centroid": [
+          102.9999999999997,
+          104.99999999999989,
+          3.5
+        ],
+        "family": "upright"
+      },
+      {
+        "key": "b8",
+        "volume": 0.028274333882323855,
+        "centroid": [
+          0.12345670000000006,
+          -0.23456779999999994,
+          0.34617890000000023
+        ],
+        "family": "upright"
+      }
+    ],
+    "target": {
+      "format": "barocss-brep",
+      "version": 0,
+      "lengthUnit": "mm",
+      "source": {
+        "family": "prismatic-solid",
+        "id": "n8"
+      },
+      "bodies": [
+        {
+          "id": "n8_b0",
+          "kind": "solid",
+          "shells": [
+            "n8_b0/n8_b0_s0"
+          ]
+        }
+      ],
+      "shells": [
+        {
+          "id": "n8_b0/n8_b0_s0",
+          "body": "n8_b0",
+          "faces": [
+            "n8_b0/n8_b0_s0/n8_w0_0_0_0",
+            "n8_b0/n8_b0_s0/n8_w0_0_0_1",
+            "n8_b0/n8_b0_s0/n8_d0_0",
+            "n8_b0/n8_b0_s0/n8_u1_0"
+          ],
+          "closed": true
+        }
+      ],
+      "faces": [
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_0",
+          "shell": "n8_b0/n8_b0_s0",
+          "surface": {
+            "kind": "surface",
+            "id": "n8_w0_0_0_0",
+            "degreeU": 2,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  3.1234567,
+                  -0.2345678,
+                  0.3456789
+                ],
+                [
+                  3.1234567,
+                  -0.2345678,
+                  0.34667890000000057
+                ]
+              ],
+              [
+                [
+                  3.1234567,
+                  2.7654321999999993,
+                  0.3456789
+                ],
+                [
+                  3.1234567,
+                  2.7654321999999993,
+                  0.34667890000000057
+                ]
+              ],
+              [
+                [
+                  0.12345670000000018,
+                  2.7654322000000002,
+                  0.3456789
+                ],
+                [
+                  0.12345670000000018,
+                  2.7654322000000002,
+                  0.34667890000000057
+                ]
+              ],
+              [
+                [
+                  -2.8765432999999994,
+                  2.7654322000000002,
+                  0.3456789
+                ],
+                [
+                  -2.8765432999999994,
+                  2.7654322000000002,
+                  0.34667890000000057
+                ]
+              ],
+              [
+                [
+                  -2.8765433,
+                  -0.23456779999999963,
+                  0.3456789
+                ],
+                [
+                  -2.8765433,
+                  -0.23456779999999963,
+                  0.34667890000000057
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                0.7071067811865476,
+                0.7071067811865476
+              ],
+              [
+                1,
+                1
+              ],
+              [
+                0.7071067811865476,
+                0.7071067811865476
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "sense": "forward",
+          "loops": [
+            "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0"
+          ],
+          "name": "n1.side0#2"
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_1",
+          "shell": "n8_b0/n8_b0_s0",
+          "surface": {
+            "kind": "surface",
+            "id": "n8_w0_0_0_1",
+            "degreeU": 2,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  3.1234567,
+                  -0.2345678,
+                  0.3456789
+                ],
+                [
+                  3.1234567,
+                  -0.2345678,
+                  0.34667890000000057
+                ]
+              ],
+              [
+                [
+                  3.123456699999998,
+                  -3.2345677999999998,
+                  0.3456789
+                ],
+                [
+                  3.123456699999998,
+                  -3.2345677999999998,
+                  0.34667890000000057
+                ]
+              ],
+              [
+                [
+                  0.12345669999999952,
+                  -3.2345677999999998,
+                  0.3456789
+                ],
+                [
+                  0.12345669999999952,
+                  -3.2345677999999998,
+                  0.34667890000000057
+                ]
+              ],
+              [
+                [
+                  -2.8765432999999985,
+                  -3.234567799999999,
+                  0.3456789
+                ],
+                [
+                  -2.8765432999999985,
+                  -3.234567799999999,
+                  0.34667890000000057
+                ]
+              ],
+              [
+                [
+                  -2.8765433,
+                  -0.23456779999999963,
+                  0.3456789
+                ],
+                [
+                  -2.8765433,
+                  -0.23456779999999963,
+                  0.34667890000000057
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                0.7071067811865477,
+                0.7071067811865477
+              ],
+              [
+                1,
+                1
+              ],
+              [
+                0.7071067811865477,
+                0.7071067811865477
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "sense": "reversed",
+          "loops": [
+            "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0"
+          ],
+          "name": "n1.side0#1"
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_d0_0",
+          "shell": "n8_b0/n8_b0_s0",
+          "surface": {
+            "kind": "surface",
+            "id": "n8_d0_0",
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  -2.8765433,
+                  -3.2345677999999998,
+                  0.3456789
+                ],
+                [
+                  3.1234567,
+                  -3.2345677999999998,
+                  0.3456789
+                ]
+              ],
+              [
+                [
+                  -2.8765433,
+                  2.7654322000000002,
+                  0.3456789
+                ],
+                [
+                  3.1234567,
+                  2.7654322000000002,
+                  0.3456789
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "sense": "forward",
+          "loops": [
+            "n8_b0/n8_b0_s0/n8_d0_0/l0"
+          ],
+          "name": "n1.bottom"
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_u1_0",
+          "shell": "n8_b0/n8_b0_s0",
+          "surface": {
+            "kind": "surface",
+            "id": "n8_u1_0",
+            "degreeU": 1,
+            "degreeV": 1,
+            "knotsU": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "knotsV": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                [
+                  -2.8765433,
+                  -3.2345677999999998,
+                  0.34667890000000057
+                ],
+                [
+                  -2.8765433,
+                  2.7654322000000002,
+                  0.34667890000000057
+                ]
+              ],
+              [
+                [
+                  3.1234567,
+                  -3.2345677999999998,
+                  0.34667890000000057
+                ],
+                [
+                  3.1234567,
+                  2.7654322000000002,
+                  0.34667890000000057
+                ]
+              ]
+            ],
+            "weights": [
+              [
+                1,
+                1
+              ],
+              [
+                1,
+                1
+              ]
+            ]
+          },
+          "sense": "forward",
+          "loops": [
+            "n8_b0/n8_b0_s0/n8_u1_0/l0"
+          ],
+          "name": "n7.bottom"
+        }
+      ],
+      "loops": [
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0",
+          "face": "n8_b0/n8_b0_s0/n8_w0_0_0_0",
+          "kind": "outer",
+          "coedges": [
+            "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c0",
+            "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c1",
+            "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c2",
+            "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c3"
+          ]
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0",
+          "face": "n8_b0/n8_b0_s0/n8_w0_0_0_1",
+          "kind": "outer",
+          "coedges": [
+            "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c0",
+            "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c1",
+            "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c2",
+            "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c3"
+          ]
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_d0_0/l0",
+          "face": "n8_b0/n8_b0_s0/n8_d0_0",
+          "kind": "outer",
+          "coedges": [
+            "n8_b0/n8_b0_s0/n8_d0_0/l0/c0",
+            "n8_b0/n8_b0_s0/n8_d0_0/l0/c1"
+          ]
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_u1_0/l0",
+          "face": "n8_b0/n8_b0_s0/n8_u1_0",
+          "kind": "outer",
+          "coedges": [
+            "n8_b0/n8_b0_s0/n8_u1_0/l0/c0",
+            "n8_b0/n8_b0_s0/n8_u1_0/l0/c1"
+          ]
+        }
+      ],
+      "coedges": [
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c0",
+          "edge": "n8_e0",
+          "sense": "forward",
+          "loop": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0",
+          "next": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c1",
+          "prev": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c3",
+          "twin": "n8_b0/n8_b0_s0/n8_d0_0/l0/c1",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                1,
+                0,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c1",
+          "edge": "n8_e1",
+          "sense": "forward",
+          "loop": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0",
+          "next": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c2",
+          "prev": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c0",
+          "twin": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c3",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                1,
+                1,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c2",
+          "edge": "n8_e2",
+          "sense": "reversed",
+          "loop": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0",
+          "next": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c3",
+          "prev": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c1",
+          "twin": "n8_b0/n8_b0_s0/n8_u1_0/l0/c0",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                1,
+                1,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c3",
+          "edge": "n8_e3",
+          "sense": "reversed",
+          "loop": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0",
+          "next": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c0",
+          "prev": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c2",
+          "twin": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c1",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c0",
+          "edge": "n8_e4",
+          "sense": "reversed",
+          "loop": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0",
+          "next": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c1",
+          "prev": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c3",
+          "twin": "n8_b0/n8_b0_s0/n8_d0_0/l0/c0",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                1,
+                0,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c1",
+          "edge": "n8_e3",
+          "sense": "forward",
+          "loop": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0",
+          "next": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c2",
+          "prev": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c0",
+          "twin": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c3",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0,
+                0,
+                0
+              ],
+              [
+                0,
+                1,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c2",
+          "edge": "n8_e5",
+          "sense": "forward",
+          "loop": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0",
+          "next": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c3",
+          "prev": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c1",
+          "twin": "n8_b0/n8_b0_s0/n8_u1_0/l0/c1",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0,
+                1,
+                0
+              ],
+              [
+                1,
+                1,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c3",
+          "edge": "n8_e1",
+          "sense": "reversed",
+          "loop": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0",
+          "next": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c0",
+          "prev": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c2",
+          "twin": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c1",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                1,
+                0,
+                0
+              ],
+              [
+                1,
+                1,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_d0_0/l0/c0",
+          "edge": "n8_e4",
+          "sense": "forward",
+          "loop": "n8_b0/n8_b0_s0/n8_d0_0/l0",
+          "next": "n8_b0/n8_b0_s0/n8_d0_0/l0/c1",
+          "prev": "n8_b0/n8_b0_s0/n8_d0_0/l0/c1",
+          "twin": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c0",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0.5,
+                1,
+                0
+              ],
+              [
+                0,
+                0.9999999999999997,
+                0
+              ],
+              [
+                0,
+                0.49999999999999983,
+                0
+              ],
+              [
+                1.4802973661668753e-16,
+                2.220446049250313e-16,
+                0
+              ],
+              [
+                0.5,
+                0,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865477,
+              1,
+              0.7071067811865477,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_d0_0/l0/c1",
+          "edge": "n8_e0",
+          "sense": "reversed",
+          "loop": "n8_b0/n8_b0_s0/n8_d0_0/l0",
+          "next": "n8_b0/n8_b0_s0/n8_d0_0/l0/c0",
+          "prev": "n8_b0/n8_b0_s0/n8_d0_0/l0/c0",
+          "twin": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c0",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                0.5,
+                1,
+                0
+              ],
+              [
+                0.9999999999999999,
+                1,
+                0
+              ],
+              [
+                1,
+                0.5,
+                0
+              ],
+              [
+                1,
+                7.401486830834377e-17,
+                0
+              ],
+              [
+                0.5,
+                0,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865476,
+              1,
+              0.7071067811865476,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_u1_0/l0/c0",
+          "edge": "n8_e2",
+          "sense": "forward",
+          "loop": "n8_b0/n8_b0_s0/n8_u1_0/l0",
+          "next": "n8_b0/n8_b0_s0/n8_u1_0/l0/c1",
+          "prev": "n8_b0/n8_b0_s0/n8_u1_0/l0/c1",
+          "twin": "n8_b0/n8_b0_s0/n8_w0_0_0_0/l0/c2",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                1,
+                0.5,
+                0
+              ],
+              [
+                1,
+                0.9999999999999999,
+                0
+              ],
+              [
+                0.5,
+                1,
+                0
+              ],
+              [
+                7.401486830834377e-17,
+                1,
+                0
+              ],
+              [
+                0,
+                0.5,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865476,
+              1,
+              0.7071067811865476,
+              1
+            ]
+          }
+        },
+        {
+          "id": "n8_b0/n8_b0_s0/n8_u1_0/l0/c1",
+          "edge": "n8_e5",
+          "sense": "reversed",
+          "loop": "n8_b0/n8_b0_s0/n8_u1_0/l0",
+          "next": "n8_b0/n8_b0_s0/n8_u1_0/l0/c0",
+          "prev": "n8_b0/n8_b0_s0/n8_u1_0/l0/c0",
+          "twin": "n8_b0/n8_b0_s0/n8_w0_0_0_1/l0/c2",
+          "pcurve": {
+            "kind": "curve",
+            "id": "pcurve",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                1,
+                0.5,
+                0
+              ],
+              [
+                0.9999999999999997,
+                0,
+                0
+              ],
+              [
+                0.49999999999999983,
+                0,
+                0
+              ],
+              [
+                2.220446049250313e-16,
+                1.4802973661668753e-16,
+                0
+              ],
+              [
+                0,
+                0.5,
+                0
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865477,
+              1,
+              0.7071067811865477,
+              1
+            ]
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "n8_e0",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e0",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                3.1234567,
+                -0.2345678,
+                0.3456789
+              ],
+              [
+                3.1234567,
+                2.7654321999999993,
+                0.3456789
+              ],
+              [
+                0.12345670000000018,
+                2.7654322000000002,
+                0.3456789
+              ],
+              [
+                -2.8765432999999994,
+                2.7654322000000002,
+                0.3456789
+              ],
+              [
+                -2.8765433,
+                -0.23456779999999963,
+                0.3456789
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865476,
+              1,
+              0.7071067811865476,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v0",
+            "n8_v1"
+          ],
+          "tolerance": 1e-7,
+          "name": "n1.bottom|n1.side0#2"
+        },
+        {
+          "id": "n8_e1",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e1",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                -2.8765433,
+                -0.23456779999999963,
+                0.3456789
+              ],
+              [
+                -2.8765433,
+                -0.23456779999999963,
+                0.34667890000000057
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v1",
+            "n8_v2"
+          ],
+          "tolerance": 1e-7,
+          "name": "n1.side0#1|n1.side0#2#1"
+        },
+        {
+          "id": "n8_e2",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e2",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                3.1234567,
+                -0.2345678,
+                0.34667890000000057
+              ],
+              [
+                3.1234567,
+                2.7654321999999993,
+                0.34667890000000057
+              ],
+              [
+                0.12345670000000018,
+                2.7654322000000002,
+                0.34667890000000057
+              ],
+              [
+                -2.8765432999999994,
+                2.7654322000000002,
+                0.34667890000000057
+              ],
+              [
+                -2.8765433,
+                -0.23456779999999963,
+                0.34667890000000057
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865476,
+              1,
+              0.7071067811865476,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v3",
+            "n8_v2"
+          ],
+          "tolerance": 1e-7,
+          "name": "n1.side0#2|n7.bottom"
+        },
+        {
+          "id": "n8_e3",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e3",
+            "degree": 1,
+            "knots": [
+              0,
+              0,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                3.1234567,
+                -0.2345678,
+                0.3456789
+              ],
+              [
+                3.1234567,
+                -0.2345678,
+                0.34667890000000057
+              ]
+            ],
+            "weights": [
+              1,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v0",
+            "n8_v3"
+          ],
+          "tolerance": 1e-7,
+          "name": "n1.side0#1|n1.side0#2#2"
+        },
+        {
+          "id": "n8_e4",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e4",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                3.1234567,
+                -0.2345678,
+                0.3456789
+              ],
+              [
+                3.123456699999998,
+                -3.2345677999999998,
+                0.3456789
+              ],
+              [
+                0.12345669999999952,
+                -3.2345677999999998,
+                0.3456789
+              ],
+              [
+                -2.8765432999999985,
+                -3.234567799999999,
+                0.3456789
+              ],
+              [
+                -2.8765433,
+                -0.23456779999999963,
+                0.3456789
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865477,
+              1,
+              0.7071067811865477,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v0",
+            "n8_v1"
+          ],
+          "tolerance": 1e-7,
+          "name": "n1.bottom|n1.side0#1"
+        },
+        {
+          "id": "n8_e5",
+          "curve": {
+            "kind": "curve",
+            "id": "n8_e5",
+            "degree": 2,
+            "knots": [
+              0,
+              0,
+              0,
+              0.5,
+              0.5,
+              1,
+              1,
+              1
+            ],
+            "controlPoints": [
+              [
+                3.1234567,
+                -0.2345678,
+                0.34667890000000057
+              ],
+              [
+                3.123456699999998,
+                -3.2345677999999998,
+                0.34667890000000057
+              ],
+              [
+                0.12345669999999952,
+                -3.2345677999999998,
+                0.34667890000000057
+              ],
+              [
+                -2.8765432999999985,
+                -3.234567799999999,
+                0.34667890000000057
+              ],
+              [
+                -2.8765433,
+                -0.23456779999999963,
+                0.34667890000000057
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865477,
+              1,
+              0.7071067811865477,
+              1
+            ]
+          },
+          "vertices": [
+            "n8_v3",
+            "n8_v2"
+          ],
+          "tolerance": 1e-7,
+          "name": "n1.side0#1|n7.bottom"
+        }
+      ],
+      "vertices": [
+        {
+          "id": "n8_v0",
+          "point": [
+            3.1234567,
+            -0.2345678,
+            0.3456789
+          ],
+          "tolerance": 1e-7
+        },
+        {
+          "id": "n8_v1",
+          "point": [
+            -2.8765433,
+            -0.23456779999999963,
+            0.3456789
+          ],
+          "tolerance": 1e-7
+        },
+        {
+          "id": "n8_v2",
+          "point": [
+            -2.8765433,
+            -0.23456779999999963,
+            0.34667890000000057
+          ],
+          "tolerance": 1e-7
+        },
+        {
+          "id": "n8_v3",
+          "point": [
+            3.1234567,
+            -0.2345678,
+            0.34667890000000057
+          ],
+          "tolerance": 1e-7
+        }
+      ]
+    },
+    "targetCheck": {
+      "valid": true,
+      "issues": [],
+      "counts": {
+        "bodies": 1,
+        "shells": 1,
+        "faces": 4,
+        "loops": 4,
+        "coedges": 12,
+        "edges": 6,
+        "vertices": 4
+      },
+      "topology": [
+        {
+          "body": "n8_b0",
+          "vertices": 4,
+          "edges": 6,
+          "faces": 4,
+          "loops": 4,
+          "shells": 1,
+          "genus": 0
+        }
+      ],
+      "maximumVertexGap": 0,
+      "maximumPcurveGap": 4.440892098500626e-16,
+      "maximumEdgeSurfaceGap": 5.551115123125783e-17
+    },
+    "candidate": {
+      "format": "barocss-cad-model",
+      "schema": 3,
+      "units": "mm",
+      "parameters": {},
+      "nodes": [
+        {
+          "kind": "sketch",
+          "profile": "circle",
+          "center": [
+            0,
+            0
+          ],
+          "radius": 3,
+          "id": "n0"
+        },
+        {
+          "kind": "extrude",
+          "sketch": 0,
+          "height": 5.00009,
+          "id": "n1"
+        },
+        {
+          "kind": "rotate",
+          "parent": {
+            "node": 1,
+            "side": "solid"
+          },
+          "axis": "z",
+          "angle": 0,
+          "id": "n2"
+        },
+        {
+          "kind": "translate",
+          "parent": {
+            "node": 2,
+            "side": "solid"
+          },
+          "offset": [
+            0.1234567,
+            -0.2345678,
+            0.3456789
+          ],
+          "id": "n3"
+        },
+        {
+          "kind": "sketch",
+          "profile": "rectangle",
+          "min": [
+            100,
+            100
+          ],
+          "max": [
+            106,
+            110
+          ],
+          "id": "n4"
+        },
+        {
+          "kind": "extrude",
+          "sketch": 4,
+          "height": 7,
+          "id": "n5"
+        },
+        {
+          "kind": "sketch",
+          "profile": "loop",
+          "segments": [
+            {
+              "kind": "arc",
+              "start": [
+                3.1234567,
+                -0.23456779999999977
+              ],
+              "center": [
+                0.1234567000000002,
+                -0.23456779999999977
+              ],
+              "direction": "ccw"
+            }
+          ],
+          "plane": {
+            "origin": [
+              0,
+              0,
+              5.3457689
+            ],
+            "normal": [
+              0,
+              0,
+              1
+            ],
+            "xAxis": [
+              1,
+              0,
+              0
+            ]
+          },
+          "on": {
+            "node": 3,
+            "side": "solid"
+          },
+          "id": "n6"
+        },
+        {
+          "kind": "extrude",
+          "sketch": 6,
+          "height": 4.99909,
+          "from": -4.99909,
+          "id": "n7"
+        },
+        {
+          "kind": "difference",
+          "parent": {
+            "node": 3,
+            "side": "solid"
+          },
+          "tool": {
+            "node": 7,
+            "side": "solid"
+          },
+          "id": "n8"
+        }
+      ],
+      "outputs": {
+        "b5": {
+          "node": 5,
+          "side": "solid"
+        },
+        "b8": {
+          "node": 8,
+          "side": "solid"
+        }
+      },
+      "nextId": 9
+    },
+    "elapsed": 9.043417000000005
+  }
+]

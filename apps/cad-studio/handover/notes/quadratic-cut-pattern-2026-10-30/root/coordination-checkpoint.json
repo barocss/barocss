@@ -1,0 +1,25 @@
+{
+  "status": "CONDITIONAL_MATH_GATE_PASS_IMPLEMENTATION_IN_PROGRESS",
+  "publishedBaseline": "024475e5e62457bb66c7b49c6f26138d0c1a3b88",
+  "nextDecision": "D346",
+  "scope": "Single noncollinear polynomial quadratic constant-Z XY trace fixed-orientation CUT path, existing straight branch preserved",
+  "approvedAPI": "planCurveFeaturePatternPath(raw, spacing, count) -> owned plain offsets and certified lower/upper/estimate length",
+  "blockedImplementationUntil": [],
+  "owners": {
+    "geometryPlan": "/root/cg2_fill_profile High",
+    "independentMathReview": "/root/d343_result_review High",
+    "routineBrowserPreparation": "/root/thicken_browser Medium",
+    "root": "Contract/API gates/docs/publication; no actual browser while source edits"
+  },
+  "sourceEdits": "High owns Kernel/privatequadratic+APIquery+tests; Medium owns Modelengine/pathstrings/newtests/driver; root owns later App fix onlyafteractualrepro",
+  "requiredPostImplementationGates": [
+    "Actual same-counter checked-operation/bit audit",
+    "Kernel build/new+related tests/types/lint",
+    "Model new+affected tests/types/lint",
+    "Reviewed API delta +generated checks +Studio types/build/chat",
+    "Actual singleChrome sequential Studio/fileflow +rootvisualreview",
+    "Documentation/normalpush/exactremotehead"
+  ],
+  "mathReview": "/tmp/d346-plan-review/receipt.md",
+  "heavyOwner": "/root/cg2_fill_profile until explicit release"
+}

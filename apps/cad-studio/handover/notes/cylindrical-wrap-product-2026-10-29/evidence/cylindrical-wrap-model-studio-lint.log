@@ -1,0 +1,84 @@
+
+/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/browser-flow.mjs
+    31:28   warning  Unexpected console statement  no-console
+    79:131  warning  Unexpected console statement  no-console
+   185:7    warning  Unexpected console statement  no-console
+  1746:15   warning  Unexpected console statement  no-console
+  2247:15   warning  Unexpected console statement  no-console
+  2810:5    warning  Unexpected console statement  no-console
+  3220:33   warning  Unexpected console statement  no-console
+  3221:10   warning  Unexpected console statement  no-console
+  3223:5    warning  Unexpected console statement  no-console
+  3527:7    warning  Unexpected console statement  no-console
+  5941:13   warning  Unexpected console statement  no-console
+  6339:15   warning  Unexpected console statement  no-console
+  6913:32   warning  Unexpected console statement  no-console
+  7536:7    warning  Unexpected console statement  no-console
+  7848:5    warning  Unexpected console statement  no-console
+  7891:7    warning  Unexpected console statement  no-console
+  7940:5    warning  Unexpected console statement  no-console
+  7974:5    warning  Unexpected console statement  no-console
+  8063:5    warning  Unexpected console statement  no-console
+  8179:15   warning  Unexpected console statement  no-console
+  8206:15   warning  Unexpected console statement  no-console
+  8262:5    warning  Unexpected console statement  no-console
+  8298:5    warning  Unexpected console statement  no-console
+  8309:14   warning  Unexpected console statement  no-console
+  8353:5    warning  Unexpected console statement  no-console
+  8395:15   warning  Unexpected console statement  no-console
+  8403:15   warning  Unexpected console statement  no-console
+  8494:5    warning  Unexpected console statement  no-console
+  8557:5    warning  Unexpected console statement  no-console
+  8603:5    warning  Unexpected console statement  no-console
+  8711:5    warning  Unexpected console statement  no-console
+  8763:5    warning  Unexpected console statement  no-console
+  8799:7    warning  Unexpected console statement  no-console
+  8848:5    warning  Unexpected console statement  no-console
+  8852:17   warning  Unexpected console statement  no-console
+  9043:5    warning  Unexpected console statement  no-console
+  9079:7    warning  Unexpected console statement  no-console
+  9136:7    warning  Unexpected console statement  no-console
+  9419:7    warning  Unexpected console statement  no-console
+  9447:7    warning  Unexpected console statement  no-console
+  9461:26   warning  Unexpected console statement  no-console
+  9462:20   warning  Unexpected console statement  no-console
+  9463:14   warning  Unexpected console statement  no-console
+  9464:26   warning  Unexpected console statement  no-console
+  9465:1    warning  Unexpected console statement  no-console
+
+/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/chat.test.ts
+   35:74   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   43:39   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   45:69   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   58:52   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  240:42   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  241:42   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  265:35   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  266:29   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  270:49   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  276:58   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  276:96   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  280:56   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  280:88   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  287:44   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  360:41   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  369:41   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  384:34   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  384:67   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  466:80   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  479:60   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  479:212  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  585:39   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  594:52   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  639:51   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  640:33   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  644:36   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  686:80   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  718:51   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  719:123  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  749:46   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  758:84   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  759:82   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 77 problems (0 errors, 77 warnings)
+

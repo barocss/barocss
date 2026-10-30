@@ -1,0 +1,56 @@
+{
+  "label": "06-redo",
+  "target": {
+    "key": "b6",
+    "volume": 1400.0021000000002,
+    "centroid": [
+      10.123471699999996,
+      4.765432199999999,
+      3.8456789000000007
+    ],
+    "massRef": null
+  },
+  "witness": {
+    "key": "b3",
+    "volume": 420.0000000000001,
+    "centroid": [
+      85.99999999999996,
+      0.4999999999999998,
+      3.5
+    ],
+    "massRef": null
+  },
+  "targetNativeRef": {
+    "node": 6,
+    "side": "solid"
+  },
+  "sourceRecipeHash": "242ad17dc3fbb017d94aab2732beaa02c9c74408ecc574598251b5d65ac1cd6f",
+  "route": "Existing read-only __studioBodies accepted Model mass keyed to the actual native body; excludes preview mesh and rounded UI text",
+  "rawState": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b3",
+        "volume": 420.0000000000001,
+        "centroid": [
+          85.99999999999996,
+          0.4999999999999998,
+          3.5
+        ],
+        "massRef": null
+      },
+      {
+        "key": "b6",
+        "volume": 1400.0021000000002,
+        "centroid": [
+          10.123471699999996,
+          4.765432199999999,
+          3.8456789000000007
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  }
+}

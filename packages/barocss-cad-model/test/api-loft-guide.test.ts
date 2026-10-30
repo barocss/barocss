@@ -154,3 +154,82 @@ test('public loft: frame editing, draft depth and chat admission preserve the ex
     assert.deepEqual(doc, before); assert.deepEqual(made.doc, original);
   }
 });
+
+
+test('public loft: polynomial multi-span guide on height sections keeps volume, centroid and file values', async () => {
+  // The two quadratic spans have linear height and x = 12u - 6u², then 6 - 6u².
+  // Their mean x is 4. Every slice is a translated 10 × 10 square: V = 2000, COM = (9, 5, 10).
+  const guide = { kind: 'nurbs' as const, degree: 2, knots: [0, 0, 0, 0.5, 1, 1, 1], controlPoints: [[0, 0, 0], [6, 0, 5], [6, 0, 15], [0, 0, 20]] as Point[] };
+  const square = (x: number) => sketch().rectangle({ w: 10, d: 10, x, y: 0 });
+  const base = part('general loft'), before = base.doc, options = { guide }, original = structuredClone(options);
+  for (const input of [
+    [{ sketch: square(0), z: 0 }, { sketch: square(0), z: 20 }],
+    [{ sketch: square(0), z: 0 }, { sketch: square(6), z: 10 }, { sketch: square(0), z: 20 }],
+  ]) {
+    const made = base.loft(input, options), node = made.doc.nodes.at(-1);
+    assert.ok(node?.kind === 'loft'); assert.deepEqual(node.guide, guide);
+    assert.equal(checkNode(node, made.doc.nodes, made.doc.parameters), null);
+    massOracle(made, 2000, [9, 5, 10]); await reopened(made, 2000, [9, 5, 10]);
+    const copy = made.doc, stored = copy.nodes.at(-1); assert.ok(stored?.kind === 'loft' && stored.guide?.kind === 'nurbs');
+    Reflect.set(stored.guide.knots, 0, -10); Reflect.set(stored.guide.controlPoints[0], 0, 50);
+    assert.deepEqual(made.doc.nodes.at(-1), node);
+  }
+  const accepted = base.loft([{ sketch: square(0), z: 0 }, { sketch: square(0), z: 20 }], options), acceptedBefore = accepted.doc;
+  assert.throws(() => accepted.loft([{ sketch: square(0), z: 0 }, { sketch: square(5), z: 10 }, { sketch: square(0), z: 20 }], options), /guide must pass through a vertex of section 1/);
+  assert.deepEqual(accepted.doc, acceptedBefore); assert.deepEqual(base.doc, before); assert.deepEqual(options, original);
+});
+
+
+test('public loft: a tapered section follows nonlinear guide height and keeps the closed-form frustum on reopen', async () => {
+  const made = part('height parameter').loft([{ sketch: sketch().rectangle({ w: 1, d: 1 }), z: 0 }, { sketch: sketch().rectangle({ w: 2, d: 2 }), z: 1 }], { guide: { kind: 'nurbs', degree: 2, knots: [0, 0, 0, 1, 1, 1], controlPoints: [[0, 0, 0], [0, 0, 0.1], [0, 0, 1]] } });
+  massOracle(made, 7 / 3, [45 / 56, 45 / 56, 17 / 28]);
+  const result = evaluateDoc(made.doc, 7); assert.ok(result.ok, result.ok ? '' : result.error.detail);
+  assert.equal(result.bodies[0].mesh.faces.length, 6);
+  // Display kind describes the patch representation. Check the actual Float32 vertices against the six planes.
+  const positions = result.bodies[0].mesh.positions, error = 4 * 2 ** -23;
+  for (let i = 0; i < positions.length; i += 3) {
+    const x = positions[i], y = positions[i + 1], z = positions[i + 2];
+    assert.ok(z >= -error && z <= 1 + error && x >= -error && y >= -error && x <= 1 + z + error && y <= 1 + z + error, `vertex ${x},${y},${z} is outside the frustum`);
+    assert.ok(Math.min(Math.abs(z), Math.abs(z - 1), Math.abs(x), Math.abs(y), Math.abs(x - 1 - z), Math.abs(y - 1 - z)) <= error, `vertex ${x},${y},${z} is off the frustum planes`);
+  }
+  await reopened(made, 7 / 3, [45 / 56, 45 / 56, 17 / 28]);
+});
+
+test('public loft: 17 and 64 control guides reach actual display meshes and both file readers without changing inputs', async () => {
+  // Greville heights reproduce z=t exactly for these quadratic multi-span curves.
+  // The guide is straight; each solid is the independently known unit prism or square frustum.
+  for (const count of [17, 64]) for (const upper of [1, 2]) {
+    const knots = [0, 0, 0, ...Array.from({ length: count - 3 }, (_, i) => (i + 1) / (count - 2)), 1, 1, 1];
+    const guide = { kind: 'nurbs' as const, degree: 2, knots, controlPoints: Array.from({ length: count }, (_, i): Point => [0, 0, (knots[i + 1] + knots[i + 2]) / 2]) };
+    const input = [{ sketch: sketch().rectangle({ w: 1, d: 1 }), z: 0 }, { sketch: sketch().rectangle({ w: upper, d: upper }), z: 1 }];
+    const source = structuredClone(guide), profiles = input.map(s => structuredClone(s.sketch.data));
+    const made = part(`guide ${count} controls upper ${upper}`).loft(input, { guide });
+    const expectedVolume = upper === 1 ? 1 : 7 / 3, expectedCentroid = upper === 1 ? [0.5, 0.5, 0.5] : [45 / 56, 45 / 56, 17 / 28];
+    massOracle(made, expectedVolume, expectedCentroid);
+    const saved = made.doc, node = saved.nodes.at(-1);
+    assert.ok(node?.kind === 'loft' && node.guide?.kind === 'nurbs');
+    assert.deepEqual(node.guide, source); assert.notEqual(node.guide.knots, guide.knots);
+    assert.notEqual(node.guide.controlPoints, guide.controlPoints);
+    for (let i = 0; i < count; i++) assert.notEqual(node.guide.controlPoints[i], guide.controlPoints[i]);
+    for (const bytes of [new TextEncoder().encode(JSON.stringify(saved)), encodeStudioFile(saved)]) {
+      const opened = await readStudioFile(bytes); assert.ok('doc' in opened, JSON.stringify(opened));
+      assert.deepEqual(opened.doc, saved);
+      const result = evaluateDoc(opened.doc, count + upper);
+      assert.ok(result.ok, result.ok ? '' : result.error.detail); assert.equal(result.bodies.length, 1);
+      close(result.bodies[0].volume!, expectedVolume); vector(result.bodies[0].centroid!, expectedCentroid);
+      const mesh = result.bodies[0].mesh;
+      assert.ok(mesh.positions.length > 0 && mesh.indices.length > 0);
+      assert.ok(Array.from(mesh.positions).every(Number.isFinite));
+      assert.ok(Array.from(mesh.normals).every(Number.isFinite));
+      assert.ok(Array.from(mesh.indices).every(index => index < mesh.positions.length / 3));
+      for (let i = 0; i < mesh.positions.length; i += 3) {
+        const [x, y, z] = mesh.positions.subarray(i, i + 3), width = 1 + (upper - 1) * z, error = 4 * 2 ** -23;
+        assert.ok(z >= -error && z <= 1 + error && x >= -error && y >= -error && x <= width + error && y <= width + error);
+        assert.ok(Math.min(Math.abs(z), Math.abs(z - 1), Math.abs(x), Math.abs(y), Math.abs(x - width), Math.abs(y - width)) <= error);
+      }
+    }
+    assert.deepEqual(guide, source); assert.deepEqual(input.map(s => s.sketch.data), profiles);
+    guide.controlPoints[1][0] = 99; guide.knots[3] = -99;
+    assert.deepEqual(made.doc, saved, 'caller mutations must not change the accepted guide');
+  }
+});

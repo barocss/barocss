@@ -1,0 +1,498 @@
+{
+  "status": "FAIL",
+  "profiles": 1,
+  "backend": "webgpu",
+  "states": [
+    {
+      "label": "01-seed",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              8
+            ],
+            "max": [
+              4,
+              10
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 4,
+                "d": 2,
+                "h": 10,
+                "x": 0,
+                "y": 8,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "translate",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "offset": [
+              8,
+              0,
+              0
+            ],
+            "id": "n4"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 4,
+              "side": "solid"
+            },
+            "id": "n5"
+          }
+        ],
+        "outputs": {
+          "b5": {
+            "node": 5,
+            "side": "solid"
+          }
+        },
+        "nextId": 6
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b5",
+            "volume": 23920,
+            "centroid": [
+              30.066889632107042,
+              20.036789297658867,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "selection": {
+        "selection": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "bodies": 1,
+        "active": null,
+        "sketch": false,
+        "measure": false
+      },
+      "inspector": "PART · 1 bodyMass 64.6 gCentre of mass 30.07, 20.04, 5Bounds 60 × 40 × 10 box",
+      "feedback": []
+    },
+    {
+      "label": "02-made-path",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              8
+            ],
+            "max": [
+              4,
+              10
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 4,
+                "d": 2,
+                "h": 10,
+                "x": 0,
+                "y": 8,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "translate",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "offset": [
+              8,
+              0,
+              0
+            ],
+            "id": "n4"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 4,
+              "side": "solid"
+            },
+            "id": "n5"
+          }
+        ],
+        "outputs": {
+          "b5": {
+            "node": 5,
+            "side": "solid"
+          }
+        },
+        "nextId": 6,
+        "direct": {
+          "sources": {
+            "src_1": "@model sketch {\n  version: 0;\n  length-unit: mm;\n  @curve #c1 { type: nurbs; degree: 2; knots: [0,0,0,1,1,2,2,2]; control-points: [[0,0,0],[8,0,0],[16,0,0],[16,8,0],[16,16,0]]; weights: [1,1,1,1,1]; }\n}"
+          },
+          "objects": [
+            {
+              "id": "obj_1",
+              "name": "Sketch curve 1 · c1",
+              "source": "src_1",
+              "geometry": "c1"
+            }
+          ]
+        }
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b5",
+            "volume": 23920,
+            "centroid": [
+              30.066889632107042,
+              20.036789297658867,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "selection": {
+        "selection": {
+          "faces": [],
+          "edges": [],
+          "bodies": []
+        },
+        "bodies": 1,
+        "active": null,
+        "sketch": false,
+        "measure": false
+      },
+      "feedback": []
+    },
+    {
+      "label": "failure",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              60,
+              40
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 60,
+                "d": 40,
+                "h": 10,
+                "x": 0,
+                "y": 0,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              8
+            ],
+            "max": [
+              4,
+              10
+            ],
+            "id": "n2"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 2,
+            "height": 10,
+            "id": "n3",
+            "made": {
+              "command": "box",
+              "values": {
+                "w": 4,
+                "d": 2,
+                "h": 10,
+                "x": 0,
+                "y": 8,
+                "z": 0
+              }
+            }
+          },
+          {
+            "kind": "translate",
+            "parent": {
+              "node": 3,
+              "side": "solid"
+            },
+            "offset": [
+              8,
+              0,
+              0
+            ],
+            "id": "n4"
+          },
+          {
+            "kind": "difference",
+            "parent": {
+              "node": 1,
+              "side": "solid"
+            },
+            "tool": {
+              "node": 4,
+              "side": "solid"
+            },
+            "id": "n5"
+          }
+        ],
+        "outputs": {
+          "b5": {
+            "node": 5,
+            "side": "solid"
+          }
+        },
+        "nextId": 6,
+        "direct": {
+          "sources": {
+            "src_1": "@model sketch {\n  version: 0;\n  length-unit: mm;\n  @curve #c1 { type: nurbs; degree: 2; knots: [0,0,0,1,1,2,2,2]; control-points: [[0,0,0],[8,0,0],[16,0,0],[16,8,0],[16,16,0]]; weights: [1,1,1,1,1]; }\n}"
+          },
+          "objects": [
+            {
+              "id": "obj_1",
+              "name": "Sketch curve 1 · c1",
+              "source": "src_1",
+              "geometry": "c1"
+            }
+          ]
+        }
+      },
+      "bodies": {
+        "fresh": true,
+        "bodies": [
+          {
+            "key": "b5",
+            "volume": 23920,
+            "centroid": [
+              30.066889632107042,
+              20.036789297658867,
+              5
+            ],
+            "massRef": null
+          }
+        ],
+        "massReady": true,
+        "colored": []
+      },
+      "selection": {
+        "selection": {
+          "faces": [],
+          "edges": [],
+          "bodies": [
+            0
+          ]
+        },
+        "bodies": 1,
+        "active": "curve-feature-pattern",
+        "sketch": false,
+        "measure": false
+      },
+      "hud": "Path cut patternrefusedPathSpacingmmCountInvalid inputBarocssError: [VALUE] Path cut pattern: use exactly one objectId reference.CancelApply",
+      "feedback": []
+    }
+  ],
+  "errors": [],
+  "consoleErrors": [],
+  "changes": [],
+  "files": [],
+  "cleanup": [
+    "CONTEXT_CLOSED",
+    "BROWSER_CLOSED",
+    "SERVER_CLOSED"
+  ],
+  "seed": {
+    "file": "/tmp/d334-root/native-first/seed.bcad",
+    "sha256": "f32a36ec7dd2b6b3378f191bdd85744fbabfb5071fb3f6fc2173f5530dc4d55f",
+    "generatorSHA256": "415f0cde3fe985c67b826900c32ece0c3d191889b8f6829e1f316597c992ff08",
+    "bundleSHA256": "eca2f77d23dfe891feee46d6be82e2f3c2d10b500d41f5a51f8f1fc49cde328b"
+  },
+  "pathObjectId": "obj_1",
+  "authoredCurve": {
+    "degree": 2,
+    "knots": [
+      0,
+      0,
+      0,
+      1,
+      1,
+      2,
+      2,
+      2
+    ],
+    "points": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        8,
+        0,
+        0
+      ],
+      [
+        16,
+        0,
+        0
+      ],
+      [
+        16,
+        8,
+        0
+      ],
+      [
+        16,
+        16,
+        0
+      ]
+    ],
+    "weights": [
+      1,
+      1,
+      1,
+      1,
+      1
+    ]
+  },
+  "failure": "locator.selectOption: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('dialog', { name: 'Path cut pattern', exact: true }).getByLabel('Path', { exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <select data-key=\"path\" aria-label=\"Path\" data-kind=\"choice\" data-slot=\"native-select\" class=\"h-5 min-w-0 rounded-md border border-input px-1 text-[11px] outline-none disabled:opacity-50 h-[26px]! w-full px-1.5! text-xs! font-medium [font-family:var(--mono)] bg-[var(--bg)] focus-visible:ring-1 focus-visible:ring-primary\"></select>\u001b[22m\n\u001b[2m  - attempting select option action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m      - did not find some options\u001b[22m\n\u001b[2m    - retrying select option action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m      - did not find some options\u001b[22m\n\u001b[2m    - retrying select option action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    60 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m       - did not find some options\u001b[22m\n\u001b[2m     - retrying select option action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n    at /Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/curve-cut-pattern-browser.mjs:153:51",
+  "phase": "path pattern preview and refusal"
+}

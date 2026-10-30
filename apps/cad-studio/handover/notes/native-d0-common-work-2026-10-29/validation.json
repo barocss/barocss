@@ -1,0 +1,45 @@
+{
+  "source": "5a8f839c23d59da27796d3335827b7c03a8c0655",
+  "node": "22.19.0",
+  "buildLintCodeShape": "PASS",
+  "focused": {
+    "pass": 35,
+    "fail": 0,
+    "duration_ms": 484.428875
+  },
+  "kernel": {
+    "tests": 2156.0,
+    "pass": 2150.0,
+    "fail": 0.0,
+    "skipped": 6.0,
+    "duration_ms": 246059.036125
+  },
+  "tools": "PASS",
+  "refusals": "PASS",
+  "apiInventory": "unchanged SCOPED_PASS",
+  "docs": {
+    "pages": 68,
+    "beingWritten": 0,
+    "shots": 53,
+    "shotKB": 4488,
+    "labels": 852
+  },
+  "nativeCompleteBitProofExceptTenExplicitLedgerFields": "SAME",
+  "fiveStandaloneCompleteSerializedReceiptsAndCounts": "SAME",
+  "twoFormalFullBitReceiptsAndCounts": "SAME",
+  "performance": {
+    "runs": 7,
+    "beforeMedianMs": 26,
+    "afterMedianMs": 25,
+    "stableOrStudioSpeedup": false
+  },
+  "standardNative": {
+    "before": 179831,
+    "after": 160132
+  },
+  "plannedTwoFreshChildrenSum": 193227,
+  "actualCombinedRequest": "NOT_IMPLEMENTED",
+  "physicalPartProductWrap": "NOT_QUALIFIED",
+  "modelStudioTypesBrowser": "NOT_RUN; last whole consumers/types D299901b4ce45",
+  "pushPrRelease": "NOT_RUN"
+}

@@ -1,0 +1,37 @@
+{
+  "status": "READ_ONLY_INTAKE_STAGED_OUTSIDE_ACTIVE_VITE",
+  "files": [
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/drawing-assistant-20261029/review.md",
+      "copy": "sources/drawing-review.md",
+      "bytes": 5500,
+      "lines": 48,
+      "sha256": "8e88e78510300ad8e6fd505e3b97fb4192ab894faec30f690a4eba78fd11fd0e",
+      "read": "Full supplied document"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/drawing-assistant-20261029/source-review.md",
+      "copy": "sources/drawing-source-review.md",
+      "bytes": 9648,
+      "lines": 52,
+      "sha256": "4055290df1210d8a8c906d8719ac795726ba60ce97a646f6698892aa664b6036",
+      "read": "Full supplied document"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/runs/gpu-material-maps-20261029T081949/verification.json",
+      "copy": "sources/maps-verification.json",
+      "bytes": 14754,
+      "lines": 593,
+      "sha256": "fc847599e0fe5912bf1add588043d1920c55689d50f44c762a0aa34645da25ab",
+      "read": "Full supplied document"
+    },
+    {
+      "source": "/Users/user/Documents/ChatGPT/barocss/.omx/research/cad-commercial-readiness-20261029/research/gpu-material-authoring-20261029/runtime-material-maps-followup.md",
+      "copy": "sources/maps-followup.md",
+      "bytes": 6477,
+      "lines": 47,
+      "sha256": "bc710c5d1cc5ccd36bd22fc88b5123d64f77d37635f3efcc62a05b3f8ee6faf3",
+      "read": "Full supplied document"
+    }
+  ]
+}

@@ -9,9 +9,9 @@
 // the worker's wire told (`onBlobsEvicted`). A dropped blob asked for again is logged as an error: a missed holder.
 import type { ModelNode, StudioDoc } from './doc';
 
-export type BlobArray = Float64Array | Float32Array | Uint32Array | Int32Array;
-export type BlobType = 'f64' | 'f32' | 'u32' | 'i32';
-export const blobTypeOf = (a: BlobArray): BlobType => a instanceof Float64Array ? 'f64' : a instanceof Float32Array ? 'f32' : a instanceof Int32Array ? 'i32' : 'u32';
+export type BlobArray = Float64Array | Float32Array | Uint32Array | Int32Array | Uint8Array;
+export type BlobType = 'f64' | 'f32' | 'u32' | 'i32' | 'u8';
+export const blobTypeOf = (a: BlobArray): BlobType => a instanceof Float64Array ? 'f64' : a instanceof Float32Array ? 'f32' : a instanceof Int32Array ? 'i32' : a instanceof Uint8Array ? 'u8' : 'u32';
 /** Positions at their own precision (D45): single precision when every value is one, else double. */
 export function positionsArray(p: ArrayLike<number>): Float64Array | Float32Array {
   for (let i = 0; i < p.length; i++) if (Math.fround(p[i]) !== p[i]) return Float64Array.from(p);
@@ -29,7 +29,7 @@ export const blobStats = { sweeps: 0, lastFreed: 0, freed: 0, lastDropped: 0, ev
 const keep = (h: string, a: BlobArray) => { if (!store.has(h)) { store.set(h, a); fresh.add(h); evicted.delete(h); } };
 
 /** The SHA-256 of an array's bytes, hex. */
-export async function sha256(a: BlobArray | Uint8Array): Promise<string> {
+export async function sha256(a: BlobArray): Promise<string> {
   const view = new Uint8Array(a.buffer, a.byteOffset, a.byteLength);
   // (WebCrypto takes a copy only when the view is not the whole buffer.)
   const bytes = view.byteOffset === 0 && view.byteLength === view.buffer.byteLength ? view : view.slice();
@@ -55,7 +55,7 @@ export function getBlob(hash: string): BlobArray | undefined {
   return a;
 }
 /** An array of the type over the bytes. */
-export const arrayOf = (dtype: BlobType, buffer: ArrayBuffer): BlobArray => dtype === 'f64' ? new Float64Array(buffer) : dtype === 'f32' ? new Float32Array(buffer) : dtype === 'i32' ? new Int32Array(buffer) : new Uint32Array(buffer);
+export const arrayOf = (dtype: BlobType, buffer: ArrayBuffer): BlobArray => dtype === 'f64' ? new Float64Array(buffer) : dtype === 'f32' ? new Float32Array(buffer) : dtype === 'i32' ? new Int32Array(buffer) : dtype === 'u8' ? new Uint8Array(buffer) : new Uint32Array(buffer);
 export const hasBlob = (hash: string): boolean => store.has(hash);
 
 /** A mesh node (without inline arrays) with its arrays stored as blobs and named. */
@@ -64,26 +64,51 @@ export async function meshNodeBlobs<N extends object>(node: N, positions: ArrayL
   return { ...node, blob: { positions: p, indices: i } };
 }
 
-/**
- * Every blob a document names: its mesh nodes', its placed parts' and pending revisions', and the mesh nodes its open
- * proposals' ops bring (accepting one needs them, O135) — deduplicated.
- */
-export function blobRefs(doc: StudioDoc, out = new Set<string>()): Set<string> {
-  for (const n of doc.nodes) addRefs(n, out);
-  for (const i of doc.instances ?? []) blobRefs(i.doc, out);
-  for (const p of Object.values(doc.pendingParts ?? {})) blobRefs(p.doc, out);
-  for (const p of doc.proposals ?? []) if (p.status === 'open') for (const op of p.ops) opRefs(op.args, out);
+const FONT_JSON_LIMIT = 512 * 1024;
+const FONT_HASH = /^[a-f0-9]{64}$/;
+const fontJsonEncoder = new TextEncoder();
+function refRecord(value: unknown): value is Record<string, unknown> { return !!value && typeof value === 'object' && !Array.isArray(value); }
+/** Collection only: a usable key is kept even while other source/recipe fields still need admission. */
+function fontHash(value: unknown): string | null {
+  if (!refRecord(value)) return null;
+  const blob = value.blob;
+  return typeof blob === 'string' && FONT_HASH.test(blob) ? blob : null;
+}
+function preparedFontHash(operation: Record<string, unknown>): string | null {
+  if (operation.tool !== 'run_command' || !refRecord(operation.args) || operation.args.command !== 'text' && operation.args.command !== 'text-relief' || !refRecord(operation.args.values)) return null;
+  const json = operation.args.values.font;
+  if (typeof json !== 'string' || json.length > FONT_JSON_LIMIT || fontJsonEncoder.encode(json).byteLength > FONT_JSON_LIMIT) return null;
+  try { return fontHash(JSON.parse(json)); }
+  catch { return null; }
+}
+function documentRefs(doc: StudioDoc, out: Set<string>, fontsOnly: boolean): Set<string> {
+  for (const node of doc.nodes) addRefs(node, out, fontsOnly);
+  for (const instance of doc.instances ?? []) documentRefs(instance.doc, out, fontsOnly);
+  for (const pending of Object.values(doc.pendingParts ?? {})) documentRefs(pending.doc, out, fontsOnly);
+  for (const proposal of doc.proposals ?? []) if (proposal.status === 'open') for (const operation of proposal.ops) opRefs(operation, out, fontsOnly);
   return out;
 }
-/** The blobs mesh nodes anywhere in an op's arguments name (a feature added, a node replaced, a batch's ops). */
-function opRefs(v: unknown, out: Set<string>): void {
-  if (Array.isArray(v)) { for (const x of v) opRefs(x, out); return; }
+/** All reached blobs, including prepared text commands held only by open proposal operations. */
+export function blobRefs(doc: StudioDoc, out = new Set<string>()): Set<string> {
+  return documentRefs(doc, out, false);
+}
+/** Font roots only, with the same node/tree/open-operation and bounded prepared-JSON rules as blobRefs. */
+export function fontRefs(doc: StudioDoc, out = new Set<string>()): Set<string> {
+  return documentRefs(doc, out, true);
+}
+/** Nodes and exact prepared commands anywhere inside an op, including nested apply_ops/propose payloads. */
+function opRefs(v: unknown, out: Set<string>, fontsOnly: boolean): void {
+  if (Array.isArray(v)) { for (const x of v) opRefs(x, out, fontsOnly); return; }
   if (!v || typeof v !== 'object') return;
   const o = v as Record<string, unknown>;
-  if (o.kind === 'mesh') addRefs(o as unknown as ModelNode, out);
-  for (const x of Object.values(o)) if (x && typeof x === 'object') opRefs(x, out);
+  const prepared = preparedFontHash(o);
+  if (prepared) out.add(prepared);
+  if (o.kind === 'mesh' || o.kind === 'text' || o.kind === 'text-relief') addRefs(o as unknown as ModelNode, out, fontsOnly);
+  for (const x of Object.values(o)) if (x && typeof x === 'object') opRefs(x, out, fontsOnly);
 }
-function addRefs(n: ModelNode, out: Set<string>): void {
+function addRefs(n: ModelNode, out: Set<string>, fontsOnly: boolean): void {
+  if (n.kind === 'text' || n.kind === 'text-relief') { const hash = fontHash(n.font); if (hash) out.add(hash); }
+  if (fontsOnly) return;
   if (n.kind === 'mesh' && n.blob) { out.add(n.blob.positions); out.add(n.blob.indices); }
   // (A repair's result: its own blobs, the original kept beside them, D47.)
   if (n.kind === 'mesh' && n.repair) { out.add(n.repair.result.positions); out.add(n.repair.result.indices); out.add(n.repair.result.fill); }

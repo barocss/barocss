@@ -1,0 +1,122 @@
+{
+  "runs/model-006-original-skeleton/build-resolution.json": {
+    "bytes": 170444,
+    "sha256": "69ff907a55642454fff719907ba4c51d90f0da670ef055acb0e991e53ae0ffb9"
+  },
+  "runs/model-006-original-skeleton/build.exit": {
+    "bytes": 2,
+    "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+  },
+  "runs/model-006-original-skeleton/build.log": {
+    "bytes": 69,
+    "sha256": "e8688dbd60a8bd419be12120b8ee0ca9d0638d974ebd6b4a4605376b5642f9a0"
+  },
+  "runs/model-006-original-skeleton/build.stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "runs/model-006-original-skeleton/codec-roundtrip.bcad": {
+    "bytes": 670,
+    "sha256": "09a1e09a23c191b4ea0e0a62688b2bf208cbb16ff3512f02c76635ec9e4c7a98"
+  },
+  "runs/model-006-original-skeleton/exit-status.json": {
+    "bytes": 60,
+    "sha256": "cfdfedf907d99b52c6ea52fc40894e21dd74e9b646ebebcd12d94e381a3fed92"
+  },
+  "runs/model-006-original-skeleton/first-reader-doc.json": {
+    "bytes": 671,
+    "sha256": "2ed41d59925a491f0f68a383cf59d07a1c0febaf9fbdb3cb6200c457a21effa2"
+  },
+  "runs/model-006-original-skeleton/first-reader-result.json": {
+    "bytes": 805,
+    "sha256": "dab0a438630182b027e075e2b1a7933e9cf69ef242a1eaf7c222521338c41d58"
+  },
+  "runs/model-006-original-skeleton/gate.exit": {
+    "bytes": 2,
+    "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+  },
+  "runs/model-006-original-skeleton/gate.log": {
+    "bytes": 45,
+    "sha256": "a765f3d099d169b71510673967a4713169f2329231238a010db327379c0d66a5"
+  },
+  "runs/model-006-original-skeleton/metafile.json": {
+    "bytes": 784444,
+    "sha256": "902255a3bfff8da9754be9f6cd8e37ba108f125889a96bcbb799d9791f908623"
+  },
+  "runs/model-006-original-skeleton/original-decoded-doc.json": {
+    "bytes": 671,
+    "sha256": "2ed41d59925a491f0f68a383cf59d07a1c0febaf9fbdb3cb6200c457a21effa2"
+  },
+  "runs/model-006-original-skeleton/original-decoded.txt": {
+    "bytes": 670,
+    "sha256": "09a1e09a23c191b4ea0e0a62688b2bf208cbb16ff3512f02c76635ec9e4c7a98"
+  },
+  "runs/model-006-original-skeleton/owner.log": {
+    "bytes": 19,
+    "sha256": "346162e30af391930962c0ba9738014d5489055e0d7913ea79df70d110adf9d4"
+  },
+  "runs/model-006-original-skeleton/preparation.json": {
+    "bytes": 2045,
+    "sha256": "287eb465f1236b8f1dea76f331faea19fb4c85c4f507219bea3e12f6f67eae97"
+  },
+  "runs/model-006-original-skeleton/probe.exit": {
+    "bytes": 2,
+    "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+  },
+  "runs/model-006-original-skeleton/probe.log": {
+    "bytes": 101,
+    "sha256": "18917c279dfcc679e427ee0a8ccb68674cba065d361d0052b5d3459ed2746df1"
+  },
+  "runs/model-006-original-skeleton/probe.stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "runs/model-006-original-skeleton/reader.mjs": {
+    "bytes": 1271893,
+    "sha256": "fa3317476d1c86046f5dd7553335a6201580827eb0584f6f398fc93358892ea6"
+  },
+  "runs/model-006-original-skeleton/release.exit": {
+    "bytes": 2,
+    "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+  },
+  "runs/model-006-original-skeleton/release.log": {
+    "bytes": 31,
+    "sha256": "831fa1a0c1f76299417b5cade5a04148c89654ad5a2384521787c369c8e58bbc"
+  },
+  "runs/model-006-original-skeleton/result.json": {
+    "bytes": 1580,
+    "sha256": "3a6837904354a2adb3468acd24c70468ef2ce7332babc912bac79a37289fdf28"
+  },
+  "runs/model-006-original-skeleton/review.json": {
+    "bytes": 507,
+    "sha256": "606dc2e9c963dae97f0ca47403663401978e1e5d06770069d0afc09144c49647"
+  },
+  "runs/model-006-original-skeleton/roundtrip-decoded-doc.json": {
+    "bytes": 671,
+    "sha256": "2ed41d59925a491f0f68a383cf59d07a1c0febaf9fbdb3cb6200c457a21effa2"
+  },
+  "runs/model-006-original-skeleton/roundtrip-decoded.txt": {
+    "bytes": 670,
+    "sha256": "09a1e09a23c191b4ea0e0a62688b2bf208cbb16ff3512f02c76635ec9e4c7a98"
+  },
+  "runs/model-006-original-skeleton/roundtrip-reader-doc.json": {
+    "bytes": 671,
+    "sha256": "2ed41d59925a491f0f68a383cf59d07a1c0febaf9fbdb3cb6200c457a21effa2"
+  },
+  "runs/model-006-original-skeleton/roundtrip-reader-result.json": {
+    "bytes": 805,
+    "sha256": "dab0a438630182b027e075e2b1a7933e9cf69ef242a1eaf7c222521338c41d58"
+  },
+  "runs/model-006-original-skeleton/source-closure.json": {
+    "bytes": 1046370,
+    "sha256": "3d3eeb1f1b26bedd88f8827ce0e68da9e0551377f0d460c6170a9c8c9339e8e5"
+  },
+  "runs/model-006-original-skeleton/status.txt": {
+    "bytes": 45,
+    "sha256": "cb644536370788a810e62ba80eb09fd238e331820fca3335e98e12c84da82a11"
+  },
+  "runs/model-006-original-skeleton/toolchain-pins.json": {
+    "bytes": 2656,
+    "sha256": "89bee45cec3ebe9a7e2597875b76275c337a3c8ee258d723366f298f4148457d"
+  }
+}

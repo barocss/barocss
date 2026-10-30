@@ -1,0 +1,27 @@
+// Lightweight actual chat admission controls only. No geometry evaluator, Boolean, build, test suite or browser.
+import {createRequire} from 'node:module';
+import {readFileSync,writeFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
+import assert from 'node:assert/strict';
+const root=process.argv[2], require=createRequire(root+'/packages/barocss-cad-model/package.json'), {build}=require('esbuild');
+const checkpoint='c99cb121c42da75005d31cacacaa088f4b18a122',old=JSON.parse(readFileSync('/tmp/d333-review/reviewed-hashes.json','utf8')),hash=x=>createHash('sha256').update(x).digest('hex');
+const rows=Object.entries(old).map(([file,oldHash])=>{const current=hash(readFileSync(root+'/'+file)),committed=hash(execFileSync('git',['show',checkpoint+':'+file],{cwd:root}));return {file,oldHash,current,committed,match:current===committed,changedSinceInitial:current!==oldHash};});
+assert.equal(execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),checkpoint);assert.ok(rows.every(r=>r.match));
+writeFileSync('/tmp/d333-review/final/source-hashes.json',JSON.stringify(rows,null,2)+'\n');
+console.log('checkpoint',checkpoint);console.log('all_reviewed_files_match_checkpoint PASS',rows.length);
+console.log('restored_chat_source_sha256',rows.find(r=>r.file.endsWith('/chat/features.ts')).current);
+const result=await build({stdin:{contents:`export { checkNode } from './packages/barocss-cad-model/src/chat/features.ts';`,resolveDir:root,loader:'ts'},bundle:true,platform:'node',format:'esm',write:false,logLevel:'silent'});
+const {checkNode}=await import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].text).toString('base64'));
+const nodes=[{kind:'sketch',profile:'rectangle',min:[0,0],max:[60,40]},{kind:'extrude',sketch:0,height:10},{kind:'sketch',profile:'rectangle',min:[8,8],max:[12,12]},{kind:'extrude',sketch:2,height:10},{kind:'difference',parent:{node:1,side:'solid'},tool:{node:3,side:'solid'}}];
+const node={kind:'rectangular-feature-pattern',parent:{node:4,side:'solid'},axis:'x',spacing:16,count:3,axis2:'y',spacing2:16,count2:2};
+assert.equal(checkNode(node,nodes,{}),null);console.log('valid_rectangular_checkNode_actual null');
+assert.equal(checkNode({...node,spacing:{parameter:'dx'},spacing2:{parameter:'dy'}},nodes,{dx:16,dy:16}),null);
+for(const [count,count2] of [[1,1],[1,2],[3,1],[8,8]])assert.equal(checkNode({...node,count,count2},nodes,{}),null);
+console.log('literal_parameter_count_one_and_max_product_chat_controls PASS');
+const edits=[{axis:'q'},{axis2:'q'},{axis2:'x'},{count:33,count2:2},{count:0},{count2:0},{count2:65},{count2:1.5},{count2:Infinity},{count2:{parameter:'dy'}},{spacing:0},{spacing2:-1},{spacing2:10001},{spacing2:{parameter:'missing'}},{unexpected:true},{parent:{node:1,side:'solid'}}];
+for(const edit of edits)assert.ok(checkNode({...node,...edit},nodes,{dy:2}),JSON.stringify(edit));
+assert.ok(checkNode(node,[...nodes,{kind:'translate',parent:{node:4,side:'solid'},offset:[0,0,1]}],{}));
+assert.ok(checkNode(node,nodes.map((n,i)=>i===4?{...n,suppressed:true}:n),{}));
+console.log('invalid_axis_count_product_spacing_field_parent_stale_suppressed_chat_controls PASS',edits.length+2);
+const changed=rows.filter(r=>hash(readFileSync(root+'/'+r.file))!==r.current);assert.deepEqual(changed,[]);console.log('source_files_unchanged_during_controls PASS',rows.length);

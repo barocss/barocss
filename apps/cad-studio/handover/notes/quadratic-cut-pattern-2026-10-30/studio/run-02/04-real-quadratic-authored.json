@@ -1,0 +1,182 @@
+{
+  "label": "04-real-quadratic-authored",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {},
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          0,
+          0
+        ],
+        "max": [
+          60,
+          40
+        ],
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 10,
+        "id": "n1",
+        "made": {
+          "command": "box",
+          "values": {
+            "w": 60,
+            "d": 40,
+            "h": 10,
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      },
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          7,
+          6
+        ],
+        "max": [
+          10,
+          11
+        ],
+        "id": "n2"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 2,
+        "height": 10,
+        "id": "n3",
+        "made": {
+          "command": "box",
+          "values": {
+            "w": 3,
+            "d": 5,
+            "h": 10,
+            "x": 7,
+            "y": 6,
+            "z": 0
+          }
+        }
+      },
+      {
+        "kind": "difference",
+        "parent": {
+          "node": 1,
+          "side": "solid"
+        },
+        "tool": {
+          "node": 3,
+          "side": "solid"
+        },
+        "id": "n4"
+      },
+      {
+        "kind": "sketch",
+        "profile": "rectangle",
+        "min": [
+          80,
+          -3
+        ],
+        "max": [
+          92,
+          4
+        ],
+        "id": "n5"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 5,
+        "height": 5,
+        "from": 1,
+        "id": "n6",
+        "made": {
+          "command": "box",
+          "values": {
+            "w": 12,
+            "d": 7,
+            "h": 5,
+            "x": 80,
+            "y": -3,
+            "z": 1
+          }
+        }
+      }
+    ],
+    "outputs": {
+      "b4": {
+        "node": 4,
+        "side": "solid"
+      },
+      "b6": {
+        "node": 6,
+        "side": "solid"
+      }
+    },
+    "nextId": 7,
+    "direct": {
+      "sources": {
+        "src_1": "@model sketch {\n  version: 0;\n  length-unit: mm;\n  @curve #c1 { type: nurbs; degree: 2; knots: [0,0,0,1,1,1]; control-points: [[0,0,0],[10,10,0],[20,20,0]]; weights: [1,1,1]; }\n}",
+        "src_2": "@model sketch {\n  version: 0;\n  length-unit: mm;\n  @curve #c1 { type: nurbs; degree: 2; knots: [0,0,0,1,1,1]; control-points: [[0,0,0],[20,10,0],[20,20,0]]; weights: [1,1,1]; }\n}",
+        "src_3": "@model sketch {\n  version: 0;\n  length-unit: mm;\n  @curve #c1 { type: nurbs; degree: 2; knots: [0,0,0,1,1,1]; control-points: [[0,0,0],[20,0,0],[20,20,0]]; weights: [1,1,1]; }\n}"
+      },
+      "objects": [
+        {
+          "id": "obj_1",
+          "name": "Sketch curve 1 · c1",
+          "source": "src_3",
+          "geometry": "c1"
+        }
+      ]
+    }
+  },
+  "bodies": {
+    "fresh": true,
+    "bodies": [
+      {
+        "key": "b4",
+        "volume": 23849.999999999993,
+        "centroid": [
+          30.135220125786176,
+          20.072327044025165,
+          5
+        ],
+        "massRef": null
+      },
+      {
+        "key": "b6",
+        "volume": 420.0000000000001,
+        "centroid": [
+          85.99999999999996,
+          0.4999999999999998,
+          3.5
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 2,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "hud": null,
+  "editor": null,
+  "direct": "CURVEHideNameTRANSFORMΔXΔYΔZMoveAxisXYZAngle °RotateFactorScaleDuplicate× X× Y× ZStretchShear movesXYZbyXYZShear factorShearDegree 2Domain 0 … 1Length 32.4645 mmChord 28.2843 mm · length 1.1478×At tPoint 15, 5, 0Radius 14.1421 mmSplitInsert knotReverseRaise degreeFrom tTo tTrim to intervalSIMPLIFYWithin mmRemove knot near tPolesRefitCROSSINGSPlaneX =Y =Z =AtFind crossingsCONTROL POINTPointP0P1P2XYZWeight",
+  "notices": []
+}

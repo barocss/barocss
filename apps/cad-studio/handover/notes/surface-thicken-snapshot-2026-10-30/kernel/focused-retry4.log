@@ -1,0 +1,44 @@
+TAP version 13
+# Subtest: public thicken: t binding edits the existing snapshot and native save/read retains the recipe and names
+ok 1 - public thicken: t binding edits the existing snapshot and native save/read retains the recipe and names
+  ---
+  duration_ms: 4273.712917
+  type: 'test'
+  ...
+# Subtest: public thicken: adding a body preserves the chosen witness; a Boolean tool callback follows its new body
+not ok 2 - public thicken: adding a body preserves the chosen witness; a Boolean tool callback follows its new body
+  ---
+  duration_ms: 3733.288292
+  type: 'test'
+  location: '/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/api-thicken.test.mjs:96:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(Math.abs(cut.mass({ density: 1 }).volume - 29600) < 1e-6)
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (file:///Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/api-thicken.test.mjs:107:59)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    node:internal/test_runner/test:981:31
+    node:internal/process/task_queues:151:7
+    AsyncResource.runInAsyncScope (node:async_hooks:214:14)
+    AsyncResource.runMicrotask (node:internal/process/task_queues:148:8)
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 1
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 8244.139958

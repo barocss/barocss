@@ -295,6 +295,8 @@ export class Viewer {
   private outputBuffer!: Buffer;
   private pickTargets: { width: number; height: number; id: Texture; depth: Texture; z: Texture; instance: Texture; read: Buffer; views: { id: View; z: View; instance: View; depth: View } } | null = null;
   private meshes: Mesh[] = [];
+  /** Membership and accepted instance changes invalidate pending GPU pick readbacks. */
+  private pickSceneRevision = 0;
   /** The dirty meshes' slots of a frame (writeUniforms), kept from frame to frame. */
   private dirtySlots = new Int32Array(64);
   private freeSlots: number[] = [];
@@ -569,9 +571,9 @@ export class Viewer {
       depthStencil: { format: 'depth32float', depthWriteEnabled: false, depthCompare: k === 'labelOver' ? 'always' : k === 'labelHidden' ? 'less' : 'greater-equal' },
       multisample: ms,
     }).then(p => { this.pipelines.set(k, p); }));
-    for (const two of [false, true]) jobs.push(make(two ? 'pick2' : 'pick', {
+    for (const manual of [false, true]) for (const two of [false, true]) jobs.push(make(manual ? (two ? 'pickManual2' : 'pickManual') : (two ? 'pick2' : 'pick'), {
       vertex: positionOnly(modules.pick),
-      fragment: { module: modules.pick, entryPoint: 'fs', targets: [{ format: 'r32uint' }, { format: 'r32float' }, { format: 'r32uint' }] },
+      fragment: { module: modules.pick, entryPoint: manual ? 'fsManual' : 'fs', targets: [{ format: 'r32uint' }, { format: 'r32float' }, { format: 'r32uint' }] },
       primitive: { topology: 'triangle-list', cullMode: two ? 'none' : 'back' },
       depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
     }));
@@ -621,9 +623,9 @@ export class Viewer {
       depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
       multisample: ms,
     }));
-    jobs.push(make('capPick', {
+    for (const manual of [false, true]) jobs.push(make(manual ? 'capPickManual' : 'capPick', {
       vertex: positionOnly(modules.pick),
-      fragment: { module: modules.pick, entryPoint: 'fsCapPick', targets: [{ format: 'r32uint' }, { format: 'r32float' }, { format: 'r32uint' }] },
+      fragment: { module: modules.pick, entryPoint: manual ? 'fsCapPickManual' : 'fsCapPick', targets: [{ format: 'r32uint' }, { format: 'r32float' }, { format: 'r32uint' }] },
       primitive: { topology: 'triangle-list', cullMode: 'front', frontFace: 'ccw' },
       depthStencil: { format: 'depth32float', depthWriteEnabled: true, depthCompare: 'greater' },
     }));
@@ -702,13 +704,17 @@ export class Viewer {
     m.slot = this.freeSlots.pop() ?? this.nextSlot++;
     this.growObjects(this.nextSlot);
     this.meshes.push(m);
+    this.pickSceneRevision++;
     this.scene = null;
     this.requestRender();
     return m;
   }
 
-  /** @internal A mesh moved (its transform or instances): the scene trees are made again at the next pick (G9). */
-  sceneMoved(): void { this.scene = null; }
+  /** @internal Rebuild scene trees after movement; instanceMesh signals an accepted instance replacement. */
+  sceneMoved(instanceMesh?: Mesh): void {
+    this.scene = null;
+    if (instanceMesh && instanceMesh.slot >= 0) this.pickSceneRevision++;
+  }
   /**
    * @internal Picks through the scene trees and large point meshes' hierarchies (G9, default); false: every mesh walked
    * in order, as before — the same answers (the test compares them), for tests.
@@ -761,6 +767,7 @@ export class Viewer {
     const i = this.meshes.indexOf(mesh);
     if (i < 0) return;
     this.meshes.splice(i, 1);
+    this.pickSceneRevision++;
     this.scene = null;
     this.freeSlots.push(mesh.slot);
     mesh.slot = -1;
@@ -777,6 +784,7 @@ export class Viewer {
 
   /** Remove every mesh and release every geometry. */
   clear(): void {
+    if (this.meshes.length) this.pickSceneRevision++;
     for (const m of this.meshes) { m.slot = -1; m.cost = null; }
     this.costRecords.clear();
     this.meshes = []; this.freeSlots = []; this.nextSlot = 0; this.scene = null;
@@ -1319,7 +1327,7 @@ export class Viewer {
   private pipelineKey(m: Mesh, pick: boolean | 'mask'): PipelineKey {
     const mat = m.material, two = mat.doubleSided ? '2' : '', t = m.transparent ? (this.oitDrawing ? 'O' : 'T') : '';
     if (pick === 'mask') return (two ? 'mask2' : 'mask');
-    if (pick) return (two ? 'pick2' : 'pick');
+    if (pick) return this.camera.autoClip === false ? (two ? 'pickManual2' : 'pickManual') : (two ? 'pick2' : 'pick');
     if (m.geometry.topology === 'lines') return (m.geometry.data.contour ? 'contour' : 'line') + (mat.lineOver ? 'Over' : t ? 'T' : '');
     if (m.geometry.topology === 'points') return mat.lineOver ? 'pointOver' : 'point';
     if (m.geometry.topology === 'labels') return mat.lineOver ? 'labelOver' : 'label';
@@ -1542,7 +1550,8 @@ export class Viewer {
     const was = this.costPass; this.costPass = key === 'capMask' ? 'outlineMask' : 'caps';
     for (const m of list) {
       if (key === 'capPick' ? (!this.probed(m) || (m.pickTransparent ?? m.transparent) || !m.pickable) : !this.capped(m)) continue;
-      const p = this.pipelines.get(key === 'litCap' && !m.material.colorWrite ? 'depthCap' : key)!;
+      const p = this.pipelines.get(key === 'litCap' && !m.material.colorWrite ? 'depthCap'
+        : key === 'capPick' && this.camera.autoClip === false ? 'capPickManual' : key)!;
       if (current.pipeline !== p) { pass.setPipeline(p); current.pipeline = p; }
       { dynamicOffset[0] = m.slot * OBJECT_STRIDE; pass.setBindGroup(1, this.objectGroup, dynamicOffset, 0, 1); }
       this.drawTriangles(pass, m, key === 'litCap');
@@ -1808,13 +1817,32 @@ export class Viewer {
   }
 
   private prepareCamera(): Mat4 {
+    this.validateManualClipping();
     this.clipCamera();
     return this.camera.viewProjection(this.aspect);
+  }
+
+  private manualFiniteClipping(): boolean { return this.camera.autoClip === false && Number.isFinite(this.camera.far); }
+
+  private validateManualClipping(): void {
+    if (!this.manualFiniteClipping()) return;
+    if (this.pendingPathTraces) throw new ViewerError('PATH_TRACE_UNSUPPORTED', 'Manual finite clipping cannot run while a path trace is being created');
+    for (const session of this.pathTraces) if (session.running) throw new ViewerError('PATH_TRACE_UNSUPPORTED', 'Manual finite clipping cannot run with an active path trace');
+    const env = this.environment;
+    if (this.grid.visible || (env.ambientOcclusion && (env.ambientOcclusion.strength ?? 1) > 0)
+      || (env.contactShadows && (env.contactShadows.strength ?? 0.6) > 0) || this.focusEnabled()) {
+      throw new ViewerError('CLIP_INVALID', 'Manual finite clipping supports base raster and GPU picking; disable the grid and depth post effects');
+    }
+  }
+
+  private requireTraceClipping(): void {
+    if (this.manualFiniteClipping()) throw new ViewerError('PATH_TRACE_UNSUPPORTED', 'Path tracing does not support manual finite raster clipping');
   }
 
   /** Clip planes around the scene, and out to the grid's fade distance when the grid shows. */
   private clipCamera(): void {
     const c = this.camera;
+    if (c.autoClip === false) return;
     c.clip(this.depthBounds());
     const g = this.gridFrame();
     if (!g) return;
@@ -1825,21 +1853,26 @@ export class Viewer {
   // ---- Reading back ------------------------------------------------------------------------------
 
   private readonly pathTraces = new Set<PathTraceSession>();
+  private pendingPathTraces = 0;
   /** Create an offscreen still. After its lazy module loads, scene/camera inputs are frozen before GPU preparation.
    * Raster controls and rendering remain independent.
    * Visible bounded triangle surfaces and G15a materials are included. Lines, labels, overlays, raster shadow catchers and raster post effects
    * (bloom, DOF, SSAO, contact shadows, outlines) are excluded. Section caps and custom shaders are explicitly refused.
    */
   async createPathTrace(options: PathTraceOptions = {}): Promise<PathTraceSession> {
-    this.requireDevice(); this.prepareCamera();
+    this.requireDevice(); this.requireTraceClipping(); this.prepareCamera();
     const device = this.device;
-    const { PathTraceSession: Session } = await import('./path-trace.js');
-    this.alive();
-    if (device !== this.device || this.recovering) throw new ViewerError('DEVICE_LOST', 'Viewer changed device before creating a still');
-    this.prepareCamera();
-    const session = await Session.create(device, { meshes: this.meshes, camera: this.camera, environment: this.environment, lights: this.lights, background: this.background, width: this.canvas.width, height: this.canvas.height, clipped: !!this.clip }, options, disposed => { this.pathTraces.delete(disposed); });
-    if (this.disposed || this.device !== device || this.recovering) { session.dispose(); throw new ViewerError('DEVICE_LOST', 'Viewer changed device while creating a still'); }
-    this.pathTraces.add(session); return session;
+    this.pendingPathTraces++;
+    try {
+      const { PathTraceSession: Session } = await import('./path-trace.js');
+      this.alive();
+      if (device !== this.device || this.recovering) throw new ViewerError('DEVICE_LOST', 'Viewer changed device before creating a still');
+      this.requireTraceClipping(); this.prepareCamera();
+      const session = await Session.create(device, { meshes: this.meshes, camera: this.camera, environment: this.environment, lights: this.lights, background: this.background, width: this.canvas.width, height: this.canvas.height, clipped: !!this.clip }, options, disposed => { this.pathTraces.delete(disposed); });
+      if (this.disposed || this.device !== device || this.recovering) { session.dispose(); throw new ViewerError('DEVICE_LOST', 'Viewer changed device while creating a still'); }
+      if (this.manualFiniteClipping()) { session.dispose(); throw new ViewerError('PATH_TRACE_UNSUPPORTED', 'Path tracing does not support manual finite raster clipping'); }
+      this.pathTraces.add(session); return session;
+    } finally { this.pendingPathTraces--; }
   }
 
   /** Draw a frame and read it back: RGBA bytes, rows top to bottom. */
@@ -1879,9 +1912,9 @@ export class Viewer {
     if (px < 0 || py < 0 || px >= this.canvas.width || py >= this.canvas.height) return null;
     const vp = this.prepareCamera();
     // The GPU depth belongs to this camera and pixel mapping, even while its readback waits.
-    const camera = this.camera, clip = this.clip;
+    const camera = this.camera, clip = this.clip, pickSceneRevision = this.pickSceneRevision;
     const cameraValues = [...camera.position, ...camera.target, ...camera.up,
-      camera.projection, camera.fovY, camera.near, camera.far];
+      camera.projection, camera.fovY, camera.near, camera.far, camera.autoClip];
     const width = this.canvas.width, height = this.canvas.height;
     const clientWidth = this.canvas.clientWidth, clientHeight = this.canvas.clientHeight, aspect = this.aspect;
     const { opaque, transparent } = this.visibleMeshes(vp);
@@ -1916,8 +1949,8 @@ export class Viewer {
     read.unmap();
     // Unmap first, including stale results, so the next queued pick can use the buffer.
     const currentCameraValues = [...this.camera.position, ...this.camera.target, ...this.camera.up,
-      this.camera.projection, this.camera.fovY, this.camera.near, this.camera.far];
-    if (this.clip !== clip || this.camera !== camera || this.canvas.width !== width || this.canvas.height !== height
+      this.camera.projection, this.camera.fovY, this.camera.near, this.camera.far, this.camera.autoClip];
+    if (this.pickSceneRevision !== pickSceneRevision || this.clip !== clip || this.camera !== camera || this.canvas.width !== width || this.canvas.height !== height
       || this.canvas.clientWidth !== clientWidth || this.canvas.clientHeight !== clientHeight || this.aspect !== aspect
       || cameraValues.some((value, i) => !Object.is(value, currentCameraValues[i]))) return null;
     for (const [mesh, transform] of transforms) if (transform.some((value, i) => !Object.is(value, mesh.transform[i]))) return null;

@@ -4,7 +4,7 @@
 // selected bodies an outline; ghost bodies are see-through. Picking is on the CPU (synchronous for hover).
 // With render settings (the Render workspace) bodies take their appearances, and the lights, environment
 // and ground come from the settings instead of the theme's modelling look.
-import { ACCENT, EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, HIDDEN_LINE_SHARE, PALETTE, SELECT_MIX, THREAD_OPACITY, XRAY_OPACITY, edgeStateOf, faceStateOf } from './displayPolicy';
+import { ACCENT, EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, HIDDEN_LINE_SHARE, PALETTE, SELECT_MIX, SELECTION_MIX, SELECTION_HOVER_MIX, SELECTION_EDGE_WIDTH, SELECTION_OUTLINE_WIDTH, THREAD_OPACITY, XRAY_OPACITY, edgeStateOf, faceStateOf } from './displayPolicy';
 import { clipBox, createViewer, invert, multiply, rotation, studioEnvironment, translation, type Geometry, type ImageTexture, type Light, type Mesh, type ShaderMaterial, type Viewer } from '@barocss/gpu/viewer';
 import { curvature, overhang, zebra, type Analysis } from './analysis';
 import { BASE } from '@barocss/cad-model/assembly/mates';
@@ -37,12 +37,11 @@ import type { ProposalOverlay } from '../engine/client';
 /** Device pixels per CSS pixel, up to 3 (a high-density screen with the page zoomed in). */
 const pixelRatio = () => Math.min(3, Math.max(1, globalThis.devicePixelRatio || 1));
 
-interface Theme { bgTop: Vec3; bgBottom: Vec3; grid: Vec3; gridOpacity: number; base: Vec3; edge: Vec3; ao: number; shadow: number }
+interface Theme { selection: Vec3; selectionHover: Vec3; bgTop: Vec3; bgBottom: Vec3; grid: Vec3; gridOpacity: number; base: Vec3; edge: Vec3; ao: number; shadow: number }
 const THEMES: Record<ThemeName, Theme> = {
   dark: { ...PALETTE.dark, gridOpacity: 0.16, ao: 0.9, shadow: 0.45 },
   light: { ...PALETTE.light, gridOpacity: 0.14, ao: 0.8, shadow: 0.28 },
 };
-const HOVER: Vec3 = [0.62, 0.55, 0.36];
 /** G15b: the Render workspace's sun, its angular size in degrees (a soft shadow; the sun itself is half a degree, a studio's
  *  key light a few). */
 const RENDER_SUN_SIZE = 3;
@@ -119,7 +118,7 @@ export class GpuRenderer implements ViewRenderer {
   private props: { view: SceneView; source: string; scale: number } | null = null;
   private shaders = new Map<string, MaterialShaderResult>();
   /** Direct curves and surfaces: their meshes by object id, and the control nets of the selected ones. */
-  private direct: { id: string; mesh: Mesh; kind: 'curve' | 'surface' }[] = [];
+  private direct: { id: string; mesh: Mesh; kind: 'curve' | 'surface'; selected: boolean }[] = [];
   private controls: Mesh[] = [];
   private regions: Mesh[] = [];
   /** Clearance owns local decal geometry and its clip; it never joins native pick or cap geometry. */
@@ -186,7 +185,7 @@ export class GpuRenderer implements ViewRenderer {
     // frame; the viewer scheduling its own as well drew every change twice, PERF3 A2.)
     const host = { request: () => {} };
     const viewer = await createViewer(canvas, { controls: false, camera: { up: [0, 0, 1] }, pixelRatio: pixelRatio(), onRequestRender: () => host.request() });
-    viewer.outlineWidth = 2;
+    viewer.outlineWidth = SELECTION_OUTLINE_WIDTH;
     const r = new GpuRenderer(canvas, viewer);
     r.host = host;
     r.setTheme('dark');
@@ -196,6 +195,13 @@ export class GpuRenderer implements ViewRenderer {
   setTheme(name: ThemeName): void {
     this.theme = THEMES[name];
     this.applyLook();
+    if (this.view) this.setState(this.view);
+    for (const direct of this.direct) if (direct.selected) {
+      direct.mesh.material = direct.kind === 'surface'
+        ? { color: this.theme.selection, roughness: 0.5, doubleSided: true }
+        : { color: this.theme.selection, unlit: true, lineWidth: SELECTION_EDGE_WIDTH };
+      if (direct.kind === 'surface') direct.mesh.outline = this.theme.selection;
+    }
     // (The cap takes the theme's colour.)
     if (this.clip) this.setClip(this.clip);
   }
@@ -577,10 +583,10 @@ export class GpuRenderer implements ViewRenderer {
     // (Rendering: the appearance is the material colour, so faces are white unless picked — a face's
     // own colour tints it; modelling: the body's own colour when it has one, a face's own over it.)
     const base: Vec3 = this.settings ? [1, 1, 1] : own ?? this.theme.base;
-    const shade = [base, mix(base, ACCENT, 0.2), mix(base, ACCENT, SELECT_MIX)], shades = new Map<number, Vec3[]>();
-    for (const [f, c] of faces ?? []) shades.set(f, [c, mix(c, ACCENT, 0.2), mix(c, ACCENT, SELECT_MIX)]);
+    const shade = [base, mix(base, this.theme.selectionHover, SELECTION_HOVER_MIX), mix(base, this.theme.selection, SELECTION_MIX)], shades = new Map<number, Vec3[]>();
+    for (const [f, c] of faces ?? []) shades.set(f, [c, mix(c, this.theme.selectionHover, SELECTION_HOVER_MIX), mix(c, this.theme.selection, SELECTION_MIX)]);
     // (The same colours as last time: only the faces whose hover or selection changed are written.)
-    const key = JSON.stringify([base, faces ? [...faces] : null]);
+    const key = JSON.stringify([base, faces ? [...faces] : null, this.theme.selection, this.theme.selectionHover]);
     b.painted = paintFaces(b.surface.geometry, b.runs, b.painted, key, faceState, shade, shades);
   }
 
@@ -616,11 +622,11 @@ export class GpuRenderer implements ViewRenderer {
           const st = edgeState.get(E[2 * s]);
           if (!st) continue;
           for (let k = 0; k < 6; k++) pts.push(L[6 * s + k]);
-          const c = st > 1 ? [1, 0.84, 0.36] : [0.95, 0.78, 0.36];
+          const c = st > 1 ? this.theme.selection : this.theme.selectionHover;
           colors.push(...c, ...c);
         }
         const g = this.viewer.createGeometry({ positions: pts, colors, topology: 'lines' });
-        b.highlight = this.viewer.add(g, { material: { color: '#ffffff', unlit: true, lineWidth: view.selectedEdges.length ? 2.6 : 2.2 }, pickable: false, castShadow: false });
+        b.highlight = this.viewer.add(g, { material: { color: '#ffffff', unlit: true, lineWidth: view.selectedEdges.length ? SELECTION_EDGE_WIDTH : 2.2 }, pickable: false, castShadow: false });
       }
       const isolated = !!view.isolatedInstances?.length, ghost = view.ghostBodies.has(bi), offset = view.offsets.get(bi) ?? [0, 0, 0];
       const look = this.settings ? appearanceOf(this.settings, b.result.key) : null;
@@ -634,7 +640,7 @@ export class GpuRenderer implements ViewRenderer {
       // (While the mould's halves show, picks reach only them, G6.)
       const halvesOn = !!this.mould?.halves.length;
       b.surface.pickable = !ghost && !isolated && !hidden && !halvesOn; b.surface.visible = !hidden && !(isolated && lineOnly);
-      b.surface.outline = lineOnly || isolated ? null : this.contactLinks.has(BASE) ? CONTACT : view.selectedBodies.includes(bi) ? ACCENT : view.hoverBody === bi ? HOVER : null;
+      b.surface.outline = lineOnly || isolated ? null : this.contactLinks.has(BASE) ? CONTACT : view.selectedBodies.includes(bi) ? this.theme.selection : view.hoverBody === bi ? this.theme.selectionHover : null;
       const moved = view.transforms?.get(bi) ?? translation(offset);
       for (const mesh of [b.surface, b.edges, b.highlight]) if (mesh) mesh.transform = moved;
       // (Its hatch on the exact section's cut, G19.3/4: moved with it, faint when it is.)
@@ -912,10 +918,10 @@ export class GpuRenderer implements ViewRenderer {
     for (const it of items) {
       const on = selected.includes(it.id);
       const mesh = it.kind === 'surface'
-        ? this.viewer.add({ positions: it.positions, normals: it.normals, indices: it.indices }, { name: 'direct:' + it.id, material: { color: on ? '#e8c25a' : '#8fb3d9', roughness: 0.5, doubleSided: true } })
-        : this.viewer.add({ positions: it.positions, topology: 'lines' }, { name: 'direct:' + it.id, material: { color: on ? '#ffd35c' : '#5ec8e5', unlit: true, lineWidth: on ? 3 : 2 }, castShadow: false });
-      if (on && it.kind === 'surface') mesh.outline = ACCENT;
-      this.direct.push({ id: it.id, mesh, kind: it.kind });
+        ? this.viewer.add({ positions: it.positions, normals: it.normals, indices: it.indices }, { name: 'direct:' + it.id, material: { color: on ? this.theme.selection : '#8fb3d9', roughness: 0.5, doubleSided: true } })
+        : this.viewer.add({ positions: it.positions, topology: 'lines' }, { name: 'direct:' + it.id, material: { color: on ? this.theme.selection : '#5ec8e5', unlit: true, lineWidth: on ? SELECTION_EDGE_WIDTH : 2 }, castShadow: false });
+      if (on && it.kind === 'surface') mesh.outline = this.theme.selection;
+      this.direct.push({ id: it.id, mesh, kind: it.kind, selected: on });
       if (on && it.isos?.length) this.controls.push(this.viewer.add({ positions: it.isos, topology: 'lines' }, { material: { color: '#f3f5f7', unlit: true, lineWidth: 1, opacity: 0.55 }, pickable: false, castShadow: false }));
       if (on && it.controls.length) this.controls.push(this.viewer.add({ positions: it.controls, topology: 'lines' }, { material: { color: '#c9a3ff', unlit: true, lineWidth: 1.2 }, pickable: false, castShadow: false }));
     }
@@ -1067,11 +1073,11 @@ export class GpuRenderer implements ViewRenderer {
         // Faded line-only context contributes edges, not an occluder in front of the focus.
         m.visible = !(faded && lineOnly);
         m.material = { colorWrite: !lineOnly, opacity: (mode === 'x-ray' ? Math.min(XRAY_OPACITY, m.material.opacity ?? 1) : m.material.opacity ?? 1) * (faded ? FADED : 1) };
-        m.outline = lineOnly || faded ? null : this.contactLinks.has(it.id) ? CONTACT : this.instanceSelection.includes(it.id) ? ACCENT : null;
+        m.outline = lineOnly || faded ? null : this.contactLinks.has(it.id) ? CONTACT : this.instanceSelection.includes(it.id) ? this.theme.selection : null;
         // Face colours as the bodies' (paint): the base, picked faces mixed with the accent.
         const mesh = this.instanceMeshes.get(it.id)?.[bi];
         if (!mesh) return;
-        const base: Vec3 = look ? [1, 1, 1] : this.theme.base, on = mix(base, ACCENT, SELECT_MIX), picked = new Set(this.instanceFaces.filter(f => f.id === it.id && f.body === bi).map(f => f.face));
+        const base: Vec3 = look ? [1, 1, 1] : this.theme.base, on = mix(base, this.theme.selection, SELECTION_MIX), picked = new Set(this.instanceFaces.filter(f => f.id === it.id && f.body === bi).map(f => f.face));
         // (Its cap as the CPU's section painted it: an instance's cut face was never selected, the base colour; G2b.)
         m.capColor = base;
         // (A shared geometry: painted once in its sharers' base colour — none of them has picked faces.)
@@ -1085,7 +1091,7 @@ export class GpuRenderer implements ViewRenderer {
           return;
         }
         // (The same colours on the same mesh as last time: nothing written. A new selection repaints none of them.)
-        const key = JSON.stringify([base, [...picked]]);
+        const key = JSON.stringify([base, [...picked], this.theme.selection]);
         if (this.instancePainted.get(m)?.mesh === mesh && this.instancePainted.get(m)?.key === key) return;
         this.instancePainted.set(m, { mesh, key });
         const colors = new Float32Array(mesh.positions.length);

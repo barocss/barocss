@@ -1,0 +1,74 @@
+{
+  "workId": "D320",
+  "status": "SCOPED_PASS",
+  "baseline": "9916bda9f4d8b74e2d34f14cfabb6822e412b93e",
+  "runtime": "Node22.19.0",
+  "scope": "One handleStore instance and one exact validated path, expect validation through native close and returned-tag read; unconditional writers share queue; distinct paths progress independently",
+  "unitBaseline": {
+    "tests": 9,
+    "passed": 3,
+    "failed": 6,
+    "log": "unit-baseline.log"
+  },
+  "unitAfter": {
+    "tests": 10,
+    "passed": 10,
+    "failed": 0,
+    "newThreeWriterTailCase": true,
+    "log": "unit-after.log"
+  },
+  "studioTypes": "PASS",
+  "changedLint": "PASS",
+  "actualNativeOPFS": {
+    "status": "PASS second run after outcome-formatter correction",
+    "selectedTests": 1,
+    "groups": 5,
+    "failed": 0,
+    "skipped": 0,
+    "browser": "Chrome156.0.8078.48 secure loopback fresh context",
+    "sourceInputs": 156,
+    "outsideProductInput": 0,
+    "nativeStreams": 11,
+    "createWritableArgs": 0,
+    "observedMode": "siloed in this run; no portable default assertion",
+    "sameOriginalExpectedTag": "A fulfills/B STORAGE_CHANGED; native final A bytes and returned tag match",
+    "otherPathAndUncommittedRead": "Other path progresses while A held; same-file native read remains seed before commit",
+    "freshSerialCreate": "Fresh tag succeeds; serial stale refuses; expect:null admits one creator",
+    "unconditionalReturnedTag": "B excluded through A post-close tag read; each return matches native File snapshot",
+    "nativeFailure": "Actual aborted native stream rejects undefined unchanged; next same-path write succeeds",
+    "cleanup": "Named OPFS namespace removed and absence verified; owned context/browser/server closed; gate released",
+    "dashboard": "Test-only native IO dashboard reviewed; not Studio UI",
+    "receipt": "consumers/validation.json"
+  },
+  "firstBrowserFailure": "Outcome helper read error.code on undefined native rejection; optional recording only fixes harness, native reason/IO/assertions unchanged",
+  "sourceHashes": {
+    "apps/cad-studio/src/storage/handleStore.ts": "73e879642071ec3db0597189946edb952804c523fc4159c0d7b584263b46c2a5",
+    "apps/cad-studio/test/handle-store-concurrency.test.ts": "6a4a4682ba18abf8735f8754fd4fa7603b787bccf7186cc10882d41d21c64c48",
+    "apps/cad-studio/test/handle-store-opfs-browser.test.mjs": "e9f22102ff8cc6601804f980274375b9b5b16d22bc5c5ead1bcd643aa1028b5c"
+  },
+  "docs": {
+    "status": "PASS",
+    "pages": 68,
+    "shots": 55,
+    "shotKB": 4811,
+    "labels": 858,
+    "log": "docs-check-first.txt",
+    "generatedAgentTools": "PASS",
+    "generatedRefusals": "PASS",
+    "apiInventory": "Unchanged; six-rule SCOPED_PASS only"
+  },
+  "notRun": [
+    "whole Studio/Model/Kernel/Viewer suites",
+    "actual Studio UI concurrent-save scheduling",
+    "separate adapter instances/tabs",
+    "remove/write ordering",
+    "external folders/program conflicts",
+    "same-size/same-time tag collision repair",
+    "public caller cancellation API",
+    "performance/atomic-CAS/general user-file-loss proof"
+  ],
+  "errors": "Original refusal/abort/native rejection semantics retained; post-commit tag-read failure can reject after bytes commit and is not rollback",
+  "hashMeaning": "Artifact/source provenance only, not checksum unit acceptance",
+  "nextPriority": "D321: #2242 originating-work Stop with explicit unsupported document-edit rejection before acceptance",
+  "publication": "Normal per-feature push authorized; no PR/release"
+}

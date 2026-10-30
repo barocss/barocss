@@ -1,0 +1,63 @@
+--- frozen
++++ observed
+@@ -210,7 +210,6 @@
+   const beginOpenIntent = useCallback((): OpenScope => { const scope = {}; openIntent.current = scope; return scope; }, []);
+   const currentOpenScope = useCallback(() => openIntent.current, []);
+   const isOpenCurrent = useCallback((scope: OpenScope) => openIntent.current === scope, []);
+-  useEffect(() => () => { openIntent.current = {}; }, []);
+   const saveAcceptanceScope = saveDocumentToken.current;
+   const setDocState = useCallback((update: StudioDoc | ((previous: StudioDoc) => StudioDoc)) => {
+     saveDocumentToken.current = {};
+@@ -302,7 +301,6 @@
+   // (Each entry keeps the instance it was evaluated for; `key` changes whenever its bodies are evaluated anew.)
+   const [instanceBodies, setInstanceBodies] = useState<Map<string, { key: string; sourceKey: string; inst: PartInstance; bodies: BodyResult[] }>>(new Map());
+   const [workerSession, setWorkerSession] = useState(0);
+-  const [importWorkerRecovery, setImportWorkerRecovery] = useState(0);
+   const workerSessionNow = useRef(0);
+   // O18 (P): the worker replies without the bodies' masses and posts them after, by mass ref; each body still waiting
+   // gets its own B-rep's (placed by its massPlace) — never another revision's, whose B-rep has its own ref.
+@@ -729,7 +727,7 @@
+     };
+     void run().catch(cause => { if (edit) refuse(cause instanceof Error ? cause.message : String(cause)); else if (current()) { setBusy(false); setToast({ title: 'Could not evaluate the part', hint: 'The previous part remains shown.', detail: String(cause) }); } }).finally(() => { workOwnership.current = finishWork(workOwnership.current, work.token); });
+     return () => { live = false; workOwnership.current = finishWork(workOwnership.current, work.token); };
+-  }, [engine, evaluated, parameterEdit, parameterCurrent, importWorkerRecovery]);
++  }, [engine, evaluated, parameterEdit, parameterCurrent]);
+   // (A command's preview is what the part becomes: its bodies belong to the document it commits.)
+   useEffect(() => { if (claimBodies.current) { claimBodies.current = false; setBodiesFor(evaluated); } }, [evaluated]);
+   const fresh = bodiesFor === evaluated;
+@@ -1315,10 +1313,9 @@
+     setFileName(name); setDirty(true); fitImportedLater(); return true;
+   };
+   const meshImport = useMeshImport({ doc, engine, captureOwner: captureImportOwner,
+-    onStop: () => { beginOpenIntent(); invalidateDocumentWork(); restartDocumentWorker(); setImportWorkerRecovery(value => value + 1); },
++    onStop: () => { beginOpenIntent(); invalidateDocumentWork(); restartDocumentWorker(); },
+     nextRevision: () => revision.current++, onNotice: setToast, onOpened: openedImport, onCommit: commit });
+-  const { meshAsk, setMeshAsk, stage, repairAsk, setRepairAsk, stopStage } = meshImport;
+-  const editRepair = (index: number) => { beginOpenIntent(); setMeshAsk(null); setRepairAsk(null); return meshImport.editRepair(index); };
++  const { meshAsk, setMeshAsk, stage, repairAsk, setRepairAsk, stopStage, editRepair } = meshImport;
+   /**
+    * A mesh body's badges (M3, D47): repaired (its filled area; shows the fill faces and opens the repair again), an
+    * open sheet (no volume, no Booleans), and where it crosses itself (marked in the viewport).
+@@ -1348,11 +1345,10 @@
+     return () => clearTimeout(t);
+   }, [doc, undo, redo, repairAsk]);
+   const open = async (file: File) => {
+-    const scope = beginOpenIntent(), owner = captureImportOwner();
+-    setMeshAsk(null); setRepairAsk(null);
++    const scope = beginOpenIntent();
+     try {
+       if (isImportedFile(file.name)) {
+-        await openImportedFile(file, { doc, ownership: owner, worker: { engine, nextRevision: () => revision.current++ }, mesh: meshImport, onNotice: setToast,
++        await openImportedFile(file, { doc, ownership: captureImportOwner(), worker: { engine, nextRevision: () => revision.current++ }, mesh: meshImport, onNotice: setToast,
+           changes: { commitDirect, fitLater: fitImportedLater, onOpened: openedImport } });
+         return;
+       }
+@@ -1370,7 +1366,7 @@
+       if (read.notes.length) setToast({ title: 'Opened an older model', hint: `${read.notes.join('; ')}. Save to keep it in the current form (the file is unchanged until then).`, detail: '' });
+       setTimeout(() => { if (isOpenCurrent(accepted)) viewport.current?.fit(); }, 300);
+       void verifyOpened(acceptedDoc, accepted, dispatch);
+-    } catch (e) { if (owner.isCurrent()) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
++    } catch (e) { if (isOpenCurrent(scope)) { meshImport.setStage(null); setToast({ title: 'Could not open this file', hint: String(e instanceof Error ? e.message : e), detail: '' }); } }
+   };
+   const { refLocal, keepoutBodies, keepoutVerdicts, spec, specRunning } = useModelChecks({ model: { doc, evaluated, bodies, fresh, busy, active, sketch, previewBodies },
+     worker: { engine, nextRevision: () => revision.current++ }, onNotice: setToast });

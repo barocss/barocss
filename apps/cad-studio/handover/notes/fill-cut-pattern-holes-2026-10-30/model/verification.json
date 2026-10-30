@@ -1,0 +1,29 @@
+{
+  "status": "MODEL_SCOPED_GATES_PASS_STUDIO_BROWSER_NOT_RUN",
+  "checks": {
+    "newTests": {
+      "passed": 6,
+      "failed": 0,
+      "log": "new-first.log"
+    },
+    "affectedExisting": {
+      "passed": 87,
+      "failed": 0,
+      "log": "affected-first.log"
+    },
+    "scopedTotal": 93,
+    "modelTypes": "PASS",
+    "narrowLint": "PASS_0_DIAGNOSTICS",
+    "StudioTypesBuild": "NOT_RUN",
+    "actualBrowser": "NOT_RUN"
+  },
+  "sourceHashes": {
+    "packages/barocss-cad-model/src/engine/fillFeaturePattern.ts": "ba0cf70af894f67e508d01a4ecfdcae8bc09476f8331fa6d2bef9da963ef2f05",
+    "packages/barocss-cad-model/src/app/commands.ts": "2e446d417d4b70e67e015206a33f02750075e019871dc95c57acb5de02d5914c",
+    "packages/barocss-cad-model/test/fill-feature-pattern-holes.test.ts": "923a2a6b1f1e8fea5f64ae7f1091bd37641b39bef10bc21ee0bd8eae25710c71"
+  },
+  "oldHelperSha256": "bce31ee96e3fc0c386240df265ff03dd46bfcbd50932e6c23b9401738df9c94f",
+  "firstRuntimeFailure": null,
+  "heavyGate": "RELEASED_holder_none",
+  "scope": "Source snapshot/getter admission and Core-delegated hole mask controls plus existing no-hole pattern/cap/command/reference consumers. Not all Model or full Kernel."
+}

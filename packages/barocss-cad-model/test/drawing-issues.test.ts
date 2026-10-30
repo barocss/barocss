@@ -6,7 +6,7 @@ import { brepsFor } from '../src/engine/evaluate';
 import { rectanglePart, withNode, type StudioDoc } from '../src/engine/doc';
 import { projectViews } from '../src/drawing/project';
 import { snapPoints } from '../src/drawing/dimensions';
-import { holeCallout } from '../src/drawing/callout';
+import { holeCallout, holeCalloutOwner } from '../src/drawing/callout';
 import { autoDimensions } from '../src/drawing/auto';
 import { applyFix, drawingIssues, fixAll, issueContext, quadsOverlap, segmentHitsQuad, textBox, type SheetInputs } from '../src/drawing/issues';
 import { defaultDrawing, type DrawingDimension, type DrawingSettings, type DrawingViews } from '../src/drawing/types';
@@ -23,10 +23,10 @@ const bolt = () => withNode(rectanglePart(80, 80, 10), hole(1, [60, 40], 3, { pa
 function viewsOf(doc: StudioDoc): DrawingViews {
   const b = brepsFor(doc); assert.ok('breps' in b); const r = projectViews(b.breps, b.prefixes); assert.ok(r.ok); return r.views;
 }
-const inputsOf = (doc: StudioDoc, settings: DrawingSettings): SheetInputs => ({ views: viewsOf(doc), settings, callout: e => holeCallout(doc.nodes, e), meta: { title: 't', date: 'd' } });
+const inputsOf = (doc: StudioDoc, settings: DrawingSettings): SheetInputs => ({ views: viewsOf(doc), settings, callout: e => holeCallout(doc.nodes, e), locationOwner: e => holeCalloutOwner(doc.nodes, e), meta: { title: 't', date: 'd' } });
 const codes = (i: SheetInputs) => drawingIssues(issueContext(i)).map(x => x.code).sort();
 const ref = (v: DrawingViews, view: 'front' | 'top', u: number, w: number) => snapPoints(v[view]).find(p => Math.abs(p.at[0] - u) < 1e-6 && Math.abs(p.at[1] - w) < 1e-6)!.ref;
-const auto = (doc: StudioDoc, s: DrawingSettings = defaultDrawing()) => { const i = inputsOf(doc, s); return autoDimensions(i.views, issueContext(i).layout, s, i.callout).dimensions; };
+const auto = (doc: StudioDoc, s: DrawingSettings = defaultDrawing()) => { const i = inputsOf(doc, s); return autoDimensions(i.views, issueContext(i).layout, s, i.callout, [], [], i.locationOwner).dimensions; };
 
 /** The drawings of the cases: each a part and the settings it is checked with. */
 const CASES: Record<string, { about: string; doc: () => StudioDoc; settings: (v: DrawingViews, doc: StudioDoc) => DrawingSettings }> = {

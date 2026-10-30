@@ -1,0 +1,21 @@
+{
+  "count": 16,
+  "hashes": {
+    "apps/cad-studio/src/App.tsx": "fd7460aeef6c800d1de457039f34574fcff825dad3a23463e15800e729c517b0",
+    "apps/cad-studio/src/ui/DirectInspector.tsx": "00b5e04f82b5e008992da73847763f1f9a14e8313ab795da8eb78f895549c9cd",
+    "apps/cad-studio/src/ui/DirectPanel.tsx": "705eb1397edfa07e294ba6d91d4da275dbca66ea8f6e848f3d69a5e4b0707adc",
+    "apps/cad-studio/test/trimmed-surface-region-browser.mjs": "550cf1c140fea7654e09dd3f109e7452f81adc10428fb336b22a863f3869338b",
+    "apps/cad-studio/vite.config.ts": "67b607e6374107bf07c232ad7ebe46a9f93e0d3bce887579c3d46ed363be5407",
+    "packages/barocss-cad-model/src/engine/direct.ts": "7ee57af3cc985b45c5e537037f343125e889c554b5f63ed1f5f1715e69b53218",
+    "packages/barocss-cad-model/src/engine/trim.ts": "04ebe4da5a39608a8e115006efecc3f31200725d6ae14595824af6408a07f67a",
+    "packages/barocss-cad/dist/index.js": "4c7b1b07f5ed6f72cf5f1aff9c0dd43c84a09a79ee1b5c7194c68ccf1c96c17f",
+    "packages/barocss-cad/src/brep/planar-arrangement.ts": "7e985f7e9d3b8c0cb17e9828d5ffc5cd83d0bca2ad40ccaf8862dde49bda07fb",
+    "packages/barocss-cad/src/index.ts": "85880c6f98c4193b9abc36209699f3210cdcea84e61d9cba94f91fab2b3cd976",
+    "packages/barocss-cad/src/nurbs/surfaces/surface-region.ts": "880363294825dcc5db4387cc38cd9592dfd1e44a998adb69b89a48592ee290b0",
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-parameter-split.ts": "63a002c2c6287b2509e71988c853ac33b64837c63b3e733ed582093b705500e8",
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-region.ts": "894de212eca8ff92d893d03ad426fc68aca4194878980adb22c54909f70dfb5f",
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-split-binding.ts": "aa83ec0b799f73969ddc7d2ba6e2ffaa5d4bc7581112e5ea3df0fca2ab95bb25",
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-split-common.ts": "45758063bbe0d132cdcc2428a5d0b836084053d6b108b18f635451d359a678db",
+    "packages/barocss-cad/src/nurbs/surfaces/trimmed-surface-split-topology.ts": "705d5cc7aa012a26a40dc5d920f104e9c5dd6011b9679b88e3b2418044c5085c"
+  }
+}

@@ -1,0 +1,64 @@
+TAP version 13
+# Subtest: cylindrical wrap facade, hand recipe and HUD use the same immutable document and core results
+ok 1 - cylindrical wrap facade, hand recipe and HUD use the same immutable document and core results
+  ---
+  duration_ms: 241.303542
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap history edit preserves its face, signatures and downstream recipe
+ok 2 - cylindrical wrap history edit preserves its face, signatures and downstream recipe
+  ---
+  duration_ms: 73.490709
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap uses the current package and JSON readers with no schema change
+ok 3 - cylindrical wrap uses the current package and JSON readers with no schema change
+  ---
+  duration_ms: 69.61775
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap rejects unsupported UV, height, missing signatures and exact-face changes without mutation
+ok 4 - cylindrical wrap rejects unsupported UV, height, missing signatures and exact-face changes without mutation
+  ---
+  duration_ms: 19.231167
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap agent command equals the facade and refuses unsupported edits atomically
+ok 5 - cylindrical wrap agent command equals the facade and refuses unsupported edits atomically
+  ---
+  duration_ms: 145.615
+  type: 'test'
+  ...
+# Subtest: cylindrical wrap authority survives the worker mesh and mesh-token paths as plain data
+ok 6 - cylindrical wrap authority survives the worker mesh and mesh-token paths as plain data
+  ---
+  duration_ms: 69.439625
+  type: 'test'
+  ...
+# Subtest: native-half signatures and wrap selection do not depend on viewport quality
+ok 7 - native-half signatures and wrap selection do not depend on viewport quality
+  ---
+  duration_ms: 14.048458
+  type: 'test'
+  ...
+# Subtest: bound wrap height remains authored through history editing and Save/Open admission
+ok 8 - bound wrap height remains authored through history editing and Save/Open admission
+  ---
+  duration_ms: 70.123625
+  type: 'test'
+  ...
+# Subtest: placed and exploded display bodies do not carry source-space native-half metadata
+ok 9 - placed and exploded display bodies do not carry source-space native-half metadata
+  ---
+  duration_ms: 1.684292
+  type: 'test'
+  ...
+1..9
+# tests 9
+# suites 0
+# pass 9
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 844.343084

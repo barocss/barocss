@@ -39,11 +39,20 @@ export function withIds<T extends Pick<StudioDoc, 'nodes' | 'nextId'>>(doc: T): 
 }
 
 const indexCache = new WeakMap<readonly ModelNode[], Map<string, number>>();
-/** The index of the node with feature id `id` (a patterned hole's copy `n<k>_p<j>` is its node's), or −1. */
+const TEXT_INTERNAL = /^(.+)_g(0|[1-9]\d*)_c(0|[1-9]\d*)_(sketch|extrude|union)$/;
+function textOwner(id: string): string | null { return TEXT_INTERNAL.exec(id)?.[1] ?? null; }
+function textInternalOwner(node: ModelNode, id: string): boolean {
+  return node.kind === 'text' || node.kind === 'text-relief' && TEXT_INTERNAL.exec(id)?.[4] === 'sketch';
+}
+
+/** The authored node of an exact id, a patterned hole, or a strictly formed text component id. */
 export function nodeIndexOf(nodes: readonly ModelNode[], id: string): number {
   let map = indexCache.get(nodes);
   if (!map) { map = new Map(nodes.map((_, i) => [featureId(nodes, i), i])); indexCache.set(nodes, map); }
-  return map.get(id) ?? map.get(id.replace(/_p\d+$/, '')) ?? -1;
+  const direct = map.get(id) ?? map.get(id.replace(/_p\d+$/, ''));
+  if (direct !== undefined) return direct;
+  const owner = textOwner(id), index = owner === null ? undefined : map.get(owner);
+  return index !== undefined && textInternalOwner(nodes[index], id) ? index : -1;
 }
 
 /**
@@ -63,8 +72,16 @@ export function nodesOfName(nodes: readonly ModelNode[], name: string): number[]
 export function renameFeatureIds(name: string, rename: (id: string) => string): string {
   return name.split(/([|+])/).map(part => { const dot = part.indexOf('.'); return dot > 0 ? rename(part.slice(0, dot)) + part.slice(dot) : part; }).join('');
 }
-/** Whether a persistent name comes from feature `id` (`n3.top`, `n3_p1.side0`, an edge with `n3.` on one side). */
-export const fromFeature = (name: string, id: string): boolean => featureIdsOf(name).some(f => f === id || f.replace(/_p\d+$/, '') === id);
+/** Existing names retain their meaning; generated text ownership additionally needs the actual node context. */
+export function fromFeature(name: string, id: string, nodes?: readonly ModelNode[]): boolean {
+  for (const feature of featureIdsOf(name)) {
+    if (feature === id || feature.replace(/_p\d+$/, '') === id) return true;
+    if (!nodes || textOwner(feature) !== id) continue;
+    const owner = nodeIndexOf(nodes, id);
+    if (owner >= 0 && textInternalOwner(nodes[owner], feature) && nodeIndexOf(nodes, feature) === owner) return true;
+  }
+  return false;
+}
 /** Whether a face (by its name) is a cut face of a split with serial `from` or later (a section's splits). */
 export function cutAfter(name: string, from: number): boolean {
   for (const part of name.split('+')) { const m = /^n(\d+)\.cut/.exec(part); if (m && Number(m[1]) >= from) return true; }

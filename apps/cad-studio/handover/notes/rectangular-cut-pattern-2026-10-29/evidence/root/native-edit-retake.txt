@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "phase": "Save edited pattern and fresh Open",
+  "output": "/tmp/d333-root/native-edit-retake",
+  "cleanup": {
+    "contexts": [
+      "CLOSED",
+      "CLOSED"
+    ],
+    "browser": "CLOSED",
+    "server": "CLOSED"
+  }
+}

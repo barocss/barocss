@@ -1,5 +1,8 @@
+import type { FillFeaturePatternRegion, CurveFeaturePatternPath } from '@barocss/cad/api';
 import { flattenShopView, resolveShopTree } from './shopRows';
 import { refusal } from './refusal';
+import { CadNumericPolicy, CadPartLimits } from '@barocss/cad';
+import { fontSourceError, type FontSource } from './font/source';
 // The studio document: plain data, one node per feature. Every command appends or edits nodes; the
 // worker evaluates it on the kernel's B-rep part model (a node is feature `id`, see part.ts and ids.ts).
 
@@ -76,6 +79,185 @@ export type StockRow = { id: string; kind: 'block'; size: [number, number, numbe
 /** A frame stock row (FRb, O116): a length bars come in, how many if limited, the section it is (a cut list's section text; unset: any), with its source. */
 export interface FrameStockRow { id: string; length: number; count?: number; section?: string; source: string }
 export interface DocPlane { origin: [number, number, number]; normal: [number, number, number]; xAxis: [number, number, number] }
+/** A standalone solid from a scalar run. Size is em height; tolerance is an explicit chord-error bound. */
+export interface TextNode { kind: 'text'; text: string; font: FontSource; size: Dim; height: Dim; tolerance: number; tracking?: Dim; plane?: DocPlane }
+/** Bounded +Z cap text modifier. The kernel derives the current top level from the selected parent face. */
+export interface TextReliefNode { kind: 'text-relief'; parent: BodyRef; faces: [string]; text: string; font: FontSource; size: Dim; at: [Dim, Dim]; depth: Dim; mode: 'emboss' | 'engrave'; tolerance: number; tracking?: Dim }
+
+function textRecord(value: unknown): value is Record<string, unknown> { return !!value && typeof value === 'object' && !Array.isArray(value); }
+function textDimension(value: unknown, parameters: Readonly<Record<string, number>>): number | null {
+  if (typeof value === 'number') return Number.isFinite(value) && Math.abs(value) <= CadPartLimits.length ? value : null;
+  if (!textRecord(value) || Object.keys(value).length !== 1 || typeof value.parameter !== 'string' || !Object.hasOwn(parameters, value.parameter)) return null;
+  const resolved = parameters[value.parameter];
+  return typeof resolved === 'number' && Number.isFinite(resolved) && Math.abs(resolved) <= CadPartLimits.length ? resolved : null;
+}
+function textVector(value: unknown, bound: boolean): value is [number, number, number] {
+  if (!Array.isArray(value) || value.length !== 3) return false;
+  for (let i = 0; i < 3; i++) if (typeof value[i] !== 'number' || !Number.isFinite(value[i]) || bound && Math.abs(value[i]) > CadPartLimits.length) return false;
+  return true;
+}
+function textSourceProblem(input: Record<string, unknown>, label: string): string | null {
+  if (typeof input.text !== 'string' || input.text.length > 512 || !input.text.trim()) return `${label}: a nonempty printable scalar run of at most 256 scalars is required.`;
+  let count = 0;
+  for (const scalar of input.text) {
+    const code = scalar.codePointAt(0)!;
+    if (++count > 256 || code >= 0xd800 && code <= 0xdfff || code < 0x20 || code >= 0x7f && code <= 0x9f) return `${label}: only 1 to 256 printable Unicode scalars are accepted.`;
+  }
+  const sourceProblem = fontSourceError(input.font);
+  if (sourceProblem) return `${label}: ${sourceProblem}`;
+  return null;
+}
+function textSizingProblem(input: Record<string, unknown>, parameters: Readonly<Record<string, number>>, size: number, label: string): string | null {
+  if (typeof input.tolerance !== 'number' || !Number.isFinite(input.tolerance) || input.tolerance < CadNumericPolicy.linearTolerance || input.tolerance > size / 8) return `${label}: tolerance must be at least the CAD linear floor and at most one eighth of the em size.`;
+  if (input.tracking !== undefined && textDimension(input.tracking, parameters) === null) return `${label}: tracking must resolve to a finite native length.`;
+  return null;
+}
+/** Current text-node admission only; no missing fields are filled and no source data is rewritten. */
+export function textNodeProblem(input: unknown, parameters: Readonly<Record<string, number>>): string | null {
+  if (!textRecord(input) || input.kind !== 'text') return 'Text solid: a text recipe object is required.';
+  const allowed = new Set(['kind', 'text', 'font', 'size', 'height', 'tolerance', 'tracking', 'plane', ...NODE_EXTRA_FIELDS]);
+  for (const key of Object.keys(input)) if (!allowed.has(key)) return `Text solid: unknown field ${key}.`;
+  const sourceProblem = textSourceProblem(input, 'Text solid');
+  if (sourceProblem) return sourceProblem;
+  const size = textDimension(input.size, parameters), height = textDimension(input.height, parameters);
+  if (size === null || size <= 0 || height === null || height <= 0) return 'Text solid: size and height must resolve to positive native lengths.';
+  const sizingProblem = textSizingProblem(input, parameters, size, 'Text solid');
+  if (sizingProblem) return sizingProblem;
+  if (input.id !== undefined && (typeof input.id !== 'string' || !/^[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(input.id))) return 'Text solid: the authored feature id is invalid.';
+  if (input.suppressed !== undefined && input.suppressed !== true) return 'Text solid: suppressed, when present, must be true.';
+  if (input.bought !== undefined && typeof input.bought !== 'boolean') return 'Text solid: bought must be boolean.';
+  if (input.plane !== undefined) {
+    const p = input.plane;
+    if (!textRecord(p) || Object.keys(p).sort().join(',') !== 'normal,origin,xAxis' || !textVector(p.origin, true) || !textVector(p.normal, false) || !textVector(p.xAxis, false)) return 'Text solid: plane must contain finite origin, normal and xAxis vectors.';
+    const n = Math.hypot(...p.normal), x = Math.hypot(...p.xAxis);
+    if (!Number.isFinite(n) || !Number.isFinite(x) || n <= 1e-12 || x <= 1e-12) return 'Text solid: plane directions must be nonzero and representable.';
+    const product = p.normal[0] / n * (p.xAxis[0] / x) + p.normal[1] / n * (p.xAxis[1] / x) + p.normal[2] / n * (p.xAxis[2] / x);
+    if (Math.abs(product) > 1e-9) return 'Text solid: plane xAxis must be perpendicular to its normal.';
+  }
+  return null;
+}
+function reliefSignatureProblem(value: unknown): boolean {
+  if (!textRecord(value)) return true;
+  for (const key of Object.keys(value)) if (key !== 'k' && key !== 'p' && key !== 'd' && key !== 's' && key !== 'r' && key !== 'n') return true;
+  if (value.k !== 'plane' || !textVector(value.p, true) || !textVector(value.d, false) || Math.hypot(...value.d) <= 1e-12 || !Number.isFinite(Math.hypot(...value.d))) return true;
+  if (typeof value.s !== 'number' || !Number.isFinite(value.s) || value.s < 0) return true;
+  if (value.r !== undefined && (typeof value.r !== 'number' || !Number.isFinite(value.r) || value.r < 0)) return true;
+  return value.n !== undefined && value.n !== 1;
+}
+/** Structural admission only. An omitted selected-face signature is refused later at native expansion. */
+export function textReliefNodeProblem(input: unknown, parameters: Readonly<Record<string, number>>): string | null {
+  if (!textRecord(input) || input.kind !== 'text-relief') return 'Text relief: a text recipe modifier is required.';
+  const allowed = new Set(['kind', 'parent', 'faces', 'text', 'font', 'size', 'at', 'depth', 'mode', 'tolerance', 'tracking', ...NODE_EXTRA_FIELDS]);
+  for (const key of Object.keys(input)) if (!allowed.has(key)) return `Text relief: unknown field ${key}.`;
+  const sourceProblem = textSourceProblem(input, 'Text relief');
+  if (sourceProblem) return sourceProblem;
+  const size = textDimension(input.size, parameters), depth = textDimension(input.depth, parameters);
+  if (size === null || size <= 0 || depth === null || depth <= 0) return 'Text relief: size and depth must resolve to positive native lengths.';
+  const sizingProblem = textSizingProblem(input, parameters, size, 'Text relief');
+  if (sizingProblem) return sizingProblem;
+  if (!Array.isArray(input.at) || input.at.length !== 2 || textDimension(input.at[0], parameters) === null || textDimension(input.at[1], parameters) === null) return 'Text relief: at must contain two finite native dimensions.';
+  const parent = input.parent;
+  if (!textRecord(parent) || Object.keys(parent).sort().join(',') !== 'node,side' || !Number.isSafeInteger(parent.node) || (parent.node as number) < 0 || typeof parent.side !== 'string' || !/^(solid|negative|positive|instance[123]|part(0|[1-9]\d*))$/.test(parent.side)) return 'Text relief: a valid parent body reference is required.';
+  if (!Array.isArray(input.faces) || input.faces.length !== 1 || typeof input.faces[0] !== 'string' || !input.faces[0].trim() || input.faces[0].includes('+') || input.faces[0].includes('\0')) return 'Text relief: exactly one unmerged persistent face name is required.';
+  if (input.mode !== 'emboss' && input.mode !== 'engrave') return 'Text relief: mode must be emboss or engrave.';
+  if (input.id !== undefined && (typeof input.id !== 'string' || !/^[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(input.id))) return 'Text relief: the authored feature id is invalid.';
+  if (input.suppressed !== undefined && input.suppressed !== true) return 'Text relief: suppressed, when present, must be true.';
+  if (input.bought !== undefined && typeof input.bought !== 'boolean') return 'Text relief: bought must be boolean.';
+  if (input.held !== undefined && typeof input.held !== 'string') return 'Text relief: held must be a string.';
+  if (input.rematched !== undefined) {
+    if (!textRecord(input.rematched)) return 'Text relief: rematched values must be persistent names.';
+    for (const name of Object.values(input.rematched)) if (typeof name !== 'string') return 'Text relief: rematched values must be persistent names.';
+  }
+  if (input.sigs !== undefined) {
+    if (!textRecord(input.sigs)) return 'Text relief: sigs must be a signature record.';
+    for (const signature of Object.values(input.sigs)) if (reliefSignatureProblem(signature)) return 'Text relief: face signatures must be individual finite plane signatures.';
+  }
+  return null;
+}
+/** One rectangle on the original +Y wall's first native quarter; outward height must equal the source radius. */
+export interface CylindricalWrapNode { kind: 'cylindrical-wrap'; parent: BodyRef; faces: [string]; rectangle: { u: [number, number]; v: [number, number] }; height: Dim }
+/** Structural admission; the kernel proves source identity, native margins and fixed radial height. */
+export function cylindricalWrapNodeProblem(input: unknown, parameters: Readonly<Record<string, number>>): string | null {
+  if (!textRecord(input) || input.kind !== 'cylindrical-wrap') return 'Cylindrical wrap: a rectangle modifier is required.';
+  const allowed = new Set(['kind', 'parent', 'faces', 'rectangle', 'height', ...NODE_EXTRA_FIELDS]);
+  for (const key of Object.keys(input)) if (!allowed.has(key)) return `Cylindrical wrap: unknown field ${key}.`;
+  const parent = input.parent;
+  if (!textRecord(parent) || Object.keys(parent).sort().join(',') !== 'node,side' || !Number.isSafeInteger(parent.node) || (parent.node as number) < 0 || parent.side !== 'solid') return 'Cylindrical wrap: one solid parent is required.';
+  if (!Array.isArray(input.faces) || input.faces.length !== 1 || typeof input.faces[0] !== 'string' || !input.faces[0].trim() || input.faces[0].includes('+') || input.faces[0].includes('\0')) return 'Cylindrical wrap: one exact individual face name is required.';
+  const r = input.rectangle;
+  if (!textRecord(r) || Object.keys(r).sort().join(',') !== 'u,v' || !Array.isArray(r.u) || !Array.isArray(r.v) || r.u.length !== 2 || r.v.length !== 2 || [...r.u, ...r.v].some(x => typeof x !== 'number' || !Number.isFinite(x))) return 'Cylindrical wrap: rectangle needs finite native u and v intervals.';
+  if (!(0 < r.u[0] && r.u[0] < r.u[1] && r.u[1] < 0.5 && 0 < r.v[0] && r.v[0] < r.v[1] && r.v[1] < 1)) return 'Cylindrical wrap: require 0 < u0 < u1 < 0.5 and 0 < v0 < v1 < 1.';
+  const h = textDimension(input.height, parameters);
+  if (h === null || h <= 0) return 'Cylindrical wrap: height must resolve to a positive native length equal to the source radius.';
+  if (input.id !== undefined && (typeof input.id !== 'string' || !/^[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(input.id))) return 'Cylindrical wrap: the authored feature id is invalid.';
+  if (input.suppressed !== undefined && input.suppressed !== true) return 'Cylindrical wrap: suppressed, when present, must be true.';
+  if (input.bought !== undefined && typeof input.bought !== 'boolean') return 'Cylindrical wrap: bought must be boolean.';
+  if (input.held !== undefined && typeof input.held !== 'string') return 'Cylindrical wrap: held must be a string.';
+  if (input.rematched !== undefined && (!textRecord(input.rematched) || Object.values(input.rematched).some(x => typeof x !== 'string'))) return 'Cylindrical wrap: rematched values must be persistent names.';
+  if (input.sigs !== undefined) {
+    if (!textRecord(input.sigs)) return 'Cylindrical wrap: sigs must be a signature record.';
+    for (const sig of Object.values(input.sigs)) if (!textRecord(sig) || Object.keys(sig).some(key => !['k', 'p', 'd', 's', 'r', 'n'].includes(key)) || sig.d !== undefined && !textVector(sig.d, false) || sig.k !== 'curved' || !textVector(sig.p, true) || typeof sig.s !== 'number' || !Number.isFinite(sig.s) || sig.s <= 0 || typeof sig.r !== 'number' || !Number.isFinite(sig.r) || sig.r <= 0 || sig.n !== undefined && sig.n !== 1) return 'Cylindrical wrap: an individual curved-face signature is required.';
+  }
+  return null;
+}
+/** Validate text recipes in saved part trees without loading fonts or evaluating geometry. */
+export function textDocumentProblem(input: unknown): string | null {
+  const stack: unknown[] = [input], seen = new Set<object>();
+  while (stack.length) {
+    const value = stack.pop();
+    if (!textRecord(value) || seen.has(value)) continue;
+    seen.add(value);
+    if (seen.size > 2048) return 'Text solid: the part tree exceeds its fixed document budget.';
+    const parameters = textRecord(value.parameters) ? value.parameters as Record<string, number> : {};
+    if (Array.isArray(value.nodes)) for (let i = 0; i < value.nodes.length; i++) {
+      const node = value.nodes[i];
+      if (!textRecord(node) || node.kind !== 'text' && node.kind !== 'text-relief' && node.kind !== 'cylindrical-wrap') continue;
+      const why = node.kind === 'text' ? textNodeProblem(node, parameters) : node.kind === 'cylindrical-wrap' ? cylindricalWrapNodeProblem(node, parameters) : textReliefNodeProblem(node, parameters);
+      if (why) return why;
+      if ((node.kind === 'text-relief' || node.kind === 'cylindrical-wrap') && (node.parent as BodyRef).node >= i) return `${node.kind === 'cylindrical-wrap' ? 'Cylindrical wrap' : 'Text relief'}: the parent must precede its modifier.`;
+    }
+    if (Array.isArray(value.instances)) for (const instance of value.instances) if (textRecord(instance)) stack.push(instance.doc);
+    if (textRecord(value.pendingParts)) for (const pending of Object.values(value.pendingParts)) if (textRecord(pending)) stack.push(pending.doc);
+  }
+  return null;
+}
+/** Validate the public rectangular cut recipe before command, saved-file or evaluation admission. */
+export function rectangularFeaturePatternProblem(node: Record<string, unknown>, nodes: readonly ModelNode[], parameters: Record<string, number>): string | null {
+  const allowed = new Set(['kind', 'parent', 'axis', 'spacing', 'count', 'axis2', 'spacing2', 'count2', ...NODE_EXTRA_FIELDS]);
+  if (Object.keys(node).some(key => !allowed.has(key))) return '[VALUE] Rectangular cut pattern contains an unknown field.';
+  if (!['x', 'y', 'z'].includes(String(node.axis)) || !['x', 'y', 'z'].includes(String(node.axis2)) || node.axis === node.axis2) return '[VALUE] Rectangular cut pattern needs two different global directions X, Y or Z.';
+  const count = node.count, count2 = node.count2;
+  if (typeof count !== 'number' || typeof count2 !== 'number' || !Number.isSafeInteger(count) || !Number.isSafeInteger(count2) || count < 1 || count2 < 1 || count > 64 || count2 > 64 || !Number.isSafeInteger(count * count2) || count * count2 > 64) return '[VALUE] Rectangular cut pattern counts must be whole numbers from 1 to 64, with product at most 64 including the original cut.';
+  for (const key of ['spacing', 'spacing2']) {
+    const dim = node[key], value = typeof dim === 'number' ? dim : textRecord(dim) && typeof dim.parameter === 'string' && Object.keys(dim).length === 1 ? parameters[dim.parameter] : undefined;
+    if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0 || value > 10000) return `[VALUE] Rectangular cut pattern ${key} must be positive and at most 10000.`;
+  }
+  const parent = node.parent;
+  if (!textRecord(parent) || !Number.isInteger(parent.node) || parent.side !== 'solid' || Object.keys(parent).some(key => key !== 'node' && key !== 'side')) return '[BAD_REFERENCE] Rectangular cut pattern needs a solid difference reference.';
+  const source = nodes[parent.node as number];
+  if (source?.kind !== 'difference' || source.suppressed || !leafBodies(nodes).some(r => r.node === parent.node && r.side === 'solid')) return '[BAD_REFERENCE] Rectangular cut pattern needs a current unsuppressed difference body.';
+  return null;
+}
+/** Check saved and nested part recipes without geometry evaluation. */
+export function rectangularPatternDocumentProblem(input: unknown): string | null {
+  const stack: unknown[] = [input], seen = new Set<object>();
+  while (stack.length) {
+    const value = stack.pop();
+    if (!textRecord(value) || seen.has(value)) continue;
+    seen.add(value);
+    if (seen.size > 2048) return '[VALUE] Rectangular cut pattern part tree exceeds the document budget.';
+    const parameters = textRecord(value.parameters) ? value.parameters as Record<string, number> : {};
+    if (Array.isArray(value.nodes)) for (let i = 0; i < value.nodes.length; i++) {
+      const node = value.nodes[i];
+      if (!textRecord(node) || node.kind !== 'rectangular-feature-pattern' || node.suppressed === true) continue;
+      const why = rectangularFeaturePatternProblem(node, value.nodes.slice(0, i) as ModelNode[], parameters);
+      if (why) return why;
+    }
+    if (Array.isArray(value.instances)) for (const instance of value.instances) if (textRecord(instance)) stack.push(instance.doc);
+    if (textRecord(value.pendingParts)) for (const pending of Object.values(value.pendingParts)) if (textRecord(pending)) stack.push(pending.doc);
+  }
+  return null;
+}
 /** A sheet's K (R12.4, D120): one K-factor, or a bend table (the shop's, loaded from a file) giving each bend's. */
 export type SheetK = { kFactor: number; bendTable?: undefined } | { bendTable: BendTable; kFactor?: undefined };
 export type LoopSegment = { kind: 'line'; start: [Dim, Dim] } | { kind: 'arc'; start: [Dim, Dim]; center: [Dim, Dim]; direction: 'ccw' | 'cw' };
@@ -133,7 +315,7 @@ export type NodeExtras = { suppressed?: true; id?: string; rematched?: Record<st
  */
 export const NODE_EXTRA_FIELDS = ['suppressed', 'id', 'rematched', 'sigs', 'held', 'bought'] as const satisfies readonly (keyof NodeExtras)[];
 export const _nodeFieldsComplete: [Exclude<keyof NodeExtras, typeof NODE_EXTRA_FIELDS[number]>] extends [never] ? true : never = true;
-type ModelNodeBase = SketchNode
+type ModelNodeBase = SketchNode | TextNode | TextReliefNode | CylindricalWrapNode
   /** `draft` (degrees) leans the walls into the material away from the sketch plane. */
   | { kind: 'extrude'; sketch: number; height: Dim; from?: Dim; draft?: number; made?: Made }
   /** The sketch turned about its X or Y axis (through `origin`, default the sketch origin) towards +Z. */
@@ -147,6 +329,9 @@ type ModelNodeBase = SketchNode
   | { kind: 'linear-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
   /** Repeat a current difference's cut; spacing keeps the stored dimension reference. */
   | { kind: 'linear-feature-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number }
+  | { kind: 'fill-feature-pattern'; parent: BodyRef; region: FillFeaturePatternRegion; anchor: readonly [number, number]; spacing: Dim; count: number; spacing2: Dim; count2: number }
+  | { kind: 'curve-feature-pattern'; parent: BodyRef; path: CurveFeaturePatternPath; spacing: Dim; count: number }
+  | { kind: 'rectangular-feature-pattern'; parent: BodyRef; axis: Axis; spacing: Dim; count: number; axis2: Axis; spacing2: Dim; count2: number }
   /** About `axis` through `pivot` (default the origin). */
   | { kind: 'circular-pattern'; parent: BodyRef; axis: Axis; angle: number; count: number; pivot?: [Dim, Dim, Dim] }
   | { kind: 'union'; left: BodyRef; right: BodyRef; made?: Made }
@@ -686,7 +871,7 @@ export function parentsOf(node: ModelNode): number[] {
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return [node.sketch];
     case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
     case 'library': return node.addTo ? [node.addTo.node] : [];
-    case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'cam': case 'sprocket': case 'pulley': case 'belt': case 'coupling': case 'connector-body': case 'gusset': case 'end-cap': case 'shaft': case 'key': case 'retaining-ring': case 'pin': case 'bearing': case 'oring': case 'rack': case 'sheet-contour': case 'skeleton': return [];
+    case 'text': case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'cam': case 'sprocket': case 'pulley': case 'belt': case 'coupling': case 'connector-body': case 'gusset': case 'end-cap': case 'shaft': case 'key': case 'retaining-ring': case 'pin': case 'bearing': case 'oring': case 'rack': case 'sheet-contour': case 'skeleton': return [];
     case 'frame-member': return node.section.kind === 'sketch' ? [node.section.sketch] : [];
     case 'frame': return [...(node.follows && followsIndex(node.follows) !== null ? [followsIndex(node.follows)!] : []), ...[node.section, ...(node.overrides ?? []).map(o => o.section)].flatMap(sec => sec?.kind === 'sketch' ? [sec.sketch] : [])];
     case 'union': case 'intersect': return [node.left.node, node.right.node];
@@ -703,7 +888,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   nodes.forEach(node => {
     // (A library part added to a body consumes it, as a Boolean's first body.)
     if (node.kind === 'library' && node.addTo) { consumed.add(node.addTo.side === 'solid' ? String(node.addTo.node) : `${node.addTo.node}_${node.addTo.side}`); return; }
-    if (node.kind === 'sketch' || node.kind === 'skeleton' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'sprocket' || node.kind === 'pulley' || node.kind === 'belt' || node.kind === 'coupling' || node.kind === 'connector-body' || node.kind === 'gusset' || node.kind === 'end-cap' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
+    if (node.kind === 'sketch' || node.kind === 'skeleton' || node.kind === 'text' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'sprocket' || node.kind === 'pulley' || node.kind === 'belt' || node.kind === 'coupling' || node.kind === 'connector-body' || node.kind === 'gusset' || node.kind === 'end-cap' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -813,6 +998,9 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
   const n = (v: Dim) => typeof v === 'number' ? fmt(v) : v.parameter;
   if ('made' in node && node.made) return shapeLabel(node.made);
   switch (node.kind) {
+    case 'text': return `Text · ${node.text}`;
+    case 'cylindrical-wrap': return 'Cylindrical wrap';
+    case 'text-relief': return `${node.mode === 'emboss' ? 'Text emboss' : 'Text engrave'} · ${node.text}`;
     case 'sketch': return `Sketch · ${node.profile === 'loop' ? 'outline' : node.profile}`;
     case 'extrude': {
       const s = nodes[node.sketch];
@@ -847,6 +1035,9 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
     case 'scale': return `Scale ×${node.factor}`;
     case 'linear-pattern': return `Pattern ×${node.count}`;
     case 'linear-feature-pattern': return `Cut pattern ×${node.count}`;
+    case 'fill-feature-pattern': return `Fill cut pattern ${node.count} × ${node.count2}`;
+    case 'curve-feature-pattern': return `Path cut pattern ×${node.count}`;
+    case 'rectangular-feature-pattern': return `Cut pattern ${node.count} × ${node.count2}`;
     case 'circular-pattern': return `Circular ×${node.count}`;
     case 'split': return node.normal ? `Split ${planeText(node.normal)} = ${n(node.at)}` : `Split ${node.axis.toUpperCase()}=${n(node.at)}`;
     case 'separate': return 'Separate pieces';

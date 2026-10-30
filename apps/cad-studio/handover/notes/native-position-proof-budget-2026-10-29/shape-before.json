@@ -1,0 +1,17 @@
+{
+ "native-bound-pad": {
+  "valid": true,
+  "bodies": 1,
+  "faces": 9,
+  "edges": 18,
+  "vertices": 12,
+  "volume": 11262.754099122449,
+  "centroid": [
+   1.7455122902888627,
+   1.7455122902888827,
+   10.000000000000002
+  ],
+  "names": "native_pad.outer.c0,native_pad.side.c0.r0.e0,native_pad.side.c0.r0.e1,native_pad.side.c0.r0.e2,native_pad.side.c0.r0.e3,post.bottom,post.side0#1,post.side0#2,post.top|native_pad.base.c0.r0.e0,native_pad.base.c0.r0.e1,native_pad.base.c0.r0.e2,native_pad.base.c0.r0.e3,native_pad.outer.c0.r0.e0,native_pad.outer.c0.r0.e1,native_pad.outer.c0.r0.e2,native_pad.outer.c0.r0.e3,native_pad.radial.c0.r0.v0,native_pad.radial.c0.r0.v1,native_pad.radial.c0.r0.v2,native_pad.radial.c0.r0.v3,post.bottom|post.side0#1,post.bottom|post.side0#2,post.side0#1|post.side0#2#1,post.side0#1|post.side0#2#2,post.side0#1|post.top,post.side0#2|post.top",
+  "ms": 100
+ }
+}

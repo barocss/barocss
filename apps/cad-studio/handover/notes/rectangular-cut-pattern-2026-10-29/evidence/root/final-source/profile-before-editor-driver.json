@@ -1,0 +1,138 @@
+{
+  "sourceCommit": "c99cb121c42da75005d31cacacaa088f4b18a122",
+  "scope": "Changed implementation and selected test/driver files only; not full dependency graph",
+  "files": [
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/chat.test.ts",
+      "relative": "apps/cad-studio/test/chat.test.ts",
+      "bytes": 72286,
+      "sha256": "61b3445fdcc911ae642df61ceb98a65437605907fcdf3382b74ed1738d58e19e"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/apps/cad-studio/test/rectangular-cut-pattern-browser.mjs",
+      "relative": "apps/cad-studio/test/rectangular-cut-pattern-browser.mjs",
+      "bytes": 15416,
+      "sha256": "4aff7210728e9e64a989fab62196cf5cee01f284725b0481b8655026db77e567"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/README.md",
+      "relative": "packages/barocss-cad-model/README.md",
+      "bytes": 5577,
+      "sha256": "d7c3c38cec6519e5ebf1cfba36a5c61777a74468cda9f1c085a55de08516daee"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/src/api/index.ts",
+      "relative": "packages/barocss-cad-model/src/api/index.ts",
+      "bytes": 1569,
+      "sha256": "1e8ecaabd0f98a744bacce4f95284f9840dac5fb485859de1f5e96ea67bd36ea"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/src/api/studio.ts",
+      "relative": "packages/barocss-cad-model/src/api/studio.ts",
+      "bytes": 8240,
+      "sha256": "654139233bcb5e68eff2c80953e8343c125aa6975164b8f1be06a57d0eff15a5"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/src/app/commands.ts",
+      "relative": "packages/barocss-cad-model/src/app/commands.ts",
+      "bytes": 81540,
+      "sha256": "ca73197823b89741e5497dbea2f34b4c73f209ae20e5b4feadf798641a878a65"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/src/app/editFields.ts",
+      "relative": "packages/barocss-cad-model/src/app/editFields.ts",
+      "bytes": 58622,
+      "sha256": "fd09649346e27c6fdff328824d58668351c5bd3ed608bb14d221f7ecb32cbacd"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/src/chat/features.ts",
+      "relative": "packages/barocss-cad-model/src/chat/features.ts",
+      "bytes": 50484,
+      "sha256": "01138bd2883b4a679ec177b0d23d51334fb83403d0135a3c3ea437b9758f0da0"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/src/chat/part/features.ts",
+      "relative": "packages/barocss-cad-model/src/chat/part/features.ts",
+      "bytes": 60472,
+      "sha256": "f0dcd301b7d1d42dca3ba9febba7e6872c3f95ac6d4702a229fd9a28c4e9598a"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/src/engine/doc.ts",
+      "relative": "packages/barocss-cad-model/src/engine/doc.ts",
+      "bytes": 109739,
+      "sha256": "573634ddce98abc8e2d7442aa709a688e8968c8bbd466a95445567f797816d0e"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/src/engine/migrate.ts",
+      "relative": "packages/barocss-cad-model/src/engine/migrate.ts",
+      "bytes": 15718,
+      "sha256": "212bcfcb326781b53d9f6480b47f623590e460e0350d41b230d2a46ea7aed94f"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/src/engine/part.ts",
+      "relative": "packages/barocss-cad-model/src/engine/part.ts",
+      "bytes": 75701,
+      "sha256": "3a32f6ad75662cd5e282a78789b97ca373a28de9a66b507f5097f7cac979b639"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/test/api-rectangular-feature-pattern.test.ts",
+      "relative": "packages/barocss-cad-model/test/api-rectangular-feature-pattern.test.ts",
+      "bytes": 11975,
+      "sha256": "80e76f724fc8c78b5d58b893ae12159bb6998f047b0c09e5f99e844cc4738ede"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad-model/test/rectangular-feature-pattern-command.test.ts",
+      "relative": "packages/barocss-cad-model/test/rectangular-feature-pattern-command.test.ts",
+      "bytes": 5666,
+      "sha256": "2ab9032656ef0da5062abd6a9d6a2223da35e0bbe461b0c0ed68a2dcfc022834"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/src/api/index.ts",
+      "relative": "packages/barocss-cad/src/api/index.ts",
+      "bytes": 1723,
+      "sha256": "a5cc7bb23964eb281526af185320d88acd4963b7e93eaf2ff5b3e7d0fc8571c2"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/src/api/kernel.ts",
+      "relative": "packages/barocss-cad/src/api/kernel.ts",
+      "bytes": 13529,
+      "sha256": "cf8d5a45a0a3b3eacac9bd617b656d4ff037ecefa6e2c7408c33a94903541b7f"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/src/api/part.ts",
+      "relative": "packages/barocss-cad/src/api/part.ts",
+      "bytes": 19709,
+      "sha256": "9b57f113729e271c1a114f75b645296fa81683e4eedf9ec5bc6c0235ec86528a"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/src/api/spec.ts",
+      "relative": "packages/barocss-cad/src/api/spec.ts",
+      "bytes": 18795,
+      "sha256": "eb98bc7f833dc267d697d8711bd534ac7abfe810cb7938e7c9d513681818398e"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/src/brep/brep-transform.ts",
+      "relative": "packages/barocss-cad/src/brep/brep-transform.ts",
+      "bytes": 3416,
+      "sha256": "c3ce31f53397f5c8d5c86c7ff65581590f6266932046ce8d93101542eec78414"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/src/features/prismatic-solid.ts",
+      "relative": "packages/barocss-cad/src/features/prismatic-solid.ts",
+      "bytes": 32120,
+      "sha256": "712e2f69536b677cc04e30439fb52923bef45359dc511fcb92957f38dc3ed2d4"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/src/part/part-model.ts",
+      "relative": "packages/barocss-cad/src/part/part-model.ts",
+      "bytes": 426710,
+      "sha256": "0163716112fab5d4bea1cc0f0edb0c4f3c46ede1f8eb06db5913cda61033b56c"
+    },
+    {
+      "path": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b/packages/barocss-cad/test/rectangular-cut-pattern.test.mjs",
+      "relative": "packages/barocss-cad/test/rectangular-cut-pattern.test.mjs",
+      "bytes": 12825,
+      "sha256": "62bb5c3ad65a2db85392902cc21fc07d2802c847e521fbfda1776c26905fc1d7"
+    }
+  ]
+}

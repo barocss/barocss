@@ -30,6 +30,19 @@ export class SectionRationalContext {
     if (d === 0n) this.fail('REPRESENTABILITY', 'An exact rational denominator is zero');
     if (d < 0n) { n = -n; d = -d; }
     if (n === 0n) return { n: 0n, d: 1n };
+    this.work(); if (d === 1n) return { n, d };
+    this.work(); const below = d - 1n;
+    this.work(); const otherBits = d & below;
+    this.work(); if (otherBits === 0n) {
+      // A positive power-of-two denominator has no common odd factor.
+      this.work(); const magnitude = n < 0n ? -n : n;
+      this.work(); const binary = magnitude.toString(2);
+      this.work(); const exponent = d.toString(2).length - 1;
+      this.work(); const trailing = binary.length - binary.lastIndexOf('1') - 1;
+      this.work(); const cancelled = BigInt(Math.min(trailing, exponent));
+      this.work(); const numerator = this.sized(n >> cancelled);
+      this.work(); return { n: numerator, d: this.sized(d >> cancelled) };
+    }
     const divisor = this.gcd(n, d); return { n: n / divisor, d: d / divisor };
   }
   integer(value: number): SectionRational { this.work(); return this.rat(BigInt(value)); }
@@ -70,10 +83,36 @@ export class SectionRationalContext {
   abs(a: SectionRational): SectionRational { this.work(); return a.n < 0n ? this.neg(a) : a; }
   max(a: SectionRational, b: SectionRational): SectionRational { this.work(); return this.compare(a, b) >= 0 ? a : b; }
   sum(values: SectionRational[]): SectionRational { this.work(); return values.reduce((a, b) => this.add(a, b), this.rat(0n)); }
+  /** A Number estimate only proposes a code; exact neighbor comparisons certify the floor. */
+  private candidateFloorBits(value: SectionRational): bigint | null {
+    this.work(); const numerator = Number(value.n);
+    this.work(); const denominator = Number(value.d);
+    this.work(); const estimate = numerator / denominator;
+    this.work(); if (!Number.isFinite(numerator) || !Number.isFinite(denominator) || !Number.isFinite(estimate)) return null;
+    this.work(); this.storage.setFloat64(0, estimate, false);
+    this.work(); let bits = this.storage.getBigUint64(0, false);
+    for (let i = 0; i < 3; i++) {
+      this.work();
+      const comparison = this.compare(this.from(this.atBits(bits)), value);
+      if (comparison === 0) return bits;
+      if (comparison > 0) {
+        this.work(); if (bits === 0n) return null;
+        this.work(); bits--;
+      } else {
+        this.work(); if (bits === this.maximumFiniteBits) return bits;
+        this.work(); const next = bits + 1n;
+        if (this.compare(this.from(this.atBits(next)), value) > 0) return bits;
+        bits = next;
+      }
+    }
+    return null;
+  }
   /** Search positive finite float codes, which have the same order as their values. */
   private floorBits(value: SectionRational): bigint {
     this.work(); this.floatConversions++;
     if (this.compare(value, this.from(this.atBits(this.maximumFiniteBits))) > 0) this.fail('REPRESENTABILITY', 'Exact value exceeds the finite binary64 range');
+    const candidate = this.candidateFloorBits(value);
+    if (candidate !== null) return candidate;
     let lower = 0n, upper = this.maximumFiniteBits, steps = 0;
     while (lower < upper) {
       this.work(); if (++steps > 64) this.fail('BUDGET', 'Exact float search exceeded64 iterations'); this.floatSearchSteps++;

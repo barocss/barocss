@@ -1,0 +1,53 @@
+{
+  "cwd": "/Users/user/github/barocss/barocss/.claude/worktrees/barocss-cad-gpu-viewer-resume-d4f83b",
+  "sources": {
+    "packages/barocss-cad-model/src/engine/curveFeaturePattern.ts": "480928d0f432c74b4a0e537ae576a852491ffc220597f7690da1a109fdb8b5bc",
+    "packages/barocss-cad-model/src/engine/wireDoc.ts": "dc9b7520cca11fe84ab9e875580bc2fdddb4cbbd07b548118e341a56a5581755",
+    "packages/barocss-cad-model/src/engine/doc.ts": "af161de21dd1433e19269724d40df07442296dfbab672fb574a90fd90100d3fd",
+    "packages/barocss-cad-model/src/engine/part.ts": "172fd573abd0cc17b7dbbab4ec333128c092bd6c4ffd47e0ca0a3f6da7f6c00c",
+    "packages/barocss-cad-model/src/engine/migrate.ts": "5e5865f56c8f08acc69da5a8231e15f9c3df0edba9bdd78953e0e4d897e3ef98",
+    "packages/barocss-cad-model/src/app/commands.ts": "957fbf527c9c86af122069a37e05604062b249b5003a4b69542c5f18c6093a28",
+    "packages/barocss-cad-model/src/app/editFields.ts": "20ed6f229669e399a73aa4c68e06edfea6c9229eb844a41508b131d3817d328c",
+    "packages/barocss-cad-model/src/api/index.ts": "e149403f2d647efeba7dd3376cf8a0c356faed94d858215ac4a853f398bdef31",
+    "packages/barocss-cad-model/src/api/studio.ts": "815f8c8143705e67b93de880bdf88629ce037a0eeaec84f874b38f9882b95f65",
+    "packages/barocss-cad-model/src/chat/features.ts": "f293e1685b1edb86b0b184f53377efda2e8c59706f9bd2387a37282d01d66983",
+    "packages/barocss-cad-model/src/chat/part/features.ts": "b778e6787a8559d2aee6556c47d4a86925e7bb33c6db83efdcf82f4e1c0b0f90",
+    "packages/barocss-cad-model/test/api-curve-feature-pattern.test.ts": "10e5665481fe0e8646787e49f54ce5d64246517311e635910641cf98009b7996",
+    "packages/barocss-cad-model/README.md": "a48e9a6876d47a2b75a339115c6cd67a0c530c60d6e83939041d2bd76e63c9ca",
+    "apps/cad-studio/test/chat.test.ts": "8e7dd671b9b8db45b5e94eff53328a1b4fc91c6f7b5a7749a4942fde371df7e0"
+  },
+  "checks": {
+    "focused": {
+      "pass": 36,
+      "fail": 0,
+      "log": "/tmp/d334-model/focused.log"
+    },
+    "modelTypeCheck": {
+      "status": "PASS",
+      "log": "/tmp/d334-model/type-check.log"
+    },
+    "studioChat": {
+      "pass": 23,
+      "fail": 0,
+      "log": "/tmp/d334-model/chat.log"
+    },
+    "finalPositiveEdits": {
+      "pass": 5,
+      "fail": 0,
+      "log": "/tmp/d334-model/positive-edits.log"
+    }
+  },
+  "commands": [
+    "TEST_CONCURRENCY=1 pnpm --filter @barocss/cad-model test api-curve-feature-pattern linear-feature-pattern rectangular-feature-pattern parameters wire-doc wire-sender-disposal container",
+    "pnpm --filter @barocss/cad-model type-check",
+    "TEST_CONCURRENCY=1 pnpm --filter @barocss/cad-studio-app test chat.test",
+    "TEST_CONCURRENCY=1 pnpm --filter @barocss/cad-model test api-curve-feature-pattern"
+  ],
+  "node": "22.19.0",
+  "gate": "acquire heavy 1800; release after every command",
+  "notRun": [
+    "browser",
+    "commit",
+    "push"
+  ]
+}

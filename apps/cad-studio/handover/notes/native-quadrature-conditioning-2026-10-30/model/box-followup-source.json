@@ -1,0 +1,9 @@
+{
+  "sourceHashes": {
+    "packages/barocss-cad-model/test/native-quadrature-step.test.ts": "d40272434fcd89d614387937f07a6fda69bb5255d7e7a5235fdecf1bc9352af0",
+    "apps/cad-studio/test/native-quadrature-step-browser.mjs": "f2d24cc98e7832ae2cbb7b0ffd3674ca0688acbbb30ecc8905dd295ab7b0a038",
+    "packages/barocss-cad/src/brep/brep-mass-quadrature.ts": "696ec924bc4f1d7b74862533676af5e4c0b8a2a284a8a249ea7007dade4c8ed5"
+  },
+  "scope": "Only two new verification files changed. Metadata box is a bounded enclosure; exact native/import cap levels remain. Core and benchmark unchanged.",
+  "priorRuntimeGates": "Reused unchanged production full/API/Studio build; new focused2/Modeltypes/lint rerun PASS."
+}
