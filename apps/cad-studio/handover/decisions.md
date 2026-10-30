@@ -17268,3 +17268,43 @@ Source and fixtures: `packages/barocss-cad-model/src/drawing/tolerance.ts`, `tes
 
 **Checks.** cad-model affected 63/63, tsc and eslint PASS after merging `168c72a0b`; actual Studio D331 driver rerun PASS (errors 0). NOT_RUN: full suites, remote CI. Model split: diagnosis Opus sub-agent, fix Sonnet sub-agent, review and verification coordinator (Opus). Issues: none completed.
 
+
+## D364 — A fillet or chamfer over 64 edges is refused by its own code (2026-10-30)
+
+Qualify `1b44bd515`. [Note](notes/kernel-refactor-3b-2026-10-30/README.md#fillet-over-64-edges-d364-and--latest-schema-only-d365). Found by the sketch lane: a whole ellipse-extrude rim fillet showed "This chamfer has no edges".
+
+Decision:
+- **Kernel.** A finish whose edge list is longer than `CadPartLimits.edges` is refused with `[FINISH_EDGES_LIMIT] a <kind> takes at most 64 edges: this one lists <n>`. The code is registered in `CAD_REFUSAL_CODES` and `CAD_ERROR_CODES`. The empty or malformed list keeps its old message.
+- **cad-model.** errors.ts maps the code to "Too many edges in one finish", with a hint to split the edges between two finishes. The new row is a `code` row, the D362 rule for new refusals.
+
+Checks:
+- Golden: the only differences are the new code's messages.
+- perf-bench: 34/34 SAME.
+- Kernel suite: 1847 pass, 0 fail, plus the new test.
+- cad-model: 2175/2175 pass, including the new R7 test.
+- refusals table and inventory: regenerated.
+
+Issues: none. The ellipse rim itself still exceeds the limit. Raising the limit or splitting the finish is the sketch lane's call.
+
+## D365 — Model files are read at the latest schema only; refactor batch 3b step ④ (2026-10-30)
+
+Qualify `50a3a1337` and `c445c84ad`. [Note](notes/kernel-refactor-3b-2026-10-30/README.md#fillet-over-64-edges-d364-and--latest-schema-only-d365). Owner, 2026-10-30: "아직 출시 전이라 항상 마지막 스키마를 봐도 좋아".
+
+Decision:
+- **Read.** `readStudioDoc` reads schema 3 (ordinary) and 4 (route bundle).
+- **Refused.** A missing schema or schema 0–2 is refused with "This model was saved in an older form (schema N); this cad-studio reads schemas 3 and 4."
+- **Removed.** The schema-2 index-to-id body-key migration (`indexKeysToIds`), the schema-1 stable-id note and the "saved before schema 3" note.
+- **Fixtures.** Old documents are brought to schema 3. `conformance/a1/schema1-read` is deleted, since it tested the removed path.
+
+Checks:
+- cad-model suite on the merged tree: 2175/2175. One case was deleted and two tests were renamed for the new behaviour.
+- Studio `storage` and `instance-pose`: 15/15.
+- Types: PASS.
+- check-docs: PASS.
+- NOT_RUN: the studio browser flow step that now expects the refusal, and the bench and probe scripts.
+
+Issues: none completed.
+
+Follow-up: doc.ts's `schema: 1 | 2 | 3 | 4` type, held by the sketch lane.
+
+3b is complete with ①–④ (D360, D361, D362, D365).
