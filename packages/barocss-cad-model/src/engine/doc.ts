@@ -174,6 +174,44 @@ export function textReliefNodeProblem(input: unknown, parameters: Readonly<Recor
   }
   return null;
 }
+/** One side of a band surface: a body and its kernel edge names, in pick order. */
+export interface BandSide { parent: BodyRef; edges: string[] }
+export const BAND_MAX_EDGES = 32;
+/**
+ * Structural admission of a band-surface node (B2): known fields, two earlier visible bodies, bounded edge-name lists with
+ * no name on both sides. The kernel proves the chains. Thickening is refused until exact thicken (#2258).
+ */
+export function bandSurfaceNodeProblem(input: unknown, nodes: readonly ModelNode[], parameters: Readonly<Record<string, number>>): string | null {
+  void parameters;
+  if (!textRecord(input) || input.kind !== 'band-surface') return 'Band surface: a band-surface node is required.';
+  if (input.thickness !== undefined || input.side !== undefined) return 'Band surface: band thickening waits on exact thicken (#2258).';
+  const allowed = new Set(['kind', 'version', 'a', 'b', 'flip', ...NODE_EXTRA_FIELDS]);
+  for (const key of Object.keys(input)) if (!allowed.has(key)) return `Band surface: unknown field ${key}.`;
+  if (input.version !== 1) return 'Band surface: version must be 1.';
+  if (input.flip !== undefined && input.flip !== true) return 'Band surface: flip, when present, must be true.';
+  const leaves = leafBodies(nodes), seen = new Set<string>();
+  for (const key of ['a', 'b'] as const) {
+    const side = input[key], label = `side ${key.toUpperCase()}`;
+    if (!textRecord(side) || Object.keys(side).sort().join(',') !== 'edges,parent') return `Band surface: ${label} needs a parent body and edges.`;
+    const parent = side.parent;
+    if (!textRecord(parent) || Object.keys(parent).sort().join(',') !== 'node,side' || !Number.isSafeInteger(parent.node) || (parent.node as number) < 0 || typeof parent.side !== 'string') return `Band surface: ${label} needs a body reference.`;
+    if (!leaves.some(l => l.node === parent.node && l.side === parent.side)) return `Band surface: ${label} is not a visible body (feature ${String(parent.node)}).`;
+    const edges = side.edges;
+    if (!Array.isArray(edges) || edges.length < 1 || edges.length > BAND_MAX_EDGES) return `Band surface: ${label} needs 1 to ${BAND_MAX_EDGES} edge names.`;
+    for (const name of edges) {
+      if (typeof name !== 'string' || !name.trim() || name.includes('+') || name.includes('\0')) return `Band surface: ${label} needs exact individual edge names.`;
+      if (seen.has(name)) return `Band surface: the edge "${name}" is named twice (a name may stand on one side only, once).`;
+      seen.add(name);
+    }
+  }
+  if (input.id !== undefined && (typeof input.id !== 'string' || !/^[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(input.id))) return 'Band surface: the authored feature id is invalid.';
+  if (input.suppressed !== undefined && input.suppressed !== true) return 'Band surface: suppressed, when present, must be true.';
+  if (input.bought !== undefined && typeof input.bought !== 'boolean') return 'Band surface: bought must be boolean.';
+  if (input.held !== undefined && typeof input.held !== 'string') return 'Band surface: held must be a string.';
+  if (input.rematched !== undefined && (!textRecord(input.rematched) || Object.values(input.rematched).some(x => typeof x !== 'string'))) return 'Band surface: rematched values must be persistent names.';
+  if (input.sigs !== undefined && !textRecord(input.sigs)) return 'Band surface: sigs must be a signature record.';
+  return null;
+}
 /** One rectangle on the original +Y wall's first native quarter; outward height must equal the source radius. */
 export interface CylindricalWrapNode { kind: 'cylindrical-wrap'; parent: BodyRef; faces: [string]; rectangle: { u: [number, number]; v: [number, number] }; height: Dim }
 /** Structural admission; the kernel proves source identity, native margins and fixed radial height. */
@@ -211,6 +249,14 @@ export function textDocumentProblem(input: unknown): string | null {
     const parameters = textRecord(value.parameters) ? value.parameters as Record<string, number> : {};
     if (Array.isArray(value.nodes)) for (let i = 0; i < value.nodes.length; i++) {
       const node = value.nodes[i];
+      if (textRecord(node) && node.kind === 'band-surface') {
+        // (Structure only here — the saved document's own bodies are not yet known; its parents must precede it.)
+        const { a, b, thickness, side } = node as Record<string, unknown>;
+        if (thickness !== undefined || side !== undefined) return 'Band surface: band thickening waits on exact thicken (#2258).';
+        for (const s of [a, b]) if (!textRecord(s) || !textRecord(s.parent) || !Number.isSafeInteger(s.parent.node) || (s.parent.node as number) >= i || (s.parent.node as number) < 0 || !Array.isArray(s.edges) || s.edges.length < 1 || s.edges.length > BAND_MAX_EDGES || s.edges.some(e => typeof e !== 'string')) return 'Band surface: both sides need a preceding parent body and 1 to 32 edge names.';
+        if (node.version !== 1) return 'Band surface: version must be 1.';
+        continue;
+      }
       if (!textRecord(node) || node.kind !== 'text' && node.kind !== 'text-relief' && node.kind !== 'cylindrical-wrap') continue;
       const why = node.kind === 'text' ? textNodeProblem(node, parameters) : node.kind === 'cylindrical-wrap' ? cylindricalWrapNodeProblem(node, parameters) : textReliefNodeProblem(node, parameters);
       if (why) return why;
@@ -417,6 +463,13 @@ type ModelNodeBase = SketchNode | TextNode | TextReliefNode | CylindricalWrapNod
   | { kind: 'frame'; follows?: FrameFollows; points: [Dim, Dim, Dim][]; segments: ModelFrameSegment[]; bends?: ModelFrameBend[]; section: MemberSection; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; mirror?: boolean; up?: [number, number, number]; overrides?: FrameOverride[]; corners?: FrameCorners; trims?: FrameTrim[]; estimates?: string[] }
   | { kind: 'frame-member'; section: MemberSection; start: [Dim, Dim, Dim]; end: [Dim, Dim, Dim]; anchor?: FrameAnchor; offset?: [Dim, Dim]; roll?: number; up?: [number, number, number]; estimates?: string[] }
   /** An open surface (copied from a direct surface `name`) thickened into a solid along its normal: faceted. */
+  /**
+   * An associative ruled band surface (B2): an exact sheet joining the kernel-named edge chain on body `a.parent` to the one
+   * on `b.parent`. Both bodies stay bodies (referenced, not consumed). Edge names are the kernel's, in pick order, at
+   * most 32 per side; a name may stand on one side only. Its names are strict: the stored signatures only ever refuse
+   * or hold, never retarget (references.ts). Thickening waits on exact thicken (#2258), so none is stored.
+   */
+  | { kind: 'band-surface'; version: 1; a: BandSide; b: BandSide; flip?: true }
   | { kind: 'thicken'; name: string; surface: { degreeU: number; degreeV: number; knotsU: number[]; knotsV: number[]; controlPoints: [number, number, number][][]; weights: number[][] }; thickness: Dim; side?: 'normal' | 'reverse' | 'both' }
   /**
    * An involute spur gear (R6a, issue #2167, D53–D54): module, teeth and face width, standing on z `from` about
@@ -884,6 +937,7 @@ export function parentsOf(node: ModelNode): number[] {
     case 'loft': return [...node.sections.map(s => s.sketch), ...(node.from ?? [])];
     case 'library': return node.addTo ? [node.addTo.node] : [];
     case 'text': case 'import': case 'mesh': case 'thread': case 'thicken': case 'sew': case 'subd': case 'gear': case 'internal-gear': case 'bevel-gear': case 'worm': case 'worm-wheel': case 'spring': case 'cam': case 'sprocket': case 'pulley': case 'belt': case 'coupling': case 'connector-body': case 'gusset': case 'end-cap': case 'shaft': case 'key': case 'retaining-ring': case 'pin': case 'bearing': case 'oring': case 'rack': case 'sheet-contour': case 'skeleton': return [];
+    case 'band-surface': return node.a.parent.node === node.b.parent.node ? [node.a.parent.node] : [node.a.parent.node, node.b.parent.node];
     case 'frame-member': return node.section.kind === 'sketch' ? [node.section.sketch] : [];
     case 'frame': return [...(node.follows && followsIndex(node.follows) !== null ? [followsIndex(node.follows)!] : []), ...[node.section, ...(node.overrides ?? []).map(o => o.section)].flatMap(sec => sec?.kind === 'sketch' ? [sec.sketch] : [])];
     case 'union': case 'intersect': return [node.left.node, node.right.node];
@@ -900,7 +954,7 @@ export function leafBodies(nodes: readonly ModelNode[]): BodyRef[] {
   nodes.forEach(node => {
     // (A library part added to a body consumes it, as a Boolean's first body.)
     if (node.kind === 'library' && node.addTo) { consumed.add(node.addTo.side === 'solid' ? String(node.addTo.node) : `${node.addTo.node}_${node.addTo.side}`); return; }
-    if (node.kind === 'sketch' || node.kind === 'skeleton' || node.kind === 'text' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'sprocket' || node.kind === 'pulley' || node.kind === 'belt' || node.kind === 'coupling' || node.kind === 'connector-body' || node.kind === 'gusset' || node.kind === 'end-cap' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
+    if (node.kind === 'sketch' || node.kind === 'skeleton' || node.kind === 'text' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'sprocket' || node.kind === 'pulley' || node.kind === 'belt' || node.kind === 'coupling' || node.kind === 'connector-body' || node.kind === 'gusset' || node.kind === 'end-cap' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'band-surface' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame') return;
     const refs = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : [node.parent];
     refs.forEach(r => consumed.add(r.side === 'solid' ? String(r.node) : `${r.node}_${r.side}`));
   });
@@ -1015,6 +1069,7 @@ export function featureLabel(node: ModelNode, index: number, nodes: readonly Mod
   switch (node.kind) {
     case 'text': return `Text · ${node.text}`;
     case 'cylindrical-wrap': return 'Cylindrical wrap';
+    case 'band-surface': return 'Band surface';
     case 'text-relief': return `${node.mode === 'emboss' ? 'Text emboss' : 'Text engrave'} · ${node.text}`;
     case 'sketch': return `Sketch · ${node.profile === 'loop' ? 'outline' : node.profile}`;
     case 'extrude': {

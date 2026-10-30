@@ -15,6 +15,12 @@
 | `[BAD_NAME]` | `core/error-codes.ts (declared)` | — |
 | `[BAD_TEXT]` | `core/error-codes.ts (declared)` | — |
 | `[BAND]` | `core/error-codes.ts (declared)` | — |
+| `[BAND_CHAIN]` | `core/error-codes.ts (declared)` | — |
+| `[BAND_DEGENERATE]` | `core/error-codes.ts (declared)` | — |
+| `[BAND_EDGE_LOST]` | `core/error-codes.ts (declared)` | — |
+| `[BAND_OBLIQUE]` | `core/error-codes.ts (declared)` | — |
+| `[BAND_PROFILE]` | `core/error-codes.ts (declared)`, `part` | band thickening waits on exact thicken (#2258) |
+| `[BAND_TOUCH]` | `core/error-codes.ts (declared)` | — |
 | `[BASIS]` | `core/error-codes.ts (declared)` | — |
 | `[BEAD_ANGLE]` | `core/error-codes.ts (declared)`, `part` | … meets its face at …° from square: fillets on oblique ends are not modelled yet |
 | `[BEAD_KIND]` | `core/error-codes.ts (declared)`, `part` | a cap sits flush with its member's outline: it is welded by a corner weld, not a fillet (its seam is in its endCap report) |
@@ -301,7 +307,7 @@
 | `[APPROVAL_IS_THE_USERS]` | `team` | …: only the user moves a baseline |
 | `[BAD_CONNECTOR]` | `print` | a connector needs d > 0, length > 0, 1–8 a cut, fit > 0 and wall ≥ 0 (d …, length …, count …, fit …, wall …) |
 | `[BAD_KEEPOUT]` | `chat` | …'s solid could not be made |
-| `[BAD_REFERENCE]` | `app`, `chat`, `engine` | Select the current result of an unsuppressed subtract feature. |
+| `[BAD_REFERENCE]` | `app`, `chat`, `engine` | The band surface changed. Select it again. |
 | `[BAD_TRANSITION]` | `team` | … is still …: a baseline follows a decided one |
 | `[BAD_VALUE]` | `chat`, `engine` | … is a size above 0 mm |
 | `[BAD_VALUES]` | `chat`, `print`, `robot` | a wall t > 0, a voxel 0 < h ≤ t/2 and a drain Ø > 0 (t …, h …, drain …) |

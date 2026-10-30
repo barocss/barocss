@@ -132,7 +132,7 @@ export const CAD_KERNEL_VERSION = '0.0.0-experimental';
  * Recipe kinds that carry another model's geometry (a STEP file, a mesh, sewn surfaces): never part of a library — a
  * model downloaded from elsewhere stays an import in the user's own document, not a shared catalogue part (peer, LIB4).
  */
-export const LIBRARY_REFUSED_KINDS: ReadonlySet<string> = new Set(['import', 'mesh', 'sew']);
+export const LIBRARY_REFUSED_KINDS: ReadonlySet<string> = new Set(['import', 'mesh', 'sew', 'band-surface']);
 
 /** Limits of what a library may hold (data, not a program). */
 export const CadLibraryLimits = { parts: 500, parameters: 200, variants: 200, recipe: 200, expression: 500, depth: 32, idLength: 64 } as const;

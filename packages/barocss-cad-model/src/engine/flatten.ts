@@ -15,6 +15,7 @@ export function flattenAssembly(doc: StudioDoc): StudioDoc {
   assertRouteBundleDocument(doc);
   if (doc.schema === 4 || Object.prototype.hasOwnProperty.call(doc, 'routeBundles') || doc.nodes.some(n => Object.prototype.hasOwnProperty.call(n, 'routeBundleMember'))) throw refusal('BAD_REFERENCE', 'Route bundle: flattening linked route documents is not supported.');
   if (doc.nodes.some(n => n.kind === 'sketch' && n.association !== undefined)) throw refusal('BAD_REFERENCE', 'Associative sketch: flattening recipes is not supported.');
+  if (doc.nodes.some(n => n.kind === 'band-surface')) throw refusal('BAD_REFERENCE', 'Band surface: flattening a document with bands is not supported.');
   const own: StudioDoc = { ...doc, instances: undefined, mates: undefined, render: undefined, direct: undefined };
   const shown = (doc.instances ?? []).filter(i => !i.hidden);
   if (!shown.length) return own;
@@ -45,6 +46,7 @@ function shiftNode(node: ModelNode, k: number, s: number): ModelNode {
     case 'extrude': case 'revolve': case 'sweep': case 'sweep-curve': case 'sheet-base': return { ...node, sketch: node.sketch + k };
     case 'frame-member': return node.section.kind === 'sketch' ? { ...node, section: { kind: 'sketch', sketch: node.section.sketch + k } } : node;
     case 'skeleton': return node;
+    case 'band-surface': throw refusal('BAD_REFERENCE', 'Band surface: a part with a band cannot be placed in an assembly yet.');
     // (R12c.6b, D161: the wheels a belt runs on.)
     case 'belt': return { ...node, wheels: [node.wheels[0] + k, node.wheels[1] + k] };
     case 'connector-body': return { ...node, opening: node.opening + k };

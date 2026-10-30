@@ -127,6 +127,8 @@ export function featureOf(node: ModelNode, index: number, nodes?: readonly Model
       if (!signature || (signature.n ?? 1) !== 1) throw refusal('BAD_REFERENCE', 'Cylindrical wrap: the selected face needs its stored individual signature.');
       return { ...at, kind: 'cylindrical-wrap', target: ref(node.parent), faces: [name], rectangle: structuredClone(node.rectangle), height: structuredClone(node.height), ...expectOf(node, node.faces) };
     }
+    // (B2: both sides' targets are read, not consumed; the stored signatures of both sides' names go as the kernel's `expect`.)
+    case 'band-surface': return { ...at, kind: 'band-surface', a: { target: ref(node.a.parent), edges: [...node.a.edges] }, b: { target: ref(node.b.parent), edges: [...node.b.edges] }, ...(node.flip ? { flip: true } : {}), ...expectOf(node, [...node.a.edges, ...node.b.edges]) };
     case 'rectangular-relief': return { ...at, kind: 'rectangular-relief', target: ref(node.parent), min: structuredClone(node.min), max: structuredClone(node.max), depth: structuredClone(node.depth), mode: node.mode };
     case 'hole': return { ...at, kind: 'hole', target: ref(node.parent), center: node.center, radius: node.radius,
       ...(node.axis ? { axis: node.axis } : {}), ...(node.side ? { side: node.side } : {}), ...(node.depth === undefined ? {} : { depth: node.depth }), ...(node.countersink ? { countersink: node.countersink } : {}), ...(node.face ? { face: node.face } : {}) };
@@ -549,7 +551,7 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
       } else features.push(...featuresOf(node, i, CadPartLimits.features - features.length));
       return;
     }
-    const makes = node.kind === 'text' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'sprocket' || node.kind === 'pulley' || node.kind === 'belt' || node.kind === 'coupling' || node.kind === 'connector-body' || node.kind === 'gusset' || node.kind === 'end-cap' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
+    const makes = node.kind === 'text' || node.kind === 'extrude' || node.kind === 'revolve' || node.kind === 'sweep' || node.kind === 'loft' || node.kind === 'import' || node.kind === 'mesh' || node.kind === 'subd' || node.kind === 'gear' || node.kind === 'internal-gear' || node.kind === 'bevel-gear' || node.kind === 'worm' || node.kind === 'worm-wheel' || node.kind === 'spring' || node.kind === 'cam' || node.kind === 'sprocket' || node.kind === 'pulley' || node.kind === 'belt' || node.kind === 'coupling' || node.kind === 'connector-body' || node.kind === 'gusset' || node.kind === 'end-cap' || node.kind === 'shaft' || node.kind === 'key' || node.kind === 'retaining-ring' || node.kind === 'pin' || node.kind === 'bearing' || node.kind === 'oring' || node.kind === 'rack' || node.kind === 'library' || node.kind === 'thread' || node.kind === 'sweep-curve' || node.kind === 'thicken' || node.kind === 'band-surface' || node.kind === 'sew' || node.kind === 'sheet-base' || node.kind === 'sheet-contour' || node.kind === 'frame-member' || node.kind === 'frame';
     const two = node.kind === 'union' || node.kind === 'intersect' ? [node.left, node.right] : node.kind === 'difference' ? [node.parent, node.tool] : null;
     if (two) {
       const [a, b] = two, ga = gone.has(a.node), gb = gone.has(b.node);
@@ -564,6 +566,8 @@ function buildPartDocument(doc: StudioDoc, before?: number): CadPartDocument {
     if (makes) {
       // (A library part added to a body, suppressed or its body gone: the body passes on as it was, or is gone.)
       if (node.kind === 'library' && node.addTo) { if (gone.has(node.addTo.node)) { gone.add(i); return; } if (node.suppressed) { pass(i, node.addTo); return; } features.push(...featuresOf(node, i, CadPartLimits.features - features.length)); return; }
+      // (A band whose either body is gone or suppressed is gone, as a Boolean's.)
+      if (node.kind === 'band-surface' && (node.suppressed || gone.has(node.a.parent.node) || gone.has(node.b.parent.node))) { gone.add(i); return; }
       if (node.suppressed || ('from' in node && Array.isArray(node.from) && node.from.some(p => gone.has(p))) || ((node.kind === 'gear' || node.kind === 'rack' || node.kind === 'bevel-gear' || node.kind === 'worm') && node.mesh && gone.has(node.mesh.gear))) { gone.add(i); return; }
       features.push(...convert(node, i)); return;
     }

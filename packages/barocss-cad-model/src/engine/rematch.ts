@@ -97,6 +97,27 @@ export async function rematchNames(prev: StudioDoc, next: StudioDoc, evaluate: (
   const changes: Rematch[] = [], nodes = [...next.nodes];
   for (let k = first; k < nodes.length; k++) {
     const node = nodes[k], what = named(node), was = node.id ? nodeIndexOf(prev.nodes, node.id) : -1;
+    // A band surface's names are strict (B2, D-c) as the wrap's: each side is matched on its own parent body, and a name that is
+    // gone, ambiguous or now another edge refuses the edit — a band's name is never re-matched or substituted here.
+    if (node.kind === 'band-surface' && was >= first && prev.nodes[was]?.kind === 'band-surface') {
+      const old = prev.nodes[was] as Extract<ModelNode, { kind: 'band-surface' }>;
+      const [pa, pb] = await Promise.all([evaluate(prefixDoc(prev, was)), evaluate(prefixDoc({ ...next, nodes }, k))]);
+      if (!pa?.ok || !pb?.ok) continue;
+      for (const side of ['a', 'b'] as const) {
+        const before = pa.bodies.find(x => x.key === bodyKeyFor(prev.nodes, old[side].parent.node, old[side].parent.side)), after = pb.bodies.find(x => x.key === bodyKeyFor(nodes, node[side].parent.node, node[side].parent.side));
+        if (!before || !after) continue;
+        const oldEdges = signaturesOf(before).edges, nowEdges = signaturesOf(after).edges;
+        if (sameNames(oldEdges, nowEdges, true)) continue;
+        for (const name of node[side].edges) {
+          const sig = oldEdges.get(name);
+          if (!sig) continue;
+          const m = matchSignature(sig, nowEdges, true);
+          if (m === name) continue;
+          return { error: typeof m !== 'string' ? (m.length ? `Feature ${k}: the edge "${name}" is now one of ${m.join(', ')}; name the one you mean.` : `Feature ${k}: the edge "${name}" is gone after this edit (nothing like it is left on its body).`) : `[BAD_REFERENCE] Band surface: the edge "${name}" moved to "${m}" and a band never follows it silently. Pick the band's edges again.` };
+        }
+      }
+      continue;
+    }
     if (!what || was < 0 || was < first || !('parent' in node)) continue;
     const parentBefore = (prev.nodes[was] as { parent: { node: number; side: string } }).parent;
     const [a, b] = await Promise.all([evaluate(prefixDoc(prev, was)), evaluate(prefixDoc({ ...next, nodes }, k))]);

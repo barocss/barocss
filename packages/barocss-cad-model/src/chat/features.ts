@@ -10,7 +10,7 @@ import { curveFeaturePatternProblem } from '../engine/curveFeaturePattern';
 // (engine/ids.ts), so they stay as they are.
 import { type BoundConstraint3D, type V3 } from '../frames/sketch3d';
 import { boundConstraints, boundRefusal, followersOf, SKELETON_CODES } from '../frames/skeleton';
-import { rectangularFeaturePatternProblem, frameGeometry, cylindricalWrapNodeProblem, textNodeProblem, textReliefNodeProblem, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type PartInstance, type StudioDoc } from '../engine/doc';
+import { rectangularFeaturePatternProblem, frameGeometry, cylindricalWrapNodeProblem, bandSurfaceNodeProblem, textNodeProblem, textReliefNodeProblem, leafBodies, parentsOf, prefixDoc, usesOf, type BodyRef, type GearMesh, type ModelNode, type PartInstance, type StudioDoc } from '../engine/doc';
 import { BASE, mateLabel } from '../assembly/mates';
 import type { CentreRef, DimPoint, DrawingDimension } from '../drawing/types';
 import { bodyKeyFor, bodyNodeOf, featureId, nextSerial, nodesOfName, renameFeatureIds, serialOf } from '../engine/ids';
@@ -43,6 +43,8 @@ const SPECS: Record<string, Spec> = {
   rib: { parent: 'ref', min: 'dim3', max: 'dim3' },
   'rectangular-relief': { parent: 'ref', min: 'dim2', max: 'dim2', depth: 'dim', mode: 'enum:emboss|engrave' },
   'cylindrical-wrap': { parent: 'ref', faces: 'names1', rectangle: 'any', height: 'dim' },
+  // (B2: thickness and side are listed only so their refusal names exact thicken, #2258.)
+  'band-surface': { 'version?': 'any', a: 'any', b: 'any', 'flip?': 'bool', 'thickness?': 'any', 'side?': 'any' },
   'text-relief': { parent: 'ref', faces: 'names1', text: 'text', font: 'any', size: 'dim', depth: 'dim', at: 'dim2', mode: 'enum:emboss|engrave', tolerance: 'num', 'tracking?': 'dim' },
   split: { parent: 'ref', at: 'dim', axis: 'enum:x|y|z' },
   sew: { names: 'any', surfaces: 'any', 'tolerance?': 'num' },
@@ -151,6 +153,7 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
   if (kind === 'thicken') return thickenNodeProblem(node, parameters);
   if (kind === 'text') return textNodeProblem(node, parameters);
   if (kind === 'cylindrical-wrap') return cylindricalWrapNodeProblem(node, parameters);
+  if (kind === 'band-surface') return bandSurfaceNodeProblem(node, nodes, parameters);
   if (kind === 'text-relief') return textReliefNodeProblem(node, parameters);
   if (kind === 'fill-feature-pattern') return fillFeaturePatternProblem(node, nodes, parameters);
   if (kind === 'curve-feature-pattern') return curveFeaturePatternProblem(node, nodes, parameters);
@@ -402,6 +405,7 @@ export function renumber(node: ModelNode, map: (i: number) => number): ModelNode
   if (n.kind === 'gusset' || n.kind === 'end-cap') (n as { frame: number }).frame = map(n.frame);
   if (n.kind === 'bearing') { (n as { shaft: number }).shaft = map(n.shaft); if (n.housing !== undefined) (n as { housing: number }).housing = map(n.housing); }
   if (n.kind === 'key' || n.kind === 'retaining-ring' || n.kind === 'pin') { (n as { shaft: number }).shaft = map(n.shaft); if (n.kind === 'key' && n.hub !== undefined) (n as { hub: number }).hub = map(n.hub); }
+  if (n.kind === 'band-surface') { (n as { a: unknown }).a = { ...n.a, parent: ref(n.a.parent) }; (n as { b: unknown }).b = { ...n.b, parent: ref(n.b.parent) }; }
   for (const key of ['parent', 'left', 'right', 'tool', 'addTo'] as const) if (isObj(n[key])) (n as Record<string, unknown>)[key] = ref(n[key] as unknown as BodyRef);
   // (FRf: the skeleton or sketch a frame follows.)
   if (n.kind === 'frame' && n.follows && !('part' in n.follows)) (n as { follows: unknown }).follows = 'skeleton' in n.follows ? { skeleton: map(n.follows.skeleton) } : { sketch: map(n.follows.sketch) };
@@ -415,11 +419,12 @@ function renameNode(node: ModelNode, rename: (id: string) => string): ModelNode 
   if (node.kind === 'shell') return { ...node, open: node.open.map(r) };
   if (node.kind === 'draft' || node.kind === 'full-round') return { ...node, faces: node.faces.map(r) };
   if (node.kind === 'face-fillet') return { ...node, faces: [r(node.faces[0]), r(node.faces[1])] };
+  if (node.kind === 'band-surface') return { ...node, a: { ...node.a, edges: node.a.edges.map(r) }, b: { ...node.b, edges: node.b.edges.map(r) } };
   if (node.kind === 'keyway' || node.kind === 'oring-gland' || node.kind === 'connector-opening' || node.kind === 'face-thread') return { ...node, face: r(node.face) };
   return node;
 }
 /** The persistent names a node is built on. */
-const named = (n: ModelNode): readonly string[] => n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' || n.kind === 'full-round' || n.kind === 'face-fillet' ? n.faces : n.kind === 'keyway' || n.kind === 'oring-gland' || n.kind === 'connector-opening' || n.kind === 'face-thread' ? [n.face] : [];
+const named = (n: ModelNode): readonly string[] => n.kind === 'band-surface' ? [...n.a.edges, ...n.b.edges] : n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' || n.kind === 'full-round' || n.kind === 'face-fillet' ? n.faces : n.kind === 'keyway' || n.kind === 'oring-gland' || n.kind === 'connector-opening' || n.kind === 'face-thread' ? [n.face] : [];
 
 /** A drawing dimension's edge names, renamed (null when one of them is gone). */
 function renameDimension(d: DrawingDimension, rename: (name: string) => string | null): DrawingDimension | null {

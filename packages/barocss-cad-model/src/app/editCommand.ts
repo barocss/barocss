@@ -1,6 +1,7 @@
 // Editing a feature already in the part by dragging: the feature's own dimensions (the feature editor's
 // fields, app/editFields.ts) as a command, with arrows in the viewport where they act. Selecting a body
 // shows them; dragging one opens the edit with the usual preview, limits and Apply.
+import { bandSurfaceEditCommand } from './bandSurfaceCommand';
 import { dropStaleMade, featureLabel, parentsOf, type ModelNode, type SketchNode, type StudioDoc } from '../engine/doc';
 import { toWorld } from '../sketch/plane';
 import { editFields } from './editFields';
@@ -134,6 +135,7 @@ export function editCommand(index: number, nodes: readonly ModelNode[], rows: Pi
   const node = nodes[index]; if (!node) return null;
   if (node.kind === 'text') return textEditCommand(index, node);
   if (node.kind === 'cylindrical-wrap') return cylindricalWrapEditCommand(index, node);
+  if (node.kind === 'band-surface') return bandSurfaceEditCommand(index, node);
   if (node.kind === 'text-relief') return textReliefEditCommand(index, node);
   const shape = shapeEdit(index, nodes, rows); if (shape) return shape;
   const fields = editFields(nodes, index, rows.parameters).filter(f => f.kind !== 'toggle' && !(f.kind === 'number' && Number.isNaN(f.get(nodes))));

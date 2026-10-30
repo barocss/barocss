@@ -70,13 +70,17 @@ function refKey(node: ModelNode): 'edges' | 'open' | 'faces' | null {
   const key = node.kind === 'fillet' || node.kind === 'chamfer' || node.kind === 'sheet-flange' || node.kind === 'sheet-corner-relief' ? 'edges' : node.kind === 'shell' ? 'open' : node.kind === 'draft' || node.kind === 'full-round' || node.kind === 'face-fillet' || node.kind === 'text-relief' || node.kind === 'cylindrical-wrap' ? 'faces' : null;
   return key && 'parent' in node ? key : null;
 }
+/** A band surface's two edge lists, each on its own parent body (B2); other nodes have one list under `refKey`. */
+const bandGroups = (node: ModelNode) => node.kind === 'band-surface' ? [{ parent: node.a.parent, list: node.a.edges }, { parent: node.b.parent, list: node.b.edges }] : null;
+/** Where a reference's candidates are looked up: its feature and that feature's parent body (a band has two). */
+const parentKey = (node: number, parent: { node: number; side: string }) => `${node}|${parent.node}|${parent.side}`;
 /**
  * The document with a copy of every object the references' setters change — a referencing feature and its list,
  * mate sides, dimension points, body looks — and the rest shared (PERF3 A6: a deep copy of the whole document,
  * an imported STEP text and all, on every check; every node then new to the engine's wire and memo).
  */
 function writable(d: StudioDoc): StudioDoc {
-  const out: StudioDoc = { ...d, nodes: d.nodes.map(n => { const key = refKey(n); return key ? { ...n, [key]: [...(n as unknown as Record<string, string[]>)[key]] } as ModelNode : n; }) };
+  const out: StudioDoc = { ...d, nodes: d.nodes.map(n => { if (n.kind === 'band-surface') return { ...n, a: { ...n.a, edges: [...n.a.edges] }, b: { ...n.b, edges: [...n.b.edges] } }; const key = refKey(n); return key ? { ...n, [key]: [...(n as unknown as Record<string, string[]>)[key]] } as ModelNode : n; }) };
   if (d.mates) out.mates = d.mates.map(m => ({ ...m, a: { ...m.a }, b: { ...m.b } }));
   if (d.drawing?.dimensions) out.drawing = { ...d.drawing, dimensions: d.drawing.dimensions.map(x => 'a' in x ? { ...x, a: { ...x.a }, b: { ...x.b } } as typeof x : { ...x }) };
   if (d.drawing?.datumTargets) out.drawing = { ...(out.drawing ?? d.drawing), datumTargets: d.drawing.datumTargets.map(t => ({ ...t, point: { ...t.point, near: [...t.point.near] as Vec3, ...(t.point.sig ? { sig: { ...t.point.sig, p: [...t.point.sig.p] as Vec3, ...(t.point.sig.d ? { d: [...t.point.sig.d] as Vec3 } : {}) } } : {}) } })) };
@@ -90,11 +94,11 @@ function writable(d: StudioDoc): StudioDoc {
 export function referencesOf(source: StudioDoc, readOnly = false): { doc: StudioDoc; refs: Ref[] } {
   const doc = readOnly ? source : writable(source), refs: Ref[] = [];
   doc.nodes.forEach((node, k) => {
-    const key = refKey(node);
-    if (!key || !('parent' in node)) return;
-    const n = node as unknown as Record<string, unknown> & Named, list = n[key] as string[];
-    list.forEach((name, i) => refs.push({
-      where: `feature ${k}`, ...(node.kind === 'cylindrical-wrap' ? { nativeFace: true as const } : {}), edge: key === 'edges', node: k, parent: node.parent, name, sig: n.sigs?.[name], rematched: !!n.rematched?.[name], was: n.rematched?.[name],
+    const key = refKey(node), groups = bandGroups(node) ?? (key && 'parent' in node ? [{ parent: node.parent, list: (node as unknown as Record<string, string[]>)[key] }] : null);
+    if (!groups) return;
+    const n = node as unknown as Record<string, unknown> & Named;
+    for (const { parent, list } of groups) list.forEach((name, i) => refs.push({
+      where: `feature ${k}`, ...(node.kind === 'cylindrical-wrap' ? { nativeFace: true as const } : {}), edge: key === 'edges' || node.kind === 'band-surface', node: k, parent, name, sig: n.sigs?.[name], rematched: !!n.rematched?.[name], was: n.rematched?.[name],
       rename(to, mark) {
         const from = list[i], sig = n.sigs?.[from]; list[i] = to;
         if (sig) { n.sigs = { ...n.sigs }; delete n.sigs[from]; n.sigs[to] = sig; }
@@ -148,6 +152,7 @@ function pointed(where: string, edge: boolean, at: Pointed, get: () => string, s
 /** Whether any stored reference has no signature (without copying the document). */
 function unsigned(doc: StudioDoc): boolean {
   for (const n of doc.nodes) {
+    if (n.kind === 'band-surface') { if ([...n.a.edges, ...n.b.edges].some(name => !n.sigs?.[name])) return true; continue; }
     const list = n.kind === 'fillet' || n.kind === 'chamfer' || n.kind === 'sheet-flange' || n.kind === 'sheet-corner-relief' ? n.edges : n.kind === 'shell' ? n.open : n.kind === 'draft' || n.kind === 'full-round' || n.kind === 'face-fillet' || n.kind === 'text-relief' || n.kind === 'cylindrical-wrap' ? n.faces : null;
     if (list?.some(name => !n.sigs?.[name])) return true;
   }
@@ -177,14 +182,14 @@ function mateSignature(f: MateFace): Signature {
 }
 
 /** The faces' (or edges') signatures a reference is matched among. */
-function candidatesOf(ref: Ref, finals: readonly BodyResult[], parents: ReadonlyMap<number, BodyResult | undefined>, tables: Tables): Map<string, Signature> | null {
+function candidatesOf(ref: Ref, finals: readonly BodyResult[], parents: ReadonlyMap<string, BodyResult | undefined>, tables: Tables): Map<string, Signature> | null {
   if (ref.part !== undefined) {
     const t = tables(ref.part); if (!t) return null;
     const out = new Map<string, Signature>();
     for (const [name, f] of Object.entries(t)) if (!frameFace(name)) out.set(name, mateSignature(f));
     return out;
   }
-  const bodies = ref.node === null ? finals : [parents.get(ref.node)].filter((b): b is BodyResult => !!b);
+  const bodies = ref.node === null ? finals : [ref.parent ? parents.get(parentKey(ref.node, ref.parent)) : undefined].filter((b): b is BodyResult => !!b);
   if (!bodies.length) return null;
   const out = new Map<string, Signature>();
   for (const b of bodies) { const s = signaturesOf(b, ref.nativeFace); for (const [n, sig] of ref.edge ? s.edges : s.faces) out.set(n, sig); }
@@ -206,19 +211,19 @@ export function captureSignatures(doc: StudioDoc, bodies: readonly BodyResult[],
     // A legacy near-only target must remain unresolved, even when another reference needs capture.
     if (ref.datumTarget && (!ref.targetEndpoint || ref.rematched)) continue;
     const body = ref.parent ? bodies.find(b => b.key === bodyKeyFor(out.nodes, ref.parent!.node, ref.parent!.side)) : undefined;
-    const sig = candidatesOf(ref, bodies, new Map(ref.node !== null ? [[ref.node, body]] : []), tables)?.get(ref.name);
+    const sig = candidatesOf(ref, bodies, new Map(ref.node !== null && ref.parent ? [[parentKey(ref.node, ref.parent), body]] : []), tables)?.get(ref.name);
     if (sig) { ref.setSig(toSig(sig)); changed = true; }
   }
   return changed ? out : doc;
 }
 
 /** Each named feature's parent body as it stands (the document evaluated up to that feature). */
-async function parentBodies(doc: StudioDoc, refs: readonly Ref[], evaluate: Evaluate): Promise<Map<number, BodyResult | undefined>> {
-  const out = new Map<number, BodyResult | undefined>();
+async function parentBodies(doc: StudioDoc, refs: readonly Ref[], evaluate: Evaluate): Promise<Map<string, BodyResult | undefined>> {
+  const out = new Map<string, BodyResult | undefined>();
   for (const ref of refs) {
-    if (ref.node === null || out.has(ref.node)) continue;
+    if (ref.node === null || !ref.parent || out.has(parentKey(ref.node, ref.parent))) continue;
     const r = await rememberedEvaluate(evaluate)(prefixDoc(doc, ref.node));
-    out.set(ref.node, r?.ok ? r.bodies.find(b => b.key === bodyKeyFor(doc.nodes, ref.parent!.node, ref.parent!.side)) : undefined);
+    out.set(parentKey(ref.node, ref.parent), r?.ok ? r.bodies.find(b => b.key === bodyKeyFor(doc.nodes, ref.parent!.node, ref.parent!.side)) : undefined);
   }
   return out;
 }
@@ -259,6 +264,12 @@ export async function verifyReferences(doc: StudioDoc, finals: readonly BodyResu
     let m = matchSignature(fromSig(ref.sig), cands, ref.edge);
     // The bounded wrap requires its exact original wall; another match cannot replace it.
     if (ref.node !== null && out.nodes[ref.node]?.kind === 'cylindrical-wrap' && m !== ref.name) m = [];
+    // A band's names are strict too (B2, D-c): a name that moved to other geometry is never substituted, not even marked — the
+    // band is held with the candidate, and only the user's explicit Confirm renames it (unless it is the same live display edge).
+    if (typeof m === 'string' && m !== ref.name && ref.node !== null && out.nodes[ref.node]?.kind === 'band-surface') {
+      const live = cands.get(ref.name);
+      if (!(live !== undefined && live === cands.get(m))) m = [m];
+    }
     if (typeof m === 'string') {
       if (m !== ref.name) {
         // Keep an existing name of the same live display edge, not merely an equal signature.

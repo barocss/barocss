@@ -204,6 +204,22 @@ says (see [Shop rows](/studio/rows)):
 **Frame**, **Structural member**, **Gusset** and **End cap** build welded frames. See
 [Frames and weldments](/studio/frames).
 
+### Band surface
+
+**Band surface** joins two edge chains of two bodies with an exact ruled sheet that stays in step with them. Select
+the first chain (its edges, or a face for all its edges), choose **Band surface**, then click the second chain; both
+chains are open or both closed. Chains follow tangent edges by default (set **Chain** to **Single edge** to turn that off);
+clicking an edge again removes it. Unequal edge counts are paired by normalized length. **Flip** runs the second chain
+the other way. In the History edit, **Re-pick** replaces one side with your next clicks (a body made at or after the
+band cannot be picked: roll back first). The band's bodies stay bodies, and the sheet reports its boundary deviation
+from the source edges.
+
+The band stores the edges' persistent names and never follows a renamed edge on its own: a lost or moved edge refuses
+the edit with the reason, a saved file that no longer has one opens with the band held (its reason shown) while the
+rest builds, and only your explicit choice in the reference decisions names another edge. A band cannot be placed in
+an assembly or a library part yet, and STEP export leaves the band sheet out and says so (the facade's STEP call refuses instead). Band thickening waits on exact thicken and is refused until then; a raw
+`band-surface` node is accepted through the checked `add_features`, with no chat command or facade verb yet.
+
 ### SubD and the cage editor
 
 **SubD box**, **SubD tube** and **SubD torus** make smooth bodies from a subdivision cage, with exact B-spline faces.

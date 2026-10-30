@@ -19,6 +19,7 @@ import { thickenCommand } from './thickenCommand';
 import type { ThickenSnapshot } from '../engine/thicken';
 import { textCommand } from './textCommand';
 import { cylindricalWrapCommand } from './cylindricalWrapCommand';
+import { bandSurfaceCommand } from './bandSurfaceCommand';
 import { textReliefCommand } from './textReliefCommand';
 import { alignCommand } from './alignCommand';
 import { fastenerCommand } from './fasteners';
@@ -458,6 +459,7 @@ const allCommands: Command[] = [
   sewCommand,
   textReliefCommand,
   cylindricalWrapCommand,
+  bandSurfaceCommand,
   {
     id: 'box', label: 'Box', icon: 'cad-box', hint: 'A block by width, depth and height', shortcut: 'B', group: 'create', keywords: 'cube block plate',
     available: () => ok,

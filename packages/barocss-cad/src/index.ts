@@ -412,6 +412,8 @@ export { DEFAULT_REPAIR, diagnoseMesh, repairMesh, selfIntersections, type MeshD
 export { isoThreadRadius, threadSolid, type ThreadSolidRequest } from './machine/thread-solid.js';
 export { sweepSolid, type SweepSolidRequest } from './brep/sweep-solid.js';
 export { thickenSolid, type ThickenSolidRequest } from './brep/thicken-solid.js';
+// B2: a band surface's report (the output's `band`).
+export type { CadBandReport } from './features/band-surface.js';
 export { sewSolid, sewError, isSewError, type SewSolidRequest } from './brep/sew-solid.js';
 export { CadNumericPolicy, chartRoundingBoundMM } from './numeric-policy.js';
 export { checkBrep, assertValidBrep, buildBrep, coedgeVertices, isFacetFace, lineCurve, mergeBreps, nurbsOf, BrepError } from './brep/brep-core.js';

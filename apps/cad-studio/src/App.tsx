@@ -42,6 +42,8 @@ import { changesBeyondVariability } from './app/documentChanges';
 import { sameMeshes, withMasses, samePlacement, meshVolume } from './app/bodyResults';
 import { bandEdit, bandRemove } from './app/bandControls';
 import { toggleBandPick } from '@barocss/cad-model/sketch/band';
+import { bandPicksOf } from '@barocss/cad-model/app/bandSurfaceCommand';
+import { bandHighlight } from './app/bandHighlight';
 import { TOOLS, SKETCH_INSETS, sketchRegion, switchTool, detachSketchLink, bezierEdit } from './app/sketchControls';
 import { ellipseError } from '@barocss/cad-model/sketch/ellipse';
 import { activeKey, type Active } from './app/commandState';
@@ -1159,7 +1161,7 @@ export function App() {
     const index = Number(raw), node = doc.nodes[index];
     if (!Number.isInteger(index) || index < 0 || !node) return;
     setInstanceSel([]); setDirectSel([]); assembly.cancel();
-    if (node.kind === 'text' || node.kind === 'text-relief' || node.kind === 'cylindrical-wrap') {
+    if (node.kind === 'text' || node.kind === 'text-relief' || node.kind === 'cylindrical-wrap' || node.kind === 'band-surface') {
       const command = editCommand(index, doc.nodes, doc);
       if (command) {
         // Roll forward before the deferred start, so editing retains all later authored features.
@@ -1655,7 +1657,10 @@ export function App() {
     }) : null);
   });
   const sectionFrom = nextSerial(evaluated);
+  // (The Band surface command highlights what it has picked — A and B — while it runs, also when its preview hides the selection.)
+  const bandShown = active?.cmd.id === 'band-surface' ? bandHighlight(bodies, bandPicksOf(active.values)) : null;
   const shownSelection = sectioned ? { faces: shownBodies.flatMap((b, bi) => b.mesh.faces.filter(f => cutAfter(f.name, sectionFrom)).map(f => ({ body: bi, face: f.index }))), edges: [], bodies: [] }
+    : bandShown ? bandShown
     : routePreviewBodies || routePanelOpen || previewBodies || sketch ? emptySel : mateFaces ? { faces: assembly.highlight.faces, edges: [], bodies: [] } : measure ? { faces: measure.flatMap(m => m.face !== undefined ? [{ body: m.body, face: m.face }] : []), edges: measure.flatMap(m => m.edge !== undefined ? [{ body: m.body, edge: m.edge }] : []), bodies: [] } : selection;
   const measured = measure?.length === 2 && bodies[measure[0].body] && bodies[measure[1].body] ? measureBetween(bodies[measure[0].body].mesh, measure[0], bodies[measure[1].body].mesh, measure[1]) : null;
   // (The locked references and the keep-outs, A6.3: drawn ghosted after the part's bodies, never picked.)

@@ -35,6 +35,7 @@ import { selfIntersections } from '../mesh/mesh-repair.js';
 import { sweepSolid } from '../brep/sweep-solid.js';
 import { validateCurve } from '../core/math.js';
 import { type SubdSummary } from '../features/subd.js';
+import type { CadBandReport } from '../features/band-surface.js';
 import { type DecimateReport } from '../mesh/mesh-decimate.js';
 import type { FilletReport } from '../blend/rolling-ball.js';
 import { SIDE_TAG, type SideTags } from '../document/side-names.js';
@@ -77,6 +78,7 @@ import { threadSolid } from '../machine/thread-solid.js';
 import { finishOperation } from './part-finish.js';
 import { meshOperation } from './part-mesh.js';
 import { shellOperation, brepBodies } from './part-shell.js';
+import { bandOperation } from './part-band.js';
 import { sheetOperation } from './part-sheet.js';
 import { faceFilletOperation } from './part-face-fillet.js';
 import { frameOperation, planEndpointBeads, endpointContext, isEndpointBead } from './part-frame.js';
@@ -250,6 +252,13 @@ export type CadPartFeature = Base & (
   | { readonly kind: 'split-face'; readonly target: string; readonly face: string; readonly curves?: readonly { readonly degree: number; readonly knots: readonly number[]; readonly controlPoints: readonly (readonly [number, number, number])[]; readonly weights: readonly number[] }[]; readonly pull?: CadPartPoint3; readonly names?: readonly string[] }
   /** An open NURBS surface thickened into a solid: `thickness` along its normal (or against it, or half each way). Faceted. */
   | { readonly kind: 'thicken'; readonly surface: { readonly degreeU: number; readonly degreeV: number; readonly knotsU: readonly number[]; readonly knotsV: readonly number[]; readonly controlPoints: readonly (readonly (readonly [number, number, number])[])[]; readonly weights: readonly (readonly number[])[] }; readonly thickness: CadPartDim; readonly side?: 'normal' | 'reverse' | 'both' }
+  /**
+   * B2: a ruled band surface between two edge chains of earlier bodies (read, never consumed): `a` and `b` each name a body (`target`,
+   * `id` or `id/k`) and its edges by name (up to 32, pick order). One open chain or one closed loop on each side, paired piece by
+   * piece (equal counts) or by normalized length, joined by exact ruled NURBS patches `${id}.band<k>` into one sheet body (output
+   * `band` report). `flip` runs B the other way. `expect` is each name's signature when stored (checked as a fillet's is).
+   */
+  | { readonly kind: 'band-surface'; readonly a: { readonly target: string; readonly edges: readonly string[] }; readonly b: { readonly target: string; readonly edges: readonly string[] }; readonly flip?: boolean; readonly expect?: Readonly<Record<string, CadPartNameSignature>> }
   /**
    * Open NURBS surfaces sewn into one closed solid along their natural edges (each edge shared by exactly
    * two of them within `tolerance` mm); the faces keep their exact surfaces.
@@ -686,6 +695,8 @@ export interface CadPartOutput {
   readonly gland?: GlandReport; readonly oring?: { readonly ring: string; readonly overlap: number; readonly stretchedCrossSection: number };
   /** A SubD body's make-up: steps, caps and their distance from the limit surface (R7, D79). */
   readonly subd?: SubdSummary;
+  /** A band surface's report: patches, closed or open, exactness, the measured boundary deviation (B2). */
+  readonly band?: CadBandReport;
   /** A decimated mesh's report: triangles before and after, why it stopped, the measured distance both ways (R9, D85). */
   readonly decimate?: DecimateReport;
   /** A general fillet's reports (R10.2, D89), one a rolling-ball tool: its stations, patches and measured deviations. */
@@ -772,6 +783,8 @@ export interface Part {
   readonly bearing?: BearingReport;
   readonly gland?: GlandReport; readonly glandPlace?: GlandPlace; readonly oring?: { readonly ring: string; readonly overlap: number; readonly stretchedCrossSection: number };
   readonly subd?: SubdSummary;
+  /** A band surface's report (B2). */
+  readonly band?: CadBandReport;
   readonly decimate?: DecimateReport;
   readonly fillet?: readonly FilletReport[];
   readonly shell?: MeshShellReport;
@@ -1076,7 +1089,7 @@ function evaluateWith(input: CadPartDocument, previous: Cache | undefined, optio
       } else {
         const tools = { dim, xy, xyz, integer, axisOf, solids, ref, cutSource, fail, at, endpointBead }, run = operation(f, tools);
         // (O19: stored names checked against what they named before the feature builds on them, D277.)
-        const expect = expectOf(f, fail), compute = expect ? expectedThen(f, tools, expect, run) : run;
+        const expect = expectOf(f, fail), compute = expect && f.kind !== 'band-surface' ? expectedThen(f, tools, expect, run) : run;
         const key = JSON.stringify([f.kind, resolvedDefinition(f, doc.parameters), ...(isEndpointBead(f) ? [endpointContext(doc.features, f.frame, doc.parameters)] : [])]), inputs = deps.map(d => results.get(d)!);
         const reused = lookup(key, inputs);
         result = reused ?? compute();
@@ -1863,6 +1876,7 @@ function operation(f: CadPartFeature & Record<string, unknown>, t: Tools): () =>
       };
     }
     case 'shell': case 'thicken': return shellOperation(f, t, HELPERS);
+    case 'band-surface': return bandOperation(f, t);
     case 'sweep-curve': {
       const sketch = ref(f.sketch, 'sketch').result;
       if (sketch.kind !== 'sketch') fail('REFERENCE', `${f.sketch} is not a sketch`);
@@ -2138,7 +2152,7 @@ const outputState = new WeakMap<CadPartOutput, OutputState>();
 function makeOutput(id: string, feature: string, part: Part): CadPartOutput {
   const brep = brepOf(part, id.replace('/', '_'));
   const output: CadPartOutput = Object.freeze({
-    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.cylindricalWrap ? { cylindricalWrap: part.cylindricalWrap } : {}), ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.worm ? { worm: part.worm } : {}), ...(part.wormPlace ? { wormPlacement: part.wormPlace } : {}), ...(part.wormWheel ? { wormWheel: part.wormWheel } : {}), ...(part.wormWheelPlace ? { wormWheelPlacement: part.wormWheelPlace } : {}), ...(part.spring ? { spring: part.spring } : {}), ...(part.cam ? { cam: part.cam } : {}), ...(part.sprocket ? { sprocket: part.sprocket } : {}), ...(part.pulley ? { pulley: part.pulley } : {}), ...(part.belt ? { belt: part.belt } : {}), ...(part.coupling ? { coupling: part.coupling } : {}), ...(part.connector ? { connector: part.connector } : {}), ...(part.connectorBody ? { connectorBody: part.connectorBody } : {}), ...(part.shaft ? { shaft: part.shaft } : {}), ...(part.key ? { key: part.key } : {}), ...(part.keyway ? { keyway: part.keyway } : {}), ...(part.ring ? { ring: part.ring } : {}), ...(part.pin ? { pin: part.pin } : {}), ...(part.bearing ? { bearing: part.bearing } : {}), ...(part.gland ? { gland: part.gland } : {}), ...(part.oring ? { oring: part.oring } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}), ...(part.gusset ? { gusset: part.gusset } : {}), ...(part.endCap ? { endCap: part.endCap } : {}), ...(part.bead ? { bead: part.bead } : {})
+    id, feature, representation: representation(part.solid), brep, bodyCount: brep.bodies.length, ...(part.cylindricalWrap ? { cylindricalWrap: part.cylindricalWrap } : {}), ...(part.gear ? { gear: part.gear } : {}), ...(part.gearPlace ? { gearPlacement: part.gearPlace } : {}), ...(part.rack ? { rack: part.rack } : {}), ...(part.rackPlace ? { rackPlacement: part.rackPlace } : {}), ...(part.internalGear ? { internalGear: part.internalGear } : {}), ...(part.internalPlace ? { internalGearPlacement: part.internalPlace } : {}), ...(part.bevelGear ? { bevelGear: part.bevelGear } : {}), ...(part.bevelPlace ? { bevelGearPlacement: part.bevelPlace } : {}), ...(part.worm ? { worm: part.worm } : {}), ...(part.wormPlace ? { wormPlacement: part.wormPlace } : {}), ...(part.wormWheel ? { wormWheel: part.wormWheel } : {}), ...(part.wormWheelPlace ? { wormWheelPlacement: part.wormWheelPlace } : {}), ...(part.spring ? { spring: part.spring } : {}), ...(part.cam ? { cam: part.cam } : {}), ...(part.sprocket ? { sprocket: part.sprocket } : {}), ...(part.pulley ? { pulley: part.pulley } : {}), ...(part.belt ? { belt: part.belt } : {}), ...(part.coupling ? { coupling: part.coupling } : {}), ...(part.connector ? { connector: part.connector } : {}), ...(part.connectorBody ? { connectorBody: part.connectorBody } : {}), ...(part.shaft ? { shaft: part.shaft } : {}), ...(part.key ? { key: part.key } : {}), ...(part.keyway ? { keyway: part.keyway } : {}), ...(part.ring ? { ring: part.ring } : {}), ...(part.pin ? { pin: part.pin } : {}), ...(part.bearing ? { bearing: part.bearing } : {}), ...(part.gland ? { gland: part.gland } : {}), ...(part.oring ? { oring: part.oring } : {}), ...(part.subd ? { subd: part.subd } : {}), ...(part.band ? { band: part.band } : {}), ...(part.decimate ? { decimate: part.decimate } : {}), ...(part.fillet ? { fillet: part.fillet } : {}), ...(part.shell ? { shell: part.shell } : {}), ...(part.sheet ? { sheet: part.sheet } : {}), ...(part.member ? { member: part.member } : {}), ...(part.gusset ? { gusset: part.gusset } : {}), ...(part.endCap ? { endCap: part.endCap } : {}), ...(part.bead ? { bead: part.bead } : {})
   });
   outputState.set(output, { part, flats: new Map() });
   return output;

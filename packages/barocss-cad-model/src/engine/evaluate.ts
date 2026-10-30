@@ -41,6 +41,8 @@ export interface BodyResult {
   family: string; mesh: DisplayMesh;
   /** Mass belongs to the closed radial reference; literal stored coefficient closure is not asserted. */
   cylindricalWrap?: CadPartOutput['cylindricalWrap'];
+  /** B2: a band surface's report — exact ruled patches, closed or open, the measured boundary deviation, and the sentence shown (kernel `band`). */
+  band?: CadPartOutput['band'];
   /** 'infill' (O60): a print infill body (its node's role) — in the mass and 3MF, left out of STEP. */
   role?: 'infill';
   volume: number | null; mass: number | null;
@@ -210,6 +212,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
   const notes: NonNullable<BodyResult['notes']> = [
     ...(libNotes ?? []),
     ...(o.cylindricalWrap ? [{ text: 'Wrap mass uses the closed reference. Surface joins follow the model tolerance. Further features are not supported for this wrap yet.' }] : []),
+    ...(o.band ? [{ text: o.band.note }] : []),
     ...(o.gear ? [...gearNotes(o.gear), ...meshNotes(o.gearPlacement)] : []),
     ...(o.internalGear ? internalGearNotes(o.internalGear, node) : []),
     ...(o.worm ? [...wormNotes(o.worm), ...wormMeshNotes(o.wormPlacement)] : []),
@@ -235,7 +238,7 @@ function bodyOf(o: CadPartSnapshot['outputs'][number], doc: StudioDoc, revision:
     ...(o.member ? memberNotes(o.member, lib ?? node, doc.frames?.sections, doc.nodes, at.ref ? staleOf(doc).get(at.ref.node) : undefined, counts) : []),
   ];
   const element = elementOf(o, node);
-  return { ...at, ...(o.cylindricalWrap ? { cylindricalWrap: o.cylindricalWrap } : {}), ...(notes.length ? { notes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...areaOf(A, o.brep, revision, quality), ...(o.bodyCount > 1 ? { pieces: o.bodyCount, ...touchField(o.brep, meshOf(o.brep, revision, quality)) } : {}),
+  return { ...at, ...(o.cylindricalWrap ? { cylindricalWrap: o.cylindricalWrap } : {}), ...(o.band ? { band: o.band } : {}), ...(notes.length ? { notes } : {}), ...(roleOf(lib) ? { role: roleOf(lib) } : {}), innerShells: inner, family: o.representation, mesh: meshOf(o.brep, revision, quality), ...mass, ...areaOf(A, o.brep, revision, quality), ...(o.bodyCount > 1 ? { pieces: o.bodyCount, ...touchField(o.brep, meshOf(o.brep, revision, quality)) } : {}),
     ...(o.gearPlacement ? { gear: o.gearPlacement } : {}), ...(o.bevelGear?.idealModel ? { idealModel: o.bevelGear.diagnostics.find(x => x.code === 'IDEAL_MODEL')?.message ?? 'an ideal model' } : {}), ...(o.rackPlacement ? { rack: o.rackPlacement } : {}),
     ...(o.subd && o.subd.caps ? { subd: o.subd } : {}), ...(sheet ? sheetFields(sheet) : {}), ...(o.member && m ? { cutPiece: cutPiece(o, { volume: m.volume }) } : {}), ...(element ? { element } : {}) };
 }
@@ -475,14 +478,14 @@ export interface StudioStep { text: string; source: string; omitted?: string[] }
 /**
  * The part (and its shown instances) as one STEP file (R7.3c: the model level's one STEP function; the kernel's is
  * exportStep(breps, options)). Bodies with the `infill` role (O60: a print lattice) are left out — STEP stays the exact
- * part — and `omitted` says so; 3MF and the mass keep them. No body to write is refused (NO_BODY); the kernel's own
+ * part — and `omitted` says so; 3MF and the mass keep them. A band surface's sheet (B2) is left out likewise, named in `omitted`. No body to write is refused (NO_BODY); the kernel's own
  * refusal while writing is passed through.
  */
 export function exportStudioStep(doc: StudioDoc, options: StudioStepOptions): StudioStep {
   const { name, meshes } = options;
-  const breps: Brep[] = [], left: string[] = [];
+  const breps: Brep[] = [], left: string[] = [], sheets: string[] = [];
   const take = (d: StudioDoc, outputs: CadPartSnapshot['outputs'], prefix: string) => {
-    for (const o of outputs) { const r = keyed(o.id, d.nodes).ref; if (r && roleOf(d.nodes[r.node])) left.push(`${prefix}${bodyKeyOf(o.id, d.nodes)}`); else breps.push(o.brep); }
+    for (const o of outputs) { const r = keyed(o.id, d.nodes).ref; if (r && d.nodes[r.node]?.kind === 'band-surface') sheets.push(`${prefix}${bodyKeyOf(o.id, d.nodes)}`); else if (r && roleOf(d.nodes[r.node])) left.push(`${prefix}${bodyKeyOf(o.id, d.nodes)}`); else breps.push(o.brep); }
   };
   take(doc, snapshotOf(doc).outputs, '');
   // (O10: a copy's body by its origin node — its role and key the instance's own, not a placement transform's.)
@@ -493,10 +496,11 @@ export function exportStudioStep(doc: StudioDoc, options: StudioStepOptions): St
       if (at !== undefined && roleOf(base.nodes[at])) left.push(`${inst.id}/${bodyKeyFor(base.nodes, at)}`); else breps.push(o.brep);
     }
   }
-  if (!breps.length) throw refusal('NO_BODY', left.length ? 'Only infill bodies: STEP carries the exact part, and there is none to export.' : 'There is no body to export.');
+  if (!breps.length) throw refusal('NO_BODY', sheets.length && !left.length ? `Only band sheets: STEP of band sheets is not supported yet, and there is no other body to export (${sheets.join(', ')}).` : left.length ? 'Only infill bodies: STEP carries the exact part, and there is none to export.' : 'There is no body to export.');
   // (O9: the header names the source revision the file was made from.)
   const source = revisionOf(doc), text = exportStep(breps, { name, description: ['BaroCSS CAD part', `source revision ${source}`], ...(meshes ? { meshes } : {}), ...(options.timestamp ? { timestamp: options.timestamp } : {}) });
-  return left.length ? { text, source, omitted: [`lattice infill not included (${left.join(', ')}); 3MF carries it`] } : { text, source };
+  const omitted = [...(left.length ? [`lattice infill not included (${left.join(', ')}); 3MF carries it`] : []), ...sheets.map(k => `band sheet ${k} not included: STEP of band sheets is not supported yet`)];
+  return omitted.length ? { text, source, omitted } : { text, source };
 }
 
 export function stlFor(doc: StudioDoc, key: string, options: NonNullable<Parameters<typeof exportStl>[1]> = {}): Uint8Array | null {
