@@ -1,0 +1,171 @@
+{
+  "label": "10-lost-edge",
+  "doc": {
+    "format": "barocss-cad-model",
+    "schema": 3,
+    "units": "mm",
+    "parameters": {
+      "R": 25
+    },
+    "nodes": [
+      {
+        "kind": "sketch",
+        "profile": "circle",
+        "center": [
+          0,
+          0
+        ],
+        "radius": {
+          "parameter": "R"
+        },
+        "id": "n0"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 0,
+        "height": 10,
+        "id": "n1"
+      },
+      {
+        "kind": "sketch",
+        "profile": "circle",
+        "center": [
+          0,
+          0
+        ],
+        "radius": 10,
+        "id": "n2"
+      },
+      {
+        "kind": "extrude",
+        "sketch": 2,
+        "height": 10,
+        "from": 40,
+        "id": "n3"
+      },
+      {
+        "kind": "band-surface",
+        "version": 1,
+        "a": {
+          "parent": {
+            "node": 1,
+            "side": "solid"
+          },
+          "edges": [
+            "n1.side0#2|n1.gone",
+            "n1.side0#1|n1.top"
+          ]
+        },
+        "b": {
+          "parent": {
+            "node": 3,
+            "side": "solid"
+          },
+          "edges": [
+            "n3.bottom|n3.side0#2",
+            "n3.bottom|n3.side0#1"
+          ]
+        },
+        "id": "n4",
+        "sigs": {
+          "n1.side0#1|n1.top": {
+            "k": "curve",
+            "p": [
+              25,
+              0,
+              10
+            ],
+            "s": 0,
+            "n": 2
+          },
+          "n3.bottom|n3.side0#2": {
+            "k": "curve",
+            "p": [
+              10,
+              0,
+              40
+            ],
+            "s": 0,
+            "n": 2
+          },
+          "n3.bottom|n3.side0#1": {
+            "k": "curve",
+            "p": [
+              10,
+              0,
+              40
+            ],
+            "s": 0,
+            "n": 2
+          },
+          "n1.side0#2|n1.gone": {
+            "k": "curve",
+            "p": [
+              25,
+              0,
+              10
+            ],
+            "s": 0,
+            "n": 2
+          }
+        }
+      }
+    ],
+    "outputs": {
+      "b1": {
+        "node": 1,
+        "side": "solid"
+      },
+      "b3": {
+        "node": 3,
+        "side": "solid"
+      },
+      "b4": {
+        "node": 4,
+        "side": "solid"
+      }
+    },
+    "nextId": 5
+  },
+  "bodies": {
+    "fresh": false,
+    "bodies": [
+      {
+        "key": "b2",
+        "volume": 15981.876140340513,
+        "centroid": [
+          32,
+          16.000000000000004,
+          4
+        ],
+        "massRef": null
+      }
+    ],
+    "massReady": true,
+    "colored": []
+  },
+  "selection": {
+    "selection": {
+      "faces": [],
+      "edges": [],
+      "bodies": []
+    },
+    "bodies": 1,
+    "active": null,
+    "sketch": false,
+    "measure": false
+  },
+  "notices": [
+    "infoThe selected edge no longer existsAn earlier edit changed the shape around it. Select the edge again and re-apply the chamfer or fillet.Details[BAND_EDGE_LOST] band side A: no edge named n1.side0#2|n1.gone on n1close"
+  ],
+  "editor": null,
+  "sketchPanel": null,
+  "hud": null,
+  "sketchAlert": null,
+  "sketchStatus": null,
+  "history": [
+    "Cylinder 10",
+    "Cylinder 10",
+    "Band surface"
+  ]
+}

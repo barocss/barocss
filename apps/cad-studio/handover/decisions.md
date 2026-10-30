@@ -17482,3 +17482,64 @@ The helper covers:
 The D369 band driver (428 → 290 lines) and the D366 ellipse driver (400 → 293 lines) were ported with identical steps, assertions and receipt fields. Both passed on their first run after the port: band with 9 oracles, ellipse with 6, all frozen files equal to the commit.
 
 Tier: small change (focused checks: `node --check`, eslint and a non-browser self-test; no independent audit). Older drivers stay as they are; new drivers use the helper.
+
+## D371 — Associative 3D band surface; B2 (2026-10-31)
+
+Qualify source `9ccfae37c` (32 paths). [Evidence](notes/associative-band-surface-2026-10-31/qualification.json). This is the owner's band request in 3D (2026-10-30).
+
+Tier, under the post-B1 retro rule:
+- kernel part: FULL (mutation set, kernel findings re-checked by the root);
+- model and Studio: FEATURE (one audit round plus an actual run).
+
+Decision:
+- **Making it.** The Band surface command picks an edge chain or loop A on one body and B on another. A kernel feature resolves the stored edge names on every evaluation and builds an exact ruled sheet of rational ruled patches, so upstream edits regenerate it.
+- **Pairing.** Open pairs with open and closed with closed. B is seamed at the point nearest A's start. Pieces pair one to one when that point is a B joint and the counts match; otherwise they pair by normalized length.
+- **References.** Strict, with no silent retarget.
+- **Refusals.** `BAND_*` for twisted pairings and bands that touch, fold, sit oblique or exceed the pole budget.
+- **Edit.** Flip and Re-pick, in the command HUD.
+- **v1 scope.**
+  - ruled only;
+  - no thicken (#2258: exact thicken replaces faceted output);
+  - a raw agent node;
+  - STEP omits the sheet with a note.
+
+Retained:
+- The design brief, plus the coordinator's #2258 correction.
+- Parallel kernel, model and Studio implementation.
+- The independent Opus audit: CHANGES_REQUIRED.
+  - F1 KERNEL: closed bands twisted when seams differ (−12.3%, no refusal).
+  - F2 KERNEL: a zero ruling between samples was not refused.
+  - F3 to F6: edit validation, a silent STEP drop, test gaps, messages.
+- The user paused the lane ("too many agents") while the fix agents ran.
+- After the pause the root re-checked F1 and F2 with the audit's probes and confirmed F3, F4 and F6.
+- The root reran both mutation sweeps against the current tests:
+  - kernel: 30 killed, plus 4 new seam mutants killed, with M16 equivalent;
+  - model: 23/23.
+- The first kernel rerun was discarded: stale test copy.
+- Actual runs:
+  - run01: oracle compared the mesh area;
+  - run02: PRODUCT, the band edit was unreachable from history; fixed;
+  - run03 and run04: driver failures over the cascade delete; run04 also had an unexplained page reload that did not recur;
+  - run05: driver failure, Studio's Open refuses a lost name rather than holding it;
+  - run06: PASS.
+
+Checks:
+- Kernel band test 19/19; model 2253/2253; Studio 559/559; tsc ×3 and docs tables PASS.
+- Actual run06:
+  - the kernel's exact area equals the frustum (1.7e-15; 2.2e-15 after R 20 → 25);
+  - names are kept; Undo/Redo, Save and fresh Open are equal;
+  - the edit HUD works;
+  - the delete asks first and Cancel keeps the document;
+  - a lost edge is named and not retargeted.
+- Errors 0; 682 frozen files equal the commit.
+
+Limits:
+- a seam inside a span leaves a 3.6e-5 skew (user decision: recorded, no reparametrisation in v1);
+- Studio Open holds only moved names; lost names are refused, as for all features;
+- the lost-edge message title is generic ("chamfer or fillet");
+- the band body is named after A;
+- no thicken, tangent loft, closed↔open, features on band edges or library bands;
+- STEP omits the sheet;
+- the full kernel suite was not rerun after the fixes.
+
+CI and release NOT_RUN.

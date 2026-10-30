@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "r1": 25.0,
+  "r2": 10.0,
+  "h": 30.0,
+  "frustumArea": 3688.0277337963807,
+  "exactArea": 3688.0277337963726,
+  "exactRelative": 2.219466041685759e-15,
+  "meshArea": 3678.5669779122254,
+  "relative": 0.0025652615888592093,
+  "report": {
+    "pairs": 2,
+    "closed": true,
+    "exact": true,
+    "boundaryDeviation": 7.32410687763558e-15,
+    "pairing": "pieces",
+    "pieces": [
+      2,
+      2
+    ],
+    "note": "2 exact ruled patches (paired by pieces); boundary deviation \u2264 7.3e-15 mm"
+  }
+}

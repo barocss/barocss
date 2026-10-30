@@ -1,0 +1,17 @@
+{
+  "count": 12,
+  "hashes": {
+    "apps/cad-studio/src/App.tsx": "66eaa63039dbbcc04fda24075f47d2faf0e46f221607aa8bed867dbcfd9deedb",
+    "apps/cad-studio/src/app/bandHighlight.ts": "9a14329e25ff148669aa5471234b22f8cc237f2dd43a30822abd709ee83fa084",
+    "apps/cad-studio/src/ui/Hud.tsx": "777545d109ae7482f64128ccdec0f53ba8627f8a06f750a5d672f0704734c2a7",
+    "apps/cad-studio/test/band-highlight.test.ts": "c4a3916823fcf5ff0ed8af0632fbc64087d6d3527b739e007d188a6770dc1af0",
+    "apps/cad-studio/test/band-surface-browser.mjs": "675cbbb17b7608f1bef4f8539afa6b98efaaeadd7ba30dfc4804f78c2a762940",
+    "apps/cad-studio/test/fixtures/band-surface.bcad": "ab2bc598dae2b124b1c9043da94ff7c469492e2c7f891fbe93f7c6842db3552f",
+    "apps/cad-studio/test/flow-helper.mjs": "993bbc0183ff82350874aa347aed05d22c3bb0ac37b59b5787dc70a856224740",
+    "packages/barocss-cad-model/src/app/bandSurfaceCommand.ts": "e50a9767ede6673b8926b2cee1e73038f0312acc28baf7a3af259fa7416ccd73",
+    "packages/barocss-cad-model/src/engine/doc.ts": "2c85f92f29407f366eb9c23a46ff9be7aedff7ed1eed5eaa78fa7a72e49aa510",
+    "packages/barocss-cad-model/src/engine/evaluate.ts": "390e88455aeba1a6d2df66f4458ad2d40721f1eac3d8e8bc9e08acda15509e5d",
+    "packages/barocss-cad-model/src/engine/references.ts": "e3c95071119abfe98dc864c835d0092cd3026799eeb5988003b93aaa86fda80f",
+    "packages/barocss-cad/src/features/band-surface.ts": "8491b4d05e8fcc8c81b3df5cfb1a8d45b10d4d28aec063f518db3f56fcc97040"
+  }
+}

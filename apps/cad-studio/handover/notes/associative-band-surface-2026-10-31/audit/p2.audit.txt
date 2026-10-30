@@ -1,0 +1,37 @@
+names [ 'n1.side0#2|n1.top', 'n1.side0#1|n1.top' ] [ 'n3.bottom|n3.side0#2', 'n3.bottom|n3.side0#1' ] keys before [ 'b1', 'b3' ] after [ 'b1', 'b3', 'b4' ]
+band body {
+  key: 'b4',
+  volume: null,
+  mass: null,
+  family: 'curved',
+  notes: [
+    '2 exact ruled patches (paired by pieces); boundary deviation ≤ 7.3e-15 mm'
+  ],
+  area: 2980.376479738825,
+  band: {
+    pairs: 2,
+    closed: true,
+    exact: true,
+    boundaryDeviation: 7.32410687763558e-15,
+    pairing: 'pieces',
+    pieces: [ 2, 2 ],
+    note: '2 exact ruled patches (paired by pieces); boundary deviation ≤ 7.3e-15 mm'
+  }
+}
+frustum area 2980.3764797388303
+massOf THROWS [MASS_UNKNOWN] the body b4 has no volume the core could work out
+exportStudioStep OK {"len":15025,"open":false,"closedShells":2}
+stlFor band OK 6484
+partBreps OK [["b1",["solid"]],["b3",["solid"]],["b4",["sheet"]]]
+bom OK {"lines":[],"totalQty":0,"totalMass":0}
+drawingOf OK {"issues":["HOLE_SIZE_MISSING:2 holes have no size on the drawing.","OVERALL_MISSING:The part’s overall width, height, depth are not given."],"svg":8394}
+output_bom OK {"revision":"ca7b4cebf399fe72beefdd8bc1c4d707aa3e0c1d496eecbecbbfeceeb0109c16","shopRows":[{"part":"base","rows":[]}],"bom":{"lines":[{"item":"this part","parts":["base"],"qty":1,"material":null,"mass
+analysis section z=25 OK the section could not be cut
+drawing sectionOf OK ["ok","error"]
+verify intact OK {"changes":[],"problems":0}
+later bodies [ 'b1', 'b4', 'b5' ]
+edit flip after parent consumed THROWS [VALUE] Band surface: side B is not a visible body (feature 3).
+checkNode band in later doc OK null
+checkNode band vs full nodes OK Band surface: side B is not a visible body (feature 3).
+delete A parent OK Feature 1 is used by feature 4; delete that first.
+delete band OK 4
