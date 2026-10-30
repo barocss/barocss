@@ -18,6 +18,7 @@ export const TOOLS: { tool: SketchTool; key: string; label: string; icon: string
   { tool: 'polygon', key: 'L', label: 'Line', icon: 'cad-sk-line', hint: 'Click points, click the first point to close · A switches to arcs' },
   { tool: 'arc', key: 'A', label: 'Arc', icon: 'cad-sk-arc', hint: 'Click the arc end, move to bend it, click to place · L back to lines' },
   { tool: 'carc', key: 'Q', label: 'Centre arc', icon: 'cad-sk-carc', hint: 'Click the centre, then the start (the radius), then turn to the end and click · it joins lines that meet its ends' },
+  { tool: 'ellipse', key: 'I', label: 'Ellipse', icon: 'cad-sk-ellipse', hint: 'Click the centre, the end of the first axis, then a point that sets the other semi-axis · kept as tangent arcs; Make curves keeps it exact' },
   { tool: 'slot', key: 'O', label: 'Slot', icon: 'cad-sk-slot', hint: 'Click both centres, then the width' },
   { tool: 'spline', key: 'P', label: 'Spline', icon: 'cad-sk-spline', hint: 'Click points the curve runs smoothly through · click the first point to close it · it is kept as tangent arcs' },
   { tool: 'bezier', key: 'B', label: 'Bézier', icon: 'cad-sk-spline', hint: 'Click control points: three make a quadratic, a fourth a cubic; the curve does not pass through the middle points' },

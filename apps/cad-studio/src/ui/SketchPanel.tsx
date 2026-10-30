@@ -6,6 +6,8 @@ import type { SketchAnchor, SketchShape, SketchState } from '../viewport/Viewpor
 import { arcOf, arcPairs, canBeTangent, inferredHV, radiusToBulge, samePair, type ArcPair, type P2, type SolveResult } from '@barocss/cad-model/sketch/profile';
 import { isSettled, redundancy, solveShape, type SketchPick } from '@barocss/cad-model/sketch/rules';
 import { respline, splineAutoHandles, splineEditError, splineMatches, type SplineDef } from '@barocss/cad-model/sketch/spline';
+import { ellipseMatches, type EllipseDef } from '@barocss/cad-model/sketch/ellipse';
+import { applyEllipse, ellipseConstraintRows } from './ellipsePanel';
 import { ConstraintTools } from './ConstraintTools';
 import { CONTROL, FIELD, NUM } from './panelStyles';
 import { Button } from '@/components/ui/button';
@@ -43,7 +45,9 @@ export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, 
         onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v)) set(v); }} /><em>mm</em></span></label>);
   const solved = useMemo(() => isSettled(s) ? solveShape(s) : null, [s]);
   const status = statusOf(s, solved, sketch.tool);
-  const constraints = s && !isSettled(s) ? inferred(s) : [];
+  // A matching ellipse is edited by its definition: its 192 outline points, joints and arc pairs are not listed, and its constraint list is one summary row (plus any non-arc constraint).
+  const ell = s?.kind === 'polygon' && !!s.ellipse && !s.pending && ellipseMatches(s);
+  const constraints = s && !isSettled(s) ? (ell ? ellipseConstraintRows(inferred(s)) : inferred(s)) : [];
 
   const lock = (poly: Polygon, key: 'lengths' | 'radii', i: number, value: number | null) => {
     const next = { ...(poly[key] ?? {}) };
@@ -110,7 +114,7 @@ export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, 
             onChange={e => { const v = Number(e.target.value); if (Number.isFinite(v)) put(s.a, l, v, s.r); }} /><em>°</em></span></label>
           {num('slot-width', 'Width', s.r * 2, v => put(s.a, l, angle, Math.max(0.25, v / 2)), 0.5)}</>;
       })()}
-      {s?.kind === 'polygon' && <div className="pts pts-4" role="group" aria-label="Outline points" style={{ gridTemplateColumns: '18px minmax(0, 1fr) minmax(0, 1fr) minmax(112px, 1.1fr)' }}>
+      {s?.kind === 'polygon' && !ell && <div className="pts pts-4" role="group" aria-label="Outline points" style={{ gridTemplateColumns: '18px minmax(0, 1fr) minmax(0, 1fr) minmax(112px, 1.1fr)' }}>
         <span /><span>X</span><span>Y</span><span>Edge</span>
         {s.points.map((p, i) => {
           const n = s.points.length, b = s.bulges?.[i] ?? 0, hasEdge = s.closed || i < n - 1;
@@ -143,15 +147,16 @@ export function SketchPanel({ sketch, toolLabel, error, onShape, onPlace, onUi, 
         })}
       </div>}
       {s?.kind === 'bezier' && wellFormedBezier(s) && <BezierSection s={s} onShape={onShape} onError={setSplineError} />}
+      {s?.kind === 'polygon' && s.ellipse && ell && <EllipseSection s={s} def={s.ellipse} onShape={onShape} onError={setSplineError} />}
       {s?.kind === 'polygon' && s.spline && sketch.tool !== 'spline' && !s.pending && splineMatches(s) && <SplineSection s={s} def={s.spline} onShape={onShape} onError={setSplineError} />}
-      {s?.kind === 'polygon' && s.closed && !s.pending && s.points.some((_, j) => canBeTangent(s.points as P2[], s.bulges, j)) && <>
+      {s?.kind === 'polygon' && !ell && s.closed && !s.pending && s.points.some((_, j) => canBeTangent(s.points as P2[], s.bulges, j)) && <>
         <div className="card-title" style={{ marginTop: 10 }}>TANGENCY</div>
         <div className="tangents" role="group" aria-label="Tangent joints">
           {s.points.map((_, j) => canBeTangent(s.points as P2[], s.bulges, j) && (
             <button key={j} type="button" className={'chip' + (s.tangents?.includes(j) ? ' on' : '')} aria-pressed={!!s.tangents?.includes(j)}
               aria-label={`Tangent at point ${j + 1}`} onClick={() => toggleTangent(s, j)}>T · {j + 1}</button>))}
         </div></>}
-      {s?.kind === 'polygon' && s.closed && !s.pending && arcPairs(s.bulges).length > 0 && <>
+      {s?.kind === 'polygon' && !ell && s.closed && !s.pending && arcPairs(s.bulges).length > 0 && <>
         <div className="card-title" style={{ marginTop: 10 }}>ARC PAIRS</div>
         <div className="arc-pairs" role="group" aria-label="Arc pairs">
           {arcPairs(s.bulges).map(pair => {
@@ -203,6 +208,7 @@ function statusOf(s: SketchShape | null, solved: SolveResult | null, tool?: stri
   if (s.kind !== 'polygon') return { text: 'Fully defined · every value is dimensioned', warn: false };
   if (!s.closed) return { text: s.pending ? 'Move to bend the arc, click to place it' : 'Open profile · click the first point to close', warn: true };
   if (s.pending) return { text: 'Move to bend the closing arc, click to place it', warn: true };
+  if (s.ellipse && ellipseMatches(s)) return { text: 'Ellipse · tangent arcs within 1e-5 of the exact curve · Make curves keeps it exact', warn: false };
   if (!solved) return { text: 'Outline closed', warn: false };
   if (!solved.ok) return { text: solved.reason, warn: true };
   const curved = (s.bulges ?? []).some(Boolean);
@@ -308,5 +314,22 @@ function SplineSection({ s, def, onShape, onError }: { s: Polygon; def: SplineDe
     <p className="muted small">Enter applies a value; empty handle: automatic. Dimensioning the curve or editing its outline points turns it into an ordinary outline.</p>
   </>;
 }
-
-
+/** An ellipse outline's centre, semi-axes (mm) and the first axis's angle (degrees), applied on Enter or blur. */
+function EllipseSection({ s, def, onShape, onError }: { s: Polygon; def: EllipseDef; onShape(shape: SketchShape | null): void; onError(e: string | null): void }) {
+  useEffect(() => () => onError(null), [onError]);
+  const set = (key: 'cx' | 'cy' | 'rx' | 'ry' | 'angle', text: string) => {
+    const v = Number(text); if (text === '' || !Number.isFinite(v)) return;
+    applyEllipse(s, { center: [key === 'cx' ? v : def.center[0], key === 'cy' ? v : def.center[1]], rx: key === 'rx' ? v : def.rx, ry: key === 'ry' ? v : def.ry, angle: key === 'angle' ? v : def.angle }, onShape, onError);
+  };
+  const fields: [Parameters<typeof set>[0], string, number][] = [['cx', 'Centre X', def.center[0]], ['cy', 'Centre Y', def.center[1]], ['rx', 'Rx', def.rx], ['ry', 'Ry', def.ry], ['angle', 'Angle', def.angle]];
+  return <>
+    <div className="card-title" style={{ marginTop: 10 }}>ELLIPSE</div>
+    <div className="pts" role="group" aria-label="Ellipse" style={{ gridTemplateColumns: '64px minmax(0, 1fr)' }}>
+      {fields.map(([key, label, value]) => [
+        <span key={'l' + key}>{label}{key === 'angle' ? ' °' : ''}</span>,
+        <DraftInput key={key} label={label} value={String(round(value))} onCommit={t => set(key, t)} />,
+      ])}
+    </div>
+    <p className="muted small">Enter applies a value · Rx is the first axis, at the angle from +X · no narrower than 1 : 5. Dimensioning the curve or editing its outline points turns it into an ordinary outline.</p>
+  </>;
+}

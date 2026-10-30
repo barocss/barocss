@@ -30,6 +30,7 @@ import type { BodyResult } from '../engine/evaluate';
 import type { BearingAssemblyInput } from '../engine/bearingContext';
 import type { DisplayEdge } from '../engine/mesh';
 import { refOf } from './bodyRef';
+import { ELLIPSE_SIDE_EDGE_REFUSAL, ellipseSideEdge } from '../sketch/ellipse';
 import { roundFaceAxis } from './measure';
 import { planBedSplit } from '../print/splitBed';
 import { planHollow } from '../print/hollow';
@@ -238,6 +239,11 @@ function edgesOfOneBody(ctx: Ctx): { body: BodyResult; edges: DisplayEdge[] } | 
   const body = ctx.bodies[faces[0].body], picked = new Set(faces.map(f => f.face));
   const edges = body?.mesh.edges.filter(e => picked.has(e.faces[0]) || picked.has(e.faces[1])) ?? [];
   return edges.length ? { body, edges } : null;
+}
+
+/** The refusal for picked edges that bound a side face made from an ellipse outline (null: none do). */
+function ellipseSideRefusal(ctx: Ctx, edges: readonly DisplayEdge[]): string | null {
+  return edges.some(e => e.names.some(n => ellipseSideEdge(ctx.doc.nodes, n))) ? ELLIPSE_SIDE_EDGE_REFUSAL : null;
 }
 
 /**
@@ -625,14 +631,14 @@ const allCommands: Command[] = [
     available: ctx => {
       const sel = edgesOfOneBody(ctx);
       if (!sel) return no('Select edges of one body to chamfer (Shift-click for more), or a face for all its edges.');
-      return ok;
+      const why = ellipseSideRefusal(ctx, sel.edges); return why ? no(why) : ok;
     },
     fields: () => [{ key: 'distance', label: 'Distance', kind: 'mm', min: 0.1 }],
     defaults: () => ({ distance: 2 }),
     steps: edgeSteps,
     handles: (ctx, v) => edgeHandle(ctx, 'distance', Number(v.distance), 'chamfer'),
     build: (ctx, v) => {
-      const { body, edges } = edgesOfOneBody(ctx)!;
+      const { body, edges } = edgesOfOneBody(ctx)!, why = ellipseSideRefusal(ctx, edges); if (why) throw refusal('VALUE', why);
       return withNode(ctx.doc, { kind: 'chamfer', parent: refOf(body), edges: edges.flatMap(e => e.names), distance: Number(v.distance) });
     },
   },
@@ -641,7 +647,7 @@ const allCommands: Command[] = [
     available: ctx => {
       const sel = edgesOfOneBody(ctx);
       if (!sel) return no('Select edges of one body to round (Shift-click for more), or a face for all its edges.');
-      return ok;
+      const why = ellipseSideRefusal(ctx, sel.edges); return why ? no(why) : ok;
     },
     fields: () => [{ key: 'radius', label: 'Radius', kind: 'mm', min: 0.1 }, { key: 'endRadius', label: 'End radius (0: same)', kind: 'mm', min: 0 },
       // (The section between the contacts, R10.5b, D103: a circle, a conic of rho, or G2 — curving as the faces do there.)
@@ -652,7 +658,8 @@ const allCommands: Command[] = [
     steps: edgeSteps,
     handles: (ctx, v) => edgeHandle(ctx, 'radius', Number(v.radius), 'fillet'),
     build: (ctx, v) => {
-      const { body, edges } = edgesOfOneBody(ctx)!, r = Number(v.radius), r1 = Number(v.endRadius) || 0, names = edges.flatMap(e => e.names);
+      const { body, edges } = edgesOfOneBody(ctx)!, why = ellipseSideRefusal(ctx, edges); if (why) throw refusal('VALUE', why);
+      const r = Number(v.radius), r1 = Number(v.endRadius) || 0, names = edges.flatMap(e => e.names);
       const section = sectionOf(v), shaped = section ? { section } : {};
       // (An end radius: the radius varies along the picked chain from its start to its end, R10.5, D100.)
       if (r1 > 0 && Math.abs(r1 - r) > 1e-9) {

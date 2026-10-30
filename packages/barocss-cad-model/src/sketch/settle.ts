@@ -3,6 +3,7 @@
 import type { SketchShape } from './types';
 import { inferArcRelations, inferredHV, inferTangents, samePair, type ArcPair, type P2 } from './profile';
 import { splineMatches } from './spline';
+import { ellipseMatches } from './ellipse';
 import { checkEdit, redundancy, solveShape, type Polygon } from './rules';
 
 type Relations = { tangents: number[]; equalRadii: ArcPair[]; concentric: ArcPair[] };
@@ -18,10 +19,11 @@ const count = (o?: object) => Object.keys(o ?? {}).length;
 /** A dimension or explicit relation drives the outline (tangents and hv do not count). */
 const drivenOutline = (p: Polygon) => count(p.lengths) + count(p.radii) + (p.rules?.length ?? 0) + (p.equalRadii?.length ?? 0) + (p.concentric?.length ?? 0) > 0;
 
-/** Settles an edited shape; a spline outline that is dimensioned/related, or whose points no longer are what its definition makes, is an ordinary outline (loses `spline`). */
+/** Settles an edited shape; a spline or ellipse outline that is dimensioned/related, or whose points no longer are what its definition makes, is an ordinary outline (loses `spline` / `ellipse`). */
 export function settleShape(shape: SketchShape | null, prev: SketchShape | null): { shape: SketchShape | null; error: string | null } {
   const r = settleCore(shape, prev), out = r.shape;
   if (out?.kind === 'polygon' && out.spline && (drivenOutline(out) || !splineMatches(out))) { const rest = { ...out }; delete rest.spline; return { shape: rest, error: r.error }; }
+  if (out?.kind === 'polygon' && out.ellipse && (drivenOutline(out) || !ellipseMatches(out))) { const rest = { ...out }; delete rest.ellipse; return { shape: rest, error: r.error }; }
   return r;
 }
 
@@ -34,7 +36,7 @@ function settleCore(shape: SketchShape | null, prev: SketchShape | null): { shap
   // Closing an outline infers what was drawn nearly so (tangent joints, equal radii, shared centres);
   // the solve then makes it exact. If the inferred set cannot hold, only the explicit set is kept.
   const inferred: Relations = justClosed
-    ? { tangents: inferTangents(base.points as P2[], base.bulges), ...(base.fromSpline ? { equalRadii: [], concentric: [] } : inferArcRelations(base.points as P2[], base.bulges)) }
+    ? base.fromEllipse ? { tangents: [], equalRadii: [], concentric: [] } : { tangents: inferTangents(base.points as P2[], base.bulges), ...(base.fromSpline ? { equalRadii: [], concentric: [] } : inferArcRelations(base.points as P2[], base.bulges)) }
     : { tangents: [], equalRadii: [], concentric: [] };
   const attempt = (relations: Relations) => {
     const candidate: Polygon = { ...base, ...relations };

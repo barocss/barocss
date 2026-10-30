@@ -33,6 +33,8 @@ import type { CageValidation } from '@barocss/cad';
 import { modelSnaps, nearestSnap, shapeSnaps, type SnapPoint, type SnapShape } from '@barocss/cad-model/sketch/osnap';
 import { bezierError, bezierSamples, wellFormedBezier } from '@barocss/cad-model/sketch/bezier';
 import { respline, splineEditError, splineMatches, splineOutline } from '@barocss/cad-model/sketch/spline';
+import { ellipseError, ellipseMatches, ellipseShape } from '@barocss/cad-model/sketch/ellipse';
+import { draftEllipse, ellipseAxis, ellipseClick, ellipseSamples, type EllipseDraft } from './ellipseDraft';
 import { draggedSpline, sameSplineDef, splineDragStarted, splineHandleGeometry, splineHandleHit, type SplineHandleHit } from './splineHandles';
 import type { SplineDef } from '@barocss/cad-model/sketch/spline';
 import type { Analysis } from './analysis';
@@ -506,7 +508,10 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     // (Capture phase: the drag's Escape is not also the app's.)
     // While a spline drag is active every key is swallowed (Escape cancels it), so no app shortcut acts mid-drag.
     const key = (e: KeyboardEvent) => { if (drag.current.mode !== 'spline') return; e.stopImmediatePropagation(); e.preventDefault(); if (e.key === 'Escape') splineCancelRef.current(); };
-    window.addEventListener('keydown', key, true); return () => window.removeEventListener('keydown', key, true);
+    // An Ellipse draft's Escape drops the draft only (not the whole sketch, which is the app's Escape).
+    const esc = (e: KeyboardEvent) => { if (e.key !== 'Escape' || !ellipseDraft.current) return; e.stopImmediatePropagation(); e.preventDefault(); ellipseDraft.current = null; requestRef.current(); };
+    window.addEventListener('keydown', key, true); window.addEventListener('keydown', esc, true);
+    return () => { window.removeEventListener('keydown', key, true); window.removeEventListener('keydown', esc, true); };
   }, []);
   const liveShape = useRef<SketchShape | null>(props.sketch?.shape ?? null), seenShape = useRef(props.sketch?.shape);
   if (props.sketch?.shape !== seenShape.current) { seenShape.current = props.sketch?.shape; liveShape.current = props.sketch?.shape ?? null; }
@@ -1077,7 +1082,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const splineCancelOf = (pointerId: number) => { const d = drag.current; if ((d.splineArm?.pointerId ?? (d.mode === 'spline' ? d.pointerId : undefined)) === pointerId) splineDragCancel(); };
   // A tool change or the end of the sketch cancels a pending spline drag and drops the grab cursor.
   const sketchTool = props.sketch?.tool;
-  useEffect(() => { splineCancelRef.current(); if (canvas.current) canvas.current.style.cursor = ''; bezierDraft.current = { poles: [], open: false }; }, [sketchTool, !!props.sketch]);
+  useEffect(() => { splineCancelRef.current(); if (canvas.current) canvas.current.style.cursor = ''; bezierDraft.current = { poles: [], open: false }; ellipseDraft.current = null; }, [sketchTool, !!props.sketch]);
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (drag.current.mode === 'gizmo') return;
@@ -1205,6 +1210,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
   const splineFit = useRef<[number, number][] | null>(null);
   /** The Bézier tool's control points before they make a shape (fewer than three); `open`: the current shape is a quadratic a fourth click makes cubic (D354). */
   const bezierDraft = useRef<{ poles: [number, number][]; open: boolean }>({ poles: [], open: false });
+  /** The Ellipse tool's clicks so far: the centre, then the end of the first axis (the ellipse follows the pointer until the third). */
+  const ellipseDraft = useRef<EllipseDraft | null>(null);
   const carc = useRef<{ c: [number, number]; a?: [number, number]; last?: number; sweep: number; cursor?: [number, number] } | null>(null);
   const carcEnd = (d: NonNullable<typeof carc.current>): [number, number] => {
     const r = Math.hypot(d.a![0] - d.c[0], d.a![1] - d.c[1]), t = Math.atan2(d.a![1] - d.c[1], d.a![0] - d.c[0]) + d.sweep, r6 = (v: number) => Math.round(v * 1e6) / 1e6;
@@ -1285,6 +1292,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
         const made: SketchShape = { kind: 'bezier', poles };
         if (bezierError(poles)) { propsRef.current.onSketchShape(made, true); return; }
         bezierDraft.current = { poles: [], open: true }; emit(made, true); request(); return;
+      }
+      if (sk.tool === 'ellipse') {
+        // Centre, end of the first axis, then a point whose distance from that axis is the other semi-axis (the draft is cleared when the ellipse is made; a refusal is then shown in the panel and the sketch keeps its shape).
+        const r = ellipseClick(ellipseDraft.current, c); ellipseDraft.current = r.draft;
+        if (r.def) { ellipseDraft.current = null; propsRef.current.onSketchShape(ellipseShape(r.def), true); }
+        request(); return;
       }
       if (sk.tool === 'carc') {
         const d = carc.current;
@@ -1468,7 +1481,9 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
         items.push(s.closed ? <polygon key="pg" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className={'sk-shape' + (s.construction ? ' construction' : '')} />
           : <polyline key="pl" points={line.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-shape open" />);
         if (marks) items.push(...marks.under);
-        pts.forEach((p, i) => items.push(<circle key={'p' + i} cx={p[0]} cy={p[1]} r={3.5} className="sk-point" />));
+        const ell = isSettled(s) && !!s.ellipse && ellipseMatches(s); // (An ellipse's 96 tiny arcs get no radius labels or centre dots; its centre and axis ends are marked instead.)
+        if (ell) [s.ellipse!.center, ...[0, 1, 2, 3].map(k => s.points[k * s.points.length / 4])].forEach((q, i) => { const p = P(q[0], q[1]); items.push(<circle key={'ep' + i} cx={p[0]} cy={p[1]} r={3.5} className="sk-point" />); });
+        else pts.forEach((p, i) => items.push(<circle key={'p' + i} cx={p[0]} cy={p[1]} r={3.5} className="sk-point" />));
         const csp = closedSplineOf(s); // (D353: handles only on a closed spline, whose radius chips are hidden so they do not cover them)
         if (csp) items.push(...splineHandleMarks(csp, P));
         (s.tangents ?? []).forEach(j => { const p = pts[j]; if (p) items.push(<g key={'tg' + j}><rect x={p[0] + 6} y={p[1] - 22} width={16} height={15} rx={3} className="cons-chip" /><text x={p[0] + 14} y={p[1] - 11} textAnchor="middle" className="cons-text">T</text></g>); });
@@ -1477,8 +1492,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
           const a = s.points[i], b = s.points[(i + 1) % n], bulge = s.bulges?.[i] ?? 0;
           if (bulge) {
             const arc = arcOf(a, b, bulge), t = arc.start + arc.sweep / 2, m = P(arc.center[0] + arc.radius * Math.cos(t), arc.center[1] + arc.radius * Math.sin(t));
-            const cc = P(arc.center[0], arc.center[1]); items.push(<circle key={'ac' + i} cx={cc[0]} cy={cc[1]} r={2} className="sk-point" />);
-            if (s.closed && !s.pending && !csp && !driving.has('rad' + i)) items.push(label(m[0], m[1] - 18, 'R' + fmtLen(arc.radius), 'rad' + i));
+            const cc = P(arc.center[0], arc.center[1]); if (!ell) items.push(<circle key={'ac' + i} cx={cc[0]} cy={cc[1]} r={2} className="sk-point" />);
+            if (s.closed && !s.pending && !csp && !ell && !driving.has('rad' + i)) items.push(label(m[0], m[1] - 18, 'R' + fmtLen(arc.radius), 'rad' + i));
             if ((s.equalRadii ?? []).some(p => p.includes(i))) items.push(<g key={'eq' + i}><rect x={m[0] + 30} y={m[1] - 26} width={16} height={15} rx={3} className="cons-chip" /><text x={m[0] + 38} y={m[1] - 15} textAnchor="middle" className="cons-text">=</text></g>);
             if ((s.concentric ?? []).some(p => p.includes(i))) items.push(<circle key={'oc' + i} cx={cc[0]} cy={cc[1]} r={6} className="sk-guide" fill="none" />);
             continue;
@@ -1498,6 +1513,27 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       if (sk.tool === 'bezier' && bezierDraft.current.poles.length) {
         const cur = sketchDraft.current.cursor, bp = bezierDraft.current.poles;
         items.push(...bezierMarks('bzd', cur ? [...bp, cur] : bp, P, false));
+      }
+      // The Ellipse tool's draft: the circle of the first axis while its end is chosen, then the ellipse with the pointer as its other semi-axis.
+      const ed = sk.tool === 'ellipse' ? ellipseDraft.current : null, ec = sketchDraft.current.cursor;
+      if (ed) {
+        const C = P(ed.c[0], ed.c[1]); items.push(<circle key="ed-c" cx={C[0]} cy={C[1]} r={3.5} className="sk-point" />);
+        if (!ed.a && ec) {
+          const ax = ellipseAxis(ed.c, ec);
+          if (ax) {
+            const ring = ellipseSamples({ center: ed.c, rx: ax.rx, ry: ax.rx, angle: 0 }).map(q => P(q[0], q[1])), q = P(ec[0], ec[1]);
+            items.push(<polygon key="ed-r" points={ring.map(p => p[0] + ',' + p[1]).join(' ')} className="sk-guide" fill="none" />, <line key="ed-l" x1={C[0]} y1={C[1]} x2={q[0]} y2={q[1]} className="sk-guide" />);
+            items.push(label((C[0] + q[0]) / 2, (C[1] + q[1]) / 2 - 16, 'Rx ' + fmtLen(ax.rx) + ' · ' + (Math.round(ax.angle * 10) / 10) + '°', 'live-ellipse-rx'));
+          }
+        } else if (ed.a) {
+          const A = P(ed.a[0], ed.a[1]), def = ec ? draftEllipse(ed, ec) : null;
+          items.push(<line key="ed-a" x1={C[0]} y1={C[1]} x2={A[0]} y2={A[1]} className="sk-guide" />, <circle key="ed-ap" cx={A[0]} cy={A[1]} r={3.5} className="sk-point" />);
+          if (def) {
+            const ring = ellipseSamples(def).map(q => P(q[0], q[1])), why = ellipseError(def);
+            items.push(<polygon key="ed-e" points={ring.map(p => p[0] + ',' + p[1]).join(' ')} className={why ? 'sk-guide' : 'sk-shape'} fill="none" />);
+            const m = P(ec![0], ec![1]); items.push(label(m[0] + 30, m[1] - 14, 'Rx ' + fmtLen(def.rx) + ' · Ry ' + fmtLen(def.ry), 'live-ellipse-r'));
+          }
+        }
       }
       // The trim tool's target: the piece a click removes.
       // The centre arc being drawn: its circle while the start is chosen, then the arc so far and its radii.

@@ -5,9 +5,10 @@ import type { PlaneKind, SketchPlane } from './plane';
 import type { SketchRule } from './terms';
 import type { SketchPick } from './rules';
 import type { SplineDef } from './spline';
+import type { EllipseDef } from './ellipse';
 
 /** `select` picks outline points and edges for constraints; `dimension` adds and edits dimensions. */
-export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'carc' | 'slot' | 'spline' | 'bezier' | 'trim' | 'extend' | 'split' | 'select' | 'dimension';
+export type SketchTool = 'rectangle' | 'circle' | 'polygon' | 'arc' | 'carc' | 'slot' | 'spline' | 'bezier' | 'ellipse' | 'trim' | 'extend' | 'split' | 'select' | 'dimension';
 /** Polygon segment i runs from point i to i+1; bulges[i] ≠ 0 makes it an arc. `pending`: the newest arc follows the cursor. */
 /** `construction`: a reference drawn in the sketch (dashed): snapped to, but not part of the profile. */
 export type SketchShape = (
@@ -26,6 +27,10 @@ export type SketchShape = (
       fromSpline?: true;
       /** A Spline-tool outline's fit points and handle directions (sketch/spline.ts): kept while the points still are what it makes; any other edit drops it. */
       spline?: SplineDef;
+      /** Drawn with the Ellipse tool: closing infers nothing (its tangent arcs are exact as generated). */
+      fromEllipse?: true;
+      /** An Ellipse-tool outline's definition (sketch/ellipse.ts): kept while the points still are what it makes; any other edit drops it. */
+      ellipse?: EllipseDef;
       /** Circles attached to the outline: dimensioned from its points and solved with it (holes or bosses of the profile). */
       circles?: { c: [number, number]; r: number }[];
       /** The attached circles' side ids (R10a, D86), one a circle. */

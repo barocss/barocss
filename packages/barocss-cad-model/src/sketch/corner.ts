@@ -31,7 +31,7 @@ export function roundCorner(s: Polygon, i: number, r: number): { shape: Polygon 
   const nb = [...bulges.slice(0, i), bulge, ...bulges.slice(i)];
   const out: Polygon = { ...s, points, bulges: nb };
   delete out.fromRectangle;
-  delete out.fromSpline; delete out.spline; // (A rounded corner makes a spline an ordinary outline.)
+  delete out.fromSpline; delete out.spline; delete out.fromEllipse; delete out.ellipse; // (A rounded corner makes a spline or ellipse an ordinary outline.)
   // (Ids, R10a: the edges either side keep theirs — the one leaving the corner now from B; the arc's is given with the
   // sketch's others, unique in it: withIds.)
   if (s.ids?.length === s.points.length) out.ids = [...s.ids.slice(0, i), '', ...s.ids.slice(i)];

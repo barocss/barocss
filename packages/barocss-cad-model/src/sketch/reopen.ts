@@ -7,6 +7,7 @@ import { rulesWithoutCircle, type Polygon } from './rules';
 import { loopOf } from './loops';
 import { wellFormedBezier } from './bezier';
 import type { SplineDef } from './spline';
+import { ellipseMatches, wellFormedEllipse } from './ellipse';
 import { refusal } from '../engine/refusal';
 
 type Params = Readonly<Record<string, number>>;
@@ -120,15 +121,18 @@ function wellFormedSpline(x: unknown): SplineDef | null {
   if (d.handles !== undefined && !(Array.isArray(d.handles) && d.handles.length === d.fit.length && d.handles.every(h => h === null || num(h)))) return null;
   return { fit: d.fit.map(p => [p[0], p[1]] as [number, number]), closed: d.closed, ...(d.handles ? { handles: [...d.handles] } : {}) };
 }
-/** A kept outline as the sketcher's closed polygon. */
-export const outlinePolygon = (o: SketchOutline): Polygon => ({
-  kind: 'polygon', closed: true, points: o.points.map(p => [p[0], p[1]] as [number, number]), bulges: o.bulges ? [...o.bulges] : o.points.map(() => 0),
-  ...(o.lengths ? { lengths: o.lengths } : {}), ...(o.radii ? { radii: o.radii } : {}), ...(o.tangents ? { tangents: o.tangents } : {}),
-  ...(o.equalRadii ? { equalRadii: o.equalRadii } : {}), ...(o.concentric ? { concentric: o.concentric } : {}), ...(o.hv ? { hv: o.hv } : {}), ...(o.rules ? { rules: o.rules } : {}),
-  ...(wellFormedSpline(o.spline) ? { spline: wellFormedSpline(o.spline)!, fromSpline: true as const } : {}),
-  ...(o.circles ? { circles: o.circles.map(c => ({ c: [c.c[0], c.c[1]] as [number, number], r: c.r })) } : {}),
-});
-
+/** A kept outline as the sketcher's closed polygon (a stored ellipse definition comes back only when well-formed and still what the points make). */
+export const outlinePolygon = (o: SketchOutline): Polygon => {
+  const poly: Polygon = {
+    kind: 'polygon', closed: true, points: o.points.map(p => [p[0], p[1]] as [number, number]), bulges: o.bulges ? [...o.bulges] : o.points.map(() => 0),
+    ...(o.lengths ? { lengths: o.lengths } : {}), ...(o.radii ? { radii: o.radii } : {}), ...(o.tangents ? { tangents: o.tangents } : {}),
+    ...(o.equalRadii ? { equalRadii: o.equalRadii } : {}), ...(o.concentric ? { concentric: o.concentric } : {}), ...(o.hv ? { hv: o.hv } : {}), ...(o.rules ? { rules: o.rules } : {}),
+    ...(wellFormedSpline(o.spline) ? { spline: wellFormedSpline(o.spline)!, fromSpline: true as const } : {}),
+    ...(o.circles ? { circles: o.circles.map(c => ({ c: [c.c[0], c.c[1]] as [number, number], r: c.r })) } : {}),
+  };
+  const ellipse = wellFormedEllipse(o.ellipse);
+  return ellipse && ellipseMatches({ ...poly, ellipse }) ? { ...poly, ellipse, fromEllipse: true } : poly;
+};
 
 /** A line + arc loop as a closed outline (bulges from each arc's centre and turning direction); one full arc is a circle. */
 export function loopShape(segments: readonly LoopSegment[]): SketchShape | null {

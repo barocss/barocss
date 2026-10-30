@@ -14,7 +14,8 @@ import { renameToTagged } from '@barocss/cad-model/sketch/entityIds';
 import { loadDirect } from '@barocss/cad-model/engine/directModule';
 import type { SketchShape } from '@barocss/cad-model/sketch/types';
 import { bezierCurve, bezierError, wellFormedBezier } from '@barocss/cad-model/sketch/bezier';
-import { circleCurve, curvesSource, edgeCurve, outlineCurve } from '@barocss/cad-model/engine/curveSource';
+import { circleCurve, curvesSource, edgeCurve, ellipseCurve, outlineCurve } from '@barocss/cad-model/engine/curveSource';
+import { ellipseMatches } from '@barocss/cad-model/sketch/ellipse';
 import { isDefaultPlane, offsetPlane, standardPlane, tiltPlane, xyPlane, type SketchPlane } from '@barocss/cad-model/sketch/plane';
 import { profileOf, shapeNode } from '@barocss/cad-model/sketch/loops';
 import { startPicking } from '@barocss/cad-model/sketch/select';
@@ -71,6 +72,7 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     const curves = shapes.flatMap(s => s.kind === 'circle' ? [circleCurve(P, s.c, s.r)]
       : s.kind === 'rectangle' ? [outlineCurve(P, [s.a, [s.b[0], s.a[1]], s.b, [s.a[0], s.b[1]]], undefined, true)]
         : s.kind === 'bezier' ? (wellFormedBezier(s) ? [bezierCurve(P, s.poles)] : [])
+        : s.kind === 'polygon' && s.ellipse && s.closed && ellipseMatches(s) ? [ellipseCurve(P, s.ellipse)]
         : s.kind === 'slot' ? (() => { const l = Math.hypot(s.b[0] - s.a[0], s.b[1] - s.a[1]) || 1, n: [number, number] = [-(s.b[1] - s.a[1]) / l * s.r, (s.b[0] - s.a[0]) / l * s.r]; return [outlineCurve(P, [[s.a[0] - n[0], s.a[1] - n[1]], [s.b[0] - n[0], s.b[1] - n[1]], [s.b[0] + n[0], s.b[1] + n[1]], [s.a[0] + n[0], s.a[1] + n[1]]], [0, 1, 0, 1], true)]; })()
           : s.points.length >= 2 ? [outlineCurve(P, s.points, s.bulges, s.closed)] : []);
     if (!curves.length) { setToast({ title: 'Nothing to make curves of', hint: 'Draw lines, arcs, circles or Bézier curves in the sketch first.', detail: '' }); return; }

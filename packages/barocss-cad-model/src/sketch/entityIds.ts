@@ -67,8 +67,8 @@ export function carryPolygon(old: Polygon, next: Polygon, from: readonly number[
   set('rules', rules);
   if (old.circles) { out.circles = old.circles.map(c => ({ c: [c.c[0], c.c[1]], r: c.r })); if (old.circleIds) out.circleIds = [...old.circleIds]; }
   if (old.fromRectangle && n1 === 4) out.fromRectangle = true; else delete out.fromRectangle;
-  // (A point inserted or removed makes a spline an ordinary outline.)
-  delete out.fromSpline; delete out.spline;
+  // (A point inserted or removed makes a spline or ellipse an ordinary outline.)
+  delete out.fromSpline; delete out.spline; delete out.fromEllipse; delete out.ellipse;
   return out;
 }
 /** A rule's fields that name points or segments (circles keep their numbers through an outline edit). */

@@ -2,7 +2,7 @@
 // lines and arcs, or a model edge, each one degree-2 rational NURBS curve — a line span with its middle
 // pole, an arc in spans of a quarter turn or less (weights cos ½θ) — joined where the pieces meet.
 import type { SketchPlane } from '../sketch/plane';
-import { toWorld } from '../sketch/plane';
+import { toWorld, xyPlane } from '../sketch/plane';
 import { arcOf } from '../sketch/profile';
 import type { DisplayMesh, Vec3 } from './mesh';
 
@@ -38,6 +38,15 @@ export function outlineCurve(plane: SketchPlane, points: P2[], bulges: number[] 
   return fromSpans(spans);
 }
 export const circleCurve = (plane: SketchPlane, c: P2, r: number): NurbsCurve => fromSpans(arcSpans(plane, c, r, 0, 2 * Math.PI));
+
+/**
+ * The exact ellipse (centre, semi-axes rx and ry in mm, the first axis `angle` degrees anticlockwise from +X) as a curve: the circle's four
+ * quarter spans with every pole sent through the affine map p ↦ centre + R(angle)·diag(rx, ry)·p, weights unchanged (an affine image of a rational conic).
+ */
+export function ellipseCurve(plane: SketchPlane, d: { center: P2; rx: number; ry: number; angle: number }): NurbsCurve {
+  const unit = circleCurve(xyPlane(), [0, 0], 1), a = d.angle * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a);
+  return { ...unit, points: unit.points.map(q => { const x = d.rx * q[0], y = d.ry * q[1]; return toWorld(plane, [d.center[0] + ca * x - sa * y, d.center[1] + sa * x + ca * y]); }) };
+}
 
 /**
  * A model edge as a curve, from its display polyline: a straight line, a circle or an arc of one when

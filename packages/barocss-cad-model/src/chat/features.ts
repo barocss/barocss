@@ -1,4 +1,5 @@
 import { sewNodeProblem } from '../engine/sew';
+import { ELLIPSE_SIDE_EDGE_REFUSAL, ellipseSideEdge } from '../sketch/ellipse';
 import { thickenNodeProblem } from '../engine/thicken';
 import { fillFeaturePatternProblem } from '../engine/fillFeaturePattern';
 import { curveFeaturePatternProblem } from '../engine/curveFeaturePattern';
@@ -144,6 +145,7 @@ export function checkNode(node: unknown, nodes: readonly ModelNode[], parameters
     const why = checkValue(v, type, nodes, parameters, leaves);
     if (why) return `${kind}.${key}: ${why}`;
   }
+  if ((kind === 'fillet' || kind === 'chamfer') && (node.edges as string[]).some(e => ellipseSideEdge(nodes, e))) return `${kind}.edges: ${ELLIPSE_SIDE_EDGE_REFUSAL}`;
   if (kind === 'sew') return sewNodeProblem(node);
   if (kind === 'thicken') return thickenNodeProblem(node, parameters);
   if (kind === 'text') return textNodeProblem(node, parameters);

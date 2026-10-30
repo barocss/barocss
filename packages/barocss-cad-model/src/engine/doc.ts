@@ -272,6 +272,8 @@ export interface SketchOutline {
   circles?: { c: [number, number]; r: number }[];
   /** A spline outline's fit points and handle directions (degrees; null = automatic), kept while the points still are what it makes. */
   spline?: { fit: [number, number][]; closed: boolean; handles?: (number | null)[] };
+  /** An ellipse outline's definition (centre, semi-axes in mm, the first axis's angle in degrees), kept while the points still are what it makes. */
+  ellipse?: { center: [number, number]; rx: number; ry: number; angle: number };
 }
 /** `regions`: more loops of material; `holes`: loops cut from them (straight extrudes only); `outline`: the main loop as drawn and constrained. */
 /** `on`: the body the sketch was drawn on (a feature from it joins or cuts that body by default). */

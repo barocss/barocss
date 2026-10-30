@@ -109,16 +109,21 @@ export function respline(s: Poly, def: SplineDef): Poly {
   return out;
 }
 
-/** Whether the polygon still is what its spline definition makes: points within 1e-6 mm and bulges within 1e-10·size (the closing solve may move points by solver-scale amounts, so both tolerances grow with the size past 100 mm). */
-export function splineMatches(s: Poly): boolean {
-  const d = s.spline; if (!d || d.closed !== s.closed) return false;
-  const o = splineOutline(d.fit, d.closed, d.handles), n = o.points.length, size = Math.max(100, ...d.fit.map(p => Math.max(Math.abs(p[0]), Math.abs(p[1])))), tp = 1e-8 * size, tb = 1e-10 * size;
+/** Whether a polygon's points and bulges are the outline `o` within 1e-8·size mm and 1e-10·size (`size`: at least 100: the closing solve may move points by solver-scale amounts). */
+export function outlineMatches(o: { points: P2[]; bulges: number[] }, s: Extract<SketchShape, { kind: 'polygon' }>, size: number): boolean {
+  const n = o.points.length, tp = 1e-8 * size, tb = 1e-10 * size;
   if (n !== s.points.length || n !== (s.bulges?.length ?? n)) return false;
   for (let i = 0; i < n; i++) {
     if (Math.abs(o.points[i][0] - s.points[i][0]) > tp || Math.abs(o.points[i][1] - s.points[i][1]) > tp) return false;
     if (Math.abs(o.bulges[i] - (s.bulges?.[i] ?? 0)) > tb) return false;
   }
   return true;
+}
+
+/** Whether the polygon still is what its spline definition makes: points within 1e-8·size mm and bulges within 1e-10·size (the closing solve may move points by solver-scale amounts, so both tolerances grow with the size past 100 mm). */
+export function splineMatches(s: Poly): boolean {
+  const d = s.spline; if (!d || d.closed !== s.closed) return false;
+  return outlineMatches(splineOutline(d.fit, d.closed, d.handles), s, Math.max(100, ...d.fit.map(p => Math.max(Math.abs(p[0]), Math.abs(p[1])))));
 }
 
 // The kernel's profile admission (packages/barocss-cad ExtrudedProfileLimits): coordinates within ±10000 mm, arc radius >= 0.01 mm,

@@ -24,6 +24,7 @@ Finish the sketch with <kbd>Enter</kbd> or **Finish sketch** in the top bar.
 | <kbd>L</kbd> | Line | Click points; click the first point to close. <kbd>A</kbd> switches to arcs |
 | <kbd>A</kbd> | Arc | Click the arc's end, move to bend it, click to place. <kbd>L</kbd> goes back to lines |
 | <kbd>Q</kbd> | Centre arc | Click the centre, then the start (the radius), then turn to the end and click |
+| <kbd>I</kbd> | Ellipse | Click the centre, the end of the first axis, then a point that sets the other semi-axis; it is kept as tangent arcs and keeps its definition |
 | <kbd>O</kbd> | Slot | Click both centres, then the width |
 | <kbd>P</kbd> | Spline | Click points the curve runs smoothly through; it is kept as tangent arcs and keeps its fit points |
 | <kbd>B</kbd> | Bézier | Click control points: three make a quadratic, a fourth a cubic; the curve does not pass through the middle points |
@@ -48,6 +49,25 @@ starts after the pointer moves 3 px, so a plain click still picks. Releasing app
 <kbd>Escape</kbd> cancels, and a position with no buildable arc pair keeps the last valid one. The arc radius chips are hidden
 on a closed spline so they do not cover its handles; lock a radius in the panel grid instead. A spline is driven only by its fit points and handles: a dimension or relation on it, or an
 edit of its outline points, turns it into an ordinary outline.
+
+An ellipse is drawn with three clicks: the centre, the end of the first axis (which sets **Rx** and the angle), and any point whose
+distance from that axis line sets **Ry**. A dashed circle and then the ellipse follow the pointer; <kbd>Escape</kbd> drops the
+draft. The **ELLIPSE** section then lists **Centre X**, **Centre Y**, **Rx**, **Ry** (semi-axes in mm) and **Angle** (the Rx axis,
+degrees anticlockwise from +X); type a value and press <kbd>Enter</kbd> (or leave the box) to apply it, and a value the model
+cannot build shows the reason and changes nothing. The profile is a closed outline of 192 tangent arcs through 96 points of the
+true ellipse, so it extrudes, cuts and keeps its side names whatever you edit; it stays within 1e-5 of the longer semi-axis of
+the true ellipse (0.0005 mm at Rx 50), and its area is within 1e-5 of π·Rx·Ry. An ellipse narrower than 1 : 5 is refused (draw a
+slot or a spline instead), as is one whose points or arc centres leave ±10000 mm or whose arcs are under 0.01 mm radius (a large,
+narrow ellipse has far arc centres: 5000 × 1000 mm is refused, 5000 × 4000 mm is fine). Make curves turns it into the exact ellipse: one degree-2
+rational curve (the circle's four quarter spans mapped by the ellipse's axes), not the outline's arcs. The outline's radius
+labels, joints and arc pairs are not listed while it is an ellipse (the Constraints list shows one "Ellipse · 192 tangent arcs" row), and a dimension on it is refused (the solver takes 64
+segments); moving one of its outline points, or rounding a corner, turns it into an ordinary outline of 192 arcs, which Make
+curves refuses. The angle is stored between 0° and 360° (−90° becomes 270°), and an angle that is not a usable number is refused.
+The definition is kept only when the ellipse is the sketch's main shape: as a hole or an extra region it becomes a plain 192-arc
+outline when you finish the sketch, and Make curves then refuses it. Fillets and chamfers on an ellipse's side edges (the
+edges of the faces made from a kept ellipse outline) are refused with a reason, because each of the 192 arcs is a face and the
+rounding would take minutes: fillet a circle or a slot instead, or make the shape from the exact curve with Make curves. The edges
+of other faces of the same body, and of an ellipse hole (a plain arc outline after Finish), are not refused. This covers extrudes, revolves and sweeps of the ellipse. A document made before this limit, with a fillet or chamfer on an ellipse's side edges, still opens and evaluates, slowly (minutes per such fillet).
 
 A Bézier curve is drawn from its control points: the dashed control polygon joins them and the solid curve runs from the
 first to the last, leaving along the first leg and arriving along the last. It does not pass through the middle points. The
