@@ -3,7 +3,7 @@ import { SKETCH_INSETS, sketchRegion, detachSketchLink } from '../app/sketchCont
 import { emptySel } from '../app/studioConstants';
 import { useCallback } from 'react';
 import { resolveAssociativeSketch } from '@barocss/cad-model/engine/part';
-import { dropStaleMade, prefixDoc, withNode, type ModelNode, type SketchNode } from '@barocss/cad-model/engine/doc';
+import { dropStaleMade, prefixDoc, withNode, NODE_EXTRA_FIELDS, type ModelNode, type SketchNode } from '@barocss/cad-model/engine/doc';
 import { featureId } from '@barocss/cad-model/engine/ids';
 import { type SketchAnchor } from '../viewport/Viewport';
 import { planeOf } from '@barocss/cad-model/app/profiles';
@@ -32,6 +32,13 @@ interface SketchActionOptions {
   viewport: RefObject<ViewportHandle | null>;
   changes: { canChangeDocument(): boolean; commit(next: StudioDoc): boolean; commitDirect(next: DirectGeometry, select?: string[]): boolean; setSelection: Dispatch<SetStateAction<Selection>>; setEditNode(value: null): void; setActive(value: null): void; setPreviewBodies(value: null): void };
   onNotice(notice: FriendlyError): void;
+}
+/** What an in-place sketch edit keeps from the stored node: its node extras, and its body (`on`) unless the placed node names one. */
+function keptFields(stored: ModelNode, placed: ModelNode): Partial<ModelNode> {
+  const kept: Record<string, unknown> = {}, from = stored as unknown as Record<string, unknown>;
+  for (const key of NODE_EXTRA_FIELDS) if (from[key] !== undefined) kept[key] = from[key];
+  if (!('on' in placed) && from.on !== undefined) kept.on = from.on;
+  return kept as Partial<ModelNode>;
 }
 /** Sketch placement, editing and Finish retain App's dispatch and linked-sketch generation owner. */
 export function useSketchActions({ model, editor, owner, worker, viewport, changes, onNotice: setToast }: SketchActionOptions) {
@@ -131,7 +138,7 @@ export function useSketchActions({ model, editor, owner, worker, viewport, chang
     const placedNode: ModelNode = { ...node, ...(isDefaultPlane(sketch.plane) ? {} : { plane: { origin: [...sketch.plane.origin], normal: [...sketch.plane.normal], xAxis: [...sketch.plane.xAxis] } }), ...(sketch.association ? { association: sketch.association } : {}), ...((sketch.association || sketch.associationDetached) && sketch.base ? { on: sketch.base } : {}) } as SketchNode;
     if (sketch.editNode !== undefined) {
       const at = sketch.editNode;
-      const replacement = doc.nodes[at].id !== undefined ? { ...placedNode, id: doc.nodes[at].id } : placedNode;
+      const replacement = { ...placedNode, ...keptFields(doc.nodes[at], placedNode) } as ModelNode;
       const edited = { ...doc, nodes: dropStaleMade(doc.nodes, doc.nodes.map((n, k) => k === at ? replacement : n)) };
       // (A sketch from before R10a getting its side ids: the features on it keep their references, by the new names.)
       const tags = (placedNode as SketchNode).sideTags, next = sketch.positional && tags && !(doc.nodes[at] as SketchNode).sideTags ? renameToTagged(edited, at, sketch.positional, tags, featureId) : edited;
