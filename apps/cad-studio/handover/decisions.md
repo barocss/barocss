@@ -17610,3 +17610,23 @@ Limits:
 - PNG export is not run in the UI (a download; unit-tested);
 - limited IGES, driver/OOM and device-loss recovery stay outside this close-out;
 - CI and release NOT_RUN.
+
+## D376 — Row 06 closed: GPU owner-branch hand-over; small, docs only (2026-10-31)
+
+[Hand-over](notes/gpu-handoff-2026-10-31/README.md). Owner order "Go to 01–06".
+
+The recorded GPU commits all exist, but only on the local branches `gpu/readback-camera-20261026` and `gpu/gltf-03-20261027`. They are not on origin and not in `local/cad-dev`:
+- PT soft visibility `fe2637f41`;
+- RenderTarget `607f7d086`;
+- sized target `8de2f6ac8`;
+- target.asTexture `2a35e9b66`;
+- GLB subset `5d8b77579`;
+- GLB textures `29fd01911`→`d4e2c3ec7`.
+
+The record keeps:
+- the owner-branch checks;
+- the original 29fd emit failure (TS2345/TS2322);
+- the open device-failure fixes;
+- limits: not general glTF; 133d29e9b source only.
+
+No PNG is committed anywhere; the examples reproduce the images. Nothing was merged into the product, as the row requires. Product checks, CI and release: NOT_RUN.
