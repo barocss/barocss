@@ -1,0 +1,64 @@
+{
+  "decision": "D359",
+  "roadmap": "33 CI browser verification (2026-10-30 engine review)",
+  "status": "LOCAL_QUALIFIED; REMOTE_PENDING",
+  "scope": "CI provisions Chrome (runner google-chrome) with SwiftShader WebGPU and Playwright 1.62.1, and runs every *-browser.test.mjs in packages/barocss-gpu (25 files) and packages/barocss-viewer (3 files) when either package is affected or the plan is full. A run passes only with fail/cancelled/skipped/todo 0, pass == tests > 0 and no file without a test; a missing CHROME/PW_DIR fails in CI and is NOT_RUN locally.",
+  "sourceCommit": "14dfe667c",
+  "sourcePaths": [
+    ".github/actions/webgpu-chrome/action.yml",
+    ".github/actions/webgpu-chrome/chrome.sh",
+    ".github/scripts/affected-ci-plan.mjs",
+    ".github/scripts/affected-ci-run.mjs",
+    ".github/scripts/affected-ci.test.mjs",
+    ".github/scripts/browser-ci.mjs",
+    ".github/scripts/browser-ci.test.mjs",
+    ".github/workflows/ci.yml",
+    ".github/workflows/regression.yml"
+  ],
+  "dependencies": "No package or lockfile change. Playwright 1.62.1 (the local PW_DIR version, checked on npm) is installed by the CI action into $RUNNER_TEMP with --ignore-scripts and no browser download.",
+  "models": {
+    "rootJudgmentAndVerification": "claude-opus-5-5 (this session)",
+    "implementation": "Sonnet sub-agent from a frozen brief",
+    "independentAudit": "claude-opus-5-5 sub-agent: no blocking defect; 1 medium + 2 low, all fixed at the root",
+    "rootEdits": "probe page served from 127.0.0.1 (about:blank has no navigator.gpu); chrome.sh merges Vulkan into Playwright's --enable-features (Chrome keeps the last switch); files that register no test fail; browser job uses !cancelled()"
+  },
+  "localChecks": {
+    "node": "22.19.0",
+    "build": "pnpm --filter @barocss/gpu... --filter @barocss/viewer... run build:library: PASS (cad, gpu, cad-interop, viewer)",
+    "ciScriptUnitTests": ".github/scripts/*.test.mjs: 79/79 PASS (affected-ci with the new browser-aggregate test, browser-ci, and the existing release tests)",
+    "ciShapeNativeMetal": {
+      "command": "CI=true CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright node .github/scripts/browser-ci.mjs all",
+      "chrome": "156.0.8078.74",
+      "adapter": "apple metal-3",
+      "gpu": { "files": 25, "tests": 55, "pass": 55, "fail": 0, "skipped": 0, "seconds": 156 },
+      "viewer": { "files": 3, "tests": 4, "pass": 4, "fail": 0, "skipped": 0, "seconds": 30 },
+      "verdict": "PASS (real passes 59, skips 0)"
+    },
+    "ciShapeSwiftShader": {
+      "command": "same with BAROCSS_BROWSER_REQUIRED=1 VIEWER_ADAPTER=swiftshader and a wrapper with the CI flags",
+      "adapter": "google swiftshader",
+      "gpu": { "files": 25, "tests": 55, "pass": 54, "fail": 1, "skipped": 0, "seconds": 934 },
+      "viewer": { "files": 3, "tests": 4, "pass": 4, "fail": 0, "skipped": 0, "seconds": 92 },
+      "failure": "viewer-pose-clip-browser.test.mjs:1157 'G20 pick readback … quarter-cutout' cap row: GPU point [1.04e-4, -0.497882, 0] vs CPU [0, -0.497844, 0]; distance ~1.1e-4 against the test's 1e-4 bound (set on Metal)",
+      "verdict": "FAIL, the runner reports it; not loosened in this lane"
+    },
+    "missingBrowserInCi": "env -u CHROME -u PW_DIR CI=true node .github/scripts/browser-ci.mjs all: exit 1, 'CI requires CHROME and PW_DIR for the WebGPU browser suites; a missing browser fails instead of skipping'",
+    "missingBrowserLocal": "env -u CHROME -u PW_DIR -u CI …: exit 0, 'WebGPU browser suites NOT_RUN: set CHROME and PW_DIR (local runs may skip; CI fails)'",
+    "wrapper": "chrome.sh with a fake Chrome: Playwright's --enable-features=CDPScreenshotNewSurface becomes …,Vulkan; probe through chrome.sh on Mac: swiftshader adapter",
+    "lint": "eslint on the changed scripts: 0 errors; no-console warnings only, as in the existing scripts",
+    "yaml": "ci.yml, regression.yml, action.yml parse"
+  },
+  "remoteCi": "PENDING: workflow_dispatch of ci.yml on local/cad-dev after the push (full mode, so the browser job runs both suites on ubuntu-latest SwiftShader). No PR and no develop change needed.",
+  "notRun": [
+    "Linux SwiftShader (only the remote run covers it)",
+    "regression.yml (manual/release caller)",
+    "cad-studio browser flows"
+  ],
+  "followUps": [
+    "GPU owner: decide the SwiftShader bound of the G20 pick readback point (1e-4 on Metal; ~1.1e-4 on SwiftShader) — keep, relax per adapter, or tighten the readback",
+    "row 33: device-loss recovered pixels in CI (viewer-device-recovery-failure covers only the failure path)",
+    "row 33: long-session memory in CI",
+    "cad-studio browser flows in CI (needs the chat port/dev server setup; not in this lane)",
+    "gpu test:browser lists 16 of the 25 browser files; CI now runs all 25 by glob, the package script still lists 16"
+  ]
+}

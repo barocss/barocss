@@ -17080,3 +17080,32 @@ Checks: Model 21 new tests, affected 183/183; Studio 39/39; types, lint, check-d
 All of them keep the circle main, `e1` and the R binding, with no toast. 6/6 oracles; errors 0; 986 frozen files equal the commit.
 
 Limits: circle regions stored after a polygon region flip order once (ids and geometry unchanged); a rectangle-to-main-circle dimension drops on Finish (existing region limit); the `trimSketch` editDim clear is untested. Full suites, CI and release NOT_RUN.
+
+## D359 — CI runs the gpu and viewer WebGPU browser suites for real; roadmap 33 (2026-10-30)
+
+Qualify source `14dfe667c` (9 `.github` paths). [Evidence](notes/ci-browser-2026-10-30/qualification.json). The 2026-10-30 engine review found that the gpu and viewer browser tests skip in CI: `CHROME` and `PW_DIR` were never set, and gpu's browser files were never wired in.
+
+Decision:
+- **Job.** A new `browser` job in `ci.yml` runs every `*-browser.test.mjs` in `packages/barocss-gpu` (25) and `packages/barocss-viewer` (3). It runs when either package is affected, or when the plan is full. The aggregate "Test and Build" check requires it in exactly those cases. The affected-package logic is unchanged.
+- **Environment.** `.github/actions/webgpu-chrome` uses the runner's Google Chrome through `chrome.sh` with SwiftShader WebGPU. `chrome.sh` merges Vulkan into Playwright's `--enable-features`. The action installs Playwright 1.62.1 into `$RUNNER_TEMP`: a CI-only tool, with no package or lockfile change.
+- **Pass rule.** A run passes only with fail, cancelled, skipped and todo all 0, pass == tests > 0, and no test file that registers no test. A WebGPU probe names the adapter first.
+- **Missing browser.** In CI (`CI=true` or `BAROCSS_BROWSER_REQUIRED=1`), a missing `CHROME`/`PW_DIR` fails before any test runs. Locally it reports NOT_RUN.
+- **Regression.** The manual/pre-release regression runs both suites strictly after its build. Before, it ran the skipping viewer pair ahead of the build.
+
+Checks (local, Node 22.19.0):
+- Build: PASS.
+- CI-script tests: 79/79.
+- CI-shape native Metal run: gpu 55/55 and viewer 4/4, 0 skips (59 real passes).
+- SwiftShader run with the CI flags: viewer 4/4, gpu 54/55. The one FAIL is the G20 pick readback in `viewer-pose-clip-browser`. Its GPU point is about 1.1e-4 from the CPU point, against a 1e-4 bound that was set on Metal. The runner reports it; it is not loosened here.
+- Missing browser in CI mode: exit 1 with the message. Locally: NOT_RUN, exit 0.
+- Independent Opus audit: 1 medium and 2 low findings (Vulkan switch dropped, empty test file counted as a pass, `always()` on cancel). All three are fixed.
+
+Limits:
+- Remote CI is PENDING: a `workflow_dispatch` run on `local/cad-dev` is recorded separately. Linux SwiftShader is covered only by that run.
+- Not run: `regression.yml` and the cad-studio browser flows.
+
+Follow-ups:
+- The GPU owner decides the SwiftShader bound for the G20 pick point.
+- Device-loss recovered pixels and long-session memory (row 33) are not built.
+- Studio browser flows in CI are not built.
+- gpu's `test:browser` script still lists 16 of the 25 files.
