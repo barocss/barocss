@@ -136,7 +136,7 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
 4. 10 조립 → 11 도면 확장 → 13 교환 → 14 생산. 12 파일·버전과 16 정확도는 각 단계에서 함께 검사한다. 30 커널 일반성은 16과 함께 이 단계 내내 진행하고, 31 직접 편집은 30 뒤에 붙인다.
    **10 조립 원장 (2026-10-31, 오너 "Go to row 10", 한 번에 한 항목·직렬; 조사: 하위 조립은 항상 강체로 접힘, occurrence 경로·부품 반복·조립 피처·인스턴스별 겉모습·조립 단계 없음):**
    - 10① [측정 2026-10-31: 인스턴스 몸체는 고정 기본색으로 그려져 정의의 색도 인스턴스별 색도 화면에 반영되지 않음 → GPU 렌더러 작업 필요, 순서를 ③→②→④ 뒤로] 인스턴스별 겉모습과 링크 갱신 보존(#2233): PartInstance에 색·재질 local override, 공유 정의 개정 수락(acceptRevision) 때 override 유지·필드별 출처(상속/로컬) 표시. 문서 필드 추가 = 공개 schema → full(감사 반복).
-   - 10② occurrence 경로 참조('a/b' 경로)(#2180): 하위 조립 안 부품을 mate·BOM·선택·도면이 같은 경로로 가리키고 저장/열기 후 유지. 공개 API → full.
+   - 10② [측정 2026-10-31: 하위 조립 안 부품의 면·몸체는 펼칠 때 위치 기반 n<k>로 다시 번호 매겨져(p2의 n1.top → n7.top), 앞 형제 부품 편집·숨김만으로 mate·도면 기준이 조용히 풀림; 모델 tablesFor는 펼치지 않아 Studio와 불일치; BOM은 하위 조립으로 내려가지 않음] → ②a 안정된 중첩 참조(경로 'sub1/p2' + 그 부품 자신의 면 이름, mate·도면, 모델/Studio 면 표 일치, full) → ②b BOM 하위 조립 전개(경로별 행·정의별 수량, feature) → ②c Studio 중첩 부품 선택·경로 표시(feature). occurrence 경로 참조('a/b' 경로)(#2180): 하위 조립 안 부품을 mate·BOM·선택·도면이 같은 경로로 가리키고 저장/열기 후 유지. 공개 API → full.
    - 10③ [CLOSED D383: 선형·원형 반복, 안정된 occurrence id, Skip/Restore, BOM·도면·STEP·3MF 일관, 감사 3회] 부품 반복(component pattern)(#2180, RS7.4): 인스턴스의 선형/원형 반복, 생성 occurrence의 안정된 id, BOM 수량·mate 대상. feature(문서 필드 → full).
    - 10④ 유연한 하위 조립(RS7.4): 같은 하위 조립의 occurrence마다 자기 관절 상태(문서에 occurrence 경로로 저장), 강체 접힘 기본 유지. 10② 뒤. full.
    - 10⑤ 조립 피처(여러 부품을 가로지르는 cut): 부품 정의를 바꾸지 않고 조립 문맥에서만 적용, BOM/도면/내보내기 일관(#2180). Kernel 경유 → full.
