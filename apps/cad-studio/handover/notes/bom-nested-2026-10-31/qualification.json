@@ -1,0 +1,51 @@
+{
+  "decision": "D387",
+  "roadmap": "10 ②b the BOM descends into sub-assemblies (owner order 'Go to row 10')",
+  "issues": {
+    "#2180": "BOM consistency for repeated definitions and nested occurrences",
+    "#538": "stays open"
+  },
+  "tier": "feature (BOM data adds optional fields; one audit + targeted re-check, actual run)",
+  "status": "QUALIFIED",
+  "defectBefore": "a sub-assembly's BOM line had mass 0 and its parts were missing (bom/core.ts evaluated the instance doc, which holds only the sub-assembly's own nodes): measured on the nested-mate fixture, Sub 0 g",
+  "change": [
+    "bom/core.ts: a sub-assembly's mass and bounds roll up its own bodies and its shown nested parts (recursively, each in its own material); nested parts with path/parent; nested lines with level/parent/perParent and the sub-assembly line marked assembly; totals count each body once (top-level parts and base); merge key order-independent; nested fasteners read rows from their containing sub-assembly",
+    "bom/bom.ts: setBought takes nested paths; made elements walk nested parts; purchase.csv merges identical bought items across levels",
+    "team/assembly.ts checkBom: totals over top-level parts",
+    "drawing/balloons.ts: a nested line's balloon on its own part's edge",
+    "drawing/tables.ts: nested rows 'Sub › Shaft' and a note that a sub-assembly's mass includes its parts",
+    "Studio BomPanel: nested lines indented under 'Sub ›', the sub-assembly line tagged '· assembly'"
+  ],
+  "audit": {
+    "verdict": "CHANGES_REQUIRED then ACCEPT on targeted re-check",
+    "findings": {
+      "high": "balloons of nested lines pointed at the host's longest edge (Block's at the shaft); the nested key got none",
+      "medium-high": "fasteners inside a sub-assembly lost that sub-assembly's rows (estimates, no source in purchase.csv)",
+      "medium": "the drawing BOM table showed no nesting (summing double counted)",
+      "low-medium": "one fastener size split into two purchase rows across levels",
+      "low": "merge depended on the nested parts' order"
+    },
+    "recheck": "all five PASS; byte-identity of view, BOM, panel data and purchase.csv on 10 flat documents re-verified"
+  },
+  "checks": {
+    "bomNested": "model tests (6 + 4 audit cases)",
+    "modelSuite": "2309/2309",
+    "studioSuite": "574/574",
+    "tsc": "PASS",
+    "docsTables": "PASS (inventory: optional fields added, none removed)"
+  },
+  "actualRun": {
+    "run03": "final source PASS: BOM panel lines 'Sub · assembly' 1, 'Sub › Block A' 2 (indented), 'Pin' 1, plate; total 51.6 g; the oracle recomputes Sub = 2 × 1000 mm³ × 2.70e-3 g/mm³ = 5.4 g, each line and the total (each body once) from the stored document; Save and fresh Open give the same BOM; 0 page/console errors; root reviewed the panel screenshot",
+    "failedRuns": [
+      "run01: the oracle looked for a row named 'Sub' where the panel reads 'Sub · assembly' (oracle)"
+    ]
+  },
+  "followUps": [
+    "setBought silently ignores unknown paths (existing)",
+    "a bought flag set only on a pattern occurrence's nested part is lost on regeneration (direct API only; existing)",
+    "a sub-assembly with no own bodies borrows a part's edge for its balloon, so two leaders may meet",
+    "BOM panel item column truncates long nested names (title shows the full name)"
+  ],
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

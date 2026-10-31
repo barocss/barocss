@@ -17795,3 +17795,20 @@ CI and release NOT_RUN.
 **Fix.** Driver only: Selection waits use `[aria-label="Selection"]`, and the other first-card reads skip the gravity card.
 
 **Result.** Steps 94–96 now pass. No product change.
+
+## D387 — Row 10 ②b: the BOM descends into sub-assemblies; feature (2026-10-31)
+
+[Evidence](notes/bom-nested-2026-10-31/qualification.json). Owner order "Go to row 10". Issues: #2180; #538 stays open.
+
+**Before.** A sub-assembly's BOM line weighed 0 and its parts were missing.
+
+**Now.**
+- The sub-assembly line rolls up its mass, and its parts follow as indented lines with their paths.
+- Totals and purchase lists count each body or item once.
+- Nested fasteners use their sub-assembly's rows.
+- Balloons sit on each part's own edge, and the drawing table marks nesting.
+- Documents without sub-assemblies are byte-identical to before.
+
+**Audit.** Five findings: high (balloons), medium-high (fastener rows), medium (drawing table), and two low. All fixed; the re-check is ACCEPT.
+
+**Verification.** Model 2309/2309; Studio 574/574. Actual run03 PASS: Sub 5.4 g, Block A ×2 under it, 51.6 g in all, matching the oracle.

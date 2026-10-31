@@ -30,7 +30,7 @@ const faceOf = (f: string) => f.replace(/#\d+$/, '');
  * What a line's balloon may point at: an instance (`<inst>/`, `base` the part itself), an element (`<inst>/<node>.`), or
  * one of the base part's own bodies (`faces`: its face names, O177).
  */
-interface Target { inst: string; node: string | null; faces?: ReadonlySet<string> }
+interface Target { inst: string; node: string | null; faces?: ReadonlySet<string>; /** D387: a sub-assembly's line may point at an edge of a part nested in it. */ deep?: boolean }
 const NO_FACES: ReadonlySet<string> = new Set();
 /** Whether every face of an edge is one of the body's. */
 function allOn(faces: readonly string[], body: ReadonlySet<string>): boolean {
@@ -40,7 +40,7 @@ function allOn(faces: readonly string[], body: ReadonlySet<string>): boolean {
 const targetOf = (line: Bom['lines'][number], id: string, bodies: ReadonlyMap<string, ReadonlySet<string>>): Target => {
   // (F9: a placed fastener's line is a part line — its parts are placed parts, not `part:feature`.)
   // (O177: a base part's member or made body — `base:<body key>` (O169) — is that body's edges, by its face names.)
-  if ((line.kind === undefined || line.kind === 'fastener') && !line.plate) return id.startsWith('base:') ? { inst: 'base', node: null, faces: bodies.get(id.slice(5)) ?? NO_FACES } : { inst: id, node: null };
+  if ((line.kind === undefined || line.kind === 'fastener') && !line.plate) return id.startsWith('base:') ? { inst: 'base', node: null, faces: bodies.get(id.slice(5)) ?? NO_FACES } : { inst: id, node: null, ...(line.assembly ? { deep: true } : {}) }; // (D387: a nested part is `<inst>/<part>/…`; its own edges only)
   const k = id.indexOf(':');
   return { inst: id.slice(0, k), node: id.slice(k + 1) };
 };
@@ -58,8 +58,9 @@ export function bodyFacesOf(bodies: readonly { key: string; mesh: { faces: reado
 }
 /** An edge's instance (`base`: the part's own) and its faces' names without the prefix. */
 function edgeOf(name: string): { inst: string; faces: string[] } {
-  const slash = name.indexOf('/'), dot = name.indexOf('.');
-  const inst = slash >= 0 && (dot < 0 || slash < dot) ? name.slice(0, slash) : 'base';
+  // (D387: a part nested in a sub-assembly leads with its whole occurrence path, `s1/p2/n1.top`: the last slash before the feature.)
+  const dot = name.indexOf('.'), slash = (dot < 0 ? name : name.slice(0, dot)).lastIndexOf('/');
+  const inst = slash >= 0 ? name.slice(0, slash) : 'base';
   return { inst, faces: (inst === 'base' ? name : name.slice(slash + 1)).split('|') };
 }
 const ofNode = (faces: readonly string[], node: string) => faces.some(f => f.startsWith(`${node}.`));
@@ -90,7 +91,7 @@ export function targetEdge(pr: BrepProjection, t: Target, elements: ReadonlyMap<
   let best: { name: string; mid: XY; len: number } | null = null;
   for (const e of pr.edges) {
     const { inst, faces } = edgeOf(e.name);
-    if (inst !== t.inst) continue;
+    if (inst !== t.inst && !(t.deep && inst.startsWith(`${t.inst}/`))) continue;
     if (t.faces ? !allOn(faces, t.faces) : t.node !== null ? !ofNode(faces, t.node) : [...(elements.get(inst) ?? [])].some(n => ofNode(faces, n))) continue;
     for (const p of e.pieces) {
       if (!p.visible) continue;

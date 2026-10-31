@@ -3,7 +3,7 @@ import { resolveShopTree, provenanceOfTree, type ShopRowProvenance } from '../en
 // the placed parts' lines and the bought elements' lines, merged by kind, size and row over copies), a part with no
 // placed parts as its own line, and the made elements too (so a person can mark one bought). The bought/made override is
 // written on every node a line merges (each copy's), one change; the purchase list is the bought lines as CSV.
-import type { ModelNode, StudioDoc } from '../engine/doc';
+import type { ModelNode, PartInstance, StudioDoc } from '../engine/doc';
 import type { Evaluate } from '../chat/tools';
 import { elementLines } from '../engine/elements';
 import { massProperties } from '../analysis/analysis';
@@ -35,7 +35,9 @@ export function bomPanelDataOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => Eva
   doc = resolveShopTree(doc);
   check(doc);
   const view = bomViewOf(doc, evaluate), single = !(doc.instances ?? []).length;
-  const docs: [string, StudioDoc][] = [['base', doc], ...(doc.instances ?? []).map(i => [i.id, i.doc] as [string, StudioDoc])];
+  // (D387: the shown parts nested in a sub-assembly too, by occurrence path.)
+  const nestedDocs = (insts: readonly PartInstance[] | undefined, under: string): [string, StudioDoc][] => (insts ?? []).flatMap(i => i.hidden && under ? [] : [[`${under}${i.id}`, i.doc] as [string, StudioDoc], ...nestedDocs(i.doc.instances, `${under}${i.id}/`)]);
+  const docs: [string, StudioDoc][] = [['base', doc], ...nestedDocs(doc.instances, '')];
   const made: MadeLine[] = [];
   let baseMass = 0, baseBound: ReturnType<typeof massBoundField> = {}, baseLumps: ReturnType<typeof lumpsField> = {};
   for (const [part, d] of docs) {
@@ -54,7 +56,7 @@ export function bomPanelDataOf(doc: StudioDoc, evaluate: (doc: StudioDoc) => Eva
   return { view, bom: deriveBom(view), made, single, ...(shopRows.some(p => p.rows.length) ? { shopRows } : {}) };
 }
 
-/** The document with the bought override set on each `part:feature` (null: cleared, the default for its kind): one change. */
+/** The document with the bought override set on each `part:feature` (null: cleared, the default for its kind): one change. A part nested in a sub-assembly is named by its occurrence path (`sub1/p2:n3`). */
 export function setBought(doc: StudioDoc, parts: readonly string[], value: boolean | null): StudioDoc {
   const by = new Map<string, Set<string>>();
   for (const p of parts) { const k = p.indexOf(':'), part = p.slice(0, k), item = p.slice(k + 1); (by.get(part) ?? by.set(part, new Set()).get(part)!).add(item); }
@@ -63,9 +65,15 @@ export function setBought(doc: StudioDoc, parts: readonly string[], value: boole
     if (value === null) { const rest = { ...n }; delete rest.bought; return rest; }
     return { ...n, bought: value };
   });
+  // (Each instance of the tree: its own nodes by its path, its nested instances after it.)
+  const inside = (insts: PartInstance[], under: string): PartInstance[] => insts.map(i => {
+    const path = `${under}${i.id}`, items = by.get(path), nested = i.doc.instances && i.doc.instances.some(n => [...by.keys()].some(k => k.startsWith(`${path}/${n.id}`)));
+    if (!items && !nested) return i;
+    return { ...i, doc: { ...i.doc, nodes: mark(i.doc.nodes, items), ...(nested ? { instances: inside(i.doc.instances!, `${path}/`) } : {}) } };
+  });
   return {
     ...doc, nodes: mark(doc.nodes, by.get('base')),
-    ...(doc.instances ? { instances: doc.instances.map(i => by.has(i.id) ? { ...i, doc: { ...i.doc, nodes: mark(i.doc.nodes, by.get(i.id)) } } : i) } : {}),
+    ...(doc.instances ? { instances: inside(doc.instances, '') } : {}),
   };
 }
 
@@ -81,7 +89,14 @@ const sizeCell = (l: BomLine) => l.lumps ? `${l.size ? `${l.size}; ` : ''}${l.lu
 export function purchaseCsv(p: BomPanelData, withMade = false): string {
   const rows: (string | number | null)[][] = [['item no.', 'item', 'qty', 'kind', 'size', 'row', 'catalogue', 'source', 'estimate']];
   const lines = p.bom.lines.map((l, k) => ({ l, no: k + 1 }));
-  for (const { l, no } of lines) if (isBoughtLine(l)) rows.push([no, l.item, l.qty, l.kind ?? 'part', sizeCell(l), l.row ?? '', l.catalogue ?? '', l.source ?? '', l.estimate ? 'estimate' : '']);
+  // (D387: an equal bought item at another level — a screw nested in a sub-assembly, one beside it — is one purchase row, the quantities summed.)
+  const bought = new Map<string, (string | number | null)[]>(), nestedKey = new Set<string>();
+  for (const { l, no } of lines) if (isBoughtLine(l)) {
+    const row = [no, l.item, l.qty, l.kind ?? 'part', sizeCell(l), l.row ?? '', l.catalogue ?? '', l.source ?? '', l.estimate ? 'estimate' : ''], key = JSON.stringify([row[1], ...row.slice(3)]), same = bought.get(key);
+    if (same && (l.level || nestedKey.has(key))) same[2] = (same[2] as number) + l.qty;
+    else { if (l.level) nestedKey.add(key); bought.set(same ? `${key}#${no}` : key, row); }
+  }
+  for (const row of bought.values()) rows.push(row);
   if (withMade) {
     for (const { l, no } of lines) if (!isBoughtLine(l)) rows.push(l.plate ? [no, l.item, l.qty, l.plate.kind, sizeCell(l), '', '', '', ''] : [no, l.item, l.qty, 'part', sizeCell(l), '', '', '', '']);
     p.made.forEach((m, k) => rows.push([lines.length + k + 1, m.item, m.qty, m.kind, m.size, m.row ?? '', '', '', '']));

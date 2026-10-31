@@ -206000,6 +206000,13 @@
             ],
             "members": [
               {
+                "name": "assembly",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "true | undefined"
+              },
+              {
                 "name": "catalogue",
                 "kind": "property",
                 "optional": true,
@@ -206026,6 +206033,13 @@
                 "optional": true,
                 "readonly": false,
                 "type": "string | undefined"
+              },
+              {
+                "name": "level",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
               },
               {
                 "name": "lumps",
@@ -206070,11 +206084,25 @@
                 "type": "boolean | undefined"
               },
               {
+                "name": "parent",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
                 "name": "parts",
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
                 "type": "string[]"
+              },
+              {
+                "name": "perParent",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
               },
               {
                 "name": "plate",
@@ -206168,7 +206196,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "{ id: string; name: string; material: string | null; mass: number; massBound?: number | null | undefined; lumps?: number | undefined; library: string | null; shape: string; fastener?: BomFastener | undefined; }[]"
+                "type": "{ id: string; name: string; material: string | null; mass: number; massBound?: number | null | undefined; lumps?: number | undefined; library: string | null; shape: string; fastener?: BomFastener | undefined; assembly?: true | undefined; path?: string | undefined; parent?: string | undefined; }[]"
               },
               {
                 "name": "plates",
@@ -343715,6 +343743,13 @@
             ],
             "members": [
               {
+                "name": "assembly",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "true | undefined"
+              },
+              {
                 "name": "catalogue",
                 "kind": "property",
                 "optional": true,
@@ -343741,6 +343776,13 @@
                 "optional": true,
                 "readonly": false,
                 "type": "string | undefined"
+              },
+              {
+                "name": "level",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
               },
               {
                 "name": "lumps",
@@ -343785,11 +343827,25 @@
                 "type": "boolean | undefined"
               },
               {
+                "name": "parent",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
                 "name": "parts",
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
                 "type": "string[]"
+              },
+              {
+                "name": "perParent",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
               },
               {
                 "name": "plate",
@@ -343928,7 +343984,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "{ id: string; name: string; material: string | null; mass: number; massBound?: number | null | undefined; lumps?: number | undefined; library: string | null; shape: string; fastener?: BomFastener | undefined; }[]"
+                "type": "{ id: string; name: string; material: string | null; mass: number; massBound?: number | null | undefined; lumps?: number | undefined; library: string | null; shape: string; fastener?: BomFastener | undefined; assembly?: true | undefined; path?: string | undefined; parent?: string | undefined; }[]"
               },
               {
                 "name": "plates",
