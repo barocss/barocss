@@ -17785,3 +17785,13 @@ CI and release NOT_RUN.
 - The browser-flow shape steps pass.
 
 **Follow-up.** The fastener flow steps 94–96 fail on HEAD without this change: the Hole HUD does not open on `h` after a face pick. This is pre-existing.
+
+## D386 — Fastener flow steps 94–96: a test-driver selector, not the product; small (2026-10-31)
+
+[Evidence](notes/flow-props-selector-2026-10-31/qualification.json). Assigned by the coordinator.
+
+**Cause.** The flow read "the first property card". Commit 878f92a0d (2026-10-26) put the Static gravity experiment card before the Selection card, so the flow waited on the wrong card. The Hole shortcut and the product were correct.
+
+**Fix.** Driver only: Selection waits use `[aria-label="Selection"]`, and the other first-card reads skip the gravity card.
+
+**Result.** Steps 94–96 now pass. No product change.
