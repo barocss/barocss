@@ -1,0 +1,41 @@
+{
+  "decision": "D380",
+  "roadmap": "20 ④ (a handle drag is only a preview until applied, not visible enough) + 20 ⑥ (a labelled value box at the handle, as the reference CAD)",
+  "tier": "feature (one independent audit + one actual run)",
+  "status": "QUALIFIED",
+  "before": "Enter already applied after a handle drag and Esc cancelled (App.tsx keydown); release alone did not apply. That matches the reference CAD, so apply-on-release was not added. Missing: a value box at the handle and a visible preview/apply hint.",
+  "change": [
+    "viewport/HandleValueBox.tsx: label, number input, unit and 'Preview · Enter applies · Esc cancels', right of and below the arrow tip, left of or above it at the viewport's edge (shadcn Input, Tailwind, full border)",
+    "Viewport: remembers the handle let go and its command; shows the box while that command runs and no drag is on (puck handles excluded)",
+    "useCommandGizmos: each handle's unit, owner command, editing flag and onType (patches the active command's value like the HUD: one source of truth)"
+  ],
+  "audit": {
+    "verdict": "ACCEPT",
+    "findings": {
+      "F1 low": "a command started over a running one with a handle of the same id showed the box without a drag -> fixed: the box is keyed by handle id and its command (owner)"
+    },
+    "checked": "Enter order (onType before the App's apply, which waits for the busy preview), draft lifecycle, valueBox lifecycle, keyboard shortcuts, D368/D377 drag logic",
+    "file": "review/independent-audit.md"
+  },
+  "checks": {
+    "handleValueBoxUnit": "3/3",
+    "dragWall": "24/24 (audit ran 27 focused)",
+    "studioUnit": "570/570",
+    "tsc": "PASS",
+    "eslint": "PASS"
+  },
+  "actualRun": {
+    "run03": "final source, PASS: box absent before a drag; after letting go of the width arrow the box shows beside the tip with the HUD's value; typing 72 + Enter applies (oracle PASS: width 72, volume closed form); Undo/Redo equal; drag + Esc in the box cancels (document unchanged); drag then HUD 65: the box follows to 65, Apply applies (oracle PASS); Save and fresh Open equal (oracle PASS); 0 page/console errors",
+    "failedRuns": [
+      "run01: the box was clamped inside the viewport 155 px from a tip at its right edge -> the box now goes left of / above the tip there; the driver measures the distance to the box edge"
+    ],
+    "rootImageReview": "02/03 box beside the tip, 06 HUD 65 and box 65"
+  },
+  "limits": [
+    "The box can overlap a little of the model next to the tip (196 x 52 px)",
+    "Puck (two-value) handles get no box",
+    "Typed values are not snapped or bounded (as the HUD)",
+    "Release still does not apply (owner reference: Enter applies)",
+    "CI and release NOT_RUN"
+  ]
+}

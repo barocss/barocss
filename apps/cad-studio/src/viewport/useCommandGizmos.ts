@@ -83,6 +83,9 @@ export function useCommandGizmos({ model, command, context, drag }: CommandGizmo
       ...(pair ? { plane: { dir2: pair.dir, value2, toValue2: snap } } : {}),
       toValue: snap,
       format: (v: number) => h.arc ? `${fmt(v)}°` : h.unit !== undefined ? `${fmt(v)}${h.unit ? ' ' + h.unit : ''}` : `${fmt(v)} mm`,
+      unit: h.arc ? '°' : h.unit ?? 'mm', owner: handleCmd, editing: !!active,
+      // (A typed value, as the HUD's: no drag bound, the preview follows.)
+      onType: (v: number) => { handleDrag.current = null; setActive(a => a ? { ...a, values: patchValues(a.cmd, a.ctx, a.values, { [h.key]: v }), preview: 'busy' } : a); },
       onDrag: (v: number, done: boolean, v2?: number) => {
         if (pair) {
           // (Both coordinates at once; a refused spot shows as the preview's error, no wall.)

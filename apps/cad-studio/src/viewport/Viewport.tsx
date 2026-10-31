@@ -26,8 +26,9 @@ import { pickShapeAt, pickSketch } from '@barocss/cad-model/sketch/select';
 import { bandShapes, liveBand } from '@barocss/cad-model/sketch/band';
 import { sampleLoop } from '@barocss/cad-model/app/profiles';
 import { drivingKeys, sketchMarks } from '../ui/SketchMarks';
-import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX, hitTest, snapTo, type FeatureHandle, type GizmoCancelReason, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
+import { dragAbout, dragAlong, dragIn, dragPlane, dragScale, dragTurn, GIZMO_PX, handleLayout, hitTest, snapTo, type FeatureHandle, type GizmoCancelReason, type GizmoHit, type Projector, type TransformGizmo } from './gizmo';
 import { gizmoMarks } from './GizmoMarks';
+import { HandleValueBox } from './HandleValueBox';
 import { ViewCube } from './ViewCube';
 import { CAGE_LINE_KEYS, CageMarks, cageLines, cagePoints } from './CageMarks';
 import { pickCage, type CageHit, type CageMode, type CageSelection, type StudioCage } from '@barocss/cad-model/subd/cageEdit';
@@ -446,6 +447,8 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
     gizmo?: TransformGizmo; sessionKey?: string | number }>({ mode: null, x: 0, y: 0, moved: false });
   /** The gizmo handle under the pointer, drawn brighter. */
   const gizmoHot = useRef<GizmoHit | null>(null);
+  /** The feature handle last let go and its command: its value box shows while that command runs (roadmap 20 ⑥). */
+  const valueBox = useRef<{ id: string; owner: unknown } | null>(null);
   // While the camera moves (orbit, pan, zoom), frames leave out ambient occlusion; 180 ms after the last
   // move a full frame is drawn with it, the same as before. (One function, kept for the component's life.)
   const settle = useRef(0), requestRef = useRef<() => void>(() => undefined);
@@ -1048,7 +1051,10 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
       if (hd.plane) { const [u, v] = dragIn(d.from!, [x, y], at0, hd.dir, hd.plane.dir2, P); d.value = hd.toValue(d.start!, u); d.value2 = hd.plane.toValue2(d.start2!, v); hd.onDrag(d.value, done, d.value2); return; }
       if (hd.arc) { d.turned = (d.turned ?? 0) + dragAbout(d.last!, [x, y], hd.arc.centre, hd.arc.axis, P); d.last = [x, y]; d.value = hd.toValue(d.start!, d.turned); }
       else d.value = hd.toValue(d.start!, dragAlong(d.from!, [x, y], at0, hd.dir, P));
-      hd.onDrag(d.value, done); return;
+      hd.onDrag(d.value, done);
+      // (Roadmap 20 ⑥: the handle let go offers its value in a box beside it while the command runs.)
+      if (done) valueBox.current = { id: hd.id, owner: hd.owner };
+      return;
     }
     if (!g) return;
     if (hit.kind === 'move' || hit.kind === 'plane') {
@@ -1700,6 +1706,12 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
         : hit.kind === 'scale' ? `× ${String(Math.round((g.factor ?? 1) * 100) / 100)}` : `${'XYZ'[hit.axis]} ${fmtLen(g.degrees ?? 0)}°` };
       items.push(...gizmoMarks(props.gizmo, props.handles ?? [], projector(), g ? hit ?? null : gizmoHot.current, readout));
     }
+    // The last handle let go, while its command runs and no drag is on: its value in a box beside its tip (roadmap 20 ④ ⑥).
+    // (Only the command whose handle was let go: another command started over it, with a handle of the same id, gets none.)
+    const vb = valueBox.current, mine = (hd: FeatureHandle) => !!vb && hd.id === vb.id && hd.owner === vb.owner && !!hd.editing;
+    const boxed = !drag.current.mode && vb ? props.handles?.find(hd => mine(hd) && hd.onType && !hd.plane) : undefined;
+    if (vb && !boxed && !props.handles?.some(mine)) valueBox.current = null;
+    const valueEditor = boxed ? <HandleValueBox key={boxed.id} label={boxed.label} value={boxed.value} unit={boxed.unit ?? ''} at={handleLayout(boxed, projector()).to} width={w} height={h} onType={boxed.onType!} /> : null;
     // Axis triad, bottom-left, following the camera.
     const { right, up } = cam.basis(); const tx = 92, ty = h - 64;
     ['#e5534b', '#57b26b', '#4f8ff7'].forEach((color, k) => {
@@ -1709,7 +1721,7 @@ export const Viewport = forwardRef<ViewportHandle, Props>(function Viewport(sour
         <text x={tx + x * 27} y={ty + y * 27 + 3} fontSize={9} textAnchor="middle" fill={color} fontFamily="IBM Plex Mono">{'XYZ'[k]}</text></g>);
     });
     const basis = cam.basis();
-    return <><svg className="vp-overlay" width={w} height={h} aria-hidden="true">{items}</svg>{editor}
+    return <><svg className="vp-overlay" width={w} height={h} aria-hidden="true">{items}</svg>{editor}{valueEditor}
       {!propsRef.current.sketch && <ViewCube right={basis.right} up={basis.up} forward={basis.forward} onLook={lookFrom} onOrbit={(dx, dy) => { camera.current.orbit(dx, dy); request(); }} />}</>;
   };
 

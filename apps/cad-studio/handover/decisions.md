@@ -17676,3 +17676,20 @@ Limits: one part measured; the threshold is not tuned; ③ needs a slower part. 
 
 **Not covered.** The History bar sub-item, the ribbon and command search. CI and release NOT_RUN.
 Follow-up (same day): a "can't run here" notice kept its old position (left 66 px) and covered the wider rail. run06 failed on it; this was a product defect from D379. The notices now sit beside the rail (`--rail-w`). Studio 567/567; actual run07 PASS (notice at 200 px, rail 136 px).
+
+## D380 — Row 20 ④ ⑥: a value box at the handle; Enter applies, Esc cancels; feature (2026-10-31)
+
+[Evidence](notes/handle-value-box-2026-10-31/qualification.json). Owner order "Go to 20/21"; reference CAD notes.
+
+**Before.** Enter applied a handle drag and Esc cancelled it. Letting go alone did not apply it, and it still does not. Missing: a visible preview hint and a value box at the handle.
+
+**Change.** When an arrow is let go, a small labelled box appears beside its tip. It holds the value and unit and says "Preview · Enter applies · Esc cancels". It edits the same value as the HUD. It shows only for the command whose handle was let go, and never during a drag.
+
+**Audit.** ACCEPT. F1 (low) was the box showing on a command started over a running one; it is now keyed by the handle and its command.
+
+**Verification.**
+- Studio 570/570; tsc and eslint PASS.
+- Actual run03: typing 72 and Enter applies it (oracle PASS); Esc cancels; a HUD value of 65 is followed by the box and applied; Save and fresh Open are equal.
+- The first run failed: at the viewport's edge the box sat 155 px from the tip. It now flips to the other side.
+
+Limits: the box may cover a little of the model; puck handles get no box. CI and release NOT_RUN.
