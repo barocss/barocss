@@ -17812,3 +17812,25 @@ CI and release NOT_RUN.
 **Audit.** Five findings: high (balloons), medium-high (fastener rows), medium (drawing table), and two low. All fixed; the re-check is ACCEPT.
 
 **Verification.** Model 2309/2309; Studio 574/574. Actual run03 PASS: Sub 5.4 g, Block A ×2 under it, 51.6 g in all, matching the oracle.
+
+## D388 — Row 10 ②c: selecting a part inside a sub-assembly; feature (2026-10-31)
+
+[Evidence](notes/nested-selection-2026-10-31/qualification.json). Owner order "Go to row 10". Issues: #2180; #538 stays open.
+
+**What it adds.**
+- The outliner expands a sub-assembly, and its parts are selected by path.
+- The viewport lights only that part.
+- A read-only card shows "Sub › Block B": path, volume, definition and placement.
+- Placement actions and appearance editing are not offered for it.
+
+**Audit.** Four findings:
+- medium: performance;
+- medium: the Render panel acted on the wrong target;
+- low: the wrong document was read;
+- low: an unknown volume showed as 0.
+
+All fixed; the re-check is ACCEPT.
+
+**Verification.** Studio 583/583. Actual run02 PASS; screenshots reviewed.
+
+**Follow-up.** Clicking into a sub-assembly in the viewport is not yet possible.

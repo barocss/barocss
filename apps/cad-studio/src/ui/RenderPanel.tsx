@@ -20,10 +20,14 @@ export function changeRenderLights(render: RenderSettings, lights: readonly Rend
  * contents on shadcn (Button, Input, NativeSelect, FIELD / NUM / SLIDER rows); the shell (its title and Export image),
  * the tabs, the colour and range inputs and the source editors are the studio's.
  */
-export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUseCamera, onExport, available, fov, onFov, onPickFocus, onCreatePathTrace, imageName, onError }: {
+export function RenderPanel({ render, note, lookDisabled, selectedKeys, onChange, onSaveCamera, onUseCamera, onExport, available, fov, onFov, onPickFocus, onCreatePathTrace, imageName, onError }: {
   render: RenderSettings;
   /** Body keys the appearance edits apply to; empty: the default appearance. */
   selectedKeys: string[];
+  /** A short hint under the selection line (a nested part has no appearance of its own). */
+  note?: string;
+  /** Only nested parts are selected: the appearance controls would have no target. */
+  lookDisabled?: boolean;
   onChange(next: RenderSettings): void;
   onSaveCamera(): void;
   onUseCamera(): void;
@@ -114,6 +118,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
   useEffect(() => { setRadiusDrafts({}); setRadiusErrors({}); setLightError(null); }, [render.lights]);
   const current: Appearance = selectedKeys.length ? render.appearances[selectedKeys[0]] ?? render.defaultAppearance : render.defaultAppearance;
   const setLook = (patch: Partial<Appearance>) => {
+    if (lookDisabled) return;
     const next = { ...current, ...patch };
     if (!selectedKeys.length) onChange({ ...render, defaultAppearance: next });
     else onChange({ ...render, appearances: { ...render.appearances, ...Object.fromEntries(selectedKeys.map(k => [k, next])) } });
@@ -196,8 +201,10 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
         {(['look', 'lights', 'scene', 'source'] as const).map(t => <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>{t === 'look' ? 'Appearance' : t === 'lights' ? 'Lights' : t === 'scene' ? 'Scene' : 'Source'}</button>)}
       </div>
 
-      {tab === 'look' && <div className="render-section [&>[data-slot=button]]:self-start">
+      {/* (A part inside a sub-assembly has no appearance of its own: with only such parts selected the controls are off, not editing the default.) */}
+      {tab === 'look' && <fieldset disabled={lookDisabled} className="render-section m-0 min-w-0 border-0 p-0 [&>[data-slot=button]]:self-start">
         <div className="muted small">{selectedKeys.length ? `${selectedKeys.length} selected bod${selectedKeys.length > 1 ? 'ies' : 'y'}` : 'Every body without its own appearance'}</div>
+        {note && <div className="muted small" role="status">{note}</div>}
         <label className={FIELD}><span>Preset</span>
           <NativeSelect className={CONTROL} aria-label="Appearance preset" value={preset} onChange={e => { const p = APPEARANCES.find(x => x.id === e.target.value); if (p) setLook({ finish: undefined, clearcoat: undefined, film: undefined, ...p.appearance }); }}>
             <option value="">Custom</option>
@@ -245,7 +252,7 @@ export function RenderPanel({ render, selectedKeys, onChange, onSaveCamera, onUs
             {Object.keys(render.materials).map(n => <option key={n} value={n}>{n}</option>)}
           </NativeSelect></label>
         {selectedKeys.some(k => render.appearances[k]) && <Button variant="ghost" onClick={clearLook}>Use the default appearance</Button>}
-      </div>}
+      </fieldset>}
 
       {tab === 'lights' && <div className="render-section [&>[data-slot=button]]:self-start">
         <div className="muted small">Shadow limits: first 4 sun lights, first 4 spot lights, and one of the first 8 point lights.</div>

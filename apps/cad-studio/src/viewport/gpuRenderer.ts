@@ -4,6 +4,7 @@
 // selected bodies an outline; ghost bodies are see-through. Picking is on the CPU (synchronous for hover).
 // With render settings (the Render workspace) bodies take their appearances, and the lights, environment
 // and ground come from the settings instead of the theme's modelling look.
+import { instanceBodyLit, instanceLit, parseInstanceSelection, type ParsedInstanceSelection } from './instanceSelection';
 import { ACCENT, EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, HIDDEN_LINE_SHARE, PALETTE, SELECT_MIX, SELECTION_MIX, SELECTION_HOVER_MIX, SELECTION_EDGE_WIDTH, SELECTION_OUTLINE_WIDTH, THREAD_OPACITY, XRAY_OPACITY, edgeStateOf, faceStateOf } from './displayPolicy';
 import { clipBox, createViewer, invert, multiply, rotation, studioEnvironment, translation, type Geometry, type ImageTexture, type Light, type Mesh, type ShaderMaterial, type Viewer } from '@barocss/gpu/viewer';
 import { curvature, overhang, zebra, type Analysis } from './analysis';
@@ -155,6 +156,7 @@ export class GpuRenderer implements ViewRenderer {
   /** The mould's view (G6): its loops' line mesh and its halves' meshes, and what they were made from. */
   private mould: { from: MouldShown; lines: Mesh | null; halves: { half: '+' | '-'; index: number; surface: Mesh; edges: Mesh | null }[] } | null = null;
   private instanceSelection: readonly string[] = [];
+  private litBodies: ParsedInstanceSelection = parseInstanceSelection([]);
   /** Instances' display meshes (for the face under a pick). */
   private instanceMeshes = new Map<string, DisplayMesh[]>();
   /** Faces of instances shown picked (mate faces). */
@@ -985,7 +987,7 @@ export class GpuRenderer implements ViewRenderer {
       return this.makeInstance(it, sigs);
     });
     for (const it of had.values()) this.dropInstance(it);
-    this.instanceSelection = selected;
+    this.instanceSelection = selected; this.litBodies = parseInstanceSelection(selected);
     this.paintInstances(); this.placePreview(); this.applyClip();
   }
 
@@ -1061,6 +1063,8 @@ export class GpuRenderer implements ViewRenderer {
     const swapped = this.bindShares();
     for (const it of this.instances) {
       const faded = this.fadedInstance(it.id);
+      // (A nested part of a sub-assembly lights only its own bodies; `sourceBodies`: a section's cut bodies by their source.)
+      const sourceBodies = instanceLit(this.litBodies, it.id) ? this.lastItems.find(x => x.id === it.id)?.sourceBodies : undefined;
       const look = r ? appearanceOf(r, 'inst:' + it.id) : null;
       it.surfaces.forEach((m, bi) => {
         const tiles = this.instanceTiles.get(m) ?? {}; this.instanceTiles.set(m, tiles);
@@ -1073,7 +1077,7 @@ export class GpuRenderer implements ViewRenderer {
         // Faded line-only context contributes edges, not an occluder in front of the focus.
         m.visible = !(faded && lineOnly);
         m.material = { colorWrite: !lineOnly, opacity: (mode === 'x-ray' ? Math.min(XRAY_OPACITY, m.material.opacity ?? 1) : m.material.opacity ?? 1) * (faded ? FADED : 1) };
-        m.outline = lineOnly || faded ? null : this.contactLinks.has(it.id) ? CONTACT : this.instanceSelection.includes(it.id) ? this.theme.selection : null;
+        m.outline = lineOnly || faded ? null : this.contactLinks.has(it.id) ? CONTACT : instanceBodyLit(this.litBodies, it.id, bi, sourceBodies) ? this.theme.selection : null;
         // Face colours as the bodies' (paint): the base, picked faces mixed with the accent.
         const mesh = this.instanceMeshes.get(it.id)?.[bi];
         if (!mesh) return;

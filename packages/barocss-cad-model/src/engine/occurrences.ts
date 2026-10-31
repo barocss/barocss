@@ -92,6 +92,35 @@ export function nestedParts(doc: StudioDoc, under: readonly string[] = []): { pa
   return (doc.instances ?? []).flatMap(i => [{ path: [...under, i.id].join('/'), name: i.name, ...(i.hidden ? { hidden: true as const } : {}) }, ...(i.hidden ? [] : nestedParts(i.doc, [...under, i.id]))]);
 }
 
+/**
+ * The nested part a body of the folded sub-assembly comes from, as its path relative to `doc` (`['p2']`, `['p2','q1']`
+ * deeper), `[]` for the sub-assembly's own features, null when no face name carries a feature. `faceNames` are the body's
+ * mesh face names as flattenAssembly(doc) names them (merged `a+b` names allowed). Not by body key: a placed body's key
+ * is the id of its last move (translate / rotate), a node after the part's own, so it can fall in the next part's ids.
+ * Faces of different parts share the path they have in common.
+ */
+export function bodyOriginOf(doc: StudioDoc, faceNames: readonly string[]): string[] | null {
+  let common: string[] | null = null;
+  for (const name of faceNames) {
+    if (!featureIdsOf(name).length) continue;
+    const path = faceOriginOf(doc, name).path;
+    if (!common) { common = path; continue; }
+    let k = 0; while (k < common.length && k < path.length && common[k] === path[k]) k++;
+    common = common.slice(0, k);
+  }
+  return common;
+}
+
+/** Whether an origin path is `path` itself or inside it (a sub-assembly's path covers every part within). */
+export const pathWithin = (origin: readonly string[], path: readonly string[]): boolean => path.length <= origin.length && path.every((id, k) => origin[k] === id);
+
+/** Which of a host's bodies (each by its mesh face names) come from nested part `path` or from inside it. */
+export function bodiesWithin(doc: StudioDoc, bodies: readonly (readonly string[])[], path: readonly string[]): number[] {
+  const out: number[] = [];
+  bodies.forEach((names, k) => { const o = bodyOriginOf(doc, names); if (o && pathWithin(o, path)) out.push(k); });
+  return out;
+}
+
 // (Read again for every mate of every solve: kept per table and document object.)
 const tables = new WeakMap<FaceTable, WeakMap<StudioDoc, Map<string, FaceTable>>>();
 /**

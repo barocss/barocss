@@ -3,6 +3,7 @@
 // edges) → resolve colour + depth → screen-space ambient occlusion composite to the canvas.
 // An ID pass serves face picking. Resources persist: camera moves only write uniforms and
 // selection changes only rewrite small state buffers.
+import { instanceBodyLit, instanceLit, parseInstanceSelection, type ParsedInstanceSelection } from './instanceSelection';
 import { EDGE_OPACITY, FADED, GHOST_OPACITY, HATCH_OPACITY, HIDDEN_DASH, PALETTE, SELECTION_MIX, SELECTION_HOVER_MIX, SELECTION_EDGE_WIDTH, SELECTION_OUTLINE_WIDTH, THREAD_OPACITY, XRAY_OPACITY, edgeStateOf, faceStateOf } from './displayPolicy';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { BASE } from '@barocss/cad-model/assembly/mates';
@@ -405,7 +406,7 @@ export class Renderer implements ViewRenderer {
   private shareCopies = true;
   /** The last instances set, to make them again when shareCopies changes. */
   private lastInstances: { items: InstanceItem[]; selected: readonly string[] } | null = null;
-  private instanceSelection: readonly string[] = [];
+  private instanceSelection: ParsedInstanceSelection = parseInstanceSelection([]);
   /** RS2: the links in contact as a motion plays (instance ids; BASE, the part's own bodies), tinted the error colour. */
   private contactLinks: ReadonlySet<string> = new Set();
   private silhouettes = new WeakMap<GpuBody, { key: string; line: Plain | null }>();
@@ -647,7 +648,7 @@ export class Renderer implements ViewRenderer {
       hatch: (item.hatch ?? []).map(h => ({ body: h.body, line: this.plainLines(h.segments) })) };
     });
     for (const x of old.values()) { for (const b of x.bodies) this.freeBody(b.gpu); this.free(x.threads); for (const h of x.hatch) this.free(h.line); }
-    this.instanceSelection = selected; this.paintInstanceFaces(); this.serial++;
+    this.instanceSelection = parseInstanceSelection(selected); this.paintInstanceFaces(); this.serial++;
     if (this.view) this.resolveDisplayMode(this.view);
   }
   setInstanceTransforms(transforms: ReadonlyMap<string, Float64Array> | null): void { this.instanceTransforms = transforms; this.serial++; }
@@ -908,7 +909,7 @@ export class Renderer implements ViewRenderer {
           const gpu = it.bodies[bi].gpu;
           if (this.fadedInstance(it.item.id) !== (pass === 1)) continue;
           this.placeInstance(this.mesh, it, bi);
-          gl.uniform1f(this.u(this.mesh, 'uBodySel'), this.instanceSelection.includes(it.item.id) ? 1 : 0);
+          gl.uniform1f(this.u(this.mesh, 'uBodySel'), instanceBodyLit(this.instanceSelection, it.item.id, bi, it.item.sourceBodies) ? 1 : 0);
           gl.uniform1f(this.u(this.mesh, 'uContact'), this.contactLinks.has(it.item.id) ? 1 : 0);
           gl.bindVertexArray(gpu.vao); gl.drawElements(gl.TRIANGLES, gpu.count, gl.UNSIGNED_INT, 0);
           if (T) T.add(this.costOf(it.bodies[bi], gpu.result.key, it.item.id), pass === 1 || mode === 'x-ray' ? 'transparent' : 'surface', gpu.count / 3, 0, 0);
@@ -953,12 +954,18 @@ export class Renderer implements ViewRenderer {
       }
     }
     for (const it of this.instances) {
-      const bodySelected = this.instanceSelection.includes(it.item.id) && !this.fadedInstance(it.item.id);
-      const edgeColor = bodySelected && !this.contactLinks.has(it.item.id) ? t.selection : t.edge;
-      gl.uniform1f(this.u(this.line, 'uWidth'), (bodySelected ? SELECTION_OUTLINE_WIDTH / 2 : 0.62) * dpr);
-      gl.uniform4f(this.u(this.line, 'uColor'), edgeColor[0], edgeColor[1], edgeColor[2], EDGE_OPACITY * (this.fadedInstance(it.item.id) ? FADED : 1));
+      const faded = this.fadedInstance(it.item.id), anyLit = instanceLit(this.instanceSelection, it.item.id);
+      // (A nested part lights only its own bodies: their edges' accent, the others' plain; set again only when it changes.)
+      let lit: boolean | null = null;
       for (let bi = 0; bi < it.bodies.length; bi++) {
         const gpu = it.bodies[bi].gpu;
+        const bodySelected = anyLit && !faded && instanceBodyLit(this.instanceSelection, it.item.id, bi, it.item.sourceBodies);
+        if (bodySelected !== lit) {
+          lit = bodySelected;
+          const edgeColor = bodySelected && !this.contactLinks.has(it.item.id) ? t.selection : t.edge;
+          gl.uniform1f(this.u(this.line, 'uWidth'), (bodySelected ? SELECTION_OUTLINE_WIDTH / 2 : 0.62) * dpr);
+          gl.uniform4f(this.u(this.line, 'uColor'), edgeColor[0], edgeColor[1], edgeColor[2], EDGE_OPACITY * (faded ? FADED : 1));
+        }
         this.placeInstance(this.line, it, bi, false);
         gl.bindVertexArray(gpu.lineVao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, gpu.segments);
         const cost = T && this.costOf(it.bodies[bi], gpu.result.key, it.item.id);

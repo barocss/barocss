@@ -77,6 +77,8 @@ import type { FriendlyError } from '@barocss/cad-model/engine/errors';
 import type { Vec3 } from '@barocss/cad-model/engine/mesh';
 import { carrySelection, commands, patchValues, refOf, selectedBodies, subdNodeOf, type Command, type Ctx, type Selection, type Values } from '@barocss/cad-model/app/commands';
 import { measureBetween, type MeasurePick } from '@barocss/cad-model/app/measure';
+import { hostsOf, nestedCard, renderKeysOf, singleNested, singleTop, viewportInstanceSelection } from './assembly/nestedSelection';
+import { NestedPartPanel } from './ui/NestedPartPanel';
 import { DRAG_TYPE, snapshotInstanceIsolation, type FeatureHandle, type Spot, type SketchAnchor, type SketchShape, type SketchState, type TransformGizmo, type ViewportHandle } from './viewport/Viewport';
 import { ClearancePanel } from './viewport/ClearancePanel';
 import { PrintPanel } from './viewport/PrintPanel';
@@ -1638,7 +1640,7 @@ export function App() {
     display: { bodyDrag: !!bodyDrag, section: !!section, sketch: !!sketch, sectionBodies, sectionExactShown, sectionExact, animatedAt } });
   const { drawnBodies, shownBodies, animatedOffsets, bodyColors, hiddenBodies, faceColors, proposalTint, placeSkip } = appearance;
   // Mate faces show while a mate is being added, or while one is selected in the shown mates list.
-  const mateFaces = !!assembly.draft || (!!assembly.selected && instanceSel.length === 1);
+  const mateFaces = !!assembly.draft || (!!assembly.selected && !!singleTop(instanceSel));
   const sectioned = !!(section && sectionBodies && !sketch && !previewBodies);
   // (G2: the viewer's clip plane while the section is open on WebGPU — on the bodies until their exact section is shown,
   // on the placed parts always; none in a sketch, where the section is not shown.)
@@ -1698,7 +1700,11 @@ export function App() {
   // The selected part instance's gizmo: moves along and turns about world axes through its box's centre
   // (only what its mates leave free). It follows at once on screen; let go, it is placed (mates re-solve)
   // and shown as dragged until it is evaluated where it lands.
-  const selectedInst = instanceSel.length === 1 ? doc.instances?.find(i => i.id === instanceSel[0]) : undefined;
+  // (Roadmap 10 ②c: a nested occurrence path has no gizmo: its sub-assembly's definition places it.)
+  const selectedTopId = singleTop(instanceSel), selectedInst = selectedTopId ? doc.instances?.find(i => i.id === selectedTopId) : undefined;
+  const nestedSelected = singleNested(instanceSel);
+  // (A nested path lights only the host's bodies from that part; a top-level id, the whole placed part.)
+  const viewportInstanceSel = useMemo(() => viewportInstanceSelection(instanceSel, host => instanceBodies.get(host)), [instanceSel, instanceBodies]) as string[];
   const instGizmo: TransformGizmo | null = (() => {
     // (An occurrence of a pattern is placed by its seed: no gizmo of its own.)
     if (!selectedInst || selectedInst.pattern || active || sketch || rendering || drawing || measure || assembly.draft || exploded) return null;
@@ -1815,7 +1821,7 @@ export function App() {
     ?? (displayModeFailure?.requested === displayMode && displayModeFailure.context === displayContextKey ? displayModeFailure.reason : undefined);
   const displayModeNotice = displayModeReason ?? displayScopeReason;
   const effectiveDisplayMode: DisplayMode = displayModeReason ? 'shaded-with-edges' : displayMode;
-  const isolationSelection = snapshotInstanceIsolation(instanceSel, instancesPlaced);
+  const isolationSelection = snapshotInstanceIsolation(hostsOf(instanceSel), instancesPlaced);
   const isolationReason = displayScopeReason ? 'Isolate selection is available with ordinary solids in Model view.'
     : !isolationSelection ? 'Select a visible placed instance to isolate.' : undefined;
 
@@ -1915,14 +1921,18 @@ export function App() {
           if (parameterMass.current && !parameterMass.current.target) parameterMass.current = null;
           setParameterEdit({ request, base: doc, baseInput: evaluated, input: prefixDoc(r.doc, r.doc.nodes.length), next: r.doc, accept: next => commit(next, false) });
         }} onError={m => setToast({ title: 'Parameters', hint: m, detail: '' })} />}
-      {rendering && !sketch && <Suspense fallback={null}><RenderPanel render={render} onError={m => setToast({ title: 'Could not use that image', hint: m, detail: '' })} available={viewport.current?.backend === 'webgpu'}
-        selectedKeys={[...selectedBodies(selection).map(i => bodies[i]?.key).filter((k): k is string => !!k), ...instanceSel.map(id => 'inst:' + id)]}
+      {rendering && !sketch && <Suspense fallback={null}><RenderPanel render={render} lookDisabled={renderKeysOf(instanceSel).mode === 'disabled' && !selectedBodies(selection).length} note={renderKeysOf(instanceSel).nested ? 'A part inside a sub-assembly is styled through its sub-assembly: select the sub-assembly.' : undefined} onError={m => setToast({ title: 'Could not use that image', hint: m, detail: '' })} available={viewport.current?.backend === 'webgpu'}
+        selectedKeys={[...selectedBodies(selection).map(i => bodies[i]?.key).filter((k): k is string => !!k), ...renderKeysOf(instanceSel).keys]}
         onChange={commitRender} onExport={exportImage} fov={fov} onPickFocus={done => viewport.current?.pickRenderFocus(done)}
         onCreatePathTrace={() => viewport.current?.createRenderPathTrace() ?? Promise.reject(new Error('The viewport is not ready.'))} imageName={`${fileName}.png`}
         onFov={deg => { const c = viewport.current?.getCamera(); if (c) { viewport.current?.setCamera({ ...c, fovY: deg * Math.PI / 180 }); setFov(deg); } }}
         onSaveCamera={() => { const c = viewport.current?.getCamera(); if (c) commitRender({ ...render, camera: c }); }}
         onUseCamera={() => { if (render.camera) { viewport.current?.setCamera(render.camera); setFov(Math.round(render.camera.fovY * 180 / Math.PI)); } }} /></Suspense>}
       {!rendering && !sketch && measure && <MeasurementInspector bodies={bodies} measure={measure} measured={measured} setMeasure={setMeasure} />}
+      {!rendering && !sketch && !measure && !!nestedSelected && (() => {
+        const card = nestedCard(doc, nestedSelected, instanceBodies.get(hostsOf(instanceSel)[0]));
+        return card ? <NestedPartPanel card={card} /> : null;
+      })()}
       {!rendering && !sketch && !measure && instanceSel.length === 1 && (() => {
         const inst = doc.instances?.find(i => i.id === instanceSel[0]);
         if (!inst) return null;
@@ -1965,7 +1975,7 @@ export function App() {
       {!rendering && !sketch && !measure && jointTree && !assembly.draft && !instanceSel.length && <RobotInspector controller={robotExports} motion={joints} loopMotionContext={loopMotionContext} chosenMotion={chosenMotion}
         video={{ busy: videoBusy, record: recordVideo }} changes={{ canChangeDocument, pushUndo, setDoc, setDirty }} />}
       {!rendering && !drawing && !sketch && !measure && !instanceSel.length && <GravityExperimentPanel doc={doc} joints={jointTree?.joints ?? []} />}
-      {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || instanceSel.length === 1) && <MatePanel assembly={assembly} instances={doc.instances} instance={instanceSel.length === 1 ? instanceSel[0] : undefined}
+      {!rendering && !sketch && !measure && !!doc.instances?.length && (assembly.draft || !!singleTop(instanceSel)) && <MatePanel assembly={assembly} instances={doc.instances} instance={singleTop(instanceSel)}
         onRefused={why => setToast({ title: 'The mate was refused', hint: why, detail: '' })} />}
       {!rendering && !active && !sketch && !measure && !instanceSel.length && directSel.length > 0 && doc.direct && <DirectInspector doc={doc} directSel={directSel}
         changes={{ commitDirect }} onThicken={(id, t, side) => {
@@ -2038,7 +2048,7 @@ export function App() {
       </header></Profiler>
       <div className="stage">
       <SceneViewport ref={viewport} contactLinks={contactShown && motionContact ? motionContact.links : undefined} poses={{ poseStore, explodeStore, jointTree, bodies: drawnBodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : routeGizmo ?? gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
-        direct={viewportDirect} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={viewportUnderlays} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} clearance={clearanceDisplay} isolatedInstances={displayScopeReason ? undefined : isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : compareOverlay} instanceSelection={assembly.draft ? assembly.highlight.instances : instanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
+        direct={viewportDirect} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={viewportUnderlays} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} clearance={clearanceDisplay} isolatedInstances={displayScopeReason ? undefined : isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : compareOverlay} instanceSelection={assembly.draft ? assembly.highlight.instances : viewportInstanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
         onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}

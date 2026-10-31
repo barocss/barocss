@@ -271222,6 +271222,68 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./engine/occurrences",
+      "exportName": "bodiesWithin",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/occurrences.ts",
+            "name": "bodiesWithin",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, bodies: readonly (readonly string[])[], path: readonly string[]) => number[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, bodies: readonly (readonly string[])[], path: readonly string[]) => number[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/occurrences",
+      "exportName": "bodyOriginOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/occurrences.ts",
+            "name": "bodyOriginOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, faceNames: readonly string[]) => string[] | null",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, faceNames: readonly string[]) => string[] | null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/occurrences",
       "exportName": "faceOriginOf",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -271431,6 +271493,37 @@
             ],
             "callSignatures": [
               "(flat: FaceTable, doc: StudioDoc, path: readonly string[]) => FaceTable"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/occurrences",
+      "exportName": "pathWithin",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/occurrences.ts",
+            "name": "pathWithin",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(origin: readonly string[], path: readonly string[]) => boolean",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(origin: readonly string[], path: readonly string[]) => boolean"
             ]
           }
         }
