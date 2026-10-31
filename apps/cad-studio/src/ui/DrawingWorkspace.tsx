@@ -20,6 +20,7 @@ import type { ProjectedEdge } from '@barocss/cad';
 import type { EngineClient } from '../engine/client';
 import type { StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { FriendlyError } from '@barocss/cad-model/engine/errors';
+import { presetOf } from '@barocss/cad-model/drawing/standard';
 import { buildSheet, curveMark, dimensionMarks, placementOf, projectionOf, sheetSections } from '@barocss/cad-model/drawing/sheet';
 import { marksSvg, sheetGroupsSvg, sheetSvg } from '@barocss/cad-model/io/svg';
 
@@ -719,7 +720,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
         : pending.kind === 'angle' ? { id: 'preview', view: pending.view, kind: 'angle', a: pending.a, b: pending.b!, place: at }
         : { id: 'preview', view: pending.view, kind: pending.kind, edge: pending.edge, near: pending.near, place: at };
       const r = resolveDimension({ ...views, [pending.view]: R(pending.view) }, d);
-      if (r.ok) parts.push(`<g class="dw-preview">${marksSvg(dimensionMarks(P(pending.view), r))}</g>`);
+      if (r.ok) parts.push(`<g class="dw-preview">${marksSvg(dimensionMarks(P(pending.view), r, presetOf(settings.standard)))}</g>`);
     } else if (hover && v && tool === 'datum-target' && isViewId(hover.view)) {
       for (const point of (bodies ? endpointSnap(views[hover.view], hover.at, 9 * mmPerPx() / v.scale, bodies).points : [])) {
         const q = toSheet(v, inView(views[hover.view], point.near));

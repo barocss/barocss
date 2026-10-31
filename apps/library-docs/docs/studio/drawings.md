@@ -48,6 +48,32 @@ between views. A different front orientation changes which model axes form the v
 The diagram is a calculated layout schematic, not a captured drawing or a print-size reference. Its rectangles
 show the relative outline sizes; the app also reserves space for annotations when laying out the sheet.
 
+### Drawing standard
+
+**Standard** (next to **Projection**) is **Not set**, **ISO** or **ASME**. Not set keeps the sheet exactly as it has
+always been drawn. ISO and ASME each apply one preset; changing it is one undo step and the sheet is drawn again. The
+same preset reaches every export: the SVG, PDF and DXF sheets and the 3D annotations. In chat, `set_drawing` takes
+`standard` as `iso`, `asme` or `none`.
+
+| | Not set | ISO | ASME |
+|---|---|---|---|
+| Lettering height | 3.5 mm | 3.5 mm (ISO 3098) | 3 mm, 0.12 in (ASME Y14.2) |
+| Arrowhead | filled, 3 mm long, 1.2 mm across | filled 15°: 3 mm long, 0.8 mm across (ISO 129-1) | filled 3:1: 3 mm long, 1 mm across (ASME Y14.2) |
+| Dimension text | aligned with the line, above it | aligned with the line, above it (ISO 129-1) | horizontal, in a break of the dimension line (ASME Y14.5 unidirectional) |
+| Zeros (millimetres) | leading zero, trailing zeros dropped | `0.5`, `12`, `1.25` (ISO 129-1) | `0.5`, `12`, `1.25` (ASME Y14.5 metric) |
+| Projection symbol | the sheet's own small symbol | truncated cone, ends h and 2h across, 2h long, end view circles h and 2h, centre line; h = 3.5 mm (ISO 5456-2) | the same, h = 3 mm |
+| Datum feature triangle | filled | filled (ISO 5459) | filled (ASME Y14.5) |
+| Datum line target | phantom line | two crosses joined by a thin continuous line (ISO 5459) | phantom line (ASME Y14.5) |
+| Concentricity, symmetry | no advice | allowed | a **FRAME_RULE** warning: Y14.5-2018 dropped them, use position or profile |
+
+Under ASME the text is placed in a break of the dimension line, the break being the text's width and a millimetre either
+side. When the text does not fit between the arrowheads, it is set horizontally beside the line instead. The
+inch standards will take the zero rule (no leading zero, trailing zeros kept) from the same preset.
+
+The ASME advice on concentricity and symmetry is a warning in **Drawing issues**, never a refusal: the frame can still be
+authored and an old one opens unchanged. The DXF dimension style keeps its general defaults; each dimension's own drawing
+carries the standard's text height and arrowheads.
+
 ### Title blocks and revision history
 
 - **Title block** chooses **Basic** or **Extended**. Basic keeps the original layout. Extended adds **Organization**,
@@ -252,7 +278,8 @@ symbol is a circle split by a horizontal line: the letter and number below, an a
   point by two lines tangent to it; the point faces away from the leader, so the leader never crosses it. A saved
   point target with no recorded endpoint, or a number above 99, says what to repair before this can change.
 - **Line** is two points clicked in a view, drawn as a phantom (two-dot chain) line in that view with no X marks
-  (following ASME; the X belongs to a point target); the leader ends on the line.
+  (following ASME; the X belongs to a point target); the leader ends on the line. With the **ISO** drawing standard
+  set it is drawn as ISO 5459 does: two X marks joined by a thin continuous line.
 - **Area** is a circle (**Ø**) or a rectangle (**Width**, **Height**), in model mm, centred on a clicked point. It is
   drawn with a phantom outline and 45° hatching at the view's scale; the leader ends at a dot inside it. Its size is
   the upper half of the symbol (`Ø6` or `6×4`). Edit the size on the target's row.
@@ -292,7 +319,7 @@ New and edited frames must follow the rules that ASME Y14.5 and ISO 1101 share, 
 - A projected zone is for position and orientation. A tangent plane is for orientation and profile, and is not combined with a diameter zone or a projected zone.
 - A composite second segment names some of the first segment's datums in the same order and has a smaller tolerance.
 
-Only rules that ASME Y14.5 and ISO 1101 share are enforced; standard-specific rules (for example concentricity and symmetry, which ISO keeps and ASME dropped) come with the standard setting of roadmap 11③.
+Only rules that ASME Y14.5 and ISO 1101 share are enforced. What one standard drops, such as concentricity and symmetry in ASME Y14.5-2018, is advice under the drawing standard setting (see [Drawing standard](#drawing-standard)).
 A frame is refused only for a rule break it did not already have, so an old frame can be repaired one field at a time. Frame numbers show as authored, up to 4 decimals.
 
 A saved drawing that breaks one of these still opens unchanged: `FRAME_RULE` lists each broken rule, with no automatic fix.
@@ -307,7 +334,7 @@ applies them all, and **Issue count** shows how many are left.
 
 `DATUM_LOST` reports a datum with no current anchor in a visible view. `DATUM_TWICE` reports a repeated datum
 letter. `FRAME_LOST` reports a frame whose dimension is lost or missing, and `DATUM_UNDEFINED` reports a frame
-that names a datum with no datum feature or point target set. `FRAME_RULE` reports a frame that breaks a rule above. `FRAME_VIEW_MISSING` reports a standalone frame whose view is missing;
+that names a datum with no datum feature or point target set. `FRAME_RULE` reports a frame that breaks a rule above, or (a warning) one the drawing standard no longer has. `FRAME_VIEW_MISSING` reports a standalone frame whose view is missing;
 its saved position is kept. `TEXT_OVER_LINES` reports annotation text, such as a dimension's, a table's or a
 standalone frame's, that lies over drawing lines. `DATUM_TARGET_UNVERIFIED` reports a point target that needs its endpoint selected
 again. `DATUM_UNDEFINED` has no automatic fix: define the datum or edit the frame.

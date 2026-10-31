@@ -11,6 +11,7 @@ import { datumTargetConflicts, resolveDatumTarget, type DatumTargetArea, type Da
 import { fmtTol, zonePrefix, type Characteristic, type MaterialModifier } from './controls';
 import type { BrepProjection } from '@barocss/cad';
 import type { Resolved } from './dimensions';
+import { presetOf, type DrawingStandard } from './standard';
 import { frameMarks, hatch, placementOf, projectionOf, type Head, type LineRole, type Mark, type MarkGroup, type Sheet } from './sheet';
 import { symbolMarks, type Side } from './welds';
 import { fromSheet, type SheetLayout, type ViewPlacement } from './views';
@@ -203,8 +204,8 @@ const toSheetAt = (p: XY, scale: number): XY => [p[0] * scale, -p[1] * scale];
  * A feature control frame under a text, in plane coordinates: the sheet's `frameMarks` at `scale` (the drawing's,
  * sheet mm per model mm). `under`: the text it sits under — its baseline point, text and height in plane coordinates.
  */
-export function frameGlyph(f: DrawingFrame, under: { at: XY; text: string; height: number; align: 'start' | 'middle' | 'end' }, scale: number): PlaneMark[] {
-  return toPlane(frameMarks({ kind: 'text', at: toSheetAt(under.at, scale), text: under.text, size: under.height * scale, anchor: under.align }, f), scale);
+export function frameGlyph(f: DrawingFrame, under: { at: XY; text: string; height: number; align: 'start' | 'middle' | 'end' }, scale: number, standard?: DrawingStandard): PlaneMark[] {
+  return toPlane(frameMarks({ kind: 'text', at: toSheetAt(under.at, scale), text: under.text, size: under.height * scale, anchor: under.align }, f, presetOf(standard)), scale);
 }
 /** A weld symbol in plane coordinates: the sheet's `symbolMarks` (its arrow's tip on the seam, its knee, the side it leaves by) at `scale`. */
 export function weldGlyph(tip: XY, knee: XY, side: Side, joint: WeldJoint, label: string, scale: number): PlaneMark[] {

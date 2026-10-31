@@ -50,6 +50,8 @@ export function SheetSettings({ sheet: { scopeRead, scope, views, layout, sectio
           {ORIENTATIONS.map(o => <option key={o} value={o}>{SIDE_NAMES[o]}</option>)}</NativeSelect></label>
         <label className={FIELD}><span>Projection</span><NativeSelect className={CONTROL} aria-label="Projection" value={settings.projection} onChange={e => onChange({ ...settings, projection: e.target.value as 'third' })}>
           <option value="third">Third angle</option><option value="first">First angle</option></NativeSelect></label>
+        <label className={FIELD}><span>Standard</span><NativeSelect className={CONTROL} aria-label="Drawing standard" title="Lettering, arrowheads, dimension text, projection symbol and datum targets as ISO or ASME draw them" value={settings.standard ?? ''} onChange={e => { const { standard: _s, ...rest } = settings; void _s; onChange(e.target.value === 'iso' || e.target.value === 'asme' ? { ...rest, standard: e.target.value } : rest); }}>
+          <option value="">Not set</option><option value="iso">ISO</option><option value="asme">ASME</option></NativeSelect></label>
         <label className={FIELD}><span>Hidden lines</span><input type="checkbox" className={TICK} aria-label="Hidden lines" checked={settings.hidden} onChange={e => onChange({ ...settings, hidden: e.target.checked })} /></label>
         <label className={FIELD}><span>Section A–A</span><input type="checkbox" className={TICK} aria-label="Section A–A" checked={!!sectionA} onChange={e => {
           const rest = sectionList.filter(x => !(x.id === 'A' && x.view === 'front'));

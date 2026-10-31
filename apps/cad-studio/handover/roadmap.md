@@ -149,7 +149,7 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
    **11 도면 확장 원장 (2026-10-31, 10 다음 직렬; 측정: GD&T 14특성·M/L/F/T/P·직경 영역·위치 2단 복합·점 datum target까지 있음; Ⓢ·SØ·all around/over·묶음(stacked) 프레임·윤곽 복합·의미 규칙·datum 존재 검사 없음; ISO/ASME 스타일·인치·이중 치수 없음(투영 방식 글자만); 도면 세트(여러 sheet·n of N·다중 페이지 PDF) 없음):**
    - 11① [CLOSED D394: SØ·ST·Ⓤ·all around/over·묶음 프레임·윤곽 복합, ISO/ASME 공통 규칙(새 위반만 거절, 열기는 보고), 도면 왕복 정확; 감사 2회] GD&T 마무리: Ⓢ, SØ(구 영역), all around/all over, 묶음 프레임, 윤곽(profile) 복합, 프레임 의미 규칙(모양 공차에 datum 금지 등)과 참조 datum 존재 검사. 도면 문서 필드 → full.
    - 11② [CLOSED D395: 선·면적(원/사각) target, 위쪽 칸 크기 표기, ASME 이동 target 기호, 부품 밖 target 경고, SVG/PDF/DXF/3D 일치; 감사 2회] datum target 확장: 선·면적 target, target 기호 원(크기/문자), SVG 출력. feature(문서 필드면 full).
-   - 11③ 표준 스타일과 단위: ISO/ASME preset(화살표·글자 높이·datum 삼각형·0 표기 규칙·투영 기호 그림), 인치 표시와 이중 치수. full.
+   - 11③ [③a CLOSED D396: ISO/ASME 표준 설정(글자·화살표·치수 글자 배치·0 표기·투영 기호·ISO 선 target·ASME 동심/대칭 경고), 미설정 시 출력 동일; 감사 2회] (2026-10-31 두 단계로 나눔: ③a ISO/ASME 표준 설정 — 화살표·글자 높이·치수 글자 배치·0 표기·투영 기호 그림·표준별 GD&T 규칙과 ISO 선 target; ③b 인치 표시·이중 치수·소수 자릿수) 표준 스타일과 단위: ISO/ASME preset(화살표·글자 높이·datum 삼각형·0 표기 규칙·투영 기호 그림), 인치 표시와 이중 치수. full.
    - 11④ 도면 세트: sheets 배열, n of N, sheet별 표제란·색인, 다중 페이지 PDF/SVG, 다른 sheet의 상세도, ECO 행. full(파일 schema).
 5. 15 사용성으로 릴리스 전 마감. 32 Viewer SDK는 05·23과 함께, 34 이름 정리는 B2 뒤 진행 lane이 적은 경계에서 한다. 23–29 상용 공백은 선행 행이 끝나는 대로 붙이고, 26·27·28·29의 외부 의존은 오너 결정 뒤에 시작한다.
 6. 17 경로 묶음, 18 로봇, 19 가상 실험은 기존 Physics/Motion·CAE 보류를 유지한 채 마지막. 22 성능은 측정 작업량이 생길 때 붙인다.

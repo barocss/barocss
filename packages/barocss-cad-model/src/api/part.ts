@@ -34,7 +34,7 @@ export interface StudioLoftOptions { readonly guide?: LoftInput['guide']; readon
 
 /** set_drawing's settings (its schema's names): the sheet, scale, projection, front, views, tolerancing, title, scope, sections, details, tables, balloons, weld symbols. */
 export interface DrawingSettingsInput {
-  sheet?: 'A4' | 'A3'; scale?: number | 'auto'; projection?: 'third' | 'first'; front?: 'y-' | 'x+' | 'y+' | 'x-';
+  sheet?: 'A4' | 'A3'; scale?: number | 'auto'; projection?: 'third' | 'first'; standard?: 'iso' | 'asme' | 'none'; front?: 'y-' | 'x+' | 'y+' | 'x-';
   views?: ('front' | 'top' | 'right' | 'iso')[]; tolerancing?: 'plus-minus' | 'geometric'; title?: string;
   [setting: string]: unknown;
 }

@@ -36,7 +36,8 @@ import { textCorners } from './text';
 import { SCALES, layoutSheet, scaleLabel, sectionDepth, type SheetLayout } from './views';
 import { detailScale } from './detail';
 import { viewBreaksOf } from './breaks';
-import { frameRules } from './controls';
+import { frameNotes, frameRules } from './controls';
+import { presetOf } from './standard';
 import { fmtMM, type Resolved } from './dimensions';
 import { SECTION_VIEWS, VIEW_IDS, baseViewOf, detailLetter, isDetailRef, isViewId, isSectionRef, nextSectionId, sectionLetter, sectionsOf, withSections, type DimPoint, type SectionViewId, type DimView, type DrawingDimension, type DrawingSettings, type DrawingViews, type ViewId, type XY } from './types';
 
@@ -240,7 +241,7 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
   // Datums and frames (R14.4, O5).
   const letters = new Map<string, string>();
   for (const d of settings.datums ?? []) {
-    if (!layout.views[d.view].hidden && !datumMarks(layout, ctx.views, d)) out.push({ code: 'DATUM_LOST', severity: 'error', message: d.face ? `Datum ${d.letter}: its face in the ${d.view} view has no unique current boundary anchor.` : `Datum ${d.letter}: its edge in the ${d.view} view is no longer in the part.`, view: d.view, fix: { kind: 'remove-datum', datum: d.id } });
+    if (!layout.views[d.view].hidden && !datumMarks(layout, ctx.views, d, presetOf(settings.standard))) out.push({ code: 'DATUM_LOST', severity: 'error', message: d.face ? `Datum ${d.letter}: its face in the ${d.view} view has no unique current boundary anchor.` : `Datum ${d.letter}: its edge in the ${d.view} view is no longer in the part.`, view: d.view, fix: { kind: 'remove-datum', datum: d.id } });
     if (letters.has(d.letter)) out.push({ code: 'DATUM_TWICE', severity: 'error', message: `Datum ${d.letter} is defined twice.`, view: d.view, fix: { kind: 'remove-datum', datum: d.id } });
     else letters.set(d.letter, d.id);
   }
@@ -262,6 +263,7 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
   // (A datum exists when a datum feature symbol or a datum target set has its letter.)
   const known = new Set([...letters.keys(), ...(settings.datumTargets ?? []).map(t => t.letter)]);
   for (const f of settings.frames ?? []) {
+    for (const why of frameNotes(f, settings.standard)) out.push({ code: 'FRAME_RULE', severity: 'warning', message: `The ${f.characteristic} frame${f.dim === undefined ? '' : ` on dimension ${f.dim}`}: ${why}`, frames: [f.id], ...(f.dim === undefined ? { view: f.view } : { dims: [f.dim] }) });
     for (const why of frameRules(f)) out.push({ code: 'FRAME_RULE', severity: 'error', message: `The ${f.characteristic} frame${f.dim === undefined ? '' : ` on dimension ${f.dim}`}: ${why}`, frames: [f.id], ...(f.dim === undefined ? { view: f.view } : { dims: [f.dim] }) });
     if (f.dim === undefined) {
       const placement = placementOf(layout, sheet, f.view), projection = projectionOf(ctx.views, sheet, f.view);
@@ -543,9 +545,9 @@ function fixFor(ctx: IssueContext, p: Placed, placed: readonly Placed[], viewGri
     // (The sheet's resolved dimension carries its shown text, callout and count included.)
     const moved = { ...r, dim: { ...r.dim, place } } as Extract<Resolved, { ok: true }>;
     // (Drawn as the sheet draws it: boxed if basic, its feature control frame under it.)
-    const marks = dimensionMarks(v, moved); if (r.dim.basic) marks.push(...basicBox(marks));
+    const marks = dimensionMarks(v, moved, presetOf(ctx.settings.standard)); if (r.dim.basic) marks.push(...basicBox(marks));
     const frame = ctx.settings.frames?.find(f => f.dim === r.dim.id), main = marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
-    if (frame && main) marks.push(...frameMarks(main, frame));
+    if (frame && main) marks.push(...frameMarks(main, frame, presetOf(ctx.settings.standard)));
     if (clear(placedOf({ role: 'dimension', id: r.dim.id, view: r.dim.view, marks }))) return { fix: { kind: 'move', dim: r.dim.id, place } };
   }
   return {};

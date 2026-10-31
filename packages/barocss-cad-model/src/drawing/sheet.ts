@@ -14,6 +14,7 @@ import { centreMarks } from './centres';
 import { threadMarks } from './threads';
 import type { FaceThread } from '../app/threads';
 import { fitText, textCorners, textWidth } from './text';
+import { PLAIN, presetOf, type StandardPreset } from './standard';
 import { VIEWS, scaleLabel, sectionDepth, sectionFrame, toSheet, type Orientation, type SectionExtent, type SectionPlacement, type SheetLayout, type ViewPlacement, TITLE_BLOCK } from './views';
 import type { DrawingDatum, DrawingFrame, DrawingNote, DrawingSection, DrawingSettings, DrawingTable, DrawingViews, SectionViewId, Tolerance, ViewId, XY } from './types';
 import { tableLayout, tableSize, type TableContent, type TableLayout } from './table';
@@ -99,17 +100,19 @@ export interface SheetDetail { id: string; view: DetailParent; scale: number; pl
 /** `tables`: each table placed (its box), or why its source gave nothing (drawn with the reason). */
 export interface Sheet { size: [number, number]; groups: MarkGroup[]; dimensions: Resolved[]; tables?: { id: string; box: [number, number, number, number]; error?: string; /** FRa (O115): a table in blocks, this one's place: [k, of n]. */ part?: [number, number] }[]; /** FRd2 (O119): the weld symbols placed (each joint's view, arrow tip, seam edge) and the joints seen in no view. */ welds?: { placed: readonly WeldPlaced[]; unshown: readonly string[] }; /** O147 B2: the item balloons placed, the item numbers with no clear room, and those with no visible edge. */ balloons?: { placed: readonly BalloonPlaced[]; unclear: readonly number[]; noEdge: readonly number[] }; /** O148 X2: each section as placed (moved under its view's name) with its projection: where its dimensions are drawn. DR-4: `form` a removed or revolved one's, `on` the view a revolved one is drawn on. */ sections?: SheetSectionPlaced[]; /** DR-4: the removed sections with no free room, the revolved ones with no view to be drawn on. */ sectionsMissing?: { id: string; why: 'room' | 'view' }[]; /** DR-1: each detail drawn; `unplaced`: the details whose parent is not on the sheet, and those with no room. */ details?: SheetDetail[]; detailsMissing?: { id: string; why: 'parent' | 'room' | 'empty' }[] }
 
+/** The plain sheet's lettering height; a drawing standard sets another (`p.text`, standard.ts). */
 export const TEXT = 3.5;
-const ARROW = 3, ARROW_HALF = 0.6, GAP = 1, OVER = 2;
+const GAP = 1, OVER = 2;
 
 /** `sections` (O148 X1): each section's projection and cut-face rings (view coordinates), drawn where the layout places it. */
 /** `meta.callout`: a diameter dimension's text from the feature it measures (a hole callout), or null for Ø. */
 /** `meta.tableContent`: a table's content from its source (O49; absent: a sourced table says it was not filled). */
 export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; /** O9: the source revision drawn in the title block. */ source?: string; callout?: (edge: string, diameter?: number) => string | null; threads?: ReadonlyMap<string, FaceThread>; tableContent?: (t: DrawingTable) => TableContent | { error: string }; /** FRd2 (O119): the frame's weld joints, for its symbols. */ welds?: readonly WeldJoint[]; /** O147 B2: the BOM (worked out by the caller), for the item balloons. */ bom?: Bom; /** The base part's face names by body key (O177): a balloon of a `base:<body>` line finds its body's edges. */ bodyFaces?: BodyFaces }, sections?: readonly SheetSection[]): Sheet {
+  const p = presetOf(settings.standard);
   const groups: MarkGroup[] = [];
   const [W, H] = layout.size, f = layout.frame;
   groups.push({ role: 'frame', marks: [rect([0, 0, W, H], 'thin'), rect(f, 'frame')].flat() });
-  groups.push({ role: 'title', marks: titleBlock(layout, settings, meta) });
+  groups.push({ role: 'title', marks: titleBlock(layout, settings, meta, p) });
   for (const id of VIEW_IDS) {
     const v = layout.views[id], marks: Mark[] = [];
     if (v.hidden) continue;
@@ -130,29 +133,29 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   // resolved once the sections are placed, below.)
   const inViews: Resolved[] = settings.dimensions.filter(d => isViewId(d.view)).map((d): Resolved => layout.views[d.view as ViewId].hidden ? { ok: false, dim: d, reason: `Its view (${d.view}) is not shown.` } : resolveDimension(views, d)).map((r): Resolved => r.ok ? { ...r, text: dimensionText(r, meta.callout) } : r);
   for (const r of inViews) if (r.ok) {
-    const marks = dimensionMarks(layout.views[r.dim.view as ViewId], r);
+    const marks = dimensionMarks(layout.views[r.dim.view as ViewId], r, p);
     if (r.dim.basic) marks.push(...basicBox(marks));
     groups.push({ role: 'dimension', id: r.dim.id, view: r.dim.view, marks });
   }
   // Datum features and feature control frames (R14.4, O5): a frame under its dimension's text.
-  for (const d of settings.datums ?? []) { if (layout.views[d.view].hidden) continue; const marks = datumMarks(layout, views, d); if (marks) groups.push({ role: 'datum', id: d.id, view: d.view, marks }); }
+  for (const d of settings.datums ?? []) { if (layout.views[d.view].hidden) continue; const marks = datumMarks(layout, views, d, p); if (marks) groups.push({ role: 'datum', id: d.id, view: d.view, marks }); }
   const targetConflicts = datumTargetConflicts(settings.datumTargets ?? []);
   for (const d of settings.datumTargets ?? []) {
     if (targetConflicts.has(d) || layout.views[d.view].hidden) continue;
-    const marks = datumTargetMarks(layout, views, d);
+    const marks = datumTargetMarks(layout, views, d, p);
     if (marks) groups.push({ role: 'datum', datumTarget: true, id: d.id, view: d.view, marks });
   }
   for (const f of settings.frames ?? []) {
     if (f.dim === undefined) continue;
     const g = groups.find(x => x.role === 'dimension' && x.id === f.dim), main = g?.marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
-    if (g && main) groups.push({ role: 'control', id: f.id, view: g.view, marks: frameMarks(main, f) });
+    if (g && main) groups.push({ role: 'control', id: f.id, view: g.view, marks: frameMarks(main, f, p) });
   }
-  for (const n of settings.notes ?? []) groups.push({ role: 'note', id: n.id, marks: noteMarks(layout, n) });
+  for (const n of settings.notes ?? []) groups.push({ role: 'note', id: n.id, marks: noteMarks(layout, n, p) });
   // (O148 X1: each section's cutting plane in the view that sees it edge-on, before the views' names: a name goes below its view's cutting-plane ends.)
   // (Pushed after each section's drawing, as A–A's always was: the DXF's entities keep their order.)
   const cutting = new Map<string, MarkGroup>();
-  for (const p of layout.sections ?? []) { const sec = sections?.find(x => x.id === p.section); const g = sec && cuttingPlane(layout, views, sec, settings.orientation); if (g) cutting.set(p.section, g); }
-  for (const sec of sections ?? []) if (sec.removed && sectionsOf(settings).some(x => sameSection(x, sec))) { const g = cuttingPlane(layout, views, sec, settings.orientation); if (g) cutting.set(sec.id, g); }
+  for (const ps of layout.sections ?? []) { const sec = sections?.find(x => x.id === ps.section); const g = sec && cuttingPlane(layout, views, sec, settings.orientation, p); if (g) cutting.set(ps.section, g); }
+  for (const sec of sections ?? []) if (sec.removed && sectionsOf(settings).some(x => sameSection(x, sec))) { const g = cuttingPlane(layout, views, sec, settings.orientation, p); if (g) cutting.set(sec.id, g); }
   // Each view's name under it, below any dimension placed under the view.
   for (const id of VIEW_IDS) {
     if (layout.views[id].hidden) continue;
@@ -163,11 +166,11 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   }
   // (O148 X1: each section placed, its name under it; a front's or a right's under its view's name, as A–A always was.)
   const onSheet: SheetSectionPlaced[] = [], inSections = new Map<string, Resolved>();
-  for (const p of layout.sections ?? []) {
-    const sec = sections?.find(x => x.id === p.section); if (!sec) continue;
-    const parent = p.of !== 'top' ? groups.find(g => g.role === 'label' && g.view === p.of)?.marks[0] as Extract<Mark, { kind: 'text' }> | undefined : undefined;
-    const shift = parent ? Math.max(0, parent.at[1] + 6 - p.box[1]) : 0;
-    const placed: SectionPlacement = { ...p, origin: [p.origin[0], p.origin[1] + shift], box: [p.box[0], p.box[1] + shift, p.box[2], p.box[3] + shift] };
+  for (const lp of layout.sections ?? []) {
+    const sec = sections?.find(x => x.id === lp.section); if (!sec) continue;
+    const parent = lp.of !== 'top' ? groups.find(g => g.role === 'label' && g.view === lp.of)?.marks[0] as Extract<Mark, { kind: 'text' }> | undefined : undefined;
+    const shift = parent ? Math.max(0, parent.at[1] + 6 - lp.box[1]) : 0;
+    const placed: SectionPlacement = { ...lp, origin: [lp.origin[0], lp.origin[1] + shift], box: [lp.box[0], lp.box[1] + shift, lp.box[2], lp.box[3] + shift] };
     groups.push({ role: 'section', id: sec.id, marks: sectionMarks(placed, sec) });
     const c = cutting.get(sec.id); if (c) groups.push(c);
     onSheet.push({ id: sec.id, view: sec.view, placement: placed, projection: sec.projection });
@@ -177,7 +180,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
       const r = resolveDimension({ [ref]: sec.projection }, d), shown = r.ok ? { ...r, text: dimensionText(r, meta.callout) } as Resolved : r;
       inSections.set(d.id, shown);
       if (!shown.ok) continue;
-      const marks = dimensionMarks(placed, shown); if (d.basic) marks.push(...basicBox(marks));
+      const marks = dimensionMarks(placed, shown, p); if (d.basic) marks.push(...basicBox(marks));
       groups.push({ role: 'dimension', id: d.id, view: ref, marks });
     }
     const [x0, , x1, y1] = placed.box;
@@ -186,26 +189,26 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
     groups.push({ role: 'label', marks: [{ kind: 'text', at: [(x0 + x1) / 2, below + 7], text: `SECTION ${sec.id}–${sec.id}`, size: 2.5, anchor: 'middle' }] });
   }
   // (DR-4: the removed sections in free room and the revolved ones on their views, after the others; their dimensions too.)
-  const apart = apartSections(layout, views, settings, groups, onSheet, sections ?? [], cutting, meta.callout);
+  const apart = apartSections(layout, views, settings, groups, onSheet, sections ?? [], cutting, p, meta.callout);
   groups.push(...apart.groups); onSheet.push(...apart.placed);
   for (const [id, r] of apart.resolved) inSections.set(id, r);
   // (A dimension on a section the sheet does not have, kept unresolved so the issue list names it; its frames, as a view's.)
   for (const d of settings.dimensions) if (isSectionRef(d.view) && !inSections.has(d.id)) inSections.set(d.id, { ok: false, dim: d, reason: `Its section (${sectionLetter(d.view)}–${sectionLetter(d.view)}) is not on the sheet.` });
   // (DR-1: the details, after the sections — a detail may enlarge one — each with its dimensions and name.)
-  const drawn = detailGroups(layout, views, settings, groups, onSheet, sections ?? [], meta.callout);
+  const drawn = detailGroups(layout, views, settings, groups, onSheet, sections ?? [], p, meta.callout);
   groups.push(...drawn.groups);
   for (const [id, r] of drawn.resolved) inSections.set(id, r);
   for (const f of settings.frames ?? []) {
     if (f.dim === undefined) continue;
     const g = groups.find(x => x.role === 'dimension' && x.id === f.dim && x.view && !isViewId(x.view)), main = g?.marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
-    if (g && main) groups.push({ role: 'control', id: f.id, view: g.view, marks: frameMarks(main, f) });
+    if (g && main) groups.push({ role: 'control', id: f.id, view: g.view, marks: frameMarks(main, f, p) });
   }
   const placedViews = { sections: onSheet, details: drawn.details.map(x => x.detail) };
   for (const f of settings.frames ?? []) {
     if (f.dim !== undefined) continue;
     const placement = placementOf(layout, placedViews, f.view);
     if (!placement || placement.hidden || !projectionOf(views, placedViews, f.view)) continue;
-    groups.push({ role: 'control', standaloneFrame: true, id: f.id, view: f.view, marks: frameMarksAt(toSheet(placement, f.place), f) });
+    groups.push({ role: 'control', standaloneFrame: true, id: f.id, view: f.view, marks: frameMarksAt(toSheet(placement, f.place), f, p) });
   }
   const dimensions: Resolved[] = settings.dimensions.map(d => inSections.get(d.id) ?? inViews.find(r => r.dim === d)!);
   // (FRd2, O119: the weld symbols, before the tables so an auto-placed one keeps clear of their texts.)
@@ -254,7 +257,7 @@ const dot3 = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] 
  * revolved one: its cut face on the view REVOLVED_ON names (revolvedPlacement), a centreline along the trace 3 mm past
  * it, no name; its dimensions drawn there.
  */
-function apartSections(layout: SheetLayout, views: DrawingViews, settings: DrawingSettings, before: readonly MarkGroup[], placedSections: readonly SheetSectionPlaced[], sections: readonly SheetSection[], cutting: ReadonlyMap<string, MarkGroup>, callout?: (edge: string, diameter?: number) => string | null): { groups: MarkGroup[]; placed: SheetSectionPlaced[]; boxes: Rect[]; missing: NonNullable<Sheet['sectionsMissing']>; resolved: Map<string, Resolved> } {
+function apartSections(layout: SheetLayout, views: DrawingViews, settings: DrawingSettings, before: readonly MarkGroup[], placedSections: readonly SheetSectionPlaced[], sections: readonly SheetSection[], cutting: ReadonlyMap<string, MarkGroup>, p: StandardPreset, callout?: (edge: string, diameter?: number) => string | null): { groups: MarkGroup[]; placed: SheetSectionPlaced[]; boxes: Rect[]; missing: NonNullable<Sheet['sectionsMissing']>; resolved: Map<string, Resolved> } {
   const groups: MarkGroup[] = [], placed: SheetSectionPlaced[] = [], boxes: Rect[] = [], missing: NonNullable<Sheet['sectionsMissing']> = [], resolved = new Map<string, Resolved>();
   const taken = takenOf(layout, [...before, ...cutting.values()], placedSections.map(x => x.placement.box));
   for (const s of sectionsOf(settings)) {
@@ -291,7 +294,7 @@ function apartSections(layout: SheetLayout, views: DrawingViews, settings: Drawi
       const r = resolveDimension({ [ref]: pr }, d), shown = r.ok ? { ...r, text: dimensionText(r, callout) } as Resolved : r;
       resolved.set(d.id, shown);
       if (!shown.ok) continue;
-      const dm = dimensionMarks(placement, shown); if (d.basic) dm.push(...basicBox(dm));
+      const dm = dimensionMarks(placement, shown, p); if (d.basic) dm.push(...basicBox(dm));
       groups.push({ role: 'dimension', id: d.id, view: ref, marks: dm });
     }
     if (!s.removed) continue;
@@ -315,7 +318,7 @@ const DETAIL_LABEL = 7, DETAIL_GAP = 4;
  * clipped and hatched as the section's), the circle round it; its dimensions resolved on that projection; its name
  * `DETAIL B (5:1)` under them.
  */
-function detailGroups(layout: SheetLayout, views: DrawingViews, settings: DrawingSettings, before: readonly MarkGroup[], placedSections: NonNullable<Sheet['sections']>, sections: readonly SheetSection[], callout?: (edge: string, diameter?: number) => string | null): { groups: MarkGroup[]; details: { detail: SheetDetail; box: Rect }[]; missing: NonNullable<Sheet['detailsMissing']>; resolved: Map<string, Resolved> } {
+function detailGroups(layout: SheetLayout, views: DrawingViews, settings: DrawingSettings, before: readonly MarkGroup[], placedSections: NonNullable<Sheet['sections']>, sections: readonly SheetSection[], p: StandardPreset, callout?: (edge: string, diameter?: number) => string | null): { groups: MarkGroup[]; details: { detail: SheetDetail; box: Rect }[]; missing: NonNullable<Sheet['detailsMissing']>; resolved: Map<string, Resolved> } {
   const groups: MarkGroup[] = [], details: { detail: SheetDetail; box: Rect }[] = [], missing: NonNullable<Sheet['detailsMissing']> = [], resolved = new Map<string, Resolved>();
   const taken = takenOf(layout, before, placedSections.map(x => x.placement.box));
   for (const d of settings.details ?? []) {
@@ -327,7 +330,7 @@ function detailGroups(layout: SheetLayout, views: DrawingViews, settings: Drawin
     const k = detailScale(d, layout.scale), half = k * d.radius;
     // (On the parent: the circle and the letter outside it, up and to the right.)
     const pc = toSheet(parent.placement, d.center), pr = d.radius * parent.placement.scale;
-    groups.push({ role: 'detail', id: d.id, view: d.view, marks: [circleMark(pc, pr, 'thin'), { kind: 'text', at: [pc[0] + pr * Math.SQRT1_2 + 1, pc[1] - pr * Math.SQRT1_2 - 1], text: d.id, size: TEXT, anchor: 'start', bold: true }] });
+    groups.push({ role: 'detail', id: d.id, view: d.view, marks: [circleMark(pc, pr, 'thin'), { kind: 'text', at: [pc[0] + pr * Math.SQRT1_2 + 1, pc[1] - pr * Math.SQRT1_2 - 1], text: d.id, size: p.text, anchor: 'start', bold: true }] });
     let at: XY | null = d.at ?? null;
     if (!at) { const room = detailRoom(layout, taken, 2 * half, 2 * half + DETAIL_LABEL); if (room) at = [room[0] + half, room[1] + half]; }
     if (!at) { missing.push({ id: d.id, why: 'room' }); continue; }
@@ -346,7 +349,7 @@ function detailGroups(layout: SheetLayout, views: DrawingViews, settings: Drawin
       const r = resolveDimension({ [ref]: projection }, dim), shown = r.ok ? { ...r, text: dimensionText(r, callout) } as Resolved : r;
       resolved.set(dim.id, shown);
       if (!shown.ok) continue;
-      const dm = dimensionMarks(placement, shown); if (dim.basic) dm.push(...basicBox(dm));
+      const dm = dimensionMarks(placement, shown, p); if (dim.basic) dm.push(...basicBox(dm));
       groups.push({ role: 'dimension', id: dim.id, view: ref, marks: dm });
     }
     let below = placement.box[3];
@@ -524,7 +527,7 @@ const rect = ([x0, y0, x1, y1]: readonly number[], pen: Pen): Mark[] => [
 /** The title's room: from 2 mm in to 2 mm short of the projection symbol (its left edge at 59 mm from the right). */
 export const TITLE_ROOM = TITLE_BLOCK.width - 2 - 59 - 2;
 
-function titleBlock(layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; source?: string }): Mark[] {
+function titleBlock(layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; source?: string }, p: StandardPreset): Mark[] {
   const [x0, top, x1, y1] = layout.title, marks: Mark[] = rect(layout.title, 'frame');
   const extended = settings.titleBlock?.template === 'extended', y0 = top + (extended ? TITLE_EXTRA_HEIGHT : 0);
   if (extended) {
@@ -551,22 +554,29 @@ function titleBlock(layout: SheetLayout, settings: DrawingSettings, meta: { titl
     marks.push({ kind: 'text', at: [cols[i] + 2, mid + 4], text: k, size: 1.8, anchor: 'start' });
     marks.push({ kind: 'text', at: [cols[i] + 2, mid + 12], ...fitText(val, 3.5, true, cols[i + 1] - cols[i] - 4, 2.2), anchor: 'start', bold: true });
   });
-  marks.push(...projectionSymbol([x1 - 52, y0 + 7], settings.projection));
+  marks.push(...projectionSymbol([x1 - 52, y0 + 7], settings.projection, p));
   marks.push({ kind: 'text', at: [x1 - 42, y0 + 11.5], text: settings.projection === 'third' ? 'THIRD ANGLE' : 'FIRST ANGLE', size: 1.8, anchor: 'start' });
   return marks;
 }
 
-/** The projection symbol: a truncated cone's side view and end view (side view left for third angle). */
-function projectionSymbol([cx, cy]: XY, projection: DrawingSettings['projection']): Mark[] {
+/**
+ * The projection symbol: a truncated cone's side view and end view (side view left for third angle). With a standard it
+ * is drawn to ISO 5456-2's proportions from the lettering height h: the cone's ends are 2h and h across and it is 2h long,
+ * the end view's circles 2h and h across, a thin chain centre line through both; without one, the sheet's own symbol.
+ */
+function projectionSymbol([cx0, cy]: XY, projection: DrawingSettings['projection'], p: StandardPreset): Mark[] {
+  // With a standard the symbol is h-based and moved so that its left end and centre line stay clear of the title's room, and its right end of the words.
+  const h = p.text, R = p.projectionSymbol ? h : 3, gap = R + 1, cx = cx0 + 2 * (R - 3);
   const cone = (x: number): Mark[] => [
-    { kind: 'line', a: [x - 3, cy - 1.5], b: [x + 3, cy - 3], pen: 'thin' }, { kind: 'line', a: [x + 3, cy - 3], b: [x + 3, cy + 3], pen: 'thin' },
-    { kind: 'line', a: [x + 3, cy + 3], b: [x - 3, cy + 1.5], pen: 'thin' }, { kind: 'line', a: [x - 3, cy + 1.5], b: [x - 3, cy - 1.5], pen: 'thin' },
+    { kind: 'line', a: [x - R, cy - R / 2], b: [x + R, cy - R], pen: 'thin' }, { kind: 'line', a: [x + R, cy - R], b: [x + R, cy + R], pen: 'thin' },
+    { kind: 'line', a: [x + R, cy + R], b: [x - R, cy + R / 2], pen: 'thin' }, { kind: 'line', a: [x - R, cy + R / 2], b: [x - R, cy - R / 2], pen: 'thin' },
   ];
   const end = (x: number): Mark[] => [
-    { kind: 'arc', center: [x, cy], u: [3, 0], v: [0, 3], t0: 0, t1: 2 * Math.PI, pen: 'thin' },
-    { kind: 'arc', center: [x, cy], u: [1.5, 0], v: [0, 1.5], t0: 0, t1: 2 * Math.PI, pen: 'thin' },
+    { kind: 'arc', center: [x, cy], u: [R, 0], v: [0, R], t0: 0, t1: 2 * Math.PI, pen: 'thin' },
+    { kind: 'arc', center: [x, cy], u: [R / 2, 0], v: [0, R / 2], t0: 0, t1: 2 * Math.PI, pen: 'thin' },
   ];
-  return projection === 'third' ? [...cone(cx - 4), ...end(cx + 4)] : [...end(cx - 4), ...cone(cx + 4)];
+  const marks = projection === 'third' ? [...cone(cx - gap), ...end(cx + gap)] : [...end(cx - gap), ...cone(cx + gap)];
+  return p.projectionSymbol ? [...marks, { kind: 'line', a: [cx - 2 * R - 2, cy], b: [cx + 2 * R + 2, cy], pen: 'center' }] : marks;
 }
 
 const unit = (v: XY): XY => { const l = Math.hypot(v[0], v[1]) || 1; return [v[0] / l, v[1] / l]; };
@@ -575,9 +585,9 @@ const sub = (a: XY, b: XY): XY => [a[0] - b[0], a[1] - b[1]];
 const dot2 = (a: XY, b: XY) => a[0] * b[0] + a[1] * b[1];
 
 /** A filled arrowhead with its tip at `tip`, pointing along `dir`. */
-function arrow(tip: XY, dir: XY): Mark {
-  const d = unit(dir), n: XY = [-d[1], d[0]], base = add(tip, d, -ARROW);
-  return { kind: 'fill', points: [tip, add(base, n, ARROW_HALF), add(base, n, -ARROW_HALF)], head: { style: 'filled', tip, dir: d, length: ARROW, width: 2 * ARROW_HALF } };
+function arrow(tip: XY, dir: XY, p: StandardPreset): Mark {
+  const d = unit(dir), n: XY = [-d[1], d[0]], base = add(tip, d, -p.arrowLength);
+  return { kind: 'fill', points: [tip, add(base, n, p.arrowHalf), add(base, n, -p.arrowHalf)], head: { style: 'filled', tip, dir: d, length: p.arrowLength, width: 2 * p.arrowHalf } };
 }
 /** A centre's dot as a head (G24). */
 const dot = (c: XY): Mark => ({ kind: 'fill', points: circlePoints(c, 0.4), head: { style: 'dot', tip: c, dir: [1, 0], length: 0.8, width: 0.8 } });
@@ -600,13 +610,13 @@ export function toleranceText(t: Tolerance, unit = ''): string {
  * A dimension's value with its tolerance, as text at `at` (its baseline; `angle` as read): ± and fits
  * follow the value on its line; deviations stack after it in smaller text, the upper one raised.
  */
-export function valueMarks(at: XY, angle: number, anchor: 'start' | 'middle' | 'end', value: string, tol?: Tolerance, unit = ''): Mark[] {
+export function valueMarks(at: XY, angle: number, anchor: 'start' | 'middle' | 'end', value: string, tol?: Tolerance, unit = '', p: StandardPreset = PLAIN): Mark[] {
   const a = angle * Math.PI / 180, x: XY = [Math.cos(a), -Math.sin(a)], up: XY = [-Math.sin(a), -Math.cos(a)];
   const main = tol && tol.kind !== 'deviation' ? `${value} ${toleranceText(tol, unit)}` : value;
   const small = 2.5, devs = tol?.kind === 'deviation' ? [signed(tol.upper, unit), signed(tol.lower, unit)] : null;
-  const wMain = textWidth(main, TEXT, false), wDev = devs ? 0.8 + Math.max(...devs.map(d => textWidth(d, small, false))) : 0, total = wMain + wDev;
+  const wMain = textWidth(main, p.text, false), wDev = devs ? 0.8 + Math.max(...devs.map(d => textWidth(d, small, false))) : 0, total = wMain + wDev;
   const from = add(at, x, anchor === 'start' ? 0 : anchor === 'middle' ? -total / 2 : -total);
-  const marks: Mark[] = [{ kind: 'text', at: from, text: main, size: TEXT, anchor: 'start', ...(angle ? { angle } : {}) }];
+  const marks: Mark[] = [{ kind: 'text', at: from, text: main, size: p.text, anchor: 'start', ...(angle ? { angle } : {}) }];
   if (devs) {
     const col = add(from, x, wMain + 0.8);
     marks.push({ kind: 'text', at: add(col, up, 1.5), text: devs[0], size: small, anchor: 'start', ...(angle ? { angle } : {}) },
@@ -615,12 +625,12 @@ export function valueMarks(at: XY, angle: number, anchor: 'start' | 'middle' | '
   return marks;
 }
 
-export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true }>): Mark[] {
+export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true }>, p: StandardPreset = PLAIN): Mark[] {
   if (r.kind === 'pcd') {
     // A pitch circle (R14.5): the circle in chain line through the holes' centres, a leader to it like a diameter's.
     const C = toSheet(v, r.center), R = r.radius * v.scale;
     const asDiameter = { ...r, kind: 'diameter', dim: { ...r.dim, kind: 'diameter', edge: '', near: [0, 0, 0] } } as unknown as Extract<Resolved, { ok: true; kind: 'diameter' }>;
-    return [{ kind: 'arc', center: C, u: [R, 0], v: [0, R], t0: 0, t1: 2 * Math.PI, pen: 'center', role: 'dimension' }, ...dimensionMarks(v, asDiameter)];
+    return [{ kind: 'arc', center: C, u: [R, 0], v: [0, R], t0: 0, t1: 2 * Math.PI, pen: 'center', role: 'dimension' }, ...dimensionMarks(v, asDiameter, p)];
   }
   const marks: Mark[] = [];
   const place = toSheet(v, r.dim.place);
@@ -634,14 +644,14 @@ export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true
     const tangent = (t: number): XY => [-u[0] * Math.sin(t) + w[0] * Math.cos(t), -u[1] * Math.sin(t) + w[1] * Math.cos(t)];
     marks.push({ kind: 'arc', center: X, u, v: w, t0: 0, t1: theta, pen: 'thin', role: 'dimension' });
     const t0 = tangent(0), t1 = tangent(theta);
-    marks.push(arrow(at(0), [-t0[0], -t0[1]]), arrow(at(theta), t1));
+    marks.push(arrow(at(0), [-t0[0], -t0[1]], p), arrow(at(theta), t1, p));
     for (const dir of [r.from, r.to]) {
       // The extension along a ray reaches out from the edge end lying along it (none along the ray behind it).
       const d: XY = [dir[0], -dir[1]], reach = Math.max(0, ...r.ends.map(e => { const E = toSheet(v, e), q = (E[0] - X[0]) * d[0] + (E[1] - X[1]) * d[1]; return Math.abs((E[0] - X[0]) * d[1] - (E[1] - X[1]) * d[0]) < 1e-6 * (1 + Math.abs(q)) ? q : 0; }));
       if (R > reach + GAP) marks.push({ kind: 'line', a: add(X, d, reach + GAP), b: add(X, d, R + OVER), pen: 'thin', role: 'extension' });
     }
     const mid = at(theta / 2), out = unit(sub(mid, X));
-    marks.push(...valueMarks(add(add(mid, out, 2.5), [0, 1.2]), 0, out[0] > 0.3 ? 'start' : out[0] < -0.3 ? 'end' : 'middle', r.text, r.dim.tol, '°'));
+    marks.push(...valueMarks(add(add(mid, out, 2.5), [0, 1.2]), 0, out[0] > 0.3 ? 'start' : out[0] < -0.3 ? 'end' : 'middle', r.text, r.dim.tol, '°', p));
     return marks;
   }
   if (r.kind === 'linear') {
@@ -652,16 +662,21 @@ export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true
       const out = sub(Q, P), l = Math.hypot(out[0], out[1]);
       if (l > GAP) { const e = unit(out); marks.push({ kind: 'line', a: add(P, e, GAP), b: add(Q, e, OVER), pen: 'thin', role: 'extension' }); }
     }
-    const along = sub(B2, A2), len = Math.hypot(along[0], along[1]), e = unit(along);
-    if (len >= 2 * ARROW + 1) {
-      marks.push({ kind: 'line', a: A2, b: B2, pen: 'thin', role: 'dimension' }, arrow(A2, [-e[0], -e[1]]), arrow(B2, e));
+    const along = sub(B2, A2), len = Math.hypot(along[0], along[1]), e = unit(along), mid = add(A2, along, 0.5);
+    const inside = len >= 2 * p.arrowLength + 1;
+    // ASME: the text reads horizontally in a break of the line; room for it between the arrows, else it sits beside the line.
+    const text = p.dimensionText === 'unidirectional' ? unidirectional(mid, e, r.text, r.dim.tol, inside ? [-len / 2 + p.arrowLength, len / 2 - p.arrowLength] : [0, 0], p) : null;
+    if (inside) {
+      if (text?.gap) marks.push({ kind: 'line', a: A2, b: add(mid, e, text.gap[0]), pen: 'thin', role: 'dimension' }, { kind: 'line', a: add(mid, e, text.gap[1]), b: B2, pen: 'thin', role: 'dimension' });
+      else marks.push({ kind: 'line', a: A2, b: B2, pen: 'thin', role: 'dimension' });
+      marks.push(arrow(A2, [-e[0], -e[1]], p), arrow(B2, e, p));
     } else {
       // Too short for arrows inside: arrows outside, pointing in.
-      marks.push({ kind: 'line', a: add(A2, e, -ARROW - 3), b: add(B2, e, ARROW + 3), pen: 'thin', role: 'dimension' }, arrow(A2, e), arrow(B2, [-e[0], -e[1]]));
+      marks.push({ kind: 'line', a: add(A2, e, -p.arrowLength - 3), b: add(B2, e, p.arrowLength + 3), pen: 'thin', role: 'dimension' }, arrow(A2, e, p), arrow(B2, [-e[0], -e[1]], p));
     }
     // Text over the line (the side away from the measured points' middle when the line is beside them).
-    const mid = add(A2, along, 0.5), up: XY = textUp(e);
-    marks.push(...valueMarks(add(mid, up, 1.2), readAngle(e), 'middle', r.text, r.dim.tol));
+    if (text) marks.push(...text.marks);
+    else marks.push(...valueMarks(add(mid, textUp(e), 1.2), readAngle(e), 'middle', r.text, r.dim.tol, '', p));
     return marks;
   }
   const C = toSheet(v, r.center), R = r.radius * v.scale, toPlace = sub(place, C), dist = Math.hypot(toPlace[0], toPlace[1]);
@@ -670,19 +685,25 @@ export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true
     // A leader from the rim out to the text, with a short shoulder.
     const start = r.kind === 'radius' ? C : rim;
     marks.push({ kind: 'line', a: start, b: place, pen: 'thin', role: 'leader' });
-    marks.push(r.kind === 'radius' ? arrow(rim, e) : arrow(rim, [-e[0], -e[1]]));
+    marks.push(r.kind === 'radius' ? arrow(rim, e, p) : arrow(rim, [-e[0], -e[1]], p));
     const right = e[0] >= 0, shoulder = add(place, [right ? 1 : -1, 0], 3);
     marks.push({ kind: 'line', a: place, b: shoulder, pen: 'thin', role: 'leader' });
-    marks.push(...valueMarks(add(shoulder, [right ? 1 : -1, 0], 0.8), 0, right ? 'start' : 'end', r.text, r.dim.tol));
+    marks.push(...valueMarks(add(shoulder, [right ? 1 : -1, 0], 0.8), 0, right ? 'start' : 'end', r.text, r.dim.tol, '', p));
     if (r.kind === 'radius') marks.push(dot(C));
     return marks;
   }
   // Inside the circle: a diameter across it (or a radius from the centre), text along it.
-  const far = add(C, e, -R);
-  if (r.kind === 'diameter') marks.push({ kind: 'line', a: far, b: rim, pen: 'thin', role: 'dimension' }, arrow(rim, e), arrow(far, [-e[0], -e[1]]));
-  else marks.push({ kind: 'line', a: C, b: rim, pen: 'thin', role: 'dimension' }, arrow(rim, e), dot(C));
-  const mid = r.kind === 'diameter' ? add(C, e, R * 0.45) : add(C, e, R * 0.5);
-  marks.push(...valueMarks(add(mid, textUp(e), 1.2), readAngle(e), 'middle', r.text, r.dim.tol));
+  const far = add(C, e, -R), mid = r.kind === 'diameter' ? add(C, e, R * 0.45) : add(C, e, R * 0.5);
+  const start = r.kind === 'diameter' ? far : C, toRim = Math.hypot(rim[0] - mid[0], rim[1] - mid[1]), toStart = Math.hypot(mid[0] - start[0], mid[1] - start[1]);
+  const text = p.dimensionText === 'unidirectional' ? unidirectional(mid, e, r.text, r.dim.tol, [-toStart + (r.kind === 'diameter' ? p.arrowLength : 1), toRim - p.arrowLength], p) : null;
+  // (A break is cut out of the line along the text: the line is `from` to `rim`, the break about `mid`.)
+  const line = (a: XY, b: XY): Mark[] => text?.gap
+    ? [{ kind: 'line', a, b: add(mid, e, text.gap[0]), pen: 'thin', role: 'dimension' }, { kind: 'line', a: add(mid, e, text.gap[1]), b, pen: 'thin', role: 'dimension' }]
+    : [{ kind: 'line', a, b, pen: 'thin', role: 'dimension' }];
+  if (r.kind === 'diameter') marks.push(...line(far, rim), arrow(rim, e, p), arrow(far, [-e[0], -e[1]], p));
+  else marks.push(...line(C, rim), arrow(rim, e, p), dot(C));
+  if (text) marks.push(...text.marks);
+  else marks.push(...valueMarks(add(mid, textUp(e), 1.2), readAngle(e), 'middle', r.text, r.dim.tol, '', p));
   return marks;
 }
 
@@ -691,6 +712,22 @@ function textUp(e: XY): XY {
   let n: XY = [e[1], -e[0]];
   if (n[1] > 1e-9 || (Math.abs(n[1]) <= 1e-9 && n[0] > 0)) n = [-n[0], -n[1]];
   return n;
+}
+
+/**
+ * ASME unidirectional text: the value horizontal about `mid`, in a break of the dimension line (direction `e`). `gap` is
+ * the break along the line from `mid` ([from, to], the text box with 1 mm either side) when it lies within `free` (the
+ * line's span between the arrowheads, as offsets from `mid`), else null and the text sits beside the line, clear of it.
+ */
+function unidirectional(mid: XY, e: XY, value: string, tol: Tolerance | undefined, free: [number, number], p: StandardPreset): { marks: Mark[]; gap: [number, number] | null } {
+  const h = p.text, centred = valueMarks([mid[0], mid[1] + h * 0.35], 0, 'middle', value, tol, '', p);
+  const quads = centred.flatMap(m => m.kind === 'text' ? [textCorners(m.at, m.text, m.size, m.anchor, 0, !!m.bold)] : []).flat();
+  const along = quads.map(p => (p[0] - mid[0]) * e[0] + (p[1] - mid[1]) * e[1]);
+  const gap: [number, number] = [Math.min(...along) - 1, Math.max(...along) + 1];
+  if (gap[0] >= free[0] && gap[1] <= free[1]) return { marks: centred, gap };
+  // Beside the line: the box's far edge a millimetre off it, on the side the plain text takes.
+  const side = textUp(e), across = quads.map(p => (p[0] - mid[0]) * side[0] + (p[1] - mid[1]) * side[1]), lift = 1.2 - Math.min(...across);
+  return { marks: centred.map(m => m.kind === 'text' ? { ...m, at: add(m.at, side, lift) } : m), gap: null };
 }
 
 const circlePoints = (c: XY, r: number): XY[] => Array.from({ length: 12 }, (_, k) => [c[0] + r * Math.cos(k * Math.PI / 6), c[1] + r * Math.sin(k * Math.PI / 6)] as XY);
@@ -719,9 +756,9 @@ function sectionMarks(v: SectionPlacement, section: SheetSection): Mark[] {
   return marks;
 }
 /** A section's cutting plane, in the first shown view that sees it edge-on (none shown: none). */
-function cuttingPlane(layout: SheetLayout, views: DrawingViews, section: SheetSection, orientation?: Orientation): MarkGroup | null {
-  if (section.dir) return alignedCuttingPlane(layout, views, section, orientation);
-  if (section.steps) return steppedCuttingPlane(layout, views, section, orientation);
+function cuttingPlane(layout: SheetLayout, views: DrawingViews, section: SheetSection, orientation: Orientation | undefined, p: StandardPreset): MarkGroup | null {
+  if (section.dir) return alignedCuttingPlane(layout, views, section, orientation, p);
+  if (section.steps) return steppedCuttingPlane(layout, views, section, orientation, p);
   const marks: Mark[] = [];
   const { k, sign, d } = sectionDepth(section.view, orientation), plane = sign * section.at;
   const showing = (CUT_SHOWN[section.view] as readonly ViewId[]).find(id => !layout.views[id].hidden);
@@ -736,10 +773,10 @@ function cuttingPlane(layout: SheetLayout, views: DrawingViews, section: SheetSe
   for (const [end, inward] of [[a, 1], [b, -1]] as const) {
     marks.push({ kind: 'line', a: end, b: [end[0] + inward * 5 * t[0], end[1] + inward * 5 * t[1]], pen: 'frame' });
     const foot: XY = [end[0] + inward * 2 * t[0], end[1] + inward * 2 * t[1]], tip: XY = [foot[0] + 7 * seen[0], foot[1] + 7 * seen[1]];
-    marks.push({ kind: 'line', a: foot, b: [tip[0] - ARROW * seen[0], tip[1] - ARROW * seen[1]], pen: 'thin' }, arrow(tip, seen));
+    marks.push({ kind: 'line', a: foot, b: [tip[0] - p.arrowLength * seen[0], tip[1] - p.arrowLength * seen[1]], pen: 'thin' }, arrow(tip, seen, p));
     marks.push(across
-      ? { kind: 'text', at: [tip[0] - inward * 2.5, tip[1] + 2], text: section.id, size: TEXT, anchor: inward > 0 ? 'end' : 'start', bold: true }
-      : { kind: 'text', at: [tip[0] + 2.5 * seen[0], tip[1] - inward * 2.5 + 1.2], text: section.id, size: TEXT, anchor: seen[0] > 0 ? 'start' : 'end', bold: true });
+      ? { kind: 'text', at: [tip[0] - inward * 2.5, tip[1] + 2], text: section.id, size: p.text, anchor: inward > 0 ? 'end' : 'start', bold: true }
+      : { kind: 'text', at: [tip[0] + 2.5 * seen[0], tip[1] - inward * 2.5 + 1.2], text: section.id, size: p.text, anchor: seen[0] > 0 ? 'start' : 'end', bold: true });
   }
   return { role: 'section', id: section.id, view: showing, marks };
 }
@@ -748,7 +785,7 @@ function cuttingPlane(layout: SheetLayout, views: DrawingViews, section: SheetSe
  * line dot(p, d) = at across the view (u·(right·d) + v·(up·d) = at), padded past the part; its ends' arrows point along
  * the normal as seen in that view, the section's letter by each. None shown that sees it edge-on: none.
  */
-function alignedCuttingPlane(layout: SheetLayout, views: DrawingViews, section: SheetSection, orientation?: Orientation): MarkGroup | null {
+function alignedCuttingPlane(layout: SheetLayout, views: DrawingViews, section: SheetSection, orientation: Orientation | undefined, p: StandardPreset): MarkGroup | null {
   const { d } = sectionFrame(section, orientation);
   const showing = (['front', 'top', 'right'] as const).find(id => { if (layout.views[id].hidden) return false; const t = views[id].toward; return Math.abs(t[0] * d[0] + t[1] * d[1] + t[2] * d[2]) < 1e-6; });
   if (!showing) return null;
@@ -773,8 +810,8 @@ function alignedCuttingPlane(layout: SheetLayout, views: DrawingViews, section: 
   for (const [end, inward] of [[A, 1], [B, -1]] as const) {
     marks.push({ kind: 'line', a: end, b: [end[0] + inward * 5 * t[0], end[1] + inward * 5 * t[1]], pen: 'frame' });
     const f: XY = [end[0] + inward * 2 * t[0], end[1] + inward * 2 * t[1]], tip: XY = [f[0] + 7 * seen[0], f[1] + 7 * seen[1]];
-    marks.push({ kind: 'line', a: f, b: [tip[0] - ARROW * seen[0], tip[1] - ARROW * seen[1]], pen: 'thin' }, arrow(tip, seen));
-    marks.push({ kind: 'text', at: [tip[0] + 2.5 * seen[0] - inward * 2.5 * t[0], tip[1] + 2.5 * seen[1] - inward * 2.5 * t[1] + 1.2], text: section.id, size: TEXT, anchor: 'middle', bold: true });
+    marks.push({ kind: 'line', a: f, b: [tip[0] - p.arrowLength * seen[0], tip[1] - p.arrowLength * seen[1]], pen: 'thin' }, arrow(tip, seen, p));
+    marks.push({ kind: 'text', at: [tip[0] + 2.5 * seen[0] - inward * 2.5 * t[0], tip[1] + 2.5 * seen[1] - inward * 2.5 * t[1] + 1.2], text: section.id, size: p.text, anchor: 'middle', bold: true });
   }
   return { role: 'section', id: section.id, view: showing, marks };
 }
@@ -783,7 +820,7 @@ function alignedCuttingPlane(layout: SheetLayout, views: DrawingViews, section: 
  * section view's axis at each plane's depth over its band, stepping square across at each step's place; thick at its ends
  * and at each bend, the arrows at its ends pointing the way it is seen, the letter by each.
  */
-function steppedCuttingPlane(layout: SheetLayout, views: DrawingViews, section: SheetSection, orientation?: Orientation): MarkGroup | null {
+function steppedCuttingPlane(layout: SheetLayout, views: DrawingViews, section: SheetSection, orientation: Orientation | undefined, p: StandardPreset): MarkGroup | null {
   const showing = (CUT_SHOWN[section.view] as readonly ViewId[]).find(id => !layout.views[id].hidden);
   if (!showing) return null;
   const w = layout.views[showing], pr = views[showing], { d } = sectionDepth(section.view, orientation), axis = section.along === 'vertical' ? 1 : 0;
@@ -803,8 +840,8 @@ function steppedCuttingPlane(layout: SheetLayout, views: DrawingViews, section: 
     const t = unit(sub(next, end));
     marks.push({ kind: 'line', a: end, b: add(end, t, 5), pen: 'frame' });
     const foot = add(end, t, 2), tip = add(foot, seen, 7);
-    marks.push({ kind: 'line', a: foot, b: add(tip, seen, -ARROW), pen: 'thin' }, arrow(tip, seen));
-    marks.push({ kind: 'text', at: [tip[0] + 2.5 * seen[0] - 2.5 * t[0], tip[1] + 2.5 * seen[1] - 2.5 * t[1] + 1.2], text: section.id, size: TEXT, anchor: 'middle', bold: true });
+    marks.push({ kind: 'line', a: foot, b: add(tip, seen, -p.arrowLength), pen: 'thin' }, arrow(tip, seen, p));
+    marks.push({ kind: 'text', at: [tip[0] + 2.5 * seen[0] - 2.5 * t[0], tip[1] + 2.5 * seen[1] - 2.5 * t[1] + 1.2], text: section.id, size: p.text, anchor: 'middle', bold: true });
   }
   return { role: 'section', id: section.id, view: showing, marks };
 }
@@ -834,12 +871,12 @@ export function hatch(rings: readonly (readonly XY[])[], spacing: number, angle 
 
 export const NOTE_LINE = 5;
 /** A note's lines (top left at `at`) and its leader: from the nearer end of the first line, a short shoulder, then out to an arrow on the view point. */
-export function noteMarks(layout: SheetLayout, n: DrawingNote): Mark[] {
-  const lines = n.text.split('\n'), marks: Mark[] = lines.map((t, k) => ({ kind: 'text', at: [n.at[0], n.at[1] + TEXT * 0.85 + k * NOTE_LINE] as XY, text: t, size: TEXT, anchor: 'start' }));
+export function noteMarks(layout: SheetLayout, n: DrawingNote, p: StandardPreset = PLAIN): Mark[] {
+  const lines = n.text.split('\n'), marks: Mark[] = lines.map((t, k) => ({ kind: 'text', at: [n.at[0], n.at[1] + p.text * 0.85 + k * NOTE_LINE] as XY, text: t, size: p.text, anchor: 'start' }));
   if (n.leader && !layout.views[n.leader.view].hidden) {
-    const tip = toSheet(layout.views[n.leader.view], n.leader.at), w = Math.max(0, ...lines.map(t => textWidth(t, TEXT, false)));
-    const y = n.at[1] + TEXT * 0.45, left = tip[0] < n.at[0] + w / 2, start: XY = left ? [n.at[0] - 1, y] : [n.at[0] + w + 1, y], knee: XY = [start[0] + (left ? -3 : 3), y];
-    marks.push({ kind: 'line', a: start, b: knee, pen: 'thin' }, { kind: 'line', a: knee, b: tip, pen: 'thin' }, arrow(tip, sub(tip, knee)));
+    const tip = toSheet(layout.views[n.leader.view], n.leader.at), w = Math.max(0, ...lines.map(t => textWidth(t, p.text, false)));
+    const y = n.at[1] + p.text * 0.45, left = tip[0] < n.at[0] + w / 2, start: XY = left ? [n.at[0] - 1, y] : [n.at[0] + w + 1, y], knee: XY = [start[0] + (left ? -3 : 3), y];
+    marks.push({ kind: 'line', a: start, b: knee, pen: 'thin' }, { kind: 'line', a: knee, b: tip, pen: 'thin' }, arrow(tip, sub(tip, knee), p));
   }
   return marks;
 }
@@ -867,12 +904,12 @@ const TARGET_HATCH = 1;
  * area's size above), a leader to the target, and the target itself. A point is an X; a line a phantom line (no X); an area a phantom circle or rectangle (the size in model mm at the view's scale) hatched at 45°, the leader
  * ending at a dot in it.
  */
-export function datumTargetMarks(layout: SheetLayout, views: DrawingViews, d: DrawingDatumTarget): Mark[] | null {
+export function datumTargetMarks(layout: SheetLayout, views: DrawingViews, d: DrawingDatumTarget, p: StandardPreset = PLAIN): Mark[] | null {
   const pr = views[d.view], resolved = resolveDatumTarget(pr, d);
   if (!resolved.ok) return null;
   const v = layout.views[d.view], P = toSheet(v, d.place);
   const label = `${d.letter}${d.number}`, size = datumTargetSizeText(d), marker = DATUM_BASE / 2;
-  const lower = textCorners([0, 0], label, TEXT, 'middle'), upper = size ? textCorners([0, 0], size, TEXT, 'middle') : null;
+  const lower = textCorners([0, 0], label, p.text, 'middle'), upper = size ? textCorners([0, 0], size, p.text, 'middle') : null;
   // Keep each half's complete text box inside it, in sheet mm: the label's top just under the split line, the size's bottom just over it.
   const baseline = GAP - Math.min(...lower.map(p => p[1])), labelAt: XY = [P[0], P[1] + baseline];
   const sizeAt: XY | null = upper ? [P[0], P[1] - GAP - Math.max(...upper.map(p => p[1]))] : null;
@@ -886,7 +923,9 @@ export function datumTargetMarks(layout: SheetLayout, views: DrawingViews, d: Dr
   if (d.kind === 'line') {
     const A = toSheet(v, d.line.from), B = toSheet(v, d.line.to);
     // ASME: the target line is the phantom line itself, drawn in the direct view; the X belongs to a point target.
-    marks.push({ kind: 'line', a: A, b: B, pen: 'phantom', role: 'leader' });
+    // ISO 5459: two crosses at its ends joined by a thin continuous line.
+    if (p.lineTarget === 'crosses') marks.push(...cross(A), ...cross(B), { kind: 'line', a: A, b: B, pen: 'thin', role: 'leader' });
+    else marks.push({ kind: 'line', a: A, b: B, pen: 'phantom', role: 'leader' });
     F = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2];
   } else if (d.kind === 'area') {
     F = toSheet(v, d.area.at);
@@ -928,14 +967,14 @@ export function datumTargetMarks(layout: SheetLayout, views: DrawingViews, d: Dr
   }
   marks.push(
     { kind: 'line', a: [x0, P[1]], b: [x1, P[1]], pen: 'thin', role: 'frame' },
-    { kind: 'text', at: labelAt, text: label, size: TEXT, anchor: 'middle' },
+    { kind: 'text', at: labelAt, text: label, size: p.text, anchor: 'middle' },
   );
-  if (size && sizeAt) marks.push({ kind: 'text', at: sizeAt, text: size, size: TEXT, anchor: 'middle' });
+  if (size && sizeAt) marks.push({ kind: 'text', at: sizeAt, text: size, size: p.text, anchor: 'middle' });
   return marks;
 }
 /** A datum feature symbol: its letter boxed at its place, a leader to a filled triangle on its edge (null: the edge is gone). */
-export function datumMarks(layout: SheetLayout, views: DrawingViews, d: DrawingDatum): Mark[] | null {
-  if (d.face) return faceDatumMarks(layout, views, d);
+export function datumMarks(layout: SheetLayout, views: DrawingViews, d: DrawingDatum, p: StandardPreset = PLAIN): Mark[] | null {
+  if (d.face) return faceDatumMarks(layout, views, d, p);
   const v = layout.views[d.view], line = resolveLine(views[d.view], d.edge);
   if (!line) return null;
   const a = toSheet(v, line[0]), b = toSheet(v, line[1]), P = toSheet(v, d.place), ab = sub(b, a), l2 = dot2(ab, ab);
@@ -948,7 +987,7 @@ export function datumMarks(layout: SheetLayout, views: DrawingViews, d: DrawingD
   const marks: Mark[] = [...extension,
     { kind: 'fill', points: [add(F, e, DATUM_BASE / 2), add(F, e, -DATUM_BASE / 2), apex], head: { style: 'filled', tip: F, dir: [-n[0], -n[1]], length: DATUM_HEIGHT, width: DATUM_BASE } },
     { kind: 'polyline', points: [[P[0] - h, P[1] - h], [P[0] + h, P[1] - h], [P[0] + h, P[1] + h], [P[0] - h, P[1] + h], [P[0] - h, P[1] - h]], pen: 'thin', role: 'frame' },
-    { kind: 'text', at: [P[0], P[1] + 1.3], text: d.letter, size: TEXT, anchor: 'middle' },
+    { kind: 'text', at: [P[0], P[1] + 1.3], text: d.letter, size: p.text, anchor: 'middle' },
   ];
   // The leader from the box's edge to the triangle's apex.
   const dir = sub(apex, P), m = Math.max(Math.abs(dir[0]), Math.abs(dir[1]));
@@ -957,7 +996,7 @@ export function datumMarks(layout: SheetLayout, views: DrawingViews, d: DrawingD
 }
 
 /** A face datum attaches to that exact face's nearest current boundary vertex. */
-function faceDatumMarks(layout: SheetLayout, views: DrawingViews, d: DrawingDatum): Mark[] | null {
+function faceDatumMarks(layout: SheetLayout, views: DrawingViews, d: DrawingDatum, p: StandardPreset): Mark[] | null {
   const point = datumAnchor(views, d); if (!point) return null;
   const pr = views[d.view], v = layout.views[d.view], F = toSheet(v, [dot3(point, pr.right), dot3(point, pr.up)]), P = toSheet(v, d.place);
   const delta = sub(P, F), len = Math.hypot(...delta); if (len < DATUM_BOX) return null;
@@ -965,40 +1004,40 @@ function faceDatumMarks(layout: SheetLayout, views: DrawingViews, d: DrawingDatu
   return [{ kind: 'fill', points: [F, add(base, e, DATUM_BASE / 2), add(base, e, -DATUM_BASE / 2)], head: { style: 'filled', tip: F, dir: [-n[0], -n[1]], length: DATUM_HEIGHT, width: DATUM_BASE } },
     { kind: 'line', a: add(P, n, -reach), b: base, pen: 'thin', role: 'leader' },
     { kind: 'polyline', points: [[P[0] - h, P[1] - h], [P[0] + h, P[1] - h], [P[0] + h, P[1] + h], [P[0] - h, P[1] + h], [P[0] - h, P[1] - h]], pen: 'thin', role: 'frame' },
-    { kind: 'text', at: [P[0], P[1] + 1.3], text: d.letter, size: TEXT, anchor: 'middle' }];
+    { kind: 'text', at: [P[0], P[1] + 1.3], text: d.letter, size: p.text, anchor: 'middle' }];
 }
 
 /** Sheet mm: a frame's height and its symbol and datum cells' widths. */
 const FRAME_H = 6, FRAME_SYMBOL = 7, FRAME_DATUM = 6;
 /** A geometric control frame under a text; vector symbols and circled ASCII modifier letters. */
-export function frameMarks(under: Extract<Mark, { kind: 'text' }>, f: DrawingFrame): Mark[] {
+export function frameMarks(under: Extract<Mark, { kind: 'text' }>, f: DrawingFrame, p: StandardPreset = PLAIN): Mark[] {
   const q = textCorners(under.at, under.text, under.size, under.anchor, 0, !!under.bold);
   const x0 = Math.min(q[0][0], q[3][0]), y0 = under.at[1] + 1.6;
-  return frameMarksAt([x0, y0], f);
+  return frameMarksAt([x0, y0], f, p);
 }
 /** The frame of one extra row (a stacked frame): its values, without the first row's modifiers or extras. */
 function rowFrame(f: DrawingFrame, row: DrawingFrameComposite): DrawingFrame {
   return { ...f, value: row.value, datums: row.datums, diameter: row.diameter, material: row.material, datumModifiers: row.datumModifiers, projected: undefined, freeState: undefined, tangentPlane: undefined, composite: undefined, stacked: undefined, statistical: undefined, unequal: undefined, around: undefined };
 }
 /** A control frame's top-left corner in sheet mm; symbol sizes are independent of view scale. */
-function frameMarksAt(at: XY, f: DrawingFrame): Mark[] {
-  const [x0, y0] = at, marks = frameBlockMarks(at, f), height = (f.composite ? 2 : 1) * FRAME_H;
+function frameMarksAt(at: XY, f: DrawingFrame, p: StandardPreset): Mark[] {
+  const [x0, y0] = at, marks = frameBlockMarks(at, f, p), height = (f.composite ? 2 : 1) * FRAME_H;
   if (f.around) {
     // All around is a circle, all over a double circle, joined to the frame's left edge.
     const c: XY = [x0 - 5, y0 + height / 2], ring = (r: number): Mark => ({ kind: 'arc', center: c, u: [r, 0], v: [0, r], t0: 0, t1: 2 * Math.PI, pen: 'thin', role: 'frame' });
     marks.push(ring(1.7), ...(f.around === 'all-over' ? [ring(1.05)] : []), { kind: 'line', a: [c[0] + 1.7, c[1]], b: [x0, c[1]], pen: 'thin', role: 'frame' });
   }
   // A stacked frame is a full frame of its own, with its own symbol cell, directly below.
-  if (f.stacked) marks.push(...frameBlockMarks([x0, y0 + height], rowFrame(f, f.stacked)));
+  if (f.stacked) marks.push(...frameBlockMarks([x0, y0 + height], rowFrame(f, f.stacked), p));
   return marks;
 }
 /** One frame block (one row, or the two rows of a composite frame). */
-function frameBlockMarks([x0, y0]: XY, f: DrawingFrame): Mark[] {
+function frameBlockMarks([x0, y0]: XY, f: DrawingFrame, p: StandardPreset): Mark[] {
   if (f.composite) {
     const { composite, ...upper } = f;
     // The second row has its own value, datums and modifiers. Other modifiers belong to the first row.
     const lower = rowFrame(f, composite);
-    const top = frameBlockMarks([x0, y0], upper), bottom = frameBlockMarks([x0, y0 + FRAME_H], lower);
+    const top = frameBlockMarks([x0, y0], upper, p), bottom = frameBlockMarks([x0, y0 + FRAME_H], lower, p);
     const topBorder = top[0], bottomBorder = bottom[0];
     if (topBorder.kind !== 'polyline' || bottomBorder.kind !== 'polyline') return [];
     const right = Math.max(topBorder.points[1][0], bottomBorder.points[1][0]);
@@ -1018,11 +1057,11 @@ function frameBlockMarks([x0, y0]: XY, f: DrawingFrame): Mark[] {
       ...withoutBorderAndSymbol(bottom, lower.datums),
     ];
   }
-  const value = `${zonePrefix(f, f)}${fmtTol(f.value)}`, base = textWidth(value, TEXT, false) + 2.5;
+  const value = `${zonePrefix(f, f)}${fmtTol(f.value)}`, base = textWidth(value, p.text, false) + 2.5;
   const modifiers = [...(f.material ? [f.material === 'maximum' ? 'M' : 'L'] : []), ...(f.freeState ? ['F'] : []), ...(f.tangentPlane ? ['T'] : []), ...(f.projected ? ['P'] : [])];
-  const height = f.projected ? fmtTol(f.projected) : '', heightWidth = height ? textWidth(height, TEXT, false) + 1 : 0;
+  const height = f.projected ? fmtTol(f.projected) : '', heightWidth = height ? textWidth(height, p.text, false) + 1 : 0;
   // Statistical tolerance (ST in a hexagon) and the unequal amount (U in a circle, then the number) follow the other modifiers.
-  const statWidth = f.statistical ? 6.6 : 0, unequal = f.unequal !== undefined ? fmtTol(f.unequal) : '', unequalWidth = unequal ? 4.4 + textWidth(unequal, TEXT, false) : 0;
+  const statWidth = f.statistical ? 6.6 : 0, unequal = f.unequal !== undefined ? fmtTol(f.unequal) : '', unequalWidth = unequal ? 4.4 + textWidth(unequal, p.text, false) : 0;
   const vw = base + modifiers.length * 4 + heightWidth + statWidth + unequalWidth;
   const datumWidths = f.datums.map(d => FRAME_DATUM + (f.datumModifiers?.[d] ? 4 : 0));
   const cells = [FRAME_SYMBOL, vw, ...datumWidths], x1 = x0 + cells.reduce((s, w) => s + w, 0), y1 = y0 + FRAME_H;
@@ -1030,9 +1069,9 @@ function frameBlockMarks([x0, y0]: XY, f: DrawingFrame): Mark[] {
   let x = x0;
   cells.forEach((w, k) => { if (k) marks.push({ kind: 'line', a: [x, y0], b: [x, y1], pen: 'thin', role: 'frame' }); x += w; });
   marks.push(...characteristicMarks(f.characteristic, [x0 + FRAME_SYMBOL / 2, y0 + FRAME_H / 2]));
-  marks.push({ kind: 'text', at: [x0 + FRAME_SYMBOL + base / 2, y0 + 4.5], text: value, size: TEXT, anchor: 'middle' });
+  marks.push({ kind: 'text', at: [x0 + FRAME_SYMBOL + base / 2, y0 + 4.5], text: value, size: p.text, anchor: 'middle' });
   modifiers.forEach((m, k) => marks.push(...modifierMarks(m, [x0 + FRAME_SYMBOL + base + 2 + k * 4, y0 + FRAME_H / 2])));
-  if (height) marks.push({ kind: 'text', at: [x0 + FRAME_SYMBOL + base + modifiers.length * 4 + 0.5, y0 + 4.5], text: height, size: TEXT, anchor: 'start' });
+  if (height) marks.push({ kind: 'text', at: [x0 + FRAME_SYMBOL + base + modifiers.length * 4 + 0.5, y0 + 4.5], text: height, size: p.text, anchor: 'start' });
   let ex = x0 + FRAME_SYMBOL + base + modifiers.length * 4 + heightWidth;
   if (f.statistical) {
     const c: XY = [ex + 3.3, y0 + FRAME_H / 2], hex = Array.from({ length: 7 }, (_, k): XY => [c[0] + 2.8 * Math.cos(k * Math.PI / 3), c[1] + 2.4 * Math.sin(k * Math.PI / 3)]);
@@ -1040,11 +1079,11 @@ function frameBlockMarks([x0, y0]: XY, f: DrawingFrame): Mark[] {
     ex += statWidth;
   }
   if (unequal) {
-    marks.push(...modifierMarks('U', [ex + 2.2, y0 + FRAME_H / 2]), { kind: 'text', at: [ex + 4.2, y0 + 4.5], text: unequal, size: TEXT, anchor: 'start' });
+    marks.push(...modifierMarks('U', [ex + 2.2, y0 + FRAME_H / 2]), { kind: 'text', at: [ex + 4.2, y0 + 4.5], text: unequal, size: p.text, anchor: 'start' });
   }
   x = x0 + FRAME_SYMBOL + vw;
   f.datums.forEach((d, k) => {
-    marks.push({ kind: 'text', at: [x + FRAME_DATUM / 2, y0 + 4.5], text: d, size: TEXT, anchor: 'middle' });
+    marks.push({ kind: 'text', at: [x + FRAME_DATUM / 2, y0 + 4.5], text: d, size: p.text, anchor: 'middle' });
     const modifier = f.datumModifiers?.[d]; if (modifier) marks.push(...modifierMarks(modifier === 'maximum' ? 'M' : 'L', [x + FRAME_DATUM + 1.5, y0 + FRAME_H / 2]));
     x += datumWidths[k];
   });

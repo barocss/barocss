@@ -7,6 +7,7 @@ import type { Sig } from '../engine/references';
 import { isVec3 } from '../util/guards';
 import { readDetails, type DrawingDetail } from './detail';
 import { readBreaks, type DrawingBreak } from './breaks';
+import type { DrawingStandard } from './standard';
 import { readDatums, type DrawingFace, type DrawingFaceRef } from './datums';
 export type { DrawingFaceRef } from './datums';
 import { readDatumTargets, type DrawingDatumTarget } from './datumTargets';
@@ -113,6 +114,8 @@ export interface DrawingSettings {
   scale?: number;
   /** Third angle (US) or first angle (ISO) arrangement of the orthographic views. */
   projection: 'third' | 'first';
+  /** The drawing standard (11 ③a): lettering, arrowheads, dimension text, projection symbol, datum targets, GD&T notes. Absent: the sheet as it always was. */
+  standard?: DrawingStandard;
   /** Hidden edges dashed in the orthographic views (the isometric view shows visible edges only). */
   hidden: boolean;
   /** false: no centre marks and centrelines (shown by default). */
@@ -247,6 +250,7 @@ export function readDrawing(raw: unknown): DrawingSettings {
     ...(r.scope !== undefined ? { scope: r.scope } : {}),
     ...(typeof r.scale === 'number' && r.scale > 0 ? { scale: r.scale } : {}),
     projection: r.projection === 'first' ? 'first' : 'third',
+    ...(r.standard === 'iso' || r.standard === 'asme' ? { standard: r.standard } : {}),
     hidden: r.hidden !== false,
     ...(r.centers === false ? { centers: false } : {}),
     ...(r.tangent === true ? { tangent: true } : {}),

@@ -1,6 +1,7 @@
 // DR-6a: authored geometric control frames. This is annotation data, not a tolerance solver.
 import { problem, type Problem } from '../engine/refusal';
 import type { Mark } from './sheet';
+import { STANDARDS, type DrawingStandard } from './standard';
 import { isDimView, type DimView, type XY } from './types';
 
 export const CHARACTERISTICS = ['position', 'straightness', 'flatness', 'circularity', 'cylindricity', 'profile-line', 'profile-surface', 'parallelism', 'perpendicularity', 'angularity', 'concentricity', 'symmetry', 'circular-runout', 'total-runout'] as const;
@@ -153,6 +154,14 @@ export function frameRules(f: DrawingFrame): string[] {
     out.push(...rowRules(c, f.stacked, 'Stacked frame: '));
   }
   return out;
+}
+/**
+ * What the drawing's standard says against a frame, one plain sentence each: advice for the drawing check (a warning),
+ * never a refusal, so the frame can still be authored and a saved one opens. [] with no standard or when it follows it.
+ */
+export function frameNotes(f: DrawingFrame, standard: DrawingStandard | undefined): string[] {
+  if (!standard || !STANDARDS[standard].withoutCharacteristic.includes(f.characteristic)) return [];
+  return [`ASME Y14.5-2018 no longer has ${name(f.characteristic)}: use position or profile instead, or choose ISO.`];
 }
 export function readFrames(x: unknown): DrawingFrame[] {
   const out: DrawingFrame[] = [];

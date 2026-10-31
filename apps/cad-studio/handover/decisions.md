@@ -17976,3 +17976,29 @@ All were fixed.
 **Verification.** Model 2442/2442; Studio 623/623. Actual run04 PASS.
 
 **Follow-ups.** The outside check uses the box, not the silhouette. Line and area targets do not follow geometry. The ISO variants come with 11③.
+
+## D396 — Row 11 ③a: ISO / ASME drawing standard (CG5 DR-7); full (2026-10-31)
+
+[Evidence](notes/drawing-standard-2026-10-31/qualification.json).
+
+**What it adds.** `drawing.standard` (`iso` | `asme`). When it is absent, output is byte-identical to before: 91/91 outputs match. The preset table sets:
+- lettering;
+- arrowheads;
+- dimension text placement (ISO aligned above the line, ASME unidirectional in a break of the line);
+- zeros;
+- the ISO 5456-2 projection symbol;
+- the ISO 5459 line target;
+- an ASME warning for concentricity and symmetry.
+
+The preset is passed explicitly everywhere. It is exposed as a Studio select and in the chat schema; the per-turn budget is unchanged.
+
+**Audits.**
+- Round 1: 2 medium findings (implicit module state, the agent could not set the standard) and several low ones. All fixed; the DXF header is a kernel-lane follow-up.
+- Round 2: ACCEPT.
+
+**Verification.** Model 2460/2460; Studio 623/623; chat/drawing tests 298/298 after the final description edit. Actual run03 PASS.
+
+**Follow-ups.**
+- The DXF DIMSTYLE header.
+- Under ASME, the 2.5 mm fixed texts fall below the 3 mm minimum.
+- Inch and dual dimensions (11③b).
