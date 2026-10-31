@@ -93,7 +93,7 @@ import { createValueStore, useStoreValue } from './state/valueStore';
 import { SceneViewport } from './viewport/SceneViewport';
 import { GravityExperimentPanel } from './ui/GravityExperimentPanel';
 import { useScenePoses } from './state/useScenePoses';
-import { CommandStrip, commandStates } from './ui/ToolButton';
+import { commandStates } from './ui/ToolButton';
 import type { CamOptions } from './viewport/camDisplay';
 import { withPrintPreviewSettings, type PrintPreviewPatch } from './viewport/printSettings';
 import { isRefusal, refusal } from '@barocss/cad-model/engine/refusal';
@@ -2001,8 +2001,6 @@ export function App() {
         <label className="doc-tab"><span className="sr">File name</span>
           <input value={fileName} onChange={e => setFileName(e.target.value)} size={Math.max(8, fileName.length)} />
           {dirty && <span className="dot" aria-label="Unsaved changes" />}</label>
-        {/* Shapes: click one and place it with the pointer, or drag it onto the model. */}
-        {!sketch && !rendering && !drawing && <CommandStrip list={PLACE_COMMANDS} {...placeStates} activeId={active?.cmd.id ?? null} onStart={startTool} onDragStart={toolDragStart} onDragEnd={toolDragEnd} />}
         <div className="grow" />
         <div className="mode" role="group" aria-label="Mode">
           <Button size="sm" variant={!sketch && !rendering && !drawing ? 'default' : 'ghost'} className={!sketch && !rendering && !drawing ? 'on' : ''} onClick={() => { setSketch(null); setRendering(false); setPlaying(false); setDrawing(false); }}>Model</Button>
@@ -2072,7 +2070,7 @@ export function App() {
 
       <TooltipLayer />
       <Profiler id="toolbar" onRender={onBlockRender}><nav className="card toolbar" aria-label="Tools" hidden={rendering || drawing}>
-        <ModelTools columns={rail.columns} sketch={sketch} setSketch={setSketch} command={{ groupStates, activeId: active?.cmd.id ?? null, startTool, toolDragStart, toolDragEnd }}
+        <ModelTools columns={rail.columns} sketch={sketch} setSketch={setSketch} command={{ placeStates, groupStates, activeId: active?.cmd.id ?? null, startTool, toolDragStart, toolDragEnd }}
           panels={{ bomOpen, setBomOpen, rebuildOpen, setRebuildOpen, variantsOpen, setVariantsOpen }} />
       </nav></Profiler>
 

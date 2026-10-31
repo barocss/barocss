@@ -2,7 +2,7 @@ import { useEffect, useState, type CSSProperties, type Dispatch, type SetStateAc
 import type { Command } from '@barocss/cad-model/app/commands';
 import type { SketchState } from '../viewport/Viewport';
 import { TOOLS, switchTool, detachSketchLink } from '../app/sketchControls';
-import { TOOL_GROUPS, GROUP_COMMANDS } from '../app/studioConstants';
+import { TOOL_GROUPS, GROUP_COMMANDS, PLACE_COMMANDS } from '../app/studioConstants';
 import { TOOL_GROUP_LABELS, toolColumns, toolRailPx, toolRailWidthPx, toolRowPx } from '../app/toolColumns';
 import { CommandButtons, type commandStates } from './ToolButton';
 import { ToolIconButton } from '@/components/ui/tool-button';
@@ -12,21 +12,22 @@ interface ModelToolsProps {
   columns: number;
   sketch: SketchState | null;
   setSketch: Dispatch<SetStateAction<SketchState | null>>;
-  command: { groupStates: ReturnType<typeof commandStates>[]; activeId: string | null; startTool(command: Command): void; toolDragStart(command: Command, event: DragEvent): void; toolDragEnd(command: Command, event: DragEvent): void };
+  command: { placeStates: ReturnType<typeof commandStates>; groupStates: ReturnType<typeof commandStates>[]; activeId: string | null; startTool(command: Command): void; toolDragStart(command: Command, event: DragEvent): void; toolDragEnd(command: Command, event: DragEvent): void };
   panels: { bomOpen: boolean; setBomOpen: Dispatch<SetStateAction<boolean>>; rebuildOpen: boolean; setRebuildOpen: Dispatch<SetStateAction<boolean>>; variantsOpen: boolean; setVariantsOpen: Dispatch<SetStateAction<boolean>> };
 }
-// (The inspect group also holds BOM, Rebuild and Variants.)
-const GROUP_SIZES = GROUP_COMMANDS.map((list, gi) => list.length + (TOOL_GROUPS[gi] === 'inspect' ? 3 : 0));
+// (The placed shapes lead (roadmap 21b: moved here from the top bar); the inspect group also holds BOM, Rebuild and Variants.)
+const GROUP_SIZES = [PLACE_COMMANDS.length, ...GROUP_COMMANDS.map((list, gi) => list.length + (TOOL_GROUPS[gi] === 'inspect' ? 3 : 0))];
 function windowHeight() { return typeof window === 'undefined' ? 900 : window.innerHeight; }
 /** The rail's column count and outer width (px) for the current window height (roadmap 21); the App places the notices beside it. */
 export function useToolColumns(): { columns: number; width: number } {
   const [height, setHeight] = useState(windowHeight);
   useEffect(() => { const update = () => setHeight(windowHeight()); window.addEventListener('resize', update); return () => window.removeEventListener('resize', update); }, []);
-  const columns = toolColumns(GROUP_SIZES, toolRailPx(height), toolRowPx(height));
+  // (Up to 8 columns: with the placed shapes the rail holds about 90 buttons, and a short window should hide none of them.)
+  const columns = toolColumns(GROUP_SIZES, toolRailPx(height), toolRowPx(height), 8);
   return { columns, width: toolRailWidthPx(columns, height) };
 }
 export function ModelTools({ columns, sketch, setSketch, command, panels }: ModelToolsProps) {
-  const { groupStates, activeId, startTool, toolDragStart, toolDragEnd } = command;
+  const { placeStates, groupStates, activeId, startTool, toolDragStart, toolDragEnd } = command;
   const { bomOpen, setBomOpen, rebuildOpen, setRebuildOpen, variantsOpen, setVariantsOpen } = panels;
   const gridStyle = { '--tool-cols': columns } as CSSProperties;
   return <>
@@ -40,7 +41,13 @@ export function ModelTools({ columns, sketch, setSketch, command, panels }: Mode
           {(sketch.done ?? []).some(d => d.construction) && <ToolIconButton state={sketch.hideConstruction ? 'on' : 'idle'} data-tip={sketch.hideConstruction ? 'Show construction' : 'Hide construction'} data-tip-desc="The dashed reference shapes: hidden ones are not drawn or snapped to, and stay with the sketch" aria-label={sketch.hideConstruction ? 'Show construction' : 'Hide construction'}
             onClick={() => setSketch(s => s && { ...s, hideConstruction: !s.hideConstruction })}><Icon name={sketch.hideConstruction ? 'visibility_off' : 'visibility'} /></ToolIconButton>}
           <ToolIconButton data-tip="Clear profile" data-tip-desc="Remove every shape drawn in this sketch" aria-label="Clear profile" onClick={() => setSketch(s => s && { ...detachSketchLink(s), shape: null, done: [] })}><Icon name="ink_eraser" /></ToolIconButton>
-        </>) : TOOL_GROUPS.map((g, gi) => (
+        </>) : <>
+          {/* Shapes: click one and place it with the pointer, or drag it onto the model. */}
+          <div className="tool-group" role="group" aria-label={TOOL_GROUP_LABELS.shapes} style={gridStyle}>
+            <div className="tool-group-label" aria-hidden="true">{TOOL_GROUP_LABELS.shapes}</div>
+            <CommandButtons list={PLACE_COMMANDS} {...placeStates} activeId={activeId} onStart={startTool} onDragStart={toolDragStart} onDragEnd={toolDragEnd} />
+          </div>
+          {TOOL_GROUPS.map((g, gi) => (
           <div key={g} className="tool-group" role="group" aria-label={TOOL_GROUP_LABELS[g]} style={gridStyle}>
             <div className="tool-group-label" aria-hidden="true">{TOOL_GROUP_LABELS[g]}</div>
             <CommandButtons list={GROUP_COMMANDS[gi]} {...groupStates[gi]} activeId={activeId} onStart={startTool} onDragStart={toolDragStart} onDragEnd={toolDragEnd} />
@@ -49,5 +56,6 @@ export function ModelTools({ columns, sketch, setSketch, command, panels }: Mode
             {g === 'inspect' && <ToolIconButton state={rebuildOpen ? 'on' : 'idle'} aria-label="Rebuild" data-tip="Rebuild" data-tip-desc="What the last rebuild cost: each feature built or reused, its time and kernel calls" onClick={() => { setBomOpen(false); setRebuildOpen(v => !v); }}><Icon name="cad-rebuild" /></ToolIconButton>}
             {g === 'inspect' && <ToolIconButton state={variantsOpen ? 'on' : 'idle'} aria-label="Variants" data-tip="Variants" data-tip-desc="The assembly's variants: its inputs and named sets of their values, one shown regenerated from the master" onClick={() => setVariantsOpen(v => !v)}><Icon name="tune" /></ToolIconButton>}
           </div>))}
+        </>}
   </>;
 }

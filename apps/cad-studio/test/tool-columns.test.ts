@@ -2,8 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { toolColumns, toolRailPx, toolRailWidthPx, toolRowPx, TOOL_LABEL_PX } from '../src/app/toolColumns';
 
-// The rail's groups as measured in Studio (2026-10-31): create 30, modify 27, pattern 8, combine 3, inspect 7 buttons.
-const GROUPS = [30, 27, 8, 3, 7];
+// The rail's groups as measured in Studio (2026-10-31): create 30, modify 27, pattern 8, combine 3, inspect 7 buttons
+// (D379); since 21b the placed shapes lead with 15 more.
+const GROUPS = [30, 27, 8, 3, 7], WITH_SHAPES = [15, ...GROUPS];
 const fits = (cols: number, h: number) => GROUPS.length * TOOL_LABEL_PX + GROUPS.reduce((a, n) => a + Math.ceil(n / cols) * toolRowPx(h), 0) <= toolRailPx(h);
 
 test('the fewest columns that fit the window height, at common window sizes', () => {
@@ -31,4 +32,13 @@ test('the rail width the notices sit beside', () => {
   assert.equal(toolRailWidthPx(4, 900), 8 + 4 * 30 + 3 * 2);
   assert.equal(toolRailWidthPx(6, 700), 8 + 6 * 26 + 5 * 2);
   assert.equal(toolRailWidthPx(1, 1080), 44);
+});
+
+test('with the placed shapes leading, up to 8 columns keep every button in view (21b)', () => {
+  for (const [h, want] of [[1080, 5], [900, 6], [800, 6], [700, 8]] as const) {
+    const cols: number = toolColumns(WITH_SHAPES, toolRailPx(h), toolRowPx(h), 8);
+    assert.equal(cols, want, `${h}: ${cols}`);
+    const height = WITH_SHAPES.length * TOOL_LABEL_PX + WITH_SHAPES.reduce((a, n) => a + Math.ceil(n / cols) * toolRowPx(h), 0);
+    assert.ok(height <= toolRailPx(h), `${h}: ${height} fits ${toolRailPx(h)}`);
+  }
 });

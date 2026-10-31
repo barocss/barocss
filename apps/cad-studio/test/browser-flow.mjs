@@ -158,8 +158,9 @@ const loadSampleSizes = async () => {
 const hudReady = async () => { await page.waitForTimeout(250); return page.waitForFunction(() => /preview|refused/.test(document.querySelector('.hud .status')?.textContent ?? ''), null, { timeout: 15000 }); };
 const field = (label) => page.locator('.hud .field', { has: page.locator(`span:text-is("${label}")`) }).locator('input, select');
 const press = (k) => page.keyboard.press(k);
-/** A shape's button from the top bar's strip, or from its More shapes menu when the strip has no room for it. */
-const shape = async label => { if (!(await page.locator(`.shapes > [aria-label="${label}"]`).count())) await page.click('[aria-label="More shapes"]'); await page.click(`.shapes [aria-label="${label}"]`); };
+/** A shape's button. */
+// (Since 21b the placed shapes are the tool rail's first group, every one in view.)
+const shape = async label => { await page.click(`nav.toolbar [role="group"][aria-label="Shapes"] [aria-label="${label}"]`); };
 const canvasCenter = async () => { const b = await page.locator('canvas').boundingBox(); return [b.x + b.width / 2, b.y + b.height / 2]; };
 
 try {
@@ -2450,7 +2451,7 @@ try {
     await hudReady(); await page.waitForTimeout(250); await snap('preview-tint'); await press('Enter');
     await page.waitForFunction(() => /1 body/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
     // The cylinder dragged from the shapes bar onto the ground beside the box.
-    await page.dragAndDrop('.shapes [aria-label="Cylinder"]', 'canvas', { targetPosition: { x: vp.width * 0.7, y: vp.height * 0.45 } });
+    await page.dragAndDrop('nav.toolbar [role="group"][aria-label="Shapes"] [aria-label="Cylinder"]', 'canvas', { targetPosition: { x: vp.width * 0.7, y: vp.height * 0.45 } });
     await page.waitForFunction(() => /Cylinder/.test(document.querySelector('.hud')?.textContent ?? '') && /placed/.test(document.querySelector('.hud')?.textContent ?? ''), null, { timeout: 5000 });
     await hudReady(); await page.waitForTimeout(250); await press('Enter');
     await page.waitForFunction(() => /2 bodies/.test(document.querySelector('.outliner')?.textContent ?? ''), null, { timeout: 15000 }); await idle();
@@ -7923,35 +7924,32 @@ try {
     } finally { await page.setViewportSize({ width: 1440, height: 900 }); }
   });
 
-  await check('shapes strip: no sideways page scroll at 1440, 1100 or 860; what has no room goes under More shapes, none lost; a pick from it starts', async () => {
+  await check('shapes in the tool rail (21b): no sideways page scroll at 1440, 1100 or 860; every placed shape in view in the rail, none lost; a pick from it starts', async () => {
     await page.click('[aria-label="New part"]'); await idle();
-    // (Nothing wider than the window: the page's own width, and every top-bar control's right edge.)
-    const wide = () => page.evaluate(() => ({ page: document.documentElement.scrollWidth - window.innerWidth, scrolled: document.scrollingElement.scrollLeft,
-      bar: Math.max(...[...document.querySelectorAll('.topbar > *')].map(e => e.getBoundingClientRect().right)) - window.innerWidth,
-      shown: document.querySelectorAll('.shapes > .tool').length, more: !!document.querySelector('[aria-label="More shapes"]') }));
-    const inMenu = async () => { if (!(await page.locator('[aria-label="More shapes"]').count())) return 0; await page.click('[aria-label="More shapes"]'); const n = await page.locator('[role="menu"][aria-label="More shapes"] .tool').count(); await page.keyboard.press('Escape'); return n; };
+    // (Nothing wider than the window: the page's own width, and every top-bar control's right edge; the rail's Shapes group whole and in view.)
+    const wide = () => page.evaluate(() => {
+      const rail = document.querySelector('nav.toolbar')?.getBoundingClientRect(), shapes = [...document.querySelectorAll('nav.toolbar [role="group"][aria-label="Shapes"] button')];
+      return { page: document.documentElement.scrollWidth - window.innerWidth, scrolled: document.scrollingElement.scrollLeft,
+        bar: Math.max(...[...document.querySelectorAll('.topbar > *')].map(e => e.getBoundingClientRect().right)) - window.innerWidth,
+        shapes: shapes.length, hidden: shapes.filter(b => { const r = b.getBoundingClientRect(); return !rail || r.bottom > rail.bottom + 0.5 || r.right > rail.right + 0.5; }).length,
+        strip: document.querySelectorAll('.topbar .shapes').length };
+    });
     const seen = [];
     try {
       for (const width of [1440, 1100, 860]) {
         await page.setViewportSize({ width, height: 900 }); await page.waitForTimeout(300);
         const w = await wide();
-        // (The page never scrolls sideways; the bar itself fits down to 1100 — at 860 its other controls alone are wider than
-        // the window and are clipped at its edge, a follow-up beyond the strip.)
         assert.ok(w.page <= 0 && w.scrolled === 0 && (width < 1100 || w.bar <= 0.5), `${width}: ${JSON.stringify(w)}`);
-        seen.push([width, w.shown, await inMenu()]);
+        assert.equal(w.strip, 0, `${width}: no shapes strip in the top bar`);
+        assert.equal(w.hidden, 0, `${width}: every shape in view: ${JSON.stringify(w)}`);
+        seen.push([width, w.shapes]);
       }
-      const totals = seen.map(([, a, b]) => a + b);
-      assert.ok(totals.every(x => x === totals[0]) && totals[0] > 0, `none lost: ${JSON.stringify(seen)}`);
-      assert.ok(seen[0][1] > seen[2][1] && seen.every(([, a], k) => k === 0 || a <= seen[k - 1][1]), `no more shown as the window narrows: ${JSON.stringify(seen)}`);
-      // A shape from the menu starts its command.
-      await page.click('[aria-label="More shapes"]');
-      const last = page.locator('[role="menu"][aria-label="More shapes"] .tool:not(.off)').last(), label = await last.getAttribute('aria-label');
+      assert.ok(seen.every(([, n]) => n === seen[0][1]) && seen[0][1] > 0, `none lost: ${JSON.stringify(seen)}`);
+      // A shape from the rail starts its command (its button lit).
+      const last = page.locator('nav.toolbar [role="group"][aria-label="Shapes"] .tool:not(.off)').last(), label = await last.getAttribute('aria-label');
       await last.click();
-      assert.equal(await page.locator('[role="menu"][aria-label="More shapes"]').count(), 0, 'the menu closes on a pick');
-      // (Its command is the active one: its button lit when the menu opens again.)
-      await page.click('[aria-label="More shapes"]');
-      await page.waitForFunction(l => document.querySelector(`[role="menu"][aria-label="More shapes"] [aria-label="${l}"]`)?.classList.contains('on'), label, { timeout: 5000 });
-      await snap('shapes-more');
+      await page.waitForFunction(l => document.querySelector(`nav.toolbar [role="group"][aria-label="Shapes"] [aria-label="${l}"]`)?.classList.contains('on'), label, { timeout: 5000 });
+      await snap('shapes-rail');
       await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
     } finally { await page.setViewportSize({ width: 1440, height: 900 }); }
     const w = await wide(); assert.ok(w.page <= 0 && w.scrolled === 0, JSON.stringify(w));

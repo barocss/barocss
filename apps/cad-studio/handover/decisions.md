@@ -17772,3 +17772,16 @@ CI and release NOT_RUN.
 **Verification.** Model 2299/2299; Studio 572/572. Actual run04 PASS: the Studio pick is kept by its path, and it survives a revision that moves the folded name.
 
 **Next.** ②b (BOM) and ②c (selection). CI and release NOT_RUN.
+
+## D385 — 21b: the placed shapes move from the top bar into the tool rail; small (2026-10-31)
+
+[Evidence](notes/shapes-into-rail-2026-10-31/qualification.json). User request: the sidebar has Create, so the top bar's shapes can go.
+
+**Change.** The 15 placed shapes are now the rail's first group, SHAPES. The top bar's strip is gone, and the rail may use up to 8 columns.
+
+**Verification.**
+- Studio 573/573.
+- Sidebar driver PASS at four sizes: 188–248 px wide, nothing hidden.
+- The browser-flow shape steps pass.
+
+**Follow-up.** The fastener flow steps 94–96 fail on HEAD without this change: the Hole HUD does not open on `h` after a face pick. This is pre-existing.

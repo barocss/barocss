@@ -127,7 +127,7 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
    - 20⑤ [해결 `7174b010f`] 복구 Restore 잔여 미리보기.
    - 20⑥ [CLOSED D380: 놓은 핸들 옆 이름·값·단위 입력칸, HUD와 같은 값] 핸들 옆 이름 붙은 값 입력칸: 현재 HUD/핸들 입력 상태 확인 후 없으면 추가(feature).
    - 20⑦ [CLOSED D381: 알림 글자는 클릭을 통과, 버튼·펼침만 클릭을 받음; D379 후속으로 알림은 사이드바 옆] 알림이 뷰포트 왼쪽 위 면을 가림: `.toast-stack` 위치를 뷰포트 밖 또는 클릭 통과로(배치만이면 small).
-   - 21b (사용자 2026-10-31, ②a 뒤에): 상단 막대의 놓는 도형 15개(Box·Cylinder…, place 명령)를 사이드바 맨 위 SHAPES 그룹으로 옮기고(끌어다 놓기 유지) 상단 도형 줄을 뺀다; 4개 창 크기에서 스크롤·숨김·겹침 0 재확인(small).
+   - 21b [CLOSED D385: 놓는 도형 15개가 사이드바 첫 그룹 SHAPES로, 상단 도형 줄 제거, 최대 8열] (사용자 2026-10-31, ②a 뒤에): 상단 막대의 놓는 도형 15개(Box·Cylinder…, place 명령)를 사이드바 맨 위 SHAPES 그룹으로 옮기고(끌어다 놓기 유지) 상단 도형 줄을 뺀다; 4개 창 크기에서 스크롤·숨김·겹침 0 재확인(small).
    - 21 [사이드바 CLOSED D379: 카테고리 라벨 격자, 창 높이에 맞는 4~6열, 4개 창 크기에서 스크롤·숨김·겹침 0; History 막대는 D382로 닫음: 명령·스케치 중에도 같은 자리에 흐리게 남고 클릭은 막대에서 멈춤] 도구 사이드바: `ModelTools` 한 줄 76개 → 카테고리 라벨 2~3열 격자, 1440×900에서 스크롤 없음; History 막대 이름 표시·편집 중 유지 검토. 배치만이면 small, 동작이 바뀌면 feature. shadcn/Tailwind, 새 라이브러리 없음.
 3b. 정리 묶음 (오너 2026-10-30 "그렇게 해줘", 이어서 "잘 분배해서 진행해줘": 지금 시작, lane 분리 — 리팩토링 lane이 ①→② kernel만, 09와 겹치지 않는 시점에 ③→④; CI lane이 33을 병행): ① R7.3d — kernel 밖에서 아무도 쓰지 않는 137파일·28,681줄
 (측정: [kernel reachability](notes/kernel-reachability-2026-10-30/README.md))을 모듈별 retire/keep 판단 뒤 제거, test/example 전용 19파일 결정 (**① 완료, D360**: 100파일 retire, 37파일 keep, E 19파일 keep — [노트](notes/kernel-refactor-3b-2026-10-30/README.md));

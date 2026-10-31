@@ -1,7 +1,7 @@
 // Roadmap 21: the rail's command groups are a grid, as few columns as fit the window's height (no scrolling at a usual size).
 
 /** The rail's group labels, in TOOL_GROUPS order. */
-export const TOOL_GROUP_LABELS = { create: 'Create', modify: 'Modify', pattern: 'Pattern', combine: 'Combine', inspect: 'Inspect' } as const;
+export const TOOL_GROUP_LABELS = { shapes: 'Shapes', create: 'Create', modify: 'Modify', pattern: 'Pattern', combine: 'Combine', inspect: 'Inspect' } as const;
 /** A group label's height with its margins, px (styles.css `.tool-group-label`). */
 export const TOOL_LABEL_PX = 16;
 
