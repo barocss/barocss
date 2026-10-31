@@ -1,0 +1,56 @@
+{
+  "decision": "D401",
+  "date": "2026-11-01",
+  "tier": "small (test repair)",
+  "status": "BOUNDED_QUALIFIED",
+  "baseCommit": "601c569f835329a083374644893eb431a4ad5b54",
+  "model": "gpt-6.1-sol / medium",
+  "productCodeChanged": false,
+  "checks": {
+    "before": {
+      "pass": 11,
+      "fail": 16
+    },
+    "after": {
+      "status": "PASS",
+      "pass": 27,
+      "fail": 0,
+      "command": "cd packages/barocss-gpu && node --import ./tests/cad-dist.mjs --test --test-concurrency=1 tests/cad-clearance-gpu.test.mjs tests/cad-gpu-display-contract.test.mjs tests/cad-instance-display-diagnostics.test.mjs"
+    },
+    "cadBuild": {
+      "status": "PASS",
+      "command": "cd packages/barocss-cad && pnpm build:library"
+    },
+    "gpuBuild": {
+      "status": "PASS",
+      "command": "cd packages/barocss-gpu && pnpm build:library"
+    },
+    "targetedLint": "PASS",
+    "driverSyntax": "PASS",
+    "diffCheck": "PASS"
+  },
+  "studio": {
+    "run01": "FAIL_DRIVER: all-body cost assertion before framing",
+    "run02": "PASS",
+    "artifacts": "/tmp/barocss-d401-run02",
+    "command": "cd apps/cad-studio && GPU_DISPLAY_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' node test/gpu-display-smoke-browser.mjs /tmp/barocss-d401-run02",
+    "heavyGate": true,
+    "frozenFiles": 282,
+    "snapshots": 8,
+    "sourceChanges": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "rootVisualReview": "PASS: selected-shaded and clearance screenshots",
+    "cleanup": "All owned contexts/browser/Vite closed"
+  },
+  "notRun": [
+    "Full GPU and Studio suites",
+    "Independent audit (small tier)",
+    "WebGL2 browser",
+    "Save/download",
+    "CI",
+    "Release"
+  ],
+  "issueClosure": "No linked issue completed"
+}

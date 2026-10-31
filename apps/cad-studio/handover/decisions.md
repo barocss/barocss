@@ -18077,3 +18077,19 @@ The missing-edge title was already correct. Its hint now says “re-apply the fe
 **FAIL.** Only the expected negative control. **NOT_RUN.** Full suites, independent audit (small tier), Save/download, CI and release. Raw artifacts stay in `/tmp/barocss-d400-run01`.
 
 **Follow-ups.** Boundary candidates (c)–(e), then row 13 support and independent-reader measurement.
+
+## D401 — Repair inherited GPU test fixtures and display checks; small (2026-11-01)
+
+[Qualification](notes/gpu-test-fixtures-2026-11-01/qualification.json). Boundary candidate (c), D378 follow-up. Implementation and checks: GPT-6.1 Sol Medium. Product code is unchanged.
+
+**Reproduced.** After fresh CAD/GPU builds, the three affected files give 11 PASS / 16 FAIL. Fourteen failures come from missing selection/hover colours in mock themes; two assertions still look for controls in App after they moved to ViewDisplayControls.
+
+**Decision.** Use the shipped dark palette in both mock themes. Replace the two obsolete markup assertions with checks of the actual controlled component's elements and handlers: five display modes, guarded fallback, mode change, isolate and restore after empty selection. Keep the New/Open isolation reset guard.
+
+**PASS.** Affected GPU tests 27/27; CAD/GPU library builds; targeted lint, syntax and diff checks. Actual Studio WebGPU run02: eight placed parts plus two base bodies, selected occurrence rendered in all five modes, isolate/clear-selection/restore, clearance classifications and overlays on/off, document unchanged. Eight snapshots; 282 frozen files unchanged; errors/watcher changes/downloads 0. Root reviewed selection and clearance screenshots.
+
+**FAIL.** Run01 driver demanded all ten body cost records before framing the assembly. Some bodies were offscreen. Added explicit fixture readiness and Iso/Frame all; no product correction was needed. A lint let/const finding was also corrected.
+
+**NOT_RUN.** Full GPU/Studio suites, independent audit (small tier), WebGL2 browser, Save/download, CI and release. Raw artifacts stay in `/tmp/barocss-d401-run01` and `/tmp/barocss-d401-run02`. No linked issue is complete from this bounded test repair.
+
+**Follow-ups.** Boundary candidates (d) and (e), then row 13 measurement.

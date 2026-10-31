@@ -10,17 +10,17 @@ import { build } from 'esbuild';
 
 const root = fileURLToPath(new URL('../../../', import.meta.url));
 const temporary = await mkdtemp(join(tmpdir(), 'cad-gpu-display-contract-'));
-let GpuRenderer;
+let GpuRenderer, PALETTE;
 try {
   const outfile = join(temporary, 'gpu-renderer.mjs');
   await build({
-    entryPoints: [resolve(root, 'apps/cad-studio/src/viewport/gpuRenderer.ts')], outfile, bundle: true, platform: 'node', format: 'esm', logLevel: 'silent',
+    stdin: { contents: 'export { GpuRenderer } from "./apps/cad-studio/src/viewport/gpuRenderer.ts"; export { PALETTE } from "./apps/cad-studio/src/viewport/displayPolicy.ts";', resolveDir: root }, outfile, bundle: true, platform: 'node', format: 'esm', logLevel: 'silent',
     alias: {
       '@barocss/gpu/viewer': resolve(root, 'packages/barocss-gpu/src/viewer/index.ts'), '@barocss/gpu': resolve(root, 'packages/barocss-gpu/src/index.ts'),
       '@barocss/cad-model': resolve(root, 'packages/barocss-cad-model/src'), '@barocss/cad': resolve(root, 'packages/barocss-cad/src'),
     },
   });
-  ({ GpuRenderer } = await import(pathToFileURL(outfile).href));
+  ({ GpuRenderer, PALETTE } = await import(pathToFileURL(outfile).href));
 } finally { await rm(temporary, { recursive: true, force: true }); }
 
 const identity = () => new Float64Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
@@ -47,7 +47,7 @@ function fixture() {
   const renderer = Object.create(GpuRenderer.prototype);
   Object.assign(renderer, { tally: { tracking: false },
     viewer, canvas: { clientWidth: 320, clientHeight: 200 }, displayMode: { requested: 'shaded-with-edges', effective: 'shaded-with-edges', supported: true },
-    theme: { base: [0.74, 0.75, 0.78], edge: [0.05, 0.05, 0.06], ao: 0.9, shadow: 0.45 }, aoEnabled: true, interacting: false,
+    theme: { ...PALETTE.dark, gridOpacity: 0.16, base: [0.74, 0.75, 0.78], edge: [0.05, 0.05, 0.06], ao: 0.9, shadow: 0.45 }, aoEnabled: true, interacting: false,
     settings: null, analysis: null, scalarMaps: null, instances: [], direct: [], proposalMeshes: [], mould: null, controls: [], regions: [], poses: null, instancePreview: null,
     hatchLines: new Map(), maps: new Map(), boundsKey: null, boundsMemo: null, clip: null, shaders: new Map(),
     instanceDisplayMode: 'shaded-with-edges', instanceTiles: new WeakMap(), instancePainted: new WeakMap(), instanceFaces: [], instanceSelection: [], contactLinks: new Set(), instanceMeshes: new Map(), shapes: new Map(), shareCopies: true,
