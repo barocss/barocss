@@ -437,6 +437,27 @@ recorded as a limit by owner decision). Follow-up candidates from D371, not done
 refusal instead of a hold — reproduce first, a correctness candidate for the next boundary; (b) the
 lost-edge message title is a generic "chamfer or fillet".
 
+**Owner request 2026-10-31: icon quality and one Fillet command** ("Add both", after a coordinator review
+that rendered all 95 `cad-` icons at 20 px and 48 px from `apps/cad-studio/src/ui/cadIcons.tsx`).
+- **U1 icon legibility at rail size (rows 15/21, small per icon, feature for the set).** At 20 px the solids
+  `box`, `shell`, `decimate`, `split`, `prism`, `duplicate` read as the same grey cube and `fillet`/`chamfer`/
+  `draft` differ only by a tiny accent; `bearing`/`oring`/`fit`/`keyway`/`retaining-ring`/`internal-gear` read
+  alike. Set a 20 px legibility check (contact sheet at rail size, each icon identifiable) and redraw the
+  failing ones: larger accent area, less detail; `shell` as an open box showing wall thickness, `decimate`
+  as a triangle mesh. Fix the file's own rule breaks: `sk-construction` uses dashes, `hollow` is the only
+  flat 2D drawing of a solid operation.
+- **U2 one icon system for commands.** Five commands use Material Symbols instead of drawn icons:
+  `sketch3d` (polyline), `cylindrical-wrap` (`wrap_text` is a text-wrapping glyph: wrong meaning), `edit`,
+  `text`, `text-relief` (`text_fields`). Draw `cad-` icons for them.
+- **U3 icon font offline (owner decision needed).** `apps/cad-studio/index.html` loads Material Symbols from
+  Google Fonts at run time; offline or in a desktop build the 46 UI icons show their names as text. Either
+  ship a local subset of the used glyphs or move UI icons to the drawn system.
+- **U4 one Fillet command (rows 20/21 UX).** Today Modify shows Fillet (edges or a face's edges; radius,
+  end radius for a varying chain, circular/conic/G2 section), Face fillet (two faces that need not touch;
+  radius) and Full round (a rib's flat top; radius = half width) as separate entries. Offer one Fillet entry
+  with a Type choice (Edge — constant or varying, Face, Full round), keeping the existing node kinds, files,
+  agent actions and palette keywords unchanged; Chamfer stays its own command as in commercial CAD.
+
 **Owner request 2026-10-31: merge the two local GPU branches later** ("나중에 두개 브랜치 머지 해줘").
 `gpu/readback-camera-20261026` (37 commits ahead, 10 not in the other) and `gpu/gltf-03-20261027`
 (35 ahead, 8 not in the other) are local only, 593 commits behind `local/cad-dev` (D376 hand-over).
