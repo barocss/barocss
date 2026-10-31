@@ -18093,3 +18093,17 @@ The missing-edge title was already correct. Its hint now says “re-apply the fe
 **NOT_RUN.** Full GPU/Studio suites, independent audit (small tier), WebGL2 browser, Save/download, CI and release. Raw artifacts stay in `/tmp/barocss-d401-run01` and `/tmp/barocss-d401-run02`. No linked issue is complete from this bounded test repair.
 
 **Follow-ups.** Boundary candidates (d) and (e), then row 13 measurement.
+
+## D402 — Document robot budget scope and synchronous sweep boundaries; small (2026-11-01)
+
+[Qualification](notes/robot-budget-boundary-2026-11-01/qualification.json). Boundary candidate (d), #2229 follow-up. Implementation and verification: GPT-6.1 Sol Medium. No numeric algorithm or API behavior changed.
+
+**Decision.** Document that open timed paths reset `maxSamples` per segment; closed-loop motions reset it per chord. The cumulative `samples` can exceed that cap; `exhausted.samples` counts the exhausted segment/chord. The existing `sweepClosed` loop and `sweepTimed` calls are the authority.
+
+**Applicability.** Studio Check path (`RobotInspector.tsx`) and the saved-motion sweep (`App.tsx`, effect) run synchronously. They have no pending asynchronous sweep completion to cancel or adopt late. This is a source-level NOT_APPLICABLE classification for those two calls. Async chat/transport cancellation and stale results remain NOT_RUN; no new async sweep or broad cancellation claim is made. The pre-existing contact-bound limitation in D367 remains.
+
+**PASS.** Targeted lint, driver syntax and diff checks. Actual Studio run01: the draft path reports Not certified at 1.655 s, segment 2 of 2, 32243 total steps; no contact tint/status; the native document is unchanged. One screenshot, reviewed by root; 283 frozen files unchanged; errors/watcher changes/downloads 0.
+
+**FAIL.** None in this item. **NOT_RUN.** Unchanged D367 numeric tests (reuse their recorded PASS), full suites, independent audit (small tier), async chat/transport, closed-loop Studio UI (still refused), Save/download, CI and release. Raw evidence stays in `/tmp/barocss-d402-run01`. #2229 stays open; this is not whole-issue acceptance.
+
+**Follow-ups.** Boundary (e): measure a part whose whole preview exceeds 120 ms. Then start row 13 with support and independent-reader measurements.

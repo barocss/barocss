@@ -260,6 +260,8 @@ export function motionPlaybackOf(view: RobotView, motion: MotionPath, at?: numbe
  * A looped motion swept (RS6): each timed segment cut into chords no more than 1° (1 mm) of its drivers apart, each chord
  * between two closed poses swept straight and certified (sweepPath, RM6); how far a chord's midpoint is from closing is
  * the chords' error, reported. The first contact's time is on its chord's profile.
+ * `maxSamples` (default 20000) is reset for each chord, not each timed segment or the whole motion. Returned
+ * `samples` sums all chords visited; `exhausted.samples` counts only the chord that exhausted its budget.
  */
 function sweepClosed(view: RobotView, t: JointTree, closer: LoopCloser, path: TimedPath, o: { maxSamples?: number } = {}) {
   if (o.maxSamples !== undefined) checkMaxSamples(o.maxSamples);
