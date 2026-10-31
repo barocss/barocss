@@ -17834,3 +17834,21 @@ All fixed; the re-check is ACCEPT.
 **Verification.** Studio 583/583. Actual run02 PASS; screenshots reviewed.
 
 **Follow-up.** Clicking into a sub-assembly in the viewport is not yet possible.
+
+## D389 — Row 10 ④: flexible sub-assemblies; full (2026-10-31)
+
+[Evidence](notes/flexible-subassembly-2026-10-31/qualification.json). RS7.4; owner order "Go to row 10".
+
+**Change.** `PartInstance.joints` holds each occurrence's own joint values, as offsets from the saved pose. The sub-assembly is posed by forward kinematics before folding, and every fold consumer sees the pose.
+
+**Interfaces.** The model API, the facade, chat `place_part`, and the Studio Instance panel's JOINTS section.
+
+**Problems.** A problem keeps the occurrence rigid and is reported. Open refuses malformed joints, and pattern copies are driven by their seed.
+
+**Audits.**
+- Round 1: pose maths correct to 3e-13; 5 defects. Fixed.
+- Round 2: ACCEPT; 4/4 mutants killed.
+
+**Verification.** Model 2329/2329; Studio 588/588. Actual run02 PASS: two hinges from one definition stand at 0° and 90°.
+
+**Follow-up.** The robot view and `world_bounds` omit nested parts. This predates ④.

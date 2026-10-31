@@ -6,7 +6,7 @@ import { FIELD } from './panelStyles';
 import { Button } from '@/components/ui/button';
 
 /** A placed part: its name, position and rotation (applied on Enter or when a box is left), duplicate, hide, remove. */
-export function InstancePanel({ inst, bodies, onChange, onDuplicate, onRemove, onGround, shared = 0, pending, onIndependent, onRevision, onAccept, onDismiss, pattern }: {
+export function InstancePanel({ inst, bodies, onChange, onDuplicate, onRemove, onGround, shared = 0, pending, onIndependent, onRevision, onAccept, onDismiss, pattern, joints }: {
   inst: PartInstance; bodies: BodyResult[] | undefined;
   onChange(next: PartInstance): void; onDuplicate(): void; onRemove(): void;
   /** Fixes it in place (mates never move it) or frees it. */
@@ -16,6 +16,8 @@ export function InstancePanel({ inst, bodies, onChange, onDuplicate, onRemove, o
   onIndependent?(): void; onRevision?(file: File): void; onAccept?(): void; onDismiss?(): void;
   /** Its pattern controls (roadmap 10 ③); an occurrence's placement is its seed's, so it has no placement boxes, Fix or Make independent. */
   pattern?: ReactNode;
+  /** Its own joint values when it is a sub-assembly with joints (roadmap 10 4). */
+  joints?: ReactNode;
 }) {
   const driven = !!inst.pattern;
   const volume = bodies?.reduce((v, b) => v + (b.volume ?? 0), 0);
@@ -42,6 +44,7 @@ export function InstancePanel({ inst, bodies, onChange, onDuplicate, onRemove, o
         </div>
       </>}
       {pattern}
+      {!driven && joints}
       {driven ? <div className="kv muted small">Placed by its pattern: move or hide the seed, or edit the pattern (Skip leaves this one out).</div> : <>
       <div className="card-title" style={{ marginTop: 8 }}>POSITION · MM</div>
       {(['X', 'Y', 'Z'] as const).map((a, k) => <Field key={a} label={a} value={inst.position[k]} onCommit={v => onChange({ ...inst, position: inst.position.map((x, j) => j === k ? Number(v) : x) as [number, number, number] })} />)}

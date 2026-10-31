@@ -7,6 +7,7 @@ import { validateBallOptions, validateFastenedOptions, validateUniversalOptions,
 import { FaceClient } from './faceClient';
 import { flattenAssembly } from '@barocss/cad-model/engine/flatten';
 import { faceOriginOf, flatFaceOf, hostOf, occurrenceProblem, pathTable, splitPart } from '@barocss/cad-model/engine/occurrences';
+import { bodyDocOf } from '@barocss/cad-model/assembly/flexible';
 import { drivenRefusal, seedMateRefusal } from '@barocss/cad-model/assembly/patterns';
 import { resolved } from '@barocss/cad-model/assembly/edit';
 import { BASE, mateKindsOf, lockRel, mateRefusal, solveAssembly, type FaceTable, type Freedom, type Mate, type MateKind, type MateRef, type Problem } from '@barocss/cad-model/assembly/mates';
@@ -90,7 +91,7 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
       if (!current()) return null;
       return readFaces ? readFaces(owner, input) : client.table(owner === BASE ? input : flattenAssembly(input));
     });
-    void Promise.all([take(BASE, evaluated), ...instances.map(i => take(i.id, i.doc))]).then(ts => {
+    void Promise.all([take(BASE, evaluated), ...instances.map(i => take(i.id, bodyDocOf(i)))]).then(ts => {
       if (!current()) return;
       if (ts.some(table => !table || typeof table !== 'object' || Array.isArray(table))) { unavailable(); return; }
       setFaceResult({ key: sourceKey, linked: !!readFaces, tables: new Map([[BASE, ts[0]!], ...instances.map((i, k) => [i.id, ts[k + 1]!] as [string, FaceTable])]) });

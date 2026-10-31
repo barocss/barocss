@@ -175570,6 +175570,13 @@
                 "type": "(name: string) => StudioPart"
               },
               {
+                "name": "partJoints",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => { part: string; joints: { key: string; type: \"prismatic\" | \"revolute\" | \"continuous\"; parent: string; child: string; value: number; lower?: number | undefined; upper?: number | undefined; }[]; problem?: string | undefined; }"
+              },
+              {
                 "name": "parts",
                 "kind": "method",
                 "optional": false,
@@ -175624,6 +175631,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "() => Robot"
+              },
+              {
+                "name": "setPartJoints",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string, joints: Record<string, number | null>, options?: { replace?: boolean | undefined; }) => Assembly"
               },
               {
                 "name": "skipOccurrence",
@@ -181767,6 +181781,13 @@
                 "type": "(name: string) => StudioPart"
               },
               {
+                "name": "partJoints",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => { part: string; joints: { key: string; type: \"prismatic\" | \"revolute\" | \"continuous\"; parent: string; child: string; value: number; lower?: number | undefined; upper?: number | undefined; }[]; problem?: string | undefined; }"
+              },
+              {
                 "name": "parts",
                 "kind": "method",
                 "optional": false,
@@ -181821,6 +181842,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "() => Robot"
+              },
+              {
+                "name": "setPartJoints",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string, joints: Record<string, number | null>, options?: { replace?: boolean | undefined; }) => Assembly"
               },
               {
                 "name": "skipOccurrence",
@@ -182528,6 +182556,37 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./api/assemblyCore",
+      "exportName": "partJointsOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/flexible.ts",
+            "name": "instanceJointsOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, part: string) => InstanceJoints",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, part: string) => InstanceJoints"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/assemblyCore",
       "exportName": "patternDoc",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -182613,6 +182672,37 @@
             ],
             "callSignatures": [
               "(doc: StudioDoc) => SolveProblem[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/assemblyCore",
+      "exportName": "setPartJointsDoc",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/assemblyCore.ts",
+            "name": "setPartJointsDoc",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, id: string, joints: Record<string, number | null>, replace: boolean) => StudioDoc",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, id: string, joints: Record<string, number | null>, replace: boolean) => StudioDoc"
             ]
           }
         }
@@ -183723,6 +183813,13 @@
                 "type": "(name: string) => StudioPart"
               },
               {
+                "name": "partJoints",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => { part: string; joints: { key: string; type: \"prismatic\" | \"revolute\" | \"continuous\"; parent: string; child: string; value: number; lower?: number | undefined; upper?: number | undefined; }[]; problem?: string | undefined; }"
+              },
+              {
                 "name": "parts",
                 "kind": "method",
                 "optional": false,
@@ -183777,6 +183874,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "() => Robot"
+              },
+              {
+                "name": "setPartJoints",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string, joints: Record<string, number | null>, options?: { replace?: boolean | undefined; }) => Assembly"
               },
               {
                 "name": "skipOccurrence",
@@ -202797,6 +202901,376 @@
             ],
             "callSignatures": [
               "(table: FaceTable, doc: StudioDoc) => FaceTable"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/flexible",
+      "exportName": "InstanceJoint",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/flexible.ts",
+            "name": "InstanceJoint",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "InstanceJoint",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "child",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "key",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "lower",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "parent",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "type",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"prismatic\" | \"revolute\" | \"continuous\""
+              },
+              {
+                "name": "upper",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "value",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/flexible",
+      "exportName": "InstanceJoints",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/flexible.ts",
+            "name": "InstanceJoints",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "InstanceJoints",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "joints",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "InstanceJoint[]"
+              },
+              {
+                "name": "part",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "problem",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/flexible",
+      "exportName": "SetInstanceJointsOptions",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/flexible.ts",
+            "name": "SetInstanceJointsOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "SetInstanceJointsOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "joints",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Record<string, number | null>"
+              },
+              {
+                "name": "part",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "replace",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "boolean | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/flexible",
+      "exportName": "bodyDocOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/flexible.ts",
+            "name": "bodyDocOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(inst: PartInstance) => StudioDoc",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(inst: PartInstance) => StudioDoc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/flexible",
+      "exportName": "instanceJointsOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/flexible.ts",
+            "name": "instanceJointsOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, part: string) => InstanceJoints",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, part: string) => InstanceJoints"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/flexible",
+      "exportName": "jointProblemsOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/flexible.ts",
+            "name": "jointProblemsOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc) => { part: string; problem: string; }[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc) => { part: string; problem: string; }[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/flexible",
+      "exportName": "jointsOfInstance",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/flexible.ts",
+            "name": "jointsOfInstance",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(inst: PartInstance) => InstanceJoints",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(inst: PartInstance) => InstanceJoints"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/flexible",
+      "exportName": "poseOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/flexible.ts",
+            "name": "poseOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(inst: PartInstance) => Posed",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(inst: PartInstance) => Posed"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/flexible",
+      "exportName": "setInstanceJoints",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/flexible.ts",
+            "name": "setInstanceJoints",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, o: SetInstanceJointsOptions) => Edited",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, o: SetInstanceJointsOptions) => Edited"
             ]
           }
         }
@@ -257225,6 +257699,13 @@
                 "type": "string"
               },
               {
+                "name": "joints",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "Record<string, number> | undefined"
+              },
+              {
                 "name": "name",
                 "kind": "property",
                 "optional": false,
@@ -267668,6 +268149,37 @@
             ],
             "callSignatures": [
               "<T extends Pick<StudioDoc, \"nodes\" | \"nextId\">>(doc: T) => T"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/jointValues",
+      "exportName": "valuesProblem",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/jointValues.ts",
+            "name": "valuesProblem",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(values: unknown, who: string) => string | null",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(values: unknown, who: string) => string | null"
             ]
           }
         }

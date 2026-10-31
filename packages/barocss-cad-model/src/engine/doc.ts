@@ -681,6 +681,7 @@ import type { DrawingSettings } from '../drawing/types';
 import { type Mate } from '../assembly/mates';
 import { rotationMatrix, rotationSteps } from './placement';
 import { flattenAssembly } from './flatten';
+import { bodyDocOf } from '../assembly/flexible';
 import { bodyKeyFor, nextSerial, nodeIndexOf as nodeIndexOfLocal, withIds } from './ids';
 import type { Sig } from './references';
 import type { Requirement } from './schema/spec';
@@ -856,6 +857,11 @@ export interface PartInstance {
    * is the others' too) at revision `rev`; `source` is the file it came from. Absent: a part of its own.
    */
   part?: { id: string; rev: string; source?: string };
+  /**
+   * This occurrence's values for its sub-assembly's own joints (assembly/flexible.ts): by joint key (`base~lid`), in the joint
+   * tree's units (radians, mm), as offsets from the pose the sub-assembly was saved in. Absent or `{}`: rigid, as saved.
+   */
+  joints?: Record<string, number>;
   /** Set on an occurrence a pattern generated (never on a seed): the pattern's id and the occurrence's index k (the seed is 0). Driven by the seed: no mate moves it. */
   pattern?: { id: string; k: number };
 }
@@ -872,7 +878,8 @@ export type InstancePattern = { id: string; seed: string; count: number; skip?: 
 /** An instance's part as placed at the origin (a sub-assembly's own instances folded in as features). */
 export function placedBase(inst: PartInstance, parent?: StudioDoc): StudioDoc {
   if (inst.doc.nodes.some(n => n.kind === 'sketch' && n.association !== undefined)) throw refusal('BAD_REFERENCE', 'Associative sketch: placed part recipes are not supported.');
-  const resolved = resolveShopTree(inst.doc, parent, parent ? inst.id : undefined);
+  // (A flexible sub-assembly occurrence: its own joint values applied first, assembly/flexible.ts.)
+  const resolved = resolveShopTree(bodyDocOf(inst), parent, parent ? inst.id : undefined);
   const flat = flattenAssembly(flattenShopView(resolved));
   return prefixDoc(flat, flat.nodes.length);
 }

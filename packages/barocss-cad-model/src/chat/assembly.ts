@@ -25,6 +25,7 @@ import { boundsOf } from '../engine/bounds';
 import { runVariabilityTool, VARIABILITY_TOOLS } from './variability';
 import { addMate, lockPart, addPart, ASSEMBLY_CODES, editMate, partCopy, placePart, solveDoc, type Edited, type Mated } from '../assembly/edit';
 import { isRefusal } from '../engine/refusal';
+import { bodyDocOf, instanceJointsOf, setInstanceJoints } from '../assembly/flexible';
 import { addInstancePattern, deleteInstancePattern, editInstancePattern, patternDeleteRefusal, type AddPatternOptions } from '../assembly/patterns';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
@@ -72,8 +73,8 @@ function memberInterfaceList(bodies: readonly BodyResult[]): { member_interfaces
 
 async function describe(doc: StudioDoc, base: BodyResult[], evaluate: Evaluate, detail: string | null) {
   const instances = await Promise.all((doc.instances ?? []).map(async inst => {
-    const r = await evaluate(inst.doc), bodies = r?.ok ? r.bodies : [];
-    const { min, max } = boundsOf(bodies);
+    const r = await evaluate(bodyDocOf(inst)), bodies = r?.ok ? r.bodies : [];
+    const { min, max } = boundsOf(bodies), flex = inst.doc.instances?.length && inst.doc.mates?.length ? instanceJointsOf(doc, inst.id) : null;
     return {
       id: inst.id, name: inst.name, position: inst.position.map(r3), rotation: inst.rotation.map(r3), ...(inst.grounded ? { grounded: true } : {}), ...(inst.hidden ? { hidden: true } : {}), ...(inst.pattern ? { pattern: inst.pattern.id, k: inst.pattern.k } : {}),
       feature_count: inst.doc.nodes.length, bodies: bodies.length, volume: r3(bodies.reduce((s, b) => s + (b.volume ?? 0), 0)),
@@ -81,6 +82,8 @@ async function describe(doc: StudioDoc, base: BodyResult[], evaluate: Evaluate, 
       ...(r && !r.ok ? { error: r.error.title } : {}),
       ...memberInterfaceList(bodies),
       // (A sub-assembly: the parts inside it by path, to name in a mate as `sub1/p2`; its faces as the mate reads them, folded.)
+      ...(flex?.joints.length ? { joints: flex.joints.map(j => ({ key: j.key, type: j.type, value: j.value, ...(j.lower !== undefined ? { lower: j.lower } : {}), ...(j.upper !== undefined ? { upper: j.upper } : {}) })), joints_note: 'this occurrence\'s own values (degrees, mm); set them with place_part "joints"' } : {}),
+      ...(flex?.problem && inst.joints ? { joint_problem: flex.problem } : {}),
       ...(inst.doc.instances?.length ? { parts_inside: nestedParts(inst.doc, [inst.id]), note: 'mate a part inside it by path: {"part": "<this id>/<part id>", "face": <that part\'s own face name>}; its faces: get_assembly {"faces_of": "<path>"}' } : {}),
       ...(detail !== null && hostOf(detail) === inst.id ? mateFaces(tablesFor(doc)(detail) ?? {}) : {}),
     };
@@ -149,6 +152,11 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
       try {
         const next = placePart(doc, { part: String(args.part), ...(position ? { position } : {}), ...(rotation ? { rotation } : {}), ...(typeof args.name === 'string' && args.name.trim() ? { name: args.name.trim() } : {}),
           ...(args.grounded === undefined ? {} : { grounded: !!args.grounded }), ...(args.hidden === undefined ? {} : { hidden: !!args.hidden }) });
+        // (Roadmap 10 4: a sub-assembly occurrence's own joint values, assembly/flexible.ts — degrees for a turn, mm for a slide.)
+        if (args.joints !== undefined) {
+          const posed = setInstanceJoints(next.doc, { part: String(args.part), joints: args.joints as Record<string, number | null> }), now = instanceJointsOf(posed.doc, String(args.part));
+          return reported(doc, posed, `placed ${inst!.id}`, { joints: now.joints, ...(now.problem ? { problem: now.problem } : {}) });
+        }
         const by = mates.filter(m => hostOf(m.b.part) === inst!.id);
         return reported(doc, next, `placed ${inst!.id}`,
           by.length && (args.position !== undefined || args.rotation !== undefined) ? { note: `${by.length} mate${by.length > 1 ? 's' : ''} still place it: the solver keeps what they fix and moves it only where they leave it free` } : {});
@@ -324,8 +332,8 @@ export const ASSEMBLY_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'place_part',
-    description: 'Moves, turns (degrees about X, then Y, then Z), renames, grounds (fixes in place: mates never move it) or hides a part. Mates on a part keep what they fix.',
-    input_schema: { type: 'object', properties: { part: { type: 'string' }, position: xyz, rotation: xyz, name: { type: 'string' }, grounded: { type: 'boolean' }, hidden: { type: 'boolean' } }, required: ['part'], additionalProperties: false },
+    description: 'Moves, turns (degrees about X, then Y, then Z), renames, grounds (fixes in place: mates never move it) or hides a part. Mates on a part keep what they fix. "joints" poses a sub-assembly occurrence: {joint key from get_assembly: degrees | mm (offsets from its saved pose) | null to remove}; each occurrence keeps its own.',
+    input_schema: { type: 'object', properties: { part: { type: 'string' }, position: xyz, rotation: xyz, name: { type: 'string' }, grounded: { type: 'boolean' }, hidden: { type: 'boolean' }, joints: { type: 'object', additionalProperties: { type: ['number', 'null'] } } }, required: ['part'], additionalProperties: false },
   },
   {
     name: 'delete_part',

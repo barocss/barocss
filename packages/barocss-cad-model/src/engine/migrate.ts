@@ -12,6 +12,7 @@ import { firstProblem, refusal } from './refusal';
 import { patternsProblem } from '../assembly/patternCheck';
 import { assertRouteBundleDocument } from './routeBundle';
 import { assertSavedDrawingDocument } from './savedDrawing';
+import { valuesProblem } from './jointValues';
 import { sketch3dRefusal, type Constraint3D, type V3 } from '../frames/sketch3d';
 
 /**
@@ -55,6 +56,8 @@ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] }
   if (bad.length) return { error: `Parameters without a number: ${bad.join(', ')}.` };
   const idProblem = instanceIdProblem(o, '');
   if (idProblem) return { error: refusal('VALUE', idProblem).message };
+  const jointsProblem = instanceJointsProblem(o, '');
+  if (jointsProblem) return { error: refusal('VALUE', jointsProblem).message };
   const skeletonProblem = skeletonDocumentProblem({ ...o, parameters });
   if (skeletonProblem) return { error: skeletonProblem };
   const fillProblem = fillPatternDocumentProblem({ ...o, parameters });
@@ -152,6 +155,19 @@ function nodeProblem(node: Record<string, unknown>, parameters: Record<string, u
     resolved.push((key ? { ...c, [key]: dimension(c[key], parameters) } : c) as Constraint3D);
   }
   return sketch3dRefusal(points as V3[], node.segments as [number, number][], resolved);
+}
+
+/** An occurrence's `joints` (flexible sub-assemblies) is an object of finite numbers: the first that is not, naming the part and the key. */
+function instanceJointsProblem(raw: unknown, where: string): string | null {
+  if (!record(raw) || !Array.isArray(raw.instances)) return null;
+  for (const [i, instance] of raw.instances.entries()) {
+    if (!record(instance)) continue;
+    const who = `${where}instances[${i}] (${typeof instance.id === 'string' ? instance.id : '?'})`;
+    if (instance.joints !== undefined) { const why = valuesProblem(instance.joints, who); if (why) return why; }
+    const inner = instanceJointsProblem(instance.doc, `${where}instances[${i}].doc.`);
+    if (inner) return inner;
+  }
+  return null;
 }
 
 /** A part's id never holds "/" (it joins a path to a part inside a sub-assembly: `sub1/p2`): the first that does, in words. */

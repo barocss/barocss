@@ -111,7 +111,7 @@ Parts placed and mated with the base part; changes to it are proposed. A part to
 | `assembly.bundle` | `output_bundle` | baseline?, expectedRevision? — approved current evidence files |
 | `assembly.get` | `get_assembly` | faces_of? |
 | `assembly.add_part` | `add_part` | name, copy_of?, position?, rotation?, grounded? |
-| `assembly.place` | `place_part` | part, position?, rotation?, name?, grounded?, hidden? |
+| `assembly.place` | `place_part` | part, position?, rotation?, name?, grounded?, hidden?, joints? |
 | `assembly.delete_part` | `delete_part` | part |
 | `assembly.add_mate` | `add_mate` | kind, a, b, distance?, angle?, flip? — a/b {part,face,at?} |
 | `assembly.edit_mate` | `edit_mate` | id, distance?, angle?, flip?, connectors? |

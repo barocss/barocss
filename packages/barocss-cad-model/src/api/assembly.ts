@@ -10,7 +10,7 @@ import type { FrameSettings } from '../robot/frames';
 import type { MeshData } from './core';
 import { meshSelection } from './select';
 import { bodiesOf } from './core';
-import { addMateDoc, addPartDoc, deletePatternDoc, editPatternDoc, lockDoc, patternDoc, skipOccurrenceDoc, assemblyMeshes, BASE, emptyDoc, framePosesOf, framesDoc, placePartDoc, problemsOf, variabilityDoc, variantDoc } from './assemblyCore';
+import { addMateDoc, addPartDoc, deletePatternDoc, editPatternDoc, lockDoc, patternDoc, skipOccurrenceDoc, assemblyMeshes, BASE, emptyDoc, framePosesOf, framesDoc, partJointsOf, placePartDoc, problemsOf, setPartJointsDoc, variabilityDoc, variantDoc } from './assemblyCore';
 import { part as studioPart, StudioPart } from './part';
 import { Robot } from './robot';
 import { drawingDoc, drawingOf, outputOf } from './outputs';
@@ -68,6 +68,24 @@ export class Assembly {
     if (id === BASE) throw refuse('VALUE', 'the base part stays at the origin');
     if (o.at !== undefined && !(o.at instanceof Location)) throw refuse('VALUE', 'a part is placed at a Location');
     return new Assembly(this.name, placePartDoc(this.#doc, id, { ...(o.at ? { position: toVec(o.at.position), rotation: toVec(o.at.rotation) } : {}), ...(o.grounded !== undefined ? { grounded: o.grounded } : {}) }));
+  }
+
+  /**
+   * `assembly.set_part_joints` (roadmap 10 4): a sub-assembly occurrence's own joint values — by joint key (`base~lid`, see `partJoints`),
+   * degrees for a turn and mm for a slide, offsets from the pose it was saved in; `null` removes a key; `replace` resets the keys not given.
+   * Each occurrence of the same sub-assembly keeps its own values, so two copies of a hinge can stand open and shut.
+   */
+  setPartJoints(name: string, joints: Record<string, number | null>, options: { replace?: boolean } = {}): Assembly {
+    const id = this.idOf(name);
+    if (id === BASE) throw refuse('VALUE', 'the base part has no joints of its own; the assembly\'s joints are the robot\'s (robot())');
+    return new Assembly(this.name, setPartJointsDoc(this.#doc, id, joints, options.replace === true));
+  }
+
+  /** A sub-assembly occurrence's joints: key, type, parent and child part, this occurrence's value and the limits (degrees, mm); `problem` in words when it cannot be posed. */
+  partJoints(name: string): { part: string; joints: { key: string; type: 'revolute' | 'continuous' | 'prismatic'; parent: string; child: string; value: number; lower?: number; upper?: number }[]; problem?: string } {
+    const id = this.idOf(name);
+    if (id === BASE) throw refuse('VALUE', 'the base part has no joints of its own; the assembly\'s joints are the robot\'s (robot())');
+    return partJointsOf(this.#doc, id);
   }
 
   /**

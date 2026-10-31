@@ -10,6 +10,7 @@ import { BASE, type FaceTable, type MateFace, type Vec3 } from './mates';
 import { clean } from '../engine/placement';
 import { datumWorld, readReferences } from '../chat/references';
 import { flatOf, occurrenceProblem, pathTable, splitPart } from '../engine/occurrences';
+import { bodyDocOf } from './flexible';
 
 /** Values within a nanometre of a round number are that number (a circle read back from its NURBS). */
 const snap = (p: readonly number[]): Vec3 => [clean(p[0]), clean(p[1]), clean(p[2])];
@@ -116,12 +117,14 @@ export const tablesFor = (doc: StudioDoc) => (part: string): FaceTable | undefin
   if (part === BASE) return withDatums(tableOf(doc), doc);
   const { host, path } = splitPart(part), inst = doc.instances?.find(i => i.id === host);
   if (!inst) return undefined;
-  let flat = inst.doc;
-  try { flat = flatOf(inst.doc); } catch { /* a document that cannot be folded: its own features, as before */ }
+  // (A flexible sub-assembly occurrence: its faces where its joint values put its parts, assembly/flexible.ts.)
+  const body = bodyDocOf(inst);
+  let flat = body;
+  try { flat = flatOf(body); } catch { /* a document that cannot be folded: its own features, as before */ }
   const table = tableOf(flat);
-  if (path.length) return occurrenceProblem(inst.doc, host, path) ? undefined : pathTable(table, inst.doc, path);
+  if (path.length) return occurrenceProblem(inst.doc, host, path) ? undefined : pathTable(table, body, path);
   // (A sub-assembly's own faces only: a part inside is mated by its path, not by a folded name that moves with its siblings.)
-  return inst.doc.instances?.length ? pathTable(table, inst.doc, []) : table;
+  return inst.doc.instances?.length ? pathTable(table, body, []) : table;
 };
 /**
  * The base part's datums as mate targets (A6.3, O75): `datum:<id>`, where its locked reference puts it — a plane datum

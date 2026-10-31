@@ -34,7 +34,7 @@ function occurrencesOf(seed: PartInstance, p: InstancePattern): PartInstance[] {
       position = [0, 1, 2].map(i => clean(R[i * 3] * d[0] + R[i * 3 + 1] * d[1] + R[i * 3 + 2] * d[2] + p.origin[i])) as Tuple3;
       rotation = [...eulerOf(matMul(R, m as Mat3))] as Tuple3;
     }
-    out.push({ id: `${p.id}-${k}`, name: `${seed.name} ${k + 1}`, doc: seed.doc, position, rotation, grounded: true, ...(seed.hidden ? { hidden: true } : {}), ...(seed.part ? { part: seed.part } : {}), pattern: { id: p.id, k } });
+    out.push({ id: `${p.id}-${k}`, name: `${seed.name} ${k + 1}`, doc: seed.doc, position, rotation, grounded: true, ...(seed.joints ? { joints: seed.joints } : {}), ...(seed.hidden ? { hidden: true } : {}), ...(seed.part ? { part: seed.part } : {}), pattern: { id: p.id, k } });
   }
   return out;
 }

@@ -14,6 +14,7 @@ import { eulerOf } from '../engine/placement';
 import { addMate, addPart, checkFramesOn, placePart, solveDoc, withFrames } from '../assembly/edit';
 import { bodiesOf, meshesOf, type MeshData } from './core';
 import { explodeOffsets } from '../assembly/explode';
+import { instanceJointsOf, setInstanceJoints } from '../assembly/flexible';
 import { addInstancePattern, drivenRefusal, seedMateRefusal, deleteInstancePattern, editInstancePattern, skipOccurrence, type AddPatternOptions, type EditPatternOptions } from '../assembly/patterns';
 
 // (Document fields are mutable tuples; what the facade hands back is §10.2's readonly Vec3.)
@@ -32,6 +33,12 @@ export function addPartDoc(doc: StudioDoc, name: string, partDoc: StudioDoc, pos
 export function placePartDoc(doc: StudioDoc, id: string, o: { position?: XYZ; rotation?: XYZ; grounded?: boolean }): StudioDoc {
   return placePart(doc, { part: id, ...o }).doc;
 }
+
+/** set_part_joints (setInstanceJoints): a sub-assembly occurrence's own joint values (degrees, mm; null removes one), checked and solved again. */
+export function setPartJointsDoc(doc: StudioDoc, id: string, joints: Record<string, number | null>, replace: boolean): StudioDoc {
+  return setInstanceJoints(doc, { part: id, joints, ...(replace ? { replace: true } : {}) }).doc;
+}
+export { instanceJointsOf as partJointsOf };
 
 /** add_mate (addMate): a mate between faces of two parts (b moves; a fixed b and a free a swap), checked, solved, or refused. */
 export function addMateDoc(doc: StudioDoc, kind: MateKind, a: { part: string; face: string }, b: { part: string; face: string }, o: { distance?: number; angle?: number; flip?: boolean }): { doc: StudioDoc; id: string } {

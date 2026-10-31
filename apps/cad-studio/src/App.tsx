@@ -137,6 +137,8 @@ import { loadUserLibraries, setLibraryStore } from '@barocss/cad-model/library/l
 import { browserStore } from './ui/browserStore';
 import { processProfile } from '@barocss/cad-model/library/materials';
 import { InstancePanel } from './ui/InstancePanel';
+import { InstanceJointsControls } from './ui/InstanceJoints';
+import { setInstanceJoints } from '@barocss/cad-model/assembly/flexible';
 import { InstancePatternControls } from './ui/InstancePattern';
 import { addInstancePattern, deleteInstancePattern, editInstancePattern, expandPatterns, patternDeleteRefusal, skipOccurrence } from '@barocss/cad-model/assembly/patterns';
 /** The document with its instance patterns' occurrences made again from their seeds (roadmap 10 ③): every instance edit keeps them in step. */
@@ -956,9 +958,9 @@ export function App() {
     return true;
   }, [doc, marker, acceptanceScope]);
   // Roadmap 10 ③: a pattern edit through the model (its refusal as a notice), committed with its occurrences.
-  const patternEdit = (run: () => { doc: StudioDoc }) => {
+  const patternEdit = (run: () => { doc: StudioDoc }, refused = 'Pattern not changed') => {
     let next: StudioDoc;
-    try { next = run().doc; } catch (e) { setToast({ title: 'Pattern not changed', hint: e instanceof Error ? e.message : String(e), detail: '' }); return; }
+    try { next = run().doc; } catch (e) { setToast({ title: refused, hint: e instanceof Error ? e.message : String(e), detail: '' }); return; }
     commit(next);
   };
   const readLinkedFaces = useCallback(async (owner: string, input: StudioDoc) => {
@@ -1961,6 +1963,9 @@ export function App() {
           pattern={<InstancePatternControls inst={inst} pattern={doc.instancePatterns?.find(p => p.seed === inst.id)} occurrenceOf={inst.pattern ? doc.instancePatterns?.find(p => p.id === inst.pattern!.id) : undefined}
             onAdd={o => patternEdit(() => addInstancePattern(doc, o))} onEdit={o => patternEdit(() => editInstancePattern(doc, o))}
             onDelete={id => patternEdit(() => deleteInstancePattern(doc, id))} onSkip={() => { patternEdit(() => skipOccurrence(doc, inst.id)); setInstanceSel([]); }} />}
+          joints={inst.doc.instances?.length ? <InstanceJointsControls inst={inst}
+            onSet={values => patternEdit(() => setInstanceJoints(doc, { part: inst.id, joints: values }), 'Joints not changed')}
+            onReset={() => patternEdit(() => setInstanceJoints(doc, { part: inst.id, joints: {}, replace: true }), 'Joints not changed')} /> : undefined}
           onRevision={async file => {
             const read = await readStudioFile(new Uint8Array(await file.arrayBuffer()));
             if ('error' in read) { setToast({ title: 'Could not read that part', hint: read.error, detail: '' }); return; }
