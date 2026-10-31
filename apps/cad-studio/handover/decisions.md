@@ -17709,3 +17709,20 @@ Limits: the box may cover a little of the model; puck handles get no box. CI and
 - a click in the gap between a question's buttons reaches the viewport, which is harmless.
 
 Notices stay over the viewport. CI and release NOT_RUN.
+
+## D382 — Row 21: the History bar stays, dimmed, while a command or sketch runs; feature (2026-10-31)
+
+[Evidence](notes/history-bar-busy-2026-10-31/qualification.json). Owner order "Go to 20/21".
+
+**Before.** The bar vanished during commands and sketches.
+
+**Change.** It stays in place, dimmed and labelled. Its clicks stop at the bar.
+
+**Audit: CHANGES_REQUIRED.**
+- F1: `inert` let clicks fall through to the viewport. Fixed.
+- F2: the driver was too weak. Fixed.
+- F3 (low): a floating HUD overlaps the view bar by about 8 px in narrow windows. Recorded as a limit.
+
+**Verification.** Studio 570/570. Actual run03 PASS: what lies under each click is checked, and a real click and double-click change nothing.
+
+Step names stay off by default. CI and release NOT_RUN.

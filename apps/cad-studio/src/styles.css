@@ -252,6 +252,7 @@ details code { display: block; white-space: pre-wrap; word-break: break-word; fo
 .hs, .hs-more { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 9px; border: 0; border-radius: 5px; background: #2e3034; color: var(--text-2); white-space: nowrap; cursor: pointer; font-size: 11px; }
 .hs:hover, .hs-more:hover { background: #393b40; }
 .history .hs { flex: none; width: 28px; justify-content: center; padding: 0; }
+.history.busy { opacity: 0.45; }
 .history.show-labels .hs { width: auto; padding-inline: 9px; }
 .history-labels { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--muted); cursor: pointer; }
 .history-labels:hover { background: var(--line-soft); color: var(--text); }

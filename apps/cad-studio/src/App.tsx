@@ -1773,7 +1773,8 @@ export function App() {
   const totalNodes = doc.nodes.length; const markerAt = marker ?? totalNodes;
   // (G12e: the history bar's whole chips — those past its room hidden, a "+n" chip opening the rest.)
   const historyBar = useRef<HTMLDivElement>(null), [historyRows, setHistoryRows] = useState(false), [historyLabels, setHistoryLabels] = useState(false);
-  const historyShown = !sketch && !active && !rendering;
+  // (Roadmap 21: the bar stays while a command runs or a sketch is open, dimmed and taking no clicks, instead of vanishing.)
+  const historyShown = !rendering, historyBusy = !!sketch || !!active;
   const { hidden: historyHidden, natural: historyNaturalNow } = useFitChips(historyBar, historyRows, [doc.nodes, markerAt, !!sketch, !!active, rendering, historyLabels, bottomRow.stacked, bottomRow.cramped]);
   useEffect(() => setHistoryNatural(historyNaturalNow), [historyNaturalNow]);
   const selBodies = selectedBodies(selection).map(i => bodies[i]).filter(Boolean);
@@ -2070,7 +2071,7 @@ export function App() {
           onTime={t => { setPlaying(false); setTime(t); }} onPlay={play} onChange={a => commitRender({ ...render, animation: a })}
           exporting={videoBusy} onExportVideo={() => { setPlaying(false); turnFrom.current = viewport.current?.getCamera() ?? null; void recordVideo(render.animation.duration, setTime, `${fileName}-render.webm`); }} />;
       })()}
-      <Profiler id="history" onRender={onBlockRender}>{historyShown && <FeatureHistoryBar doc={doc} selection={selection} editNode={editNode} marker={marker} source={{ innerSteps, freeSketches }}
+      <Profiler id="history" onRender={onBlockRender}>{historyShown && <FeatureHistoryBar busy={historyBusy} doc={doc} selection={selection} editNode={editNode} marker={marker} source={{ innerSteps, freeSketches }}
         layout={{ historyBar, historyRows, setHistoryRows, historyLabels, setHistoryLabels, historyHidden }} actions={{ pickProfile, setEditNode, setMarker, setHistoryMenu, openHistoryFeature }} />}</Profiler>
 
       {stage !== null ? <div className="card work-bar" role="status" aria-label="Working"><span className="mono">Working… {stage}</span>
