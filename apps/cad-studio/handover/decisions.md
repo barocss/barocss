@@ -18026,3 +18026,26 @@ The preset is passed explicitly everywhere. It is exposed as a Studio select and
 - Non-dual short dimension text (kernel DXF fixture).
 - Chat hint.
 - DXF DIMSTYLE.
+
+## D398 — Row 11 ④: drawing sets, several sheets (CG5 DR-8); full (2026-11-01)
+
+[Evidence](notes/drawing-sheets-2026-11-01/qualification.json).
+
+**What it adds.**
+- `drawing.sheets` after an implicit first sheet, with per-sheet size and scale. Views move between sheets and their annotations follow.
+- "n OF N" title blocks; the sheet index, revision table and tables on sheet 1.
+- SEE SHEET / FROM SHEET cross-references for details and sections. DR-1's deferral is now done.
+- Drawing-wide checks run on the whole set and placement checks per sheet. Weld symbols per joint across the set.
+- A multi-page PDF; ECO numbers on revisions.
+- Studio sheet tabs, and chat sheet-aware.
+- Absent sheets: byte-identical.
+
+**Audits.**
+- Round 1: 2 high, 2 medium, 1 low.
+- Round 2: weld symbol silently lost.
+
+All fixed; the root re-checked the weld fix with the auditor's probe. The merge fuzz of 3000 edits passes.
+
+**Verification.** Model 2513/2513; Studio 624/624. Actual run03 PASS.
+
+**Follow-ups.** Sheet 1 is not re-laid out automatically after a move. 3D annotations ignore sheets. No zone references.

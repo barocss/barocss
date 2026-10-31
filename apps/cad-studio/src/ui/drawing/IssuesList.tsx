@@ -5,11 +5,12 @@ import { Icon } from '../atoms';
 import { Button } from '@/components/ui/button';
 
 type Sheet = ReturnType<typeof useDrawingSheet>;
-export function IssuesList({ issues, scope, views, fixIssue, fixEvery, onSelectDimension }: {
+export function IssuesList({ issues, scope, views, fixIssue, fixEvery, onSelectDimension, sheetLabel }: {
+  /** 11 ④: the sheet these are on, when the drawing has several. */ sheetLabel?: string;
   issues: readonly DrawingIssue[]; scope: Sheet['scope']; views: Sheet['views']; fixIssue(x: DrawingIssue): void; fixEvery(): void; onSelectDimension(id: string): void;
 }) {
   return <>
-        <div className="card-title" style={{ marginTop: 8 }}>ISSUES <span className="muted" aria-label="Issue count">{issues.length}</span>
+        <div className="card-title" style={{ marginTop: 8 }}>ISSUES <span className="muted" aria-label="Issue count">{issues.length}</span>{sheetLabel && <span className="muted" aria-label="Issues sheet"> · {sheetLabel}</span>}
           {issues.some(x => x.fix) && <Button variant="ghost" disabled={!issues.some(x => x.fix && (scope.kind !== 'assembly' || x.fix.kind !== 'auto-dimension'))} onClick={fixEvery} aria-label="Fix all issues" data-tip="Fix all" data-tip-desc="Available fixes, one at a time; assembly scope excludes automatic part dimensions">Fix all</Button>}</div>
         <div className="dw-issues" aria-label="Drawing issues">
           {issues.map((x, k) => <div key={k} className={'dw-issue ' + x.severity} role="button" tabIndex={0} title={x.code}

@@ -44,7 +44,7 @@ import { SECTION_VIEWS, VIEW_IDS, baseViewOf, detailLetter, isDetailRef, isViewI
 
 export const DRAWING_ISSUES_VERSION = 'cad-studio-drawing-issues-v1';
 
-export type DrawingIssueCode = 'UNIT_PRECISION' | 'DIM_ON_HIDDEN' | 'DATUM_LOST' | 'FRAME_LOST' | 'FRAME_VIEW_MISSING' | 'DATUM_UNDEFINED' | 'FRAME_RULE' | 'DATUM_TWICE' | 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING' | 'TABLE_SOURCE' | 'WELD_NOT_SHOWN' | 'BALLOON_NOT_CLEAR' | 'BALLOON_NO_EDGE' | 'FIT_ROW_MISSING' | 'FOLLOWED_CHANGED' | 'DETAIL_PARENT_MISSING' | 'DETAIL_EMPTY' | 'DETAIL_NO_ROOM' | 'BREAK_NO_VIEW' | 'SECTION_NO_ROOM' | 'SECTION_NO_VIEW' | 'DATUM_TARGET_OUTSIDE' | DatumTargetFailureCode;
+export type DrawingIssueCode = 'SHEET_SET' | 'UNIT_PRECISION' | 'DIM_ON_HIDDEN' | 'DATUM_LOST' | 'FRAME_LOST' | 'FRAME_VIEW_MISSING' | 'DATUM_UNDEFINED' | 'FRAME_RULE' | 'DATUM_TWICE' | 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING' | 'TABLE_SOURCE' | 'WELD_NOT_SHOWN' | 'BALLOON_NOT_CLEAR' | 'BALLOON_NO_EDGE' | 'FIT_ROW_MISSING' | 'FOLLOWED_CHANGED' | 'DETAIL_PARENT_MISSING' | 'DETAIL_EMPTY' | 'DETAIL_NO_ROOM' | 'BREAK_NO_VIEW' | 'SECTION_NO_ROOM' | 'SECTION_NO_VIEW' | 'DATUM_TARGET_OUTSIDE' | DatumTargetFailureCode;
 export type DrawingFix =
   | { kind: 'remove'; dim: string }
   | { kind: 'move'; dim: string; place: XY }
@@ -239,11 +239,15 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
     const next = settings.scale !== undefined ? { kind: 'scale' as const } : settings.sheet === 'A4' ? { kind: 'scale' as const, sheet: 'A3' as const } : undefined;
     out.push({ code: 'VIEWS_DONT_FIT', severity: 'error', message: `The views do not fit the ${settings.sheet} sheet at the scale${settings.scale !== undefined ? ' set' : ''}.`, ...(next ? { fix: next } : {}) });
   }
+  // (11 ④: what the file lists on its sheets that the drawing does not have, on the first sheet's list.)
+  for (const why of settings.sheetContext?.stale ?? []) out.push({ code: 'SHEET_SET', severity: 'warning', message: why });
   // Datums and frames (R14.4, O5).
   const letters = new Map<string, string>();
   for (const d of settings.datums ?? []) {
     if (!layout.views[d.view].hidden && !datumMarks(layout, ctx.views, d, presetFor(settings))) out.push({ code: 'DATUM_LOST', severity: 'error', message: d.face ? `Datum ${d.letter}: its face in the ${d.view} view has no unique current boundary anchor.` : `Datum ${d.letter}: its edge in the ${d.view} view is no longer in the part.`, view: d.view, fix: { kind: 'remove-datum', datum: d.id } });
-    if (letters.has(d.letter)) out.push({ code: 'DATUM_TWICE', severity: 'error', message: `Datum ${d.letter} is defined twice.`, view: d.view, fix: { kind: 'remove-datum', datum: d.id } });
+    // (11 ④: with sheets, a letter is repeated when an earlier datum feature of the whole drawing has it, wherever that is.)
+    const first = settings.sheetContext?.datumFirst[d.letter];
+    if (settings.sheetContext ? first !== undefined && first !== d.id : letters.has(d.letter)) out.push({ code: 'DATUM_TWICE', severity: 'error', message: `Datum ${d.letter} is defined twice.`, view: d.view, fix: { kind: 'remove-datum', datum: d.id } });
     else letters.set(d.letter, d.id);
   }
   const targetConflicts = datumTargetConflicts(settings.datumTargets ?? []);
@@ -273,7 +277,7 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
     if (values.some(([v, mode]) => v !== undefined && v > 0 && frameValue(v, preset, mode).tight)) out.push({ code: 'UNIT_PRECISION', severity: 'warning', message: `The ${f.characteristic} frame${f.dim === undefined ? '' : ` on dimension ${f.dim}`}: a value is too fine to print in inches even at 5 decimals, so the printed value is lower than the real one. Print this drawing in mm.`, frames: [f.id], ...(f.dim === undefined ? { view: f.view } : { dims: [f.dim] }) });
   }
   // (A datum exists when a datum feature symbol or a datum target set has its letter.)
-  const known = new Set([...letters.keys(), ...(settings.datumTargets ?? []).map(t => t.letter)]);
+  const known = new Set(settings.sheetContext?.datumLetters ?? [...letters.keys(), ...(settings.datumTargets ?? []).map(t => t.letter)]);
   for (const f of settings.frames ?? []) {
     for (const why of frameNotes(f, settings.standard)) out.push({ code: 'FRAME_RULE', severity: 'warning', message: `The ${f.characteristic} frame${f.dim === undefined ? '' : ` on dimension ${f.dim}`}: ${why}`, frames: [f.id], ...(f.dim === undefined ? { view: f.view } : { dims: [f.dim] }) });
     for (const why of frameRules(f)) out.push({ code: 'FRAME_RULE', severity: 'error', message: `The ${f.characteristic} frame${f.dim === undefined ? '' : ` on dimension ${f.dim}`}: ${why}`, frames: [f.id], ...(f.dim === undefined ? { view: f.view } : { dims: [f.dim] }) });
@@ -314,6 +318,7 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
     if (why) out.push({ code: 'FIT_ROW_MISSING', severity: 'error', message: `Dimension ${r.text}: its tolerance class has no limits here — ${why.replace(/^\[FIT_TABLE_MISS\] /, '')}.`, dims: [r.dim.id], view: r.dim.view });
   }
   // (FRd2, O119: a weld seen in no view has no symbol: said, the weld list holds it.)
+  // (11 ④: with sheets, a joint seen in no shown view of the whole set is said on the first sheet, once.)
   if (sheet.welds?.unshown.length) out.push({ code: 'WELD_NOT_SHOWN', severity: 'warning', message: `Weld${sheet.welds.unshown.length > 1 ? 's' : ''} ${sheet.welds.unshown.join(', ')}: no edge of the joint is visible in the front, top or right view, so no symbol is drawn. The weld list holds ${sheet.welds.unshown.length > 1 ? 'them' : 'it'}; a section or a detail view would show ${sheet.welds.unshown.length > 1 ? 'them' : 'it'}.` });
   // (O147 B2: a balloon with no clear room, and a BOM line none of whose items shows an edge in any shown base view.)
   if (sheet.balloons?.unclear.length) {
@@ -343,7 +348,9 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
   }
   // (DR-2: a break that shortens no shown orthographic view: its band misses the part, or only hidden views show its axis.)
   (settings.breaks ?? []).forEach((b, index) => {
-    if ((['front', 'top', 'right'] as const).some(id => !ctx.layout.views[id].hidden && viewBreaksOf(ctx.views[id], [b]).length)) return;
+    // (11 ④: a break is the drawing's: said on the first sheet only, and judged against the views of every sheet.)
+    if (settings.sheetContext && settings.sheetContext.n !== 1) return;
+    if ((['front', 'top', 'right'] as const).some(id => (!ctx.layout.views[id].hidden || ctx.settings.sheetContext?.allViews.includes(id)) && viewBreaksOf(ctx.views[id], [b]).length)) return;
     out.push({ code: 'BREAK_NO_VIEW', severity: 'warning', message: `The break along ${b.axis.toUpperCase()} from ${fmtMM(b.from)} to ${fmtMM(b.to)} shortens no view: it misses the part, or no view shown has its axis across or up.`, fix: { kind: 'remove-break', index } });
   });
   for (const tb of sheet.tables ?? []) if (tb.error) out.push({ code: 'TABLE_SOURCE', severity: 'error', message: `Table ${tb.id} has no rows from its source: ${tb.error}.`, tables: [tb.id] });
@@ -398,7 +405,8 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
     flagged.add(ownerKey(p.owner));
     out.push({ code: 'OFF_SHEET', severity: 'error', message: `${cap(name(p.owner, sheet))} reaches past the frame or into the title block.`, ...ids([p]), at: center(p.boxes[0] ?? [p.points[0], p.points[0], p.points[0], p.points[0]]), ...fixFor(ctx, p, placed, viewGrid) });
   }
-  out.push(...duplicates(ctx), ...coverage(ctx));
+  // (11 ④: what is missing is judged on the whole drawing: sheetSet.ts `setCoverage`.)
+  out.push(...(settings.sheetContext ? [] : [...duplicates(ctx), ...coverage(ctx)]));
   // (A table no fix clears — no room here, on A3 or at a smaller standard scale — said so, never left as if one might, O67.)
   for (const x of out) if (!x.fix && x.tables?.length && TABLE_CLASH.has(x.code)) x.message += ' Nothing clears it: the table has no room on this sheet, on A3 or at a smaller standard scale; make it smaller or show fewer views.';
   return out;
@@ -625,7 +633,7 @@ const unit = (v: XY): XY => { const l = Math.hypot(v[0], v[1]) || 1; return [v[0
 // Duplicates and coverage
 
 
-function duplicates(ctx: IssueContext): DrawingIssue[] {
+export function duplicates(ctx: IssueContext): DrawingIssue[] {
   const out: DrawingIssue[] = [], seen = new Map<string, Extract<Resolved, { ok: true }>[]>();
   for (const r of ctx.sheet.dimensions) {
     if (!r.ok) continue;
@@ -700,7 +708,7 @@ function holeLocated(ctx: IssueContext, h: Hole, ring: Extract<Resolved, { ok: t
   return false;
 }
 
-function coverage(ctx: IssueContext): DrawingIssue[] {
+export function coverage(ctx: IssueContext): DrawingIssue[] {
   const { views, sheet } = ctx, out: DrawingIssue[] = [], auto: DrawingFix = { kind: 'auto-dimension' };
   const along: Record<string, number[]> = {};
   const given = (axis: string) => along[axis] ??= givenAlong(sheet, axis);

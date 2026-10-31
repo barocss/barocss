@@ -136,6 +136,8 @@ and `precision` (`{mm?, inch?}`; `{}` resets); a value outside those is refused.
   It replaces the previous title block. Each revision record has `revision`, `date` (`YYYY-MM-DD`), `description`
   and optional `by`. The list replaces the history; `[]` clears it, and omission keeps it. To show it, include a table
   with `from: 'revisions'`. Invalid fields, dates, duplicate labels and multiline text are refused with `DRAWING_OPTIONS`.
+- A record can also carry `eco`, an engineering change order number (1–20 characters, single-line). The revision table gains an
+  **ECO** column only when at least one record has one; without any, the table is as it was.
 
 For authored revision history, supply a dense list with no empty slots. One invalid record refuses the update; it
 does not silently remove that record or clear the history. Revision labels allow 1–6 characters, descriptions
@@ -223,8 +225,9 @@ at its own scale. Nothing is approximated except a section's hatch boundary.
   holds nothing. Both are fixed by removing the detail with its dimensions. `DETAIL_NO_ROOM` has no automatic fix.
 - **The agent.** It sets them with `set_drawing`'s `details`, each `{ id, view, center, radius, scale?, at? }`. A list
   replaces the details, and `[]` clears them. A detail's parent, centre or radius can't change while it has dimensions.
-- **Not yet:** centre and thread marks inside a detail, a rectangular or jagged boundary, a detail of the isometric
-  view, and a detail on another sheet.
+- **On another sheet.** A detail can be drawn on a different sheet than its parent (see Drawing sets below).
+- **Not yet:** centre and thread marks inside a detail, a rectangular or jagged boundary, and a detail of the isometric
+  view.
 
 ## Broken views
 
@@ -369,6 +372,49 @@ A saved drawing that breaks one of these still opens unchanged: `FRAME_RULE` lis
 `DATUM_UNDEFINED` also counts a point datum
 target set as defining its letter.
 
+## Drawing sets (several sheets)
+
+A drawing is one sheet until you add more. **Add sheet** (the **+** after the sheet tabs along the bottom of the drawing)
+makes an empty Sheet 2, and a tab for each sheet switches the paper shown. Everything you do — dimensions, notes, Auto
+layout, issues — applies to the sheet shown, and each edit is one undo step.
+
+- Which view is on which sheet. Under **Sheets** (a closed toggle in the panel) each view, removed section and detail has
+  a a *Move … to sheet* list list. The first sheet holds every view that no other sheet lists. A section that is not removed is
+  drawn in projection with its view, so it always stays on its view's sheet. A section or detail you move nowhere is on
+  its parent's sheet. A view lives on exactly one sheet. Ticking Right view or Isometric view while on a sheet moves
+  that view to the sheet shown.
+- Annotations follow their view. A dimension, datum feature, datum target, frame or note with a leader is on the sheet of
+  the view it belongs to. A note without a leader stays on the sheet it was made on (a deleted sheet's notes go back to sheet 1).
+  In v1, tables (the revision table, BOM and other source tables) and the title block's fields are on sheet 1.
+  Balloons and weld symbols are drawing-level settings, ticked from any sheet: balloons are drawn on the sheet of the first of the
+  isometric, front, top or right view that is shown, each weld symbol on the sheet of the view a single sheet would show it in (the first of the front, top or right view
+  that is shown and sees the joint; an isometric view carries none). A joint seen in no shown view is warned once, on sheet 1.
+- Each sheet has its own title block, with SHEET reading `n OF N` and its size. Sheets after the first use the basic
+  block (a continuation block): the title block's fields and the revision table are on sheet 1 only. Sheet 1 also carries a
+  sheet index table (sheet, name, size) while there are two or more sheets. A sheet with no standard view reads `AS NOTED`
+  for its scale.
+- Each sheet is laid out on its own: its own size, its own scale and its own room for dimensions. Auto lays out each
+  sheet in turn. A sheet's scale and size are its own (the first sheet's are the drawing's `scale` and `sheet`).
+- A detail or removed section on another sheet than its view. Its circle (or cutting line) stays on the parent's sheet with
+  the letter and `SEE SHEET 2`; the detail or section is drawn on the other sheet with `FROM SHEET 1` under its name. Zone
+  references are not used.
+- Export. Export PDF writes one file with a page for each sheet, each at its own size. Export SVG and Export
+  DXF write the sheet shown (the file name ends `-sheet-2` when the drawing has several sheets).
+- Issues. The issue list names the sheet it is for. What is missing — a hole's size or position, a step, an overall size,
+  a view a hole shows round in — is judged on the whole drawing, so a dimension on one sheet counts for a view on another.
+  So are datums and given-twice dimensions: a frame on one sheet may name a datum defined on another, and a repeated datum
+  letter or dimension is reported once. Only placement checks (off the sheet, overlap) run sheet by sheet.
+  `SHEET_SET` (a warning) reports a sheet with no view on it, and what a file lists that the drawing does not have.
+- Delete sheet removes the sheet shown (not the first): its views go back to sheet 1, a detail or section to its parent's sheet, its notes to sheet 1. A sheet id that a note still names is not given to a new sheet.
+- Open. A file that lists a section or detail the drawing no longer has, or a section that is not removed, keeps the entry and the first sheet's issue list says so; the entry has no effect.
+- The agent. `drawing.set` (`set_drawing`) takes `sheets`, the sheets after the first: `{ id, name?, size?: A4|A3, scale?, views: [...] }`
+  with view ids `front`, `top`, `right`, `iso`, `section:B` (removed sections only) and `detail:C`. The list replaces the sheets; `[]`
+  returns to one sheet. A view listed twice, an id that is not a view, a section or detail the drawing does not have, and a
+  section that is not removed are refused with `DRAWING_OPTIONS`, in words that name the sheet and the view. The tool's own
+  description is only a short hint, so use `describe` on the tool for the shape above.
+- Not yet: tables and balloons on a later sheet, a sheet-1 entry in the list, reordering sheets, an
+  all-sheets DXF, and a different title block on later sheets.
+
 ## Issues
 
 **Drawing issues** lists what the sheet is missing or gets wrong: a feature with no dimension, a dimension that was
@@ -400,7 +446,7 @@ selects which table corner sits on `at`. These positions do not use model coordi
 
 ## Export
 
-- **Export SVG** and **Export PDF** write the sheet as shown.
+- **Export SVG** and **Export PDF** write the sheet as shown. With several sheets (Drawing sets above) the PDF has every sheet; the SVG and the DXF are of the sheet shown.
 - **Export DXF** writes it as AutoCAD 2000 or R12, chosen in **DXF version**.
 
 R12 converts unsupported curve forms to polylines with a chord tolerance of 0.001 mm on the sheet.

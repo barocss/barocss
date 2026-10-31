@@ -119,7 +119,7 @@ export function layoutSheet(views: DrawingViews, settings: DrawingSettings, sect
   const title: SheetLayout['title'] = [frame[2] - TITLE_BLOCK.width, frame[3] - TITLE_BLOCK.height - (settings.titleBlock?.template === 'extended' ? TITLE_EXTRA_HEIGHT : 0), frame[2], frame[3]];
   // The drawing area: the frame above the title block's band.
   const area = [frame[0] + PAD, frame[1] + PAD, frame[2] - PAD, title[1] - PAD];
-  const cells = CELLS[settings.projection], shown = (id: ViewId) => !settings.views || settings.views.includes(id) || id === 'front' || id === 'top';
+  const cells = CELLS[settings.projection], shown = (id: ViewId) => settings.sheetContext ? !!settings.views?.includes(id) : !settings.views || settings.views.includes(id) || id === 'front' || id === 'top';
   const ids = (Object.keys(cells) as ViewId[]).filter(shown);
   // (DR-2: a view's breaks at a scale — the gap BREAK_GAP sheet mm, in model mm — and its extent through them.)
   const breaksOf = (id: ViewId | SectionViewId, s?: number): ViewBreak[] => id === 'iso' || !settings.breaks?.length ? [] : viewBreaksOf(views[id], settings.breaks).map(b => ({ ...b, gap: s ? BREAK_GAP / s : 0 }));

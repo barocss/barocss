@@ -214994,7 +214994,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "({ name: string; description: string; input_schema: { type: string; properties: { mode?: undefined; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { mode: { type: string; enum: string[]; }; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { layout: { type: string; }; mode?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { codes: { type: string; items: { type: string; }; }; mode?: undefined; layout?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { ids: { type: string; items: { type: string; }; }; mode: { type: string; enum: string[]; }; layout?: undefined; codes?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { scope: { oneOf: ({ type: string; properties: { kind: { const: string; }; part: { type: string; }; }; required: string[]; additionalProperties: boolean; } | { type: string; properties: { kind: { const: string; }; part?: undefined; }; required: string[]; additionalProperties: boolean; })[]; }; sheet: { type: string; enum: string[]; }; scale: { anyOf: ({ type: string; enum?: undefined; } | { type: string; enum: string[]; })[]; }; projection: { type: string; enum: string[]; }; standard: { type: string; enum: string[]; }; front: { type: string; enum: string[]; }; views: { type: string; items: { type: string; enum: string[]; }; }; tolerancing: { type: string; enum: string[]; }; title: { type: string; }; units: { type: string; enum: string[]; }; dual: { type: string; }; precision: { type: string; properties: { mm: { type: string; }; inch: { type: string; }; }; additionalProperties: boolean; }; datums: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; face: { type: string; properties: { face: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; edge: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; oneOf: { required: string[]; not: { required: string[]; }; }[]; additionalProperties: boolean; }; }; datumTargets: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; number: { type: string; minimum: number; maximum: number; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; kind: { type: string; enum: string[]; }; point: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; at: { type: string; enum: string[]; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; endpoint: { type: string; enum: string[]; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; line: { type: string; properties: { from: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; to: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; area: { type: string; description: string; properties: { shape: { type: string; enum: string[]; }; at: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; d: { type: string; exclusiveMinimum: number; maximum: number; }; w: { type: string; exclusiveMinimum: number; maximum: number; }; h: { type: string; exclusiveMinimum: number; maximum: number; }; }; required: string[]; additionalProperties: boolean; oneOf: { properties: { shape: { enum: string[]; }; }; required: string[]; }[]; }; moveable: { type: string; enum: boolean[]; }; }; required: string[]; additionalProperties: boolean; oneOf: { properties: { kind: { enum: string[]; }; }; required: string[]; }[]; }; }; frames: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; }; dim: { type: string; }; view: { type: string; anyOf: ({ enum: string[]; pattern?: undefined; } | { pattern: string; enum?: undefined; })[]; }; place: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; characteristic: { type: string; enum: (\"position\" | \"concentricity\" | \"symmetry\" | \"straightness\" | \"flatness\" | \"circularity\" | \"cylindricity\" | \"profile-line\" | \"profile-surface\" | \"parallelism\" | \"perpendicularity\" | \"angularity\" | \"circular-runout\" | \"total-runout\")[]; }; value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; projected: { type: string; exclusiveMinimum: number; maximum: number; }; freeState: { type: string; }; tangentPlane: { type: string; }; sphere: { type: string; description: string; }; statistical: { type: string; description: string; }; unequal: { type: string; minimum: number; exclusiveMaximum: number; description: string; }; around: { type: string; enum: string[]; description: string; }; composite: { type: string; description: string; properties: { value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; }; required: string[]; additionalProperties: boolean; }; stacked: { type: string; description: string; properties: { value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; allOf: { if: { anyOf: { required: string[]; }[]; }; then: { properties: { characteristic: { enum: string[]; }; }; }; }[]; oneOf: ({ required: string[]; not: { anyOf: { required: string[]; }[]; required?: undefined; }; } | { required: string[]; not: { required: string[]; anyOf?: undefined; }; })[]; additionalProperties: boolean; }; }; titleBlock: { type: string; description: string; properties: { template: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; revisions: { type: string; maxItems: number; description: string; items: { type: string; properties: { revision: { type: string; minLength: number; maxLength: number; }; date: { type: string; description: string; }; description: { type: string; minLength: number; maxLength: number; }; by: { type: string; minLength: number; maxLength: number; }; }; required: string[]; additionalProperties: boolean; }; }; weldSymbols: { type: string; description: string; }; balloons: { type: string; description: string; }; sections: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; at: { type: string; description: string; }; dir: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; half: { type: string; description: string; properties: { line: { type: string; enum: string[]; }; at: { type: string; }; cut: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; steps: { type: string; description: string; items: { type: string; properties: { past: { type: string; }; at: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; along: { type: string; enum: string[]; }; removed: { type: string; description: string; properties: { at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; scale: { type: string; }; }; additionalProperties: boolean; }; revolved: { type: string; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; details: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; description: string; }; center: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; radius: { type: string; description: string; }; scale: { type: string; description: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; breaks: { type: string; description: string; items: { type: string; properties: { axis: { type: string; enum: string[]; }; from: { type: string; }; to: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; tables: { type: string; description: string; items: { type: string; properties: { id: { type: string; minLength: number; }; from: { type: string; enum: string[]; }; title: { type: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; corner: { type: string; enum: string[]; }; whole: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; mode?: undefined; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; })[]",
+            "type": "({ name: string; description: string; input_schema: { type: string; properties: { mode?: undefined; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { mode: { type: string; enum: string[]; }; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { layout: { type: string; }; mode?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { codes: { type: string; items: { type: string; }; }; mode?: undefined; layout?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { ids: { type: string; items: { type: string; }; }; mode: { type: string; enum: string[]; }; layout?: undefined; codes?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { scope: { oneOf: ({ type: string; properties: { kind: { const: string; }; part: { type: string; }; }; required: string[]; additionalProperties: boolean; } | { type: string; properties: { kind: { const: string; }; part?: undefined; }; required: string[]; additionalProperties: boolean; })[]; }; sheet: { type: string; enum: string[]; }; scale: { anyOf: ({ type: string; enum?: undefined; } | { type: string; enum: string[]; })[]; }; projection: { type: string; enum: string[]; }; standard: { type: string; enum: string[]; }; front: { type: string; enum: string[]; }; views: { type: string; items: { type: string; enum: string[]; }; }; tolerancing: { type: string; enum: string[]; }; title: { type: string; }; units: { type: string; enum: string[]; }; dual: { type: string; }; precision: { type: string; properties: { mm: { type: string; }; inch: { type: string; }; }; additionalProperties: boolean; }; datums: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; face: { type: string; properties: { face: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; edge: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; oneOf: { required: string[]; not: { required: string[]; }; }[]; additionalProperties: boolean; }; }; datumTargets: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; number: { type: string; minimum: number; maximum: number; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; kind: { type: string; enum: string[]; }; point: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; at: { type: string; enum: string[]; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; endpoint: { type: string; enum: string[]; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; line: { type: string; properties: { from: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; to: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; area: { type: string; description: string; properties: { shape: { type: string; enum: string[]; }; at: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; d: { type: string; exclusiveMinimum: number; maximum: number; }; w: { type: string; exclusiveMinimum: number; maximum: number; }; h: { type: string; exclusiveMinimum: number; maximum: number; }; }; required: string[]; additionalProperties: boolean; oneOf: { properties: { shape: { enum: string[]; }; }; required: string[]; }[]; }; moveable: { type: string; enum: boolean[]; }; }; required: string[]; additionalProperties: boolean; oneOf: { properties: { kind: { enum: string[]; }; }; required: string[]; }[]; }; }; frames: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; }; dim: { type: string; }; view: { type: string; anyOf: ({ enum: string[]; pattern?: undefined; } | { pattern: string; enum?: undefined; })[]; }; place: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; characteristic: { type: string; enum: (\"position\" | \"concentricity\" | \"symmetry\" | \"straightness\" | \"flatness\" | \"circularity\" | \"cylindricity\" | \"profile-line\" | \"profile-surface\" | \"parallelism\" | \"perpendicularity\" | \"angularity\" | \"circular-runout\" | \"total-runout\")[]; }; value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; projected: { type: string; exclusiveMinimum: number; maximum: number; }; freeState: { type: string; }; tangentPlane: { type: string; }; sphere: { type: string; description: string; }; statistical: { type: string; description: string; }; unequal: { type: string; minimum: number; exclusiveMaximum: number; description: string; }; around: { type: string; enum: string[]; description: string; }; composite: { type: string; description: string; properties: { value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; }; required: string[]; additionalProperties: boolean; }; stacked: { type: string; description: string; properties: { value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; allOf: { if: { anyOf: { required: string[]; }[]; }; then: { properties: { characteristic: { enum: string[]; }; }; }; }[]; oneOf: ({ required: string[]; not: { anyOf: { required: string[]; }[]; required?: undefined; }; } | { required: string[]; not: { required: string[]; anyOf?: undefined; }; })[]; additionalProperties: boolean; }; }; titleBlock: { type: string; description: string; properties: { template: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; revisions: { type: string; maxItems: number; description: string; items: { type: string; properties: { revision: { type: string; minLength: number; maxLength: number; }; date: { type: string; description: string; }; description: { type: string; minLength: number; maxLength: number; }; by: { type: string; minLength: number; maxLength: number; }; eco: { type: string; minLength: number; maxLength: number; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; sheets: { type: string; maxItems: number; description: string; items: { type: string; }; }; weldSymbols: { type: string; description: string; }; balloons: { type: string; description: string; }; sections: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; at: { type: string; description: string; }; dir: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; half: { type: string; description: string; properties: { line: { type: string; enum: string[]; }; at: { type: string; }; cut: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; steps: { type: string; description: string; items: { type: string; properties: { past: { type: string; }; at: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; along: { type: string; enum: string[]; }; removed: { type: string; description: string; properties: { at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; scale: { type: string; }; }; additionalProperties: boolean; }; revolved: { type: string; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; details: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; description: string; }; center: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; radius: { type: string; description: string; }; scale: { type: string; description: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; breaks: { type: string; description: string; items: { type: string; properties: { axis: { type: string; enum: string[]; }; from: { type: string; }; to: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; tables: { type: string; description: string; items: { type: string; properties: { id: { type: string; minLength: number; }; from: { type: string; enum: string[]; }; title: { type: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; corner: { type: string; enum: string[]; }; whole: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; mode?: undefined; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; })[]",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -236227,11 +236227,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"DUPLICATE\" | DatumTargetFailureCode | \"UNIT_PRECISION\" | \"DIM_ON_HIDDEN\" | \"DATUM_LOST\" | \"FRAME_LOST\" | \"FRAME_VIEW_MISSING\" | \"DATUM_UNDEFINED\" | \"FRAME_RULE\" | \"DATUM_TWICE\" | \"VIEW_NEEDED\" | \"DIMENSION_LOST\" | \"TEXT_OVERLAP\" | \"TEXT_OVER_LINES\" | \"OFF_SHEET\" | \"VIEWS_DONT_FIT\" | \"REMATCHED\" | \"HOLE_SIZE_MISSING\" | \"HOLE_NOT_LOCATED\" | \"STEP_NOT_LOCATED\" | \"OVERALL_MISSING\" | \"TABLE_SOURCE\" | \"WELD_NOT_SHOWN\" | \"BALLOON_NOT_CLEAR\" | \"BALLOON_NO_EDGE\" | \"FIT_ROW_MISSING\" | \"FOLLOWED_CHANGED\" | \"DETAIL_PARENT_MISSING\" | \"DETAIL_EMPTY\" | \"DETAIL_NO_ROOM\" | \"BREAK_NO_VIEW\" | \"SECTION_NO_ROOM\" | \"SECTION_NO_VIEW\" | \"DATUM_TARGET_OUTSIDE\"",
+            "type": "\"DUPLICATE\" | DatumTargetFailureCode | \"SHEET_SET\" | \"UNIT_PRECISION\" | \"DIM_ON_HIDDEN\" | \"DATUM_LOST\" | \"FRAME_LOST\" | \"FRAME_VIEW_MISSING\" | \"DATUM_UNDEFINED\" | \"FRAME_RULE\" | \"DATUM_TWICE\" | \"VIEW_NEEDED\" | \"DIMENSION_LOST\" | \"TEXT_OVERLAP\" | \"TEXT_OVER_LINES\" | \"OFF_SHEET\" | \"VIEWS_DONT_FIT\" | \"REMATCHED\" | \"HOLE_SIZE_MISSING\" | \"HOLE_NOT_LOCATED\" | \"STEP_NOT_LOCATED\" | \"OVERALL_MISSING\" | \"TABLE_SOURCE\" | \"WELD_NOT_SHOWN\" | \"BALLOON_NOT_CLEAR\" | \"BALLOON_NO_EDGE\" | \"FIT_ROW_MISSING\" | \"FOLLOWED_CHANGED\" | \"DETAIL_PARENT_MISSING\" | \"DETAIL_EMPTY\" | \"DETAIL_NO_ROOM\" | \"BREAK_NO_VIEW\" | \"SECTION_NO_ROOM\" | \"SECTION_NO_VIEW\" | \"DATUM_TARGET_OUTSIDE\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "\"UNIT_PRECISION\" | \"DIM_ON_HIDDEN\" | \"DATUM_LOST\" | \"FRAME_LOST\" | \"FRAME_VIEW_MISSING\" | \"DATUM_UNDEFINED\" | \"FRAME_RULE\" | \"DATUM_TWICE\" | \"VIEW_NEEDED\" | \"DIMENSION_LOST\" | \"TEXT_OVERLAP\" | \"TEXT_OVER_LINES\" | \"OFF_SHEET\" | \"VIEWS_DONT_FIT\" | \"DUPLICATE\" | \"REMATCHED\" | \"HOLE_SIZE_MISSING\" | \"HOLE_NOT_LOCATED\" | \"STEP_NOT_LOCATED\" | \"OVERALL_MISSING\" | \"TABLE_SOURCE\" | \"WELD_NOT_SHOWN\" | \"BALLOON_NOT_CLEAR\" | \"BALLOON_NO_EDGE\" | \"FIT_ROW_MISSING\" | \"FOLLOWED_CHANGED\" | \"DETAIL_PARENT_MISSING\" | \"DETAIL_EMPTY\" | \"DETAIL_NO_ROOM\" | \"BREAK_NO_VIEW\" | \"SECTION_NO_ROOM\" | \"SECTION_NO_VIEW\" | \"DATUM_TARGET_OUTSIDE\" | DatumTargetFailureCode"
+                "definition": "\"SHEET_SET\" | \"UNIT_PRECISION\" | \"DIM_ON_HIDDEN\" | \"DATUM_LOST\" | \"FRAME_LOST\" | \"FRAME_VIEW_MISSING\" | \"DATUM_UNDEFINED\" | \"FRAME_RULE\" | \"DATUM_TWICE\" | \"VIEW_NEEDED\" | \"DIMENSION_LOST\" | \"TEXT_OVERLAP\" | \"TEXT_OVER_LINES\" | \"OFF_SHEET\" | \"VIEWS_DONT_FIT\" | \"DUPLICATE\" | \"REMATCHED\" | \"HOLE_SIZE_MISSING\" | \"HOLE_NOT_LOCATED\" | \"STEP_NOT_LOCATED\" | \"OVERALL_MISSING\" | \"TABLE_SOURCE\" | \"WELD_NOT_SHOWN\" | \"BALLOON_NOT_CLEAR\" | \"BALLOON_NO_EDGE\" | \"FIT_ROW_MISSING\" | \"FOLLOWED_CHANGED\" | \"DETAIL_PARENT_MISSING\" | \"DETAIL_EMPTY\" | \"DETAIL_NO_ROOM\" | \"BREAK_NO_VIEW\" | \"SECTION_NO_ROOM\" | \"SECTION_NO_VIEW\" | \"DATUM_TARGET_OUTSIDE\" | DatumTargetFailureCode"
               }
             ],
             "members": [
@@ -237339,6 +237339,37 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./drawing/issues",
+      "exportName": "coverage",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/issues.ts",
+            "name": "coverage",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(ctx: IssueContext) => DrawingIssue[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(ctx: IssueContext) => DrawingIssue[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/issues",
       "exportName": "drawingIssues",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -237351,6 +237382,37 @@
             "package": "@barocss/cad-model",
             "file": "src/drawing/issues.ts",
             "name": "drawingIssues",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(ctx: IssueContext) => DrawingIssue[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(ctx: IssueContext) => DrawingIssue[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/issues",
+      "exportName": "duplicates",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/issues.ts",
+            "name": "duplicates",
             "kind": "function"
           },
           "shape": {
@@ -238153,6 +238215,13 @@
                 "type": "string"
               },
               {
+                "name": "eco",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
                 "name": "revision",
                 "kind": "property",
                 "optional": false,
@@ -238822,7 +238891,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "{ datums: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; face: { type: string; properties: { face: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; edge: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; oneOf: { required: string[]; not: { required: string[]; }; }[]; additionalProperties: boolean; }; }; datumTargets: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; number: { type: string; minimum: number; maximum: number; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; kind: { type: string; enum: string[]; }; point: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; at: { type: string; enum: string[]; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; endpoint: { type: string; enum: string[]; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; line: { type: string; properties: { from: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; to: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; area: { type: string; description: string; properties: { shape: { type: string; enum: string[]; }; at: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; d: { type: string; exclusiveMinimum: number; maximum: number; }; w: { type: string; exclusiveMinimum: number; maximum: number; }; h: { type: string; exclusiveMinimum: number; maximum: number; }; }; required: string[]; additionalProperties: boolean; oneOf: { properties: { shape: { enum: string[]; }; }; required: string[]; }[]; }; moveable: { type: string; enum: boolean[]; }; }; required: string[]; additionalProperties: boolean; oneOf: { properties: { kind: { enum: string[]; }; }; required: string[]; }[]; }; }; frames: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; }; dim: { type: string; }; view: { type: string; anyOf: ({ enum: string[]; pattern?: undefined; } | { pattern: string; enum?: undefined; })[]; }; place: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; characteristic: { type: string; enum: (\"position\" | \"concentricity\" | \"symmetry\" | \"straightness\" | \"flatness\" | \"circularity\" | \"cylindricity\" | \"profile-line\" | \"profile-surface\" | \"parallelism\" | \"perpendicularity\" | \"angularity\" | \"circular-runout\" | \"total-runout\")[]; }; value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; projected: { type: string; exclusiveMinimum: number; maximum: number; }; freeState: { type: string; }; tangentPlane: { type: string; }; sphere: { type: string; description: string; }; statistical: { type: string; description: string; }; unequal: { type: string; minimum: number; exclusiveMaximum: number; description: string; }; around: { type: string; enum: string[]; description: string; }; composite: { type: string; description: string; properties: { value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; }; required: string[]; additionalProperties: boolean; }; stacked: { type: string; description: string; properties: { value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; allOf: { if: { anyOf: { required: string[]; }[]; }; then: { properties: { characteristic: { enum: string[]; }; }; }; }[]; oneOf: ({ required: string[]; not: { anyOf: { required: string[]; }[]; required?: undefined; }; } | { required: string[]; not: { required: string[]; anyOf?: undefined; }; })[]; additionalProperties: boolean; }; }; titleBlock: { type: string; description: string; properties: { template: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; revisions: { type: string; maxItems: number; description: string; items: { type: string; properties: { revision: { type: string; minLength: number; maxLength: number; }; date: { type: string; description: string; }; description: { type: string; minLength: number; maxLength: number; }; by: { type: string; minLength: number; maxLength: number; }; }; required: string[]; additionalProperties: boolean; }; }; weldSymbols: { type: string; description: string; }; balloons: { type: string; description: string; }; sections: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; at: { type: string; description: string; }; dir: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; half: { type: string; description: string; properties: { line: { type: string; enum: string[]; }; at: { type: string; }; cut: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; steps: { type: string; description: string; items: { type: string; properties: { past: { type: string; }; at: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; along: { type: string; enum: string[]; }; removed: { type: string; description: string; properties: { at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; scale: { type: string; }; }; additionalProperties: boolean; }; revolved: { type: string; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; details: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; description: string; }; center: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; radius: { type: string; description: string; }; scale: { type: string; description: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; breaks: { type: string; description: string; items: { type: string; properties: { axis: { type: string; enum: string[]; }; from: { type: string; }; to: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; tables: { type: string; description: string; items: { type: string; properties: { id: { type: string; minLength: number; }; from: { type: string; enum: string[]; }; title: { type: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; corner: { type: string; enum: string[]; }; whole: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; }",
+            "type": "{ datums: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; face: { type: string; properties: { face: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; edge: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; oneOf: { required: string[]; not: { required: string[]; }; }[]; additionalProperties: boolean; }; }; datumTargets: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; number: { type: string; minimum: number; maximum: number; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; kind: { type: string; enum: string[]; }; point: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; at: { type: string; enum: string[]; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; endpoint: { type: string; enum: string[]; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; line: { type: string; properties: { from: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; to: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; area: { type: string; description: string; properties: { shape: { type: string; enum: string[]; }; at: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; d: { type: string; exclusiveMinimum: number; maximum: number; }; w: { type: string; exclusiveMinimum: number; maximum: number; }; h: { type: string; exclusiveMinimum: number; maximum: number; }; }; required: string[]; additionalProperties: boolean; oneOf: { properties: { shape: { enum: string[]; }; }; required: string[]; }[]; }; moveable: { type: string; enum: boolean[]; }; }; required: string[]; additionalProperties: boolean; oneOf: { properties: { kind: { enum: string[]; }; }; required: string[]; }[]; }; }; frames: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; }; dim: { type: string; }; view: { type: string; anyOf: ({ enum: string[]; pattern?: undefined; } | { pattern: string; enum?: undefined; })[]; }; place: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; characteristic: { type: string; enum: (\"position\" | \"concentricity\" | \"symmetry\" | \"straightness\" | \"flatness\" | \"circularity\" | \"cylindricity\" | \"profile-line\" | \"profile-surface\" | \"parallelism\" | \"perpendicularity\" | \"angularity\" | \"circular-runout\" | \"total-runout\")[]; }; value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; projected: { type: string; exclusiveMinimum: number; maximum: number; }; freeState: { type: string; }; tangentPlane: { type: string; }; sphere: { type: string; description: string; }; statistical: { type: string; description: string; }; unequal: { type: string; minimum: number; exclusiveMaximum: number; description: string; }; around: { type: string; enum: string[]; description: string; }; composite: { type: string; description: string; properties: { value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; }; required: string[]; additionalProperties: boolean; }; stacked: { type: string; description: string; properties: { value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; allOf: { if: { anyOf: { required: string[]; }[]; }; then: { properties: { characteristic: { enum: string[]; }; }; }; }[]; oneOf: ({ required: string[]; not: { anyOf: { required: string[]; }[]; required?: undefined; }; } | { required: string[]; not: { required: string[]; anyOf?: undefined; }; })[]; additionalProperties: boolean; }; }; titleBlock: { type: string; description: string; properties: { template: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; revisions: { type: string; maxItems: number; description: string; items: { type: string; properties: { revision: { type: string; minLength: number; maxLength: number; }; date: { type: string; description: string; }; description: { type: string; minLength: number; maxLength: number; }; by: { type: string; minLength: number; maxLength: number; }; eco: { type: string; minLength: number; maxLength: number; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; sheets: { type: string; maxItems: number; description: string; items: { type: string; }; }; weldSymbols: { type: string; description: string; }; balloons: { type: string; description: string; }; sections: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; at: { type: string; description: string; }; dir: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; half: { type: string; description: string; properties: { line: { type: string; enum: string[]; }; at: { type: string; }; cut: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; steps: { type: string; description: string; items: { type: string; properties: { past: { type: string; }; at: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; along: { type: string; enum: string[]; }; removed: { type: string; description: string; properties: { at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; scale: { type: string; }; }; additionalProperties: boolean; }; revolved: { type: string; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; details: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; description: string; }; center: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; radius: { type: string; description: string; }; scale: { type: string; description: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; breaks: { type: string; description: string; items: { type: string; properties: { axis: { type: string; enum: string[]; }; from: { type: string; }; to: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; tables: { type: string; description: string; items: { type: string; properties: { id: { type: string; minLength: number; }; from: { type: string; enum: string[]; }; title: { type: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; corner: { type: string; enum: string[]; }; whole: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; }",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -242220,6 +242289,1036 @@
             ],
             "callSignatures": [
               "(r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }, callout: ((edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null) | undefined, p: StandardPreset) => Resolved"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheetSet",
+      "exportName": "BuiltSheet",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheetSet.ts",
+            "name": "BuiltSheet",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "BuiltSheet",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "layout",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "SheetLayout"
+              },
+              {
+                "name": "settings",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "DrawingSettings"
+              },
+              {
+                "name": "sheet",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Sheet"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheetSet",
+      "exportName": "SheetIssue",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheetSet.ts",
+            "name": "SheetIssue",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "SheetIssue",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "issue",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Pick<DrawingIssue, \"code\" | \"message\" | \"severity\"> & Partial<DrawingIssue>"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "sheet",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheetSet",
+      "exportName": "autoLayoutSheets",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheetSet.ts",
+            "name": "autoLayoutSheets",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(i: SheetInputs) => { settings: DrawingSettings; reports: AutoLayoutReport[]; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(i: SheetInputs) => { settings: DrawingSettings; reports: AutoLayoutReport[]; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheetSet",
+      "exportName": "buildSheets",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheetSet.ts",
+            "name": "buildSheets",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(views: DrawingViews, settings: DrawingSettings, meta: { title: string; date: string; source?: string | undefined; callout?: ((edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null) | undefined; threads?: ReadonlyMap<string, FaceThread> | undefined; tableContent?: ((t: DrawingTable) => TableContent | { error: string; }) | undefined; welds?: readonly WeldJoint[] | undefined; bom?: Bom | undefined; bodyFaces?: Readonly<Record<string, readonly string[]>> | undefined; }, sections?: readonly SheetSection[] | undefined) => BuiltSheet[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(views: DrawingViews, settings: DrawingSettings, meta: { title: string; date: string; source?: string | undefined; callout?: ((edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null) | undefined; threads?: ReadonlyMap<string, FaceThread> | undefined; tableContent?: ((t: DrawingTable) => TableContent | { error: string; }) | undefined; welds?: readonly WeldJoint[] | undefined; bom?: Bom | undefined; bodyFaces?: Readonly<Record<string, readonly string[]>> | undefined; }, sections?: readonly SheetSection[] | undefined) => BuiltSheet[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheetSet",
+      "exportName": "setCoverage",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheetSet.ts",
+            "name": "setCoverage",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(settings: DrawingSettings, contexts: readonly IssueContext[]) => SheetIssue[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(settings: DrawingSettings, contexts: readonly IssueContext[]) => SheetIssue[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheetSet",
+      "exportName": "setIssuesOn",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheetSet.ts",
+            "name": "setIssuesOn",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(i: SheetInputs, k: number) => DrawingIssue[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(i: SheetInputs, k: number) => DrawingIssue[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheetSet",
+      "exportName": "sheetsIssues",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheetSet.ts",
+            "name": "sheetsIssues",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(i: SheetInputs, contexts?: readonly IssueContext[] | undefined) => SheetIssue[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(i: SheetInputs, contexts?: readonly IssueContext[] | undefined) => SheetIssue[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "DrawingSheet",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "DrawingSheet",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "DrawingSheet",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "id",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "scale",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "size",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "\"A4\" | \"A3\" | undefined"
+              },
+              {
+                "name": "views",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "MAX_SHEETS",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "MAX_SHEETS",
+            "kind": "const"
+          },
+          "shape": {
+            "type": "12",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "SHEET_INDEX",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "SHEET_INDEX",
+            "kind": "const"
+          },
+          "shape": {
+            "type": "\"sheet-index\"",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "SheetContext",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "SheetContext",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "SheetContext",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "allViews",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "ViewId[]"
+              },
+              {
+                "name": "balloonsHere",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "boolean"
+              },
+              {
+                "name": "circleOnly",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              },
+              {
+                "name": "datumFirst",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Record<string, string>"
+              },
+              {
+                "name": "datumLetters",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              },
+              {
+                "name": "lineOnly",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              },
+              {
+                "name": "n",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "of",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "sectionViewOnly",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              },
+              {
+                "name": "sheets",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ name: string; size: \"A4\" | \"A3\"; }[]"
+              },
+              {
+                "name": "stale",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              },
+              {
+                "name": "viewOnly",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              },
+              {
+                "name": "where",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Record<string, number>"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "checkSheetsInput",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "checkSheetsInput",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(x: unknown) => Problem<CadModelCode>[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(x: unknown) => Problem<CadModelCode>[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "forSheet",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "forSheet",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(s: DrawingSettings, k: number) => DrawingSettings",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(s: DrawingSettings, k: number) => DrawingSettings"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "mergeSheet",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "mergeSheet",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(whole: DrawingSettings, k: number, next: DrawingSettings) => DrawingSettings",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(whole: DrawingSettings, k: number, next: DrawingSettings) => DrawingSettings"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "moveToSheet",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "moveToSheet",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(s: DrawingSettings, ref: string, to: number) => DrawingSheet[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(s: DrawingSettings, ref: string, to: number) => DrawingSheet[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "nextSheetId",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "nextSheetId",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(s: Pick<DrawingSettings, \"notes\" | \"sheets\">) => string",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(s: Pick<DrawingSettings, \"notes\" | \"sheets\">) => string"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "readSheets",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "readSheets",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(raw: unknown) => DrawingSheet[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(raw: unknown) => DrawingSheet[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "refOk",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "refOk",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(v: unknown) => v is string",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(v: unknown) => v is string"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "removeSheet",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "removeSheet",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(s: DrawingSettings, k: number) => Pick<DrawingSettings, \"notes\" | \"sheets\">",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(s: DrawingSettings, k: number) => Pick<DrawingSettings, \"notes\" | \"sheets\">"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "sheetCount",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "sheetCount",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(s: Pick<DrawingSettings, \"sheets\">) => number",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(s: Pick<DrawingSettings, \"sheets\">) => number"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "sheetMap",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "sheetMap",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(s: DrawingSettings) => Map<string, number>",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(s: DrawingSettings) => Map<string, number>"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "sheetName",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "sheetName",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(s: Pick<DrawingSettings, \"sheets\">, k: number) => string",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(s: Pick<DrawingSettings, \"sheets\">, k: number) => string"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "sheetOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "sheetOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(s: DrawingSettings, ref: string) => number",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(s: DrawingSettings, ref: string) => number"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "sheetSetIssues",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "sheetSetIssues",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(s: DrawingSettings) => { sheet: number; message: string; }[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(s: DrawingSettings) => { sheet: number; message: string; }[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "sheetSize",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "sheetSize",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(s: Pick<DrawingSettings, \"sheet\" | \"sheets\">, k: number) => \"A4\" | \"A3\"",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(s: Pick<DrawingSettings, \"sheet\" | \"sheets\">, k: number) => \"A4\" | \"A3\""
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "sheetsProblem",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "sheetsProblem",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(s: DrawingSettings, sheets?: readonly DrawingSheet[]) => string | null",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(s: DrawingSettings, sheets?: readonly DrawingSheet[]) => string | null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "shownViews",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "shownViews",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(s: Pick<DrawingSettings, \"views\">) => ViewId[]",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(s: Pick<DrawingSettings, \"views\">) => ViewId[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheets",
+      "exportName": "staleSheetViews",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "staleSheetViews",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(s: DrawingSettings) => { sheet: number; ref: string; why: string; }[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(s: DrawingSettings) => { sheet: number; ref: string; why: string; }[]"
             ]
           }
         }
@@ -247075,6 +248174,13 @@
                 "type": "{ view: ViewId; at: XY; } | undefined"
               },
               {
+                "name": "sheet",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
                 "name": "text",
                 "kind": "property",
                 "optional": false,
@@ -247132,6 +248238,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "string"
+              },
+              {
+                "name": "eco",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
               },
               {
                 "name": "revision",
@@ -247427,6 +248540,20 @@
                 "type": "\"A4\" | \"A3\""
               },
               {
+                "name": "sheetContext",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "SheetContext | undefined"
+              },
+              {
+                "name": "sheets",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "DrawingSheet[] | undefined"
+              },
+              {
                 "name": "standard",
                 "kind": "property",
                 "optional": true,
@@ -247488,6 +248615,72 @@
                 "optional": true,
                 "readonly": false,
                 "type": "boolean | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/types",
+      "exportName": "DrawingSheet",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "DrawingSheet",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "DrawingSheet",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "id",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "scale",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "size",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "\"A4\" | \"A3\" | undefined"
+              },
+              {
+                "name": "views",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
               }
             ],
             "indexSignatures": []
@@ -249080,6 +250273,128 @@
                 "callable": false
               }
             ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/types",
+      "exportName": "SheetContext",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheets.ts",
+            "name": "SheetContext",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "SheetContext",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "allViews",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "ViewId[]"
+              },
+              {
+                "name": "balloonsHere",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "boolean"
+              },
+              {
+                "name": "circleOnly",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              },
+              {
+                "name": "datumFirst",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Record<string, string>"
+              },
+              {
+                "name": "datumLetters",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              },
+              {
+                "name": "lineOnly",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              },
+              {
+                "name": "n",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "of",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "sectionViewOnly",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              },
+              {
+                "name": "sheets",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ name: string; size: \"A4\" | \"A3\"; }[]"
+              },
+              {
+                "name": "stale",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              },
+              {
+                "name": "viewOnly",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              },
+              {
+                "name": "where",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Record<string, number>"
+              }
+            ],
+            "indexSignatures": []
           }
         }
       ]
@@ -253433,14 +254748,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(layout: SheetLayout, views: DrawingViews, joints: readonly WeldJoint[], f?: LengthFormat | undefined) => WeldSymbols",
+            "type": "(layout: SheetLayout, views: DrawingViews, joints: readonly WeldJoint[], f?: LengthFormat | undefined, set?: { shown: readonly ViewId[]; mine(view: ViewId): boolean; reportUnshown: boolean; } | undefined) => WeldSymbols",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(layout: SheetLayout, views: DrawingViews, joints: readonly WeldJoint[], f?: LengthFormat | undefined) => WeldSymbols"
+              "(layout: SheetLayout, views: DrawingViews, joints: readonly WeldJoint[], f?: LengthFormat | undefined, set?: { shown: readonly ViewId[]; mine(view: ViewId): boolean; reportUnshown: boolean; } | undefined) => WeldSymbols"
             ]
           }
         }
@@ -302770,11 +304085,42 @@
             "type": "(sheet: Sheet, title: string) => Uint8Array<ArrayBufferLike>",
             "declarationSignatures": [
               {
-                "kind": "FunctionDeclaration"
+                "kind": "VariableDeclaration"
               }
             ],
             "callSignatures": [
               "(sheet: Sheet, title: string) => Uint8Array<ArrayBufferLike>"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./io/pdf",
+      "exportName": "sheetsPdf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/io/pdf.ts",
+            "name": "sheetsPdf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(sheets: readonly Sheet[], title: string) => Uint8Array<ArrayBufferLike>",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(sheets: readonly Sheet[], title: string) => Uint8Array<ArrayBufferLike>"
             ]
           }
         }
@@ -302899,6 +304245,37 @@
             ],
             "callSignatures": [
               "(sheet: Sheet, title: string) => string"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./io/svg",
+      "exportName": "sheetsSvg",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/io/svg.ts",
+            "name": "sheetsSvg",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(sheets: readonly Sheet[], title: string) => string[]",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(sheets: readonly Sheet[], title: string) => string[]"
             ]
           }
         }

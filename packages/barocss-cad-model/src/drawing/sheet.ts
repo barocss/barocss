@@ -156,7 +156,13 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   // (Pushed after each section's drawing, as A–A's always was: the DXF's entities keep their order.)
   const cutting = new Map<string, MarkGroup>();
   for (const ps of layout.sections ?? []) { const sec = sections?.find(x => x.id === ps.section); const g = sec && cuttingPlane(layout, views, sec, settings.orientation, p); if (g) cutting.set(ps.section, g); }
-  for (const sec of sections ?? []) if (sec.removed && sectionsOf(settings).some(x => sameSection(x, sec))) { const g = cuttingPlane(layout, views, sec, settings.orientation, p); if (g) cutting.set(sec.id, g); }
+  for (const sec of sections ?? []) if (sec.removed && sectionsOf(settings).some(x => sameSection(x, sec)) && !settings.sheetContext?.sectionViewOnly.includes(sec.id)) {
+    const g = cuttingPlane(layout, views, sec, settings.orientation, p);
+    // (11 ④: a removed section drawn on another sheet: its cutting line says where.)
+    const to = settings.sheetContext?.lineOnly.includes(sec.id) ? settings.sheetContext.where[`section:${sec.id}`] : undefined, first = g?.marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
+    if (g && to && first) g.marks.push({ kind: 'text', at: [first.at[0], first.at[1] + 3.5], text: `SEE SHEET ${to}`, size: 2, anchor: first.anchor });
+    if (g) cutting.set(sec.id, g);
+  }
   // Each view's name under it, below any dimension placed under the view.
   for (const id of VIEW_IDS) {
     if (layout.views[id].hidden) continue;
@@ -213,13 +219,14 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   }
   const dimensions: Resolved[] = settings.dimensions.map(d => inSections.get(d.id) ?? inViews.find(r => r.dim === d)!);
   // (FRd2, O119: the weld symbols, before the tables so an auto-placed one keeps clear of their texts.)
-  const welds = settings.weldSymbols && meta.welds?.length ? weldSymbols(layout, views, meta.welds, p.units === 'mm' && p.precision.mm === undefined ? undefined : lengthFormats(p).primary) : null;
+  const sc = settings.sheetContext;
+  const welds = settings.weldSymbols && meta.welds?.length ? weldSymbols(layout, views, meta.welds, p.units === 'mm' && p.precision.mm === undefined ? undefined : lengthFormats(p).primary, sc ? { shown: sc.allViews, mine: v => sc.where[v] === sc.n, reportUnshown: sc.n === 1 } : undefined) : null;
   if (welds) groups.push(...welds.groups);
   // (O147 B2: the item balloons, after the weld symbols and before the tables: clear of the texts so far and of the pinned tables.)
   // (Clear of the tables pinned by `at` too: they are placed after, where they were set.)
   const pinned = (settings.tables ?? []).filter(t => t.at).map(t => tableLayout(tableContentOf(t, meta.tableContent, settings).content, t.at!, t.corner ?? 'top-left').box as Rect);
   const detailBoxes = [...drawn.details.map(x => x.box), ...apart.boxes];
-  const balloons = settings.balloons && meta.bom?.lines.length ? balloonMarks(layout, views, meta.bom, [...takenOf(layout, groups, detailBoxes), ...pinned], meta.bodyFaces) : null;
+  const balloons = settings.balloons && settings.sheetContext?.balloonsHere !== false && meta.bom?.lines.length ? balloonMarks(layout, views, meta.bom, [...takenOf(layout, groups, detailBoxes), ...pinned], meta.bodyFaces) : null;
   if (balloons) groups.push(...balloons.groups);
   // (Tables last: an auto-placed one finds room clear of everything else on the sheet, O49.)
   const tables = tableGroups(layout, settings, groups, meta.tableContent, detailBoxes);
@@ -263,6 +270,7 @@ function apartSections(layout: SheetLayout, views: DrawingViews, settings: Drawi
   const taken = takenOf(layout, [...before, ...cutting.values()], placedSections.map(x => x.placement.box));
   for (const s of sectionsOf(settings)) {
     if (!s.removed && !s.revolved) continue;
+    if (settings.sheetContext?.lineOnly.includes(s.id)) { const line = cutting.get(s.id); if (line) groups.push(line); continue; }
     const sec = sections.find(x => sameSection(x, s)); if (!sec) continue;
     const pr = sec.projection, ref: SectionRef = `section:${s.id}`;
     let placement: SectionPlacement, on: ViewId | undefined, along: XY | null = null, k = layout.scale;
@@ -302,8 +310,10 @@ function apartSections(layout: SheetLayout, views: DrawingViews, settings: Drawi
     const [x0, , x1, y1] = placement.box;
     let below = y1;
     for (const g of groups) if (g.role === 'dimension' && g.view === ref) for (const m of g.marks) for (const q of markPoints(m)) if (q[0] >= x0 - 2 && q[0] <= x1 + 2 && q[1] > below) below = q[1];
-    groups.push({ role: 'label', marks: [{ kind: 'text', at: [(x0 + x1) / 2, below + DETAIL_LABEL], text: `SECTION ${s.id}–${s.id}${Math.abs(k - layout.scale) > 1e-12 ? ` (${scaleLabel(k)})` : ''}`, size: 2.5, anchor: 'middle' }] });
-    const box: Rect = [placement.box[0], placement.box[1], placement.box[2], below + DETAIL_LABEL];
+    // (11 ④: drawn on another sheet than its view's: the name says from which.)
+    const from = settings.sheetContext?.sectionViewOnly.includes(s.id) ? settings.sheetContext.where[s.view] : undefined;
+    groups.push({ role: 'label', marks: [{ kind: 'text', at: [(x0 + x1) / 2, below + DETAIL_LABEL], text: `SECTION ${s.id}–${s.id}${Math.abs(k - layout.scale) > 1e-12 ? ` (${scaleLabel(k)})` : ''}`, size: 2.5, anchor: 'middle' }, ...(from ? [{ kind: 'text' as const, at: [(x0 + x1) / 2, below + DETAIL_LABEL + 3.5] as XY, text: `FROM SHEET ${from}`, size: 2, anchor: 'middle' as const }] : [])] });
+    const box: Rect = [placement.box[0], placement.box[1], placement.box[2], below + DETAIL_LABEL + (from ? 3.5 : 0)];
     taken.push(box); boxes.push(box);
   }
   return { groups, placed, boxes, missing, resolved };
@@ -322,16 +332,27 @@ const DETAIL_LABEL = 7, DETAIL_GAP = 4;
 function detailGroups(layout: SheetLayout, views: DrawingViews, settings: DrawingSettings, before: readonly MarkGroup[], placedSections: NonNullable<Sheet['sections']>, sections: readonly SheetSection[], p: StandardPreset, callout?: (edge: string, diameter?: number, f?: LengthFormat) => string | null): { groups: MarkGroup[]; details: { detail: SheetDetail; box: Rect }[]; missing: NonNullable<Sheet['detailsMissing']>; resolved: Map<string, Resolved> } {
   const groups: MarkGroup[] = [], details: { detail: SheetDetail; box: Rect }[] = [], missing: NonNullable<Sheet['detailsMissing']> = [], resolved = new Map<string, Resolved>();
   const taken = takenOf(layout, before, placedSections.map(x => x.placement.box));
+  const ctx = settings.sheetContext;
   for (const d of settings.details ?? []) {
-    const parent = detailParent(layout, views, placedSections, sections, d);
+    // (11 ④: a detail whose circle is on another sheet is drawn from the parent's projection alone; one whose view is on another sheet only gets its circle and where to look.)
+    const viewOnly = !!ctx?.viewOnly.includes(d.id), circleOnly = !!ctx?.circleOnly.includes(d.id);
+    const parent = viewOnly ? foreignParent(views, sections, d) : detailParent(layout, views, placedSections, sections, d);
     if (!parent) { missing.push({ id: d.id, why: 'parent' }); continue; }
+    if (circleOnly) {
+      const pc = toSheet(parent.placement, d.center), pr = d.radius * parent.placement.scale, to = ctx!.where[`detail:${d.id}`];
+      const at: XY = [pc[0] + pr * Math.SQRT1_2 + 1, pc[1] - pr * Math.SQRT1_2 - 1];
+      groups.push({ role: 'detail', id: d.id, view: d.view, marks: [circleMark(pc, pr, 'thin'), { kind: 'text', at, text: d.id, size: p.text, anchor: 'start', bold: true }, { kind: 'text', at: [at[0], at[1] - 3.5], text: `SEE SHEET ${to}`, size: 2, anchor: 'start' }] });
+      continue;
+    }
     const projection = clipProjectionToDisk(parent.projection, d.center, d.radius);
     const cut = parent.rings.length ? clipRingsToDisk(parent.rings, d.center, d.radius) : { rings: [], kept: [] };
     if (!projection.edges.length && !cut.rings.length) missing.push({ id: d.id, why: 'empty' });
     const k = detailScale(d, layout.scale), half = k * d.radius;
     // (On the parent: the circle and the letter outside it, up and to the right.)
-    const pc = toSheet(parent.placement, d.center), pr = d.radius * parent.placement.scale;
-    groups.push({ role: 'detail', id: d.id, view: d.view, marks: [circleMark(pc, pr, 'thin'), { kind: 'text', at: [pc[0] + pr * Math.SQRT1_2 + 1, pc[1] - pr * Math.SQRT1_2 - 1], text: d.id, size: p.text, anchor: 'start', bold: true }] });
+    if (!viewOnly) {
+      const pc = toSheet(parent.placement, d.center), pr = d.radius * parent.placement.scale;
+      groups.push({ role: 'detail', id: d.id, view: d.view, marks: [circleMark(pc, pr, 'thin'), { kind: 'text', at: [pc[0] + pr * Math.SQRT1_2 + 1, pc[1] - pr * Math.SQRT1_2 - 1], text: d.id, size: p.text, anchor: 'start', bold: true }] });
+    }
     let at: XY | null = d.at ?? null;
     if (!at) { const room = detailRoom(layout, taken, 2 * half, 2 * half + DETAIL_LABEL); if (room) at = [room[0] + half, room[1] + half]; }
     if (!at) { missing.push({ id: d.id, why: 'room' }); continue; }
@@ -355,8 +376,9 @@ function detailGroups(layout: SheetLayout, views: DrawingViews, settings: Drawin
     }
     let below = placement.box[3];
     for (const g of groups) if (g.role === 'dimension' && g.view === ref) for (const m of g.marks) for (const q of markPoints(m)) if (q[0] >= placement.box[0] - 2 && q[0] <= placement.box[2] + 2 && q[1] > below) below = q[1];
-    groups.push({ role: 'label', marks: [{ kind: 'text', at: [at[0], below + DETAIL_LABEL], text: `DETAIL ${d.id} (${scaleLabel(k)})`, size: 2.5, anchor: 'middle' }] });
-    const box: Rect = [placement.box[0], placement.box[1], placement.box[2], below + DETAIL_LABEL];
+    const from = viewOnly ? ctx!.where[d.view] : undefined;
+    groups.push({ role: 'label', marks: [{ kind: 'text', at: [at[0], below + DETAIL_LABEL], text: `DETAIL ${d.id} (${scaleLabel(k)})`, size: 2.5, anchor: 'middle' }, ...(from ? [{ kind: 'text' as const, at: [at[0], below + DETAIL_LABEL + 3.5] as XY, text: `FROM SHEET ${from}`, size: 2, anchor: 'middle' as const }] : [])] });
+    const box: Rect = [placement.box[0], placement.box[1], placement.box[2], below + DETAIL_LABEL + (from ? 3.5 : 0)];
     taken.push(box);
     details.push({ detail: { id: d.id, view: d.view, scale: k, placement, projection }, box });
   }
@@ -371,6 +393,12 @@ function detailParent(layout: SheetLayout, views: DrawingViews, placedSections: 
   }
   const v = layout.views[d.view];
   return v.hidden ? null : { placement: v, projection: views[d.view], rings: [], hidden: true };
+}
+/** A detail's parent when it is on another sheet: its projection (and a section's rings), no placement here. */
+function foreignParent(views: DrawingViews, sections: readonly SheetSection[], d: DrawingDetail): { placement: ViewPlacement; projection: BrepProjection; rings: XY[][]; ringBodies?: number[]; hidden: boolean } | null {
+  const none = { id: 'detail', scale: 1, origin: [0, 0], box: [0, 0, 0, 0] } as ViewPlacement;
+  if (isSectionRef(d.view)) { const id = sectionLetter(d.view), sec = sections.find(x => x.id === id); return sec ? { placement: none, projection: sec.projection, rings: sec.rings, ...(sec.ringBodies ? { ringBodies: sec.ringBodies } : {}), hidden: false } : null; }
+  return { placement: none, projection: views[d.view], rings: [], hidden: true };
 }
 /** The first top-left corner for a w × h box clear of `taken` (with a gap), from the frame's top right, down then left in 5 mm steps; null when none is. */
 function detailRoom(layout: SheetLayout, taken: readonly Rect[], w: number, h: number): XY | null {
@@ -580,7 +608,8 @@ function titleBlock(layout: SheetLayout, settings: DrawingSettings, meta: { titl
   marks.push({ kind: 'text', at: [x1 - 2, y0 + 4], text: 'barocss cad-studio', size: 1.8, anchor: 'end' });
   // (O9: the source revision the sheet was drawn from, when given — beside the drawing's own REV, which a person sets.)
   if (meta.source) marks.push({ kind: 'text', at: [x1 - 2, y0 + 8], text: `SRC ${meta.source}`, size: 1.8, anchor: 'end' });
-  const cells: [string, string][] = [['SCALE', scaleLabel(layout.scale)], ['UNITS', unitsLabel(p)], ['DATE', meta.date], ['REV', settings.revision ?? '-'], ['SHEET', settings.sheet]];
+  const ctx = settings.sheetContext, anyView = VIEW_IDS.some(id => !layout.views[id].hidden);
+  const cells: [string, string][] = [['SCALE', ctx && !anyView ? 'AS NOTED' : scaleLabel(layout.scale)], ['UNITS', unitsLabel(p)], ['DATE', meta.date], ['REV', settings.revision ?? '-'], ['SHEET', ctx ? `${ctx.n} OF ${ctx.of} ${settings.sheet}` : settings.sheet]];
   cells.forEach(([k, val], i) => {
     marks.push({ kind: 'text', at: [cols[i] + 2, mid + 4], text: k, size: 1.8, anchor: 'start' });
     marks.push({ kind: 'text', at: [cols[i] + 2, mid + 12], ...fitText(val, 3.5, true, cols[i + 1] - cols[i] - 4, 2.2), anchor: 'start', bold: true });

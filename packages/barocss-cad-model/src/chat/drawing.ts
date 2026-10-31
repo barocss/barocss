@@ -24,7 +24,9 @@ import { revisionOf } from '../util/revision';
 import { autoDimensions } from '../drawing/auto';
 import { autoLayout, frontByInformation } from '../drawing/layout';
 import { reorient } from '../drawing/reorient';
-import { drawingIssues, fixRound, fixRoundsOutcome, fixRoundsStart, issueContext, type DrawingFix, type DrawingIssue, type DrawingIssueCode, type SheetInputs } from '../drawing/issues';
+import { forSheet, mergeSheet, sheetCount, sheetName, sheetSize } from '../drawing/sheets';
+import { autoLayoutSheets, setIssuesOn, sheetsIssues } from '../drawing/sheetSet';
+import { applyFix, drawingIssues, fixRound, fixRoundsOutcome, fixRoundsStart, issueContext, type DrawingFix, type DrawingIssue, type DrawingIssueCode, type SheetInputs } from '../drawing/issues';
 import { acceptAll, applySuggestion, toleranceSuggestions } from '../drawing/tolerance';
 import { precisionOk, readDrawing, sectionsOf, VIEW_IDS, type DrawingSettings, type ViewId } from '../drawing/types';
 import { SCALES, scaleLabel } from '../drawing/views';
@@ -95,7 +97,14 @@ function sheetOf(i: SheetInputs) {
   const ctx = issueContext(i);
   return { ctx, sheet: { sheet: i.settings.sheet, scale: scaleLabel(ctx.layout.scale), fits: ctx.layout.fits, views: VIEW_IDS.filter(v => !ctx.layout.views[v].hidden), dimensions: ctx.sheet.dimensions.map(d => d.ok ? d.text : `lost: ${d.reason}`), tolerancing: i.settings.tolerancing ?? 'plus-minus' } };
 }
-const issueList = (i: SheetInputs) => { const { ctx, sheet } = sheetOf(i); return { sheet, issues: drawingIssues(ctx).map(x => ({ code: x.code, severity: x.severity, message: x.message, ...(x.fix ? { fix: x.fix.kind } : {}) })) }; };
+const issueList = (i: SheetInputs) => {
+  // (11 ④: a drawing with sheets: each sheet's views, and every issue naming its sheet — what is missing judged on the whole drawing.)
+  if (i.settings.sheets?.length) {
+    const first = sheetOf({ ...i, settings: forSheet(i.settings, 0) }).sheet;
+    return { sheet: first, sheets: Array.from({ length: sheetCount(i.settings) }, (_, k) => ({ sheet: k + 1, name: sheetName(i.settings, k), size: sheetSize(i.settings, k), views: forSheet(i.settings, k).views })),
+      issues: sheetsIssues(i).map(x => ({ sheet: x.sheet, code: x.issue.code, severity: x.issue.severity, message: x.issue.message, ...(x.issue.fix ? { fix: x.issue.fix.kind } : {}) })) };
+  }
+  const { ctx, sheet } = sheetOf(i); return { sheet, issues: drawingIssues(ctx).map(x => ({ code: x.code, severity: x.severity, message: x.message, ...(x.fix ? { fix: x.fix.kind } : {}) })) }; };
 
 /** Runs a drawing tool on the document. */
 export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string, unknown>): Outcome {
@@ -123,6 +132,22 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
     }
     case 'auto_dimension': {
       if (drawingScopeOf(i.settings).kind === 'assembly') return { error: '[DRAWING_SCOPE_AUTO] automatic component dimensions belong to a part drawing; assembly annotations and BOM are retained' };
+      // (11 ④: a drawing with sheets is laid out and dimensioned sheet by sheet, each as a drawing of its own.)
+      if (i.settings.sheets?.length) {
+        if (args.layout === false) {
+          let settings = i.settings; const add = { overall: 0, levels: 0, holePositions: 0, pitches: 0, callouts: 0 }; let kept = 0; const skipped: unknown[] = [], crowded: unknown[] = [];
+          for (let k = 0; k < sheetCount(i.settings); k++) {
+            const ik = { ...i, settings: forSheet(settings, k) }, r = autoDimensions(ik.views, issueContext(ik).layout, ik.settings, ik.callout, ik.elements, ik.sections, ik.locationOwner);
+            settings = mergeSheet(settings, k, withElementNotes({ ...ik.settings, dimensions: r.dimensions }, ik.elements ? elementNotes(ik.views, issueContext(ik).layout, ik.elements) : []));
+            for (const key of Object.keys(add) as (keyof typeof add)[]) add[key] += r.report.added[key];
+            kept += r.report.kept; skipped.push(...r.report.skipped); crowded.push(...r.report.crowded);
+          }
+          return set(settings, 'drawing dimensioned', { added: add, kept, skipped, crowded });
+        }
+        const r = autoLayoutSheets(i), add = { overall: 0, levels: 0, holePositions: 0, pitches: 0, callouts: 0 };
+        for (const x of r.reports) for (const key of Object.keys(add) as (keyof typeof add)[]) add[key] += x.dimensions.added[key];
+        return set(r.settings, `drawing laid out on ${r.reports.length} sheets and dimensioned`, { added: add, kept: r.reports.reduce((n, x) => n + x.dimensions.kept, 0), skipped: r.reports.flatMap(x => x.dimensions.skipped), dropped_views: r.reports.flatMap(x => x.dropped), readable: r.reports.every(x => x.readable), sheets: r.reports.map((x, k) => ({ sheet: k + 1, size: x.sheet, scale: scaleLabel(x.scale), views: x.views })) });
+      }
       if (args.layout === false) {
         const ctx = issueContext(i), r = autoDimensions(i.views, ctx.layout, i.settings, i.callout, i.elements, i.sections, i.locationOwner);
         return set(withElementNotes({ ...i.settings, dimensions: r.dimensions }, i.elements ? elementNotes(i.views, ctx.layout, i.elements) : []), 'drawing dimensioned', { added: r.report.added, kept: r.report.kept, skipped: r.report.skipped, crowded: r.report.crowded });
@@ -151,8 +176,31 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
       // no round is judged alone; and a Fix whose moves and Auto-dimension cannot meet what is left changes nothing, so a
       // second Fix applies nothing.)
       // (O175: the rounds are drawing/issues' fixRound, which the studio's Fix all runs too, a round per sheet cut.)
-      const built = new Map<DrawingSettings, SheetInputs>([[i.settings, i]]);
       const only = (fix: DrawingFix, issue: DrawingIssue) => (!assembly || fix.kind !== 'auto-dimension') && (!codes || codes.includes(issue.code as DrawingIssueCode));
+      // (11 ④: with sheets each sheet is fixed as a drawing of its own, then what the whole drawing lacks — Auto-dimension — on the sheet of its view.)
+      if (i.settings.sheets?.length) {
+        let settings = i.settings; const applied: DrawingFix[] = [];
+        const on = (from: DrawingSettings, k: number): SheetInputs | null => { const b = drawingInputs({ ...doc, drawing: from }, from); return typeof b === 'string' ? null : { ...b, settings: forSheet(from, k) }; };
+        for (let k = 0; k < sheetCount(i.settings); k++) {
+          let ik = on(settings, k); if (!ik) continue;
+          let step = fixRound(fixRoundsStart(ik), ik, only);
+          while (step.next) {
+            settings = mergeSheet(settings, k, step.next);
+            ik = on(settings, k); if (!ik) { step = fixRoundsOutcome(step.state); break; }
+            step = fixRound(step.state, ik, only);
+          }
+          settings = mergeSheet(settings, k, step.settings); applied.push(...step.applied);
+        }
+        const whole = drawingInputs({ ...doc, drawing: settings }, settings);
+        if (typeof whole !== 'string') for (let k = 0; k < sheetCount(settings); k++) {
+          const ik = on(settings, k); if (!ik) continue;
+          const ctx = issueContext(ik);
+          for (const x of setIssuesOn(whole, k)) if (x.fix && x.fix.kind === 'auto-dimension' && only(x.fix, x)) { settings = mergeSheet(settings, k, applyFix(ctx, x.fix)); applied.push(x.fix); break; }
+        }
+        const final = drawingInputs({ ...doc, drawing: settings }, settings);
+        return set(settings, `${applied.length} drawing fix${applied.length === 1 ? '' : 'es'}`, { applied: applied.map(f => f.kind) }, typeof final === 'string' ? i : final);
+      }
+      const built = new Map<DrawingSettings, SheetInputs>([[i.settings, i]]);
       let step = fixRound(fixRoundsStart(i), i, only);
       while (step.next) {
         const next = drawingInputs({ ...doc, drawing: step.next }, step.next);
@@ -197,7 +245,7 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
       if (typeof args.title === 'string' && args.title.trim()) s.title = args.title.trim().slice(0, 80);
       // Freeze the pre-change scope before BOM/balloons can affect legacy scope inference.
       s = { ...s, scope: drawingScopeOf(i.settings) };
-      try { s = withManufacturingDrawing(s, args); } catch (e) { if (isRefusal(e, 'DRAWING_SECTION_REFERENCES', 'DRAWING_DETAIL_REFERENCES', 'DRAWING_DETAIL_LETTER', 'DRAWING_DETAIL_PARENT')) return { error: e.message }; throw e; }
+      try { s = withManufacturingDrawing(s, args); } catch (e) { if (isRefusal(e, 'DRAWING_OPTIONS', 'DRAWING_SECTION_REFERENCES', 'DRAWING_DETAIL_REFERENCES', 'DRAWING_DETAIL_LETTER', 'DRAWING_DETAIL_PARENT')) return { error: e.message }; throw e; }
       // Sections, weld symbols and source tables need their new projection/meta for this result too.
       const updated = drawingInputs(doc, s);
       if (typeof updated === 'string') return { error: updated };

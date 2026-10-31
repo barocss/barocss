@@ -7,13 +7,15 @@ import { datumTargetsProperty, checkDatumTargetOptions, readDatumTargets } from 
 import { framesProperty, checkDrawingFrames, readFrames } from './controls';
 import { checkDrawingMetadata, readTitleBlock, readRevisions } from './metadata';
 import { breakOk, breaksMeet, type DrawingBreak } from './breaks';
+import { checkSheetsInput, readSheets, sheetsProblem } from './sheets';
 
 export const manufacturingDrawingProperties = {
   datums: datumsProperty,
   datumTargets: datumTargetsProperty,
   frames: framesProperty,
   titleBlock: { type: 'object', description: 'DR-5: replaces title metadata. Basic retains the original block; extended adds six fields. Omitted keeps it.', properties: { template: { type: 'string', enum: ['basic', 'extended'] }, ...Object.fromEntries(['organization', 'number', 'drawnBy', 'checkedBy', 'material', 'finish'].map(k => [k, { type: 'string', minLength: 1, maxLength: 120 }])) }, required: ['template'], additionalProperties: false },
-  revisions: { type: 'array', maxItems: 50, description: 'DR-5: replaces revision history; [] clears; omitted keeps. Unique revision labels. Does not change the active revision or record approval. Show with a table from revisions.', items: { type: 'object', properties: { revision: { type: 'string', minLength: 1, maxLength: 6 }, date: { type: 'string', description: 'YYYY-MM-DD' }, description: { type: 'string', minLength: 1, maxLength: 120 }, by: { type: 'string', minLength: 1, maxLength: 60 } }, required: ['revision', 'date', 'description'], additionalProperties: false } },
+  revisions: { type: 'array', maxItems: 50, description: 'DR-5: replaces revision history; [] clears; omitted keeps. Unique revision labels. Does not change the active revision or record approval. Show with a table from revisions.', items: { type: 'object', properties: { revision: { type: 'string', minLength: 1, maxLength: 6 }, date: { type: 'string', description: 'YYYY-MM-DD' }, description: { type: 'string', minLength: 1, maxLength: 120 }, by: { type: 'string', minLength: 1, maxLength: 60 }, eco: { type: 'string', minLength: 1, maxLength: 20, description: 'Engineering change order number; adds an ECO column.' } }, required: ['revision', 'date', 'description'], additionalProperties: false } },
+  sheets: { type: 'array', maxItems: 11, description: 'More sheets: [{id, name?, size?: A4|A3, views: [front|top|right|iso|section:B|detail:C]}] after the first; [] one sheet.', items: { type: 'object' } },
   weldSymbols: { type: 'boolean', description: 'true enables weld symbols; false removes the flag; omitted keeps it.' },
   balloons: { type: 'boolean', description: 'true enables BOM item balloons; false removes the flag; omitted keeps it. Does not change scope.' },
   sections: { type: 'array', description: 'Replaces all sections; [] clears them. Omitted keeps them. Referenced section changes are refused.', items: { type: 'object', properties: { id: { type: 'string', pattern: '^[A-Z]{1,2}$' }, view: { type: 'string', enum: ['front', 'top', 'right'] }, at: { type: 'number', description: 'Position along the view depth, model mm.' }, dir: { type: 'array', items: { type: 'number' }, minItems: 3, maxItems: 3, description: 'Aligned section: plane normal (model axes); at is along it.' }, half: { type: 'object', description: 'DR-3 half section: cut on one side of a centreline in the section view (vertical at u = at, or horizontal at v = at); cut after = the greater side.', properties: { line: { type: 'string', enum: ['vertical', 'horizontal'] }, at: { type: 'number' }, cut: { type: 'string', enum: ['after', 'before'] } }, required: ['line', 'at', 'cut'], additionalProperties: false }, steps: { type: 'array', description: 'DR-3 offset section: from the section view coordinate past onward (along along, horizontal by default), the plane is at depth at; past increasing.', items: { type: 'object', properties: { past: { type: 'number' }, at: { type: 'number' } }, required: ['past', 'at'], additionalProperties: false } }, along: { type: 'string', enum: ['horizontal', 'vertical'] }, removed: { type: 'object', description: 'DR-4 removed section: only the cut face, drawn apart from the views at scale (absolute; omitted: the sheet\'s), its centre at at [x, y] on the sheet (omitted: in free room).', properties: { at: { type: 'array', items: { type: 'number' }, minItems: 2, maxItems: 2 }, scale: { type: 'number' } }, additionalProperties: false }, revolved: { type: 'boolean', description: 'DR-4 revolved section (principal only): the cut face turned onto the view that sees the plane edge-on (a front section\'s onto the top view, others onto the front view).' } }, required: ['id', 'view', 'at'], additionalProperties: false } },
@@ -35,6 +37,7 @@ export function checkManufacturingDrawing(args: Record<string, unknown>, current
   const frames = checkDrawingFrames(args, currentFrames); if (frames.length) return frames;
   const metadata = checkDrawingMetadata(args); if (metadata.length) return metadata;
   for (const flag of ['weldSymbols', 'balloons']) if (flag in args && typeof args[flag] !== 'boolean') return [problem('DRAWING_OPTIONS', `${flag} must be boolean.`)];
+  if ('sheets' in args) { const sheets = checkSheetsInput(args.sheets); if (sheets.length) return sheets; }
   if ('sections' in args) {
     if (!Array.isArray(args.sections)) return [problem('DRAWING_OPTIONS', 'sections must be an array.')];
     const ids = new Set<string>();
@@ -121,6 +124,9 @@ export function withManufacturingDrawing(s: DrawingSettings, args: Record<string
     if (letters.has(d.id)) throw refusal('DRAWING_DETAIL_LETTER', `Detail ${d.id} has a section's letter: letters are unique among sections and details.`);
     if (d.view.startsWith('section:') && !letters.has(d.view.slice(8))) throw refusal('DRAWING_DETAIL_PARENT', `Detail ${d.id} enlarges section ${d.view.slice(8)}, which the drawing does not have.`);
   }
+  // (11 ④: the sheets as given; they and the sections and details they list must agree.)
+  if ('sheets' in args) { delete next.sheets; const sheets = readSheets(args.sheets); if (sheets.length) next.sheets = sheets; }
+  if ('sheets' in args || 'sections' in args || 'details' in args) { const why = sheetsProblem(next); if (why) throw refusal('DRAWING_OPTIONS', why); }
   if ('tables' in args) {
     delete next.tables;
     const tables = args.tables as DrawingTable[];

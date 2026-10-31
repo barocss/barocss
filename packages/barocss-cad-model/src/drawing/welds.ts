@@ -55,18 +55,24 @@ export function seamEdge(pr: BrepProjection, face: string): { name: string; mid:
 }
 
 /** The symbols of the joints (labelled W1… in their order) in the shown views. */
-export function weldSymbols(layout: SheetLayout, views: DrawingViews, joints: readonly WeldJoint[], f?: LengthFormat): WeldSymbols {
+/**
+ * `set` (11 ④, a drawing with sheets): each joint's view is chosen across every shown view of the whole set, in the same
+ * order a single sheet uses, and its symbol drawn on that view's sheet only (`mine`); a joint seen in none is `unshown`
+ * on the first sheet only (`reportUnshown`), so it is warned once, as on one sheet.
+ */
+export function weldSymbols(layout: SheetLayout, views: DrawingViews, joints: readonly WeldJoint[], f?: LengthFormat, set?: { shown: readonly ViewId[]; mine(view: ViewId): boolean; reportUnshown: boolean }): WeldSymbols {
   const found: { j: WeldJoint; label: string; view: ViewId; tip: XY; edge: string; side: Side }[] = [], unshown: string[] = [];
   joints.forEach((j, k) => {
     const label = `W${k + 1}`;
     for (const id of WELD_VIEWS) {
-      const v = layout.views[id]; if (v.hidden) continue;
+      if (set ? !set.shown.includes(id) : layout.views[id].hidden) continue;
       const s = seamEdge(views[id], j.face); if (!s) continue;
-      const tip = toSheet(v, s.mid);
+      if (set && !set.mine(id)) return;
+      const v = layout.views[id], tip = toSheet(v, s.mid);
       found.push({ j, label, view: id, tip, edge: s.name, side: sideOf(v, tip) });
       return;
     }
-    unshown.push(label);
+    if (!set || set.reportUnshown) unshown.push(label);
   });
   const groups: MarkGroup[] = [], placed: WeldPlaced[] = [], taken: Rect[] = [], size = f;
   // (Each in turn, by view and along its side: the first knee whose symbol — but its leader — is clear of every view, the

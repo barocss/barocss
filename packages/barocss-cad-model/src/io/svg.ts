@@ -59,3 +59,6 @@ ${sheetGroupsSvg(sheet)}
 </svg>
 `;
 }
+
+/** 11 ④: every sheet of a drawing set as its own SVG file (the title names the sheet when there are several). */
+export const sheetsSvg = (sheets: readonly Sheet[], title: string): string[] => sheets.map((s, k) => sheetSvg(s, sheets.length > 1 ? `${title} — sheet ${k + 1} of ${sheets.length}` : title));

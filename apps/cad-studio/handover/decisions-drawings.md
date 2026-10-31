@@ -58,7 +58,7 @@ Newest last. Branch `claude/drawings-cg5`; the coordinator merges.
 - **Why**: a detail is the parent's own projection restricted to a region, so clipping the exact curves is exact
   wherever the parent is — no new projection, no kernel call, nothing approximated except the hatch boundary.
 - **Not in DR-1**: centre marks and thread marks inside details (the parent's centre lines would need clipping too),
-  a jagged or rectangular detail boundary, details of the isometric view, details on other sheets (DR-8).
+  a jagged or rectangular detail boundary, details of the isometric view, details on other sheets (DR-8 — done by D398, 2026-11-01: a detail or section may sit on another sheet with SEE SHEET / FROM SHEET references).
 - **Files outside the lane, named to the coordinator**: `src/engine/refusal.ts` (three codes added to
   `CadModelCode`), `src/chat/groups.ts` (the drawing hint). The refusal table in the docs needs regenerating at the
   merge (`apps/library-docs/scripts/refusals.mjs`); the drawings page needs a "Detail views" section (docs lane).

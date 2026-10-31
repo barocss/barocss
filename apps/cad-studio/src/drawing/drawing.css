@@ -45,3 +45,7 @@
 .dw-issue.error > .ms { color: var(--warn); }
 .dw-issue:hover { background: var(--accent-soft); }
 }
+/* 11 ④: the sheet tabs along the bottom of the workspace */
+.dw-sheets { flex: 0 0 auto; align-self: center; max-width: 100%; display: flex; gap: 2px; align-items: center; overflow-x: auto; }
+.dw-sheet-tab { height: 22px; padding: 0 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-solid); color: var(--text-2); font-size: 11px; white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; }
+.dw-sheet-tab.on { background: var(--accent); border-color: var(--accent); color: #fff; }
