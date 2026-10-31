@@ -18049,3 +18049,19 @@ All fixed; the root re-checked the weld fix with the auditor's probe. The merge 
 **Verification.** Model 2513/2513; Studio 624/624. Actual run03 PASS.
 
 **Follow-ups.** Sheet 1 is not re-laid out automatically after a move. 3D annotations ignore sheets. No zone references.
+
+## D399 — Native Open holds lost signed references; small (2026-11-01)
+
+[Qualification](notes/reference-open-2026-11-01/qualification.json). Boundary candidate (a), before row 13. Implementation and verification: GPT-6.1 Sol Medium.
+
+**Reproduced.** Open returned before reference verification for `BAND_EDGE_LOST`; only `REFERENCE_MOVED` could proceed. The old helper fails three of seven focused checks. A real retagged source reproduces the lost-edge refusal.
+
+**Decision.** Run reference verification after a failed evaluation too. Return a repair only when references were changed or reported and the repaired document evaluates successfully. Keep the ownership checks after every await. Unresolved signed band references are held with their original edge names; no candidate is selected automatically. Unrelated evaluation errors and unusable repairs are not repaired or suppressed.
+
+**PASS.** Focused tests 9/9; Studio and Model type checks; targeted lint; driver syntax; diff check. Actual Studio run02: valid Open, lost/retagged/moved references held, two original bodies live, unchanged stored names, fresh-context Open of prewritten accepted native JSON, and an unrelated zero-height evaluation still refused. Eight snapshots; 734 frozen files unchanged; zero page/console errors, watcher changes or downloads. Root reviewed held-reference and unrelated-refusal screenshots.
+
+**FAIL.** Run01 driver expected “Reference missing”, but the matcher offered four candidates and the UI correctly showed “Choose a reference · Feature held”. Only that unsupported assertion was removed; product code was unchanged between runs.
+
+**NOT_RUN.** Native Save/download, whole-suite baseline, independent audit (small tier), kernel suite, CI and release. Evidence stays under `/tmp/barocss-d399-run01` and `/tmp/barocss-d399-run02`; no raw evidence is committed. Fresh-context Open is not native Save verification. An unrelated invalid file still enters the document and remains evaluation-refused, as before; this change does not redesign file admission.
+
+**Follow-ups.** Candidate (b), confirmed by the screen: the missing-edge hint still tells a band user to re-apply chamfer or fillet. Check boundary candidates (c)–(e), then measure row 13.

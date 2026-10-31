@@ -22,7 +22,14 @@ export async function readDocumentFile(file: File, current: () => boolean) {
 /** No UI or document writes occur here. The App checks its same owner before applying the returned data. */
 export async function verifyDocumentFile(opened: StudioDoc, readPart: (doc: StudioDoc) => Promise<EvalResult>, current: () => boolean) {
   const result = await readPart(opened);
-  if (!current() || !result || (!result.ok && result.error.code !== 'REFERENCE_MOVED')) return null;
+  if (!current() || !result) return null;
   const verified = await verifyReferences(opened, result.ok ? result.bodies : [], readPart);
-  return current() ? verified : null;
+  if (!current()) return null;
+  // A refusal can hide lost references as well as moved ones. Admit only a usable repair.
+  if (!result.ok) {
+    if (!verified.changes.length && !verified.problems.length) return null;
+    const repaired = await readPart(verified.doc);
+    if (!current() || !repaired?.ok) return null;
+  }
+  return verified;
 }
