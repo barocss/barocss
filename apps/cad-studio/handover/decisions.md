@@ -18065,3 +18065,15 @@ All fixed; the root re-checked the weld fix with the auditor's probe. The merge 
 **NOT_RUN.** Native Save/download, whole-suite baseline, independent audit (small tier), kernel suite, CI and release. Evidence stays under `/tmp/barocss-d399-run01` and `/tmp/barocss-d399-run02`; no raw evidence is committed. Fresh-context Open is not native Save verification. An unrelated invalid file still enters the document and remains evaluation-refused, as before; this change does not redesign file admission.
 
 **Follow-ups.** Candidate (b), confirmed by the screen: the missing-edge hint still tells a band user to re-apply chamfer or fillet. Check boundary candidates (c)–(e), then measure row 13.
+
+## D400 — A missing-edge hint names the feature; small (2026-11-01)
+
+[Qualification](notes/missing-edge-hint-2026-11-01/qualification.json). Boundary candidate (b), reproduced on the D399 Studio screen. Implementation and verification: GPT-6.1 Sol Medium.
+
+The missing-edge title was already correct. Its hint now says “re-apply the feature” instead of “re-apply the chamfer or fillet”, so it also applies to a band. The error code and detail remain intact. The shared reference driver has a hint-only subset to avoid repeating D399.
+
+**PASS.** Related tests 4/4 (old copy: 3 PASS, 1 FAIL); Model types; targeted lint; syntax; generated refusal-table check; diff check. Actual hint-only Studio run01 PASS: the exact generic hint is visible, the band remains held with unchanged names and two bodies. Root viewed the screenshot. Frozen sources 734, changes/errors/downloads 0.
+
+**FAIL.** Only the expected negative control. **NOT_RUN.** Full suites, independent audit (small tier), Save/download, CI and release. Raw artifacts stay in `/tmp/barocss-d400-run01`.
+
+**Follow-ups.** Boundary candidates (c)–(e), then row 13 support and independent-reader measurement.

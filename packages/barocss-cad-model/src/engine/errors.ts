@@ -120,7 +120,7 @@ const rules: { code?: string | readonly string[]; text?: RegExp; title: string; 
     hint: 'Move the centre onto the body (a hole may run off an edge as a notch, but it must cut something).' },
   { text: /no edge named/i,
     title: 'The selected edge no longer exists',
-    hint: 'An earlier edit changed the shape around it. Select the edge again and re-apply the chamfer or fillet.' },
+    hint: 'An earlier edit changed the shape around it. Select the edge again and re-apply the feature.' },
   { text: /too large for walls|RADIUS_EXCEEDS_FACE/i,
     title: 'The chamfer or fillet is too large',
     hint: 'It must fit on both faces meeting at the edge, all along it (where a face narrows, there). Use a smaller size.' },

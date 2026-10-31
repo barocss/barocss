@@ -43,3 +43,14 @@ test('R7: a fillet of more than 64 edges names its own limit, not "no edges"; an
   assert.ok(fe.detail?.startsWith('[FINISH_EDGES_LIMIT] f: a fillet takes at most 64 edges'), fe.detail);
   assert.equal(friendly('n2: edges must list 1 to 64 edge names').title, 'This chamfer has no edges');
 });
+
+
+test('a missing edge names the feature action for band, fillet and chamfer errors', () => {
+  for (const message of ['[BAND_EDGE_LOST] band side A: no edge named n1.gone|n1.top on n1', 'fillet: no edge named n1.gone on n1', 'chamfer: no edge named n1.gone on n1']) {
+    const error = friendly(message, 'SELECTION');
+    assert.equal(error.title, 'The selected edge no longer exists');
+    assert.equal(error.hint, 'An earlier edit changed the shape around it. Select the edge again and re-apply the feature.');
+    assert.equal(error.code, message.startsWith('[BAND_EDGE_LOST]') ? 'BAND_EDGE_LOST' : 'SELECTION');
+    assert.ok(error.detail.includes('n1.gone'));
+  }
+});
