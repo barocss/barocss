@@ -17693,3 +17693,19 @@ Follow-up (same day): a "can't run here" notice kept its old position (left 66 p
 - The first run failed: at the viewport's edge the box sat 155 px from the tip. It now flips to the other side.
 
 Limits: the box may cover a little of the model; puck handles get no box. CI and release NOT_RUN.
+
+## D381 — Row 20 ⑦: a click goes through a notice to the face under it; feature (2026-10-31)
+
+[Evidence](notes/notice-click-through-2026-10-31/qualification.json). Owner order "Go to 20/21".
+
+**Before (actual run).** A click on a notice's title over a face picked nothing.
+
+**Change.** The notice text takes no pointer events. Its buttons, links, fields and details still do.
+
+**After (actual run03).** The click reaches the canvas and picks the face under the notice. The close button still works.
+
+**Audit: ACCEPT.** Two low findings:
+- notice text can no longer be selected;
+- a click in the gap between a question's buttons reaches the viewport, which is harmless.
+
+Notices stay over the viewport. CI and release NOT_RUN.
