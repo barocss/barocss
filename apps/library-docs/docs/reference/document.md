@@ -153,7 +153,8 @@ and rollback to a partial feature history requires detaching the bundle first.
 
 | Field | What it holds |
 |---|---|
-| `instances` | Parts placed beside this one, each with its own document, position and rotation |
+| `instances` | Parts placed beside this one, each with its own document, position and rotation. An instance may also hold `joints` (its sub-assembly's joint values, offsets from the saved pose), `looks` (its own colour, material, face colours or visibility over the definition's) and, on a pattern's copies, `pattern` (the pattern and the copy's number) |
+| `instancePatterns` | Linear and circular patterns of a placed part: the seed, the count, the spacing or angle, and the copies left out |
 | `pendingParts` | New revisions of placed parts, waiting to be accepted |
 | `variability` | The assembly's inputs, what each drives, and its named variants. See [Variants](/studio/assemblies#variants) |
 | `mates` | Mates placing instances by their faces |

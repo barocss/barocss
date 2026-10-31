@@ -19,7 +19,7 @@ export function NestedPartPanel({ card }: { card: NestedCard }) {
       <div className="card-title" style={{ marginTop: 8 }}>PLACED IN {card.placement.in.toUpperCase()}</div>
       <div className="kv">Position (mm) <b>{num(card.placement.position)}</b></div>
       <div className="kv">Rotation (°) <b>{num(card.placement.rotation)}</b></div>
-      <div className="kv muted small">Edited through the sub-assembly's definition: select {card.host.name} and use New revision… there.</div>
+      <div className="kv muted small">Not edited in place: select {card.host.name} and use Edit part to open the sub-assembly, or New revision… there.</div>
     </aside>
   );
 }

@@ -178,6 +178,8 @@ import { DraftsPanel } from './ui/DraftsPanel';
 import { extrudeProfile } from '@barocss/cad-model/app/profileCommands';
 import { editCommand } from '@barocss/cad-model/app/editCommand';
 import { flattenAssembly } from '@barocss/cad-model/engine/flatten';
+import { resolveShopRows } from '@barocss/cad-model/engine/shopRows';
+import { elsewhereOf, openAccepted, beginInPlace, editInPlaceRefusal, finishInPlace, inPlaceBlock, sessionChanged, stacksAfter, type InPlaceSession } from './app/editInPlace';
 import { acceptRevision, dismissRevision, freshPartId, makeIndependent, offerRevision, revisionOf, sharing } from '@barocss/cad-model/assembly/definitions';
 import { alignMove, gizmoAxes, movedInstance, previewMatrix, turnedInstance, type InstanceDrag } from '@barocss/cad-model/assembly/drag';
 import { BASE, type Mate } from '@barocss/cad-model/assembly/mates';
@@ -279,6 +281,10 @@ export function App() {
   const markerNow = useRef(marker); markerNow.current = marker;
   const [undo, setUndo] = useState<{ doc: StudioDoc; marker: number | null }[]>([]);
   const [redo, setRedo] = useState<{ doc: StudioDoc; marker: number | null }[]>([]);
+  // Roadmap 10 ⑧: a part edited in place inside its assembly. While it is set, the working document is the part's own (the assembly waits in the session,
+  // with its undo and redo stacks); nothing of the assembly is saved, recovered or opened over until Finish or Cancel.
+  const [inPlace, setInPlace] = useState<InPlaceSession | null>(null), [askDiscard, setAskDiscard] = useState(false), [chatRunning, setChatRunning] = useState(false);
+  const inPlaceNow = useRef(inPlace); inPlaceNow.current = inPlace;
   const [bodies, setBodies] = useState<BodyResult[]>([]);
   // The evaluated document the bodies were computed for: while a newer one evaluates (or fails), the bodies are
   // stale, and nothing pairs them with the newer document's names, facts or checks.
@@ -430,6 +436,7 @@ export function App() {
     currentOpenScope,
     isOpenCurrent,
     onOpened: (d, path, notes) => {
+      if (!openAccepted(inPlaceNow.current)) return openIntent.current;
       replaceDoc(d, true);
       const accepted = openIntent.current;
       setFileName(path.replace(/\.bcad$/i, '').split('/').pop()!); setDirty(notes.length > 0);
@@ -437,7 +444,9 @@ export function App() {
       return accepted;
     },
     onError: (title, hint) => setToast({ title, hint, detail: '' }),
+    canOpen: () => { if (openAccepted(inPlaceNow.current)) return true; setToast({ title: 'A part is being edited', hint: 'Finish or cancel it before opening a project file.', detail: '' }); return false; },
     onLinked: l => {
+      if (!openAccepted(inPlaceNow.current)) return;
       if (l.offered.length) commitParts(l.doc);
       setToast({ title: l.offered.length ? `Newer files for ${l.offered.length} placed part${l.offered.length > 1 ? 's' : ''}` : 'Placed parts without their files',
         hint: [l.offered.length ? `${l.offered.join(', ')}: Revision waiting in the part's panel (Accept or Keep).` : '', l.missing.length ? `Not in the project any more: ${l.missing.join(', ')}.` : ''].filter(Boolean).join(' '), detail: '' });
@@ -448,7 +457,7 @@ export function App() {
   const [compareOverlay, setCompareOverlay] = useState<ProposalOverlay | null>(null);
   useEffect(() => { void project.loadRecent(); }, []);
   useEffect(() => {
-    if (!dirty) return;
+    if (!dirty || inPlace) return;
     if (project.view.part) { const t = setTimeout(() => void project.autosave(doc), 800); return () => clearTimeout(t); }
     // (A mesh's blobs to IndexedDB beside it: the localStorage copy names them, M1.)
     // (O9, REVIEW-A1: the blobs stored before the copy that names them, keepRecovery; none written once overtaken or saved.)
@@ -463,9 +472,9 @@ export function App() {
         : { title: 'No recovery copy', hint: 'This browser does not keep one (private browsing, or its storage is full). Save to keep your work.', detail: '' });
     }), 800);
     return () => { live = false; clearTimeout(t); };
-  }, [doc, fileName, dirty, project.view.part]);
+  }, [doc, fileName, dirty, project.view.part, inPlace]);
   useEffect(() => {
-    const warn = (e: BeforeUnloadEvent) => { if (dirty) e.preventDefault(); };
+    const warn = (e: BeforeUnloadEvent) => { if (dirty || inPlaceNow.current) e.preventDefault(); };
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
@@ -652,7 +661,9 @@ export function App() {
   // (FRf2, O125: and the placed parts, when a frame follows a part's sketch — not otherwise, so moving parts does not re-evaluate the base.)
   // (O11: what is evaluated and shown is the shown variant — the master itself unless a variant or edited values are
   // shown — regenerated from the master, which is never written by it.)
-  const variants = useVariants(doc), shownDoc = variants.shown; shownVariant.current = variants.showing;
+  // (Roadmap 10 ⑧: an edited part evaluates with the rows it inherits from its assembly, as a placed part does; the authored document is unchanged, carryOver keeps its own rows.)
+  const evalDoc = useMemo(() => inPlace ? resolveShopRows(doc, inPlace.assembly).doc : doc, [doc, inPlace?.assembly]);
+  const variants = useVariants(evalDoc), shownDoc = variants.shown; shownVariant.current = variants.showing;
   const followsParts = shownDoc.nodes.some(n => n.kind === 'frame' && !!n.follows && 'part' in n.follows);
   const rootContextKey = useMemo(() => {
     try { return contentKey(shownDoc); }
@@ -816,7 +827,7 @@ export function App() {
     if (!canChangeDocument()) return false;
     // Counted as the History bar shows them: sketches are part of the feature made from them.
     const nextFeatureIds = marker !== null ? new Set(next.nodes.map((_, i) => featureId(next.nodes, i))) : null;
-    const dropped = marker !== null && nextFeatureIds ? doc.nodes.slice(marker).filter((n, i) => n.kind !== 'sketch' && !nextFeatureIds.has(featureId(doc.nodes, marker + i))).length : 0;
+    const dropped = !whole && marker !== null && nextFeatureIds ? doc.nodes.slice(marker).filter((n, i) => n.kind !== 'sketch' && !nextFeatureIds.has(featureId(doc.nodes, marker + i))).length : 0;
     // Commands build on the evaluated document, which follows the model only: what they leave as it was
     // there (every field but the model's own: engine/doc.ts carryOver) is the document's newest.
     const was = evaluatedRef.current;
@@ -1368,6 +1379,50 @@ export function App() {
       cancel(); setDocGeneration(g => g + 1); setSelection(emptySel); setPick(null); setInstanceSel([]); setIsolatedInstances(undefined); setDirectSel([]); setMeasure(null); setEditNode(null);
     } finally { replacementScope.current = null; }
   };
+  // Roadmap 10 ⑧: a part edited in place. The session swaps the working document for the part's own and back; the other parts are drawn around it
+  // (inPlace.context). Begin: the assembly's undo and redo stacks are set aside and the session's own start empty. Finish: one commit of the assembly
+  // (one undo step, the whole previous assembly), or none when nothing changed. Cancel: the assembly exactly as it was.
+  const sessionBlocked = (doing: string) => {
+    const why = inPlaceBlock(inPlaceNow.current, doing);
+    if (why) setToast({ title: 'A part is being edited', hint: why, detail: '' });
+    return !!why;
+  };
+  const toolOpen = () => !!active || !!sketch || rendering || drawing || !!measure || !!assembly.draft || !!cageEd.session || !!skel.session || !!parameterEdit || !!shownVariant.current || !!ghost, toolRunning = () => busy || toolOpen();
+  const startInPlace = (owner: string) => {
+    const elsewhere = elsewhereOf({ chat: chatRunning, importing: stage !== null || !!meshAsk || !!repairAsk, projectOpening: project.opening() });
+    const why = editInPlaceRefusal(doc, owner, { session: !!inPlace, working: toolRunning(), fresh, elsewhere });
+    if (why) { setToast({ title: 'Can’t edit this part now', hint: why, detail: '' }); return; }
+    const session = beginInPlace(doc, owner, bodies, instanceBodies, { undo, redo, marker, dirty });
+    if (!session) return;
+    beginOpenIntent();
+    replaceDoc(session.base, true); if (docNow.current !== session.base) return;
+    setUndo([]); setRedo([]); setInPlace(session); setAskDiscard(false); setCompareBase(null); setVersionsOpen(false);
+    setTimeout(() => viewport.current?.fit(), 300);
+  };
+  const leaveInPlace = (s: InPlaceSession, next: StudioDoc, changed: boolean) => {
+    beginOpenIntent();
+    replaceDoc(next, true); if (docNow.current !== next) return false;
+    const stacks = stacksAfter(s, changed);
+    setUndo(stacks.undo); setRedo(stacks.redo); setMarker(changed ? null : s.saved.marker); setDirty(changed || s.saved.dirty);
+    setInPlace(null); setAskDiscard(false); setInstanceSel([s.owner]);
+    return true;
+  };
+  const finishInPlaceSession = () => {
+    const s = inPlaceNow.current; if (!s) return;
+    const why = editInPlaceRefusal(s.assembly, s.owner, { session: false, working: toolOpen(), fresh });
+    if (why) { setToast({ title: 'Can’t finish yet', hint: why, detail: '' }); return; }
+    const r = finishInPlace(s, docNow.current);
+    if ('error' in r) { setToast({ title: 'The part was not taken', hint: r.error, detail: 'You are still editing it.' }); return; }
+    if (!leaveInPlace(s, r.doc, r.changed)) return;
+    if (r.held.length) setToast({ title: `${r.held.length} look${r.held.length > 1 ? 's' : ''} held`, hint: r.held.map(h => h.problem).join(' '), detail: '' });
+    else if (r.changed) setToast({ title: `${s.name} updated`, hint: s.shared > 1 ? `All ${s.shared} instances share it. Undo restores the assembly as it was.` : 'Undo restores the assembly as it was.', detail: '' });
+  };
+  const cancelInPlaceSession = () => {
+    const s = inPlaceNow.current; if (!s) return;
+    // (A session with changes asks first; nothing cancels it by itself, Esc included.)
+    if (!askDiscard && sessionChanged(s, docNow.current)) { setAskDiscard(true); return; }
+    leaveInPlace(s, s.assembly, false);
+  };
   // (A document with mesh blobs is saved as the container, else as plain JSON: engine/container.ts. Saved, the
   // recovery copy and its blobs go.)
   const writeFile = (d: StudioDoc, name: string) => {
@@ -1376,6 +1431,7 @@ export function App() {
   };
   // (A copy still offered keeps its blobs: Restore can still bring it back.)
   const save = () => {
+    if (sessionBlocked('saving')) return;
     // (CG6: into the open project — over the file it was read from, its tag expected — else downloaded, as before.)
     if (project.view.store) {
       const savedDoc = doc, owner = { token: saveAcceptanceScope, doc: savedDoc, name: fileNameNow.current };
@@ -1388,7 +1444,7 @@ export function App() {
     if (!writeFile(doc, `${fileName}.bcad`)) return; setDirty(false); clearRecovery(); void collectRecoveryBlobs(recovery?.doc ?? null);
   };
   /** A copy to share: without the design history, nor the proposals' prompts and plans (chat/proposals.ts). */
-  const saveShared = () => { writeFile(stripHistory(doc), `${fileName}-shared.bcad`); };
+  const saveShared = () => { if (sessionBlocked('saving')) return; writeFile(stripHistory(doc), `${fileName}-shared.bcad`); };
   // A mesh file waiting for its unit, and opening it as a part in that unit.
   // (A sheet's bend table from a file (R12.4, D120): checked, then set on the sheet feature its body starts from.)
   const loadBendTable = async (b: BodyResult, file?: File) => {
@@ -1415,6 +1471,7 @@ export function App() {
     setTimeout(() => { if (accepted.isCurrent()) viewport.current?.fit(); }, 300);
   };
   const openedImport = (next: StudioDoc, name: string) => {
+    if (!openAccepted(inPlaceNow.current)) { sessionBlocked('opening an import'); return false; }
     replaceDoc(next); if (docNow.current !== next) return false;
     setFileName(name); setDirty(true); fitImportedLater(); return true;
   };
@@ -1446,12 +1503,13 @@ export function App() {
   useEffect(() => {
     if (repairAsk) return;
     const t = setTimeout(() => {
-      const s = evictBlobs([doc, ...undo.map(u => u.doc), ...redo.map(r => r.doc), ...(evaluatedRef.current ? [evaluatedRef.current] : [])]);
+      const s = evictBlobs([doc, ...undo.map(u => u.doc), ...redo.map(r => r.doc), ...(evaluatedRef.current ? [evaluatedRef.current] : []), ...(inPlace ? [inPlace.assembly, ...inPlace.saved.undo.map(u => u.doc), ...inPlace.saved.redo.map(r => r.doc)] : [])]);
       if (s && import.meta.env.DEV) (window as unknown as { __studioBlobs: unknown }).__studioBlobs = { ...blobStats, kept: s.kept, graced: s.graced.length };
     }, 2000);
     return () => clearTimeout(t);
-  }, [doc, undo, redo, repairAsk]);
+  }, [doc, undo, redo, repairAsk, inPlace]);
   const open = async (file: File) => {
+    if (sessionBlocked('opening a file')) return;
     const scope = beginOpenIntent(), owner = captureImportOwner();
     setMeshAsk(null); setRepairAsk(null);
     try {
@@ -1543,7 +1601,7 @@ export function App() {
     catch (e) { setToast({ title: 'Could not write the DXF', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
   };
   const modelExports = useModelExports({ model: { doc, evaluated, bodies, fresh, busy, massReady, instanceBodies },
-    engine, fileName, current: { doc: docNow, evaluated: evaluatedRef }, onNotice: setToast });
+    engine, fileName: inPlace ? inPlace.name : fileName, current: { doc: docNow, evaluated: evaluatedRef }, onNotice: setToast });
   const { stepAsk, stlAsk, askStlExport, exportStepFile, exportQuote, exportThreeMf, clearStepAsk } = modelExports;
   // (DEV, for the flow: the columns as a fresh viewer has them — the chat collapsed at its default width, no dock sheet — so
   // one step's open or drag does not carry into the next; and no toast — G12f: one left from an earlier step met the view
@@ -1686,11 +1744,13 @@ export function App() {
   const measured = measure?.length === 2 && bodies[measure[0].body] && bodies[measure[1].body] ? measureBetween(bodies[measure[0].body].mesh, measure[0], bodies[measure[1].body].mesh, measure[1]) : null;
   // (The locked references and the keep-outs, A6.3: drawn ghosted after the part's bodies, never picked.)
   const refShown = useMemo(() => { const set = readReferences(doc.references); return [...set.references.flatMap(r => placeReference(refLocal.get(r.id) ?? [], r.at)), ...keepoutBodies]; }, [doc.references, refLocal, keepoutBodies]);
-  const viewBodies = useMemo(() => (refShown.length ? [...shownBodies, ...refShown] : shownBodies), [shownBodies, refShown]);
+  // (An in-place edit's surroundings, roadmap 10 ⑧: ghosted the same way, after the references.)
+  const ghostExtra = useMemo(() => inPlace ? [...refShown, ...inPlace.context] : refShown, [refShown, inPlace?.context]);
+  const viewBodies = useMemo(() => (ghostExtra.length ? [...shownBodies, ...ghostExtra] : shownBodies), [shownBodies, ghostExtra]);
   const sewCandidateShown = !!previewBodies?.length && shownBodies === previewBodies && !cageEd.session;
   const viewportDirect = useMemo(() => sewPreviewDirect(directShown, active?.cmd.id, active?.ctx, sewCandidateShown), [directShown, active?.cmd.id, active?.ctx, sewCandidateShown]);
   viewBodiesRef.current = viewBodies;
-  const sketchGhost = useMemo(() => new Set([...(sketch ? shownBodies.map((_, i) => i) : []), ...refShown.map((_, i) => shownBodies.length + i)]), [sketch, shownBodies, refShown]);
+  const sketchGhost = useMemo(() => new Set([...(sketch ? shownBodies.map((_, i) => i) : []), ...ghostExtra.map((_, i) => shownBodies.length + i)]), [sketch, shownBodies, ghostExtra]);
   const commandGizmos = useCommandGizmos({ model: { doc, evaluated, bodies, selection, marker, editNode }, command: { active, ctx, setActive, handleDrag, previewFor },
     context: { sketch, rendering, drawing, measure, assemblyDraft: assembly.draft, instanceCount: instanceSel.length, snapStep }, drag: { bodyDrag, setBodyDrag } });
   const { gizmo, handles, cmdBody } = commandGizmos;
@@ -1966,7 +2026,7 @@ export function App() {
             commitInstances([...list, { ...copy, id: `inst${n}`, name: `${inst.name} copy`, position: [inst.position[0] + 20, inst.position[1] + 20, inst.position[2]] }], [`inst${n}`]); }}
           onGround={on => { const why = assembly.ground(inst.id, on); if (why) setToast({ title: 'Can’t fix this part in place', hint: why, detail: '' }); }}
           shared={inst.part ? sharing(doc, inst.part.id).length : 0} pending={inst.part ? doc.pendingParts?.[inst.part.id] : undefined}
-          onIndependent={() => commitParts(makeIndependent(doc, inst.id))}
+          onEditPart={() => startInPlace(inst.id)} onIndependent={() => commitParts(makeIndependent(doc, inst.id))}
           pattern={<InstancePatternControls inst={inst} pattern={doc.instancePatterns?.find(p => p.seed === inst.id)} occurrenceOf={inst.pattern ? doc.instancePatterns?.find(p => p.id === inst.pattern!.id) : undefined}
             onAdd={o => patternEdit(() => addInstancePattern(doc, o))} onEdit={o => patternEdit(() => editInstancePattern(doc, o))}
             onDelete={id => patternEdit(() => deleteInstancePattern(doc, id))} onSkip={() => { patternEdit(() => skipOccurrence(doc, inst.id)); setInstanceSel([]); }} />}
@@ -2046,14 +2106,14 @@ export function App() {
           <ToolIconButton key="tool0" state={chat ? 'on' : 'idle'} aria-label="Chat" data-tip="Chat" data-tip-desc="Model by chat" onClick={() => setChat(v => !v)}><Icon name="chat" /></ToolIconButton>,
           <ToolIconButton key="tool1" aria-label="Undo" data-tip={undo.length ? `Undo ${describeChange(undo[undo.length - 1].doc, doc)}` : 'Nothing to undo'} data-tip-key="⌘Z" disabled={!undo.length} onClick={doUndo}><Icon name="undo" /></ToolIconButton>,
           <ToolIconButton key="tool2" aria-label="Redo" data-tip={redo.length ? `Redo ${describeChange(doc, redo[redo.length - 1].doc)}` : 'Nothing to redo'} data-tip-key="⇧⌘Z" disabled={!redo.length} onClick={doRedo}><Icon name="redo" /></ToolIconButton>,
-          <ToolIconButton key="tool3" aria-label="New part" data-tip="New part" onClick={() => { replaceDoc(emptyDoc()); setFileName('Untitled'); }}><Icon name="add_box" /></ToolIconButton>,
+          <ToolIconButton key="tool3" aria-label="New part" data-tip="New part" onClick={() => { if (sessionBlocked('starting a new part')) return; replaceDoc(emptyDoc()); setFileName('Untitled'); }}><Icon name="add_box" /></ToolIconButton>,
           <TemplatePicker key="tool4" doc={doc} state={{ templatesOpen, setTemplatesOpen, templateName, setTemplateName }} open={open} onNotice={setToast}
-            onTemplate={next => { replaceDoc(next); setFileName('Untitled'); }} fitLater={() => setTimeout(() => viewport.current?.fit(), 300)} />,
+            onTemplate={next => { if (sessionBlocked('starting from a template')) return; replaceDoc(next); setFileName('Untitled'); }} fitLater={() => setTimeout(() => viewport.current?.fit(), 300)} />,
           <ToolIconButton key="tool5" state={libraryOpen ? 'on' : 'idle'} aria-label="Library" data-tip="Library" data-tip-desc="Catalogue parts from libraries (built-in, team, yours): insert them, snap them by their interfaces" onClick={() => setLibraryOpen(v => !v)} hidden={rendering || drawing}><Icon name="menu_book" /></ToolIconButton>,
           <ToolIconButton key="tool6" state={paramsOpen ? 'on' : 'idle'} aria-label="Parameters" data-tip="Parameters" data-tip-desc="Named sizes the part depends on, and saved sets of them (configurations)" onClick={() => setParamsOpen(v => !v)} hidden={rendering || drawing}><Icon name="function" /></ToolIconButton>,
           <ToolIconButton key="tool7" aria-label="Open" data-tip="Open" data-tip-desc="A .bcad model or a STEP file; an IGES file’s or a .barocad source’s curves and surfaces" onClick={() => fileInput.current?.click()}><Icon name="folder_open" /></ToolIconButton>,
           <ToolIconButton key="tool8" aria-label="Save" data-tip="Save" data-tip-key="⌘S" data-tip-desc={project.view.store ? `Into ${project.view.store.name}` : undefined} onClick={save}><Icon name="save" /></ToolIconButton>,
-          <ToolIconButton key="tool8b" state={versionsOpen ? 'on' : 'idle'} aria-label="Project and versions" data-tip="Project & versions" data-tip-desc="Open a folder (or keep a project in this browser) to save into it, keep versions, branch and compare" onClick={() => setVersionsOpen(v => !v)} hidden={rendering || drawing}><Icon name="history" /></ToolIconButton>,
+          <ToolIconButton key="tool8b" state={versionsOpen ? 'on' : 'idle'} aria-label="Project and versions" data-tip="Project & versions" data-tip-desc="Open a folder (or keep a project in this browser) to save into it, keep versions, branch and compare" onClick={() => { if (!sessionBlocked('opening the project')) setVersionsOpen(v => !v); }} hidden={rendering || drawing}><Icon name="history" /></ToolIconButton>,
           <ToolIconButton key="tool9" aria-label="Export STL" data-tip="Export STL" data-tip-desc="A mesh for printing" onClick={askStlExport}><Icon name="download" /></ToolIconButton>,
           <ToolIconButton key="tool10" aria-label="Export 3MF" data-tip="Export 3MF" data-tip-desc="For a slicer: bodies, materials, colours, the print orientation" onClick={() => void exportThreeMf()}><Icon name="print" /></ToolIconButton>,
           <ToolIconButton key="tool11" aria-label="Export STEP" data-tip="Export STEP" data-tip-desc="The exact solids, for other CAD" onClick={() => void exportStepFile()}><Icon name="deployed_code_update" /></ToolIconButton>,
@@ -2121,6 +2181,19 @@ export function App() {
       <Profiler id="history" onRender={onBlockRender}>{historyShown && <FeatureHistoryBar busy={historyBusy} doc={doc} selection={selection} editNode={editNode} marker={marker} source={{ innerSteps, freeSketches }}
         layout={{ historyBar, historyRows, setHistoryRows, historyLabels, setHistoryLabels, historyHidden }} actions={{ pickProfile, setEditNode, setMarker, setHistoryMenu, openHistoryFeature }} />}</Profiler>
 
+      {inPlace && <div className="card in-place-bar" role="status" aria-label="Editing a part in place">
+        <span>Editing <b>{inPlace.name}</b>{inPlace.shared > 1 ? ` · shared by ${inPlace.shared}` : ''}</span>
+        {askDiscard ? <>
+          <span className="muted">Discard your changes?</span>
+          <Button size="sm" variant="default" onClick={cancelInPlaceSession}>Discard</Button>
+          <Button size="sm" variant="ghost" onClick={() => setAskDiscard(false)}>Keep editing</Button>
+        </> : <>
+          <Button size="sm" variant="default" onClick={finishInPlaceSession}>Finish</Button>
+          <Button size="sm" variant="ghost" onClick={cancelInPlaceSession}>Cancel</Button>
+        </>}
+        <details className="in-place-details"><summary>Details</summary>
+          <div className="muted small">The other parts are shown see-through where they are relative to this one. Finish updates {inPlace.shared > 1 ? `all ${inPlace.shared} instances` : 'the part'} in one step (Undo restores the assembly). Saving and opening are off until then.</div></details>
+      </div>}
       {stage !== null ? <div className="card work-bar" role="status" aria-label="Working"><span className="mono">Working… {stage}</span>
         <button className="ghost small" aria-label="Cancel the computation" title="Stop it: nothing changes" onClick={stopStage}>Cancel</button></div>
       : busy && slow && <div className="card work-bar" role="status" aria-label="Working"><span className="mono">Working…</span>
@@ -2154,6 +2227,7 @@ export function App() {
           <div className="toast-hint">“{recovery.fileName}” was not saved. Restore it, or discard the copy.</div>
           <div className="row-actions">
             <button className="primary" onClick={async () => {
+              if (sessionBlocked('restoring unsaved work')) return;
               const missing = await loadRecoveryBlobs(recovery.doc);
               if (missing.length) { setToast({ title: 'Could not restore', hint: `The copy's mesh data is gone from this browser (${missing.length} array${missing.length > 1 ? 's' : ''}). Open the mesh file again.`, detail: '' }); clearRecovery(); setRecovery(null); return; }
               // (A whole document replaced, as New and Open do: a running command, its preview and the picks of the
@@ -2196,7 +2270,7 @@ export function App() {
       <ChatColumn open={chat} width={layout.chatShown} onOpen={setChat} onWidth={layout.setChatWidth} openProposals={openProposals}
         decided={decidedProposals} decidedShown={decidedShown} onShowDecided={() => setDecidedShown(true)}
         proposals={<ProposalBrowser controller={proposals} doc={doc} bodies={bodies} fresh={fresh} massReady={massReady} decidedShown={decidedShown} setDecidedShown={setDecidedShown} />}
-        content={rendering || drawing ? null : <Suspense fallback={null}><ChatPanel versions={project.chat} onRowFiles={files => { if (files === chatRowFiles.current || (files && !isPersonRowFiles(files))) return; revokePersonRowFiles(chatRowFiles.current); chatRowFiles.current = files; }} base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)} check={partEval}
+        content={rendering || drawing ? null : <Suspense fallback={null}><ChatPanel versions={inPlace ? undefined : project.chat} scope={inPlace} onRunning={setChatRunning} onRowFiles={files => { if (files === chatRowFiles.current || (files && !isPersonRowFiles(files))) return; revokePersonRowFiles(chatRowFiles.current); chatRowFiles.current = files; }} base={() => prefixDoc(doc, marker ?? doc.nodes.length)} evaluate={d => engine.part(d, revision.current++, 'agent').then(r => r.ok ? r.bodies : null)} check={partEval}
         blocked={sketch ? 'Finish or leave the sketch to chat.' : active ? `Apply or cancel ${active.cmd.label} to chat.` : null}
         onPreview={setPreviewBodies} onCommit={(next, sel, merged) => {
           // (Merged onto the edits made while it ran, O133: what applied, and what waits as a proposal and why.)

@@ -1,0 +1,45 @@
+{
+  "decision": "D391",
+  "roadmap": "10 ⑧ edit a part in place inside an assembly, v1 (user request 2026-10-31)",
+  "issues": {
+    "#538": "stays open (ASM-06 multi-part edit / reference refresh advanced)"
+  },
+  "tier": "full (document-mode switching, undo/redo, autosave/recovery, definition commits: three audit rounds with mutation, actual run)",
+  "status": "QUALIFIED",
+  "before": "a part placed in an assembly could only change through a separate file and New revision… + Accept; in-assembly editing covered bearing features only",
+  "change": {
+    "session": "Instance panel 'Edit part' on a top-level instance: the definition becomes the working document in its own coordinates (every tool, the History bar and Undo/Redo work inside it), evaluated with the rows the assembly gives it; the assembly's undo/redo, marker and dirty flag are set aside",
+    "context": "the assembly's own bodies and the other placed instances shown see-through and unpickable, moved by the inverse of the edited instance's placement",
+    "banner": "'Editing <name> · shared by N' with Finish / Cancel (Cancel with changes asks Discard / Keep editing); Esc does not cancel; explanation behind Details",
+    "commit": "model editDefinition: every instance sharing the part id takes the edited document at the next revision (never backwards: next(max(placed rev, drawing rev))); own-part instance replaced; a pattern copy stands for its seed; looks and joints kept, held looks reported; waiting revisions of that part cleared, a linked source marked '(edited)'; unchanged → no commit; refuses the assembly itself or a part placing the part it replaces; Finish refuses a part that does not compute; one assembly Undo step",
+    "guards": "Save/Save shared/Open/New/Templates/Project/versions/recovery Restore blocked; recovery and project autosave skipped; beforeunload warns; entry refused during a command, sketch, drawing, render, measure, mate draft, cage/skeleton, variant, ghost, a chat turn, an import or mesh question, or a project file opening; an open finishing during a session is abandoned before it switches file; a chat turn that ends on the other document is dropped and merges no version log"
+  },
+  "audits": {
+    "round1": "CHANGES_REQUIRED: high — context bodies placed twice (other instances were already in assembly coordinates); high — a chat turn, an import or a project open could replace the session's document and Finish would commit it into every sharer; medium — revision going backwards, a waiting older file reverting the edit, inherited rows missing; low — toasts, Finish on a failing part, export names — all fixed",
+    "round2": "CHANGES_REQUIRED: high — a project open in flight could make Finish/autosave/Cmd+S write the assembly over another project file; medium — a session turn's make_version could land in the assembly's history — fixed; 5/5 mutants killed",
+    "round3": "targeted: ACCEPT; 2 mutants killed; call sites correctly wired (not themselves covered by tests: follow-up)"
+  },
+  "docs": "reference/document.md now names instancePatterns and the instance fields joints/looks/pattern (check-docs had failed since D383 — the check was not run then)",
+  "checks": {
+    "modelSuite": "2358/2358 (definitions +3)",
+    "studioSuite": "607/607 (edit-in-place 10)",
+    "tsc": "PASS",
+    "docsTables": "refusals, agent-tools, api-inventory, check-docs PASS"
+  },
+  "actualRun": {
+    "run04": "final source PASS on edit-in-place.bcad (Cube 1 at (0, 20, 0) turned 30°): Cube 2 'Edit part' → banner 'Editing Cube 2 · shared by 2', the working document is the cube definition; width 20 → 30 in the feature editor; Cmd+S refused with a toast, nothing downloaded; Finish → both occurrences hold the edited definition at Rev B with placements kept (oracle PASS); Undo restores the whole assembly, Redo; a second session changed then Cancel → Discard leaves it unchanged; 0 page/console errors; root reviewed the screenshots",
+    "failedRuns": [
+      "run01: the driver changed the editor's first value (the width) and checked the height (driver)"
+    ]
+  },
+  "followUps": [
+    "the guard call sites (openedImport/onOpened/onLinked/openPart canOpen/after versionsToMerge) are wired but not themselves covered by tests",
+    "nested sub-assembly parts cannot be edited in place yet (no button; the nested card explains)",
+    "the context is a static snapshot at Begin (joint/explode poses ignored)",
+    "a project-folder open in flight is not counted (no loss: the next Save refuses to overwrite)",
+    "the self-containment check compares objects, not values (no current path delivers a copy)",
+    "in-context references to other parts' geometry are out of v1"
+  ],
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

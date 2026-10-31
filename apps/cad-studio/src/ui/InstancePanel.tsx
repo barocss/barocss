@@ -6,13 +6,15 @@ import { FIELD } from './panelStyles';
 import { Button } from '@/components/ui/button';
 
 /** A placed part: its name, position and rotation (applied on Enter or when a box is left), duplicate, hide, remove. */
-export function InstancePanel({ inst, bodies, onChange, onDuplicate, onRemove, onGround, shared = 0, pending, onIndependent, onRevision, onAccept, onDismiss, pattern, joints, looks }: {
+export function InstancePanel({ inst, bodies, onChange, onDuplicate, onRemove, onGround, shared = 0, pending, onEditPart, onIndependent, onRevision, onAccept, onDismiss, pattern, joints, looks }: {
   inst: PartInstance; bodies: BodyResult[] | undefined;
   onChange(next: PartInstance): void; onDuplicate(): void; onRemove(): void;
   /** Fixes it in place (mates never move it) or frees it. */
   onGround?(on: boolean): void;
   /** How many instances share its definition (itself included), and a new revision waiting for it. */
   shared?: number; pending?: { rev: string; name: string };
+  /** Opens the part itself in place in the assembly (roadmap 10 ⑧); absent: not offered. */
+  onEditPart?(): void;
   onIndependent?(): void; onRevision?(file: File): void; onAccept?(): void; onDismiss?(): void;
   /** Its pattern controls (roadmap 10 ③); an occurrence's placement is its seed's, so it has no placement boxes, Fix or Make independent. */
   pattern?: ReactNode;
@@ -55,6 +57,7 @@ export function InstancePanel({ inst, bodies, onChange, onDuplicate, onRemove, o
       {(['X', 'Y', 'Z'] as const).map((a, k) => <Field key={a} label={a} value={inst.rotation[k]} onCommit={v => onChange({ ...inst, rotation: inst.rotation.map((x, j) => j === k ? Number(v) : x) as [number, number, number] })} />)}
       </>}
       <div className="row-actions" style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+        {onEditPart && <Button variant="secondary" title="Change the part itself with the other parts shown around it; Finish takes it into every instance sharing it" onClick={onEditPart}>Edit part</Button>}
         <Button variant="ghost" onClick={onDuplicate}>Duplicate</Button>
         {!driven && <Button variant="ghost" onClick={() => onChange({ ...inst, hidden: !inst.hidden })}>{inst.hidden ? 'Show' : 'Hide'}</Button>}
         {onGround && !driven && <Button variant={inst.grounded ? 'secondary' : 'ghost'} aria-pressed={!!inst.grounded} title="A fixed part stays where it is: mates move the other part" onClick={() => onGround(!inst.grounded)}>{inst.grounded ? 'Unfix' : 'Fix in place'}</Button>}

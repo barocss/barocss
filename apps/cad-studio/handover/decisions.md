@@ -17871,3 +17871,24 @@ All fixed; the re-check is ACCEPT.
 - Round 3: ACCEPT.
 
 **Verification.** Model 2354/2354; Studio 597/597. Actual run04 PASS.
+
+## D391 — Row 10 ⑧: edit a part in place inside an assembly (v1); full (2026-10-31)
+
+[Evidence](notes/edit-in-place-2026-10-31/qualification.json). User request. #538 stays open.
+
+**What it adds.** "Edit part" opens a top-level instance's definition in place, with the rest of the assembly shown see-through around it in correct relative position.
+
+**Finish and Cancel.** Finish commits the edit into every sharer at the next revision as one Undo step, keeping looks and joints. Cancel asks first.
+
+**Blocked during the session.** Assembly-level actions and autosave are blocked. A chat turn, an import or a project open is refused or dropped.
+
+**Audits.**
+- Round 1: 2 high, 3 medium.
+- Round 2: 1 high, 1 medium. Fixed; 5/5 mutants killed.
+- Round 3: ACCEPT.
+
+**Docs.** The document reference now names `instancePatterns` and the instance fields `joints`, `looks` and `pattern`. `check-docs` had been failing since D383.
+
+**Verification.** Model 2358/2358; Studio 607/607. Actual run04 PASS.
+
+**Follow-ups.** Guard call sites are untested; nested parts cannot be edited in place yet.

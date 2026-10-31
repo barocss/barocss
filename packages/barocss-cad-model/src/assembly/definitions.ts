@@ -8,13 +8,16 @@ import { nextRevision } from '../drawing/types';
 import { nextFreeId } from '../util/ids';
 import { curvePatternDocumentProblem } from '../engine/curveFeaturePattern';
 import { drivenRefusal, expandPatterns } from './patterns';
-import { heldByRevision, type HeldLook } from './looks';
+import { heldByRevision, heldLooks, type HeldLook } from './looks';
 
 /** A definition id not yet used by any instance or pending revision. */
 export function freshPartId(doc: StudioDoc): string {
   const used = new Set([...(doc.instances ?? []).flatMap(i => i.part ? [i.part.id] : []), ...Object.keys(doc.pendingParts ?? {})]);
   return nextFreeId('part', used);
 }
+const revisionRank = (r: string): number => /^\d+$/.test(r) ? Number(r) : /^[A-Z]+$/.test(r) ? [...r].reduce((t, c) => t * 26 + c.charCodeAt(0) - 64, 0) : -1;
+/** The later of two revisions (of one kind: letters or numbers); the first when they cannot be compared. */
+export const newerRevision = (a: string, b: string): string => revisionRank(b) > revisionRank(a) && revisionRank(a) >= 0 ? b : a;
 /** A part file's revision: its drawing's, or A. */
 export const revisionOf = (part: StudioDoc) => { const r = part.drawing?.revision?.trim(); return r && r !== '-' ? r : 'A'; };
 
@@ -51,6 +54,34 @@ export function acceptRevision(doc: StudioDoc, id: string): StudioDoc {
   const rest = Object.fromEntries(Object.entries(doc.pendingParts ?? {}).filter(([k]) => k !== id));
   const instances = (doc.instances ?? []).map((i): PartInstance => i.part?.id === id ? { ...i, doc: p.doc, part: { ...i.part, rev: p.rev, source: p.name } } : i);
   return expandPatterns({ ...doc, instances, pendingParts: Object.keys(rest).length ? rest : undefined });
+}
+/**
+ * A part edited in place inside its assembly (roadmap 10 ⑧), committed once. `owner` is a placed instance (a pattern's occurrence stands for its seed);
+ * `part` is its definition document as edited. Every instance sharing the definition takes it at the next revision (the file's own when it names one
+ * newer), each keeping its place, joints and its own looks; a part of its own has its document replaced. The same document changes nothing
+ * (`changed: false`). `held` lists the occurrences' looks whose body the edit no longer has (kept, never dropped).
+ */
+export function editDefinition(doc: StudioDoc, owner: string, part: StudioDoc): { doc: StudioDoc; held: HeldLook[]; changed: boolean } | { error: string } {
+  const inst = (doc.instances ?? []).find(i => i.id === owner);
+  if (!inst) return { error: `No part "${owner}" is placed.` };
+  const seed = inst.pattern ? (doc.instances ?? []).find(i => i.id === doc.instancePatterns?.find(p => p.id === inst.pattern!.id)?.seed) : inst;
+  if (!seed) return { error: `${inst.name} has lost its pattern's seed.` };
+  const pathProblem = fillPatternDocumentProblem(part) ?? curvePatternDocumentProblem({ instances: [{ doc: part }] });
+  if (pathProblem) return { error: pathProblem };
+  // (A definition that is the assembly itself, or places the very part it replaces, would contain itself: refused, never taken.)
+  const id = seed.part?.id, holds = (d: StudioDoc, depth = 0): boolean => depth < 8 && !!d.instances?.some(i => i.doc === seed.doc || holds(i.doc, depth + 1));
+  if (part.instances === doc.instances && part.instances !== undefined || holds(part)) return { error: `That document contains ${seed.name} itself (it is the assembly, or places this part): a part cannot hold the instance it is edited from.` };
+  if (JSON.stringify(part) === JSON.stringify(seed.doc)) return { doc, held: [], changed: false };
+  // (Never backwards: the next after the newer of the placed revision and the one the part's own document names.)
+  const rev = seed.part ? nextRevision(newerRevision(seed.part.rev, revisionOf(part))) : undefined;
+  // (A part linked to a project file stops being linked: the file is not the edited part, so it is not offered later as a newer one. The name stays, marked.)
+  const source = seed.part?.source?.startsWith('./') ? `${seed.part.source.slice(2)} (edited)` : seed.part?.source;
+  const instances = (doc.instances ?? []).map((i): PartInstance => id ? (i.part?.id === id ? { ...i, doc: part, part: { ...i.part, rev: rev!, ...(source !== undefined ? { source } : {}) } } : i) : i.id === seed.id ? { ...i, doc: part } : i);
+  // (A revision waiting for this definition is superseded by the edit: Accept could only silently undo it.)
+  const pending = id && doc.pendingParts?.[id] ? Object.fromEntries(Object.entries(doc.pendingParts).filter(([k]) => k !== id)) : doc.pendingParts;
+  const next = expandPatterns({ ...doc, instances, pendingParts: pending && Object.keys(pending).length ? pending : undefined });
+  const taken = new Set((next.instances ?? []).filter(i => i.doc === part).map(i => i.id));
+  return { doc: next, held: heldLooks(next).filter(h => taken.has(h.part)), changed: true };
 }
 /** The waiting revision dismissed: the instances stay as they are. */
 export function dismissRevision(doc: StudioDoc, id: string): StudioDoc {

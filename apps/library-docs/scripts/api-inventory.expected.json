@@ -201534,6 +201534,37 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./assembly/definitions",
+      "exportName": "editDefinition",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/definitions.ts",
+            "name": "editDefinition",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, owner: string, part: StudioDoc) => { doc: StudioDoc; held: HeldLook[]; changed: boolean; } | { error: string; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, owner: string, part: StudioDoc) => { doc: StudioDoc; held: HeldLook[]; changed: boolean; } | { error: string; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/definitions",
       "exportName": "freshPartId",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -201588,6 +201619,37 @@
             ],
             "callSignatures": [
               "(doc: StudioDoc, instance: string) => StudioDoc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/definitions",
+      "exportName": "newerRevision",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/definitions.ts",
+            "name": "newerRevision",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(a: string, b: string) => string",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(a: string, b: string) => string"
             ]
           }
         }

@@ -540,6 +540,9 @@ button.chip.snap:hover { background: #3a3c41; }
 .chat-chip { display: inline-flex; align-items: center; gap: 2px; padding: 1px 2px 1px 6px; border-radius: 10px; background: rgba(255, 255, 255, 0.08); font: 11px var(--mono); }
 .chat-chip button { border: 0; background: transparent; color: inherit; padding: 0 2px; cursor: pointer; line-height: 1; }
 .chat-autonomy { font-size: 11px; padding: 1px 2px; }
+.in-place-bar { position: absolute; top: 92px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 6px 10px; font-size: 12px; max-width: calc(100% - 24px); }
+.in-place-details { flex-basis: 100%; }
+.in-place-details summary { cursor: pointer; color: var(--text-2); }
 .work-bar { position: absolute; top: 56px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; align-items: center; gap: 10px; padding: 6px 10px; font-size: 12px; }
 /* Mesh repair (M3). */
 .mesh-repair { max-width: 520px; }
