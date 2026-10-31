@@ -214994,7 +214994,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "({ name: string; description: string; input_schema: { type: string; properties: { mode?: undefined; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { mode: { type: string; enum: string[]; }; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { layout: { type: string; }; mode?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { codes: { type: string; items: { type: string; }; }; mode?: undefined; layout?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { ids: { type: string; items: { type: string; }; }; mode: { type: string; enum: string[]; }; layout?: undefined; codes?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { scope: { oneOf: ({ type: string; properties: { kind: { const: string; }; part: { type: string; }; }; required: string[]; additionalProperties: boolean; } | { type: string; properties: { kind: { const: string; }; part?: undefined; }; required: string[]; additionalProperties: boolean; })[]; }; sheet: { type: string; enum: string[]; }; scale: { anyOf: ({ type: string; enum?: undefined; } | { type: string; enum: string[]; })[]; }; projection: { type: string; enum: string[]; }; standard: { type: string; enum: string[]; }; front: { type: string; enum: string[]; }; views: { type: string; items: { type: string; enum: string[]; }; }; tolerancing: { type: string; enum: string[]; }; title: { type: string; }; datums: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; face: { type: string; properties: { face: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; edge: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; oneOf: { required: string[]; not: { required: string[]; }; }[]; additionalProperties: boolean; }; }; datumTargets: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; number: { type: string; minimum: number; maximum: number; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; kind: { type: string; enum: string[]; }; point: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; at: { type: string; enum: string[]; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; endpoint: { type: string; enum: string[]; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; line: { type: string; properties: { from: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; to: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; area: { type: string; description: string; properties: { shape: { type: string; enum: string[]; }; at: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; d: { type: string; exclusiveMinimum: number; maximum: number; }; w: { type: string; exclusiveMinimum: number; maximum: number; }; h: { type: string; exclusiveMinimum: number; maximum: number; }; }; required: string[]; additionalProperties: boolean; oneOf: { properties: { shape: { enum: string[]; }; }; required: string[]; }[]; }; moveable: { type: string; enum: boolean[]; }; }; required: string[]; additionalProperties: boolean; oneOf: { properties: { kind: { enum: string[]; }; }; required: string[]; }[]; }; }; frames: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; }; dim: { type: string; }; view: { type: string; anyOf: ({ enum: string[]; pattern?: undefined; } | { pattern: string; enum?: undefined; })[]; }; place: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; characteristic: { type: string; enum: (\"position\" | \"concentricity\" | \"symmetry\" | \"straightness\" | \"flatness\" | \"circularity\" | \"cylindricity\" | \"profile-line\" | \"profile-surface\" | \"parallelism\" | \"perpendicularity\" | \"angularity\" | \"circular-runout\" | \"total-runout\")[]; }; value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; projected: { type: string; exclusiveMinimum: number; maximum: number; }; freeState: { type: string; }; tangentPlane: { type: string; }; sphere: { type: string; description: string; }; statistical: { type: string; description: string; }; unequal: { type: string; minimum: number; exclusiveMaximum: number; description: string; }; around: { type: string; enum: string[]; description: string; }; composite: { type: string; description: string; properties: { value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; }; required: string[]; additionalProperties: boolean; }; stacked: { type: string; description: string; properties: { value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; allOf: { if: { anyOf: { required: string[]; }[]; }; then: { properties: { characteristic: { enum: string[]; }; }; }; }[]; oneOf: ({ required: string[]; not: { anyOf: { required: string[]; }[]; required?: undefined; }; } | { required: string[]; not: { required: string[]; anyOf?: undefined; }; })[]; additionalProperties: boolean; }; }; titleBlock: { type: string; description: string; properties: { template: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; revisions: { type: string; maxItems: number; description: string; items: { type: string; properties: { revision: { type: string; minLength: number; maxLength: number; }; date: { type: string; description: string; }; description: { type: string; minLength: number; maxLength: number; }; by: { type: string; minLength: number; maxLength: number; }; }; required: string[]; additionalProperties: boolean; }; }; weldSymbols: { type: string; description: string; }; balloons: { type: string; description: string; }; sections: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; at: { type: string; description: string; }; dir: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; half: { type: string; description: string; properties: { line: { type: string; enum: string[]; }; at: { type: string; }; cut: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; steps: { type: string; description: string; items: { type: string; properties: { past: { type: string; }; at: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; along: { type: string; enum: string[]; }; removed: { type: string; description: string; properties: { at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; scale: { type: string; }; }; additionalProperties: boolean; }; revolved: { type: string; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; details: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; description: string; }; center: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; radius: { type: string; description: string; }; scale: { type: string; description: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; breaks: { type: string; description: string; items: { type: string; properties: { axis: { type: string; enum: string[]; }; from: { type: string; }; to: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; tables: { type: string; description: string; items: { type: string; properties: { id: { type: string; minLength: number; }; from: { type: string; enum: string[]; }; title: { type: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; corner: { type: string; enum: string[]; }; whole: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; mode?: undefined; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; })[]",
+            "type": "({ name: string; description: string; input_schema: { type: string; properties: { mode?: undefined; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { mode: { type: string; enum: string[]; }; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { layout: { type: string; }; mode?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { codes: { type: string; items: { type: string; }; }; mode?: undefined; layout?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { ids: { type: string; items: { type: string; }; }; mode: { type: string; enum: string[]; }; layout?: undefined; codes?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { scope: { oneOf: ({ type: string; properties: { kind: { const: string; }; part: { type: string; }; }; required: string[]; additionalProperties: boolean; } | { type: string; properties: { kind: { const: string; }; part?: undefined; }; required: string[]; additionalProperties: boolean; })[]; }; sheet: { type: string; enum: string[]; }; scale: { anyOf: ({ type: string; enum?: undefined; } | { type: string; enum: string[]; })[]; }; projection: { type: string; enum: string[]; }; standard: { type: string; enum: string[]; }; front: { type: string; enum: string[]; }; views: { type: string; items: { type: string; enum: string[]; }; }; tolerancing: { type: string; enum: string[]; }; title: { type: string; }; units: { type: string; enum: string[]; }; dual: { type: string; }; precision: { type: string; properties: { mm: { type: string; }; inch: { type: string; }; }; additionalProperties: boolean; }; datums: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; face: { type: string; properties: { face: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; edge: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; oneOf: { required: string[]; not: { required: string[]; }; }[]; additionalProperties: boolean; }; }; datumTargets: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; number: { type: string; minimum: number; maximum: number; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; kind: { type: string; enum: string[]; }; point: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; at: { type: string; enum: string[]; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; endpoint: { type: string; enum: string[]; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; line: { type: string; properties: { from: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; to: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; area: { type: string; description: string; properties: { shape: { type: string; enum: string[]; }; at: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; d: { type: string; exclusiveMinimum: number; maximum: number; }; w: { type: string; exclusiveMinimum: number; maximum: number; }; h: { type: string; exclusiveMinimum: number; maximum: number; }; }; required: string[]; additionalProperties: boolean; oneOf: { properties: { shape: { enum: string[]; }; }; required: string[]; }[]; }; moveable: { type: string; enum: boolean[]; }; }; required: string[]; additionalProperties: boolean; oneOf: { properties: { kind: { enum: string[]; }; }; required: string[]; }[]; }; }; frames: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; }; dim: { type: string; }; view: { type: string; anyOf: ({ enum: string[]; pattern?: undefined; } | { pattern: string; enum?: undefined; })[]; }; place: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; characteristic: { type: string; enum: (\"position\" | \"concentricity\" | \"symmetry\" | \"straightness\" | \"flatness\" | \"circularity\" | \"cylindricity\" | \"profile-line\" | \"profile-surface\" | \"parallelism\" | \"perpendicularity\" | \"angularity\" | \"circular-runout\" | \"total-runout\")[]; }; value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; projected: { type: string; exclusiveMinimum: number; maximum: number; }; freeState: { type: string; }; tangentPlane: { type: string; }; sphere: { type: string; description: string; }; statistical: { type: string; description: string; }; unequal: { type: string; minimum: number; exclusiveMaximum: number; description: string; }; around: { type: string; enum: string[]; description: string; }; composite: { type: string; description: string; properties: { value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; }; required: string[]; additionalProperties: boolean; }; stacked: { type: string; description: string; properties: { value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; allOf: { if: { anyOf: { required: string[]; }[]; }; then: { properties: { characteristic: { enum: string[]; }; }; }; }[]; oneOf: ({ required: string[]; not: { anyOf: { required: string[]; }[]; required?: undefined; }; } | { required: string[]; not: { required: string[]; anyOf?: undefined; }; })[]; additionalProperties: boolean; }; }; titleBlock: { type: string; description: string; properties: { template: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; revisions: { type: string; maxItems: number; description: string; items: { type: string; properties: { revision: { type: string; minLength: number; maxLength: number; }; date: { type: string; description: string; }; description: { type: string; minLength: number; maxLength: number; }; by: { type: string; minLength: number; maxLength: number; }; }; required: string[]; additionalProperties: boolean; }; }; weldSymbols: { type: string; description: string; }; balloons: { type: string; description: string; }; sections: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; at: { type: string; description: string; }; dir: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; half: { type: string; description: string; properties: { line: { type: string; enum: string[]; }; at: { type: string; }; cut: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; steps: { type: string; description: string; items: { type: string; properties: { past: { type: string; }; at: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; along: { type: string; enum: string[]; }; removed: { type: string; description: string; properties: { at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; scale: { type: string; }; }; additionalProperties: boolean; }; revolved: { type: string; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; details: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; description: string; }; center: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; radius: { type: string; description: string; }; scale: { type: string; description: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; breaks: { type: string; description: string; items: { type: string; properties: { axis: { type: string; enum: string[]; }; from: { type: string; }; to: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; tables: { type: string; description: string; items: { type: string; properties: { id: { type: string; minLength: number; }; from: { type: string; enum: string[]; }; title: { type: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; corner: { type: string; enum: string[]; }; whole: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; mode?: undefined; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; })[]",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -227787,7 +227787,7 @@
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
-                "type": "{ measure: \"radius\" | \"angle\" | \"diameter\" | \"linear\" | \"pcd\"; value: number; unit: \"mm\" | \"deg\"; text: string; tol?: Tolerance | undefined; basic?: true | undefined; count?: number | undefined; } | undefined"
+                "type": "{ measure: \"radius\" | \"angle\" | \"diameter\" | \"linear\" | \"pcd\"; value: number; unit: \"mm\" | \"deg\"; text: string; alt?: string | undefined; tol?: Tolerance | undefined; basic?: true | undefined; count?: number | undefined; } | undefined"
               },
               {
                 "name": "frame",
@@ -228565,14 +228565,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(f: DrawingFrame, under: { at: XY; text: string; height: number; align: \"start\" | \"end\" | \"middle\"; }, scale: number, standard?: DrawingStandard | undefined) => Mark[]",
+            "type": "(f: DrawingFrame, under: { at: XY; text: string; height: number; align: \"start\" | \"end\" | \"middle\"; }, scale: number, standard?: DrawingStandard | StandardPreset | undefined) => Mark[]",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(f: DrawingFrame, under: { at: XY; text: string; height: number; align: \"start\" | \"end\" | \"middle\"; }, scale: number, standard?: DrawingStandard | undefined) => Mark[]"
+              "(f: DrawingFrame, under: { at: XY; text: string; height: number; align: \"start\" | \"end\" | \"middle\"; }, scale: number, standard?: DrawingStandard | StandardPreset | undefined) => Mark[]"
             ]
           }
         }
@@ -228658,14 +228658,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(tip: XY, knee: XY, side: Side, joint: WeldJoint, label: string, scale: number) => Mark[]",
+            "type": "(tip: XY, knee: XY, side: Side, joint: WeldJoint, label: string, scale: number, f?: LengthFormat | undefined) => Mark[]",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(tip: XY, knee: XY, side: Side, joint: WeldJoint, label: string, scale: number) => Mark[]"
+              "(tip: XY, knee: XY, side: Side, joint: WeldJoint, label: string, scale: number, f?: LengthFormat | undefined) => Mark[]"
             ]
           }
         }
@@ -229910,14 +229910,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(nodes: readonly ModelNode[], edge: string, parameters?: Readonly<Record<string, number>>) => string | null",
+            "type": "(nodes: readonly ModelNode[], edge: string, parameters?: Readonly<Record<string, number>>, f?: LengthFormat) => string | null",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(nodes: readonly ModelNode[], edge: string, parameters?: Readonly<Record<string, number>>) => string | null"
+              "(nodes: readonly ModelNode[], edge: string, parameters?: Readonly<Record<string, number>>, f?: LengthFormat) => string | null"
             ]
           }
         }
@@ -233448,14 +233448,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(t: DrawingDatumTarget) => string | null",
+            "type": "(t: DrawingDatumTarget, p?: StandardPreset) => string | null",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(t: DrawingDatumTarget) => string | null"
+              "(t: DrawingDatumTarget, p?: StandardPreset) => string | null"
             ]
           }
         }
@@ -234611,11 +234611,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "{ ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; } | { ok: false; dim: DrawingDimension; reason: string; }",
+            "type": "{ ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; } | { ok: false; dim: DrawingDimension; reason: string; }",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "{\n    ok: true;\n    kind: \"linear\";\n    dim: Extract<DrawingDimension, {\n        kind: \"linear\";\n    }>;\n    a: XY;\n    b: XY;\n    value: number;\n    text: string;\n} | {\n    ok: true;\n    kind: \"diameter\" | \"radius\";\n    dim: Extract<DrawingDimension, {\n        kind: \"diameter\" | \"radius\";\n    }>;\n    center: XY;\n    radius: number;\n    value: number;\n    text: string;\n} | {\n    ok: true;\n    kind: \"angle\";\n    dim: Extract<DrawingDimension, {\n        kind: \"angle\";\n    }>;\n    vertex: XY;\n    from: XY;\n    to: XY;\n    ends: [\n        XY,\n        XY\n    ];\n    value: number;\n    text: string;\n} | {\n    ok: true;\n    kind: \"pcd\";\n    dim: Extract<DrawingDimension, {\n        kind: \"pcd\";\n    }>;\n    center: XY;\n    center3: Vec3;\n    radius: number;\n    members: XY[];\n    even: boolean;\n    value: number;\n    text: string;\n} | {\n    ok: false;\n    dim: DrawingDimension;\n    reason: string;\n}"
+                "definition": "{\n    ok: true;\n    kind: \"linear\";\n    dim: Extract<DrawingDimension, {\n        kind: \"linear\";\n    }>;\n    a: XY;\n    b: XY;\n    value: number;\n    text: string;\n    alt?: string;\n} | {\n    ok: true;\n    kind: \"diameter\" | \"radius\";\n    dim: Extract<DrawingDimension, {\n        kind: \"diameter\" | \"radius\";\n    }>;\n    center: XY;\n    radius: number;\n    value: number;\n    text: string;\n    alt?: string;\n} | {\n    ok: true;\n    kind: \"angle\";\n    dim: Extract<DrawingDimension, {\n        kind: \"angle\";\n    }>;\n    vertex: XY;\n    from: XY;\n    to: XY;\n    ends: [\n        XY,\n        XY\n    ];\n    value: number;\n    text: string;\n    alt?: string;\n} | {\n    ok: true;\n    kind: \"pcd\";\n    dim: Extract<DrawingDimension, {\n        kind: \"pcd\";\n    }>;\n    center: XY;\n    center3: Vec3;\n    radius: number;\n    members: XY[];\n    even: boolean;\n    value: number;\n    text: string;\n    alt?: string;\n} | {\n    ok: false;\n    dim: DrawingDimension;\n    reason: string;\n}"
               }
             ],
             "members": [
@@ -234625,6 +234625,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "XY"
+              },
+              {
+                "name": "alt",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
               },
               {
                 "name": "b",
@@ -235312,6 +235319,37 @@
     },
     {
       "package": "@barocss/cad-model",
+      "subpath": "./drawing/dimensions",
+      "exportName": "valueText",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/dimensions.ts",
+            "name": "valueText",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(r: { kind: \"radius\" | \"angle\" | \"diameter\" | \"linear\" | \"pcd\"; value: number; members?: unknown[] | undefined; even?: boolean | undefined; }, f: LengthFormat) => string",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(r: { kind: \"radius\" | \"angle\" | \"diameter\" | \"linear\" | \"pcd\"; value: number; members?: unknown[] | undefined; even?: boolean | undefined; }, f: LengthFormat) => string"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
       "subpath": "./drawing/elementCallouts",
       "exportName": "ELEMENT_NOTE",
       "space": "value",
@@ -235563,14 +235601,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(doc: StudioDoc, inner: (edge: string, diameter?: number | undefined) => string | null, elements?: readonly PartElement[]) => (edge: string, diameter?: number | undefined) => string | null",
+            "type": "(doc: StudioDoc, inner: (edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null, elements?: readonly PartElement[]) => (edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(doc: StudioDoc, inner: (edge: string, diameter?: number | undefined) => string | null, elements?: readonly PartElement[]) => (edge: string, diameter?: number | undefined) => string | null"
+              "(doc: StudioDoc, inner: (edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null, elements?: readonly PartElement[]) => (edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null"
             ]
           }
         }
@@ -235687,14 +235725,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(mm: number) => string",
+            "type": "(mm: number, f?: LengthFormat) => string",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
               }
             ],
             "callSignatures": [
-              "(mm: number) => string"
+              "(mm: number, f?: LengthFormat) => string"
             ]
           }
         }
@@ -235718,14 +235756,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(doc: StudioDoc, edge: string, diameter: number) => { text: string; miss?: string | undefined; } | null",
+            "type": "(doc: StudioDoc, edge: string, diameter: number, f?: LengthFormat) => { text: string; miss?: string | undefined; digits?: number | undefined; } | null",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(doc: StudioDoc, edge: string, diameter: number) => { text: string; miss?: string | undefined; } | null"
+              "(doc: StudioDoc, edge: string, diameter: number, f?: LengthFormat) => { text: string; miss?: string | undefined; digits?: number | undefined; } | null"
             ]
           }
         }
@@ -235780,14 +235818,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(doc: StudioDoc, hole: (edge: string) => string | null) => (edge: string, diameter?: number | undefined) => string | null",
+            "type": "(doc: StudioDoc, hole: (edge: string, f?: LengthFormat | undefined) => string | null) => (edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(doc: StudioDoc, hole: (edge: string) => string | null) => (edge: string, diameter?: number | undefined) => string | null"
+              "(doc: StudioDoc, hole: (edge: string, f?: LengthFormat | undefined) => string | null) => (edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null"
             ]
           }
         }
@@ -236189,11 +236227,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"DUPLICATE\" | DatumTargetFailureCode | \"DIM_ON_HIDDEN\" | \"DATUM_LOST\" | \"FRAME_LOST\" | \"FRAME_VIEW_MISSING\" | \"DATUM_UNDEFINED\" | \"FRAME_RULE\" | \"DATUM_TWICE\" | \"VIEW_NEEDED\" | \"DIMENSION_LOST\" | \"TEXT_OVERLAP\" | \"TEXT_OVER_LINES\" | \"OFF_SHEET\" | \"VIEWS_DONT_FIT\" | \"REMATCHED\" | \"HOLE_SIZE_MISSING\" | \"HOLE_NOT_LOCATED\" | \"STEP_NOT_LOCATED\" | \"OVERALL_MISSING\" | \"TABLE_SOURCE\" | \"WELD_NOT_SHOWN\" | \"BALLOON_NOT_CLEAR\" | \"BALLOON_NO_EDGE\" | \"FIT_ROW_MISSING\" | \"FOLLOWED_CHANGED\" | \"DETAIL_PARENT_MISSING\" | \"DETAIL_EMPTY\" | \"DETAIL_NO_ROOM\" | \"BREAK_NO_VIEW\" | \"SECTION_NO_ROOM\" | \"SECTION_NO_VIEW\" | \"DATUM_TARGET_OUTSIDE\"",
+            "type": "\"DUPLICATE\" | DatumTargetFailureCode | \"UNIT_PRECISION\" | \"DIM_ON_HIDDEN\" | \"DATUM_LOST\" | \"FRAME_LOST\" | \"FRAME_VIEW_MISSING\" | \"DATUM_UNDEFINED\" | \"FRAME_RULE\" | \"DATUM_TWICE\" | \"VIEW_NEEDED\" | \"DIMENSION_LOST\" | \"TEXT_OVERLAP\" | \"TEXT_OVER_LINES\" | \"OFF_SHEET\" | \"VIEWS_DONT_FIT\" | \"REMATCHED\" | \"HOLE_SIZE_MISSING\" | \"HOLE_NOT_LOCATED\" | \"STEP_NOT_LOCATED\" | \"OVERALL_MISSING\" | \"TABLE_SOURCE\" | \"WELD_NOT_SHOWN\" | \"BALLOON_NOT_CLEAR\" | \"BALLOON_NO_EDGE\" | \"FIT_ROW_MISSING\" | \"FOLLOWED_CHANGED\" | \"DETAIL_PARENT_MISSING\" | \"DETAIL_EMPTY\" | \"DETAIL_NO_ROOM\" | \"BREAK_NO_VIEW\" | \"SECTION_NO_ROOM\" | \"SECTION_NO_VIEW\" | \"DATUM_TARGET_OUTSIDE\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "\"DIM_ON_HIDDEN\" | \"DATUM_LOST\" | \"FRAME_LOST\" | \"FRAME_VIEW_MISSING\" | \"DATUM_UNDEFINED\" | \"FRAME_RULE\" | \"DATUM_TWICE\" | \"VIEW_NEEDED\" | \"DIMENSION_LOST\" | \"TEXT_OVERLAP\" | \"TEXT_OVER_LINES\" | \"OFF_SHEET\" | \"VIEWS_DONT_FIT\" | \"DUPLICATE\" | \"REMATCHED\" | \"HOLE_SIZE_MISSING\" | \"HOLE_NOT_LOCATED\" | \"STEP_NOT_LOCATED\" | \"OVERALL_MISSING\" | \"TABLE_SOURCE\" | \"WELD_NOT_SHOWN\" | \"BALLOON_NOT_CLEAR\" | \"BALLOON_NO_EDGE\" | \"FIT_ROW_MISSING\" | \"FOLLOWED_CHANGED\" | \"DETAIL_PARENT_MISSING\" | \"DETAIL_EMPTY\" | \"DETAIL_NO_ROOM\" | \"BREAK_NO_VIEW\" | \"SECTION_NO_ROOM\" | \"SECTION_NO_VIEW\" | \"DATUM_TARGET_OUTSIDE\" | DatumTargetFailureCode"
+                "definition": "\"UNIT_PRECISION\" | \"DIM_ON_HIDDEN\" | \"DATUM_LOST\" | \"FRAME_LOST\" | \"FRAME_VIEW_MISSING\" | \"DATUM_UNDEFINED\" | \"FRAME_RULE\" | \"DATUM_TWICE\" | \"VIEW_NEEDED\" | \"DIMENSION_LOST\" | \"TEXT_OVERLAP\" | \"TEXT_OVER_LINES\" | \"OFF_SHEET\" | \"VIEWS_DONT_FIT\" | \"DUPLICATE\" | \"REMATCHED\" | \"HOLE_SIZE_MISSING\" | \"HOLE_NOT_LOCATED\" | \"STEP_NOT_LOCATED\" | \"OVERALL_MISSING\" | \"TABLE_SOURCE\" | \"WELD_NOT_SHOWN\" | \"BALLOON_NOT_CLEAR\" | \"BALLOON_NO_EDGE\" | \"FIT_ROW_MISSING\" | \"FOLLOWED_CHANGED\" | \"DETAIL_PARENT_MISSING\" | \"DETAIL_EMPTY\" | \"DETAIL_NO_ROOM\" | \"BREAK_NO_VIEW\" | \"SECTION_NO_ROOM\" | \"SECTION_NO_VIEW\" | \"DATUM_TARGET_OUTSIDE\" | DatumTargetFailureCode"
               }
             ],
             "members": [
@@ -237238,7 +237276,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "Omit<{ title: string; date: string; source?: string | undefined; callout?: ((edge: string, diameter?: number | undefined) => string | null) | undefined; threads?: ReadonlyMap<string, FaceThread> | undefined; tableContent?: ((t: DrawingTable) => TableContent | { error: string; }) | undefined; welds?: readonly WeldJoint[] | undefined; bom?: Bom | undefined; bodyFaces?: Readonly<Record<string, readonly string[]>> | undefined; }, \"callout\">"
+                "type": "Omit<{ title: string; date: string; source?: string | undefined; callout?: ((edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null) | undefined; threads?: ReadonlyMap<string, FaceThread> | undefined; tableContent?: ((t: DrawingTable) => TableContent | { error: string; }) | undefined; welds?: readonly WeldJoint[] | undefined; bom?: Bom | undefined; bodyFaces?: Readonly<Record<string, readonly string[]>> | undefined; }, \"callout\">"
               },
               {
                 "name": "sections",
@@ -238024,14 +238062,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(a: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; }, av: BrepProjection, b: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; }, bv: BrepProjection, axis: string, locationOwner?: LocationOwner | undefined) => boolean",
+            "type": "(a: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; }, av: BrepProjection, b: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; }, bv: BrepProjection, axis: string, locationOwner?: LocationOwner | undefined) => boolean",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(a: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; }, av: BrepProjection, b: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; }, bv: BrepProjection, axis: string, locationOwner?: LocationOwner | undefined) => boolean"
+              "(a: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; }, av: BrepProjection, b: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; }, bv: BrepProjection, axis: string, locationOwner?: LocationOwner | undefined) => boolean"
             ]
           }
         }
@@ -241145,6 +241183,13 @@
                 "type": "{ id: string; box: [number, number, number, number]; error?: string | undefined; part?: [number, number] | undefined; }[] | undefined"
               },
               {
+                "name": "units",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "{ units: DrawingUnits; dual: boolean; precision: UnitPrecision; } | undefined"
+              },
+              {
                 "name": "welds",
                 "kind": "property",
                 "optional": true,
@@ -241547,14 +241592,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; source?: string | undefined; callout?: ((edge: string, diameter?: number | undefined) => string | null) | undefined; threads?: ReadonlyMap<string, FaceThread> | undefined; tableContent?: ((t: DrawingTable) => TableContent | { error: string; }) | undefined; welds?: readonly WeldJoint[] | undefined; bom?: Bom | undefined; bodyFaces?: Readonly<Record<string, readonly string[]>> | undefined; }, sections?: readonly SheetSection[] | undefined) => Sheet",
+            "type": "(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; source?: string | undefined; callout?: ((edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null) | undefined; threads?: ReadonlyMap<string, FaceThread> | undefined; tableContent?: ((t: DrawingTable) => TableContent | { error: string; }) | undefined; welds?: readonly WeldJoint[] | undefined; bom?: Bom | undefined; bodyFaces?: Readonly<Record<string, readonly string[]>> | undefined; }, sections?: readonly SheetSection[] | undefined) => Sheet",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; source?: string | undefined; callout?: ((edge: string, diameter?: number | undefined) => string | null) | undefined; threads?: ReadonlyMap<string, FaceThread> | undefined; tableContent?: ((t: DrawingTable) => TableContent | { error: string; }) | undefined; welds?: readonly WeldJoint[] | undefined; bom?: Bom | undefined; bodyFaces?: Readonly<Record<string, readonly string[]>> | undefined; }, sections?: readonly SheetSection[] | undefined) => Sheet"
+              "(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; source?: string | undefined; callout?: ((edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null) | undefined; threads?: ReadonlyMap<string, FaceThread> | undefined; tableContent?: ((t: DrawingTable) => TableContent | { error: string; }) | undefined; welds?: readonly WeldJoint[] | undefined; bom?: Bom | undefined; bodyFaces?: Readonly<Record<string, readonly string[]>> | undefined; }, sections?: readonly SheetSection[] | undefined) => Sheet"
             ]
           }
         }
@@ -241656,6 +241701,37 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./drawing/sheet",
+      "exportName": "dimensionLine",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheet.ts",
+            "name": "dimensionLine",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }, p: StandardPreset) => string",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }, p: StandardPreset) => string"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheet",
       "exportName": "dimensionMarks",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -241671,14 +241747,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(v: ViewPlacement, r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; }, p?: StandardPreset) => Mark[]",
+            "type": "(v: ViewPlacement, r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }, p?: StandardPreset) => Mark[]",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(v: ViewPlacement, r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; }, p?: StandardPreset) => Mark[]"
+              "(v: ViewPlacement, r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }, p?: StandardPreset) => Mark[]"
             ]
           }
         }
@@ -241702,14 +241778,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; }, callout?: ((edge: string, diameter?: number | undefined) => string | null) | undefined) => string",
+            "type": "(r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }, callout?: ((edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null) | undefined, f?: LengthFormat) => string",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; }, callout?: ((edge: string, diameter?: number | undefined) => string | null) | undefined) => string"
+              "(r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }, callout?: ((edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null) | undefined, f?: LengthFormat) => string"
             ]
           }
         }
@@ -242074,14 +242150,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(t: Tolerance, unit?: string) => string",
+            "type": "(t: Tolerance, unit?: string, p?: StandardPreset, u?: DrawingUnits, nominal?: number) => string",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(t: Tolerance, unit?: string) => string"
+              "(t: Tolerance, unit?: string, p?: StandardPreset, u?: DrawingUnits, nominal?: number) => string"
             ]
           }
         }
@@ -242105,14 +242181,45 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(at: XY, angle: number, anchor: \"start\" | \"end\" | \"middle\", value: string, tol?: Tolerance | undefined, unit?: string, p?: StandardPreset) => Mark[]",
+            "type": "(at: XY, angle: number, anchor: \"start\" | \"end\" | \"middle\", value: string, tol?: Tolerance | undefined, unit?: string, p?: StandardPreset, alt?: string | undefined, nominal?: number) => Mark[]",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(at: XY, angle: number, anchor: \"start\" | \"end\" | \"middle\", value: string, tol?: Tolerance | undefined, unit?: string, p?: StandardPreset) => Mark[]"
+              "(at: XY, angle: number, anchor: \"start\" | \"end\" | \"middle\", value: string, tol?: Tolerance | undefined, unit?: string, p?: StandardPreset, alt?: string | undefined, nominal?: number) => Mark[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/sheet",
+      "exportName": "withShownText",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/sheet.ts",
+            "name": "withShownText",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }, callout: ((edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null) | undefined, p: StandardPreset) => Resolved",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }, callout: ((edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null) | undefined, p: StandardPreset) => Resolved"
             ]
           }
         }
@@ -242142,6 +242249,219 @@
                 "kind": "VariableDeclaration"
               }
             ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
+      "exportName": "DRAWING_UNITS",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "DRAWING_UNITS",
+            "kind": "const"
+          },
+          "shape": {
+            "type": "readonly DrawingUnits[]",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
+      "exportName": "DeviationPair",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "DeviationPair",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "Deviations & { digits: number; nominal: string; tight: boolean; }",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "Deviations & {\n    digits: number;\n    nominal: string;\n    tight: boolean;\n}"
+              }
+            ],
+            "members": [
+              {
+                "name": "digits",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "equal",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "boolean"
+              },
+              {
+                "name": "lower",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "nominal",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "tight",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "boolean"
+              },
+              {
+                "name": "upper",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
+      "exportName": "DeviationSet",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "DeviationSet",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "DeviationSet",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "digits",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "items",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Deviations[]"
+              },
+              {
+                "name": "nominal",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "tight",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "boolean"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
+      "exportName": "Deviations",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "Deviations",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "Deviations",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "equal",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "boolean"
+              },
+              {
+                "name": "lower",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "upper",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              }
+            ],
+            "indexSignatures": []
           }
         }
       ]
@@ -242538,6 +242858,895 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./drawing/standard",
+      "exportName": "DrawingUnits",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "DrawingUnits",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "\"mm\" | \"inch\"",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "\"mm\" | \"inch\""
+              }
+            ],
+            "members": [
+              {
+                "name": "__@iterator@81",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => StringIterator<string>"
+              },
+              {
+                "name": "anchor",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => string"
+              },
+              {
+                "name": "at",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => string | undefined"
+              },
+              {
+                "name": "big",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "blink",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "bold",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "charAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(pos: number) => string"
+              },
+              {
+                "name": "charCodeAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => number"
+              },
+              {
+                "name": "codePointAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(pos: number) => number | undefined"
+              },
+              {
+                "name": "concat",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(...strings: string[]) => string"
+              },
+              {
+                "name": "endsWith",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, endPosition?: number | undefined) => boolean"
+              },
+              {
+                "name": "fixed",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "fontcolor",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(color: string) => string"
+              },
+              {
+                "name": "fontsize",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (size: number): string; (size: string): string; }"
+              },
+              {
+                "name": "includes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => boolean"
+              },
+              {
+                "name": "indexOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => number"
+              },
+              {
+                "name": "italics",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "lastIndexOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => number"
+              },
+              {
+                "name": "length",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "link",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(url: string) => string"
+              },
+              {
+                "name": "localeCompare",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (that: string): number; (that: string, locales?: string | string[] | undefined, options?: CollatorOptions | undefined): number; (that: string, locales?: LocalesArgument, options?: CollatorOptions | undefined): number; }"
+              },
+              {
+                "name": "match",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (regexp: string | RegExp): RegExpMatchArray | null; (matcher: { [Symbol.match](string: string): RegExpMatchArray | null; }): RegExpMatchArray | null; }"
+              },
+              {
+                "name": "matchAll",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(regexp: RegExp) => RegExpStringIterator<RegExpExecArray>"
+              },
+              {
+                "name": "normalize",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (form: \"NFC\" | \"NFD\" | \"NFKC\" | \"NFKD\"): string; (form?: string | undefined): string; }"
+              },
+              {
+                "name": "padEnd",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(maxLength: number, fillString?: string | undefined) => string"
+              },
+              {
+                "name": "padStart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(maxLength: number, fillString?: string | undefined) => string"
+              },
+              {
+                "name": "repeat",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(count: number) => string"
+              },
+              {
+                "name": "replace",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; (searchValue: { [Symbol.replace](string: string, replaceValue: string): string; }, replaceValue: string): string; (searchValue: { [Symbol.replace](string: string, replacer: (substring: string, ...args: any[]) => string): string; }, replacer: (substring: string, ...args: any[]) => string): string; }"
+              },
+              {
+                "name": "replaceAll",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; }"
+              },
+              {
+                "name": "search",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (regexp: string | RegExp): number; (searcher: { [Symbol.search](string: string): number; }): number; }"
+              },
+              {
+                "name": "slice",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start?: number | undefined, end?: number | undefined) => string"
+              },
+              {
+                "name": "small",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "split",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (separator: string | RegExp, limit?: number | undefined): string[]; (splitter: { [Symbol.split](string: string, limit?: number | undefined): string[]; }, limit?: number | undefined): string[]; }"
+              },
+              {
+                "name": "startsWith",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => boolean"
+              },
+              {
+                "name": "strike",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "sub",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "substr",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(from: number, length?: number | undefined) => string"
+              },
+              {
+                "name": "substring",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start: number, end?: number | undefined) => string"
+              },
+              {
+                "name": "sup",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toLocaleLowerCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+              },
+              {
+                "name": "toLocaleUpperCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+              },
+              {
+                "name": "toLowerCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toString",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toUpperCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trim",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimEnd",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimLeft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimRight",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimStart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "valueOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              }
+            ],
+            "indexSignatures": [
+              {
+                "key": "number",
+                "type": "string",
+                "readonly": true,
+                "callable": false
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
+      "exportName": "FrameRounding",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "FrameRounding",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "\"up\" | \"nearest\" | \"down\"",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "\"down\" | \"up\" | \"nearest\""
+              }
+            ],
+            "members": [
+              {
+                "name": "__@iterator@81",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => StringIterator<string>"
+              },
+              {
+                "name": "anchor",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => string"
+              },
+              {
+                "name": "at",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => string | undefined"
+              },
+              {
+                "name": "big",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "blink",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "bold",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "charAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(pos: number) => string"
+              },
+              {
+                "name": "charCodeAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => number"
+              },
+              {
+                "name": "codePointAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(pos: number) => number | undefined"
+              },
+              {
+                "name": "concat",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(...strings: string[]) => string"
+              },
+              {
+                "name": "endsWith",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, endPosition?: number | undefined) => boolean"
+              },
+              {
+                "name": "fixed",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "fontcolor",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(color: string) => string"
+              },
+              {
+                "name": "fontsize",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (size: number): string; (size: string): string; }"
+              },
+              {
+                "name": "includes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => boolean"
+              },
+              {
+                "name": "indexOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => number"
+              },
+              {
+                "name": "italics",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "lastIndexOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => number"
+              },
+              {
+                "name": "length",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "link",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(url: string) => string"
+              },
+              {
+                "name": "localeCompare",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (that: string): number; (that: string, locales?: string | string[] | undefined, options?: CollatorOptions | undefined): number; (that: string, locales?: LocalesArgument, options?: CollatorOptions | undefined): number; }"
+              },
+              {
+                "name": "match",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (regexp: string | RegExp): RegExpMatchArray | null; (matcher: { [Symbol.match](string: string): RegExpMatchArray | null; }): RegExpMatchArray | null; }"
+              },
+              {
+                "name": "matchAll",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(regexp: RegExp) => RegExpStringIterator<RegExpExecArray>"
+              },
+              {
+                "name": "normalize",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (form: \"NFC\" | \"NFD\" | \"NFKC\" | \"NFKD\"): string; (form?: string | undefined): string; }"
+              },
+              {
+                "name": "padEnd",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(maxLength: number, fillString?: string | undefined) => string"
+              },
+              {
+                "name": "padStart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(maxLength: number, fillString?: string | undefined) => string"
+              },
+              {
+                "name": "repeat",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(count: number) => string"
+              },
+              {
+                "name": "replace",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; (searchValue: { [Symbol.replace](string: string, replaceValue: string): string; }, replaceValue: string): string; (searchValue: { [Symbol.replace](string: string, replacer: (substring: string, ...args: any[]) => string): string; }, replacer: (substring: string, ...args: any[]) => string): string; }"
+              },
+              {
+                "name": "replaceAll",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; }"
+              },
+              {
+                "name": "search",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (regexp: string | RegExp): number; (searcher: { [Symbol.search](string: string): number; }): number; }"
+              },
+              {
+                "name": "slice",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start?: number | undefined, end?: number | undefined) => string"
+              },
+              {
+                "name": "small",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "split",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (separator: string | RegExp, limit?: number | undefined): string[]; (splitter: { [Symbol.split](string: string, limit?: number | undefined): string[]; }, limit?: number | undefined): string[]; }"
+              },
+              {
+                "name": "startsWith",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => boolean"
+              },
+              {
+                "name": "strike",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "sub",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "substr",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(from: number, length?: number | undefined) => string"
+              },
+              {
+                "name": "substring",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start: number, end?: number | undefined) => string"
+              },
+              {
+                "name": "sup",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toLocaleLowerCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+              },
+              {
+                "name": "toLocaleUpperCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+              },
+              {
+                "name": "toLowerCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toString",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toUpperCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trim",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimEnd",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimLeft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimRight",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimStart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "valueOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              }
+            ],
+            "indexSignatures": [
+              {
+                "key": "number",
+                "type": "string",
+                "readonly": true,
+                "callable": false
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
+      "exportName": "INCH_DECIMALS",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "INCH_DECIMALS",
+            "kind": "const"
+          },
+          "shape": {
+            "type": "3",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
+      "exportName": "LengthFormat",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "LengthFormat",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "LengthFormat",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "at",
+                "kind": "method",
+                "optional": true,
+                "readonly": false,
+                "type": "((digits: number) => LengthFormat) | undefined"
+              },
+              {
+                "name": "pairs",
+                "kind": "method",
+                "optional": true,
+                "readonly": false,
+                "type": "((list: readonly (readonly [number, number])[], nominal: number) => DeviationSet) | undefined"
+              },
+              {
+                "name": "unit",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "DrawingUnits | undefined"
+              }
+            ],
+            "indexSignatures": [],
+            "callSignatures": [
+              "(mm: number, places?: 3 | 2 | 4 | undefined) => string"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
+      "exportName": "MAX_PRECISION",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "MAX_PRECISION",
+            "kind": "const"
+          },
+          "shape": {
+            "type": "6",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
       "exportName": "PLAIN",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -242638,6 +243847,13 @@
                 "type": "\"aligned\" | \"unidirectional\""
               },
               {
+                "name": "dual",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "boolean"
+              },
+              {
                 "name": "lineTarget",
                 "kind": "property",
                 "optional": false,
@@ -242650,6 +243866,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "{ leadingZero: boolean; trailingZeros: \"trim\" | \"keep\"; }"
+              },
+              {
+                "name": "precision",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "UnitPrecision"
               },
               {
                 "name": "projectionSymbol",
@@ -242666,6 +243889,20 @@
                 "type": "number"
               },
               {
+                "name": "trimZeros",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "boolean | undefined"
+              },
+              {
+                "name": "units",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "DrawingUnits"
+              },
+              {
                 "name": "withoutCharacteristic",
                 "kind": "property",
                 "optional": false,
@@ -242674,6 +243911,203 @@
               }
             ],
             "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
+      "exportName": "UnitPrecision",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "UnitPrecision",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "UnitPrecision",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "inch",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "mm",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
+      "exportName": "UnitSettings",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "UnitSettings",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "UnitSettings",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "dual",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "boolean | undefined"
+              },
+              {
+                "name": "precision",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "UnitPrecision | undefined"
+              },
+              {
+                "name": "standard",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "DrawingStandard | undefined"
+              },
+              {
+                "name": "units",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "DrawingUnits | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
+      "exportName": "deviationPair",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "deviationPair",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(upper: number, lower: number, p: StandardPreset, unit: DrawingUnits, nominal?: number) => DeviationPair",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(upper: number, lower: number, p: StandardPreset, unit: DrawingUnits, nominal?: number) => DeviationPair"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
+      "exportName": "deviationSet",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "deviationSet",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(list: readonly (readonly [number, number])[], p: StandardPreset, unit: DrawingUnits, nominal?: number) => DeviationSet",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(list: readonly (readonly [number, number])[], p: StandardPreset, unit: DrawingUnits, nominal?: number) => DeviationSet"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
+      "exportName": "formatLength",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "formatLength",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(mm: number, p: StandardPreset, unit?: DrawingUnits, places?: 3 | 2 | 4) => string",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(mm: number, p: StandardPreset, unit?: DrawingUnits, places?: 3 | 2 | 4) => string"
+            ]
           }
         }
       ]
@@ -242712,6 +244146,130 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./drawing/standard",
+      "exportName": "frameValue",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "frameValue",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(mm: number, p: StandardPreset, mode?: FrameRounding) => { text: string; tight: boolean; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(mm: number, p: StandardPreset, mode?: FrameRounding) => { text: string; tight: boolean; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
+      "exportName": "hasUnitSettings",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "hasUnitSettings",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(p: StandardPreset) => boolean",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(p: StandardPreset) => boolean"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
+      "exportName": "lengthFormats",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "lengthFormats",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(p: StandardPreset) => { primary: LengthFormat; secondary: LengthFormat | null; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(p: StandardPreset) => { primary: LengthFormat; secondary: LengthFormat | null; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
+      "exportName": "presetFor",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "presetFor",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(s: UnitSettings) => StandardPreset",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(s: UnitSettings) => StandardPreset"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
       "exportName": "presetOf",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -242735,6 +244293,68 @@
             ],
             "callSignatures": [
               "(standard: DrawingStandard | undefined) => StandardPreset"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
+      "exportName": "unitsLabel",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "unitsLabel",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(p: StandardPreset) => string",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(p: StandardPreset) => string"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
+      "exportName": "withDigits",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "withDigits",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(p: StandardPreset, unit: DrawingUnits, digits: number) => StandardPreset",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(p: StandardPreset, unit: DrawingUnits, digits: number) => StandardPreset"
             ]
           }
         }
@@ -245695,6 +247315,13 @@
                 "type": "DrawingDimension[]"
               },
               {
+                "name": "dual",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "boolean | undefined"
+              },
+              {
                 "name": "frames",
                 "kind": "property",
                 "optional": true,
@@ -245721,6 +247348,13 @@
                 "optional": true,
                 "readonly": false,
                 "type": "\"x+\" | \"y+\" | \"x-\" | undefined"
+              },
+              {
+                "name": "precision",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "UnitPrecision | undefined"
               },
               {
                 "name": "projection",
@@ -245833,6 +247467,13 @@
                 "optional": true,
                 "readonly": false,
                 "type": "\"plus-minus\" | \"geometric\" | undefined"
+              },
+              {
+                "name": "units",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "DrawingUnits | undefined"
               },
               {
                 "name": "views",
@@ -249756,6 +251397,37 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./drawing/types",
+      "exportName": "precisionOk",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/types.ts",
+            "name": "precisionOk",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(x: unknown) => x is number",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(x: unknown) => x is number"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/types",
       "exportName": "readDrawing",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -251730,14 +253402,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(tip: XY, knee: XY, side: Side, j: WeldJoint, label: string) => Mark[]",
+            "type": "(tip: XY, knee: XY, side: Side, j: WeldJoint, label: string, f?: LengthFormat) => Mark[]",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(tip: XY, knee: XY, side: Side, j: WeldJoint, label: string) => Mark[]"
+              "(tip: XY, knee: XY, side: Side, j: WeldJoint, label: string, f?: LengthFormat) => Mark[]"
             ]
           }
         }
@@ -251761,14 +253433,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(layout: SheetLayout, views: DrawingViews, joints: readonly WeldJoint[]) => WeldSymbols",
+            "type": "(layout: SheetLayout, views: DrawingViews, joints: readonly WeldJoint[], f?: LengthFormat | undefined) => WeldSymbols",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(layout: SheetLayout, views: DrawingViews, joints: readonly WeldJoint[]) => WeldSymbols"
+              "(layout: SheetLayout, views: DrawingViews, joints: readonly WeldJoint[], f?: LengthFormat | undefined) => WeldSymbols"
             ]
           }
         }

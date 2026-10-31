@@ -8,6 +8,7 @@
 //   TEXT_OVER_LINES    a dimension's text lies over a view's lines or another dimension   fix: move it out
 //   OFF_SHEET          an annotation reaches past the frame or into the title block       fix: move it in
 //   VIEWS_DONT_FIT     the views do not fit the sheet at its scale                        fix: an automatic scale (or A3)
+//   UNIT_PRECISION     a tolerance too fine to print in the drawing's unit even at the most decimals (11 ③b)  (no fix)
 //   DATUM_LOST         a datum's edge is gone (R14.4)                                     fix: remove it
 //   DATUM_TWICE        two datums with one letter                                         fix: remove the later
 //   FRAME_LOST         a feature control frame's dimension is gone or lost               fix: remove it
@@ -37,13 +38,13 @@ import { SCALES, layoutSheet, scaleLabel, sectionDepth, type SheetLayout } from 
 import { detailScale } from './detail';
 import { viewBreaksOf } from './breaks';
 import { frameNotes, frameRules } from './controls';
-import { presetOf } from './standard';
+import { deviationPair, frameValue, presetFor, type DrawingUnits, type FrameRounding } from './standard';
 import { fmtMM, type Resolved } from './dimensions';
 import { SECTION_VIEWS, VIEW_IDS, baseViewOf, detailLetter, isDetailRef, isViewId, isSectionRef, nextSectionId, sectionLetter, sectionsOf, withSections, type DimPoint, type SectionViewId, type DimView, type DrawingDimension, type DrawingSettings, type DrawingViews, type ViewId, type XY } from './types';
 
 export const DRAWING_ISSUES_VERSION = 'cad-studio-drawing-issues-v1';
 
-export type DrawingIssueCode = 'DIM_ON_HIDDEN' | 'DATUM_LOST' | 'FRAME_LOST' | 'FRAME_VIEW_MISSING' | 'DATUM_UNDEFINED' | 'FRAME_RULE' | 'DATUM_TWICE' | 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING' | 'TABLE_SOURCE' | 'WELD_NOT_SHOWN' | 'BALLOON_NOT_CLEAR' | 'BALLOON_NO_EDGE' | 'FIT_ROW_MISSING' | 'FOLLOWED_CHANGED' | 'DETAIL_PARENT_MISSING' | 'DETAIL_EMPTY' | 'DETAIL_NO_ROOM' | 'BREAK_NO_VIEW' | 'SECTION_NO_ROOM' | 'SECTION_NO_VIEW' | 'DATUM_TARGET_OUTSIDE' | DatumTargetFailureCode;
+export type DrawingIssueCode = 'UNIT_PRECISION' | 'DIM_ON_HIDDEN' | 'DATUM_LOST' | 'FRAME_LOST' | 'FRAME_VIEW_MISSING' | 'DATUM_UNDEFINED' | 'FRAME_RULE' | 'DATUM_TWICE' | 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING' | 'TABLE_SOURCE' | 'WELD_NOT_SHOWN' | 'BALLOON_NOT_CLEAR' | 'BALLOON_NO_EDGE' | 'FIT_ROW_MISSING' | 'FOLLOWED_CHANGED' | 'DETAIL_PARENT_MISSING' | 'DETAIL_EMPTY' | 'DETAIL_NO_ROOM' | 'BREAK_NO_VIEW' | 'SECTION_NO_ROOM' | 'SECTION_NO_VIEW' | 'DATUM_TARGET_OUTSIDE' | DatumTargetFailureCode;
 export type DrawingFix =
   | { kind: 'remove'; dim: string }
   | { kind: 'move'; dim: string; place: XY }
@@ -241,7 +242,7 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
   // Datums and frames (R14.4, O5).
   const letters = new Map<string, string>();
   for (const d of settings.datums ?? []) {
-    if (!layout.views[d.view].hidden && !datumMarks(layout, ctx.views, d, presetOf(settings.standard))) out.push({ code: 'DATUM_LOST', severity: 'error', message: d.face ? `Datum ${d.letter}: its face in the ${d.view} view has no unique current boundary anchor.` : `Datum ${d.letter}: its edge in the ${d.view} view is no longer in the part.`, view: d.view, fix: { kind: 'remove-datum', datum: d.id } });
+    if (!layout.views[d.view].hidden && !datumMarks(layout, ctx.views, d, presetFor(settings))) out.push({ code: 'DATUM_LOST', severity: 'error', message: d.face ? `Datum ${d.letter}: its face in the ${d.view} view has no unique current boundary anchor.` : `Datum ${d.letter}: its edge in the ${d.view} view is no longer in the part.`, view: d.view, fix: { kind: 'remove-datum', datum: d.id } });
     if (letters.has(d.letter)) out.push({ code: 'DATUM_TWICE', severity: 'error', message: `Datum ${d.letter} is defined twice.`, view: d.view, fix: { kind: 'remove-datum', datum: d.id } });
     else letters.set(d.letter, d.id);
   }
@@ -259,6 +260,17 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
       if (pts.some(p => p[0] < pr.min[0] - eps || p[0] > pr.max[0] + eps || p[1] < pr.min[1] - eps || p[1] > pr.max[1] + eps))
         out.push({ code: 'DATUM_TARGET_OUTSIDE', severity: 'warning', message: `Datum target ${d.letter}${d.number}: its ${d.kind === 'line' ? 'line' : 'area'} lies partly outside the part in the ${d.view} view. It is placed by view points and does not follow the part; move it.`, datumTargets: [d.id], view: d.view });
     }
+  }
+  // Units (11 ③b): a tolerance too fine for the unit's most decimals prints inward-rounded and may be zero or narrow: say which.
+  const preset = presetFor(settings), units: DrawingUnits[] = preset.units === 'mm' && preset.precision.mm === undefined && !preset.dual ? [] : preset.dual ? [preset.units, preset.units === 'mm' ? 'inch' : 'mm'] : [preset.units];
+  for (const r of sheet.dimensions) {
+    const t = r.ok && r.kind !== 'angle' ? r.dim.tol : undefined; if (!r.ok || !t || t.kind === 'fit') continue;
+    const [up, lo] = t.kind === 'symmetric' ? [t.value, -t.value] : [t.upper, t.lower];
+    for (const u of units) if (deviationPair(up, lo, preset, u, r.value).tight) out.push({ code: 'UNIT_PRECISION', severity: 'warning', message: `Dimension ${r.dim.id}: its tolerance is too fine to print in ${u === 'inch' ? 'inches' : 'mm'} even at ${u === 'inch' ? 5 : Math.max(4, preset.precision.mm ?? 4)} decimals, so the printed limits differ noticeably from the real ones. Loosen the tolerance or print this drawing in ${u === 'inch' ? 'mm' : 'inches'}.`, dims: [r.dim.id], view: r.dim.view });
+  }
+  if (preset.units === 'inch') for (const f of settings.frames ?? []) {
+    const values: [number | undefined, FrameRounding][] = [[f.value, 'down'], [f.projected, 'up'], [f.unequal, 'nearest'], [f.composite?.value, 'down'], [f.stacked?.value, 'down']];
+    if (values.some(([v, mode]) => v !== undefined && v > 0 && frameValue(v, preset, mode).tight)) out.push({ code: 'UNIT_PRECISION', severity: 'warning', message: `The ${f.characteristic} frame${f.dim === undefined ? '' : ` on dimension ${f.dim}`}: a value is too fine to print in inches even at 5 decimals, so the printed value is lower than the real one. Print this drawing in mm.`, frames: [f.id], ...(f.dim === undefined ? { view: f.view } : { dims: [f.dim] }) });
   }
   // (A datum exists when a datum feature symbol or a datum target set has its letter.)
   const known = new Set([...letters.keys(), ...(settings.datumTargets ?? []).map(t => t.letter)]);
@@ -545,9 +557,9 @@ function fixFor(ctx: IssueContext, p: Placed, placed: readonly Placed[], viewGri
     // (The sheet's resolved dimension carries its shown text, callout and count included.)
     const moved = { ...r, dim: { ...r.dim, place } } as Extract<Resolved, { ok: true }>;
     // (Drawn as the sheet draws it: boxed if basic, its feature control frame under it.)
-    const marks = dimensionMarks(v, moved, presetOf(ctx.settings.standard)); if (r.dim.basic) marks.push(...basicBox(marks));
+    const marks = dimensionMarks(v, moved, presetFor(ctx.settings)); if (r.dim.basic) marks.push(...basicBox(marks));
     const frame = ctx.settings.frames?.find(f => f.dim === r.dim.id), main = marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
-    if (frame && main) marks.push(...frameMarks(main, frame, presetOf(ctx.settings.standard)));
+    if (frame && main) marks.push(...frameMarks(main, frame, presetFor(ctx.settings)));
     if (clear(placedOf({ role: 'dimension', id: r.dim.id, view: r.dim.view, marks }))) return { fix: { kind: 'move', dim: r.dim.id, place } };
   }
   return {};

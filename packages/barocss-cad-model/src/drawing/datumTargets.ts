@@ -4,7 +4,7 @@
 import type { BrepProjection } from '@barocss/cad';
 import { problem, type Problem } from '../engine/refusal';
 import { sameDatumTargetSourceSig, toSig, type Sig } from '../engine/references';
-import { fmtMM } from './dimensions';
+import { PLAIN, formatLength, type StandardPreset } from './standard';
 import type { Vec3, ViewId, XY } from './types';
 
 export type DatumTargetKind = 'point' | 'line' | 'area';
@@ -70,9 +70,10 @@ function targetOk(x: unknown, authored = false): x is DrawingDatumTarget { retur
 /** The kind a row has: a point target stores none. */
 export const datumTargetKind = (t: Pick<DrawingDatumTarget, 'kind'>): DatumTargetKind => t.kind ?? 'point';
 /** The upper half of an area target's symbol: Ø6 for a circle, 6×4 for a rectangle; null for a point or a line. */
-export function datumTargetSizeText(t: DrawingDatumTarget): string | null {
+export function datumTargetSizeText(t: DrawingDatumTarget, p: StandardPreset = PLAIN): string | null {
   if (t.kind !== 'area') return null;
-  return t.area.shape === 'circle' ? `Ø${fmtMM(t.area.d)}` : `${fmtMM(t.area.w)}×${fmtMM(t.area.h)}`;
+  const f = (mm: number) => formatLength(mm, p);
+  return t.area.shape === 'circle' ? `Ø${f(t.area.d)}` : `${f(t.area.w)}×${f(t.area.h)}`;
 }
 
 /** Authored inputs are accepted as a whole. Omitted keeps the saved targets; [] clears them. */

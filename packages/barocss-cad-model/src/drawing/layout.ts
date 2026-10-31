@@ -13,7 +13,7 @@ import { elementNotes, withElementNotes } from './elementCallouts';
 import { autoDimensions, holesOf, levels, type AutoDimensionReport } from './auto';
 import { roundIn, type Resolved } from './dimensions';
 import { drawingIssues, fixAll, issueContext, quadsOverlap, segmentHitsQuad, SegmentGrid, textBox, type DrawingIssue, type IssueContext, type Quad, type SheetInputs } from './issues';
-import { presetOf } from './standard';
+import { presetFor } from './standard';
 import { basicBox, dimensionMarks, frameMarks, placementOf, sectionExtents, type Mark } from './sheet';
 import { ORIENTATIONS, SCALES, layoutSheet, viewsFor, type Orientation } from './views';
 import { ROOM_SIDES, VIEW_IDS, type DimView, type DrawingSettings, type DrawingViews, type ViewId, type ViewRoom, type XY } from './types';
@@ -178,10 +178,10 @@ export function placeDimensionLabels(initial: IssueContext): { settings: Drawing
     const before = left.map(signature);
     for (const place of labelPlaces(r, v.scale, Math.hypot(ctx.layout.frame[2] - ctx.layout.frame[0], ctx.layout.frame[3] - ctx.layout.frame[1]))) {
       const moved = { ...r, dim: { ...r.dim, place } } as Extract<Resolved, { ok: true }>;
-      const marks = dimensionMarks(v, moved, presetOf(ctx.settings.standard));
+      const marks = dimensionMarks(v, moved, presetFor(ctx.settings));
       if (r.dim.basic) marks.push(...basicBox(marks));
       const main = marks.find((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
-      if (frame && main) marks.push(...frameMarks(main, frame, presetOf(ctx.settings.standard)));
+      if (frame && main) marks.push(...frameMarks(main, frame, presetFor(ctx.settings)));
       if (!clear(marks)) continue;
       const settings = { ...ctx.settings, dimensions: ctx.settings.dimensions.map(d => d.id === id ? { ...d, place } : d) };
       const next = rebuild(settings), own = next.sheet.groups.filter(g => (g.role === 'dimension' && g.id === id) || (g.role === 'control' && next.settings.frames?.some(f => f.id === g.id && f.dim === id))).flatMap(g => g.marks);

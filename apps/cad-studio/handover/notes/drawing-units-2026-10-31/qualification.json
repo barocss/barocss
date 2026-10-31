@@ -1,0 +1,41 @@
+{
+  "decision": "D397",
+  "roadmap": "11 ③b inch display and dual dimensions (CG5 DR-7)",
+  "issues": {},
+  "tier": "full (drawing document fields + public API + printed numbers): three audit rounds with mutation and property probes, actual run",
+  "status": "QUALIFIED",
+  "before": "measured 2026-10-31: drawings printed mm only (UNITS cell hard-coded), dimension values rounded to 0.01 and tolerances too (±0.125 printed ±0.13, a widened zone)",
+  "change": {
+    "fields": "drawing.units 'mm' | 'inch' (display only, the model stays mm), drawing.dual (secondary unit in brackets after the primary), drawing.precision {mm, inch} (0–6 places); canonical order standard, units, dual, precision",
+    "numbers": "formatLength: inch = mm / 25.4, no leading zero, zeros kept to the precision (default 3); a dimension with a tolerance prints its LIMITS inside the true zone — nominal rounded to nearest at p places, upper deviation floored and lower ceiled relative to it, p raised (inch ≤ 5, mm ≤ 4) until no nonzero deviation prints zero and the zone keeps ≥ 80 % of its width, else UNIT_PRECISION; nominal and deviations at the same places (Y14.5 §1.6.2); plain mm tolerances as entered (fixes the old 0.01 rounding); fits keep their designation with deviations by the same rule; GD&T frame widths round down, projected heights up, unequal amounts nearest within 5 %",
+    "coverage": "linear/radial/diameter/PCD dimensions, tolerances, fits, hole callouts, bearing ring width, GD&T values, datum target sizes, weld symbol sizes and weld list cells (estimate mark kept), source-table mm columns, DXF text and 3D annotations (alt carries the other unit); thread designations, typed notes and element-table size sentences stay as written (labelled mm)",
+    "layout": "a dual text wider than the space between the arrowheads is lifted clear of its line and arrowheads under every standard",
+    "studio": "sheet settings: Drawing units (mm / inch), Dual units, Details → Decimals in mm / inch; each one undo step",
+    "chat": "set_drawing accepts units, dual, precision with refusals; per-turn budget unchanged 24,997"
+  },
+  "audits": {
+    "round1": "CHANGES_REQUIRED: wrong numbers — tolerances, GD&T values and fit deviations printed as zero or widened (±0.005 mm → ±.000; ±0.05 at 1 mm place → ±0.1), weld list header/cells mismatch, weld sizes unconverted, plain-mm 0.01 rounding (pre-existing); root: dual text over its arrowhead. 13/13 mutants caught (none for the wrong numbers)",
+    "round2": "CHANGES_REQUIRED: printed limits still outside the true zone in 27–40 % of 20k random values (nominal rounded to nearest), fits' nominal at fewer places than its deviations; 23/26 mutants caught",
+    "round3": "targeted ACCEPT: 0 outside in the auditor's own 20k-case probes for every setting incl. dual secondaries and fits"
+  },
+  "checks": {
+    "modelSuite": "2486/2486",
+    "studioSuite": "623/623",
+    "propertyTest": "120,000 cases in the suite, 0 printed limits outside the true zone",
+    "tsc": "PASS (model, Studio)",
+    "eslint": "clean on the model package",
+    "docsTables": "refusals, agent-tools, api-inventory, check-docs PASS"
+  },
+  "actualRun": {
+    "run03": "final source PASS on bracket.bcad: Drawing, Auto-dimension; Drawing units → inch (model nodes unchanged), Dual units, Undo/Redo, Details → Decimals in inch 2; Save + fresh Open equal; oracle by its own arithmetic: inch 1.181 / .472 / .236 with UNITS inch, dual 1.181 [30] / .472 [12] / .236 [6] with UNITS inch [mm], two places 1.18 [30] / .47 [12] / .24 [6], mm unchanged; 0 page/console errors; root reviewed zoomed renders (the short dual text lifted clear of its arrowheads)",
+    "earlierRuns": ["run01 PASS (dual text over its arrowhead, found by the root's image review)", "run02 PASS after round-1 fixes"]
+  },
+  "followUps": [
+    "a zero-width zone (upper = lower) is accepted and prints an inverted pair in inch (flagged by UNIT_PRECISION)",
+    "non-dual short dimensions can still touch their arrowheads (as at HEAD) — lifting them changes the kernel's DXF fixture (packages/barocss-cad, kernel lane)",
+    "chat drawing.set hint (groups.ts) does not list standard/units/dual/precision (per-turn budget full)",
+    "DXF DIMSTYLE header stays mm/3.5 (kernel lane, with D396)"
+  ],
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

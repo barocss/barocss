@@ -8,10 +8,10 @@
 // builders the sheet uses are given in plane coordinates too (`frameGlyph`, `weldGlyph`), one source for both.
 import { datumAnchor } from './datums';
 import { datumTargetConflicts, resolveDatumTarget, type DatumTargetArea, type DatumTargetFailureCode, type DatumTargetKind } from './datumTargets';
-import { fmtTol, zonePrefix, type Characteristic, type MaterialModifier } from './controls';
+import { zonePrefix, type Characteristic, type MaterialModifier } from './controls';
 import type { BrepProjection } from '@barocss/cad';
 import type { Resolved } from './dimensions';
-import { presetOf, type DrawingStandard } from './standard';
+import { frameValue, presetFor, presetOf, type DrawingStandard, type FrameRounding, type LengthFormat, type StandardPreset } from './standard';
 import { frameMarks, hatch, placementOf, projectionOf, type Head, type LineRole, type Mark, type MarkGroup, type Sheet } from './sheet';
 import { symbolMarks, type Side } from './welds';
 import { fromSheet, type SheetLayout, type ViewPlacement } from './views';
@@ -43,7 +43,7 @@ export interface ModelAnnotation {
   anchor: Vec3; text: string[]; texts: Text3[];
   targets: Target[];
   lines: Line3[]; arcs: Arc3[]; arrows: Head3[];
-  dimension?: { measure: 'linear' | 'diameter' | 'radius' | 'pcd' | 'angle'; value: number; unit: 'mm' | 'deg'; text: string; tol?: Tolerance; basic?: true; count?: number };
+  dimension?: { measure: 'linear' | 'diameter' | 'radius' | 'pcd' | 'angle'; value: number; unit: 'mm' | 'deg'; text: string; /** On a dual drawing: the text in the other unit. */ alt?: string; tol?: Tolerance; basic?: true; count?: number };
   /** The frame's compartments in order (the symbol's, the zone and value, each datum), and its box in plane coordinates [u0, v0, u1, v1]. */
   frame?: { characteristic: Characteristic; zone: 'diameter' | 'linear' | 'sphere'; statistical?: boolean; unequal?: number; around?: 'all-around' | 'all-over'; stacked?: { zone: 'diameter' | 'linear' | 'sphere'; value: number; datums: string[]; material?: MaterialModifier; datumModifiers?: Record<string, MaterialModifier>; cells: { text: string; symbol?: Characteristic }[] }; value: number; datums: string[]; dim: string; material?: MaterialModifier; datumModifiers?: Record<string, MaterialModifier>; projected?: number; freeState?: boolean; tangentPlane?: boolean; cells: { text: string; symbol?: Characteristic }[]; composite?: { zone: 'diameter' | 'linear' | 'sphere'; value: number; datums: string[]; material?: MaterialModifier; datumModifiers?: Record<string, MaterialModifier>; cells: { text: string }[] }; box: [number, number, number, number] };
   /** A datum target also says its kind, its area (model mm, as the symbol's upper text reads it) and whether it is the moveable symbol. */
@@ -99,14 +99,15 @@ function controlView(i: AnnotationInputs, g: MarkGroup): DimView | undefined {
 
 function itemOf(i: AnnotationInputs, g: MarkGroup, view: DimView, v: ViewPlacement, pr: BrepProjection): ModelAnnotation | null {
   const kind = g.role === 'dimension' ? 'dimension' : g.role === 'datum' ? 'datum' : g.role === 'control' ? 'frame' : 'weld';
+  const preset = presetFor(i.settings);
   let targets: Target[] = [], extra: Partial<ModelAnnotation> = {};
   if (kind === 'dimension' || kind === 'frame') {
     const f = kind === 'frame' ? i.settings.frames?.find(x => x.id === g.id) : undefined;
     const r = i.sheet.dimensions.find((x): x is Extract<Resolved, { ok: true }> => x.ok && x.dim.id === (f ? f.dim : g.id));
     if (!r) return null;
     targets = targetsOf(r.dim);
-    if (kind === 'dimension') extra = { dimension: { measure: r.kind, value: r.value, unit: r.kind === 'angle' ? 'deg' : 'mm', text: r.text, ...(r.dim.tol ? { tol: r.dim.tol } : {}), ...(r.dim.basic ? { basic: true as const } : {}), ...(r.dim.count ? { count: r.dim.count } : {}) } };
-    else if (f?.dim !== undefined) extra = { frame: { characteristic: f.characteristic, zone: zoneOf(f, f), value: f.value, ...(f.statistical ? { statistical: true } : {}), ...(f.unequal !== undefined ? { unequal: f.unequal } : {}), ...(f.around ? { around: f.around } : {}), ...(f.material ? { material: f.material } : {}), ...(f.datumModifiers ? { datumModifiers: { ...f.datumModifiers } } : {}), ...(f.projected ? { projected: f.projected } : {}), ...(f.freeState ? { freeState: true } : {}), ...(f.tangentPlane ? { tangentPlane: true } : {}), datums: [...f.datums], dim: f.dim, cells: cellsOf(f), ...(f.composite ? { composite: rowDataOf(f, f.composite) } : {}), ...(f.stacked ? { stacked: rowDataOf(f, f.stacked, f.characteristic) } : {}), box: boxOf(g.marks, v) } };
+    if (kind === 'dimension') extra = { dimension: { measure: r.kind, value: r.value, unit: r.kind === 'angle' ? 'deg' : 'mm', text: r.text, ...(r.alt ? { alt: r.alt } : {}), ...(r.dim.tol ? { tol: r.dim.tol } : {}), ...(r.dim.basic ? { basic: true as const } : {}), ...(r.dim.count ? { count: r.dim.count } : {}) } };
+    else if (f?.dim !== undefined) extra = { frame: { characteristic: f.characteristic, zone: zoneOf(f, f), value: f.value, ...(f.statistical ? { statistical: true } : {}), ...(f.unequal !== undefined ? { unequal: f.unequal } : {}), ...(f.around ? { around: f.around } : {}), ...(f.material ? { material: f.material } : {}), ...(f.datumModifiers ? { datumModifiers: { ...f.datumModifiers } } : {}), ...(f.projected ? { projected: f.projected } : {}), ...(f.freeState ? { freeState: true } : {}), ...(f.tangentPlane ? { tangentPlane: true } : {}), datums: [...f.datums], dim: f.dim, cells: cellsOf(f, preset), ...(f.composite ? { composite: rowDataOf(f, f.composite, preset) } : {}), ...(f.stacked ? { stacked: rowDataOf(f, f.stacked, preset, f.characteristic) } : {}), box: boxOf(g.marks, v) } };
   } else if (kind === 'datum') {
     if (g.datumTarget) {
       const d = i.settings.datumTargets?.find(x => x.id === g.id); if (!d) return null;
@@ -162,16 +163,18 @@ function planeOf(i: AnnotationInputs, view: DimView, pr: BrepProjection, targets
 
 type RowData = { zone: 'diameter' | 'linear' | 'sphere'; value: number; datums: string[]; material?: MaterialModifier; datumModifiers?: Record<string, MaterialModifier>; cells: { text: string; symbol?: Characteristic }[] };
 const zoneOf = (f: DrawingFrame, row: { diameter?: boolean }): RowData['zone'] => f.sphere ? 'sphere' : zonePrefix(f, row) ? 'diameter' : 'linear';
-const rowDataOf = (f: DrawingFrame, c: NonNullable<DrawingFrame['composite']>, symbol?: Characteristic): RowData => ({ zone: zoneOf(f, c), value: c.value, datums: [...c.datums], ...(c.material ? { material: c.material } : {}), ...(c.datumModifiers ? { datumModifiers: { ...c.datumModifiers } } : {}), cells: [...(symbol ? [{ text: symbol === 'position' ? '⌖' : symbol, symbol }] : []), ...rowCellsOf(f, c)] });
+const rowDataOf = (f: DrawingFrame, c: NonNullable<DrawingFrame['composite']>, p: StandardPreset, symbol?: Characteristic): RowData => ({ zone: zoneOf(f, c), value: c.value, datums: [...c.datums], ...(c.material ? { material: c.material } : {}), ...(c.datumModifiers ? { datumModifiers: { ...c.datumModifiers } } : {}), cells: [...(symbol ? [{ text: symbol === 'position' ? '⌖' : symbol, symbol }] : []), ...rowCellsOf(f, c, p)] });
+/** A frame's value as the sheet prints it: the drawing's unit (11 ③b). */
+const tolText = (p: StandardPreset, v: number, mode?: FrameRounding) => frameValue(v, p, mode).text;
 const materialLetter = (m: MaterialModifier) => m === 'maximum' ? '(M)' : '(L)';
-const cellsOf = (f: DrawingFrame): { text: string; symbol?: Characteristic }[] => [
+const cellsOf = (f: DrawingFrame, p: StandardPreset): { text: string; symbol?: Characteristic }[] => [
   { text: f.characteristic === 'position' ? '⌖' : f.characteristic, symbol: f.characteristic },
-  { text: `${zonePrefix(f, f)}${fmtTol(f.value)}${f.material ? materialLetter(f.material) : ''}${f.freeState ? '(F)' : ''}${f.tangentPlane ? '(T)' : ''}${f.projected ? `(P)${fmtTol(f.projected)}` : ''}${f.statistical ? '(ST)' : ''}${f.unequal !== undefined ? `(U)${fmtTol(f.unequal)}` : ''}` },
+  { text: `${zonePrefix(f, f)}${tolText(p, f.value)}${f.material ? materialLetter(f.material) : ''}${f.freeState ? '(F)' : ''}${f.tangentPlane ? '(T)' : ''}${f.projected ? `(P)${tolText(p, f.projected, 'up')}` : ''}${f.statistical ? '(ST)' : ''}${f.unequal !== undefined ? `(U)${tolText(p, f.unequal, 'nearest')}` : ''}` },
   ...f.datums.map(d => ({ text: d + (f.datumModifiers?.[d] ? materialLetter(f.datumModifiers[d]) : '') })),
 ];
 /** The lower row of a composite frame, or a stacked frame's (which repeats the symbol), in order. */
-const rowCellsOf = (f: DrawingFrame, c: NonNullable<DrawingFrame['composite']>): { text: string }[] => [
-  { text: `${zonePrefix(f, c)}${fmtTol(c.value)}${c.material ? materialLetter(c.material) : ''}` },
+const rowCellsOf = (f: DrawingFrame, c: NonNullable<DrawingFrame['composite']>, p: StandardPreset): { text: string }[] => [
+  { text: `${zonePrefix(f, c)}${tolText(p, c.value)}${c.material ? materialLetter(c.material) : ''}` },
   ...c.datums.map(d => ({ text: d + (c.datumModifiers?.[d] ? materialLetter(c.datumModifiers[d]) : '') })),
 ];
 /** A frame's box: its marks' extent, in plane coordinates. */
@@ -204,10 +207,10 @@ const toSheetAt = (p: XY, scale: number): XY => [p[0] * scale, -p[1] * scale];
  * A feature control frame under a text, in plane coordinates: the sheet's `frameMarks` at `scale` (the drawing's,
  * sheet mm per model mm). `under`: the text it sits under — its baseline point, text and height in plane coordinates.
  */
-export function frameGlyph(f: DrawingFrame, under: { at: XY; text: string; height: number; align: 'start' | 'middle' | 'end' }, scale: number, standard?: DrawingStandard): PlaneMark[] {
-  return toPlane(frameMarks({ kind: 'text', at: toSheetAt(under.at, scale), text: under.text, size: under.height * scale, anchor: under.align }, f, presetOf(standard)), scale);
+export function frameGlyph(f: DrawingFrame, under: { at: XY; text: string; height: number; align: 'start' | 'middle' | 'end' }, scale: number, standard?: DrawingStandard | StandardPreset): PlaneMark[] {
+  return toPlane(frameMarks({ kind: 'text', at: toSheetAt(under.at, scale), text: under.text, size: under.height * scale, anchor: under.align }, f, typeof standard === 'object' ? standard : presetOf(standard)), scale);
 }
 /** A weld symbol in plane coordinates: the sheet's `symbolMarks` (its arrow's tip on the seam, its knee, the side it leaves by) at `scale`. */
-export function weldGlyph(tip: XY, knee: XY, side: Side, joint: WeldJoint, label: string, scale: number): PlaneMark[] {
-  return toPlane(symbolMarks(toSheetAt(tip, scale), toSheetAt(knee, scale), side, joint, label), scale);
+export function weldGlyph(tip: XY, knee: XY, side: Side, joint: WeldJoint, label: string, scale: number, f?: LengthFormat): PlaneMark[] {
+  return toPlane(symbolMarks(toSheetAt(tip, scale), toSheetAt(knee, scale), side, joint, label, f), scale);
 }

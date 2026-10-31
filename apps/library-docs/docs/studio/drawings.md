@@ -68,11 +68,54 @@ same preset reaches every export: the SVG, PDF and DXF sheets and the 3D annotat
 
 Under ASME the text is placed in a break of the dimension line, the break being the text's width and a millimetre either
 side. When the text does not fit between the arrowheads, it is set horizontally beside the line instead. The
-inch standards will take the zero rule (no leading zero, trailing zeros kept) from the same preset.
+inch rule is under [Units](#units-inch-and-dual-dimensions).
 
 The ASME advice on concentricity and symmetry is a warning in **Drawing issues**, never a refusal: the frame can still be
 authored and an old one opens unchanged. The DXF dimension style keeps its general defaults; each dimension's own drawing
 carries the standard's text height and arrowheads.
+
+### Units: inch and dual dimensions
+
+The part and every dimension value stay in millimetres; **Units** only changes how the sheet prints lengths. **Units**
+(next to **Standard**) is **mm** or **inch**; **Dual units** adds the other unit after each dimension in square brackets,
+primary first (ASME Y14.5 §1.6.4, Y14.2): `2.500 [63.5]` on an inch drawing, `63.5 [2.500]` on a mm one. **Details**
+(closed) holds **mm decimals** and **inch decimals**, each 0 to 6; empty keeps the default (mm as before, inch 3).
+Each change is one undo step, the sheet and its previews are drawn again, and the title block's **UNITS** cell reads
+`mm`, `inch`, `mm [inch]` or `inch [mm]`. In chat, `set_drawing` takes `units` (`mm` or `inch`), `dual` (true or false)
+and `precision` (`{mm?, inch?}`; `{}` resets); a value outside those is refused.
+
+- Inch numbers are the mm value divided by 25.4, with no leading zero and trailing zeros kept to the precision
+  (ASME Y14.5 §1.6.2): 25.4 mm is `1.000`, 12.7 is `.500`, 0.127 is `.005`, 100 is `3.937`. ISO has no inch rule of
+  its own, so the ISO and the unset drawings use this one too.
+- Millimetres follow the standard's rule as before (trailing zeros dropped); with an **mm decimals** value the
+  number has exactly that many places (`12.0`). A tolerance in plain mm prints as entered, up to 4 places
+  (`±0.005`, `±0.125`).
+- Tolerances are never printed wider than they are, and never as zero. The dimension is rounded to nearest at the chosen
+  decimals, and each deviation is then rounded inward from the true limit (the upper one down, the lower one up), so
+  every printed limit lies inside the true zone. The decimals start at the drawing's (inch 3, or **mm decimals**; plain mm 2
+  or the decimals the tolerance was entered with) and rise, inch up to 5 and mm up to 4, until no deviation prints as zero
+  and the zone keeps at least 80% of its width; the dimension gains zeros to the same decimals (ASME Y14.5 §1.6.2).
+  Rounding can make a symmetric tolerance unequal, and then it prints as two deviations. 0.05 mm on 64 is
+  `2.5197 ±.0019`, 0.005 mm is `2.51969 +.00019/-.00020`, +0.009/-0.004 mm on 8 is `.31496 +.00035/-.00015`, ±0.05 mm at
+  0 mm decimals is `64.00 ±0.05`, and 10.004 ±0.005 in plain mm is `10.004 ±0.005`. If even the most decimals cannot do it,
+  it prints at the most and **Drawing issues** shows `UNIT_PRECISION` naming the dimension. A fit class (`h7`, `H7/g6`)
+  stays as written; its size and deviations print at common decimals by the same rule.
+- Dual prints the dimension and its tolerance in both units: `2.5197 ±.0019 [64 ±0.05]`. Deviations that stack
+  beside the value print on the line instead (`.3150 +.0039/-.0019 [8 +0.1/-0.05]`). A hole callout prints whole in both
+  units. An angle never converts and never gets brackets. A dual text that does not fit between the arrowheads is
+  lifted off the line until it clears the line and the arrowheads (under ASME it sits beside the line, as before).
+- What converts: linear, radius, diameter and pitch circle values, tolerances, fit deviations, hole callouts
+  (diameter, depth, counterbore, countersink), geometric tolerance frame values (a frame is not a dimension, so
+  the decimals setting does not apply: in mm as entered; in inch a zone width rounds down and a projected zone height
+  rounds up, each at 3 to 5 places keeping 80% of the value, and an unequal amount, which moves the zone, rounds to
+  nearest within 5%; `UNIT_PRECISION` when 5 places are not enough), weld symbol sizes and the weld list's size column, datum target sizes, the bearing-ring width in element callouts, and the mm columns of a table made from the
+  part (bend, cut list, spring, gland and weld tables; mass and counts stay). An element size line (a sentence of
+  lengths) keeps its mm header, and a table with a section column adds the note `Section sizes are in mm`. Frames, datum targets and tables print the
+  primary unit only, even when **Dual units** is on.
+- What stays in millimetres: a thread designation (`M6×1`), notes and a table you typed yourself, the element size lines and section names, the
+  drawing check's messages, and the size fields in the editors (they take model millimetres).
+- Exports follow the sheet: the SVG and PDF text, the DXF dimension text (`2.520 ±.002 [64 ±0.05]`) and the 3D
+  annotations (`text` in the primary unit, `alt` in the other, the `value` still in mm).
 
 ### Title blocks and revision history
 
@@ -337,7 +380,7 @@ letter. `FRAME_LOST` reports a frame whose dimension is lost or missing, and `DA
 that names a datum with no datum feature or point target set. `FRAME_RULE` reports a frame that breaks a rule above, or (a warning) one the drawing standard no longer has. `FRAME_VIEW_MISSING` reports a standalone frame whose view is missing;
 its saved position is kept. `TEXT_OVER_LINES` reports annotation text, such as a dimension's, a table's or a
 standalone frame's, that lies over drawing lines. `DATUM_TARGET_UNVERIFIED` reports a point target that needs its endpoint selected
-again. `DATUM_UNDEFINED` has no automatic fix: define the datum or edit the frame.
+again. `UNIT_PRECISION` (a warning, no fix) reports a tolerance or frame value too fine to print in the drawing's unit even at the most decimals. `DATUM_UNDEFINED` has no automatic fix: define the datum or edit the frame.
 
 ## Tables and balloons
 

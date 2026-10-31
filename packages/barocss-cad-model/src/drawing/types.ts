@@ -7,7 +7,7 @@ import type { Sig } from '../engine/references';
 import { isVec3 } from '../util/guards';
 import { readDetails, type DrawingDetail } from './detail';
 import { readBreaks, type DrawingBreak } from './breaks';
-import type { DrawingStandard } from './standard';
+import { MAX_PRECISION, type DrawingStandard, type DrawingUnits, type UnitPrecision } from './standard';
 import { readDatums, type DrawingFace, type DrawingFaceRef } from './datums';
 export type { DrawingFaceRef } from './datums';
 import { readDatumTargets, type DrawingDatumTarget } from './datumTargets';
@@ -116,6 +116,12 @@ export interface DrawingSettings {
   projection: 'third' | 'first';
   /** The drawing standard (11 ③a): lettering, arrowheads, dimension text, projection symbol, datum targets, GD&T notes. Absent: the sheet as it always was. */
   standard?: DrawingStandard;
+  /** The unit lengths print in (11 ③b; display only, the model stays in mm). Absent: mm. */
+  units?: DrawingUnits;
+  /** Show the other unit after the primary value in square brackets (dual dimensioning). */
+  dual?: boolean;
+  /** Decimal places per unit, 0 to 6. Absent: mm as before (trimmed), inch 3. */
+  precision?: UnitPrecision;
   /** Hidden edges dashed in the orthographic views (the isometric view shows visible edges only). */
   hidden: boolean;
   /** false: no centre marks and centrelines (shown by default). */
@@ -242,6 +248,15 @@ function readSections(raw: unknown): DrawingSection[] | null {
   }
   return out.length ? out : null;
 }
+/** Decimal places kept where each is a whole number 0 to 6 (mm then inch); none valid: none. */
+export const precisionOk = (x: unknown): x is number => typeof x === 'number' && Number.isInteger(x) && x >= 0 && x <= MAX_PRECISION;
+function readPrecision(raw: unknown): UnitPrecision | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+  const { mm, inch } = raw as Record<string, unknown>, out: UnitPrecision = {};
+  if (precisionOk(mm)) out.mm = mm;
+  if (precisionOk(inch)) out.inch = inch;
+  return out.mm === undefined && out.inch === undefined ? null : out;
+}
 /** Reads drawing settings from a saved file, keeping what is valid. */
 export function readDrawing(raw: unknown): DrawingSettings {
   const d = defaultDrawing(), r = (raw ?? {}) as Partial<DrawingSettings>;
@@ -251,6 +266,9 @@ export function readDrawing(raw: unknown): DrawingSettings {
     ...(typeof r.scale === 'number' && r.scale > 0 ? { scale: r.scale } : {}),
     projection: r.projection === 'first' ? 'first' : 'third',
     ...(r.standard === 'iso' || r.standard === 'asme' ? { standard: r.standard } : {}),
+    ...(r.units === 'inch' ? { units: 'inch' as const } : {}),
+    ...(r.dual === true ? { dual: true } : {}),
+    ...(readPrecision(r.precision) ? { precision: readPrecision(r.precision)! } : {}),
     hidden: r.hidden !== false,
     ...(r.centers === false ? { centers: false } : {}),
     ...(r.tangent === true ? { tangent: true } : {}),

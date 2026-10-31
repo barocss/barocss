@@ -18002,3 +18002,27 @@ The preset is passed explicitly everywhere. It is exposed as a Studio select and
 - The DXF DIMSTYLE header.
 - Under ASME, the 2.5 mm fixed texts fall below the 3 mm minimum.
 - Inch and dual dimensions (11③b).
+
+## D397 — Row 11 ③b: inch display and dual dimensions (CG5 DR-7); full (2026-11-01)
+
+[Evidence](notes/drawing-units-2026-10-31/qualification.json).
+
+**What it adds.** `drawing.units` (mm | inch, display only), `drawing.dual` and `drawing.precision`.
+- Inch values follow ASME.
+- A toleranced dimension prints limits always inside the true zone: the nominal is rounded first, the deviations are rounded inward, and decimals are added so that no zero tolerance appears and at least 80% of the zone is kept; otherwise UNIT_PRECISION is raised.
+- Plain mm tolerances print as entered, which fixes the old 0.01 rounding that widened zones.
+- Fits, GD&T values (widths down, projected heights up), weld sizes, callouts and tables convert.
+- Dual text is lifted clear of the arrowheads.
+
+**Audits.**
+- Round 1: wrong numbers.
+- Round 2: limits outside the zone in 27–40% of cases.
+- Round 3: ACCEPT, with 0 outside in the auditor's 20k probes.
+
+**Verification.** Model 2486/2486, including a 120k-case property test; Studio 623/623. Actual run03 PASS.
+
+**Follow-ups.**
+- A zero-width zone prints inverted in inch.
+- Non-dual short dimension text (kernel DXF fixture).
+- Chat hint.
+- DXF DIMSTYLE.

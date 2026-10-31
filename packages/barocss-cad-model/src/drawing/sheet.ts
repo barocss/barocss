@@ -2,22 +2,23 @@
 // and the dimensions. The SVG and PDF writers and the workspace all draw from it.
 import { datumAnchor } from './datums';
 import { datumTargetConflicts, datumTargetSizeText, resolveDatumTarget, type DrawingDatumTarget } from './datumTargets';
-import { characteristicMarks, fmtTol, modifierMarks, zonePrefix, type DrawingFrameComposite } from './controls';
+import { characteristicMarks, modifierMarks, zonePrefix, type DrawingFrameComposite } from './controls';
 import { TITLE_FIELDS, TITLE_EXTRA_HEIGHT, revisionTableContent } from './metadata';
 import { weldSymbols, type WeldPlaced } from './welds';
 import { balloonMarks, type BalloonPlaced, type BodyFaces } from './balloons';
 import type { Bom } from '../bom/core';
 import type { WeldJoint } from '../frames/welds';
 import type { BrepProjection, ProjectedCurve } from '@barocss/cad';
-import { fmtMM, resolveDimension, resolveLine, type Resolved } from './dimensions';
+import { fmtMM, resolveDimension, resolveLine, valueText, type Resolved } from './dimensions';
 import { centreMarks } from './centres';
 import { threadMarks } from './threads';
 import type { FaceThread } from '../app/threads';
 import { fitText, textCorners, textWidth } from './text';
-import { PLAIN, presetOf, type StandardPreset } from './standard';
+import { PLAIN, deviationPair, formatLength, frameValue, hasUnitSettings, lengthFormats, presetFor, unitsLabel, withDigits, type DeviationPair, type DrawingUnits, type FrameRounding, type LengthFormat, type StandardPreset, type UnitPrecision } from './standard';
 import { VIEWS, scaleLabel, sectionDepth, sectionFrame, toSheet, type Orientation, type SectionExtent, type SectionPlacement, type SheetLayout, type ViewPlacement, TITLE_BLOCK } from './views';
 import type { DrawingDatum, DrawingFrame, DrawingNote, DrawingSection, DrawingSettings, DrawingTable, DrawingViews, SectionViewId, Tolerance, ViewId, XY } from './types';
 import { tableLayout, tableSize, type TableContent, type TableLayout } from './table';
+import type { TableCell } from './types';
 import { VIEW_IDS, detailLetter, isDetailRef, isSectionRef, isViewId, sameSection, sectionLetter, sectionsOf, type DetailRef, type DimView, type SectionRef } from './types';
 import { clipProjectionToDisk, clipRingsToDisk, detailScale, type DetailParent, type DrawingDetail } from './detail';
 import { clipProjectionOutside, clipRingsOutside } from './breaks';
@@ -98,7 +99,7 @@ export interface SheetSectionPlaced { id: string; view: SectionViewId; placement
 /** DR-1: a detail as the sheet drew it: its parent, scale, placement (its circle's square) and clipped projection; where its dimensions are drawn. */
 export interface SheetDetail { id: string; view: DetailParent; scale: number; placement: ViewPlacement; projection: BrepProjection }
 /** `tables`: each table placed (its box), or why its source gave nothing (drawn with the reason). */
-export interface Sheet { size: [number, number]; groups: MarkGroup[]; dimensions: Resolved[]; tables?: { id: string; box: [number, number, number, number]; error?: string; /** FRa (O115): a table in blocks, this one's place: [k, of n]. */ part?: [number, number] }[]; /** FRd2 (O119): the weld symbols placed (each joint's view, arrow tip, seam edge) and the joints seen in no view. */ welds?: { placed: readonly WeldPlaced[]; unshown: readonly string[] }; /** O147 B2: the item balloons placed, the item numbers with no clear room, and those with no visible edge. */ balloons?: { placed: readonly BalloonPlaced[]; unclear: readonly number[]; noEdge: readonly number[] }; /** O148 X2: each section as placed (moved under its view's name) with its projection: where its dimensions are drawn. DR-4: `form` a removed or revolved one's, `on` the view a revolved one is drawn on. */ sections?: SheetSectionPlaced[]; /** DR-4: the removed sections with no free room, the revolved ones with no view to be drawn on. */ sectionsMissing?: { id: string; why: 'room' | 'view' }[]; /** DR-1: each detail drawn; `unplaced`: the details whose parent is not on the sheet, and those with no room. */ details?: SheetDetail[]; detailsMissing?: { id: string; why: 'parent' | 'room' | 'empty' }[] }
+export interface Sheet { size: [number, number]; groups: MarkGroup[]; dimensions: Resolved[]; /** 11 ③b: the units the sheet prints in, when not plain mm (DXF dimension text follows them). */ units?: { units: DrawingUnits; dual: boolean; precision: UnitPrecision }; tables?: { id: string; box: [number, number, number, number]; error?: string; /** FRa (O115): a table in blocks, this one's place: [k, of n]. */ part?: [number, number] }[]; /** FRd2 (O119): the weld symbols placed (each joint's view, arrow tip, seam edge) and the joints seen in no view. */ welds?: { placed: readonly WeldPlaced[]; unshown: readonly string[] }; /** O147 B2: the item balloons placed, the item numbers with no clear room, and those with no visible edge. */ balloons?: { placed: readonly BalloonPlaced[]; unclear: readonly number[]; noEdge: readonly number[] }; /** O148 X2: each section as placed (moved under its view's name) with its projection: where its dimensions are drawn. DR-4: `form` a removed or revolved one's, `on` the view a revolved one is drawn on. */ sections?: SheetSectionPlaced[]; /** DR-4: the removed sections with no free room, the revolved ones with no view to be drawn on. */ sectionsMissing?: { id: string; why: 'room' | 'view' }[]; /** DR-1: each detail drawn; `unplaced`: the details whose parent is not on the sheet, and those with no room. */ details?: SheetDetail[]; detailsMissing?: { id: string; why: 'parent' | 'room' | 'empty' }[] }
 
 /** The plain sheet's lettering height; a drawing standard sets another (`p.text`, standard.ts). */
 export const TEXT = 3.5;
@@ -107,8 +108,8 @@ const GAP = 1, OVER = 2;
 /** `sections` (O148 X1): each section's projection and cut-face rings (view coordinates), drawn where the layout places it. */
 /** `meta.callout`: a diameter dimension's text from the feature it measures (a hole callout), or null for Ø. */
 /** `meta.tableContent`: a table's content from its source (O49; absent: a sourced table says it was not filled). */
-export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; /** O9: the source revision drawn in the title block. */ source?: string; callout?: (edge: string, diameter?: number) => string | null; threads?: ReadonlyMap<string, FaceThread>; tableContent?: (t: DrawingTable) => TableContent | { error: string }; /** FRd2 (O119): the frame's weld joints, for its symbols. */ welds?: readonly WeldJoint[]; /** O147 B2: the BOM (worked out by the caller), for the item balloons. */ bom?: Bom; /** The base part's face names by body key (O177): a balloon of a `base:<body>` line finds its body's edges. */ bodyFaces?: BodyFaces }, sections?: readonly SheetSection[]): Sheet {
-  const p = presetOf(settings.standard);
+export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: DrawingSettings, meta: { title: string; date: string; /** O9: the source revision drawn in the title block. */ source?: string; callout?: (edge: string, diameter?: number, f?: LengthFormat) => string | null; threads?: ReadonlyMap<string, FaceThread>; tableContent?: (t: DrawingTable) => TableContent | { error: string }; /** FRd2 (O119): the frame's weld joints, for its symbols. */ welds?: readonly WeldJoint[]; /** O147 B2: the BOM (worked out by the caller), for the item balloons. */ bom?: Bom; /** The base part's face names by body key (O177): a balloon of a `base:<body>` line finds its body's edges. */ bodyFaces?: BodyFaces }, sections?: readonly SheetSection[]): Sheet {
+  const p = presetFor(settings);
   const groups: MarkGroup[] = [];
   const [W, H] = layout.size, f = layout.frame;
   groups.push({ role: 'frame', marks: [rect([0, 0, W, H], 'thin'), rect(f, 'frame')].flat() });
@@ -131,7 +132,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   }
   // (A dimension in a view not shown (R14.3) is kept, unresolved, so the issue list names it. O148 X2: one on a section is
   // resolved once the sections are placed, below.)
-  const inViews: Resolved[] = settings.dimensions.filter(d => isViewId(d.view)).map((d): Resolved => layout.views[d.view as ViewId].hidden ? { ok: false, dim: d, reason: `Its view (${d.view}) is not shown.` } : resolveDimension(views, d)).map((r): Resolved => r.ok ? { ...r, text: dimensionText(r, meta.callout) } : r);
+  const inViews: Resolved[] = settings.dimensions.filter(d => isViewId(d.view)).map((d): Resolved => layout.views[d.view as ViewId].hidden ? { ok: false, dim: d, reason: `Its view (${d.view}) is not shown.` } : resolveDimension(views, d)).map((r): Resolved => r.ok ? withShownText(r, meta.callout, p) : r);
   for (const r of inViews) if (r.ok) {
     const marks = dimensionMarks(layout.views[r.dim.view as ViewId], r, p);
     if (r.dim.basic) marks.push(...basicBox(marks));
@@ -177,7 +178,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
     // (O148 X2: its dimensions, drawn as a view's; its name under them.)
     const ref: SectionRef = `section:${sec.id}`;
     for (const d of settings.dimensions) if (d.view === ref) {
-      const r = resolveDimension({ [ref]: sec.projection }, d), shown = r.ok ? { ...r, text: dimensionText(r, meta.callout) } as Resolved : r;
+      const r = resolveDimension({ [ref]: sec.projection }, d), shown = r.ok ? withShownText(r, meta.callout, p) : r;
       inSections.set(d.id, shown);
       if (!shown.ok) continue;
       const marks = dimensionMarks(placed, shown, p); if (d.basic) marks.push(...basicBox(marks));
@@ -212,7 +213,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   }
   const dimensions: Resolved[] = settings.dimensions.map(d => inSections.get(d.id) ?? inViews.find(r => r.dim === d)!);
   // (FRd2, O119: the weld symbols, before the tables so an auto-placed one keeps clear of their texts.)
-  const welds = settings.weldSymbols && meta.welds?.length ? weldSymbols(layout, views, meta.welds) : null;
+  const welds = settings.weldSymbols && meta.welds?.length ? weldSymbols(layout, views, meta.welds, p.units === 'mm' && p.precision.mm === undefined ? undefined : lengthFormats(p).primary) : null;
   if (welds) groups.push(...welds.groups);
   // (O147 B2: the item balloons, after the weld symbols and before the tables: clear of the texts so far and of the pinned tables.)
   // (Clear of the tables pinned by `at` too: they are placed after, where they were set.)
@@ -223,7 +224,7 @@ export function buildSheet(views: DrawingViews, layout: SheetLayout, settings: D
   // (Tables last: an auto-placed one finds room clear of everything else on the sheet, O49.)
   const tables = tableGroups(layout, settings, groups, meta.tableContent, detailBoxes);
   groups.push(...tables.groups);
-  return { size: [W, H], groups, dimensions, ...(tables.placed.length ? { tables: tables.placed } : {}), ...(welds ? { welds: { placed: welds.placed, unshown: welds.unshown } } : {}), ...(balloons ? { balloons: { placed: balloons.placed, unclear: balloons.unclear, noEdge: balloons.noEdge } } : {}), ...(onSheet.length ? { sections: onSheet } : {}), ...(drawn.details.length ? { details: drawn.details.map(x => x.detail) } : {}), ...(drawn.missing.length ? { detailsMissing: drawn.missing } : {}), ...(apart.missing.length ? { sectionsMissing: apart.missing } : {}) };
+  return { size: [W, H], groups, dimensions, ...(hasUnitSettings(p) ? { units: { units: p.units, dual: p.dual, precision: p.precision } } : {}), ...(tables.placed.length ? { tables: tables.placed } : {}), ...(welds ? { welds: { placed: welds.placed, unshown: welds.unshown } } : {}), ...(balloons ? { balloons: { placed: balloons.placed, unclear: balloons.unclear, noEdge: balloons.noEdge } } : {}), ...(onSheet.length ? { sections: onSheet } : {}), ...(drawn.details.length ? { details: drawn.details.map(x => x.detail) } : {}), ...(drawn.missing.length ? { detailsMissing: drawn.missing } : {}), ...(apart.missing.length ? { sectionsMissing: apart.missing } : {}) };
 }
 
 /** The view a revolved section is drawn on (DR-4): a front section's on the top view, a top's or a right's on the front view (both always shown). */
@@ -257,7 +258,7 @@ const dot3 = (a: readonly number[], b: readonly number[]) => a[0] * b[0] + a[1] 
  * revolved one: its cut face on the view REVOLVED_ON names (revolvedPlacement), a centreline along the trace 3 mm past
  * it, no name; its dimensions drawn there.
  */
-function apartSections(layout: SheetLayout, views: DrawingViews, settings: DrawingSettings, before: readonly MarkGroup[], placedSections: readonly SheetSectionPlaced[], sections: readonly SheetSection[], cutting: ReadonlyMap<string, MarkGroup>, p: StandardPreset, callout?: (edge: string, diameter?: number) => string | null): { groups: MarkGroup[]; placed: SheetSectionPlaced[]; boxes: Rect[]; missing: NonNullable<Sheet['sectionsMissing']>; resolved: Map<string, Resolved> } {
+function apartSections(layout: SheetLayout, views: DrawingViews, settings: DrawingSettings, before: readonly MarkGroup[], placedSections: readonly SheetSectionPlaced[], sections: readonly SheetSection[], cutting: ReadonlyMap<string, MarkGroup>, p: StandardPreset, callout?: (edge: string, diameter?: number, f?: LengthFormat) => string | null): { groups: MarkGroup[]; placed: SheetSectionPlaced[]; boxes: Rect[]; missing: NonNullable<Sheet['sectionsMissing']>; resolved: Map<string, Resolved> } {
   const groups: MarkGroup[] = [], placed: SheetSectionPlaced[] = [], boxes: Rect[] = [], missing: NonNullable<Sheet['sectionsMissing']> = [], resolved = new Map<string, Resolved>();
   const taken = takenOf(layout, [...before, ...cutting.values()], placedSections.map(x => x.placement.box));
   for (const s of sectionsOf(settings)) {
@@ -291,7 +292,7 @@ function apartSections(layout: SheetLayout, views: DrawingViews, settings: Drawi
     const cut = cutting.get(s.id); if (cut) groups.push(cut);
     placed.push({ id: s.id, view: s.view, placement, projection: pr, form: s.removed ? 'removed' : 'revolved', ...(on ? { on } : {}) });
     for (const d of settings.dimensions) if (d.view === ref) {
-      const r = resolveDimension({ [ref]: pr }, d), shown = r.ok ? { ...r, text: dimensionText(r, callout) } as Resolved : r;
+      const r = resolveDimension({ [ref]: pr }, d), shown = r.ok ? withShownText(r, callout, p) : r;
       resolved.set(d.id, shown);
       if (!shown.ok) continue;
       const dm = dimensionMarks(placement, shown, p); if (d.basic) dm.push(...basicBox(dm));
@@ -318,7 +319,7 @@ const DETAIL_LABEL = 7, DETAIL_GAP = 4;
  * clipped and hatched as the section's), the circle round it; its dimensions resolved on that projection; its name
  * `DETAIL B (5:1)` under them.
  */
-function detailGroups(layout: SheetLayout, views: DrawingViews, settings: DrawingSettings, before: readonly MarkGroup[], placedSections: NonNullable<Sheet['sections']>, sections: readonly SheetSection[], p: StandardPreset, callout?: (edge: string, diameter?: number) => string | null): { groups: MarkGroup[]; details: { detail: SheetDetail; box: Rect }[]; missing: NonNullable<Sheet['detailsMissing']>; resolved: Map<string, Resolved> } {
+function detailGroups(layout: SheetLayout, views: DrawingViews, settings: DrawingSettings, before: readonly MarkGroup[], placedSections: NonNullable<Sheet['sections']>, sections: readonly SheetSection[], p: StandardPreset, callout?: (edge: string, diameter?: number, f?: LengthFormat) => string | null): { groups: MarkGroup[]; details: { detail: SheetDetail; box: Rect }[]; missing: NonNullable<Sheet['detailsMissing']>; resolved: Map<string, Resolved> } {
   const groups: MarkGroup[] = [], details: { detail: SheetDetail; box: Rect }[] = [], missing: NonNullable<Sheet['detailsMissing']> = [], resolved = new Map<string, Resolved>();
   const taken = takenOf(layout, before, placedSections.map(x => x.placement.box));
   for (const d of settings.details ?? []) {
@@ -346,7 +347,7 @@ function detailGroups(layout: SheetLayout, views: DrawingViews, settings: Drawin
     const ref: DetailRef = `detail:${d.id}`;
     groups.push({ role: 'detail', id: d.id, view: ref, marks });
     for (const dim of settings.dimensions) if (dim.view === ref) {
-      const r = resolveDimension({ [ref]: projection }, dim), shown = r.ok ? { ...r, text: dimensionText(r, callout) } as Resolved : r;
+      const r = resolveDimension({ [ref]: projection }, dim), shown = r.ok ? withShownText(r, callout, p) : r;
       resolved.set(dim.id, shown);
       if (!shown.ok) continue;
       const dm = dimensionMarks(placement, shown, p); if (dim.basic) dm.push(...basicBox(dm));
@@ -489,17 +490,47 @@ export function tableRoom(layout: SheetLayout, sheet: Sheet, id: string): XY | n
 function tableContentOf(t: DrawingTable, contentOf?: (t: DrawingTable) => TableContent | { error: string }, settings?: DrawingSettings): { content: TableContent; error?: string } {
   if (t.from === 'revisions') return { content: revisionTableContent(settings?.revisions ?? [], t.title) };
   const c = t.from ? contentOf?.(t) ?? { error: 'its source was not run for this sheet' } : { ...(t.title ? { title: t.title } : {}), columns: t.columns ?? [], rows: t.rows ?? [] };
-  return 'error' in c ? { content: { title: t.title ?? (t.from ?? t.id).toUpperCase(), columns: [{ key: 'why', label: 'NOT AVAILABLE' }], rows: [[c.error]] }, error: c.error } : { content: c };
+  return 'error' in c ? { content: { title: t.title ?? (t.from ?? t.id).toUpperCase(), columns: [{ key: 'why', label: 'NOT AVAILABLE' }], rows: [[c.error]] }, error: c.error } : { content: t.from ? tableInUnits(c, presetFor(settings ?? {})) : c };
+}
+/** A cell that is one length, with the estimate mark a weld size can carry (`6`, `6*`). */
+const LENGTH_CELL = /^(\d+(?:\.\d+)?)(\*?)$/;
+/**
+ * A source table's mm columns in the drawing's unit (11 ③b; the primary one: a table has no brackets). A column whose cells
+ * are numbers, or one length with its estimate mark, converts with its header; a column of descriptions (an element's size
+ * line) keeps its mm header, since a sentence of lengths is not converted. A section column says its sizes are mm. Other
+ * columns, notes and a table the person typed stay as they are.
+ */
+function tableInUnits(c: TableContent, p: StandardPreset): TableContent {
+  if (p.units === 'mm') return c;
+  const lengths = c.columns.map((col, i) => col.unit === 'mm' && c.rows.every(r => r[i] === null || typeof r[i] === 'number' || (typeof r[i] === 'string' && LENGTH_CELL.test(r[i] as string))));
+  const sections = c.columns.some(col => col.key === 'section');
+  if (!lengths.some(Boolean) && !sections) return c;
+  const cell = (v: TableCell): TableCell => {
+    if (typeof v === 'number') return formatLength(v, p);
+    const m = typeof v === 'string' ? LENGTH_CELL.exec(v) : null;
+    return m ? `${formatLength(Number(m[1]), p)}${m[2]}` : v;
+  };
+  return { ...c, columns: c.columns.map((col, i) => lengths[i] ? { key: col.key, label: col.label, unit: 'inch', align: 'end' as const } : col), rows: c.rows.map(r => r.map((v, i) => lengths[i] ? cell(v) : v)), ...(sections ? { notes: [...(c.notes ?? []), 'Section sizes are in mm'] } : {}) };
 }
 
 /**
  * What a dimension reads: a diameter on a hole its callout, and `count` before it (`4× Ø6.6 THRU`, `3× 20`) in
  * place of a callout's own count (R14.1, O2).
  */
-export function dimensionText(r: Extract<Resolved, { ok: true }>, callout?: (edge: string, diameter?: number) => string | null): string {
+export function dimensionText(r: Extract<Resolved, { ok: true }>, callout?: (edge: string, diameter?: number, f?: LengthFormat) => string | null, f: LengthFormat = fmtMM): string {
   // (D155: the diameter measured goes with it — a face's fit class reads its limits at that size, drawing/fits.ts.)
-  const base = (r.kind === 'diameter' && callout ? callout(r.dim.edge, 2 * r.radius) : null) ?? r.text;
+  const base = (r.kind === 'diameter' && callout ? callout(r.dim.edge, 2 * r.radius, f) : null) ?? valueText(r, f);
   return r.dim.count ? `${r.dim.count}× ${base.replace(/^\d+× /, '')}` : base;
+}
+/** A resolved dimension with the text the sheet prints: its value in the drawing's unit, and on a dual drawing `alt`, the same in the other (11 ③b; an angle never converts). */
+export function withShownText(r: Extract<Resolved, { ok: true }>, callout: ((edge: string, diameter?: number, f?: LengthFormat) => string | null) | undefined, p: StandardPreset): Resolved {
+  // (A dimension with a tolerance prints at the tolerance's decimals: the dimension gains zeros, ASME Y14.5 §1.6.2.)
+  const tol = r.kind !== 'angle' && r.dim.tol && r.dim.tol.kind !== 'fit' ? r.dim.tol : null;
+  const textIn = (u: DrawingUnits): string => {
+    const digits = tol ? deviationsOf(tol, '', p, u, r.value).digits : undefined, q = digits === undefined ? p : withDigits(p, u, digits), f = lengthFormats(q);
+    return dimensionText(r, callout, u === p.units ? f.primary : f.secondary!);
+  };
+  return p.dual && r.kind !== 'angle' ? { ...r, text: textIn(p.units), alt: textIn(otherUnit(p)) } : { ...r, text: textIn(p.units) };
 }
 
 export function curveMark(v: ViewPlacement, c: ProjectedCurve, pen: Pen): Mark {
@@ -549,7 +580,7 @@ function titleBlock(layout: SheetLayout, settings: DrawingSettings, meta: { titl
   marks.push({ kind: 'text', at: [x1 - 2, y0 + 4], text: 'barocss cad-studio', size: 1.8, anchor: 'end' });
   // (O9: the source revision the sheet was drawn from, when given — beside the drawing's own REV, which a person sets.)
   if (meta.source) marks.push({ kind: 'text', at: [x1 - 2, y0 + 8], text: `SRC ${meta.source}`, size: 1.8, anchor: 'end' });
-  const cells: [string, string][] = [['SCALE', scaleLabel(layout.scale)], ['UNITS', 'mm'], ['DATE', meta.date], ['REV', settings.revision ?? '-'], ['SHEET', settings.sheet]];
+  const cells: [string, string][] = [['SCALE', scaleLabel(layout.scale)], ['UNITS', unitsLabel(p)], ['DATE', meta.date], ['REV', settings.revision ?? '-'], ['SHEET', settings.sheet]];
   cells.forEach(([k, val], i) => {
     marks.push({ kind: 'text', at: [cols[i] + 2, mid + 4], text: k, size: 1.8, anchor: 'start' });
     marks.push({ kind: 'text', at: [cols[i] + 2, mid + 12], ...fitText(val, 3.5, true, cols[i + 1] - cols[i] - 4, 2.2), anchor: 'start', bold: true });
@@ -599,21 +630,42 @@ function readAngle(dir: XY): number {
   return Math.round(angle * 1000) / 1000;
 }
 
-/** A deviation as written: +0.1, -0.05 (an ASCII minus, which every font and PDF encoding has), 0. */
-const signed = (v: number, unit: string) => v === 0 ? '0' : (v > 0 ? '+' : '-') + fmtMM(Math.abs(v)) + unit;
-/** A tolerance on one line (the panel; ± and fits print so on the sheet too). */
-export function toleranceText(t: Tolerance, unit = ''): string {
-  return t.kind === 'symmetric' ? `±${fmtMM(t.value)}${unit}` : t.kind === 'fit' ? t.code : `${signed(t.upper, unit)}/${signed(t.lower, unit)}`;
+/** A tolerance's deviations in one unit (an angle's, as entered; a fit's has none: its designation is the tolerance). */
+function deviationsOf(t: Extract<Tolerance, { kind: 'symmetric' | 'deviation' }>, unit: string, p: StandardPreset, u: DrawingUnits, nominal = 0): DeviationPair {
+  const [up, lo] = t.kind === 'symmetric' ? [t.value, -t.value] : [t.upper, t.lower];
+  return unit === '°' ? deviationPair(up, lo, PLAIN, 'mm') : deviationPair(up, lo, p, u, nominal);
+}
+const withUnit = (v: string, unit: string) => v === '0' ? v : v + unit;
+/**
+ * A tolerance on one line (the panel; ± and fits print so on the sheet too), its amounts in unit `u` (11 ③b): deviations are
+ * as entered in mm, and in inch (or with a precision) rounded inward at decimals chosen by `deviationPair`; a fit's
+ * designation stays as written.
+ */
+export function toleranceText(t: Tolerance, unit = '', p: StandardPreset = PLAIN, u: DrawingUnits = p.units, nominal = 0): string {
+  if (t.kind === 'fit') return t.code;
+  const d = deviationsOf(t, unit, p, u, nominal);
+  // (A symmetric tolerance that the rounding made unequal prints its two deviations.)
+  return t.kind === 'symmetric' && d.equal ? `±${d.upper.replace(/^\+/, '')}${unit}` : `${withUnit(d.upper, unit)}/${withUnit(d.lower, unit)}`;
+}
+/** The unit a dual drawing adds after the primary. */
+const otherUnit = (p: StandardPreset): DrawingUnits => p.units === 'mm' ? 'inch' : 'mm';
+
+/** A dimension on one line: its value and tolerance, then on a dual drawing the same in the other unit in brackets (DXF text, the dimension list). */
+export function dimensionLine(r: Extract<Resolved, { ok: true }>, p: StandardPreset): string {
+  const unit = r.kind === 'angle' ? '°' : '', part = (v: string, u: DrawingUnits) => r.dim.tol ? `${v} ${toleranceText(r.dim.tol, unit, p, u, r.value)}` : v;
+  return r.alt === undefined ? part(r.text, p.units) : `${part(r.text, p.units)} [${part(r.alt, otherUnit(p))}]`;
 }
 
 /**
  * A dimension's value with its tolerance, as text at `at` (its baseline; `angle` as read): ± and fits
  * follow the value on its line; deviations stack after it in smaller text, the upper one raised.
  */
-export function valueMarks(at: XY, angle: number, anchor: 'start' | 'middle' | 'end', value: string, tol?: Tolerance, unit = '', p: StandardPreset = PLAIN): Mark[] {
+export function valueMarks(at: XY, angle: number, anchor: 'start' | 'middle' | 'end', value: string, tol?: Tolerance, unit = '', p: StandardPreset = PLAIN, alt?: string, nominal = 0): Mark[] {
   const a = angle * Math.PI / 180, x: XY = [Math.cos(a), -Math.sin(a)], up: XY = [-Math.sin(a), -Math.cos(a)];
-  const main = tol && tol.kind !== 'deviation' ? `${value} ${toleranceText(tol, unit)}` : value;
-  const small = 2.5, devs = tol?.kind === 'deviation' ? [signed(tol.upper, unit), signed(tol.lower, unit)] : null;
+  // (11 ③b: lengths in the drawing's unit, an angle's tolerance never; on a dual drawing the value and its tolerance in the other unit follow in brackets, and deviations then print on the line, not stacked.)
+  const stacked = tol?.kind === 'deviation' && alt === undefined, part = (v: string, u: DrawingUnits) => tol && !stacked ? `${v} ${toleranceText(tol, unit, p, u, nominal)}` : v;
+  const main = alt === undefined ? part(value, p.units) : `${part(value, p.units)} [${part(alt, otherUnit(p))}]`;
+  const small = 2.5, dv = stacked && tol?.kind === 'deviation' ? deviationsOf(tol, unit, p, p.units, nominal) : null, devs = dv ? [withUnit(dv.upper, unit), withUnit(dv.lower, unit)] : null;
   const wMain = textWidth(main, p.text, false), wDev = devs ? 0.8 + Math.max(...devs.map(d => textWidth(d, small, false))) : 0, total = wMain + wDev;
   const from = add(at, x, anchor === 'start' ? 0 : anchor === 'middle' ? -total / 2 : -total);
   const marks: Mark[] = [{ kind: 'text', at: from, text: main, size: p.text, anchor: 'start', ...(angle ? { angle } : {}) }];
@@ -665,7 +717,7 @@ export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true
     const along = sub(B2, A2), len = Math.hypot(along[0], along[1]), e = unit(along), mid = add(A2, along, 0.5);
     const inside = len >= 2 * p.arrowLength + 1;
     // ASME: the text reads horizontally in a break of the line; room for it between the arrows, else it sits beside the line.
-    const text = p.dimensionText === 'unidirectional' ? unidirectional(mid, e, r.text, r.dim.tol, inside ? [-len / 2 + p.arrowLength, len / 2 - p.arrowLength] : [0, 0], p) : null;
+    const text = p.dimensionText === 'unidirectional' ? unidirectional(mid, e, r.text, r.alt, r.value, r.dim.tol, inside ? [-len / 2 + p.arrowLength, len / 2 - p.arrowLength] : [0, 0], p) : null;
     if (inside) {
       if (text?.gap) marks.push({ kind: 'line', a: A2, b: add(mid, e, text.gap[0]), pen: 'thin', role: 'dimension' }, { kind: 'line', a: add(mid, e, text.gap[1]), b: B2, pen: 'thin', role: 'dimension' });
       else marks.push({ kind: 'line', a: A2, b: B2, pen: 'thin', role: 'dimension' });
@@ -676,7 +728,7 @@ export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true
     }
     // Text over the line (the side away from the measured points' middle when the line is beside them).
     if (text) marks.push(...text.marks);
-    else marks.push(...valueMarks(add(mid, textUp(e), 1.2), readAngle(e), 'middle', r.text, r.dim.tol, '', p));
+    else marks.push(...clearOfLine(valueMarks(add(mid, textUp(e), 1.2), readAngle(e), 'middle', r.text, r.dim.tol, '', p, r.alt, r.value), mid, e, inside ? [-len / 2 + p.arrowLength, len / 2 - p.arrowLength] : [-len / 2, len / 2], r.alt !== undefined));
     return marks;
   }
   const C = toSheet(v, r.center), R = r.radius * v.scale, toPlace = sub(place, C), dist = Math.hypot(toPlace[0], toPlace[1]);
@@ -688,14 +740,14 @@ export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true
     marks.push(r.kind === 'radius' ? arrow(rim, e, p) : arrow(rim, [-e[0], -e[1]], p));
     const right = e[0] >= 0, shoulder = add(place, [right ? 1 : -1, 0], 3);
     marks.push({ kind: 'line', a: place, b: shoulder, pen: 'thin', role: 'leader' });
-    marks.push(...valueMarks(add(shoulder, [right ? 1 : -1, 0], 0.8), 0, right ? 'start' : 'end', r.text, r.dim.tol, '', p));
+    marks.push(...valueMarks(add(shoulder, [right ? 1 : -1, 0], 0.8), 0, right ? 'start' : 'end', r.text, r.dim.tol, '', p, r.alt, r.value));
     if (r.kind === 'radius') marks.push(dot(C));
     return marks;
   }
   // Inside the circle: a diameter across it (or a radius from the centre), text along it.
   const far = add(C, e, -R), mid = r.kind === 'diameter' ? add(C, e, R * 0.45) : add(C, e, R * 0.5);
   const start = r.kind === 'diameter' ? far : C, toRim = Math.hypot(rim[0] - mid[0], rim[1] - mid[1]), toStart = Math.hypot(mid[0] - start[0], mid[1] - start[1]);
-  const text = p.dimensionText === 'unidirectional' ? unidirectional(mid, e, r.text, r.dim.tol, [-toStart + (r.kind === 'diameter' ? p.arrowLength : 1), toRim - p.arrowLength], p) : null;
+  const text = p.dimensionText === 'unidirectional' ? unidirectional(mid, e, r.text, r.alt, r.value, r.dim.tol, [-toStart + (r.kind === 'diameter' ? p.arrowLength : 1), toRim - p.arrowLength], p) : null;
   // (A break is cut out of the line along the text: the line is `from` to `rim`, the break about `mid`.)
   const line = (a: XY, b: XY): Mark[] => text?.gap
     ? [{ kind: 'line', a, b: add(mid, e, text.gap[0]), pen: 'thin', role: 'dimension' }, { kind: 'line', a: add(mid, e, text.gap[1]), b, pen: 'thin', role: 'dimension' }]
@@ -703,8 +755,24 @@ export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true
   if (r.kind === 'diameter') marks.push(...line(far, rim), arrow(rim, e, p), arrow(far, [-e[0], -e[1]], p));
   else marks.push(...line(C, rim), arrow(rim, e, p), dot(C));
   if (text) marks.push(...text.marks);
-  else marks.push(...valueMarks(add(mid, textUp(e), 1.2), readAngle(e), 'middle', r.text, r.dim.tol, '', p));
+  else marks.push(...clearOfLine(valueMarks(add(mid, textUp(e), 1.2), readAngle(e), 'middle', r.text, r.dim.tol, '', p, r.alt, r.value), mid, e, [-toStart + (r.kind === 'diameter' ? p.arrowLength : 1), toRim - p.arrowLength], r.alt !== undefined));
   return marks;
+}
+
+/**
+ * Text along a dimension line (direction `e`, text about `mid`): where its whole width (a dual value, a tolerance) does not
+ * fit between the arrowheads (`free`, offsets from `mid`), it is lifted off the line until its box clears the line and the
+ * arrowheads, as the ASME text is set beside the line (`unidirectional`).
+ */
+function clearOfLine(marks: Mark[], mid: XY, e: XY, free: [number, number], dual: boolean): Mark[] {
+  // (Only a dual text: a plain short dimension's text over its arrowheads is older than units and its sheets, and the kernel's DXF fixtures, are kept as they were.)
+  if (!dual) return marks;
+  const quads = marks.flatMap(m => m.kind === 'text' ? [textCorners(m.at, m.text, m.size, m.anchor, m.angle ?? 0, !!m.bold)] : []).flat();
+  if (!quads.length) return marks;
+  const along = quads.map(q => (q[0] - mid[0]) * e[0] + (q[1] - mid[1]) * e[1]);
+  if (Math.min(...along) >= free[0] && Math.max(...along) <= free[1]) return marks;
+  const side = textUp(e), lift = 1.2 - Math.min(...quads.map(q => (q[0] - mid[0]) * side[0] + (q[1] - mid[1]) * side[1]));
+  return lift <= 0 ? marks : marks.map(m => m.kind === 'text' ? { ...m, at: add(m.at, side, lift) } : m);
 }
 
 /** The side of a line its text sits on: above it (or left of a vertical line), as read. */
@@ -719,8 +787,8 @@ function textUp(e: XY): XY {
  * the break along the line from `mid` ([from, to], the text box with 1 mm either side) when it lies within `free` (the
  * line's span between the arrowheads, as offsets from `mid`), else null and the text sits beside the line, clear of it.
  */
-function unidirectional(mid: XY, e: XY, value: string, tol: Tolerance | undefined, free: [number, number], p: StandardPreset): { marks: Mark[]; gap: [number, number] | null } {
-  const h = p.text, centred = valueMarks([mid[0], mid[1] + h * 0.35], 0, 'middle', value, tol, '', p);
+function unidirectional(mid: XY, e: XY, value: string, alt: string | undefined, nominal: number, tol: Tolerance | undefined, free: [number, number], p: StandardPreset): { marks: Mark[]; gap: [number, number] | null } {
+  const h = p.text, centred = valueMarks([mid[0], mid[1] + h * 0.35], 0, 'middle', value, tol, '', p, alt, nominal);
   const quads = centred.flatMap(m => m.kind === 'text' ? [textCorners(m.at, m.text, m.size, m.anchor, 0, !!m.bold)] : []).flat();
   const along = quads.map(p => (p[0] - mid[0]) * e[0] + (p[1] - mid[1]) * e[1]);
   const gap: [number, number] = [Math.min(...along) - 1, Math.max(...along) + 1];
@@ -908,7 +976,7 @@ export function datumTargetMarks(layout: SheetLayout, views: DrawingViews, d: Dr
   const pr = views[d.view], resolved = resolveDatumTarget(pr, d);
   if (!resolved.ok) return null;
   const v = layout.views[d.view], P = toSheet(v, d.place);
-  const label = `${d.letter}${d.number}`, size = datumTargetSizeText(d), marker = DATUM_BASE / 2;
+  const label = `${d.letter}${d.number}`, size = datumTargetSizeText(d, p), marker = DATUM_BASE / 2;
   const lower = textCorners([0, 0], label, p.text, 'middle'), upper = size ? textCorners([0, 0], size, p.text, 'middle') : null;
   // Keep each half's complete text box inside it, in sheet mm: the label's top just under the split line, the size's bottom just over it.
   const baseline = GAP - Math.min(...lower.map(p => p[1])), labelAt: XY = [P[0], P[1] + baseline];
@@ -1057,11 +1125,11 @@ function frameBlockMarks([x0, y0]: XY, f: DrawingFrame, p: StandardPreset): Mark
       ...withoutBorderAndSymbol(bottom, lower.datums),
     ];
   }
-  const value = `${zonePrefix(f, f)}${fmtTol(f.value)}`, base = textWidth(value, p.text, false) + 2.5;
+  const tolText = (v: number, mode?: FrameRounding) => frameValue(v, p, mode).text, value = `${zonePrefix(f, f)}${tolText(f.value)}`, base = textWidth(value, p.text, false) + 2.5;
   const modifiers = [...(f.material ? [f.material === 'maximum' ? 'M' : 'L'] : []), ...(f.freeState ? ['F'] : []), ...(f.tangentPlane ? ['T'] : []), ...(f.projected ? ['P'] : [])];
-  const height = f.projected ? fmtTol(f.projected) : '', heightWidth = height ? textWidth(height, p.text, false) + 1 : 0;
+  const height = f.projected ? tolText(f.projected, 'up') : '', heightWidth = height ? textWidth(height, p.text, false) + 1 : 0;
   // Statistical tolerance (ST in a hexagon) and the unequal amount (U in a circle, then the number) follow the other modifiers.
-  const statWidth = f.statistical ? 6.6 : 0, unequal = f.unequal !== undefined ? fmtTol(f.unequal) : '', unequalWidth = unequal ? 4.4 + textWidth(unequal, p.text, false) : 0;
+  const statWidth = f.statistical ? 6.6 : 0, unequal = f.unequal !== undefined ? tolText(f.unequal, 'nearest') : '', unequalWidth = unequal ? 4.4 + textWidth(unequal, p.text, false) : 0;
   const vw = base + modifiers.length * 4 + heightWidth + statWidth + unequalWidth;
   const datumWidths = f.datums.map(d => FRAME_DATUM + (f.datumModifiers?.[d] ? 4 : 0));
   const cells = [FRAME_SYMBOL, vw, ...datumWidths], x1 = x0 + cells.reduce((s, w) => s + w, 0), y1 = y0 + FRAME_H;

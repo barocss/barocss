@@ -17,7 +17,7 @@
 import { axisOf, holesOf } from './auto';
 import { sizeForHole, type FastenerSizes } from '../app/fasteners';
 import { datumMarks, projectionOf } from './sheet';
-import { presetOf } from './standard';
+import { presetFor } from './standard';
 import { fixAll, issueContext, marksClear, type IssueContext, type SheetInputs } from './issues';
 import { inView, resolveLine, type Resolved } from './dimensions';
 import { samePointDependency } from './measurement';
@@ -155,7 +155,7 @@ function datumPlace(ctx: IssueContext, view: ViewId, line: [XY, XY], letter: str
   const past = 8 / (l * v.scale);
   for (const off of [9, 14, 19, 24, 29]) for (const t of [0.25, 0.75, 0.5, 0.12, 0.88, 1 + past, -past]) {
     const foot: XY = [line[0][0] + d[0] * t, line[0][1] + d[1] * t], place: XY = [foot[0] + n[0] * off / v.scale, foot[1] + n[1] * off / v.scale];
-    const marks = datumMarks(ctx.layout, ctx.views, { id: 'probe', letter, view, edge, place }, presetOf(ctx.settings.standard));
+    const marks = datumMarks(ctx.layout, ctx.views, { id: 'probe', letter, view, edge, place }, presetFor(ctx.settings));
     if (marks && marksClear(ctx, marks, view)) return place;
   }
   return null;

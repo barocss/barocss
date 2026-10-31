@@ -1,5 +1,6 @@
 // The drawing's DIMENSIONS (O16: split from DrawingWorkspace, on shadcn's components): each with its value, kind and view; Auto-dimension.
-import { toleranceText } from '@barocss/cad-model/drawing/sheet';
+import { dimensionLine } from '@barocss/cad-model/drawing/sheet';
+import { presetFor } from '@barocss/cad-model/drawing/standard';
 import type { DrawingSettings } from '@barocss/cad-model/drawing/types';
 import type { useDrawingSheet } from '../useDrawingSheet';
 import { Icon, Kbd } from '../atoms';
@@ -17,7 +18,7 @@ export function DimensionsList({ sheet, views, layout, scope, settings, selected
         <div className="dw-dims">
           {sheet?.dimensions.map(r => <div key={r.dim.id} role="button" tabIndex={0} className={'dw-dim' + (selected === r.dim.id ? ' sel' : '') + (r.ok ? '' : ' lost')} title={r.ok ? undefined : r.reason}
             onClick={() => onSelect(r.dim.id)}>
-            <b>{r.ok ? r.text : 'lost'}{r.dim.tol ? ` ${toleranceText(r.dim.tol, r.dim.kind === 'angle' ? '°' : '')}` : ''}</b><span>{r.dim.kind === 'linear' ? r.dim.orient : r.dim.kind} · {r.dim.view}</span>
+            <b>{r.ok ? dimensionLine(r, presetFor(settings)) : 'lost'}</b><span>{r.dim.kind === 'linear' ? r.dim.orient : r.dim.kind} · {r.dim.view}</span>
             <span className="muted" />
             <Button variant="ghost" size="xs" aria-label={`Remove dimension ${r.ok ? r.text : r.dim.id}`} onClick={e => { e.stopPropagation(); remove(r.dim.id); }}><Icon name="close" small /></Button>
           </div>)}

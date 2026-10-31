@@ -3,8 +3,11 @@
 // "Ø6.6 THRU  CBORE Ø11 × 6.5 DEEP", "Ø6.6 THRU  CSK Ø13 × 90°". Characters the PDF's fonts show.
 import { placedDoc, type ModelNode, type StudioDoc } from '../engine/doc';
 import { nodeIndexOf } from '../engine/ids';
+import type { LengthFormat } from './standard';
 import { faceOriginOf, flatFaceOf } from '../engine/occurrences';
 
+/** A length as before units existed: mm, to 3 places, trimmed. */
+const plain: LengthFormat = (mm, places = 3) => String(+mm.toFixed(places));
 const n = (v: unknown) => typeof v === 'number' ? Math.round(v * 1000) / 1000 : NaN;
 const same = (a: readonly unknown[], b: readonly unknown[]) => n(a[0]) === n(b[0]) && n(a[1]) === n(b[1]);
 
@@ -71,7 +74,7 @@ export function holeCalloutOwnerOf(doc: StudioDoc, edge: string): string | null 
 }
 
 /** The callout of the hole whose round face an edge (by its name) bounds, or null for any other edge. */
-export function holeCallout(nodes: readonly ModelNode[], edge: string, parameters: Readonly<Record<string, number>> = {}): string | null {
+export function holeCallout(nodes: readonly ModelNode[], edge: string, parameters: Readonly<Record<string, number>> = {}, f: LengthFormat = plain): string | null {
   const source = calloutSource(nodes, edge, parameters); if (!source) return null;
   const i = source.index;
   const h = nodes[i]; if (h.kind !== 'hole') return null;
@@ -80,8 +83,8 @@ export function holeCallout(nodes: readonly ModelNode[], edge: string, parameter
   const count = h.pattern && h.pattern.count > 1 ? `${h.pattern.count}× ` : '';
   const depth = h.depth === undefined ? undefined : lengthOf(h.depth, parameters);
   if (depth === null) return null;
-  const end = depth === undefined ? 'THRU' : `× ${depth} DEEP`;
-  let out = `${count}${h.thread ? h.thread : `Ø${d}`} ${end}`;
+  const end = depth === undefined ? 'THRU' : `× ${f(depth, 3)} DEEP`;
+  let out = `${count}${h.thread ? h.thread : `Ø${f(d, 3)}`} ${end}`;
   const next = nodes[i + 1];
   if (next?.kind === 'hole' && next.parent.node === i && same(next.center, h.center)) {
     const nextRadius = lengthOf(next.radius, parameters);
@@ -89,10 +92,10 @@ export function holeCallout(nodes: readonly ModelNode[], edge: string, parameter
     if (nextRadius > radius) {
       const nextDepth = lengthOf(next.depth, parameters);
       if (nextDepth === null) return null;
-      out += `  CBORE Ø${nextRadius * 2} × ${nextDepth} DEEP`;
+      out += `  CBORE Ø${f(nextRadius * 2, 3)} × ${f(nextDepth, 3)} DEEP`;
     }
   }
   const csk = h.countersink ?? h.csk;
-  if (csk) out += `  CSK Ø${n(csk)} × 90°`;
+  if (csk) out += `  CSK Ø${f(n(csk), 3)} × 90°`;
   return out;
 }

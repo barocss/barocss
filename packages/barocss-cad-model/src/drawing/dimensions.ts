@@ -5,7 +5,7 @@ import type { BrepProjection, ProjectedCurve, ProjectedEdge } from '@barocss/cad
 import type { CentreRef, DimPoint, DimView, DrawingDimension, EdgeRef, Vec3, XY } from './types';
 import { dot } from '../engine/vec3';
 import { nextFreeId } from '../util/ids';
-import { formatNumber } from './standard';
+import { formatNumber, type LengthFormat } from './standard';
 
 const sub3 = (a: readonly number[], b: readonly number[]): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const dist3 = (a: readonly number[], b: readonly number[]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
@@ -102,17 +102,29 @@ export function pitchCircle(pr: BrepProjection, ring: readonly CentreRef[]): { c
 }
 const cross3 = (a: readonly number[], b: readonly number[]): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 
+/** `alt` (11 ③b): on a dual drawing, the same text in the other unit; the sheet sets it, resolving never does. */
 export type Resolved =
-  | { ok: true; kind: 'linear'; dim: Extract<DrawingDimension, { kind: 'linear' }>; a: XY; b: XY; value: number; text: string }
-  | { ok: true; kind: 'diameter' | 'radius'; dim: Extract<DrawingDimension, { kind: 'diameter' | 'radius' }>; center: XY; radius: number; value: number; text: string }
+  | { ok: true; kind: 'linear'; dim: Extract<DrawingDimension, { kind: 'linear' }>; a: XY; b: XY; value: number; text: string; alt?: string }
+  | { ok: true; kind: 'diameter' | 'radius'; dim: Extract<DrawingDimension, { kind: 'diameter' | 'radius' }>; center: XY; radius: number; value: number; text: string; alt?: string }
   /** `vertex`: where the two lines meet; `from`/`to`: the sector's bounding directions (counter-clockwise from → to); `ends`: each edge's far end from the vertex. */
-  | { ok: true; kind: 'angle'; dim: Extract<DrawingDimension, { kind: 'angle' }>; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string }
+  | { ok: true; kind: 'angle'; dim: Extract<DrawingDimension, { kind: 'angle' }>; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string }
   /** A pitch circle (R14.5): `center` in the view, `center3` in the model, `radius` (mm), `members` in the view; `value` its diameter. */
-  | { ok: true; kind: 'pcd'; dim: Extract<DrawingDimension, { kind: 'pcd' }>; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string }
+  | { ok: true; kind: 'pcd'; dim: Extract<DrawingDimension, { kind: 'pcd' }>; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string }
   | { ok: false; dim: DrawingDimension; reason: string };
 
 /** A value to 0.01 mm, leading zero kept and trailing zeros trimmed: the metric rule of both standards (standard.ts `formatNumber` takes another). */
 export const fmtMM = (v: number) => formatNumber(v);
+
+/** What a resolved dimension reads, its lengths in `f` (an angle never converts). */
+export function valueText(r: { kind: Extract<Resolved, { ok: true }>['kind']; value: number; members?: unknown[]; even?: boolean }, f: LengthFormat): string {
+  switch (r.kind) {
+    case 'angle': return `${fmtMM(r.value)}°`;
+    case 'pcd': return `Ø${f(r.value)} PCD${r.even ? ` · ${r.members!.length}× EQ SP` : ''}`;
+    case 'linear': return f(r.value);
+    case 'diameter': return `Ø${f(r.value)}`;
+    default: return `R${f(r.value)}`;
+  }
+}
 
 /** Linear value between two model points as the dimension orients it. */
 export function linearValue(pr: BrepProjection, a: readonly number[], b: readonly number[], orient: 'horizontal' | 'vertical' | 'aligned') {
@@ -159,28 +171,27 @@ export function resolveDimension(views: Partial<Record<DimView, BrepProjection>>
     if (!a || !b) return { ok: false, dim, reason: 'An edge it measured is no longer in the part.' };
     const g = angleBetween(a, b, dim.place);
     if (!g) return { ok: false, dim, reason: 'Its two edges are now parallel in this view.' };
-    return { ok: true, kind: 'angle', dim, vertex: g.vertex, from: g.from, to: g.to, ends: g.ends, value: g.degrees, text: `${fmtMM(g.degrees)}°` };
+    return { ok: true, kind: 'angle', dim, vertex: g.vertex, from: g.from, to: g.to, ends: g.ends, value: g.degrees, text: valueText({ kind: 'angle', value: g.degrees }, fmtMM) };
   }
   if (dim.kind === 'pcd') {
     const c = pitchCircle(pr, dim.ring);
     if (!c) return { ok: false, dim, reason: 'Its holes are gone, or no longer on one circle.' };
     if (Math.abs(dot(c.normal, pr.toward)) < 1 - 1e-6) return { ok: false, dim, reason: 'Its circle no longer shows round in this view.' };
-    const n = c.members.length;
-    return { ok: true, kind: 'pcd', dim, center: inView(pr, c.center), center3: c.center, radius: c.radius, members: c.members.map(p => inView(pr, p)), even: c.even, value: 2 * c.radius, text: `Ø${fmtMM(2 * c.radius)} PCD${c.even ? ` · ${n}× EQ SP` : ''}` };
+    return { ok: true, kind: 'pcd', dim, center: inView(pr, c.center), center3: c.center, radius: c.radius, members: c.members.map(p => inView(pr, p)), even: c.even, value: 2 * c.radius, text: valueText({ kind: 'pcd', value: 2 * c.radius, members: c.members, even: c.even }, fmtMM) };
   }
   if (dim.kind === 'linear') {
     const a = resolvePoint(pr, dim.a), b = resolvePoint(pr, dim.b);
     if (!a || !b) return { ok: false, dim, reason: 'An edge it measured is no longer in the part.' };
     const value = linearValue(pr, a, b, dim.orient);
     if (value < 1e-9) return { ok: false, dim, reason: 'Its two points now coincide in this view.' };
-    return { ok: true, kind: 'linear', dim, a: inView(pr, a), b: inView(pr, b), value, text: fmtMM(value) };
+    return { ok: true, kind: 'linear', dim, a: inView(pr, a), b: inView(pr, b), value, text: valueText({ kind: 'linear', value }, fmtMM) };
   }
   let best: ProjectedEdge | null = null, bestD = Infinity;
   for (const e of pr.edges) if (e.name === dim.edge && e.circle) { const d = dist3(e.circle.center, dim.near); if (d < bestD) { bestD = d; best = e; } }
   if (!best?.circle) return { ok: false, dim, reason: 'The circle it measured is no longer in the part.' };
   if (!roundIn(pr, best)) return { ok: false, dim, reason: 'The circle no longer shows round in this view.' };
   const r = best.circle.radius, value = dim.kind === 'diameter' ? 2 * r : r;
-  return { ok: true, kind: dim.kind, dim, center: inView(pr, best.circle.center), radius: r, value, text: (dim.kind === 'diameter' ? 'Ø' : 'R') + fmtMM(value) };
+  return { ok: true, kind: dim.kind, dim, center: inView(pr, best.circle.center), radius: r, value, text: valueText({ kind: dim.kind, value }, fmtMM) };
 }
 
 /**

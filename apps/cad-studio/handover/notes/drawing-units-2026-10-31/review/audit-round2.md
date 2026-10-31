@@ -1,0 +1,7 @@
+# D397 audit round 2 (targeted) — CHANGES_REQUIRED (Opus)
+
+1. (wrong result) Printed limits could still fall outside the true zone: deviations rounded inward but the nominal rounded to nearest — a 20k-value property probe found 27–40 % outside (inch default 5506/20000, worst 4.96e-4 in; mm precision 0/1 ≈ 7900/20000, worst 0.05 mm). Examples: 45.56 mm ±0.0254 in inch → `1.794 ±.001` = [1.7930, 1.7950] vs true [1.79270, 1.79470]; 95.516 ±0.1 at mm precision 0 → `95.5 ±0.1`.
+2. (wrong result) Fits: nominal at 3 places, deviations at 4–5 — Ø20 H7 → `Ø.787 H7 (+.0008/0)` = [.7870, .7878] vs true [.78740, .78823]; 4 of 5 sizes outside.
+Verified: inch frames down at 3–5 places ≥80 %, mm frames as entered, UNIT_PRECISION words; weld sizes convert with the estimate mark; element SIZE keeps [mm]; golden SVG/DXF diffs limited to fine tolerances; dual text: 0 of 10,080 boxes touch their own line or arrowheads (all standards, 4 scales, every tolerance kind).
+Follow-ups raised: plain mm nominal shift (pre-existing: 10.004 ±0.005 → `10 ±0.005`) — treated as a wrong result and fixed in this record; inch projected height P and unequal U rounding direction — fixed (P up, U nearest within 5 %). Non-dual short dimensions overlapping their arrowheads (1171/5040, as at HEAD) stay a follow-up (kernel DXF fixture).
+Mutations 23/26 caught; survived: weld symbol format wiring, the weld estimate mark, deviationPair's not-zero check → tests requested.

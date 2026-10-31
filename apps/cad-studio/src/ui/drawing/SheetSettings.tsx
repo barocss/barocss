@@ -52,6 +52,17 @@ export function SheetSettings({ sheet: { scopeRead, scope, views, layout, sectio
           <option value="third">Third angle</option><option value="first">First angle</option></NativeSelect></label>
         <label className={FIELD}><span>Standard</span><NativeSelect className={CONTROL} aria-label="Drawing standard" title="Lettering, arrowheads, dimension text, projection symbol and datum targets as ISO or ASME draw them" value={settings.standard ?? ''} onChange={e => { const { standard: _s, ...rest } = settings; void _s; onChange(e.target.value === 'iso' || e.target.value === 'asme' ? { ...rest, standard: e.target.value } : rest); }}>
           <option value="">Not set</option><option value="iso">ISO</option><option value="asme">ASME</option></NativeSelect></label>
+        <label className={FIELD}><span>Units</span><NativeSelect className={CONTROL} aria-label="Drawing units" title="The unit lengths print in on the sheet; the model stays in mm" value={settings.units ?? 'mm'} onChange={e => { const { units: _u, ...rest } = settings; void _u; onChange(e.target.value === 'inch' ? { ...rest, units: 'inch' } : rest); }}>
+          <option value="mm">mm</option><option value="inch">inch</option></NativeSelect></label>
+        <label className={FIELD}><span>Dual units</span><input type="checkbox" className={TICK} aria-label="Dual units" title="Show the other unit after each length in square brackets" checked={!!settings.dual} onChange={e => { const { dual: _d, ...rest } = settings; void _d; onChange(e.target.checked ? { ...rest, dual: true } : rest); }} /></label>
+        <details><summary className="muted cursor-pointer">Details</summary>
+          {(['mm', 'inch'] as const).map(unit => <label key={unit} className={FIELD}><span>{unit === 'mm' ? 'mm decimals' : 'inch decimals'}</span><Input type="number" className="w-20 text-right" min={0} max={6} step={1} aria-label={unit === 'mm' ? 'Decimals in mm' : 'Decimals in inch'} placeholder={unit === 'mm' ? 'auto' : '3'} value={settings.precision?.[unit] ?? ''}
+            onChange={e => {
+              const raw = e.target.value.trim(), n = Number(raw), { precision, ...rest } = settings, next = { ...precision };
+              if (raw === '') delete next[unit]; else if (Number.isInteger(n) && n >= 0 && n <= 6) next[unit] = n; else return;
+              onChange(next.mm === undefined && next.inch === undefined ? rest : { ...rest, precision: next });
+            }} /></label>)}
+        </details>
         <label className={FIELD}><span>Hidden lines</span><input type="checkbox" className={TICK} aria-label="Hidden lines" checked={settings.hidden} onChange={e => onChange({ ...settings, hidden: e.target.checked })} /></label>
         <label className={FIELD}><span>Section A–A</span><input type="checkbox" className={TICK} aria-label="Section A–A" checked={!!sectionA} onChange={e => {
           const rest = sectionList.filter(x => !(x.id === 'A' && x.view === 'front'));

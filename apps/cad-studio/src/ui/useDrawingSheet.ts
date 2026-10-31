@@ -95,7 +95,7 @@ export function useDrawingSheet(active: boolean, { engine, doc: sourceDoc, bodie
   // (D155: a diameter on a face with a fit class shows the class and its limits; a class with no row, an issue.)
   // (O145: and the machine elements' callouts — a bearing's seat, a ring's groove.)
   const elements = useMemo(() => elementsOfBodies(doc.nodes, bodies ?? []), [doc.nodes, bodies]);
-  const callout = useMemo(() => withElements(doc, withFit(doc, (edge: string) => holeCallout(doc.nodes, edge, doc.parameters)), elements), [doc.nodes, doc.parameters, doc.fits, elements]);
+  const callout = useMemo(() => withElements(doc, withFit(doc, (edge, f) => holeCallout(doc.nodes, edge, doc.parameters, f)), elements), [doc.nodes, doc.parameters, doc.fits, elements]);
   // Physical hole ownership is independent of the formatted size/counterbore callout.
   const locationOwner = useMemo(() => (edge: string) => holeCalloutOwnerOf(doc, edge), [doc]);
   const fitMissOf = useMemo(() => fitMiss(doc), [doc.fits]);
