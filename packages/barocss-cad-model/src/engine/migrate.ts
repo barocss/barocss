@@ -53,6 +53,8 @@ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] }
   const parameters = o.parameters && typeof o.parameters === 'object' ? o.parameters as Record<string, number> : (notes.push('no parameters list: started empty'), {});
   const bad = Object.entries(parameters).filter(([, v]) => typeof v !== 'number' || !Number.isFinite(v)).map(([k]) => k);
   if (bad.length) return { error: `Parameters without a number: ${bad.join(', ')}.` };
+  const idProblem = instanceIdProblem(o, '');
+  if (idProblem) return { error: refusal('VALUE', idProblem).message };
   const skeletonProblem = skeletonDocumentProblem({ ...o, parameters });
   if (skeletonProblem) return { error: skeletonProblem };
   const fillProblem = fillPatternDocumentProblem({ ...o, parameters });
@@ -150,6 +152,18 @@ function nodeProblem(node: Record<string, unknown>, parameters: Record<string, u
     resolved.push((key ? { ...c, [key]: dimension(c[key], parameters) } : c) as Constraint3D);
   }
   return sketch3dRefusal(points as V3[], node.segments as [number, number][], resolved);
+}
+
+/** A part's id never holds "/" (it joins a path to a part inside a sub-assembly: `sub1/p2`): the first that does, in words. */
+function instanceIdProblem(raw: unknown, where: string): string | null {
+  if (!record(raw) || !Array.isArray(raw.instances)) return null;
+  for (const [i, instance] of raw.instances.entries()) {
+    if (!record(instance)) continue;
+    if (typeof instance.id === 'string' && instance.id.includes('/')) return `${where}instances[${i}]: the part id "${instance.id}" cannot hold "/", which names a part inside a sub-assembly (sub1/p2). Rename the id.`;
+    const inner = instanceIdProblem(instance.doc, `${where}instances[${i}].doc.`);
+    if (inner) return inner;
+  }
+  return null;
 }
 
 /** Existing nested part and pending-part documents use their own parameters and node indices. */

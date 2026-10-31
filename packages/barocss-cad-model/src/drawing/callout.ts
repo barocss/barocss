@@ -3,6 +3,7 @@
 // "Ø6.6 THRU  CBORE Ø11 × 6.5 DEEP", "Ø6.6 THRU  CSK Ø13 × 90°". Characters the PDF's fonts show.
 import { placedDoc, type ModelNode, type StudioDoc } from '../engine/doc';
 import { nodeIndexOf } from '../engine/ids';
+import { faceOriginOf, flatFaceOf } from '../engine/occurrences';
 
 const n = (v: unknown) => typeof v === 'number' ? Math.round(v * 1000) / 1000 : NaN;
 const same = (a: readonly unknown[], b: readonly unknown[]) => n(a[0]) === n(b[0]) && n(a[1]) === n(b[1]);
@@ -55,11 +56,18 @@ export function holeCalloutOwnerOf(doc: StudioDoc, edge: string): string | null 
   }
   if (prefix === undefined) return null;
   if (!prefix) return holeCalloutOwner(doc.nodes, edge, doc.parameters);
-  for (const instance of doc.instances ?? []) if (`${instance.id}/` === prefix) {
-    if (instance.hidden) return null;
-    try { const source = placedDoc(instance, doc); return holeCalloutOwner(source.nodes, edge, source.parameters); } catch { return null; }
-  }
-  return null;
+  // (A part inside a sub-assembly is named `sub1/p2/n1.side0`: its path, then its own ids. The hole is found on the
+  // folded document, whose ids differ, and its owner told in the part's own ids again: stable as siblings change.)
+  const path = prefix.split('/').slice(0, -1), instance = doc.instances?.find(i => i.id === path[0]);
+  if (!instance || instance.hidden || `${path.join('/')}/` !== prefix) return null;
+  try {
+    const source = placedDoc(instance, doc);
+    if (path.length === 1) return holeCalloutOwner(source.nodes, edge, source.parameters);
+    const flat = edge.split('|').map(piece => flatFaceOf(instance.doc, path.slice(1), piece.slice(prefix.length)));
+    if (flat.some(x => x === null)) return null;
+    const owner = holeCalloutOwner(source.nodes, flat.join('|'), source.parameters);
+    return owner === null ? null : `${prefix}${faceOriginOf(instance.doc, `${owner}.`).face.slice(0, -1)}`;
+  } catch { return null; }
 }
 
 /** The callout of the hole whose round face an edge (by its name) bounds, or null for any other edge. */

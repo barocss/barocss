@@ -183,6 +183,21 @@ export class Assembly {
   // (A mate's end: the part's id, and the face's name as the face tables key it — a selector's one face, its `#k` and
   // the display's merged `a+b` taken back to the first name the part's table has.)
   #end(end: MateEnd): { part: string; face: string } {
+    // (A part inside a sub-assembly: `<part>/<nested part>…`, each by id or name, kept as the ids' path; its face by name.
+    // A whole part name is tried first, so "Bracket A/B" is that part.)
+    if (end.part.includes('/') && !(this.#doc.instances ?? []).some(i => i.name === end.part)) {
+      if (typeof end.face !== 'string') throw refuse('VALUE', `a part inside a sub-assembly (${end.part}) is mated by its face's name`);
+      const ids: string[] = [];
+      let level = this.#doc.instances ?? [], scope = 'the assembly';
+      for (const seg of end.part.split('/')) {
+        const byId = level.find(i => i.id === seg), byName = level.find(i => i.name === seg);
+        if (byId && byName && byId !== byName) throw refuse('VALUE', `${seg} in ${scope} names two parts: ${byId.id} (by id) and ${byName.id} (by name ${seg}); use the other one's id`);
+        const at = byId ?? byName;
+        if (!at) throw refuse('PART_UNKNOWN', `no part ${seg} in ${scope}; its parts are ${level.map(i => i.name).join(', ') || 'none'}`);
+        ids.push(at.id); level = at.doc.instances ?? []; scope = ids.join('/');
+      }
+      return { part: ids.join('/'), face: end.face };
+    }
     const id = this.idOf(end.part);
     if (typeof end.face === 'string') return { part: id, face: end.face };
     const d = id === BASE ? this.#doc : this.#doc.instances!.find(i => i.id === id)!.doc;

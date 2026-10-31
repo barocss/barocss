@@ -6,6 +6,7 @@ import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { validateBallOptions, validateFastenedOptions, validateUniversalOptions, validateCylindricalOptions } from '@barocss/cad-model/assembly/connectors';
 import { FaceClient } from './faceClient';
 import { flattenAssembly } from '@barocss/cad-model/engine/flatten';
+import { faceOriginOf, flatFaceOf, hostOf, occurrenceProblem, pathTable, splitPart } from '@barocss/cad-model/engine/occurrences';
 import { drivenRefusal, seedMateRefusal } from '@barocss/cad-model/assembly/patterns';
 import { resolved } from '@barocss/cad-model/assembly/edit';
 import { BASE, mateKindsOf, lockRel, mateRefusal, solveAssembly, type FaceTable, type Freedom, type Mate, type MateKind, type MateRef, type Problem } from '@barocss/cad-model/assembly/mates';
@@ -21,6 +22,8 @@ type Hit = { face: { body: number; face: number } | null; instance?: string; ins
 
 export interface Assembly {
   mates: Mate[]; problems: Problem[]; tables: Map<string, FaceTable>;
+  /** A part's mateable faces: an instance's own (a sub-assembly's too), or a part inside one by its path (`sub1/p2`). */
+  tableFor(part: string): FaceTable | undefined;
   /** What each mated instance can still do (see Solved.freedom). */
   freedom: Record<string, Freedom>;
   draft: MateDraft | null; selected: string | null;
@@ -95,9 +98,21 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
     return () => { live = false; };
   }, [client, evaluated, instances, readFaces, sourceKey]);
 
+  // A part's faces: an instance's by its id; a part inside a sub-assembly by its path (`sub1/p2`), from the folded
+  // sub-assembly's table, by its own names (undefined where the path leads nowhere).
+  const tableFor = useCallback((part: string): FaceTable | undefined => {
+    if (!part.includes('/')) {
+      // (A sub-assembly's own faces: a part inside is mated by its path, not by a folded name that moves with its siblings.)
+      const whole = tables.get(part), sub = instances.find(i => i.id === part)?.doc;
+      return whole && sub?.instances?.length ? pathTable(whole, sub, []) : whole;
+    }
+    const host = tables.get(hostOf(part)), inst = instances.find(i => i.id === hostOf(part)), path = splitPart(part).path;
+    return host && inst && !occurrenceProblem(inst.doc, inst.id, path) ? pathTable(host, inst.doc, path) : undefined;
+  }, [tables, instances]);
+
   const solve = useCallback((list: readonly PartInstance[], ms: readonly Mate[]) => facesPending()
     ? { instances: [...list], problems: EMPTY_PROBLEMS, pending: true, freedom: EMPTY_FREEDOM }
-    : solveAssembly(list, ms, p => tables.get(p)), [tables, facesPending]);
+    : solveAssembly(list, ms, tableFor), [tableFor, facesPending]);
 
   // Re-solve after every change (a typed placement, a mate, an edited part): a mated instance follows, and
   // one whose part moved is carried along with it. The result replaces the document in place (it is the
@@ -108,21 +123,21 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
     if (!mates.length) { setProblems([]); setFreedom({}); lastSolved.current = instances; return; }
     // (One settled solve through the patterns: written back only when it differs, never when a pattern does not settle —
     // that is shown as a problem — so the placements it writes are its own fixed point and the effect stops.)
-    const out = resolved({ ...doc, instances, mates: [...mates] }, d => solveAssembly(d.instances!, d.mates!, p => tables.get(p), lastSolved.current));
+    const out = resolved({ ...doc, instances, mates: [...mates] }, d => solveAssembly(d.instances!, d.mates!, tableFor, lastSolved.current));
     if (!out.last || out.last.pending) return;
     lastSolved.current = out.instances ?? instances;
     setProblems(out.problems); setFreedom(out.last.freedom);
     if (out.instances) setDoc(d => d.instances === doc.instances ? { ...d, instances: out.instances! } : d);
   }, [solve, instances, mates, facesPending]);
 
-  const isFixed = useCallback((part: string) => part === BASE || !!instances.find(i => i.id === part)?.grounded, [instances]);
-  const faceOf = (ref: MateRef) => tables.get(ref.part)?.[ref.face];
+  const isFixed = useCallback((part: string) => part === BASE || !!instances.find(i => i.id === hostOf(part))?.grounded, [instances]);
+  const faceOf = (ref: MateRef) => tableFor(ref.part)?.[ref.face];
 
   /** Adds the mate the two picks make, or says why not (and keeps the first pick). */
   const finish = (d: MateDraft): MateDraft | null => {
     if (facesPending()) return { ...d, picks: [d.picks[0]], error: FACES_PENDING };
     let [first, second] = d.picks;
-    if (first.ref.part === second.ref.part) return { ...d, picks: [first], error: 'Both faces are on the same part. Pick the second face on another part.' };
+    if (hostOf(first.ref.part) === hostOf(second.ref.part)) return { ...d, picks: [first], error: 'Both faces are on the same part. Pick the second face on another part.' };
     const chase = seedMateRefusal(doc, first.ref.part, second.ref.part);
     if (chase) return { ...d, picks: [first], error: chase.message };
     // The second pick moves, unless its part is fixed: then the first one does.
@@ -156,8 +171,11 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
     const named = (part: string, name: string | undefined) => name?.split('+').find(x => tables.get(part)?.[x]) ?? name?.split('+')[0];
     if (hit.instance && hit.instanceFace) {
       const face = instanceBodies.get(hit.instance)?.bodies[hit.instanceFace.body]?.mesh.faces[hit.instanceFace.face];
-      const name = named(hit.instance, face?.name);
-      if (name) p = { ref: { part: hit.instance, face: name } };
+      const name = named(hit.instance, face?.name), sub = instances.find(i => i.id === hit.instance)?.doc;
+      // (A face of a part inside a sub-assembly is kept by that part's path and its own name, not the folded one's, which
+      // moves with its siblings.)
+      const at = name && sub?.instances?.length ? faceOriginOf(sub, name) : null;
+      if (name) p = { ref: at?.path.length ? { part: `${hit.instance}/${at.path.join('/')}`, face: at.face } : { part: hit.instance, face: at?.face ?? name } };
     } else if (hit.face) {
       const name = named(BASE, bodies[hit.face.body]?.mesh.faces[hit.face.face]?.name);
       if (name) p = { ref: { part: BASE, face: name }, body: hit.face.body, face: hit.face.face };
@@ -169,7 +187,7 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
     const draft = draftRef.current;
     if (!draft) return;
     if (facesPending()) { setDraftState({ ...draft, error: FACES_PENDING }); return; }
-    if (!tables.get(p.ref.part)?.[p.ref.face] && tables.has(p.ref.part)) { setDraftState({ ...draft, error: 'This face cannot be mated: pick a flat face or a round (cylindrical) one.' }); return; }
+    if (!tableFor(p.ref.part)?.[p.ref.face] && tables.has(hostOf(p.ref.part))) { setDraftState({ ...draft, error: 'This face cannot be mated: pick a flat face or a round (cylindrical) one.' }); return; }
     const next = { ...draft, error: undefined, picks: draft.picks.length >= 2 ? [p] : [...draft.picks, p] };
     setDraftState(next.picks.length === 2 ? finish(next) : next);
   };
@@ -218,7 +236,7 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
   };
 
   return {
-    mates, problems: facesUnavailable ? EMPTY_PROBLEMS : problems, tables, freedom: facesUnavailable ? EMPTY_FREEDOM : freedom, draft, selected,
+    mates, problems: facesUnavailable ? EMPTY_PROBLEMS : problems, tables, tableFor, freedom: facesUnavailable ? EMPTY_FREEDOM : freedom, draft, selected,
     start: () => { setDraftState({ kind: 'auto', distance: 10, angle: 90, flip: false, picks: [] }); setSelected(null); },
     cancel: () => setDraftState(null),
     setDraft: patch => { if (draftRef.current) setDraftState({ ...draftRef.current, ...patch }); },
@@ -240,25 +258,28 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
     remove: id => { commit(instances, mates.filter(m => m.id !== id)); if (selected === id) setSelected(null); },
     ground: (id, on) => {
       if (facesPending()) return FACES_PENDING;
-      const by = mates.filter(m => m.b.part === id);
+      const by = mates.filter(m => hostOf(m.b.part) === id);
       if (on && by.length) return `${by.length} mate${by.length > 1 ? 's' : ''} move${by.length > 1 ? '' : 's'} this part. Delete ${by.length > 1 ? 'them' : 'it'} first, or fix the other part instead.`;
       commit(instances.map(i => i.id === id ? { ...i, grounded: on || undefined } : i), mates); return null;
     },
-    without: part => mates.filter(m => m.a.part !== part && m.b.part !== part),
+    without: part => mates.filter(m => hostOf(m.a.part) !== part && hostOf(m.b.part) !== part),
     highlight: (() => {
       const sel = mates.find(m => m.id === selected), refs = draft ? draft.picks.map(p => p.ref) : sel ? [sel.a, sel.b] : [];
       // A face by name on the part's evaluated bodies (display faces may join coplanar faces: "a+b").
       const locate = (ref: MateRef) => {
-        for (const [body, b] of (ref.part === BASE ? bodies : instanceBodies.get(ref.part)?.bodies ?? []).entries()) {
-          const face = b.mesh.faces.findIndex(f => f.name.split('+').includes(ref.face));
+        // (The display's names are the folded sub-assembly's: a path ref is read back through them.)
+        const host = hostOf(ref.part), sub = instances.find(i => i.id === host)?.doc, name = ref.part === host || !sub ? ref.face : flatFaceOf(sub, splitPart(ref.part).path, ref.face);
+        if (name === null) return null;
+        for (const [body, b] of (ref.part === BASE ? bodies : instanceBodies.get(host)?.bodies ?? []).entries()) {
+          const face = b.mesh.faces.findIndex(f => f.name.split('+').includes(name));
           if (face >= 0) return { body, face };
         }
         return null;
       };
       return {
         faces: refs.filter(r => r.part === BASE).flatMap(r => { const at = locate(r); return at ? [at] : []; }),
-        instanceFaces: refs.filter(r => r.part !== BASE).flatMap(r => { const at = locate(r); return at ? [{ id: r.part, ...at }] : []; }),
-        instances: (draft?.picks ?? []).filter(p => p.ref.part !== BASE).map(p => p.ref.part),
+        instanceFaces: refs.filter(r => r.part !== BASE).flatMap(r => { const at = locate(r); return at ? [{ id: hostOf(r.part), ...at }] : []; }),
+        instances: (draft?.picks ?? []).filter(p => p.ref.part !== BASE).map(p => hostOf(p.ref.part)),
       };
     })(),
   };

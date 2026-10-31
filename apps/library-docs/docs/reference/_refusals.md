@@ -478,7 +478,7 @@
 | `[NO_LATTICE]` | `print` | no lattice is left in the cavity at L …, k … |
 | `[NO_LINK]` | `robot` | no link … on the tree |
 | `[NO_MATE]` | `assembly` | No mate "…"; mates: …. |
-| `[NO_PART]` | `assembly` | No part "…" to copy; parts: …. |
+| `[NO_PART]` | `assembly` | No part "…"; parts: …. |
 | `[NO_PATTERN]` | `assembly` | No pattern "…"; patterns: …. |
 | `[NO_PIN]` | `robot` | the loop … has no concentric mate to close on |
 | `[NO_PRINTER]` | `print` | choose a printer first: the split is for its build volume |

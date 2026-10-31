@@ -17752,3 +17752,23 @@ Interfaces: the model API, the facade, the agent tools `pattern_part`, `edit_pat
 - Edge or datum axes are not offered.
 
 CI and release NOT_RUN.
+
+## D384 — Row 10 ②a: stable references to parts inside sub-assemblies; full (2026-10-31)
+
+[Evidence](notes/nested-references-2026-10-31/qualification.json). Owner order "Go to row 10". Issues: #2180; #538 stays open.
+
+**Defect.** Folded nested names were positional, so an edit to an earlier sibling silently broke or re-aimed mates and drawing references. The model API did not fold sub-assemblies.
+
+**Fix.**
+- A part inside a sub-assembly is named by its occurrence path (`sub1/p2`) and its own face names. The mapping comes from the same plan as the fold.
+- An unresolvable reference is refused or reported, never re-aimed.
+- Robot, loop, contact and the Mates panel look parts up by the host instance.
+
+**Audits.**
+- Round 1: 2 high, 2 medium, 1 low. Fixed.
+- Round 2: 1 high, re-aim on edit. Fixed. Robot outputs byte-identical to HEAD; 6 mutants killed.
+- Round 3: ACCEPT.
+
+**Verification.** Model 2299/2299; Studio 572/572. Actual run04 PASS: the Studio pick is kept by its path, and it survives a revision that moves the folded name.
+
+**Next.** ②b (BOM) and ②c (selection). CI and release NOT_RUN.

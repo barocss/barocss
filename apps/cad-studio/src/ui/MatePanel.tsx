@@ -30,9 +30,17 @@ export function faceLabel(name: string, table: FaceTable | undefined): string {
 
 /** Mates: the list (pick one to edit or delete it), and "Add mate": a face that stays, then a face on the part to move. */
 export function MatePanel({ assembly, instances, instance, onRefused }: { assembly: Assembly; instances: PartInstance[]; instance?: string; onRefused(reason: string): void }) {
-  const { mates, problems, draft, tables } = assembly;
-  const partName = (part: string) => part === BASE ? 'Base part' : instances.find(i => i.id === part)?.name ?? part;
-  const refText = (r: MateRef) => r.face ? `${partName(r.part)} · ${faceLabel(r.face, tables.get(r.part))}` : partName(r.part);
+  const { mates, problems, draft, tableFor } = assembly;
+  // (A part inside a sub-assembly, `sub1/p2`: the names down the path, "Sub › Block B".)
+  const partName = (part: string) => {
+    if (part === BASE) return 'Base part';
+    const [host, ...path] = part.split('/');
+    let at = instances.find(i => i.id === host);
+    const names = [at?.name ?? host];
+    for (const id of path) { at = at?.doc.instances?.find(i => i.id === id); names.push(at?.name ?? id); }
+    return names.join(' › ');
+  };
+  const refText = (r: MateRef) => r.face ? `${partName(r.part)} · ${faceLabel(r.face, tableFor(r.part))}` : partName(r.part);
   const sel = mates.find(m => m.id === assembly.selected) ?? null;
   const problemOf = (id: string) => problems.find(p => p.mate === id);
   // What the selected part can still do: fixed, placed by typed numbers, or its mates' remaining freedom.
@@ -63,7 +71,7 @@ export function MatePanel({ assembly, instances, instance, onRefused }: { assemb
         {draft.kind === 'universal' && <div className="empty" aria-label="Universal axes">2 free turns: Stays Z is perpendicular to Moves X. Origins coincide. Mate connector limits are unavailable. Robot motion uses two rotation axes and a logical intermediate link. Coupled mates and closed loops are unsupported.</div>}
         {draft.kind === 'cylindrical' && <div className="empty" aria-label="Cylindrical axes">1 free turn and 1 free slide along aligned connector Z axes. Mate connector limits are unavailable. Robot motion uses one axial slide and one rotation with a logical intermediate link. Coupled mates and closed loops are unsupported.</div>}
         <PlanePicker instances={instances} onPick={assembly.pickFace} />
-        <ReferencePicker instances={instances} tables={tables} onPick={assembly.pickFace} />
+        <ReferencePicker instances={instances} tableFor={tableFor} onPick={assembly.pickFace} />
         <div className="kv">1 · Stays <b>{draft.picks[0] ? refText(draft.picks[0].ref) : 'click a face'}</b></div>
         <div className="kv">2 · Moves <b>{draft.picks[1] ? refText(draft.picks[1].ref) : draft.picks[0] ? 'click a face on another part' : '—'}</b></div>
         {draft.error ? <div className="hud-error" role="status" aria-label="Mate refused"><div className="hud-error-title">Can’t mate these faces</div>{draft.error}</div>
@@ -77,7 +85,7 @@ export function MatePanel({ assembly, instances, instance, onRefused }: { assemb
           <Icon name={p ? 'link_off' : m.kind === 'concentric' ? 'radio_button_checked' : m.kind === 'distance' ? 'straighten' : m.kind === 'angle' ? 'square_foot' : m.kind === 'tangent' ? 'radio_button_unchecked' : m.kind === 'lock' ? 'lock' : 'link'} small />
           {mateLabel(m, i)}{m.kind === 'distance' ? ` · ${fmt(m.distance ?? 0)} mm` : m.kind === 'angle' ? ` · ${fmt(m.angle ?? 0)}°` : ''}<span className="muted"> · {partName(m.b.part)}</span></button>;
       })}
-      {sel && <MateEditor key={sel.id} mate={sel} problem={problemOf(sel.id)?.reason} tables={tables} refText={refText}
+      {sel && <MateEditor key={sel.id} mate={sel} problem={problemOf(sel.id)?.reason} tableFor={tableFor} refText={refText}
         onEdit={patch => { const why = assembly.edit(sel.id, patch); if (why) onRefused(why); }} onDelete={() => assembly.remove(sel.id)} />}
       {!mates.length && !draft && <div className="empty">Place an instance by its faces: Add mate, then click a face that stays and a face on the part to move.</div>}
       {!!mates.length && <div className="empty" style={{ marginTop: 6 }}>The base part and fixed instances stay; mated parts follow when a part or a mate changes.</div>}
@@ -85,11 +93,11 @@ export function MatePanel({ assembly, instances, instance, onRefused }: { assemb
   );
 }
 
-function MateEditor({ mate, problem, tables, refText, onEdit, onDelete }: {
-  mate: Mate; problem?: string; tables: Map<string, FaceTable>; refText(r: MateRef): string;
+function MateEditor({ mate, problem, tableFor, refText, onEdit, onDelete }: {
+  mate: Mate; problem?: string; tableFor(part: string): FaceTable | undefined; refText(r: MateRef): string;
   onEdit(patch: Partial<Mate>): void; onDelete(): void;
 }) {
-  const fa = tables.get(mate.a.part)?.[mate.a.face], fb = tables.get(mate.b.part)?.[mate.b.face];
+  const fa = tableFor(mate.a.part)?.[mate.a.face], fb = tableFor(mate.b.part)?.[mate.b.face];
   let kinds: MateKind[] = [mate.kind];
   if (fa && fb) { try { kinds = mateKindsOf({ a: mate.a, b: mate.b }, { a: fa, b: fb }); } catch { /* Keep the selected kind visible for an invalid saved connector. */ } }
   if (mate.kind !== 'lock' && mate.kind !== 'cam') kinds = [...kinds, ...(['fastened', 'ball', 'universal', 'cylindrical'] as const).filter(k => !kinds.includes(k))];
@@ -154,10 +162,10 @@ function PlanePicker({ instances, onPick }: { instances: PartInstance[]; onPick(
 }
 
 /** Persistent geometry choices also expose edges until the GPU lane supplies viewport edge picking. */
-function ReferencePicker({ instances, tables, onPick }: { instances: PartInstance[]; tables: Map<string, FaceTable>; onPick(ref: MateRef): void }) {
+function ReferencePicker({ instances, tableFor, onPick }: { instances: PartInstance[]; tableFor(part: string): FaceTable | undefined; onPick(ref: MateRef): void }) {
   const [part, setPart] = useState(BASE), [face, setFace] = useState('');
   const [at, setAt] = useState<Connector | undefined>();
-  const table = tables.get(part), entries = Object.keys(table ?? {}), name = entries.includes(face) ? face : entries[0] ?? '';
+  const table = tableFor(part), entries = Object.keys(table ?? {}), name = entries.includes(face) ? face : entries[0] ?? '';
   return <div className="grid gap-1" aria-label="Mate reference picker">
     <label className={FIELD}><span>Reference of</span><NativeSelect className={CONTROL} aria-label="Reference part" value={part} onChange={e => { setPart(e.target.value); setFace(''); setAt(undefined); }}>
       <option value={BASE}>Base part</option>{instances.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}

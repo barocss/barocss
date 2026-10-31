@@ -264851,6 +264851,37 @@
     },
     {
       "package": "@barocss/cad-model",
+      "subpath": "./engine/flatten",
+      "exportName": "flattenPlan",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/flatten.ts",
+            "name": "flattenPlan",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc) => { doc: StudioDoc; placed: { id: string; serial: number; }[]; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc) => { doc: StudioDoc; placed: { id: string; serial: number; }[]; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
       "subpath": "./engine/font/profiles",
       "exportName": "FontProfileComponent",
       "space": "type",
@@ -271155,6 +271186,316 @@
             ],
             "callSignatures": [
               "(body: Pick<BodyResult, \"inertia\">, props: MassProperties) => void"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/occurrences",
+      "exportName": "faceOriginOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/occurrences.ts",
+            "name": "faceOriginOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, flatName: string) => { path: string[]; face: string; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, flatName: string) => { path: string[]; face: string; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/occurrences",
+      "exportName": "flatFaceOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/occurrences.ts",
+            "name": "flatFaceOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, path: readonly string[], face: string) => string | null",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, path: readonly string[], face: string) => string | null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/occurrences",
+      "exportName": "flatOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/occurrences.ts",
+            "name": "flatOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc) => StudioDoc",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc) => StudioDoc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/occurrences",
+      "exportName": "hostOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/occurrences.ts",
+            "name": "hostOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(part: string) => string",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(part: string) => string"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/occurrences",
+      "exportName": "nestedParts",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/occurrences.ts",
+            "name": "nestedParts",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, under?: readonly string[]) => { path: string; name: string; hidden?: true | undefined; }[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, under?: readonly string[]) => { path: string; name: string; hidden?: true | undefined; }[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/occurrences",
+      "exportName": "occurrenceProblem",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/occurrences.ts",
+            "name": "occurrenceProblem",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, host: string, path: readonly string[]) => string | null",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, host: string, path: readonly string[]) => string | null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/occurrences",
+      "exportName": "pathTable",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/occurrences.ts",
+            "name": "pathTable",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(flat: FaceTable, doc: StudioDoc, path: readonly string[]) => FaceTable",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(flat: FaceTable, doc: StudioDoc, path: readonly string[]) => FaceTable"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/occurrences",
+      "exportName": "roundTrips",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/occurrences.ts",
+            "name": "roundTrips",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, name: string) => boolean",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, name: string) => boolean"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/occurrences",
+      "exportName": "splitPart",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/occurrences.ts",
+            "name": "splitPart",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(part: string) => { host: string; path: string[]; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(part: string) => { host: string; path: string[]; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/occurrences",
+      "exportName": "stableNames",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/occurrences.ts",
+            "name": "stableNames",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(brep: Brep, doc: StudioDoc) => Brep",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(brep: Brep, doc: StudioDoc) => Brep"
             ]
           }
         }

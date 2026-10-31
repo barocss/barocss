@@ -17,6 +17,7 @@ import { fastenerSizesOf } from './fastenerSizeRows';
 import { revisionOf } from '../util/revision';
 import { beadNotes, bearingNotes, bevelGearNotes, bevelMeshNotes, camNotes, connectorNotes, decimateNotes, driveNotes, endCapNotes, gearNotes, glandNotes, gussetNotes, internalGearNotes, memberNotes, meshNotes, rackMeshNotes, rackNotes, shaftNotes, shaftPartNotes, sheetOf, springNotes, staleOf, subdNotes, wormMeshNotes, wormNotes, wormWheelNotes } from './bodyNotes';
 import { refusal } from './refusal';
+import { stableNames } from './occurrences';
 import { rememberNativeMass, placeNativeMass } from './nativeMassWire';
 
 /** A kernel output's body key and the node and side it is now. */
@@ -548,7 +549,7 @@ export function brepsFor(doc: StudioDoc, options: { made?: boolean } = {}): { br
   try {
     const all = snapshotOf(doc).outputs, bought = options.made ? boughtOutputIds(doc) : null, own = bought && all.some(x => !bought.has(x.id)) ? all.filter(x => !bought.has(x.id)) : all;
     const breps = own.map(x => x.brep), prefixes = breps.map(() => '');
-    for (const inst of doc.instances ?? []) if (!inst.hidden) for (const o of placedOutputs(inst, placedDoc(inst, doc), doc)) { breps.push(o.brep); prefixes.push(`${inst.id}/`); }
+    for (const inst of doc.instances ?? []) if (!inst.hidden) for (const o of placedOutputs(inst, placedDoc(inst, doc), doc)) { breps.push(inst.doc.instances?.length ? stableNames(o.brep, inst.doc) : o.brep); prefixes.push(`${inst.id}/`); }
     return { breps, prefixes };
   } catch (cause) { return { error: cause instanceof Error ? cause.message : String(cause) }; }
 }

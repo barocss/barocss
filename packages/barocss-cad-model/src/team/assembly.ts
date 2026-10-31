@@ -5,6 +5,7 @@ import { resolveShopTree } from '../engine/shopRows';
 // and the whole assembly within the total mass budget — so parts each under a share that is not fixed cannot sum past
 // the total unnoticed. The BOM agent is read-only: given a built view of the assembly, it lists the parts; the BOM is
 // checked against the assembly (every instance counted once, the totals), with a library part's source named.
+import { hostOf } from '../engine/occurrences';
 import { meshClearance } from '@barocss/cad';
 import type { StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
@@ -73,7 +74,7 @@ export async function checkAssembly(doc: StudioDoc, evaluate: Evaluate): Promise
 export function declaredContact(doc: StudioDoc, a: string, b: string): string | null {
   const p = readInterfaces(doc.interfaces).holePatterns.find(x => x.parts.includes(a) && x.parts.includes(b));
   if (p) return `the hole pattern ${p.id}`;
-  const m = (doc.mates ?? []).find(x => (x.a.part === a && x.b.part === b) || (x.a.part === b && x.b.part === a));
+  const m = (doc.mates ?? []).find(x => (hostOf(x.a.part) === a && hostOf(x.b.part) === b) || (hostOf(x.a.part) === b && hostOf(x.b.part) === a));
   return m ? `the mate ${m.id}` : null;
 }
 

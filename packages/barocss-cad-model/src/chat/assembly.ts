@@ -8,7 +8,8 @@ import { firstProblem } from '../engine/refusal';
 import { tslotInterfaces } from '../frames/interfaces';
 import type { PartInstance, StudioDoc } from '../engine/doc';
 import type { BodyResult, EvalResult } from '../engine/evaluate';
-import { tableOf, withDatums } from '../assembly/faces';
+import { tableOf, tablesFor, withDatums } from '../assembly/faces';
+import { hostOf, nestedParts, occurrenceProblem, splitPart } from '../engine/occurrences';
 import { BASE, KIND_LABEL, mateLabel, type FaceTable, type MateFace, type MateKind, type Vec3 } from '../assembly/mates';
 import { rotationMatrix } from '../engine/placement';
 import type { ToolDefinition } from './api';
@@ -79,7 +80,9 @@ async function describe(doc: StudioDoc, base: BodyResult[], evaluate: Evaluate, 
       ...(bodies.length ? { world_bounds: placedBounds(inst, min, max) } : {}),
       ...(r && !r.ok ? { error: r.error.title } : {}),
       ...memberInterfaceList(bodies),
-      ...(detail === inst.id ? mateFaces(tableOf(inst.doc)) : {}),
+      // (A sub-assembly: the parts inside it by path, to name in a mate as `sub1/p2`; its faces as the mate reads them, folded.)
+      ...(inst.doc.instances?.length ? { parts_inside: nestedParts(inst.doc, [inst.id]), note: 'mate a part inside it by path: {"part": "<this id>/<part id>", "face": <that part\'s own face name>}; its faces: get_assembly {"faces_of": "<path>"}' } : {}),
+      ...(detail !== null && hostOf(detail) === inst.id ? mateFaces(tablesFor(doc)(detail) ?? {}) : {}),
     };
   }));
   const mates = doc.mates ?? [];
@@ -123,7 +126,9 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
   switch (name) {
     case 'get_assembly': {
       const detail = args.faces_of === undefined ? null : String(args.faces_of);
-      if (detail && detail !== BASE && !byId(detail)) return fail(doc, `No part "${detail}"; parts: ${partList()}.`);
+      if (detail && detail !== BASE && !byId(hostOf(detail))) return fail(doc, `No part "${detail}"; parts: ${partList()}.`);
+      const lost = detail && detail !== BASE && detail.includes('/') ? occurrenceProblem(byId(hostOf(detail))!.doc, hostOf(detail), splitPart(detail).path) : null;
+      if (lost) return fail(doc, `Part "${detail}": ${lost}.`);
       const out = await describe(doc, state.bodies, evaluate, detail);
       return { doc, content: json(out), isError: false, changed: false, summary: `${instances.length} parts, ${mates.length} mates` };
     }
@@ -144,7 +149,7 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
       try {
         const next = placePart(doc, { part: String(args.part), ...(position ? { position } : {}), ...(rotation ? { rotation } : {}), ...(typeof args.name === 'string' && args.name.trim() ? { name: args.name.trim() } : {}),
           ...(args.grounded === undefined ? {} : { grounded: !!args.grounded }), ...(args.hidden === undefined ? {} : { hidden: !!args.hidden }) });
-        const by = mates.filter(m => m.b.part === inst!.id);
+        const by = mates.filter(m => hostOf(m.b.part) === inst!.id);
         return reported(doc, next, `placed ${inst!.id}`,
           by.length && (args.position !== undefined || args.rotation !== undefined) ? { note: `${by.length} mate${by.length > 1 ? 's' : ''} still place it: the solver keeps what they fix and moves it only where they leave it free` } : {});
       } catch (e) { if (isRefusal(e, ...ASSEMBLY_CODES)) return fail(doc, e.message); throw e; }
@@ -157,7 +162,7 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
       // (FRf2, O125: a part whose sketch a base frame follows stays.)
       const held = firstProblem(checkPartDelete(doc, inst.id));
       if (held) return fail(doc, held);
-      const kept = mates.filter(m => m.a.part !== inst.id && m.b.part !== inst.id);
+      const kept = mates.filter(m => hostOf(m.a.part) !== inst.id && hostOf(m.b.part) !== inst.id);
       return changed(doc, { ...doc, instances: instances.filter(i => i !== inst), mates: kept }, `deleted ${inst.id} "${inst.name}"${kept.length < mates.length ? ` and ${mates.length - kept.length} mate${mates.length - kept.length > 1 ? 's' : ''} on it` : ''}`, state.bodies, evaluate);
     }
     case 'add_mate': case 'edit_mate': {
@@ -170,7 +175,7 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
         if (name === 'add_mate') {
           const ref = (v: unknown) => isObj(v) && typeof v.part === 'string' && typeof v.face === 'string' ? { part: v.part, face: v.face, ...(v.at !== undefined ? { at: readConnector(v.at) } : {}) } : null;
           const a = ref(args.a), b = ref(args.b);
-          if (KIND_LABEL[String(args.kind) as MateKind] && (!a || !b)) return fail(doc, '"a" and "b" are {part, face}: part "base" or an instance id, face a persistent face name (or origin:xy / origin:xz / origin:yz, or datum:<id> on the base part).');
+          if (KIND_LABEL[String(args.kind) as MateKind] && (!a || !b)) return fail(doc, '"a" and "b" are {part, face}: part "base", an instance id, or a part inside a sub-assembly as "<instance id>/<part id>", face a persistent face name (in that part\'s own naming; or origin:xy / origin:xz / origin:yz, or datum:<id> on the base part).');
           r = addMate(doc, { kind: String(args.kind) as MateKind, a: a!, b: b!, ...(args.distance !== undefined ? { distance: Number(args.distance) } : {}), ...(args.angle !== undefined ? { angle: Number(args.angle) } : {}), ...(typeof args.flip === 'boolean' ? { flip: args.flip } : args.flip && String(args.kind) !== 'concentric' ? { flip: true } : {}) });
         } else r = editMate(doc, { id: String(args.id), ...(args.connectors !== undefined ? { connectors: args.connectors as { a?: Connector | null; b?: Connector | null } } : {}), ...(args.distance !== undefined ? { distance: Number(args.distance) } : {}), ...(args.angle !== undefined ? { angle: Number(args.angle) } : {}), ...(typeof args.flip === 'boolean' ? { flip: args.flip } : {}) });
       } catch (e) {
@@ -180,7 +185,7 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
         if (e.code === 'MATE_UNMET') return fail(doc, e.message, { kept: 'the assembly is unchanged' });
         return fail(doc, e.message);
       }
-      const list = r.doc.mates!, moved = r.doc.instances!.find(i => i.id === r.mate.b.part)!;
+      const list = r.doc.mates!, moved = r.doc.instances!.find(i => i.id === hostOf(r.mate.b.part))!;
       return reported(doc, r, `${name === 'add_mate' ? 'added' : 'edited'} ${mateLabel(r.mate, list.findIndex(m => m.id === r.mate.id))} (${r.mate.id}): ${r.mate.b.part}.${r.mate.b.face} to ${r.mate.a.part}.${r.mate.a.face}`,
         { mate: r.mate.id, moved: { part: moved.id, position: moved.position.map(r3), rotation: moved.rotation.map(r3) }, freedom_left: r.freedom });
     }

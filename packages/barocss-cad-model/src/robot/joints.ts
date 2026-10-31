@@ -12,6 +12,7 @@
 // coupled pair: the second mimics the first, ratio −z1/z2, from the kernel's checkPlacedSpurGears (D56).
 // Conventions (onshape-to-robot): one link a part, the joint at the child, angles in radians, lengths in mm here
 // (export, RM4, writes metres); joint values are 0 at the pose the mates solve to.
+import { hostOf } from '../engine/occurrences';
 import { checkPlacedSpurGears, spurGearDimensions, type GearPlacement } from '@barocss/cad';
 import type { PartInstance, StudioDoc } from '../engine/doc';
 import { BASE, mateFacesOf, mateRefusal, type FaceTable, type Mate, type MateFace, type Vec3 } from '../assembly/mates';
@@ -232,11 +233,11 @@ export function jointTree(input: TreeInput): JointTree {
   const L = Math.max(1, ...input.instances.map(i => len(i.position as Vec3)));
   // Mates by pair, those the solver met only.
   const failed = new Set((input.mateProblems ?? []).map(p => p.mate)), pairs = new Map<string, Mate[]>();
-  const pairKey = (a: string, b: string) => [a, b].sort((x, y) => parts.indexOf(x) - parts.indexOf(y)).join('~');
+  const pairKey = (a: string, b: string) => [hostOf(a), hostOf(b)].sort((x, y) => parts.indexOf(x) - parts.indexOf(y)).join('~');
   for (const m of input.mates) {
     if (m.kind === 'cam') continue;
     if (failed.has(m.id)) { problems.push({ code: 'MATE_PROBLEM', message: `${m.id} is not met (${(input.mateProblems ?? []).find(p => p.mate === m.id)!.reason}): it makes no joint.`, mates: [m.id] }); continue; }
-    if (!placed.has(m.a.part) || !placed.has(m.b.part) || m.a.part === m.b.part) continue;
+    if (!placed.has(hostOf(m.a.part)) || !placed.has(hostOf(m.b.part)) || hostOf(m.a.part) === hostOf(m.b.part)) continue;
     // Explicit connector joints resolve persistent references before any fixed or point rows are admitted.
     if (m.kind === 'fastened' || m.kind === 'ball' || m.kind === 'universal' || m.kind === 'cylindrical') {
       const why = mateRefusal(m, input.tables(m.a.part)?.[m.a.face], input.tables(m.b.part)?.[m.b.face]);
@@ -259,11 +260,11 @@ export function jointTree(input: TreeInput): JointTree {
     const motion = pairMotion(ms, input.tables, placed, L);
     if (motion.universal && settings.joints?.[k]) {
       motions.set(k, { unsupported: 'pair-level universal limits or ratings; set each explicit axis key (#0 a.Z, #1 b.X) instead' });
-    } else if (motion.universal && [motion.universal.a.part, motion.universal.b.part].some(p => grounded.includes(p))) {
+    } else if (motion.universal && [motion.universal.a.part, motion.universal.b.part].some(p => grounded.includes(hostOf(p)))) {
       motions.set(k, { unsupported: 'an explicit universal with a grounded endpoint; the grounding constraint is not a free 2R chain' });
     } else if (motion.cylindrical && settings.joints?.[k]) {
       motions.set(k, { unsupported: 'pair-level cylindrical limits or ratings; set each explicit axis key (#0 axial slide, #1 axial turn) instead' });
-    } else if (motion.cylindrical && [motion.cylindrical.a.part, motion.cylindrical.b.part].some(p => grounded.includes(p))) {
+    } else if (motion.cylindrical && [motion.cylindrical.a.part, motion.cylindrical.b.part].some(p => grounded.includes(hostOf(p)))) {
       motions.set(k, { unsupported: 'an explicit cylindrical with a grounded endpoint; the grounding constraint is not a free slide and turn chain' });
     } else motions.set(k, motion);
   }
@@ -309,7 +310,7 @@ export function jointTree(input: TreeInput): JointTree {
     if ('unsupported' in motion) { problems.push({ code: 'MOTION_UNSUPPORTED', message: `${nameOf(child)} moves on ${nameOf(par)} in ${motion.unsupported}: no joint of the tree makes that.`, parts: [par, child], mates: mates.map(m => m.id) }); continue; }
     if (!motion.steps.length) { joints.push({ key, type: 'fixed', parent: par, child, origin: childAt, axis: [0, 0, 1], mates: mates.map(m => m.id) }); continue; }
     // One step: the joint itself; more: a chain through dummy links, the child at its end.
-    const reverseConnector = motion.universal?.b.part === par || motion.cylindrical?.b.part === par;
+    const reverseConnector = hostOf(motion.universal?.b.part ?? '') === par || hostOf(motion.cylindrical?.b.part ?? '') === par;
     const steps = motion.steps.map((s, index) => ({ ...s, index }));
     if (reverseConnector) steps.reverse();
     steps.forEach((s, i) => {
@@ -346,9 +347,9 @@ export function jointTree(input: TreeInput): JointTree {
   const fits: Fit[] = [];
   for (const m of input.mates) {
     if (m.kind !== 'concentric' || m.a.at !== undefined || m.b.at !== undefined || failed.has(m.id)) continue;
-    const fa = input.tables(m.a.part)?.[m.a.face], fb = input.tables(m.b.part)?.[m.b.face], A = placed.get(m.a.part), B = placed.get(m.b.part);
+    const fa = input.tables(m.a.part)?.[m.a.face], fb = input.tables(m.b.part)?.[m.b.face], A = placed.get(hostOf(m.a.part)), B = placed.get(hostOf(m.b.part));
     if (fa?.kind !== 'cylinder' || fb?.kind !== 'cylinder' || !A || !B) continue;
-    fits.push({ mate: m.id, a: m.a.part, b: m.b.part, pa: add(apply(A.R, fa.point), A.t), da: unit(apply(A.R, fa.axis)), ra: fa.radius, pb: add(apply(B.R, fb.point), B.t), db: unit(apply(B.R, fb.axis)), rb: fb.radius });
+    fits.push({ mate: m.id, a: hostOf(m.a.part), b: hostOf(m.b.part), pa: add(apply(A.R, fa.point), A.t), da: unit(apply(A.R, fa.axis)), ra: fa.radius, pb: add(apply(B.R, fb.point), B.t), db: unit(apply(B.R, fb.axis)), rb: fb.radius });
   }
   const camMates = input.mates.filter(m => m.kind === 'cam' && !failed.has(m.id)), cams0 = camMates.length && input.camFaces ? camCouplings(camMates, joints, placed, input.tables, input.camFaces, problems) : [];
   // (A follower leading, round its chain, back to itself has no value: the coupling that closes the cycle is dropped, said so.)
@@ -375,7 +376,7 @@ function pairMotion(mates: readonly Mate[], tables: TreeInput['tables'], placed:
   if (universal) {
     if (mates.length !== 1) return { unsupported: 'an explicit universal combined with other mates; coupled decomposition is not supported' };
     const fa = tables(universal.a.part)?.[universal.a.face], fb = tables(universal.b.part)?.[universal.b.face];
-    const A = placed.get(universal.a.part), B = placed.get(universal.b.part);
+    const A = placed.get(hostOf(universal.a.part)), B = placed.get(hostOf(universal.b.part));
     if (!fa || !fb || !A || !B) return { unsupported: 'an explicit universal with unavailable connector geometry' };
     // mateFacesOf resolves the actual connector options: a.Z and b.X, including local turn/flip/offset.
     const sf = mateFacesOf(universal, { a: fa, b: fb }), a = worldFace(sf.a, A), b = worldFace(sf.b, B);
@@ -389,7 +390,7 @@ function pairMotion(mates: readonly Mate[], tables: TreeInput['tables'], placed:
   if (cylindrical) {
     if (mates.length !== 1) return { unsupported: 'an explicit cylindrical combined with other mates; coupled decomposition is not supported' };
     const fa = tables(cylindrical.a.part)?.[cylindrical.a.face], fb = tables(cylindrical.b.part)?.[cylindrical.b.face];
-    const A = placed.get(cylindrical.a.part), B = placed.get(cylindrical.b.part);
+    const A = placed.get(hostOf(cylindrical.a.part)), B = placed.get(hostOf(cylindrical.b.part));
     if (!fa || !fb || !A || !B) return { unsupported: 'an explicit cylindrical with unavailable connector geometry' };
     const sf = mateFacesOf(cylindrical, { a: fa, b: fb }), a = worldFace(sf.a, A), b = worldFace(sf.b, B);
     if (a.kind !== 'cylinder' || b.kind !== 'cylinder') return { unsupported: 'an explicit cylindrical without two connector axes' };
@@ -406,7 +407,7 @@ function pairMotion(mates: readonly Mate[], tables: TreeInput['tables'], placed:
     const fa = tables(m.a.part)?.[m.a.face], fb = tables(m.b.part)?.[m.b.face];
     if (!fa || !fb) continue;
     const sf = mateFacesOf(m, { a: fa, b: fb });
-    rows.push(...mateRows(sf.as === m.kind ? m : { ...m, kind: sf.as }, worldFace(sf.a, placed.get(m.a.part)!), worldFace(sf.b, placed.get(m.b.part)!), L));
+    rows.push(...mateRows(sf.as === m.kind ? m : { ...m, kind: sf.as }, worldFace(sf.a, placed.get(hostOf(m.a.part))!), worldFace(sf.b, placed.get(hostOf(m.b.part))!), L));
   }
   return motionOf(freeTwists(rows, L));
 }
@@ -471,7 +472,7 @@ const jointsTo = (joints: readonly Joint[], part: string) => joints.filter(j => 
 function camCouplings(mates: readonly Mate[], joints: Joint[], placed: Map<string, Placed>, tables: TreeInput['tables'], faces: NonNullable<TreeInput['camFaces']>, problems: RobotIssue[]): CamCoupling[] {
   const out: CamCoupling[] = [];
   for (const m of mates) {
-    const cam = m.a.part, fol = m.b.part, bad = (code: RobotCode, why: string) => problems.push({ code, message: `${m.id}: ${why}`, mates: [m.id], parts: [cam, fol] });
+    const cam = hostOf(m.a.part), fol = hostOf(m.b.part), bad = (code: RobotCode, why: string) => problems.push({ code, message: `${m.id}: ${why}`, mates: [m.id], parts: [cam, fol] });
     const jc = [...jointsTo(joints, cam)].reverse().find(j => j.type !== 'fixed'), jf = jointsTo(joints, fol).find(j => j.type === 'prismatic');
     const P = placed.get(fol), C = placed.get(cam), ff = tables(fol)?.[m.b.face];
     if (!jc || !jf || !P || !C || ff?.kind !== 'plane') { bad('CAM_NOT_SEATED', !jc ? `${cam} has no joint to drive a follower` : !jf ? `${fol} does not slide (a follower slides in its guide)` : `${fol}.${m.b.face} is not a flat face`); continue; }

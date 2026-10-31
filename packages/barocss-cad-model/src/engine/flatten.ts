@@ -9,7 +9,13 @@ import { assertRouteBundleDocument } from './routeBundle';
 import { curvePatternDocumentProblem } from './curveFeaturePattern';
 
 /** The document with its instances folded in as features (nested sub-assemblies too). */
-export function flattenAssembly(doc: StudioDoc): StudioDoc {
+export function flattenAssembly(doc: StudioDoc): StudioDoc { return flattenPlan(doc).doc; }
+
+/**
+ * The folded document, and where each shown instance's ids start in it: that instance's feature `n<d>` is
+ * `n<d + serial>` in the folded document (occurrences.ts reads names back through this, so it cannot drift).
+ */
+export function flattenPlan(doc: StudioDoc): { doc: StudioDoc; placed: { id: string; serial: number }[] } {
   const pathProblem = fillPatternDocumentProblem(doc) ?? curvePatternDocumentProblem({ instances: [{ doc }] });
   if (pathProblem) throw refusal('VALUE', pathProblem);
   assertRouteBundleDocument(doc);
@@ -18,15 +24,17 @@ export function flattenAssembly(doc: StudioDoc): StudioDoc {
   if (doc.nodes.some(n => n.kind === 'band-surface')) throw refusal('BAD_REFERENCE', 'Band surface: flattening a document with bands is not supported.');
   const own: StudioDoc = { ...doc, instances: undefined, mates: undefined, instancePatterns: undefined, render: undefined, direct: undefined };
   const shown = (doc.instances ?? []).filter(i => !i.hidden);
-  if (!shown.length) return own;
+  if (!shown.length) return { doc: own, placed: [] };
   let nodes = withIds(own).nodes;
+  const placedAt: { id: string; serial: number }[] = [];
   for (const inst of shown) {
     // (placedDoc folds the instance's own instances first. Its features' ids move past every id so far, the
     // document's handed-out ones too: with none deleted, by its node count, as its names always moved.)
     const placed = withIds(placedDoc(inst)), serial = nextSerial({ nodes, nextId: own.nextId });
     nodes = [...nodes, ...placed.nodes.map(n => shiftNode(inlineParameters(n, placed.parameters), nodes.length, serial))];
+    placedAt.push({ id: inst.id, serial });
   }
-  return prefixDoc({ ...own, nodes, nextId: nextSerial({ nodes, nextId: own.nextId }) }, nodes.length);
+  return { doc: prefixDoc({ ...own, nodes, nextId: nextSerial({ nodes, nextId: own.nextId }) }, nodes.length), placed: placedAt };
 }
 
 /**

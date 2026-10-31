@@ -10,6 +10,7 @@ import { patternProblem, patternsProblem, PATTERN_MAX, PATTERN_MIN, PATTERN_SPAC
 import { solveDoc, type Edited, type SolveProblem } from './edit';
 import { checkPartDelete } from '../frames/skeleton';
 import { BASE, type Vec3 } from './mates';
+import { hostOf } from '../engine/occurrences';
 
 export { PATTERN_MAX, PATTERN_MIN, PATTERN_SPACING_MAX };
 
@@ -89,7 +90,7 @@ function mention(value: unknown, named: (token: string) => boolean, path: string
 }
 /** What names a part by id in the document, as words: a mate (its id), or the robot, drawing … field's path; undefined when nothing does. */
 function referrerOf(doc: StudioDoc, named: (token: string) => boolean): string | undefined {
-  const m = (doc.mates ?? []).find(x => named(x.a.part) || named(x.b.part));
+  const m = (doc.mates ?? []).find(x => named(hostOf(x.a.part)) || named(hostOf(x.b.part)));
   if (m) return `mate ${m.id}`;
   for (const [path, of] of REFERRERS) { const at = mention(of(doc), named, path); if (at) return at; }
   return undefined;
@@ -204,7 +205,8 @@ export function patternDeleteRefusal(doc: StudioDoc, id: string) {
 
 /** A mate or lock between a copy and its own seed would chase itself (the seed moves the copy, the copy moves the seed): refused. */
 export function seedMateRefusal(doc: StudioDoc, a: string, b: string) {
-  for (const [x, y] of [[a, b], [b, a]]) {
+  const [p, q] = [hostOf(a), hostOf(b)];
+  for (const [x, y] of [[p, q], [q, p]]) {
     const inst = doc.instances?.find(i => i.id === x);
     if (inst?.pattern && doc.instancePatterns?.find(p => p.id === inst.pattern!.id)?.seed === y) return refusal('PATTERN_DRIVEN', `${nameOf(doc, x)} is a copy of ${nameOf(doc, y)} (pattern ${inst.pattern.id}): a mate between them would chase itself. Mate the copy to another part.`);
   }
@@ -217,7 +219,7 @@ function cycleMates(doc: StudioDoc, pattern: string): string[] {
   for (let grew = true; grew;) {
     grew = false;
     for (const m of doc.mates ?? []) {
-      const ends = [m.a.part, m.b.part];
+      const ends = [hostOf(m.a.part), hostOf(m.b.part)];
       if (out.has(m.id) || !ends.some(e => reach.has(e))) continue;
       out.add(m.id); grew = true;
       for (const e of ends) if (e !== BASE) reach.add(e);

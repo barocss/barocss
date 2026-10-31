@@ -1,0 +1,45 @@
+{
+  "decision": "D384",
+  "roadmap": "10 ②a stable references to parts inside sub-assemblies (owner order 'Go to row 10')",
+  "issues": {
+    "#2180": "occurrence identity: a mate or drawing reference to a part inside a sub-assembly keeps pointing at that part when the sub-assembly changes",
+    "#538": "epic stays open (ASM-02 hierarchy advanced)"
+  },
+  "tier": "full (reference semantics + public API: three audit rounds incl. mutation, actual run)",
+  "status": "QUALIFIED",
+  "defectBefore": "flattenAssembly renumbers a nested part's feature ids by position (Block B's n1.top folded as n3.top, n4.top after an earlier sibling gained a feature); Studio mates and drawing names stored those folded names, so an edit, hide or reorder of an earlier sibling silently broke or re-aimed them; the model's tablesFor did not fold sub-assemblies (model API could not see nested faces; Studio could)",
+  "change": {
+    "mapping": "engine/occurrences.ts: flatFaceOf / faceOriginOf built from flatten.ts flattenPlan (flattenAssembly calls it, so the mapping cannot drift)",
+    "references": "MateRef.part may be an occurrence path 'sub1/p2' with the face in p2's own naming; the solver moves the first segment; addMate converts a host-id + folded nested name to the path form; an unresolvable path is refused (NO_PART, MATE_FACE_UNKNOWN); a saved unresolvable or host-form nested end is a solve problem asking to pick the face again, and an edit of such a mate is refused — never re-aimed",
+    "consumers": "hostOf for placements in robot joints/loop, team rebuild, declaredContact, chat delete_part/place_part, placePart grounding; tablesFor folds (a sub-assembly's own table lists only its own faces)",
+    "drawings": "nested faces named sub1/p2/n1.top (top-level and base names unchanged)",
+    "agent/facade": "get_assembly parts_inside with paths, faces_of a path; facade mate ends: whole name first, then path, id beats name, ambiguity refused",
+    "studio": "a pick on a sub-assembly face is stored in path form; Mates panel shows 'Sub › Block B · Top face'",
+    "ids": "'/' in an instance id refused on read"
+  },
+  "audits": {
+    "round1": "CHANGES_REQUIRED: 2 high (the change itself let model/chat/facade store fragile folded-name references; path mates ignored by robot joints, loops, contact, Mates panel), 2 medium (delete/ground of a sub-assembly ignored path mates; facade name parsing), 1 low ('/' ids) — all fixed with tests",
+    "round2": "CHANGES_REQUIRED: 1 high (an edit of a stored host-form mate re-aimed it, flagged by the implementer) — fixed; plain assemblies' robot/URDF/MJCF/SDF/loop outputs byte-identical to HEAD on 8 robot samples; 6 mutants killed",
+    "round3": "targeted re-check: ACCEPT, mutant killed"
+  },
+  "checks": {
+    "nestedReferences": "20/20",
+    "modelSuite": "2299/2299",
+    "studioSuite": "572/572",
+    "tsc": "PASS",
+    "docsTables": "refusals, agent-tools, api-inventory --check PASS (inventory: 11 new exports, 0 removed)"
+  },
+  "actualRun": {
+    "run04": "final source PASS: Mates › Add mate on Block B's top inside Sub then Pin's bottom → stored {part:'sub1/p2', face:'n1.top'}, Pin at z 10 (oracle PASS); Sub New revision… (Block A gains a hole so Block B's folded name moves n3.top → n4.top; Block B rises 5 mm) and Accept → the mate is not re-aimed and Pin follows to z 15 (oracle PASS), no mate problem; Undo×2/Redo×2; Save and fresh Open equal (oracle PASS); 0 page/console errors; root reviewed the screenshot",
+    "failedRuns": [
+      "run01: driver undid one step where offering and accepting a revision are two"
+    ]
+  },
+  "limits": [
+    "A nested part's own origin planes are not mateable by path (the sub-assembly's are)",
+    "Studio linked readFaces mode: path tables empty",
+    "BOM descent into sub-assemblies is ②b; nested selection/path display beyond mates is ②c"
+  ],
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}
