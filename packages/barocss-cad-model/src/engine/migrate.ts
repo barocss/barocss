@@ -8,7 +8,8 @@ import { withIds } from './ids';
 import { documentBeadOwnershipError } from '../frames/beadOwnership';
 import { checkDocumentPrintPreview } from './printPreview';
 import { checkDocumentBearingHousing } from './bearingContext';
-import { firstProblem } from './refusal';
+import { firstProblem, refusal } from './refusal';
+import { patternsProblem } from '../assembly/patternCheck';
 import { assertRouteBundleDocument } from './routeBundle';
 import { assertSavedDrawingDocument } from './savedDrawing';
 import { sketch3dRefusal, type Constraint3D, type V3 } from '../frames/sketch3d';
@@ -35,6 +36,8 @@ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] }
   if (housingProblem) return { error: housingProblem };
   const ownershipError = documentBeadOwnershipError(o);
   if (ownershipError) return { error: ownershipError };
+  const patternError = patternsProblem(o as Parameters<typeof patternsProblem>[0]);
+  if (patternError) return { error: refusal('PATTERN_VALUE', patternError).message };
   const schema = o.schema === undefined ? 0 : Number(o.schema), notes: string[] = [];
   if (!Number.isInteger(schema) || schema < 0) return { error: `This model file has an unreadable schema (${String(o.schema)}).` };
   if (schema > MAX_READ_SCHEMA) return { error: `This model was saved by a newer cad-studio (schema ${schema}; this one reads up to ${MAX_READ_SCHEMA}). Open it there, or save it from there in an older form.` };

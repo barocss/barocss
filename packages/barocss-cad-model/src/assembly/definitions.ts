@@ -7,6 +7,7 @@ import type { PartInstance, StudioDoc } from '../engine/doc';
 import { nextRevision } from '../drawing/types';
 import { nextFreeId } from '../util/ids';
 import { curvePatternDocumentProblem } from '../engine/curveFeaturePattern';
+import { drivenRefusal, expandPatterns } from './patterns';
 
 /** A definition id not yet used by any instance or pending revision. */
 export function freshPartId(doc: StudioDoc): string {
@@ -21,8 +22,10 @@ export const sharing = (doc: StudioDoc, id: string) => (doc.instances ?? []).fil
 
 /** The instance as a part of its own: a definition of its own at the same revision (a copy of the shared one). */
 export function makeIndependent(doc: StudioDoc, instance: string): StudioDoc {
+  const driven = drivenRefusal(doc, instance, 'it is its seed\'s part; make the seed independent instead (its occurrences go with it).');
+  if (driven) throw driven;
   const id = freshPartId(doc);
-  return { ...doc, instances: (doc.instances ?? []).map(i => i.id === instance ? { ...i, part: { ...(i.part ?? { rev: 'A' }), id } } : i) };
+  return expandPatterns({ ...doc, instances: (doc.instances ?? []).map(i => i.id === instance ? { ...i, part: { ...(i.part ?? { rev: 'A' }), id } } : i) });
 }
 
 /**
@@ -44,7 +47,7 @@ export function acceptRevision(doc: StudioDoc, id: string): StudioDoc {
   const p = doc.pendingParts?.[id]; if (!p) return doc;
   const rest = Object.fromEntries(Object.entries(doc.pendingParts ?? {}).filter(([k]) => k !== id));
   const instances = (doc.instances ?? []).map((i): PartInstance => i.part?.id === id ? { ...i, doc: p.doc, part: { ...i.part, rev: p.rev, source: p.name } } : i);
-  return { ...doc, instances, pendingParts: Object.keys(rest).length ? rest : undefined };
+  return expandPatterns({ ...doc, instances, pendingParts: Object.keys(rest).length ? rest : undefined });
 }
 /** The waiting revision dismissed: the instances stay as they are. */
 export function dismissRevision(doc: StudioDoc, id: string): StudioDoc {

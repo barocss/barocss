@@ -1,0 +1,98 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": {},
+  "nodes": [
+    {
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [
+        -20,
+        -20
+      ],
+      "max": [
+        140,
+        40
+      ],
+      "id": "n0"
+    },
+    {
+      "kind": "extrude",
+      "sketch": 0,
+      "height": 4,
+      "id": "n1"
+    }
+  ],
+  "outputs": {
+    "b1": {
+      "node": 1,
+      "side": "solid"
+    }
+  },
+  "nextId": 2,
+  "instances": [
+    {
+      "id": "cube",
+      "name": "Cube",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              10,
+              10
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 10,
+            "id": "n1"
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "nextId": 2
+      },
+      "position": [
+        0,
+        0,
+        4
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "mates": [
+    {
+      "id": "m1",
+      "kind": "coincident",
+      "a": {
+        "part": "base",
+        "face": "n1.top"
+      },
+      "b": {
+        "part": "cube",
+        "face": "n1.bottom"
+      }
+    }
+  ]
+}

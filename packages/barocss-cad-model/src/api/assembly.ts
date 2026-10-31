@@ -10,7 +10,7 @@ import type { FrameSettings } from '../robot/frames';
 import type { MeshData } from './core';
 import { meshSelection } from './select';
 import { bodiesOf } from './core';
-import { addMateDoc, addPartDoc, lockDoc, assemblyMeshes, BASE, emptyDoc, framePosesOf, framesDoc, placePartDoc, problemsOf, variabilityDoc, variantDoc } from './assemblyCore';
+import { addMateDoc, addPartDoc, deletePatternDoc, editPatternDoc, lockDoc, patternDoc, skipOccurrenceDoc, assemblyMeshes, BASE, emptyDoc, framePosesOf, framesDoc, placePartDoc, problemsOf, variabilityDoc, variantDoc } from './assemblyCore';
 import { part as studioPart, StudioPart } from './part';
 import { Robot } from './robot';
 import { drawingDoc, drawingOf, outputOf } from './outputs';
@@ -25,6 +25,11 @@ export interface MateEnd { part: string; face: string | ((body: BodyQuery) => Fa
 export interface MateOptions { distance?: number; angle?: number; flip?: boolean }
 /** A tool or sensor frame (O12) on a link — the base part or a placed part, by name — at a Location in that part's own coordinates. */
 export interface FrameOptions { link: string; at?: Location; kind?: 'tool' | 'sensor' }
+
+/** A pattern of a part (`pattern`): `count` in all, the part itself the first; a line (`direction`, `spacing` mm between neighbours) or an axis (`axis` through `origin`, `angle` degrees between neighbours). */
+export type PatternOptions = { count: number; skip?: number[] } & ({ kind: 'linear'; direction: Vec3; spacing: number } | { kind: 'circular'; axis: Vec3; origin?: Vec3; angle: number });
+/** What `editPattern` changes (each left out: kept): the values of the pattern's own kind. */
+export interface PatternEdit { count?: number; skip?: number[]; spacing?: number; direction?: Vec3; angle?: number; axis?: Vec3; origin?: Vec3 }
 
 const toVec = (v: readonly number[]): XYZ => [v[0], v[1], v[2]];
 
@@ -76,6 +81,33 @@ export class Assembly {
     return new Assembly(this.name, addMateDoc(this.#doc, kind, ea, eb, { distance: options.distance, angle: options.angle, flip: options.flip }).doc);
   }
 
+  /**
+   * `assembly.pattern`: a placed part repeated — `count` in all, itself the first — along a line or about an axis. The
+   * copies are driven by it (no mate moves them; one may hold them fixed) and share its part definition. Its id: `patterns()`.
+   */
+  pattern(name: string, o: PatternOptions): Assembly {
+    const seed = this.idOf(name), shape = o.kind === 'linear' ? { kind: 'linear' as const, dir: toVec(o.direction), spacing: o.spacing } : { kind: 'circular' as const, axis: toVec(o.axis), origin: toVec(o.origin ?? [0, 0, 0]), angle: o.angle };
+    return new Assembly(this.name, patternDoc(this.#doc, { seed, count: o.count, ...(o.skip ? { skip: o.skip } : {}), ...shape }).doc);
+  }
+
+  /** `assembly.edit_pattern`: a pattern's count, skipped copies, spacing or direction, angle, axis or origin changed. */
+  editPattern(id: string, o: PatternEdit): Assembly {
+    return new Assembly(this.name, editPatternDoc(this.#doc, { id, ...(o.count !== undefined ? { count: o.count } : {}), ...(o.skip !== undefined ? { skip: o.skip } : {}), ...(o.spacing !== undefined ? { spacing: o.spacing } : {}),
+      ...(o.direction !== undefined ? { dir: toVec(o.direction) } : {}), ...(o.angle !== undefined ? { angle: o.angle } : {}), ...(o.axis !== undefined ? { axis: toVec(o.axis) } : {}), ...(o.origin !== undefined ? { origin: toVec(o.origin) } : {}) }));
+  }
+
+  /** `assembly.delete_pattern`: the pattern and its copies removed; the part it repeated stays. */
+  deletePattern(id: string): Assembly { return new Assembly(this.name, deletePatternDoc(this.#doc, id)); }
+
+  /** `assembly.skip_occurrence`: one copy (by name) left out of its pattern; `editPattern` with `skip` brings it back. */
+  skipOccurrence(name: string): Assembly { return new Assembly(this.name, skipOccurrenceDoc(this.#doc, this.idOf(name))); }
+
+  /** The patterns: id, the part repeated (its name), count, skipped copies and the line or axis. */
+  patterns(): { id: string; part: string; count: number; skip: number[]; kind: 'linear' | 'circular'; direction?: Vec3; spacing?: number; axis?: Vec3; origin?: Vec3; angle?: number }[] {
+    return (this.#doc.instancePatterns ?? []).map(p => ({ id: p.id, part: this.#doc.instances!.find(i => i.id === p.seed)!.name, count: p.count, skip: [...(p.skip ?? [])], kind: p.kind,
+      ...(p.kind === 'linear' ? { direction: toVec(p.dir), spacing: p.spacing } : { axis: toVec(p.axis), origin: toVec(p.origin), angle: p.angle }) }));
+  }
+
   /** A placed part locked where it stands to another (the base part unless named) — the studio's Lock: they move as one. */
   lock(name: string, to = BASE): Assembly {
     const id = this.idOf(name), other = this.idOf(to);
@@ -123,8 +155,8 @@ export class Assembly {
   }
 
   /** Where each placed part stands: its id, name, position (mm) and rotation (degrees about X, then Y, then Z). */
-  placements(): { part: string; name: string; position: Vec3; rotation: Vec3; grounded?: true }[] {
-    return (this.#doc.instances ?? []).map(i => ({ part: i.id, name: i.name, position: toVec(i.position), rotation: toVec(i.rotation), ...(i.grounded ? { grounded: true as const } : {}) }));
+  placements(): { part: string; name: string; position: Vec3; rotation: Vec3; grounded?: true; pattern?: { id: string; k: number } }[] {
+    return (this.#doc.instances ?? []).map(i => ({ part: i.id, name: i.name, position: toVec(i.position), rotation: toVec(i.rotation), ...(i.grounded ? { grounded: true as const } : {}), ...(i.pattern ? { pattern: { ...i.pattern } } : {}) }));
   }
 
   /** The mates the solver cannot meet, with its reasons (none: every mate is met). */

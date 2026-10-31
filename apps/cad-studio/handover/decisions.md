@@ -17726,3 +17726,29 @@ Notices stay over the viewport. CI and release NOT_RUN.
 **Verification.** Studio 570/570. Actual run03 PASS: what lies under each click is checked, and a real click and double-click change nothing.
 
 Step names stay off by default. CI and release NOT_RUN.
+
+## D383 — Row 10 ③: component patterns of part instances; full (2026-10-31)
+
+[Evidence](notes/instance-patterns-2026-10-31/qualification.json). Owner order "Go to row 10". Issues: #2180 and RS7.4; #538 stays open.
+
+**What it adds.** `StudioDoc.instancePatterns`, linear or circular. Occurrences:
+- are regenerated from the seed with stable ids `<pattern>-<k>`;
+- share the seed's definition and are driven;
+- support Skip and Restore;
+- reach the BOM, drawing, STEP and 3MF after a single definition edit.
+
+Interfaces: the model API, the facade, the agent tools `pattern_part`, `edit_pattern` and `delete_pattern`, and Studio's instance-panel controls.
+
+**Audits.**
+- Round 1: 12 findings (3 high). Fixed.
+- Round 2: 4 new findings, including one regression. Fixed; 6 mutants killed.
+- Round 3, targeted: ACCEPT.
+
+**Verification.** Model 2279/2279; Studio 572/572. Actual run08 PASS, with the oracle at every step.
+
+**Follow-ups.**
+- Studio commits a cycle-closing mate once; the model refuses it.
+- `drawing.balloons` is untested.
+- Edge or datum axes are not offered.
+
+CI and release NOT_RUN.

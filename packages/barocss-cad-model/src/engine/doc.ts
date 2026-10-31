@@ -810,6 +810,8 @@ export interface StudioDoc {
   bodies?: Record<string, BodyLook>;
   /** Mates placing instances by their faces (see assembly/mates.ts). */
   mates?: Mate[];
+  /** Patterns of instances: a seed instance repeated along a line or about an axis (assembly/patterns.ts); the occurrences are regenerated into `instances`. */
+  instancePatterns?: InstancePattern[];
   /** The assembly read as a robot: its base link, joint limits and ratings (robot/joints.ts, RM1; versioned). */
   robot?: RobotSettings;
   /**
@@ -854,7 +856,17 @@ export interface PartInstance {
    * is the others' too) at revision `rev`; `source` is the file it came from. Absent: a part of its own.
    */
   part?: { id: string; rev: string; source?: string };
+  /** Set on an occurrence a pattern generated (never on a seed): the pattern's id and the occurrence's index k (the seed is 0). Driven by the seed: no mate moves it. */
+  pattern?: { id: string; k: number };
 }
+
+/**
+ * A pattern of instances: the seed repeated `count` times in all (k = 0 is the seed itself, 2 to 64), the occurrences
+ * k ≥ 1 not in `skip` generated beside it. Linear: `spacing` mm between neighbours along `dir`. Circular: `angle` degrees
+ * between neighbours about the axis `axis` through `origin`. `dir` and `axis` are stored as given and normalised when used.
+ */
+export type InstancePattern = { id: string; seed: string; count: number; skip?: number[] }
+  & ({ kind: 'linear'; dir: [number, number, number]; spacing: number } | { kind: 'circular'; origin: [number, number, number]; axis: [number, number, number]; angle: number });
 
 /** An instance's part with its placement applied: every body rotated and moved by the part's own features. */
 /** An instance's part as placed at the origin (a sub-assembly's own instances folded in as features). */
@@ -887,7 +899,7 @@ export function placedDoc(inst: PartInstance, parent?: StudioDoc): StudioDoc {
  * Every StudioDoc field, checked at compile time to be all of them (as NODE_EXTRA_FIELDS for nodes): `carryOver`
  * and the field test go by this list, so a new field is carried through commits or fails the test.
  */
-export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'variability', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'routeBundles', 'instances', 'drawing', 'bodies', 'mates', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'printPreview', 'mould', 'machining', 'casting', 'frames', 'fits', 'bearings', 'orings', 'rings', 'fasteners', 'fastenerSizes', 'castingRules', 'mounts', 'drives', 'connectors', 'rowSources'] as const satisfies readonly (keyof StudioDoc)[];
+export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'variability', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'routeBundles', 'instances', 'drawing', 'bodies', 'mates', 'instancePatterns', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'printPreview', 'mould', 'machining', 'casting', 'frames', 'fits', 'bearings', 'orings', 'rings', 'fasteners', 'fastenerSizes', 'castingRules', 'mounts', 'drives', 'connectors', 'rowSources'] as const satisfies readonly (keyof StudioDoc)[];
 export const _docFieldsComplete: [Exclude<keyof StudioDoc, typeof STUDIO_DOC_FIELDS[number]>] extends [never] ? true : never = true;
 /** The fields a command makes from the model (the rest are the document's own: looks, render, requirements …). */
 const MODEL_FIELDS: ReadonlySet<string> = new Set(['nodes', 'outputs']);

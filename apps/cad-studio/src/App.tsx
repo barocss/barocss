@@ -135,6 +135,10 @@ import { loadUserLibraries, setLibraryStore } from '@barocss/cad-model/library/l
 import { browserStore } from './ui/browserStore';
 import { processProfile } from '@barocss/cad-model/library/materials';
 import { InstancePanel } from './ui/InstancePanel';
+import { InstancePatternControls } from './ui/InstancePattern';
+import { addInstancePattern, deleteInstancePattern, editInstancePattern, expandPatterns, patternDeleteRefusal, skipOccurrence } from '@barocss/cad-model/assembly/patterns';
+/** The document with its instance patterns' occurrences made again from their seeds (roadmap 10 ③): every instance edit keeps them in step. */
+const withPatterns = (d: StudioDoc): StudioDoc => d.instancePatterns?.length ? expandPatterns(d) : d;
 import { TooltipLayer } from './ui/Tooltip';
 import { resolveNames, type NameSelection } from '@barocss/cad-model/chat/names';
 import { duplicateBody } from '@barocss/cad-model/chat/features';
@@ -888,7 +892,7 @@ export function App() {
   const commitInstances = useCallback((next: PartInstance[], select?: string[]) => {
     if (!canChangeDocument()) return false;
     pushUndo();
-    if (!setDoc({ ...doc, instances: next })) return false; setDirty(true);
+    if (!setDoc(withPatterns({ ...doc, instances: next }))) return false; setDirty(true);
     if (select) setInstanceSel(select);
     return true;
   }, [doc, marker, acceptanceScope]);
@@ -941,14 +945,20 @@ export function App() {
   const commitParts = useCallback((next: Pick<StudioDoc, 'instances' | 'pendingParts'>) => {
     if (!canChangeDocument()) return;
     pushUndo();
-    if (!setDoc({ ...doc, instances: next.instances, pendingParts: next.pendingParts })) return; setDirty(true);
+    if (!setDoc(withPatterns({ ...doc, instances: next.instances, pendingParts: next.pendingParts }))) return; setDirty(true);
   }, [doc, marker, acceptanceScope]);
   const commitAssembly = useCallback((instances: PartInstance[], mates: Mate[]) => {
     if (!canChangeDocument()) return false;
     pushUndo();
-    if (!setDoc({ ...doc, instances, mates })) return false; setDirty(true);
+    if (!setDoc(withPatterns({ ...doc, instances, mates }))) return false; setDirty(true);
     return true;
   }, [doc, marker, acceptanceScope]);
+  // Roadmap 10 ③: a pattern edit through the model (its refusal as a notice), committed with its occurrences.
+  const patternEdit = (run: () => { doc: StudioDoc }) => {
+    let next: StudioDoc;
+    try { next = run().doc; } catch (e) { setToast({ title: 'Pattern not changed', hint: e instanceof Error ? e.message : String(e), detail: '' }); return; }
+    commit(next);
+  };
   const readLinkedFaces = useCallback(async (owner: string, input: StudioDoc) => {
     const result = await engine.part(bearingFaceInput(doc, owner, input), revision.current++, 'read');
     return result.ok ? result.faceTable ?? null : null;
@@ -1690,7 +1700,8 @@ export function App() {
   // and shown as dragged until it is evaluated where it lands.
   const selectedInst = instanceSel.length === 1 ? doc.instances?.find(i => i.id === instanceSel[0]) : undefined;
   const instGizmo: TransformGizmo | null = (() => {
-    if (!selectedInst || active || sketch || rendering || drawing || measure || assembly.draft || exploded) return null;
+    // (An occurrence of a pattern is placed by its seed: no gizmo of its own.)
+    if (!selectedInst || selectedInst.pattern || active || sketch || rendering || drawing || measure || assembly.draft || exploded) return null;
     const ib = instanceBodies.get(selectedInst.id), axes = gizmoAxes(selectedInst, assembly.freedom[selectedInst.id]);
     if (!ib?.bodies.length || !axes) return null;
     const lo = [0, 1, 2].map(k => Math.min(...ib.bodies.map(b => b.mesh.bounds.min[k]))), hi = [0, 1, 2].map(k => Math.max(...ib.bodies.map(b => b.mesh.bounds.max[k])));
@@ -1931,10 +1942,15 @@ export function App() {
         return <InstancePanel inst={inst} bodies={instanceBodies.get(inst.id)?.bodies}
           onChange={next => commitInstances(list.map(i => i.id === inst.id ? next : i))}
           onDuplicate={() => { const used = new Set(list.map(i => i.id)); let n = 1; while (used.has(`inst${n}`)) n++;
-            commitInstances([...list, { ...inst, id: `inst${n}`, name: `${inst.name} copy`, position: [inst.position[0] + 20, inst.position[1] + 20, inst.position[2]] }], [`inst${n}`]); }}
+            // (A copy of an occurrence is a free part: not the pattern's, not fixed by it.)
+            const copy: PartInstance = inst.pattern ? { ...inst, pattern: undefined, grounded: undefined } : inst;
+            commitInstances([...list, { ...copy, id: `inst${n}`, name: `${inst.name} copy`, position: [inst.position[0] + 20, inst.position[1] + 20, inst.position[2]] }], [`inst${n}`]); }}
           onGround={on => { const why = assembly.ground(inst.id, on); if (why) setToast({ title: 'Can’t fix this part in place', hint: why, detail: '' }); }}
           shared={inst.part ? sharing(doc, inst.part.id).length : 0} pending={inst.part ? doc.pendingParts?.[inst.part.id] : undefined}
           onIndependent={() => commitParts(makeIndependent(doc, inst.id))}
+          pattern={<InstancePatternControls inst={inst} pattern={doc.instancePatterns?.find(p => p.seed === inst.id)} occurrenceOf={inst.pattern ? doc.instancePatterns?.find(p => p.id === inst.pattern!.id) : undefined}
+            onAdd={o => patternEdit(() => addInstancePattern(doc, o))} onEdit={o => patternEdit(() => editInstancePattern(doc, o))}
+            onDelete={id => patternEdit(() => deleteInstancePattern(doc, id))} onSkip={() => { patternEdit(() => skipOccurrence(doc, inst.id)); setInstanceSel([]); }} />}
           onRevision={async file => {
             const read = await readStudioFile(new Uint8Array(await file.arrayBuffer()));
             if ('error' in read) { setToast({ title: 'Could not read that part', hint: read.error, detail: '' }); return; }
@@ -1942,7 +1958,9 @@ export function App() {
             if ('error' in r) setToast({ title: 'Nothing to update', hint: r.error, detail: '' }); else commitParts(r.doc);
           }}
           onAccept={() => commitParts(acceptRevision(doc, inst.part!.id))} onDismiss={() => commitParts(dismissRevision(doc, inst.part!.id))}
-          onRemove={() => { if (!commitAssembly(list.filter(i => i.id !== inst.id), assembly.without(inst.id))) return; setInstanceSel([]); }} />;
+          onRemove={() => {
+            const held = patternDeleteRefusal(doc, inst.id); if (held) { setToast({ title: 'Can’t remove this part', hint: held.message, detail: '' }); return; }
+            if (!commitAssembly(list.filter(i => i.id !== inst.id), assembly.without(inst.id))) return; setInstanceSel([]); }} />;
       })()}
       {!rendering && !sketch && !measure && jointTree && !assembly.draft && !instanceSel.length && <RobotInspector controller={robotExports} motion={joints} loopMotionContext={loopMotionContext} chosenMotion={chosenMotion}
         video={{ busy: videoBusy, record: recordVideo }} changes={{ canChangeDocument, pushUndo, setDoc, setDirty }} />}

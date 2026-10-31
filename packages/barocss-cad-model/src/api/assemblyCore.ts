@@ -14,6 +14,7 @@ import { eulerOf } from '../engine/placement';
 import { addMate, addPart, checkFramesOn, placePart, solveDoc, withFrames } from '../assembly/edit';
 import { bodiesOf, meshesOf, type MeshData } from './core';
 import { explodeOffsets } from '../assembly/explode';
+import { addInstancePattern, drivenRefusal, seedMateRefusal, deleteInstancePattern, editInstancePattern, skipOccurrence, type AddPatternOptions, type EditPatternOptions } from '../assembly/patterns';
 
 // (Document fields are mutable tuples; what the facade hands back is §10.2's readonly Vec3.)
 type XYZ = [number, number, number];
@@ -48,6 +49,8 @@ export function lockDoc(doc: StudioDoc, part: string, to: string): { doc: Studio
   const instances = doc.instances ?? [], mates = doc.mates ?? [], b = instances.find(i => i.id === part), a = to === BASE ? null : instances.find(i => i.id === to);
   if (!b) throw new BarocssError('NO_PART', `No part "${String(part)}" to lock; parts: ${instances.map(i => i.id).join(', ') || 'none'}.`, 'evaluate');
   if (to !== BASE && !a) throw new BarocssError('NO_PART', `No part "${String(to)}"; parts: ${[BASE, ...instances.map(i => i.id)].join(', ')}.`, 'evaluate');
+  const driven = drivenRefusal(doc, part, 'it never moves for a lock; lock another part to it.') ?? seedMateRefusal(doc, part, to);
+  if (driven) throw driven;
   const used = new Set(mates.map(m => m.id));
   let n = mates.length + 1; while (used.has(`m${n}`)) n++;
   const mate: Mate = { id: `m${n}`, kind: 'lock', a: { part: to, face: '' }, b: { part, face: '' }, rel: lockRel(a ?? null, b) };
@@ -55,6 +58,13 @@ export function lockDoc(doc: StudioDoc, part: string, to: string): { doc: Studio
   if (problem) throw fromTool(problem.reason);
   return { doc: { ...doc, instances: r.instances, mates: [...mates, mate] }, id: mate.id };
 }
+
+/** pattern_part (addInstancePattern): a part's seed repeated along a line or about an axis; the new pattern's id. */
+export const patternDoc = (doc: StudioDoc, o: AddPatternOptions): { doc: StudioDoc; id: string } => { const r = addInstancePattern(doc, o); return { doc: r.doc, id: r.id }; };
+/** edit_pattern (editInstancePattern), delete_pattern (deleteInstancePattern) and skip_occurrence: a pattern changed, removed, or one occurrence left out. */
+export const editPatternDoc = (doc: StudioDoc, o: EditPatternOptions): StudioDoc => editInstancePattern(doc, o).doc;
+export const deletePatternDoc = (doc: StudioDoc, id: string): StudioDoc => deleteInstancePattern(doc, id).doc;
+export const skipOccurrenceDoc = (doc: StudioDoc, occurrence: string): StudioDoc => skipOccurrence(doc, occurrence).doc;
 
 /** set_inputs and set_variants (O11): the variability written, every variant regenerated to check it. */
 export function variabilityDoc(doc: StudioDoc, tool: 'set_inputs' | 'set_variants', args: Record<string, unknown>): StudioDoc {

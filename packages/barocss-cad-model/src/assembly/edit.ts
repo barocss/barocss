@@ -9,18 +9,56 @@ import { coded, refusal, type CadModelCode } from '../engine/refusal';
 import { nextFreeId } from '../util/ids';
 import { curvePatternDocumentProblem } from '../engine/curveFeaturePattern';
 import { tablesFor } from './faces';
+import { bothFixedRefusal, drivenRefusal, expandPatterns, seedMateRefusal, unsettledProblems, unsettledRefusal } from './patterns';
 import { BASE, KIND_LABEL, mateKindsOf, mateFacesOf, lockRel, mateRefusal, solveAssembly, type Mate, type MateRef, type MateKind, type Vec3 } from './mates';
 import { readRobot, type JointTree, type RobotSettings } from '../robot/joints';
 import type { FrameSettings } from '../robot/frames';
 
 /** What the assembly's edits refuse with. */
-export const ASSEMBLY_CODES: readonly CadModelCode[] = ['VALUE', 'CONNECTOR_INVALID', 'CONNECTOR_POINT', 'CONNECTOR_UNAVAILABLE', 'CONNECTOR_KIND', 'NO_PART', 'PART_MATED', 'MATE_KIND', 'MATE_SAME_PART', 'MATE_BOTH_FIXED', 'MATE_FACE_UNKNOWN', 'MATE_FACES', 'MATE_UNMET', 'NO_MATE', 'FRAME_NAME'];
+export const ASSEMBLY_CODES: readonly CadModelCode[] = ['VALUE', 'CONNECTOR_INVALID', 'CONNECTOR_POINT', 'CONNECTOR_UNAVAILABLE', 'CONNECTOR_KIND', 'NO_PART', 'PART_MATED', 'MATE_KIND', 'MATE_SAME_PART', 'MATE_BOTH_FIXED', 'MATE_FACE_UNKNOWN', 'MATE_FACES', 'MATE_UNMET', 'NO_MATE', 'FRAME_NAME', 'PATTERN_VALUE', 'PATTERN_DRIVEN', 'PATTERN_REFERENCED', 'NO_PATTERN'];
 
-/** The document with its mates solved from the placements `before` (its own when left out), and what cannot be met. */
-export function solveDoc(doc: StudioDoc, before?: readonly PartInstance[]): { doc: StudioDoc; problems: { mate: string; reason: string }[] } {
-  if (!doc.mates?.length || !doc.instances?.length) return { doc, problems: [] };
-  const r = solveAssembly(doc.instances, doc.mates, tablesFor(doc), before ?? doc.instances);
-  return { doc: { ...doc, instances: r.instances }, problems: r.problems };
+/** A problem the solver or the patterns report: the mate, why, and for a pattern that does not settle its id and the mates on the cycle. */
+export interface SolveProblem { mate: string; reason: string; pattern?: string; mates?: string[] }
+
+/** What one solve of the mates gives, as the loop below needs it (the solver's own result has more). */
+interface Solving { instances: readonly PartInstance[] }
+/** The document settled by `solve` (the mates solved on its instances): `last` is the final result; `unsettled` the patterns still moving after the passes. */
+export function settleDoc<R extends Solving>(doc: StudioDoc, solve: (doc: StudioDoc) => R): { doc: StudioDoc; last: R | undefined; unsettled: string[] } {
+  let cur = expandPatterns(doc), last: R | undefined, loose: string[] = [];
+  if (!cur.mates?.length || !cur.instances?.length) return { doc: cur, last, unsettled: [] };
+  for (let pass = 0; pass < 4; pass++) {
+    const r = solve(cur);
+    const next = expandPatterns({ ...cur, instances: r.instances as PartInstance[] });
+    loose = [...new Set(next.instances!.flatMap((i, n) => i.pattern && (i.position.some((v, c) => v !== r.instances[n].position[c]) || i.rotation.some((v, c) => v !== r.instances[n].rotation[c])) ? [i.pattern.id] : []))];
+    cur = next; last = r;
+    if (!loose.length) return { doc: cur, last, unsettled: [] };
+  }
+  // (Still moving after the last pass: a mate chain between a seed and its own copies. The placements stay as they were.)
+  return { doc: expandPatterns(doc), last, unsettled: loose };
+}
+
+/**
+ * The document with its mates solved from the placements `before` (its own when left out), and what cannot be met. The
+ * patterns' occurrences are regenerated from their seeds first and again after each solve (a seed a mate moved carries its
+ * occurrences; a part mated to an occurrence follows it), until they stand still. A pattern that does not settle is a
+ * problem naming the mates on its cycle, and the placements stay as they were.
+ */
+export function solveDoc(doc: StudioDoc, before?: readonly PartInstance[]): { doc: StudioDoc; problems: SolveProblem[] } {
+  const was = before ?? doc.instances ?? [];
+  const s = settleDoc(doc, d => solveAssembly(d.instances!, d.mates!, tablesFor(d), was));
+  return { doc: s.doc, problems: [...(s.last?.problems ?? []), ...unsettledProblems(s.doc, s.unsettled)] };
+}
+
+/**
+ * One automatic re-solve (the studio's, with its own face tables): `instances` is what to write back (null: nothing to
+ * write — already settled, still pending, or a pattern that does not settle), `problems` what to show, `last` the solver's result.
+ */
+export function resolved<R extends Solving & { problems: SolveProblem[]; pending?: boolean }>(doc: StudioDoc, solve: (doc: StudioDoc) => R): { instances: PartInstance[] | null; problems: SolveProblem[]; last: R | undefined } {
+  const s = settleDoc(doc, solve), problems = [...(s.last?.problems ?? []), ...unsettledProblems(doc, s.unsettled)];
+  if (s.last?.pending || s.unsettled.length) return { instances: null, problems, last: s.last };
+  const was = doc.instances ?? [], now = s.doc.instances ?? [];
+  const same = was.length === now.length && now.every((i, k) => i.id === was[k].id && i.doc === was[k].doc && i.hidden === was[k].hidden && i.position.every((v, c) => Math.abs(v - was[k].position[c]) <= 1e-9) && i.rotation.every((v, c) => Math.abs(v - was[k].rotation[c]) <= 1e-9));
+  return { instances: same ? null : [...now], problems, last: s.last };
 }
 
 const partList = (doc: StudioDoc) => [BASE, ...(doc.instances ?? []).map(i => i.id)].join(', ');
@@ -36,7 +74,7 @@ export interface AddPartOptions {
   grounded?: boolean;
 }
 /** An edit's result: the document, solved again, and the mates it cannot meet (each `{ mate, reason }`). */
-export interface Edited { doc: StudioDoc; problems: { mate: string; reason: string }[] }
+export interface Edited { doc: StudioDoc; problems: SolveProblem[] }
 
 /** add_part: a part placed by a rotation and a move, the assembly solved again; its id. */
 export function addPart(doc: StudioDoc, o: AddPartOptions): Edited & { id: string } {
@@ -61,6 +99,8 @@ export interface PlacePartOptions { part: string; position?: Vec3; rotation?: Ve
 export function placePart(doc: StudioDoc, o: PlacePartOptions): Edited {
   const instances = doc.instances ?? [], inst = instances.find(i => i.id === o.part);
   if (!inst) throw refusal('NO_PART', `No part "${o.part}"; parts: ${instances.map(i => i.id).join(', ') || 'none (the base part is fixed at the origin)'}.`);
+  const driven = drivenRefusal(doc, inst.id, 'move its seed, or edit the pattern.');
+  if (driven) throw driven;
   const by = (doc.mates ?? []).filter(m => m.b.part === inst.id);
   if (o.grounded === true && by.length) throw refusal('PART_MATED', `${by.length} mate${by.length > 1 ? 's' : ''} move ${inst.name}; delete ${by.length > 1 ? 'them' : 'it'} first, or fix the other part.`);
   const next: PartInstance = { ...inst, position: o.position ?? inst.position, rotation: o.rotation ?? inst.rotation, ...(o.name !== undefined ? { name: o.name } : {}),
@@ -83,8 +123,10 @@ export function addMate(doc: StudioDoc, o: AddMateOptions): Mated {
   let { a, b } = o;
   for (const r of [a, b]) if (!partDocOf(doc, r.part)) throw refusal('NO_PART', `No part "${r.part}"; parts: ${partList(doc)}.`);
   if (a.part === b.part) throw refusal('MATE_SAME_PART', 'Both faces are on the same part; mate faces of two different parts.');
+  const own = seedMateRefusal(doc, a.part, b.part);
+  if (own) throw own;
   const fixed = (p: string) => p === BASE || !!instances.find(i => i.id === p)?.grounded;
-  if (fixed(b.part)) { if (fixed(a.part)) throw refusal('MATE_BOTH_FIXED', 'Both parts are fixed (the base part and grounded parts never move): one of them must be free.'); [a, b] = [b, a]; }
+  if (fixed(b.part)) { if (fixed(a.part)) throw bothFixedRefusal(doc, a.part, b.part, 'MATE_BOTH_FIXED', 'Both parts are fixed (the base part and grounded parts never move): one of them must be free.'); [a, b] = [b, a]; }
   const mate: Mate = { id: nextFreeId('m', new Set(mates.map(m => m.id))), kind, a: { ...(kind === 'fastened' || kind === 'ball' || kind === 'universal' || kind === 'cylindrical' ? a : {}), part: a.part, face: a.face, ...(a.at !== undefined ? { at: readConnector(a.at) } : {}) }, b: { ...(kind === 'fastened' || kind === 'ball' || kind === 'universal' || kind === 'cylindrical' ? b : {}), part: b.part, face: b.face, ...(b.at !== undefined ? { at: readConnector(b.at) } : {}) },
     ...(kind === 'distance' ? { distance: Number(o.distance) } : {}), ...(kind === 'angle' ? { angle: Number(o.angle) } : {}), ...(kind !== 'concentric' && o.flip ? { flip: true } : {}), ...(kind === 'concentric' && typeof o.flip === 'boolean' ? { flip: o.flip } : {}) };
   return mated(doc, mate, [...mates, mate]);
@@ -99,14 +141,18 @@ export function lockPart(doc: StudioDoc, o: { part: string; to: string }): Mated
   const instances = doc.instances ?? [], mates = doc.mates ?? [];
   for (const p of [o.part, o.to]) if (!partDocOf(doc, p)) throw refusal('NO_PART', `No part "${p}"; parts: ${partList(doc)}.`);
   if (o.part === o.to) throw refusal('MATE_SAME_PART', 'A part is locked to another part, not to itself.');
+  const driven = drivenRefusal(doc, o.part, 'it never moves for a lock; lock another part to it.') ?? seedMateRefusal(doc, o.part, o.to);
+  if (driven) throw driven;
   const fixed = (p: string) => p === BASE || !!instances.find(i => i.id === p)?.grounded;
   let [a, b] = [o.to, o.part];
-  if (fixed(b)) { if (fixed(a)) throw refusal('MATE_BOTH_FIXED', 'Both parts are fixed (the base part and grounded parts never move): one of them must be free.'); [a, b] = [b, a]; }
+  if (fixed(b)) { if (fixed(a)) throw bothFixedRefusal(doc, a, b, 'MATE_BOTH_FIXED', 'Both parts are fixed (the base part and grounded parts never move): one of them must be free.'); [a, b] = [b, a]; }
   const at = (p: string) => instances.find(i => i.id === p) ?? null;
   const mate: Mate = { id: nextFreeId('m', new Set(mates.map(m => m.id))), kind: 'lock', a: { part: a, face: '' }, b: { part: b, face: '' }, rel: lockRel(a === BASE ? null : at(a), at(b)!) };
   const list = [...mates, mate], r = solveAssembly(instances, list, tablesFor(doc), instances), problem = r.problems.find(p => p.mate === mate.id) ?? (list.some(m => m.kind === 'fastened' || m.kind === 'ball' || m.kind === 'universal' || m.kind === 'cylindrical') ? r.problems[0] : undefined);
   if (problem) throw refusal('MATE_UNMET', problem.reason, { mate: mate.id });
-  return { ...solveDoc({ ...doc, instances: r.instances, mates: list }, instances), mate, freedom: r.freedom[b] };
+  const solved = solveDoc({ ...doc, instances: r.instances, mates: list }, instances), loose = unsettledRefusal(solved.problems, mate.id, doc, a, b);
+  if (loose) throw loose;
+  return { ...solved, mate, freedom: r.freedom[b] };
 }
 
 export interface EditMateOptions { connectors?: { a?: Connector | null; b?: Connector | null }; id: string; distance?: number; angle?: number; flip?: boolean }
@@ -127,6 +173,8 @@ export function editMate(doc: StudioDoc, o: EditMateOptions): Mated {
 
 /** A mate checked on its faces, then the assembly solved with `list`; its own problem refused. */
 function mated(doc: StudioDoc, mate: Mate, list: Mate[]): Mated {
+  const own = seedMateRefusal(doc, mate.a.part, mate.b.part);
+  if (own) throw own;
   const instances = doc.instances ?? [], tables = tablesFor(doc), fa = tables(mate.a.part)?.[mate.a.face], fb = tables(mate.b.part)?.[mate.b.face];
   const missing = [!fa && mate.a, !fb && mate.b].filter(Boolean) as { part: string; face: string }[];
   if (missing.length) throw refusal('MATE_FACE_UNKNOWN', missing.map(r => `"${r.face}" is not a flat or round face of ${r.part}`).join('; '), { missing });
@@ -135,7 +183,9 @@ function mated(doc: StudioDoc, mate: Mate, list: Mate[]): Mated {
   if (why) throw refusal('MATE_FACES', `${why}${fa && fb ? ` (these faces admit: ${mateKindsOf({ a: mate.a, b: mate.b }, { a: fa, b: fb }).join(', ')})` : ''}`);
   const r = solveAssembly(instances, list, tables, instances), problem = r.problems.find(p => p.mate === mate.id) ?? (list.some(m => m.kind === 'fastened' || m.kind === 'ball' || m.kind === 'universal' || m.kind === 'cylindrical') ? r.problems[0] : undefined);
   if (problem) throw refusal('MATE_UNMET', problem.reason, { mate: mate.id });
-  return { ...solveDoc({ ...doc, instances: r.instances, mates: list }, instances), mate, freedom: r.freedom[mate.b.part] };
+  const solved = solveDoc({ ...doc, instances: r.instances, mates: list }, instances), loose = unsettledRefusal(solved.problems, mate.id, doc, mate.a.part, mate.b.part);
+  if (loose) throw loose;
+  return { ...solved, mate, freedom: r.freedom[mate.b.part] };
 }
 
 /**

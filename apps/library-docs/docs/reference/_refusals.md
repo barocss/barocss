@@ -442,12 +442,11 @@
 | `[LOOP_OPEN]` | `api`, `robot` | the robot has a closed loop (…); facade sweep/CCD does not yet check its closed motion |
 | `[LOOP_PASSIVE]` | `robot` | the loop… … degree… of freedom: give … of …, and the rest are solved (… given) |
 | `[MATERIAL_UNKNOWN]` | `chat/part` | "…" is not a material here; materials: …. |
-| `[MATE_BOTH_FIXED]` | `assembly` | Both parts are fixed (the base part and grounded parts never move): one of them must be free. |
 | `[MATE_FACES]` | `assembly` | …… |
 | `[MATE_FACE_UNKNOWN]` | `assembly` | … |
 | `[MATE_KIND]` | `assembly` | "kind" is one of …. |
 | `[MATE_SAME_PART]` | `assembly` | Both faces are on the same part; mate faces of two different parts. |
-| `[MATE_UNMET]` | `assembly` | … |
+| `[MATE_UNMET]` | `assembly` | Mate … (… to …) would leave pattern … unsettled: … |
 | `[MERGE_DANGLING]` | `versions` | … uses …, which the other branch deleted: keep …, or drop what uses it |
 | `[MERGE_MISSING]` | `chat` | The merged part names …, which it does not have. |
 | `[MERGE_NO_BASE]` | `versions` | “…” and “…” share no version |
@@ -480,6 +479,7 @@
 | `[NO_LINK]` | `robot` | no link … on the tree |
 | `[NO_MATE]` | `assembly` | No mate "…"; mates: …. |
 | `[NO_PART]` | `assembly` | No part "…" to copy; parts: …. |
+| `[NO_PATTERN]` | `assembly` | No pattern "…"; patterns: …. |
 | `[NO_PIN]` | `robot` | the loop … has no concentric mate to close on |
 | `[NO_PRINTER]` | `print` | choose a printer first: the split is for its build volume |
 | `[NO_RANGE]` | `robot` | slide … has no limits: its range is not known |
@@ -502,6 +502,9 @@
 | `[PARAMETER_UNKNOWN]` | `app`, `engine`, `sketch` | no parameter …; the parameters are … |
 | `[PART_MATED]` | `assembly` | … mate… move …; delete … first, or fix the other part. |
 | `[PATH_TOO_SHORT]` | `robot` | a path needs at least two waypoints |
+| `[PATTERN_DRIVEN]` | `assembly` | … is occurrence … of pattern …, driven by its seed …: … |
+| `[PATTERN_REFERENCED]` | `assembly` | … would remove …, and …: change that first. |
+| `[PATTERN_VALUE]` | `assembly`, `engine` | No part "…" to repeat; parts: …. |
 | `[PRIMITIVE_SIZE]` | `app` | The tube radius must be smaller than the ring radius. |
 | `[PRINT_PREVIEW_INPUT]` | `engine` | …: … |
 | `[REFERENCE_LOCKED]` | `chat` | … is a reference: the user removes it, in the studio. |

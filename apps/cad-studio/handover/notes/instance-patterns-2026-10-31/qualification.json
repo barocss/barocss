@@ -1,0 +1,56 @@
+{
+  "decision": "D383",
+  "roadmap": "10 ③ component patterns (owner order 'Go to row 10')",
+  "issues": {
+    "#2180": "repeated definition/occurrence identity: one definition edit reaches every occurrence in BOM, drawing B-reps, STEP and 3MF (model tests); closed earlier as research — acceptance evidence here",
+    "#538": "epic stays open (ASM-01 shared vs copied geometry advanced)",
+    "RS7.4": "component reuse with stable occurrence references: patterns done; flexible sub-assemblies (10④) and motion study (10⑦) remain"
+  },
+  "tier": "full (new document field + public API: three audit rounds incl. mutation, actual run)",
+  "status": "QUALIFIED",
+  "surface": {
+    "doc": "StudioDoc.instancePatterns (InstancePattern: id, seed, count, skip?, linear dir/spacing | circular origin/axis/angle); PartInstance.pattern {id,k}; current schema, no version bump (owner: add fields freely before release)",
+    "model": "assembly/patterns.ts (expandPatterns, add/edit/deleteInstancePattern, skipOccurrence, refusal helpers), assembly/patternCheck.ts (bounds, read-time validation), edit.ts settleDoc/resolved",
+    "codes": [
+      "PATTERN_VALUE",
+      "PATTERN_DRIVEN",
+      "PATTERN_REFERENCED",
+      "NO_PATTERN"
+    ],
+    "facade": "Assembly.pattern/editPattern/deletePattern/skipOccurrence/patterns()",
+    "tools": [
+      "pattern_part",
+      "edit_pattern",
+      "delete_pattern"
+    ],
+    "studio": "instance panel Pattern…/Apply/Delete pattern/Restore; an occurrence's panel shows its pattern and Skip, no placement boxes, Fix, Hide, Remove, Make independent or Lock; no gizmo on occurrences"
+  },
+  "rules": "occurrences k=1..count−1 (not skipped) regenerated from the seed with stable ids <pattern>-<k>, sharing the seed's part id and doc, driven (mates never move them; they may be a mate's fixed side); count 2..64; |angle|·count ≤ 360; removal of an occurrence or seed that a live reference holds (mates, robot base/joints/frames, variability, drawing scope/balloons, node part references) refused; past records never block; a mate closing a seed→…→occurrence cycle refused (MATE_UNMET), an unsettled file reported without drift",
+  "audits": {
+    "round1": "CHANGES_REQUIRED, 12 findings (3 high: seed↔occurrence mate never settles silently; variants left occurrences behind; Studio re-solve did not regenerate) — all fixed with regression tests",
+    "round2": "CHANGES_REQUIRED, 4 new (Studio re-solve loop regression; cycle mate kept; reference scan false positives on baselines/history; missed node references) — all fixed; 6 guard mutants killed",
+    "round3": "targeted re-check of the 4: ACCEPT, one mutant each killed"
+  },
+  "checks": {
+    "instancePatterns": "26/26",
+    "modelSuite": "2279/2279",
+    "studioSuite": "572/572 (+ instance-pattern-draft 2/2)",
+    "tsc": "PASS model and Studio",
+    "docsTables": "refusals, agent-tools, api-inventory --check PASS (inventory regenerated; it also carries the GPU merge D378 exports that had not been recorded)"
+  },
+  "actualRun": {
+    "run08": "final source PASS: linear 4 x 25 mm, occurrence panel and Skip, Restore, count 5, seed moved by its X box carries every occurrence, Undo/Redo, Remove of a used seed refused, skip + Save + fresh Open keep the skip, BOM 'Cube' qty 4 (seed + 3 kept), linear pattern deleted, circular 4 x 90° about Z, mated seed re-solved with its occurrences (z 4) and the commit shown by two Undos; Python oracle PASS at every step (independent rotation matrices); 0 page/console errors",
+    "failedRuns": [
+      "run01-04: driver (outliner row text includes the icon name; two 'Instance X' boxes; a comment I inserted swallowed a line; BOM still loading)",
+      "run06: driver waited for a change the re-solve undoes"
+    ]
+  },
+  "followUps": [
+    "Studio finish/edit/lock of a cycle-closing mate commits once (seed moves once, then 'does not settle' is shown, no drift, Undo restores) — the model refuses it; wire the same refusal into useAssembly",
+    "drawing.balloons references to occurrences untested",
+    "edge/datum circular axis (strict reference) not offered in v1",
+    "occurrence look/material (10①) and occurrence paths (10②) next"
+  ],
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

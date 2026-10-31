@@ -6,6 +6,8 @@ import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
 import { validateBallOptions, validateFastenedOptions, validateUniversalOptions, validateCylindricalOptions } from '@barocss/cad-model/assembly/connectors';
 import { FaceClient } from './faceClient';
 import { flattenAssembly } from '@barocss/cad-model/engine/flatten';
+import { drivenRefusal, seedMateRefusal } from '@barocss/cad-model/assembly/patterns';
+import { resolved } from '@barocss/cad-model/assembly/edit';
 import { BASE, mateKindsOf, lockRel, mateRefusal, solveAssembly, type FaceTable, type Freedom, type Mate, type MateKind, type MateRef, type Problem } from '@barocss/cad-model/assembly/mates';
 
 /** A face clicked while adding a mate: on the base part (a body and face to highlight) or on an instance. */
@@ -104,12 +106,13 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
   useEffect(() => {
     if (facesPending()) { setProblems(EMPTY_PROBLEMS); setFreedom(EMPTY_FREEDOM); return; }
     if (!mates.length) { setProblems([]); setFreedom({}); lastSolved.current = instances; return; }
-    const r = solveAssembly(instances, mates, p => tables.get(p), lastSolved.current);
-    if (r.pending) return;
-    lastSolved.current = r.instances;
-    setProblems(r.problems); setFreedom(r.freedom);
-    const moved = r.instances.some((i, k) => i.position.some((v, j) => Math.abs(v - instances[k].position[j]) > 1e-9) || i.rotation.some((v, j) => Math.abs(v - instances[k].rotation[j]) > 1e-9));
-    if (moved) setDoc(d => d.instances === doc.instances ? { ...d, instances: r.instances } : d);
+    // (One settled solve through the patterns: written back only when it differs, never when a pattern does not settle —
+    // that is shown as a problem — so the placements it writes are its own fixed point and the effect stops.)
+    const out = resolved({ ...doc, instances, mates: [...mates] }, d => solveAssembly(d.instances!, d.mates!, p => tables.get(p), lastSolved.current));
+    if (!out.last || out.last.pending) return;
+    lastSolved.current = out.instances ?? instances;
+    setProblems(out.problems); setFreedom(out.last.freedom);
+    if (out.instances) setDoc(d => d.instances === doc.instances ? { ...d, instances: out.instances! } : d);
   }, [solve, instances, mates, facesPending]);
 
   const isFixed = useCallback((part: string) => part === BASE || !!instances.find(i => i.id === part)?.grounded, [instances]);
@@ -120,6 +123,8 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
     if (facesPending()) return { ...d, picks: [d.picks[0]], error: FACES_PENDING };
     let [first, second] = d.picks;
     if (first.ref.part === second.ref.part) return { ...d, picks: [first], error: 'Both faces are on the same part. Pick the second face on another part.' };
+    const chase = seedMateRefusal(doc, first.ref.part, second.ref.part);
+    if (chase) return { ...d, picks: [first], error: chase.message };
     // The second pick moves, unless its part is fixed: then the first one does.
     if (isFixed(second.ref.part)) {
       if (isFixed(first.ref.part)) return { ...d, picks: [first], error: 'Both parts are fixed. Pick a face on a part that can move (an instance not fixed in place).' };
@@ -223,6 +228,8 @@ export function useAssembly({ doc, evaluated, bodies, instanceBodies, setDoc, co
       if (facesPending()) return FACES_PENDING;
       const b = instances.find(i => i.id === part), a = to === BASE ? null : instances.find(i => i.id === to);
       if (!b || (to !== BASE && !a)) return 'Pick the part to lock it to.';
+      const driven = drivenRefusal(doc, part, 'it never moves for a lock; lock another part to it.') ?? seedMateRefusal(doc, part, to);
+      if (driven) return driven.message;
       const used = new Set(mates.map(m => m.id));
       let n = mates.length + 1; while (used.has(`m${n}`)) n++;
       const mate: Mate = { id: `m${n}`, kind: 'lock', a: { part: to, face: '' }, b: { part, face: '' }, rel: lockRel(a ?? null, b) };

@@ -116,6 +116,9 @@ Parts placed and mated with the base part; changes to it are proposed. A part to
 | `assembly.add_mate` | `add_mate` | kind, a, b, distance?, angle?, flip? — a/b {part,face,at?} |
 | `assembly.edit_mate` | `edit_mate` | id, distance?, angle?, flip?, connectors? |
 | `assembly.lock` | `lock_part` | part, to — fixed to it where they stand |
+| `assembly.pattern` | `pattern_part` | seed, kind: linear \| circular, count, spacing?, direction? \| angle?, axis?, origin?, skip? — the part repeated; copies driven by it |
+| `assembly.edit_pattern` | `edit_pattern` | id, count?, skip?, spacing?, direction? \| angle?, axis?, origin? |
+| `assembly.delete_pattern` | `delete_pattern` | id |
 | `assembly.delete_mate` | `delete_mate` | id |
 | `assembly.inputs` | `set_inputs` | inputs: {name: {type, default, bindings, unit?, min?, max?, choices?} \| null} |
 | `assembly.variants` | `set_variants` | variants?: {name: {input: value} \| null}, active? |

@@ -48,7 +48,7 @@ export function MatePanel({ assembly, instances, instance, onRefused }: { assemb
     <aside className="card props" aria-label="Mates">
       <div className="card-title">MATES <span className="muted">{mates.length || ''}</span>
         {!draft && <Button variant="ghost" style={{ marginLeft: 'auto' }} onClick={assembly.start}>Add mate</Button>}</div>
-      {instance && !draft && <LockRow instance={instance} instances={instances} onLock={to => { const why = assembly.lock(instance, to); if (why) onRefused(why); }} />}
+      {instance && !draft && !instances.find(i => i.id === instance)?.pattern && <LockRow instance={instance} instances={instances} onLock={to => { const why = assembly.lock(instance, to); if (why) onRefused(why); }} />}
       {instance && !draft && <div className="kv" aria-label="Freedom">{instances.find(i => i.id === instance)?.name ?? instance} <b>{freedomText(instance)}</b></div>}
       {draft && <div className="mate-draft" style={{ display: 'grid', gap: 6, marginBottom: 8 }}>
         <label className={FIELD}><span>Type</span>

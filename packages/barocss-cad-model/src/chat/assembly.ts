@@ -24,6 +24,7 @@ import { boundsOf } from '../engine/bounds';
 import { runVariabilityTool, VARIABILITY_TOOLS } from './variability';
 import { addMate, lockPart, addPart, ASSEMBLY_CODES, editMate, partCopy, placePart, solveDoc, type Edited, type Mated } from '../assembly/edit';
 import { isRefusal } from '../engine/refusal';
+import { addInstancePattern, deleteInstancePattern, editInstancePattern, patternDeleteRefusal, type AddPatternOptions } from '../assembly/patterns';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
 interface State { doc: StudioDoc; bodies: BodyResult[] }
@@ -73,7 +74,7 @@ async function describe(doc: StudioDoc, base: BodyResult[], evaluate: Evaluate, 
     const r = await evaluate(inst.doc), bodies = r?.ok ? r.bodies : [];
     const { min, max } = boundsOf(bodies);
     return {
-      id: inst.id, name: inst.name, position: inst.position.map(r3), rotation: inst.rotation.map(r3), ...(inst.grounded ? { grounded: true } : {}), ...(inst.hidden ? { hidden: true } : {}),
+      id: inst.id, name: inst.name, position: inst.position.map(r3), rotation: inst.rotation.map(r3), ...(inst.grounded ? { grounded: true } : {}), ...(inst.hidden ? { hidden: true } : {}), ...(inst.pattern ? { pattern: inst.pattern.id, k: inst.pattern.k } : {}),
       feature_count: inst.doc.nodes.length, bodies: bodies.length, volume: r3(bodies.reduce((s, b) => s + (b.volume ?? 0), 0)),
       ...(bodies.length ? { world_bounds: placedBounds(inst, min, max) } : {}),
       ...(r && !r.ok ? { error: r.error.title } : {}),
@@ -86,6 +87,7 @@ async function describe(doc: StudioDoc, base: BodyResult[], evaluate: Evaluate, 
   return {
     base: { id: BASE, feature_count: doc.nodes.length, bodies: base.length, volume: r3(base.reduce((s, b) => s + (b.volume ?? 0), 0)), note: 'the document\'s own part, fixed at the origin', ...memberInterfaceList(base), ...(detail === BASE ? mateFaces(withDatums(tableOf(doc), doc)) : {}) },
     instances,
+    ...(doc.instancePatterns?.length ? { patterns: doc.instancePatterns.map(p => ({ ...p, ...(p.skip?.length ? {} : { skip: undefined }) })) } : {}),
     mates: mates.map((m, i) => ({ id: m.id, label: mateLabel(m, i), kind: m.kind, a: m.a, b: m.b, ...(m.distance !== undefined ? { distance: m.distance } : {}), ...(m.angle !== undefined ? { angle: m.angle } : {}), ...(m.flip ? { flip: true } : {}) })),
     ...(solved.length ? { problems: solved } : {}),
     ...(detail ? {} : { note: 'mateable faces of one part: get_assembly {"faces_of": part id or "base"}' }),
@@ -112,7 +114,7 @@ function reported(doc: StudioDoc, r: Edited, what: string, extra: Record<string,
   };
 }
 
-export const ASSEMBLY_TOOL_NAMES = new Set(['get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'lock_part', 'delete_mate', 'list_library', 'insert_part', 'snap_part', 'add_library', 'add_library_part', 'check_printability', 'orient_for_print', 'set_inputs', 'set_variants']);
+export const ASSEMBLY_TOOL_NAMES = new Set(['get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'lock_part', 'delete_mate', 'pattern_part', 'edit_pattern', 'delete_pattern', 'list_library', 'insert_part', 'snap_part', 'add_library', 'add_library_part', 'check_printability', 'orient_for_print', 'set_inputs', 'set_variants']);
 
 export async function runAssemblyTool(state: State, name: string, args: Record<string, unknown>, evaluate: Evaluate): Promise<AssemblyOutcome> {
   const doc = state.doc, instances = doc.instances ?? [], mates = doc.mates ?? [];
@@ -150,6 +152,8 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
     case 'delete_part': {
       const inst = byId(args.part);
       if (!inst) return fail(doc, `No part "${String(args.part)}"; parts: ${instances.map(i => i.id).join(', ') || 'none'}.`);
+      const patterned = patternDeleteRefusal(doc, inst.id);
+      if (patterned) return fail(doc, patterned.message);
       // (FRf2, O125: a part whose sketch a base frame follows stays.)
       const held = firstProblem(checkPartDelete(doc, inst.id));
       if (held) return fail(doc, held);
@@ -186,6 +190,28 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
       let r: Mated;
       try { r = lockPart(doc, { part: args.part, to: args.to }); } catch (e) { if (!isRefusal(e, ...ASSEMBLY_CODES)) throw e; return fail(doc, e.message, e.code === 'MATE_UNMET' ? { kept: 'the assembly is unchanged' } : {}); }
       return reported(doc, r, `locked ${r.mate.b.part} to ${r.mate.a.part} (${r.mate.id}) where they stand`, { mate: r.mate.id, freedom_left: r.freedom });
+    }
+    case 'pattern_part': case 'edit_pattern': {
+      // (RS7.4: a part repeated along a line or about an axis; the copies are driven by the part.)
+      const shape = (): { ok: true; v: Record<string, unknown> } | { ok: false; error: string } => {
+        const v: Record<string, unknown> = {};
+        for (const [from, to] of [['direction', 'dir'], ['axis', 'axis'], ['origin', 'origin']] as const) if (args[from] !== undefined) { if (!vec3(args[from])) return { ok: false, error: `"${from}" is [x, y, z] (mm for origin; a direction and an axis are not all zero).` }; v[to] = args[from]; }
+        for (const k of ['count', 'spacing', 'angle', 'skip'] as const) if (args[k] !== undefined) v[k] = args[k];
+        return { ok: true, v };
+      };
+      const got = shape(); if (!got.ok) return fail(doc, got.error);
+      try {
+        if (name === 'pattern_part') {
+          if (args.kind !== 'linear' && args.kind !== 'circular') return fail(doc, '"kind" is linear (direction, spacing) or circular (axis, origin, angle).');
+          const r = addInstancePattern(doc, { seed: String(args.seed), kind: args.kind, ...(args.kind === 'circular' && got.v.origin === undefined ? { origin: [0, 0, 0] } : {}), ...got.v } as unknown as AddPatternOptions);
+          return reported(doc, r, `patterned ${String(args.seed)} as ${r.id}: ${r.doc.instancePatterns!.find(p => p.id === r.id)!.count} in all`, { pattern: r.id, note: 'the copies are driven by the seed (a mate holds one as its fixed side; place_part moves the seed)' });
+        }
+        const r = editInstancePattern(doc, { id: String(args.id), ...got.v } as { id: string });
+        return reported(doc, r, `edited pattern ${String(args.id)}`);
+      } catch (e) { if (isRefusal(e, ...ASSEMBLY_CODES)) return fail(doc, e.message); throw e; }
+    }
+    case 'delete_pattern': {
+      try { return reported(doc, deleteInstancePattern(doc, String(args.id)), `deleted pattern ${String(args.id)} and its copies`); } catch (e) { if (isRefusal(e, ...ASSEMBLY_CODES)) return fail(doc, e.message); throw e; }
     }
     case 'list_library': {
       // (LIB4: what the libraries hold — read only.)
@@ -300,6 +326,21 @@ export const ASSEMBLY_TOOLS: ToolDefinition[] = [
     name: 'delete_part',
     description: 'Removes a placed part and the mates on it.',
     input_schema: { type: 'object', properties: { part: { type: 'string' } }, required: ['part'], additionalProperties: false },
+  },
+  {
+    name: 'pattern_part',
+    description: 'Repeats a placed part: "count" in all (2 to 64, the part itself the first). Linear: every "spacing" mm along "direction". Circular: every "angle" degrees about "axis" through "origin" (default the origin), angle × (count − 1) at most 360. The copies (ids <pattern>-<k>) are driven by the part: place_part moves the part and its copies follow; mates never move a copy, but may hold it as the fixed side ("a"). "skip" leaves out copies by k (1 to count − 1).',
+    input_schema: { type: 'object', properties: { seed: { type: 'string', description: 'The part id to repeat.' }, kind: { type: 'string', enum: ['linear', 'circular'] }, count: { type: 'number' }, spacing: { type: 'number' }, direction: xyz, angle: { type: 'number' }, axis: xyz, origin: xyz, skip: { type: 'array', items: { type: 'number' } } }, required: ['seed', 'kind', 'count'], additionalProperties: false },
+  },
+  {
+    name: 'edit_pattern',
+    description: 'Changes a pattern (get_assembly lists them): count, skip (the k left out; [] brings all back), and its own kind\'s spacing/direction or angle/axis/origin; left out: kept. Refused while a mate holds a copy it would remove.',
+    input_schema: { type: 'object', properties: { id: { type: 'string' }, count: { type: 'number' }, spacing: { type: 'number' }, direction: xyz, angle: { type: 'number' }, axis: xyz, origin: xyz, skip: { type: 'array', items: { type: 'number' } } }, required: ['id'], additionalProperties: false },
+  },
+  {
+    name: 'delete_pattern',
+    description: 'Removes a pattern and its copies; the part it repeated stays. Refused while a mate holds a copy.',
+    input_schema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'], additionalProperties: false },
   },
   {
     name: 'add_mate',
