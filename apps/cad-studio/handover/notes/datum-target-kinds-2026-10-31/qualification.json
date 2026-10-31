@@ -1,0 +1,37 @@
+{
+  "decision": "D395",
+  "roadmap": "11 ② datum target expansion (CG5 DR-6)",
+  "issues": {},
+  "tier": "full (drawing document fields + public API): two audit rounds with mutation, actual run",
+  "status": "QUALIFIED",
+  "before": "measured 2026-10-31: point datum targets only (X at a straight-edge endpoint, split symbol with an empty upper half), no kind field, one generic refusal",
+  "change": {
+    "fields": "datum target kind 'line' {line: {from, to}} and 'area' {area: circle {at, d} | rect {at, w, h}} (view mm points, model mm sizes); moveable on points; canonical key order in readDatumTargets (authored == reopened JSON); numbers 1..99 and unique letter+number at authoring",
+    "drawing": "ASME Y14.5: area = phantom outline (model size × view scale) with 45° hatching at 1 mm clipped to it, leader ending at a dot; line = one phantom line in the direct view (no X; X stays for points); symbol = split circle with the area size (Ø6 / 6×4) above and the letter+number below; moveable = the circle drawn out to a point by two tangent lines, the point away from the leader; new phantom pen; DXF PHANTOM layer/linetype only when used; 3D annotation data carries kind, area and moveable",
+    "checks": "DATUM_TARGET_OUTSIDE warns when a line end or any part of an area lies outside the view's projected part box; DATUM_UNDEFINED counts line/area letters; refusals name the row; chat schema per kind (oneOf, min/max) and the chat validator gained const/not/oneOf/minimum/maximum without false double matches",
+    "studio": "Datum targets: Kind (Point/Line/Area), area shape and size, Add then clicks in a view (line: two ends; area: centre) then the symbol; moveable under Details; Kind change cancels a pending pick; legacy rows say in words why moveable cannot change"
+  },
+  "audits": {
+    "round1": "CHANGES_REQUIRED: medium — line/area targets never went stale; medium — moveable symbol not the ASME form; low-medium — line target mixed ASME/ISO; low — schema looser than the checker, test gaps, Studio pending pick on Kind change. 21/28 mutants caught",
+    "round2": "targeted: all fixes verified (84 leader angles for the moveable symbol), mutants caught; one regression — the validator ignored const so set_drawing's scope oneOf refused valid scopes — fixed and verified by the root"
+  },
+  "checks": {
+    "modelSuite": "2442/2442 (final source)",
+    "studioSuite": "623/623",
+    "tsc": "PASS (model, Studio)",
+    "eslint": "clean on changed files",
+    "docsTables": "refusals, agent-tools, api-inventory, check-docs PASS"
+  },
+  "actualRun": {
+    "run04": "final source PASS on bracket.bcad: Datum targets → Area, Circle, Ø4, Add, click the centre (15, 3) in the front view, place the symbol; Line, Add, click the top edge ends (0, 6) and (30, 6), place the symbol; Undo/Redo; Save + fresh Open equal; Export SVG → oracle: stored area Ø4 at the clicked centre and line between the clicked ends; phantom area outline with every hatch line inside it; phantom target line with no X marks; split symbols with Ø4 above A1, A2 alone; 0 page/console errors; root reviewed a zoomed render of the exported targets",
+    "failedRuns": ["run01: oracle read the symbol circle's start point as its left point (it is the right-most); product fine"]
+  },
+  "followUps": [
+    "DATUM_TARGET_OUTSIDE uses the view's projected box, not its silhouette (a target in a hole or notch is not warned)",
+    "line/area targets are placed by view points and do not follow geometry",
+    "ISO 5459 variants (X ends joined by a thin line) wait for the 11③ standard setting",
+    "short phantom lines (< 10 mm on paper) look solid"
+  ],
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

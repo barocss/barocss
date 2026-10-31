@@ -83,7 +83,7 @@ function writable(d: StudioDoc): StudioDoc {
   const out: StudioDoc = { ...d, nodes: d.nodes.map(n => { if (n.kind === 'band-surface') return { ...n, a: { ...n.a, edges: [...n.a.edges] }, b: { ...n.b, edges: [...n.b.edges] } }; const key = refKey(n); return key ? { ...n, [key]: [...(n as unknown as Record<string, string[]>)[key]] } as ModelNode : n; }) };
   if (d.mates) out.mates = d.mates.map(m => ({ ...m, a: { ...m.a }, b: { ...m.b } }));
   if (d.drawing?.dimensions) out.drawing = { ...d.drawing, dimensions: d.drawing.dimensions.map(x => 'a' in x ? { ...x, a: { ...x.a }, b: { ...x.b } } as typeof x : { ...x }) };
-  if (d.drawing?.datumTargets) out.drawing = { ...(out.drawing ?? d.drawing), datumTargets: d.drawing.datumTargets.map(t => ({ ...t, point: { ...t.point, near: [...t.point.near] as Vec3, ...(t.point.sig ? { sig: { ...t.point.sig, p: [...t.point.sig.p] as Vec3, ...(t.point.sig.d ? { d: [...t.point.sig.d] as Vec3 } : {}) } } : {}) } })) };
+  if (d.drawing?.datumTargets) out.drawing = { ...(out.drawing ?? d.drawing), datumTargets: d.drawing.datumTargets.map(t => !t.point ? { ...t } : ({ ...t, point: { ...t.point, near: [...t.point.near] as Vec3, ...(t.point.sig ? { sig: { ...t.point.sig, p: [...t.point.sig.p] as Vec3, ...(t.point.sig.d ? { d: [...t.point.sig.d] as Vec3 } : {}) } } : {}) } }) as typeof t) };
   if (d.bodies) { const bodies: NonNullable<StudioDoc['bodies']> = {}; for (const [k, look] of Object.entries(d.bodies)) bodies[k] = { ...look }; out.bodies = bodies; }
   return out;
 }
@@ -124,6 +124,7 @@ export function referencesOf(source: StudioDoc, readOnly = false): { doc: Studio
   }
   for (const target of doc.drawing?.datumTargets ?? []) {
     const point = target.point;
+    if (!point) continue; // a line or area target is placed by view points, not by a reference
     refs.push({ ...pointed(`datum target ${target.id}`, true, point, () => point.edge, edge => { point.edge = edge; }), datumTarget: true, targetEndpoint: point.endpoint });
   }
   for (const [key, look] of Object.entries(doc.bodies ?? {})) {
@@ -161,7 +162,7 @@ function unsigned(doc: StudioDoc): boolean {
     const unsignedPoint = (p: { sig?: unknown; at?: string; ring?: { sig?: unknown }[] }) => p.at === 'pcd' ? (p.ring ?? []).some(m => !m.sig) : !p.sig;
     if (d.kind === 'pcd' ? d.ring.some(m => !m.sig) : 'a' in d ? (d.kind === 'linear' ? unsignedPoint(d.a) || unsignedPoint(d.b) : !d.a.sig || !d.b.sig) : !d.sig) return true;
   }
-  for (const target of doc.drawing?.datumTargets ?? []) if (target.point.endpoint !== undefined && !target.point.sig && target.point.was === undefined) return true;
+  for (const target of doc.drawing?.datumTargets ?? []) if (target.point && target.point.endpoint !== undefined && !target.point.sig && target.point.was === undefined) return true;
   for (const look of Object.values(doc.bodies ?? {})) if (look.faces && Object.keys(look.faces).some(f => !look.faceSigs?.[f])) return true;
   return false;
 }

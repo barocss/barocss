@@ -1,7 +1,7 @@
 // The sheet as a display list in sheet millimetres (y down): frame, title block, the projected views
 // and the dimensions. The SVG and PDF writers and the workspace all draw from it.
 import { datumAnchor } from './datums';
-import { datumTargetConflicts, resolveDatumTarget, type DrawingDatumTarget } from './datumTargets';
+import { datumTargetConflicts, datumTargetSizeText, resolveDatumTarget, type DrawingDatumTarget } from './datumTargets';
 import { characteristicMarks, fmtTol, modifierMarks, zonePrefix, type DrawingFrameComposite } from './controls';
 import { TITLE_FIELDS, TITLE_EXTRA_HEIGHT, revisionTableContent } from './metadata';
 import { weldSymbols, type WeldPlaced } from './welds';
@@ -21,10 +21,10 @@ import { VIEW_IDS, detailLetter, isDetailRef, isSectionRef, isViewId, sameSectio
 import { clipProjectionToDisk, clipRingsToDisk, detailScale, type DetailParent, type DrawingDetail } from './detail';
 import { clipProjectionOutside, clipRingsOutside } from './breaks';
 
-/** visible 0.5, hidden 0.35 dashed, thin 0.25 (dimensions, title block rules), centre 0.25 chain, frame 0.7. */
-export type Pen = 'visible' | 'hidden' | 'thin' | 'center' | 'frame';
+/** visible 0.5, hidden 0.35 dashed, thin 0.25 (dimensions, title block rules), centre 0.25 chain, phantom 0.25 two-dot chain (datum target lines and areas), frame 0.7. */
+export type Pen = 'visible' | 'hidden' | 'thin' | 'center' | 'phantom' | 'frame';
 export const PENS: Record<Pen, { width: number; dash?: number[] }> = {
-  visible: { width: 0.5 }, hidden: { width: 0.35, dash: [3, 1.5] }, thin: { width: 0.25 }, center: { width: 0.25, dash: [8, 1.5, 1.5, 1.5] }, frame: { width: 0.7 },
+  visible: { width: 0.5 }, hidden: { width: 0.35, dash: [3, 1.5] }, thin: { width: 0.25 }, center: { width: 0.25, dash: [8, 1.5, 1.5, 1.5] }, phantom: { width: 0.25, dash: [10, 1.5, 1.5, 1.5, 1.5, 1.5] }, frame: { width: 0.7 },
 };
 /** G24 (the drawing's annotations on the model): what a line of an annotation is, for the 3D display's styles. */
 export type LineRole = 'dimension' | 'extension' | 'leader' | 'frame' | 'weld';
@@ -860,26 +860,77 @@ export function basicBox(marks: readonly Mark[]): Mark[] {
 
 /** Sheet mm: a datum symbol's box, its triangle's base and height. */
 const DATUM_BOX = 6, DATUM_BASE = 3, DATUM_HEIGHT = 2.6;
-/** An endpoint target: a point marker at its current model point, a leader and its letter-number label. */
+/** Sheet mm: a target area's hatch spacing. */
+const TARGET_HATCH = 1;
+/**
+ * A datum target (ASME Y14.5 7.24): the symbol (a circle split by a horizontal line: the letter and number below, an
+ * area's size above), a leader to the target, and the target itself. A point is an X; a line a phantom line (no X); an area a phantom circle or rectangle (the size in model mm at the view's scale) hatched at 45°, the leader
+ * ending at a dot in it.
+ */
 export function datumTargetMarks(layout: SheetLayout, views: DrawingViews, d: DrawingDatumTarget): Mark[] | null {
   const pr = views[d.view], resolved = resolveDatumTarget(pr, d);
   if (!resolved.ok) return null;
-  const v = layout.views[d.view], F = toSheet(v, [dot3(resolved.at, pr.right), dot3(resolved.at, pr.up)]), P = toSheet(v, d.place);
-  const label = `${d.letter}${d.number}`, bounds = textCorners([0, 0], label, TEXT, 'middle'), marker = DATUM_BASE / 2;
-  // Keep the upper half empty and the complete text box inside the lower half, in sheet mm.
-  const baseline = GAP - Math.min(...bounds.map(p => p[1])), labelAt: XY = [P[0], P[1] + baseline];
-  const radius = Math.max(DATUM_BOX / 2, ...bounds.map(p => Math.hypot(p[0], p[1] + baseline))) + GAP;
-  const marks: Mark[] = [
-    { kind: 'line', a: [F[0] - marker, F[1] - marker], b: [F[0] + marker, F[1] + marker], pen: 'thin', role: 'leader' },
-    { kind: 'line', a: [F[0] - marker, F[1] + marker], b: [F[0] + marker, F[1] - marker], pen: 'thin', role: 'leader' },
+  const v = layout.views[d.view], P = toSheet(v, d.place);
+  const label = `${d.letter}${d.number}`, size = datumTargetSizeText(d), marker = DATUM_BASE / 2;
+  const lower = textCorners([0, 0], label, TEXT, 'middle'), upper = size ? textCorners([0, 0], size, TEXT, 'middle') : null;
+  // Keep each half's complete text box inside it, in sheet mm: the label's top just under the split line, the size's bottom just over it.
+  const baseline = GAP - Math.min(...lower.map(p => p[1])), labelAt: XY = [P[0], P[1] + baseline];
+  const sizeAt: XY | null = upper ? [P[0], P[1] - GAP - Math.max(...upper.map(p => p[1]))] : null;
+  const radius = Math.max(DATUM_BOX / 2, ...lower.map(p => Math.hypot(p[0], p[1] + baseline)), ...(upper && sizeAt ? upper.map(p => Math.hypot(p[0], p[1] + sizeAt[1] - P[1])) : [])) + GAP;
+  const cross = (c: XY): Mark[] => [
+    { kind: 'line', a: [c[0] - marker, c[1] - marker], b: [c[0] + marker, c[1] + marker], pen: 'thin', role: 'leader' },
+    { kind: 'line', a: [c[0] - marker, c[1] + marker], b: [c[0] + marker, c[1] - marker], pen: 'thin', role: 'leader' },
   ];
+  const marks: Mark[] = [];
+  let F: XY;
+  if (d.kind === 'line') {
+    const A = toSheet(v, d.line.from), B = toSheet(v, d.line.to);
+    // ASME: the target line is the phantom line itself, drawn in the direct view; the X belongs to a point target.
+    marks.push({ kind: 'line', a: A, b: B, pen: 'phantom', role: 'leader' });
+    F = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2];
+  } else if (d.kind === 'area') {
+    F = toSheet(v, d.area.at);
+    let ring: XY[];
+    if (d.area.shape === 'circle') {
+      const r = d.area.d / 2 * v.scale;
+      marks.push({ kind: 'arc', center: F, u: [r, 0], v: [0, r], t0: 0, t1: 2 * Math.PI, pen: 'phantom', role: 'leader' });
+      ring = Array.from({ length: 48 }, (_, k) => [F[0] + r * Math.cos(k * Math.PI / 24), F[1] + r * Math.sin(k * Math.PI / 24)] as XY);
+    } else {
+      const [x, y] = d.area.at, w = d.area.w / 2, h = d.area.h / 2;
+      ring = ([[x - w, y - h], [x + w, y - h], [x + w, y + h], [x - w, y + h]] as XY[]).map(q => toSheet(v, q));
+      marks.push({ kind: 'polyline', points: [...ring, ring[0]], pen: 'phantom', role: 'leader' });
+    }
+    marks.push({ kind: 'hatch', rings: [ring], spacing: TARGET_HATCH, angle: 45, pen: 'thin' }, dot(F));
+  } else {
+    F = toSheet(v, [dot3(resolved.at, pr.right), dot3(resolved.at, pr.up)]);
+    marks.push(...cross(F));
+  }
   const dir = sub(F, P), length = Math.hypot(...dir);
   if (length > radius) marks.push({ kind: 'line', a: add(P, dir, radius / length), b: F, pen: 'thin', role: 'leader' });
+  // The moveable symbol (ASME Y14.5): the circle drawn out to a point by two lines tangent to it (a 60° point). The point
+  // faces away from the leader, so the leader never crosses it; with no leader it points up.
+  const away: XY = length > radius ? [-dir[0] / length, -dir[1] / length] : [0, -1], side: XY = [-away[1], away[0]];
+  const COS = Math.cos(Math.PI / 3), SIN = Math.sin(Math.PI / 3);
+  if (d.moveable) {
+    const apex = add(P, away, 2 * radius), t1 = add(P, add([away[0] * COS, away[1] * COS], side, SIN), radius), t2 = add(P, add([away[0] * COS, away[1] * COS], side, -SIN), radius);
+    const from = Math.atan2(away[1], away[0]);
+    marks.push({ kind: 'arc', center: P, u: [radius, 0], v: [0, radius], t0: from + Math.PI / 3, t1: from + 5 * Math.PI / 3, pen: 'thin', role: 'frame' },
+      { kind: 'line', a: t1, b: apex, pen: 'thin', role: 'frame' }, { kind: 'line', a: t2, b: apex, pen: 'thin', role: 'frame' });
+  } else marks.push({ kind: 'arc', center: P, u: [radius, 0], v: [0, radius], t0: 0, t1: 2 * Math.PI, pen: 'thin', role: 'frame' });
+  // The split line is a chord of the symbol's outline: where the moveable point opens the circle at one end, it runs on to the tangent line there.
+  let x0 = P[0] - radius, x1 = P[0] + radius;
+  if (d.moveable) for (const m of marks) {
+    if (m.kind !== 'line' || m.role !== 'frame' || Math.abs(m.a[1] - m.b[1]) < 1e-9) continue;
+    const t = (P[1] - m.a[1]) / (m.b[1] - m.a[1]);
+    if (t < 0 || t > 1) continue;
+    const x = m.a[0] + t * (m.b[0] - m.a[0]);
+    if (x > P[0] + radius - 1e-9) x1 = Math.max(x1, x); else if (x < P[0] - radius + 1e-9) x0 = Math.min(x0, x);
+  }
   marks.push(
-    { kind: 'arc', center: P, u: [radius, 0], v: [0, radius], t0: 0, t1: 2 * Math.PI, pen: 'thin', role: 'frame' },
-    { kind: 'line', a: [P[0] - radius, P[1]], b: [P[0] + radius, P[1]], pen: 'thin', role: 'frame' },
+    { kind: 'line', a: [x0, P[1]], b: [x1, P[1]], pen: 'thin', role: 'frame' },
     { kind: 'text', at: labelAt, text: label, size: TEXT, anchor: 'middle' },
   );
+  if (size && sizeAt) marks.push({ kind: 'text', at: sizeAt, text: size, size: TEXT, anchor: 'middle' });
   return marks;
 }
 /** A datum feature symbol: its letter boxed at its place, a leader to a filled triangle on its edge (null: the edge is gone). */

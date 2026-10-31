@@ -7,11 +7,11 @@
 // persistent edge names (a placed part's `<inst>/` kept) with their 3D points. Ids are the sheet items'. The glyph
 // builders the sheet uses are given in plane coordinates too (`frameGlyph`, `weldGlyph`), one source for both.
 import { datumAnchor } from './datums';
-import { datumTargetConflicts, resolveDatumTarget, type DatumTargetFailureCode } from './datumTargets';
+import { datumTargetConflicts, resolveDatumTarget, type DatumTargetArea, type DatumTargetFailureCode, type DatumTargetKind } from './datumTargets';
 import { fmtTol, zonePrefix, type Characteristic, type MaterialModifier } from './controls';
 import type { BrepProjection } from '@barocss/cad';
 import type { Resolved } from './dimensions';
-import { frameMarks, placementOf, projectionOf, type Head, type LineRole, type Mark, type MarkGroup, type Sheet } from './sheet';
+import { frameMarks, hatch, placementOf, projectionOf, type Head, type LineRole, type Mark, type MarkGroup, type Sheet } from './sheet';
 import { symbolMarks, type Side } from './welds';
 import { fromSheet, type SheetLayout, type ViewPlacement } from './views';
 import { isSectionRef, sectionLetter, sectionsOf, type DimView, type DrawingDimension, type DrawingFrame, type DrawingSettings, type DrawingViews, type Tolerance, type XY } from './types';
@@ -45,7 +45,8 @@ export interface ModelAnnotation {
   dimension?: { measure: 'linear' | 'diameter' | 'radius' | 'pcd' | 'angle'; value: number; unit: 'mm' | 'deg'; text: string; tol?: Tolerance; basic?: true; count?: number };
   /** The frame's compartments in order (the symbol's, the zone and value, each datum), and its box in plane coordinates [u0, v0, u1, v1]. */
   frame?: { characteristic: Characteristic; zone: 'diameter' | 'linear' | 'sphere'; statistical?: boolean; unequal?: number; around?: 'all-around' | 'all-over'; stacked?: { zone: 'diameter' | 'linear' | 'sphere'; value: number; datums: string[]; material?: MaterialModifier; datumModifiers?: Record<string, MaterialModifier>; cells: { text: string; symbol?: Characteristic }[] }; value: number; datums: string[]; dim: string; material?: MaterialModifier; datumModifiers?: Record<string, MaterialModifier>; projected?: number; freeState?: boolean; tangentPlane?: boolean; cells: { text: string; symbol?: Characteristic }[]; composite?: { zone: 'diameter' | 'linear' | 'sphere'; value: number; datums: string[]; material?: MaterialModifier; datumModifiers?: Record<string, MaterialModifier>; cells: { text: string }[] }; box: [number, number, number, number] };
-  datum?: { letter: string; targetNumber?: number };
+  /** A datum target also says its kind, its area (model mm, as the symbol's upper text reads it) and whether it is the moveable symbol. */
+  datum?: { letter: string; targetNumber?: number; targetKind?: DatumTargetKind; targetArea?: DatumTargetArea; moveable?: true };
   weld?: { joint: string; kind: 'fillet' | 'butt'; size: number | null; estimate: boolean; allRound: boolean; inner: boolean };
 }
 export interface ModelAnnotations { version: typeof MODEL_ANNOTATIONS_VERSION; items: ModelAnnotation[]; left: { id: string; why: string; code?: DatumTargetFailureCode }[] }
@@ -109,7 +110,8 @@ function itemOf(i: AnnotationInputs, g: MarkGroup, view: DimView, v: ViewPlaceme
     if (g.datumTarget) {
       const d = i.settings.datumTargets?.find(x => x.id === g.id); if (!d) return null;
       const result = resolveDatumTarget(pr, d); if (!result.ok) return null;
-      targets = [{ at: result.at, edge: result.edge }]; extra = { datum: { letter: d.letter, targetNumber: d.number } };
+      targets = [{ at: result.at, ...(result.edge !== undefined ? { edge: result.edge } : {}) }];
+      extra = { datum: { letter: d.letter, targetNumber: d.number, ...(d.kind ? { targetKind: d.kind } : {}), ...(d.kind === 'area' ? { targetArea: d.area } : {}), ...(d.moveable ? { moveable: true as const } : {}) } };
     } else {
       const d = i.settings.datums?.find(x => x.id === g.id); if (!d) return null;
       const at = datumAnchor(i.views, d); if (!at) return null;
@@ -128,6 +130,7 @@ function itemOf(i: AnnotationInputs, g: MarkGroup, view: DimView, v: ViewPlaceme
     if (m.kind === 'line') lines.push({ a: at(m.a), b: at(m.b), role: m.role ?? role });
     else if (m.kind === 'polyline') for (let k = 1; k < m.points.length; k++) lines.push({ a: at(m.points[k - 1]), b: at(m.points[k]), role: m.role ?? role });
     else if (m.kind === 'arc') arcs.push({ center: at(m.center), u: dirOf(plane, [m.u[0] / v.scale, m.u[1] / v.scale]), v: dirOf(plane, [m.v[0] / v.scale, m.v[1] / v.scale]), t0: m.t0, t1: m.t1, role: m.role ?? role });
+    else if (m.kind === 'hatch') for (const l of hatch(m.rings, m.spacing, m.angle)) lines.push({ a: at(l.a), b: at(l.b), role });
     else if (m.kind === 'fill' && m.head) arrows.push({ tip: at(m.head.tip), dir: dirOf(plane, m.head.dir), length: m.head.length / v.scale, width: m.head.width / v.scale, style: m.head.style });
     else if (m.kind === 'text') {
       const a = (m.angle ?? 0) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);

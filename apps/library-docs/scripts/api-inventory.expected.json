@@ -214973,7 +214973,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "({ name: string; description: string; input_schema: { type: string; properties: { mode?: undefined; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { mode: { type: string; enum: string[]; }; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { layout: { type: string; }; mode?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { codes: { type: string; items: { type: string; }; }; mode?: undefined; layout?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { ids: { type: string; items: { type: string; }; }; mode: { type: string; enum: string[]; }; layout?: undefined; codes?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { scope: { oneOf: ({ type: string; properties: { kind: { const: string; }; part: { type: string; }; }; required: string[]; additionalProperties: boolean; } | { type: string; properties: { kind: { const: string; }; part?: undefined; }; required: string[]; additionalProperties: boolean; })[]; }; sheet: { type: string; enum: string[]; }; scale: { anyOf: ({ type: string; enum?: undefined; } | { type: string; enum: string[]; })[]; }; projection: { type: string; enum: string[]; }; front: { type: string; enum: string[]; }; views: { type: string; items: { type: string; enum: string[]; }; }; tolerancing: { type: string; enum: string[]; }; title: { type: string; }; datums: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; face: { type: string; properties: { face: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; edge: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; oneOf: { required: string[]; not: { required: string[]; }; }[]; additionalProperties: boolean; }; }; datumTargets: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; number: { type: string; minimum: number; maximum: number; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; point: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; at: { type: string; enum: string[]; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; endpoint: { type: string; enum: string[]; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; additionalProperties: boolean; }; }; frames: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; }; dim: { type: string; }; view: { type: string; anyOf: ({ enum: string[]; pattern?: undefined; } | { pattern: string; enum?: undefined; })[]; }; place: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; characteristic: { type: string; enum: (\"position\" | \"straightness\" | \"flatness\" | \"circularity\" | \"cylindricity\" | \"profile-line\" | \"profile-surface\" | \"parallelism\" | \"perpendicularity\" | \"angularity\" | \"concentricity\" | \"symmetry\" | \"circular-runout\" | \"total-runout\")[]; }; value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; projected: { type: string; exclusiveMinimum: number; maximum: number; }; freeState: { type: string; }; tangentPlane: { type: string; }; sphere: { type: string; description: string; }; statistical: { type: string; description: string; }; unequal: { type: string; minimum: number; exclusiveMaximum: number; description: string; }; around: { type: string; enum: string[]; description: string; }; composite: { type: string; description: string; properties: { value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; }; required: string[]; additionalProperties: boolean; }; stacked: { type: string; description: string; properties: { value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; allOf: { if: { anyOf: { required: string[]; }[]; }; then: { properties: { characteristic: { enum: string[]; }; }; }; }[]; oneOf: ({ required: string[]; not: { anyOf: { required: string[]; }[]; required?: undefined; }; } | { required: string[]; not: { required: string[]; anyOf?: undefined; }; })[]; additionalProperties: boolean; }; }; titleBlock: { type: string; description: string; properties: { template: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; revisions: { type: string; maxItems: number; description: string; items: { type: string; properties: { revision: { type: string; minLength: number; maxLength: number; }; date: { type: string; description: string; }; description: { type: string; minLength: number; maxLength: number; }; by: { type: string; minLength: number; maxLength: number; }; }; required: string[]; additionalProperties: boolean; }; }; weldSymbols: { type: string; description: string; }; balloons: { type: string; description: string; }; sections: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; at: { type: string; description: string; }; dir: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; half: { type: string; description: string; properties: { line: { type: string; enum: string[]; }; at: { type: string; }; cut: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; steps: { type: string; description: string; items: { type: string; properties: { past: { type: string; }; at: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; along: { type: string; enum: string[]; }; removed: { type: string; description: string; properties: { at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; scale: { type: string; }; }; additionalProperties: boolean; }; revolved: { type: string; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; details: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; description: string; }; center: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; radius: { type: string; description: string; }; scale: { type: string; description: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; breaks: { type: string; description: string; items: { type: string; properties: { axis: { type: string; enum: string[]; }; from: { type: string; }; to: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; tables: { type: string; description: string; items: { type: string; properties: { id: { type: string; minLength: number; }; from: { type: string; enum: string[]; }; title: { type: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; corner: { type: string; enum: string[]; }; whole: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; mode?: undefined; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; })[]",
+            "type": "({ name: string; description: string; input_schema: { type: string; properties: { mode?: undefined; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { mode: { type: string; enum: string[]; }; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { layout: { type: string; }; mode?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { codes: { type: string; items: { type: string; }; }; mode?: undefined; layout?: undefined; ids?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { ids: { type: string; items: { type: string; }; }; mode: { type: string; enum: string[]; }; layout?: undefined; codes?: undefined; }; additionalProperties: boolean; }; } | { name: string; description: string; input_schema: { type: string; properties: { scope: { oneOf: ({ type: string; properties: { kind: { const: string; }; part: { type: string; }; }; required: string[]; additionalProperties: boolean; } | { type: string; properties: { kind: { const: string; }; part?: undefined; }; required: string[]; additionalProperties: boolean; })[]; }; sheet: { type: string; enum: string[]; }; scale: { anyOf: ({ type: string; enum?: undefined; } | { type: string; enum: string[]; })[]; }; projection: { type: string; enum: string[]; }; front: { type: string; enum: string[]; }; views: { type: string; items: { type: string; enum: string[]; }; }; tolerancing: { type: string; enum: string[]; }; title: { type: string; }; datums: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; face: { type: string; properties: { face: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; edge: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; oneOf: { required: string[]; not: { required: string[]; }; }[]; additionalProperties: boolean; }; }; datumTargets: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; number: { type: string; minimum: number; maximum: number; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; kind: { type: string; enum: string[]; }; point: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; at: { type: string; enum: string[]; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; endpoint: { type: string; enum: string[]; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; line: { type: string; properties: { from: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; to: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; area: { type: string; description: string; properties: { shape: { type: string; enum: string[]; }; at: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; d: { type: string; exclusiveMinimum: number; maximum: number; }; w: { type: string; exclusiveMinimum: number; maximum: number; }; h: { type: string; exclusiveMinimum: number; maximum: number; }; }; required: string[]; additionalProperties: boolean; oneOf: { properties: { shape: { enum: string[]; }; }; required: string[]; }[]; }; moveable: { type: string; enum: boolean[]; }; }; required: string[]; additionalProperties: boolean; oneOf: { properties: { kind: { enum: string[]; }; }; required: string[]; }[]; }; }; frames: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; }; dim: { type: string; }; view: { type: string; anyOf: ({ enum: string[]; pattern?: undefined; } | { pattern: string; enum?: undefined; })[]; }; place: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; characteristic: { type: string; enum: (\"position\" | \"straightness\" | \"flatness\" | \"circularity\" | \"cylindricity\" | \"profile-line\" | \"profile-surface\" | \"parallelism\" | \"perpendicularity\" | \"angularity\" | \"concentricity\" | \"symmetry\" | \"circular-runout\" | \"total-runout\")[]; }; value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; projected: { type: string; exclusiveMinimum: number; maximum: number; }; freeState: { type: string; }; tangentPlane: { type: string; }; sphere: { type: string; description: string; }; statistical: { type: string; description: string; }; unequal: { type: string; minimum: number; exclusiveMaximum: number; description: string; }; around: { type: string; enum: string[]; description: string; }; composite: { type: string; description: string; properties: { value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; }; required: string[]; additionalProperties: boolean; }; stacked: { type: string; description: string; properties: { value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; allOf: { if: { anyOf: { required: string[]; }[]; }; then: { properties: { characteristic: { enum: string[]; }; }; }; }[]; oneOf: ({ required: string[]; not: { anyOf: { required: string[]; }[]; required?: undefined; }; } | { required: string[]; not: { required: string[]; anyOf?: undefined; }; })[]; additionalProperties: boolean; }; }; titleBlock: { type: string; description: string; properties: { template: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; revisions: { type: string; maxItems: number; description: string; items: { type: string; properties: { revision: { type: string; minLength: number; maxLength: number; }; date: { type: string; description: string; }; description: { type: string; minLength: number; maxLength: number; }; by: { type: string; minLength: number; maxLength: number; }; }; required: string[]; additionalProperties: boolean; }; }; weldSymbols: { type: string; description: string; }; balloons: { type: string; description: string; }; sections: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; at: { type: string; description: string; }; dir: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; half: { type: string; description: string; properties: { line: { type: string; enum: string[]; }; at: { type: string; }; cut: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; steps: { type: string; description: string; items: { type: string; properties: { past: { type: string; }; at: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; along: { type: string; enum: string[]; }; removed: { type: string; description: string; properties: { at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; scale: { type: string; }; }; additionalProperties: boolean; }; revolved: { type: string; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; details: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; description: string; }; center: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; radius: { type: string; description: string; }; scale: { type: string; description: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; breaks: { type: string; description: string; items: { type: string; properties: { axis: { type: string; enum: string[]; }; from: { type: string; }; to: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; tables: { type: string; description: string; items: { type: string; properties: { id: { type: string; minLength: number; }; from: { type: string; enum: string[]; }; title: { type: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; corner: { type: string; enum: string[]; }; whole: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; mode?: undefined; layout?: undefined; codes?: undefined; ids?: undefined; }; additionalProperties: boolean; }; })[]",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -227759,7 +227759,7 @@
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
-                "type": "{ letter: string; targetNumber?: number | undefined; } | undefined"
+                "type": "{ letter: string; targetNumber?: number | undefined; targetKind?: DatumTargetKind | undefined; targetArea?: DatumTargetArea | undefined; moveable?: true | undefined; } | undefined"
               },
               {
                 "name": "dimension",
@@ -231814,6 +231814,80 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./drawing/datumTargets",
+      "exportName": "DatumTargetArea",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/datumTargets.ts",
+            "name": "DatumTargetArea",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "{ shape: \"circle\"; at: XY; d: number; } | { shape: \"rect\"; at: XY; w: number; h: number; }",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "{\n    shape: \"circle\";\n    at: XY;\n    d: number;\n} | {\n    shape: \"rect\";\n    at: XY;\n    w: number;\n    h: number;\n}"
+              }
+            ],
+            "members": [
+              {
+                "name": "at",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "XY"
+              },
+              {
+                "name": "d",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "h",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "shape",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"circle\""
+              },
+              {
+                "name": "shape",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"rect\""
+              },
+              {
+                "name": "w",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/datumTargets",
       "exportName": "DatumTargetFailureCode",
       "space": "type",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -232203,6 +232277,469 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./drawing/datumTargets",
+      "exportName": "DatumTargetKind",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/datumTargets.ts",
+            "name": "DatumTargetKind",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "\"line\" | \"point\" | \"area\"",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "\"point\" | \"line\" | \"area\""
+              }
+            ],
+            "members": [
+              {
+                "name": "__@iterator@81",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => StringIterator<string>"
+              },
+              {
+                "name": "anchor",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => string"
+              },
+              {
+                "name": "at",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => string | undefined"
+              },
+              {
+                "name": "big",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "blink",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "bold",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "charAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(pos: number) => string"
+              },
+              {
+                "name": "charCodeAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => number"
+              },
+              {
+                "name": "codePointAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(pos: number) => number | undefined"
+              },
+              {
+                "name": "concat",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(...strings: string[]) => string"
+              },
+              {
+                "name": "endsWith",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, endPosition?: number | undefined) => boolean"
+              },
+              {
+                "name": "fixed",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "fontcolor",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(color: string) => string"
+              },
+              {
+                "name": "fontsize",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (size: number): string; (size: string): string; }"
+              },
+              {
+                "name": "includes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => boolean"
+              },
+              {
+                "name": "indexOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => number"
+              },
+              {
+                "name": "italics",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "lastIndexOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => number"
+              },
+              {
+                "name": "length",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "link",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(url: string) => string"
+              },
+              {
+                "name": "localeCompare",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (that: string): number; (that: string, locales?: string | string[] | undefined, options?: CollatorOptions | undefined): number; (that: string, locales?: LocalesArgument, options?: CollatorOptions | undefined): number; }"
+              },
+              {
+                "name": "match",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (regexp: string | RegExp): RegExpMatchArray | null; (matcher: { [Symbol.match](string: string): RegExpMatchArray | null; }): RegExpMatchArray | null; }"
+              },
+              {
+                "name": "matchAll",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(regexp: RegExp) => RegExpStringIterator<RegExpExecArray>"
+              },
+              {
+                "name": "normalize",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (form: \"NFC\" | \"NFD\" | \"NFKC\" | \"NFKD\"): string; (form?: string | undefined): string; }"
+              },
+              {
+                "name": "padEnd",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(maxLength: number, fillString?: string | undefined) => string"
+              },
+              {
+                "name": "padStart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(maxLength: number, fillString?: string | undefined) => string"
+              },
+              {
+                "name": "repeat",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(count: number) => string"
+              },
+              {
+                "name": "replace",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; (searchValue: { [Symbol.replace](string: string, replaceValue: string): string; }, replaceValue: string): string; (searchValue: { [Symbol.replace](string: string, replacer: (substring: string, ...args: any[]) => string): string; }, replacer: (substring: string, ...args: any[]) => string): string; }"
+              },
+              {
+                "name": "replaceAll",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; }"
+              },
+              {
+                "name": "search",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (regexp: string | RegExp): number; (searcher: { [Symbol.search](string: string): number; }): number; }"
+              },
+              {
+                "name": "slice",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start?: number | undefined, end?: number | undefined) => string"
+              },
+              {
+                "name": "small",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "split",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (separator: string | RegExp, limit?: number | undefined): string[]; (splitter: { [Symbol.split](string: string, limit?: number | undefined): string[]; }, limit?: number | undefined): string[]; }"
+              },
+              {
+                "name": "startsWith",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => boolean"
+              },
+              {
+                "name": "strike",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "sub",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "substr",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(from: number, length?: number | undefined) => string"
+              },
+              {
+                "name": "substring",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start: number, end?: number | undefined) => string"
+              },
+              {
+                "name": "sup",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toLocaleLowerCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+              },
+              {
+                "name": "toLocaleUpperCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+              },
+              {
+                "name": "toLowerCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toString",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toUpperCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trim",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimEnd",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimLeft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimRight",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimStart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "valueOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              }
+            ],
+            "indexSignatures": [
+              {
+                "key": "number",
+                "type": "string",
+                "readonly": true,
+                "callable": false
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/datumTargets",
+      "exportName": "DatumTargetPoint",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/datumTargets.ts",
+            "name": "DatumTargetPoint",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "{ edge: string; at: \"end\"; near: Vec3; endpoint?: \"min\" | \"max\" | undefined; sig?: Sig | undefined; was?: string | undefined; }",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "{\n    edge: string;\n    at: \"end\";\n    near: Vec3;\n    endpoint?: \"min\" | \"max\";\n    sig?: Sig;\n    was?: string;\n}"
+              }
+            ],
+            "members": [
+              {
+                "name": "at",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"end\""
+              },
+              {
+                "name": "edge",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "endpoint",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "\"min\" | \"max\" | undefined"
+              },
+              {
+                "name": "near",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Vec3"
+              },
+              {
+                "name": "sig",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "Sig | undefined"
+              },
+              {
+                "name": "was",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/datumTargets",
       "exportName": "DatumTargetResolution",
       "space": "type",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -232218,11 +232755,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "{ ok: true; at: Vec3; edge: string; } | { ok: false; code: DatumTargetFailureCode; reason: string; }",
+            "type": "{ ok: true; at: Vec3; edge?: string | undefined; } | { ok: false; code: DatumTargetFailureCode; reason: string; }",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "{\n    ok: true;\n    at: Vec3;\n    edge: string;\n} | {\n    ok: false;\n    code: DatumTargetFailureCode;\n    reason: string;\n}"
+                "definition": "{\n    ok: true;\n    at: Vec3;\n    edge?: string;\n} | {\n    ok: false;\n    code: DatumTargetFailureCode;\n    reason: string;\n}"
               }
             ],
             "members": [
@@ -232243,9 +232780,9 @@
               {
                 "name": "edge",
                 "kind": "property",
-                "optional": false,
+                "optional": true,
                 "readonly": false,
-                "type": "string"
+                "type": "string | undefined"
               },
               {
                 "name": "ok",
@@ -232277,6 +232814,108 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./drawing/datumTargets",
+      "exportName": "DrawingAreaDatumTarget",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/datumTargets.ts",
+            "name": "DrawingAreaDatumTarget",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "DatumTargetBase & { kind: \"area\"; area: DatumTargetArea; point?: undefined; line?: undefined; }",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "DatumTargetBase & {\n    kind: \"area\";\n    area: DatumTargetArea;\n    point?: never;\n    line?: never;\n}"
+              }
+            ],
+            "members": [
+              {
+                "name": "area",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "DatumTargetArea"
+              },
+              {
+                "name": "id",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "kind",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"area\""
+              },
+              {
+                "name": "letter",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "line",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "undefined"
+              },
+              {
+                "name": "moveable",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "true | undefined"
+              },
+              {
+                "name": "number",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "place",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "XY"
+              },
+              {
+                "name": "point",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "undefined"
+              },
+              {
+                "name": "view",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "ViewId"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/datumTargets",
       "exportName": "DrawingDatumTarget",
       "space": "type",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -232289,16 +232928,31 @@
             "package": "@barocss/cad-model",
             "file": "src/drawing/datumTargets.ts",
             "name": "DrawingDatumTarget",
-            "kind": "interface"
+            "kind": "type"
           },
           "shape": {
-            "type": "DrawingDatumTarget",
+            "type": "DrawingPointDatumTarget | DrawingLineDatumTarget | DrawingAreaDatumTarget",
             "declarationSignatures": [
               {
-                "kind": "InterfaceDeclaration"
+                "kind": "TypeAliasDeclaration",
+                "definition": "DrawingPointDatumTarget | DrawingLineDatumTarget | DrawingAreaDatumTarget"
               }
             ],
             "members": [
+              {
+                "name": "area",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "DatumTargetArea"
+              },
+              {
+                "name": "area",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "undefined"
+              },
               {
                 "name": "id",
                 "kind": "property",
@@ -232307,11 +232961,53 @@
                 "type": "string"
               },
               {
+                "name": "kind",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"area\""
+              },
+              {
+                "name": "kind",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"line\""
+              },
+              {
+                "name": "kind",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "\"point\" | undefined"
+              },
+              {
                 "name": "letter",
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
                 "type": "string"
+              },
+              {
+                "name": "line",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "undefined"
+              },
+              {
+                "name": "line",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ from: XY; to: XY; }"
+              },
+              {
+                "name": "moveable",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "true | undefined"
               },
               {
                 "name": "number",
@@ -232332,7 +233028,218 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "{ edge: string; at: \"end\"; near: Vec3; endpoint?: \"min\" | \"max\" | undefined; sig?: Sig | undefined; was?: string | undefined; }"
+                "type": "DatumTargetPoint"
+              },
+              {
+                "name": "point",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "undefined"
+              },
+              {
+                "name": "view",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "ViewId"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/datumTargets",
+      "exportName": "DrawingLineDatumTarget",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/datumTargets.ts",
+            "name": "DrawingLineDatumTarget",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "DatumTargetBase & { kind: \"line\"; line: { from: XY; to: XY; }; point?: undefined; area?: undefined; }",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "DatumTargetBase & {\n    kind: \"line\";\n    line: {\n        from: XY;\n        to: XY;\n    };\n    point?: never;\n    area?: never;\n}"
+              }
+            ],
+            "members": [
+              {
+                "name": "area",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "undefined"
+              },
+              {
+                "name": "id",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "kind",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"line\""
+              },
+              {
+                "name": "letter",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "line",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ from: XY; to: XY; }"
+              },
+              {
+                "name": "moveable",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "true | undefined"
+              },
+              {
+                "name": "number",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "place",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "XY"
+              },
+              {
+                "name": "point",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "undefined"
+              },
+              {
+                "name": "view",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "ViewId"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/datumTargets",
+      "exportName": "DrawingPointDatumTarget",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/datumTargets.ts",
+            "name": "DrawingPointDatumTarget",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "DatumTargetBase & { kind?: \"point\" | undefined; point: DatumTargetPoint; line?: undefined; area?: undefined; }",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "DatumTargetBase & {\n    kind?: \"point\";\n    point: DatumTargetPoint;\n    line?: never;\n    area?: never;\n}"
+              }
+            ],
+            "members": [
+              {
+                "name": "area",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "undefined"
+              },
+              {
+                "name": "id",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "kind",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "\"point\" | undefined"
+              },
+              {
+                "name": "letter",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "line",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "undefined"
+              },
+              {
+                "name": "moveable",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "true | undefined"
+              },
+              {
+                "name": "number",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "place",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "XY"
+              },
+              {
+                "name": "point",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "DatumTargetPoint"
               },
               {
                 "name": "view",
@@ -232443,6 +233350,68 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./drawing/datumTargets",
+      "exportName": "datumTargetKind",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/datumTargets.ts",
+            "name": "datumTargetKind",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(t: Pick<DrawingDatumTarget, \"kind\">) => DatumTargetKind",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(t: Pick<DrawingDatumTarget, \"kind\">) => DatumTargetKind"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/datumTargets",
+      "exportName": "datumTargetSizeText",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/datumTargets.ts",
+            "name": "datumTargetSizeText",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(t: DrawingDatumTarget) => string | null",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(t: DrawingDatumTarget) => string | null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/datumTargets",
       "exportName": "datumTargetsProperty",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -232458,7 +233427,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "{ type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; number: { type: string; minimum: number; maximum: number; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; point: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; at: { type: string; enum: string[]; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; endpoint: { type: string; enum: string[]; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; additionalProperties: boolean; }; }",
+            "type": "{ type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; number: { type: string; minimum: number; maximum: number; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; kind: { type: string; enum: string[]; }; point: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; at: { type: string; enum: string[]; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; endpoint: { type: string; enum: string[]; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; line: { type: string; properties: { from: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; to: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; area: { type: string; description: string; properties: { shape: { type: string; enum: string[]; }; at: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; d: { type: string; exclusiveMinimum: number; maximum: number; }; w: { type: string; exclusiveMinimum: number; maximum: number; }; h: { type: string; exclusiveMinimum: number; maximum: number; }; }; required: string[]; additionalProperties: boolean; oneOf: { properties: { shape: { enum: string[]; }; }; required: string[]; }[]; }; moveable: { type: string; enum: boolean[]; }; }; required: string[]; additionalProperties: boolean; oneOf: { properties: { kind: { enum: string[]; }; }; required: string[]; }[]; }; }",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -235168,11 +236137,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"DUPLICATE\" | DatumTargetFailureCode | \"DIM_ON_HIDDEN\" | \"DATUM_LOST\" | \"FRAME_LOST\" | \"FRAME_VIEW_MISSING\" | \"DATUM_UNDEFINED\" | \"FRAME_RULE\" | \"DATUM_TWICE\" | \"VIEW_NEEDED\" | \"DIMENSION_LOST\" | \"TEXT_OVERLAP\" | \"TEXT_OVER_LINES\" | \"OFF_SHEET\" | \"VIEWS_DONT_FIT\" | \"REMATCHED\" | \"HOLE_SIZE_MISSING\" | \"HOLE_NOT_LOCATED\" | \"STEP_NOT_LOCATED\" | \"OVERALL_MISSING\" | \"TABLE_SOURCE\" | \"WELD_NOT_SHOWN\" | \"BALLOON_NOT_CLEAR\" | \"BALLOON_NO_EDGE\" | \"FIT_ROW_MISSING\" | \"FOLLOWED_CHANGED\" | \"DETAIL_PARENT_MISSING\" | \"DETAIL_EMPTY\" | \"DETAIL_NO_ROOM\" | \"BREAK_NO_VIEW\" | \"SECTION_NO_ROOM\" | \"SECTION_NO_VIEW\"",
+            "type": "\"DUPLICATE\" | DatumTargetFailureCode | \"DIM_ON_HIDDEN\" | \"DATUM_LOST\" | \"FRAME_LOST\" | \"FRAME_VIEW_MISSING\" | \"DATUM_UNDEFINED\" | \"FRAME_RULE\" | \"DATUM_TWICE\" | \"VIEW_NEEDED\" | \"DIMENSION_LOST\" | \"TEXT_OVERLAP\" | \"TEXT_OVER_LINES\" | \"OFF_SHEET\" | \"VIEWS_DONT_FIT\" | \"REMATCHED\" | \"HOLE_SIZE_MISSING\" | \"HOLE_NOT_LOCATED\" | \"STEP_NOT_LOCATED\" | \"OVERALL_MISSING\" | \"TABLE_SOURCE\" | \"WELD_NOT_SHOWN\" | \"BALLOON_NOT_CLEAR\" | \"BALLOON_NO_EDGE\" | \"FIT_ROW_MISSING\" | \"FOLLOWED_CHANGED\" | \"DETAIL_PARENT_MISSING\" | \"DETAIL_EMPTY\" | \"DETAIL_NO_ROOM\" | \"BREAK_NO_VIEW\" | \"SECTION_NO_ROOM\" | \"SECTION_NO_VIEW\" | \"DATUM_TARGET_OUTSIDE\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "\"DIM_ON_HIDDEN\" | \"DATUM_LOST\" | \"FRAME_LOST\" | \"FRAME_VIEW_MISSING\" | \"DATUM_UNDEFINED\" | \"FRAME_RULE\" | \"DATUM_TWICE\" | \"VIEW_NEEDED\" | \"DIMENSION_LOST\" | \"TEXT_OVERLAP\" | \"TEXT_OVER_LINES\" | \"OFF_SHEET\" | \"VIEWS_DONT_FIT\" | \"DUPLICATE\" | \"REMATCHED\" | \"HOLE_SIZE_MISSING\" | \"HOLE_NOT_LOCATED\" | \"STEP_NOT_LOCATED\" | \"OVERALL_MISSING\" | \"TABLE_SOURCE\" | \"WELD_NOT_SHOWN\" | \"BALLOON_NOT_CLEAR\" | \"BALLOON_NO_EDGE\" | \"FIT_ROW_MISSING\" | \"FOLLOWED_CHANGED\" | \"DETAIL_PARENT_MISSING\" | \"DETAIL_EMPTY\" | \"DETAIL_NO_ROOM\" | \"BREAK_NO_VIEW\" | \"SECTION_NO_ROOM\" | \"SECTION_NO_VIEW\" | DatumTargetFailureCode"
+                "definition": "\"DIM_ON_HIDDEN\" | \"DATUM_LOST\" | \"FRAME_LOST\" | \"FRAME_VIEW_MISSING\" | \"DATUM_UNDEFINED\" | \"FRAME_RULE\" | \"DATUM_TWICE\" | \"VIEW_NEEDED\" | \"DIMENSION_LOST\" | \"TEXT_OVERLAP\" | \"TEXT_OVER_LINES\" | \"OFF_SHEET\" | \"VIEWS_DONT_FIT\" | \"DUPLICATE\" | \"REMATCHED\" | \"HOLE_SIZE_MISSING\" | \"HOLE_NOT_LOCATED\" | \"STEP_NOT_LOCATED\" | \"OVERALL_MISSING\" | \"TABLE_SOURCE\" | \"WELD_NOT_SHOWN\" | \"BALLOON_NOT_CLEAR\" | \"BALLOON_NO_EDGE\" | \"FIT_ROW_MISSING\" | \"FOLLOWED_CHANGED\" | \"DETAIL_PARENT_MISSING\" | \"DETAIL_EMPTY\" | \"DETAIL_NO_ROOM\" | \"BREAK_NO_VIEW\" | \"SECTION_NO_ROOM\" | \"SECTION_NO_VIEW\" | \"DATUM_TARGET_OUTSIDE\" | DatumTargetFailureCode"
               }
             ],
             "members": [
@@ -237763,7 +238732,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "{ datums: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; face: { type: string; properties: { face: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; edge: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; oneOf: { required: string[]; not: { required: string[]; }; }[]; additionalProperties: boolean; }; }; datumTargets: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; number: { type: string; minimum: number; maximum: number; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; point: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; at: { type: string; enum: string[]; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; endpoint: { type: string; enum: string[]; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; additionalProperties: boolean; }; }; frames: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; }; dim: { type: string; }; view: { type: string; anyOf: ({ enum: string[]; pattern?: undefined; } | { pattern: string; enum?: undefined; })[]; }; place: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; characteristic: { type: string; enum: (\"position\" | \"straightness\" | \"flatness\" | \"circularity\" | \"cylindricity\" | \"profile-line\" | \"profile-surface\" | \"parallelism\" | \"perpendicularity\" | \"angularity\" | \"concentricity\" | \"symmetry\" | \"circular-runout\" | \"total-runout\")[]; }; value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; projected: { type: string; exclusiveMinimum: number; maximum: number; }; freeState: { type: string; }; tangentPlane: { type: string; }; sphere: { type: string; description: string; }; statistical: { type: string; description: string; }; unequal: { type: string; minimum: number; exclusiveMaximum: number; description: string; }; around: { type: string; enum: string[]; description: string; }; composite: { type: string; description: string; properties: { value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; }; required: string[]; additionalProperties: boolean; }; stacked: { type: string; description: string; properties: { value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; allOf: { if: { anyOf: { required: string[]; }[]; }; then: { properties: { characteristic: { enum: string[]; }; }; }; }[]; oneOf: ({ required: string[]; not: { anyOf: { required: string[]; }[]; required?: undefined; }; } | { required: string[]; not: { required: string[]; anyOf?: undefined; }; })[]; additionalProperties: boolean; }; }; titleBlock: { type: string; description: string; properties: { template: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; revisions: { type: string; maxItems: number; description: string; items: { type: string; properties: { revision: { type: string; minLength: number; maxLength: number; }; date: { type: string; description: string; }; description: { type: string; minLength: number; maxLength: number; }; by: { type: string; minLength: number; maxLength: number; }; }; required: string[]; additionalProperties: boolean; }; }; weldSymbols: { type: string; description: string; }; balloons: { type: string; description: string; }; sections: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; at: { type: string; description: string; }; dir: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; half: { type: string; description: string; properties: { line: { type: string; enum: string[]; }; at: { type: string; }; cut: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; steps: { type: string; description: string; items: { type: string; properties: { past: { type: string; }; at: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; along: { type: string; enum: string[]; }; removed: { type: string; description: string; properties: { at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; scale: { type: string; }; }; additionalProperties: boolean; }; revolved: { type: string; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; details: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; description: string; }; center: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; radius: { type: string; description: string; }; scale: { type: string; description: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; breaks: { type: string; description: string; items: { type: string; properties: { axis: { type: string; enum: string[]; }; from: { type: string; }; to: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; tables: { type: string; description: string; items: { type: string; properties: { id: { type: string; minLength: number; }; from: { type: string; enum: string[]; }; title: { type: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; corner: { type: string; enum: string[]; }; whole: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; }",
+            "type": "{ datums: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; face: { type: string; properties: { face: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; edge: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; oneOf: { required: string[]; not: { required: string[]; }; }[]; additionalProperties: boolean; }; }; datumTargets: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; minLength: number; maxLength: number; pattern: string; }; letter: { type: string; pattern: string; }; number: { type: string; minimum: number; maximum: number; }; view: { type: string; enum: string[]; }; place: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; kind: { type: string; enum: string[]; }; point: { type: string; properties: { edge: { type: string; minLength: number; maxLength: number; pattern: string; }; at: { type: string; enum: string[]; }; near: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; endpoint: { type: string; enum: string[]; }; sig: { type: string; properties: { k: { type: string; }; p: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; d: { minItems: number; maxItems: number; type: string; items: { type: string; }; }; s: { type: string; }; r: { type: string; }; n: { type: string; }; }; required: string[]; additionalProperties: boolean; }; was: { type: string; }; }; required: string[]; additionalProperties: boolean; }; line: { type: string; properties: { from: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; to: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; }; required: string[]; additionalProperties: boolean; }; area: { type: string; description: string; properties: { shape: { type: string; enum: string[]; }; at: { type: string; minItems: number; maxItems: number; items: { type: string; }; }; d: { type: string; exclusiveMinimum: number; maximum: number; }; w: { type: string; exclusiveMinimum: number; maximum: number; }; h: { type: string; exclusiveMinimum: number; maximum: number; }; }; required: string[]; additionalProperties: boolean; oneOf: { properties: { shape: { enum: string[]; }; }; required: string[]; }[]; }; moveable: { type: string; enum: boolean[]; }; }; required: string[]; additionalProperties: boolean; oneOf: { properties: { kind: { enum: string[]; }; }; required: string[]; }[]; }; }; frames: { type: string; maxItems: number; description: string; items: { type: string; properties: { id: { type: string; }; dim: { type: string; }; view: { type: string; anyOf: ({ enum: string[]; pattern?: undefined; } | { pattern: string; enum?: undefined; })[]; }; place: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; characteristic: { type: string; enum: (\"position\" | \"straightness\" | \"flatness\" | \"circularity\" | \"cylindricity\" | \"profile-line\" | \"profile-surface\" | \"parallelism\" | \"perpendicularity\" | \"angularity\" | \"concentricity\" | \"symmetry\" | \"circular-runout\" | \"total-runout\")[]; }; value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; projected: { type: string; exclusiveMinimum: number; maximum: number; }; freeState: { type: string; }; tangentPlane: { type: string; }; sphere: { type: string; description: string; }; statistical: { type: string; description: string; }; unequal: { type: string; minimum: number; exclusiveMaximum: number; description: string; }; around: { type: string; enum: string[]; description: string; }; composite: { type: string; description: string; properties: { value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; }; required: string[]; additionalProperties: boolean; }; stacked: { type: string; description: string; properties: { value: { type: string; exclusiveMinimum: number; exclusiveMaximum: number; }; datums: { type: string; maxItems: number; items: { type: string; pattern: string; }; }; diameter: { type: string; }; material: { type: string; enum: string[]; }; datumModifiers: { type: string; additionalProperties: { type: string; enum: string[]; }; }; }; required: string[]; additionalProperties: boolean; }; }; required: string[]; allOf: { if: { anyOf: { required: string[]; }[]; }; then: { properties: { characteristic: { enum: string[]; }; }; }; }[]; oneOf: ({ required: string[]; not: { anyOf: { required: string[]; }[]; required?: undefined; }; } | { required: string[]; not: { required: string[]; anyOf?: undefined; }; })[]; additionalProperties: boolean; }; }; titleBlock: { type: string; description: string; properties: { template: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; revisions: { type: string; maxItems: number; description: string; items: { type: string; properties: { revision: { type: string; minLength: number; maxLength: number; }; date: { type: string; description: string; }; description: { type: string; minLength: number; maxLength: number; }; by: { type: string; minLength: number; maxLength: number; }; }; required: string[]; additionalProperties: boolean; }; }; weldSymbols: { type: string; description: string; }; balloons: { type: string; description: string; }; sections: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; enum: string[]; }; at: { type: string; description: string; }; dir: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; half: { type: string; description: string; properties: { line: { type: string; enum: string[]; }; at: { type: string; }; cut: { type: string; enum: string[]; }; }; required: string[]; additionalProperties: boolean; }; steps: { type: string; description: string; items: { type: string; properties: { past: { type: string; }; at: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; along: { type: string; enum: string[]; }; removed: { type: string; description: string; properties: { at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; scale: { type: string; }; }; additionalProperties: boolean; }; revolved: { type: string; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; details: { type: string; description: string; items: { type: string; properties: { id: { type: string; pattern: string; }; view: { type: string; description: string; }; center: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; radius: { type: string; description: string; }; scale: { type: string; description: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; description: string; }; }; required: string[]; additionalProperties: boolean; }; }; breaks: { type: string; description: string; items: { type: string; properties: { axis: { type: string; enum: string[]; }; from: { type: string; }; to: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; tables: { type: string; description: string; items: { type: string; properties: { id: { type: string; minLength: number; }; from: { type: string; enum: string[]; }; title: { type: string; }; at: { type: string; items: { type: string; }; minItems: number; maxItems: number; }; corner: { type: string; enum: string[]; }; whole: { type: string; }; }; required: string[]; additionalProperties: boolean; }; }; }",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -239636,11 +240605,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"center\" | \"frame\" | \"hidden\" | \"visible\" | \"thin\"",
+            "type": "\"center\" | \"frame\" | \"hidden\" | \"visible\" | \"thin\" | \"phantom\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "\"visible\" | \"hidden\" | \"thin\" | \"center\" | \"frame\""
+                "definition": "\"visible\" | \"hidden\" | \"thin\" | \"center\" | \"phantom\" | \"frame\""
               }
             ],
             "members": [
@@ -243160,16 +244129,31 @@
             "package": "@barocss/cad-model",
             "file": "src/drawing/datumTargets.ts",
             "name": "DrawingDatumTarget",
-            "kind": "interface"
+            "kind": "type"
           },
           "shape": {
-            "type": "DrawingDatumTarget",
+            "type": "DrawingPointDatumTarget | DrawingLineDatumTarget | DrawingAreaDatumTarget",
             "declarationSignatures": [
               {
-                "kind": "InterfaceDeclaration"
+                "kind": "TypeAliasDeclaration",
+                "definition": "DrawingPointDatumTarget | DrawingLineDatumTarget | DrawingAreaDatumTarget"
               }
             ],
             "members": [
+              {
+                "name": "area",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "DatumTargetArea"
+              },
+              {
+                "name": "area",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "undefined"
+              },
               {
                 "name": "id",
                 "kind": "property",
@@ -243178,11 +244162,53 @@
                 "type": "string"
               },
               {
+                "name": "kind",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"area\""
+              },
+              {
+                "name": "kind",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"line\""
+              },
+              {
+                "name": "kind",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "\"point\" | undefined"
+              },
+              {
                 "name": "letter",
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
                 "type": "string"
+              },
+              {
+                "name": "line",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "undefined"
+              },
+              {
+                "name": "line",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ from: XY; to: XY; }"
+              },
+              {
+                "name": "moveable",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "true | undefined"
               },
               {
                 "name": "number",
@@ -243203,7 +244229,14 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "{ edge: string; at: \"end\"; near: Vec3; endpoint?: \"min\" | \"max\" | undefined; sig?: Sig | undefined; was?: string | undefined; }"
+                "type": "DatumTargetPoint"
+              },
+              {
+                "name": "point",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "undefined"
               },
               {
                 "name": "view",

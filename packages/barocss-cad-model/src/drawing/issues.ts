@@ -21,6 +21,7 @@
 //   STEP_NOT_LOCATED   a step's (an inner edge's) position not given                     fix: Auto-dimension
 //   OVERALL_MISSING    the part's width, height or depth not given                         fix: Auto-dimension
 //   VIEW_NEEDED        a hole shows round only in a view not shown (R14.3)                 fix: show the view
+//   DATUM_TARGET_OUTSIDE  a line or area datum target (placed by view points) lies partly outside the part as the view shows it  (none: move it)
 // Tables (O49) are annotations: TEXT_OVERLAP, TEXT_OVER_LINES (a view's lines or area) and OFF_SHEET, fix: move it
 // (move-table); and an error of their own:
 //   TABLE_SOURCE       a table's source is unknown or gave nothing (drawn with its reason)   (none: fix the part or the table)
@@ -41,7 +42,7 @@ import { SECTION_VIEWS, VIEW_IDS, baseViewOf, detailLetter, isDetailRef, isViewI
 
 export const DRAWING_ISSUES_VERSION = 'cad-studio-drawing-issues-v1';
 
-export type DrawingIssueCode = 'DIM_ON_HIDDEN' | 'DATUM_LOST' | 'FRAME_LOST' | 'FRAME_VIEW_MISSING' | 'DATUM_UNDEFINED' | 'FRAME_RULE' | 'DATUM_TWICE' | 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING' | 'TABLE_SOURCE' | 'WELD_NOT_SHOWN' | 'BALLOON_NOT_CLEAR' | 'BALLOON_NO_EDGE' | 'FIT_ROW_MISSING' | 'FOLLOWED_CHANGED' | 'DETAIL_PARENT_MISSING' | 'DETAIL_EMPTY' | 'DETAIL_NO_ROOM' | 'BREAK_NO_VIEW' | 'SECTION_NO_ROOM' | 'SECTION_NO_VIEW' | DatumTargetFailureCode;
+export type DrawingIssueCode = 'DIM_ON_HIDDEN' | 'DATUM_LOST' | 'FRAME_LOST' | 'FRAME_VIEW_MISSING' | 'DATUM_UNDEFINED' | 'FRAME_RULE' | 'DATUM_TWICE' | 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING' | 'TABLE_SOURCE' | 'WELD_NOT_SHOWN' | 'BALLOON_NOT_CLEAR' | 'BALLOON_NO_EDGE' | 'FIT_ROW_MISSING' | 'FOLLOWED_CHANGED' | 'DETAIL_PARENT_MISSING' | 'DETAIL_EMPTY' | 'DETAIL_NO_ROOM' | 'BREAK_NO_VIEW' | 'SECTION_NO_ROOM' | 'SECTION_NO_VIEW' | 'DATUM_TARGET_OUTSIDE' | DatumTargetFailureCode;
 export type DrawingFix =
   | { kind: 'remove'; dim: string }
   | { kind: 'move'; dim: string; place: XY }
@@ -248,6 +249,15 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
     const result = targetConflicts.has(d) ? { ok: false as const, code: 'DATUM_TARGET_DUPLICATE' as const, reason: 'The datum target id or letter-number is defined more than once.' } : resolveDatumTarget(ctx.views[d.view], d);
     if (!result.ok) out.push({ code: result.code, severity: 'error', message: `Datum target ${d.letter}${d.number}: ${result.reason}`, datumTargets: [d.id], view: d.view });
     else if (layout.views[d.view].hidden) out.push({ code: 'VIEW_NEEDED', severity: 'warning', message: `Datum target ${d.letter}${d.number}: its ${d.view} view is not shown.`, datumTargets: [d.id], view: d.view });
+    else if (d.kind === 'line' || d.kind === 'area') {
+      // Line and area targets are placed by view points and follow no geometry: say when they no longer lie on the part.
+      const pr = ctx.views[d.view], pts: XY[] = d.kind === 'line' ? [d.line.from, d.line.to]
+        : d.area.shape === 'circle' ? [[d.area.at[0] - d.area.d / 2, d.area.at[1] - d.area.d / 2], [d.area.at[0] + d.area.d / 2, d.area.at[1] + d.area.d / 2]]
+        : [[d.area.at[0] - d.area.w / 2, d.area.at[1] - d.area.h / 2], [d.area.at[0] + d.area.w / 2, d.area.at[1] + d.area.h / 2]];
+      const eps = 1e-6;
+      if (pts.some(p => p[0] < pr.min[0] - eps || p[0] > pr.max[0] + eps || p[1] < pr.min[1] - eps || p[1] > pr.max[1] + eps))
+        out.push({ code: 'DATUM_TARGET_OUTSIDE', severity: 'warning', message: `Datum target ${d.letter}${d.number}: its ${d.kind === 'line' ? 'line' : 'area'} lies partly outside the part in the ${d.view} view. It is placed by view points and does not follow the part; move it.`, datumTargets: [d.id], view: d.view });
+    }
   }
   // (A datum exists when a datum feature symbol or a datum target set has its letter.)
   const known = new Set([...letters.keys(), ...(settings.datumTargets ?? []).map(t => t.letter)]);

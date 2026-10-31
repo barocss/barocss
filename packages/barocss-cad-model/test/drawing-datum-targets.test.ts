@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import type { BrepProjection } from '@barocss/cad';
-import { checkDatumTargetOptions, datumTargetConflicts, datumTargetEndpoint, datumTargetsProperty, readDatumTargets, resolveDatumTarget, type DrawingDatumTarget } from '../src/drawing/datumTargets';
+import { checkDatumTargetOptions, datumTargetConflicts, datumTargetEndpoint, datumTargetsProperty, readDatumTargets, resolveDatumTarget, type DrawingDatumTarget, type DrawingPointDatumTarget } from '../src/drawing/datumTargets';
 import { validate, type JsonSchema } from '../src/chat/contract';
 import { drawingInputs, runDrawingTool } from '../src/chat/drawing';
 import { starterDoc, type StudioDoc } from '../src/engine/doc';
@@ -14,7 +14,7 @@ import { changeDrawingScope } from '../src/drawing/scope';
 import { candidatesFor, captureSignatures, confirmReference, referencesOf, refreshSignatures, verifyReferences } from '../src/engine/references';
 import { evaluatePart, type BodyResult } from '../src/engine/evaluate';
 
-const target: DrawingDatumTarget = { id: 'point-a1', letter: 'A', number: 1, view: 'front', place: [-12, 16], point: { edge: 'instance/edge-1', at: 'end', near: [1, 0, 0], endpoint: 'min', sig: { k: 'line', p: [32, 0, 0], d: [1, 0, 0], s: 64 } } };
+const target: DrawingPointDatumTarget = { id: 'point-a1', letter: 'A', number: 1, view: 'front', place: [-12, 16], point: { edge: 'instance/edge-1', at: 'end', near: [1, 0, 0], endpoint: 'min', sig: { k: 'line', p: [32, 0, 0], d: [1, 0, 0], s: 64 } } };
 const edge: BrepProjection['edges'][number] = { name: target.point.edge, kind: 'line', ends: [[0, 0, 0], [64, 0, 0]], circle: null, pieces: [{ curve: { kind: 'line', a: [0, 0], b: [64, 0] }, visible: true }] };
 const projection: BrepProjection = { right: [1, 0, 0], up: [0, 0, 1], toward: [0, -1, 0], min: [0, 0], max: [64, 0], edges: [edge] };
 // Agent-authored reference-unit data, not native geometry or browser acceptance.
@@ -112,7 +112,7 @@ test('DR6 endpoint targets: signed endpoint identity never switches after transl
   const unsigned: DrawingDatumTarget = { ...maximum, point: { edge: maximum.point.edge, at: 'end', endpoint: 'max', near: [63, 0, 0] } };
   const original: StudioDoc = { ...starterDoc(), drawing: { ...defaultDrawing(), datumTargets: [unsigned] } }, before = structuredClone(original);
   const body = lineBody([0, 0, 0], [64, 0, 0]);
-  const captured = captureSignatures(original, [body], noTables), signed = captured.drawing!.datumTargets![0];
+  const captured = captureSignatures(original, [body], noTables), signed = captured.drawing!.datumTargets![0] as DrawingPointDatumTarget;
   assert.deepEqual(signed.point.sig, { k: 'line', p: [32, 0, 0], d: [1, 0, 0], s: 64 });
   assert.equal(signed.point.endpoint, 'max');
   assert.deepEqual(original, before, 'capture copies the target point rather than mutating the original document');
@@ -170,7 +170,7 @@ test('DR6 endpoint targets: drawing.set and the real file codec preserve sheet/P
   const evaluated = evaluatePart(doc, 1);
   assert.ok(evaluated.ok, 'capture uses the actual evaluated starter bodies');
   const appliedBefore = structuredClone(applied.doc), captured = captureSignatures(applied.doc, evaluated.bodies);
-  const [authored, moving] = captured.drawing!.datumTargets!;
+  const [authored, moving] = captured.drawing!.datumTargets! as DrawingPointDatumTarget[];
   assert.ok(authored.point.sig && moving.point.sig, 'both explicit endpoint selections enter the actual reference capture path');
   assert.deepEqual(authored.point.sig.p, [32, 0, 0]); assert.equal(authored.point.sig.s, 64);
   assert.deepEqual(applied.doc, appliedBefore);

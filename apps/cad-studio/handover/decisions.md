@@ -17954,3 +17954,25 @@ All were fixed.
 **Verification.** Model 2426/2426; Studio 623/623. Actual run06 PASS.
 
 **Follow-ups.** Tests for the surviving mutants; datum target areas/lines (11②); the ISO/ASME setting (11③).
+
+## D395 — Row 11 ②: line and area datum targets (CG5 DR-6); full (2026-10-31)
+
+[Evidence](notes/datum-target-kinds-2026-10-31/qualification.json).
+
+**What it adds.**
+- Datum target kinds `line` and `area` (circle or rectangle), drawn per ASME Y14.5: a phantom line or a hatched phantom outline, with the area size in the symbol's upper half.
+- Moveable point targets drawn as the circle with two tangent lines meeting at a point.
+- `DATUM_TARGET_OUTSIDE` for targets that leave the part's view box.
+- Sheet, DXF and 3D outputs agree.
+- A chat schema per kind; the chat validator handles `const`, `not` and `oneOf` correctly.
+- Studio Kind, shape and size controls.
+
+**Audits.**
+- Round 1: 2 medium findings and several low ones.
+- Round 2: one regression, the validator ignoring `const`.
+
+All were fixed.
+
+**Verification.** Model 2442/2442; Studio 623/623. Actual run04 PASS.
+
+**Follow-ups.** The outside check uses the box, not the silhouette. Line and area targets do not follow geometry. The ISO variants come with 11③.

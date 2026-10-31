@@ -16,7 +16,7 @@ so it follows every change; the dimensions and notes you add are kept with it.
   export of the sheet. See [Revisions and sources](/guide/concepts#revisions-and-sources).
 
 Changing the drawing scope is refused with `DRAWING_SCOPE_REFERENCES` while the sheet has manual dimensions,
-datums, point datum targets, control frames or notes with leaders. Keep the scope, or remove those references explicitly first.
+datums, datum targets, control frames or notes with leaders. Keep the scope, or remove those references explicitly first.
 A permitted scope change clears automatic dimensions; it does not transfer their references to the new part.
 
 Without an explicit scope, sheets with balloons or a BOM table use assembly scope. Other sheets use the base part. A part sheet normally draws made bodies only. Assembly scope keeps bought elements, and enabling
@@ -192,7 +192,7 @@ a larger scale.
 | <kbd>R</kbd> | Radius | Click a circle or an arc, then where its radius goes |
 | <kbd>A</kbd> | Angle | Click two straight edges, then the side of their corner |
 | <kbd>N</kbd> | Note | Click the paper for a note, or a view for a leader |
-| <kbd>T</kbd> | Point datum target | Click a straight edge endpoint, then place the target symbol |
+| <kbd>T</kbd> | Datum target | Point: click a straight edge endpoint. Line: click its two ends. Area: click its centre. Then place the target symbol |
 
 **Auto** under **Dimensions** (Auto-dimension) lays out the views with room, picks a scale and sheet that read cleanly, then adds the overall
 sizes, steps, hole positions and callouts. It replaces its own earlier dimensions and keeps yours. A dimension goes
@@ -241,15 +241,29 @@ A datum stores one edge reference or one face reference. A face reference keeps 
 assembly occurrence prefix. Its `near` point selects the nearest current boundary vertex of that face. A missing
 or ambiguous face stays unresolved; the drawing does not substitute another face or reuse the old point.
 
-A point datum target marks one endpoint of a straight B-rep edge in a base view. Choose **Point datum target**
-or press **T**, click the endpoint, then click where the symbol goes. If endpoints overlap, choose the exact edge
-and endpoint in **Point datum targets**. Each target has a unique letter-number pair, such as A1. Circle centres
-and curved edges are not supported.
+A datum target (ASME Y14.5 section 7.24) marks where a part touches its datum. Open **Datum targets**, choose a
+**Kind**, choose **Add point target**, **Add line target** or **Add area target** (or press **T**), pick in a base view, then click where the symbol goes. Each
+target has a datum letter (A to Z without I, O and Q) and a number from 1 to 99, unique per letter, such as A1. The
+symbol is a circle split by a horizontal line: the letter and number below, an area's size above.
 
-The target records the endpoint and the current edge signature. If the edge changes, is missing, or cannot be
+- **Point** marks one endpoint of a straight B-rep edge with an X. Click the endpoint; if endpoints overlap, choose the
+  exact edge and endpoint in the list. Circle centres and curved edges are not supported. **Details** has **Moveable
+  symbol** (point targets only). Following ASME Y14.5, the moveable datum target symbol is the circle drawn out to a
+  point by two lines tangent to it; the point faces away from the leader, so the leader never crosses it. A saved
+  point target with no recorded endpoint, or a number above 99, says what to repair before this can change.
+- **Line** is two points clicked in a view, drawn as a phantom (two-dot chain) line in that view with no X marks
+  (following ASME; the X belongs to a point target); the leader ends on the line.
+- **Area** is a circle (**Ø**) or a rectangle (**Width**, **Height**), in model mm, centred on a clicked point. It is
+  drawn with a phantom outline and 45° hatching at the view's scale; the leader ends at a dot inside it. Its size is
+  the upper half of the symbol (`Ø6` or `6×4`). Edit the size on the target's row.
+
+A point target records the endpoint and the current edge signature. If the edge changes, is missing, or cannot be
 identified, the saved target stays unresolved; it does not move to another edge or use the old hint as its point.
 Show its view and choose **Reselect endpoint** to confirm a current endpoint. **Move symbol** changes only the
-symbol's position.
+symbol's position. A line or area target is placed by view points, so it does not follow the geometry; the issue list warns
+(`DATUM_TARGET_OUTSIDE`) when one lies partly outside the part as its view shows it. The drawing
+does not count targets per datum; whether a datum has enough targets is yours to judge. A frame that names a datum
+letter held only by targets is not reported as `DATUM_UNDEFINED`.
 
 Each datum has an `id` and a letter. A geometric control frame has its own `id` and names its datums by letter.
 An attached frame refers to a dimension by `dim`; there can be at most one frame per dimension. A standalone

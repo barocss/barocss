@@ -111,6 +111,14 @@ export function annotationsOf(name: string): ToolAnnotations {
 export const outputSchemaOf = (name: string): JsonSchema | undefined => READ[name] ?? undefined;
 
 /** Problems of a value against a schema (type, required, properties, items, enum); empty when it conforms. */
+/** The keywords `validate` evaluates; any other (pattern, minLength, anyOf, if/then ...) is ignored, so it must not decide a oneOf. */
+const EVALUATED = new Set(['type', 'properties', 'required', 'items', 'enum', 'const', 'not', 'additionalProperties', 'minimum', 'maximum', 'exclusiveMinimum', 'oneOf', 'description', 'title']);
+function evaluated(schema: unknown): boolean {
+  if (!schema || typeof schema !== 'object') return true;
+  const s = schema as JsonSchema;
+  if (Object.keys(s).some(k => !EVALUATED.has(k)) || (s.additionalProperties !== undefined && s.additionalProperties !== false)) return false;
+  return Object.values(s.properties ?? {}).every(evaluated) && (s.items === undefined || evaluated(s.items)) && (s.not === undefined || evaluated(s.not)) && (!Array.isArray(s.oneOf) || (s.oneOf as unknown[]).every(evaluated));
+}
 export function validate(schema: JsonSchema, value: unknown, at = '$'): string[] {
   const out: string[] = [];
   if (schema.type) {
@@ -119,6 +127,15 @@ export function validate(schema: JsonSchema, value: unknown, at = '$'): string[]
     if (!types.includes(kind) && !(kind === 'integer' && types.includes('number'))) return [`${at}: ${kind}, not ${types.join(' | ')}`];
   }
   if (schema.enum && !schema.enum.some(e => JSON.stringify(e) === JSON.stringify(value))) out.push(`${at}: not one of ${JSON.stringify(schema.enum)}`);
+  if (typeof value === 'number') {
+    if (typeof schema.minimum === 'number' && value < schema.minimum) out.push(`${at}: below ${schema.minimum}`);
+    if (typeof schema.maximum === 'number' && value > schema.maximum) out.push(`${at}: above ${schema.maximum}`);
+    if (typeof schema.exclusiveMinimum === 'number' && value <= schema.exclusiveMinimum) out.push(`${at}: not above ${schema.exclusiveMinimum}`);
+  }
+  if ('const' in schema && JSON.stringify(schema.const) !== JSON.stringify(value)) out.push(`${at}: not ${JSON.stringify(schema.const)}`);
+  if (schema.not && typeof schema.not === 'object' && !validate(schema.not as JsonSchema, value, at).length) out.push(`${at}: matches a form it must not`);
+  // (oneOf is checked only when every form uses keywords this validator evaluates; else a form that matches too much would give a false "matches 2".)
+  if (Array.isArray(schema.oneOf) && (schema.oneOf as JsonSchema[]).every(evaluated)) { const fits = (schema.oneOf as JsonSchema[]).filter(s => !validate(s, value, at).length).length; if (fits !== 1) out.push(`${at}: matches ${fits} of the ${schema.oneOf.length} forms, not exactly one`); }
   if (value && typeof value === 'object' && !Array.isArray(value)) {
     const rec = value as Record<string, unknown>;
     for (const k of schema.required ?? []) if (!(k in rec)) out.push(`${at}.${k}: missing`);
