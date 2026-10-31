@@ -449,9 +449,14 @@ that rendered all 95 `cad-` icons at 20 px and 48 px from `apps/cad-studio/src/u
 - **U2 one icon system for commands.** Five commands use Material Symbols instead of drawn icons:
   `sketch3d` (polyline), `cylindrical-wrap` (`wrap_text` is a text-wrapping glyph: wrong meaning), `edit`,
   `text`, `text-relief` (`text_fields`). Draw `cad-` icons for them.
-- **U3 icon font offline (owner decision needed).** `apps/cad-studio/index.html` loads Material Symbols from
-  Google Fonts at run time; offline or in a desktop build the 46 UI icons show their names as text. Either
-  ship a local subset of the used glyphs or move UI icons to the drawn system.
+- **U3 UI icons → Lucide (owner 2026-10-31: "Yes, use Lucide").** `apps/cad-studio/index.html` loads
+  Material Symbols from Google Fonts at run time (since the app's first commit `43d0d6924`; no recorded
+  reason), so offline or in a desktop build the 46 UI icons show their names as text. Replace them with
+  `lucide-react` SVG components (shadcn's default set; the studio may use UI libraries — the no-new-deps
+  rule covers cad/cad-model/gpu only), remove the Material Symbols link and the `.ms` font path, and keep
+  the owner's 2026-10-22 rule "아이콘 글꼴 프로젝트에 넣지마" (no icon font in the project). CAD command icons
+  stay drawn (`cadIcons.tsx`); the five Material command icons are U2. Adding `lucide-react` is a deliberate
+  new dependency, so `pnpm-lock.yaml` is committed with it.
 - **U4 one Fillet command (rows 20/21 UX).** Today Modify shows Fillet (edges or a face's edges; radius,
   end radius for a varying chain, circular/conic/G2 section), Face fillet (two faces that need not touch;
   radius) and Full round (a rib's flat top; radius = half width) as separate entries. Offer one Fillet entry
