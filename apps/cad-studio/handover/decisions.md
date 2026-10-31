@@ -18107,3 +18107,17 @@ The missing-edge title was already correct. Its hint now says “re-apply the fe
 **FAIL.** None in this item. **NOT_RUN.** Unchanged D367 numeric tests (reuse their recorded PASS), full suites, independent audit (small tier), async chat/transport, closed-loop Studio UI (still refused), Save/download, CI and release. Raw evidence stays in `/tmp/barocss-d402-run01`. #2229 stays open; this is not whole-issue acceptance.
 
 **Follow-ups.** Boundary (e): measure a part whose whole preview exceeds 120 ms. Then start row 13 with support and independent-reader measurements.
+
+## D403 — Measure the slow-part drag boundary; small measurement (2026-11-01)
+
+[Qualification](notes/slow-drag-boundary-2026-11-01/qualification.json). Boundary candidate (e), row 20③ follow-up. Driver and measurement: GPT-6.1 Sol Medium. No product code changed.
+
+**Workload.** A real 60×40×20 box, 48 separated radius-1 through holes and two radius-3 top-edge fillets: 51 nodes, 56 faces. Node `evaluatePreview` measurements: cold 408.4 ms; changed upstream width 61/62 gives 313.2/288.6 ms. No artificial delay or threshold override.
+
+**PASS, actual run03.** One real pointer drag, no screenshots during timed frames: changed whole worker previews 235.1/217.4 ms; ten rolled previews, median 0.9 ms (max 3.2); 70/70 pointer deliveries; animation-frame gaps median/p90 16.7 ms, max 33.3, zero over 50. Width changes 60→71 in 12 distinct snapped values. Snapped value updates have median 149.9 ms; their cadence is consistent with about 12 px per 1 mm, rather than an animation-frame pause. Pointer delivery gaps reach 50.1 ms in this automated run. Escape restores the exact native document. Two screenshots outside timing, final image reviewed by root. Source capsule 279 files unchanged; errors/watcher changes/downloads 0.
+
+**FAIL.** Run01 driver waited for a HUD before pointer input created it. Run02 collected valid timing but its old W/Width selector missed the current Width X label and failed a later assertion. Both failures are retained. Only driver conditions changed; no product or workload correction was needed. Syntax, targeted lint and diff checks PASS.
+
+**NOT_REPRODUCED.** The reported frame stutter on this selected >120 ms part. Existing slow-preview rollback remains intentional. This does not close all row 20③ workloads or prove physical display vsync. **NOT_RUN.** Quick D377 baseline, broad suites, independent audit (small measurement), Apply, Save/download, CI and release. Raw evidence stays under `/tmp/barocss-d403-*`.
+
+**Next.** Boundary candidates (a)–(e) have now been checked at their recorded scope. Start row 13 with a support matrix and independent-reader measurement, including explicit losses and unavailable reader coverage.

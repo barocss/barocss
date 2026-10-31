@@ -1,0 +1,682 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": {},
+  "nodes": [
+    {
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [
+        0,
+        0
+      ],
+      "max": [
+        60,
+        40
+      ],
+      "id": "n0"
+    },
+    {
+      "kind": "extrude",
+      "sketch": 0,
+      "height": 20,
+      "id": "n1",
+      "made": {
+        "command": "box",
+        "values": {
+          "w": 60,
+          "d": 40,
+          "h": 20,
+          "x": 0,
+          "y": 0,
+          "z": 0
+        }
+      }
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 1,
+        "side": "solid"
+      },
+      "center": [
+        5,
+        5
+      ],
+      "radius": 1,
+      "id": "n2"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 2,
+        "side": "solid"
+      },
+      "center": [
+        12.142857142857142,
+        5
+      ],
+      "radius": 1,
+      "id": "n3"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 3,
+        "side": "solid"
+      },
+      "center": [
+        19.285714285714285,
+        5
+      ],
+      "radius": 1,
+      "id": "n4"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 4,
+        "side": "solid"
+      },
+      "center": [
+        26.428571428571427,
+        5
+      ],
+      "radius": 1,
+      "id": "n5"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 5,
+        "side": "solid"
+      },
+      "center": [
+        33.57142857142857,
+        5
+      ],
+      "radius": 1,
+      "id": "n6"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 6,
+        "side": "solid"
+      },
+      "center": [
+        40.714285714285715,
+        5
+      ],
+      "radius": 1,
+      "id": "n7"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 7,
+        "side": "solid"
+      },
+      "center": [
+        47.857142857142854,
+        5
+      ],
+      "radius": 1,
+      "id": "n8"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 8,
+        "side": "solid"
+      },
+      "center": [
+        55,
+        5
+      ],
+      "radius": 1,
+      "id": "n9"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 9,
+        "side": "solid"
+      },
+      "center": [
+        5,
+        11
+      ],
+      "radius": 1,
+      "id": "n10"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 10,
+        "side": "solid"
+      },
+      "center": [
+        12.142857142857142,
+        11
+      ],
+      "radius": 1,
+      "id": "n11"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 11,
+        "side": "solid"
+      },
+      "center": [
+        19.285714285714285,
+        11
+      ],
+      "radius": 1,
+      "id": "n12"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 12,
+        "side": "solid"
+      },
+      "center": [
+        26.428571428571427,
+        11
+      ],
+      "radius": 1,
+      "id": "n13"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 13,
+        "side": "solid"
+      },
+      "center": [
+        33.57142857142857,
+        11
+      ],
+      "radius": 1,
+      "id": "n14"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 14,
+        "side": "solid"
+      },
+      "center": [
+        40.714285714285715,
+        11
+      ],
+      "radius": 1,
+      "id": "n15"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 15,
+        "side": "solid"
+      },
+      "center": [
+        47.857142857142854,
+        11
+      ],
+      "radius": 1,
+      "id": "n16"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 16,
+        "side": "solid"
+      },
+      "center": [
+        55,
+        11
+      ],
+      "radius": 1,
+      "id": "n17"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 17,
+        "side": "solid"
+      },
+      "center": [
+        5,
+        17
+      ],
+      "radius": 1,
+      "id": "n18"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 18,
+        "side": "solid"
+      },
+      "center": [
+        12.142857142857142,
+        17
+      ],
+      "radius": 1,
+      "id": "n19"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 19,
+        "side": "solid"
+      },
+      "center": [
+        19.285714285714285,
+        17
+      ],
+      "radius": 1,
+      "id": "n20"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 20,
+        "side": "solid"
+      },
+      "center": [
+        26.428571428571427,
+        17
+      ],
+      "radius": 1,
+      "id": "n21"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 21,
+        "side": "solid"
+      },
+      "center": [
+        33.57142857142857,
+        17
+      ],
+      "radius": 1,
+      "id": "n22"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 22,
+        "side": "solid"
+      },
+      "center": [
+        40.714285714285715,
+        17
+      ],
+      "radius": 1,
+      "id": "n23"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 23,
+        "side": "solid"
+      },
+      "center": [
+        47.857142857142854,
+        17
+      ],
+      "radius": 1,
+      "id": "n24"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 24,
+        "side": "solid"
+      },
+      "center": [
+        55,
+        17
+      ],
+      "radius": 1,
+      "id": "n25"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 25,
+        "side": "solid"
+      },
+      "center": [
+        5,
+        23
+      ],
+      "radius": 1,
+      "id": "n26"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 26,
+        "side": "solid"
+      },
+      "center": [
+        12.142857142857142,
+        23
+      ],
+      "radius": 1,
+      "id": "n27"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 27,
+        "side": "solid"
+      },
+      "center": [
+        19.285714285714285,
+        23
+      ],
+      "radius": 1,
+      "id": "n28"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 28,
+        "side": "solid"
+      },
+      "center": [
+        26.428571428571427,
+        23
+      ],
+      "radius": 1,
+      "id": "n29"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 29,
+        "side": "solid"
+      },
+      "center": [
+        33.57142857142857,
+        23
+      ],
+      "radius": 1,
+      "id": "n30"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 30,
+        "side": "solid"
+      },
+      "center": [
+        40.714285714285715,
+        23
+      ],
+      "radius": 1,
+      "id": "n31"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 31,
+        "side": "solid"
+      },
+      "center": [
+        47.857142857142854,
+        23
+      ],
+      "radius": 1,
+      "id": "n32"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 32,
+        "side": "solid"
+      },
+      "center": [
+        55,
+        23
+      ],
+      "radius": 1,
+      "id": "n33"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 33,
+        "side": "solid"
+      },
+      "center": [
+        5,
+        29
+      ],
+      "radius": 1,
+      "id": "n34"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 34,
+        "side": "solid"
+      },
+      "center": [
+        12.142857142857142,
+        29
+      ],
+      "radius": 1,
+      "id": "n35"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 35,
+        "side": "solid"
+      },
+      "center": [
+        19.285714285714285,
+        29
+      ],
+      "radius": 1,
+      "id": "n36"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 36,
+        "side": "solid"
+      },
+      "center": [
+        26.428571428571427,
+        29
+      ],
+      "radius": 1,
+      "id": "n37"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 37,
+        "side": "solid"
+      },
+      "center": [
+        33.57142857142857,
+        29
+      ],
+      "radius": 1,
+      "id": "n38"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 38,
+        "side": "solid"
+      },
+      "center": [
+        40.714285714285715,
+        29
+      ],
+      "radius": 1,
+      "id": "n39"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 39,
+        "side": "solid"
+      },
+      "center": [
+        47.857142857142854,
+        29
+      ],
+      "radius": 1,
+      "id": "n40"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 40,
+        "side": "solid"
+      },
+      "center": [
+        55,
+        29
+      ],
+      "radius": 1,
+      "id": "n41"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 41,
+        "side": "solid"
+      },
+      "center": [
+        5,
+        35
+      ],
+      "radius": 1,
+      "id": "n42"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 42,
+        "side": "solid"
+      },
+      "center": [
+        12.142857142857142,
+        35
+      ],
+      "radius": 1,
+      "id": "n43"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 43,
+        "side": "solid"
+      },
+      "center": [
+        19.285714285714285,
+        35
+      ],
+      "radius": 1,
+      "id": "n44"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 44,
+        "side": "solid"
+      },
+      "center": [
+        26.428571428571427,
+        35
+      ],
+      "radius": 1,
+      "id": "n45"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 45,
+        "side": "solid"
+      },
+      "center": [
+        33.57142857142857,
+        35
+      ],
+      "radius": 1,
+      "id": "n46"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 46,
+        "side": "solid"
+      },
+      "center": [
+        40.714285714285715,
+        35
+      ],
+      "radius": 1,
+      "id": "n47"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 47,
+        "side": "solid"
+      },
+      "center": [
+        47.857142857142854,
+        35
+      ],
+      "radius": 1,
+      "id": "n48"
+    },
+    {
+      "kind": "hole",
+      "parent": {
+        "node": 48,
+        "side": "solid"
+      },
+      "center": [
+        55,
+        35
+      ],
+      "radius": 1,
+      "id": "n49"
+    },
+    {
+      "kind": "fillet",
+      "parent": {
+        "node": 49,
+        "side": "solid"
+      },
+      "edges": [
+        "n1.side0|n1.top",
+        "n1.side2|n1.top"
+      ],
+      "radius": 3,
+      "id": "n50"
+    }
+  ],
+  "outputs": {
+    "b50": {
+      "node": 50,
+      "side": "solid"
+    }
+  },
+  "nextId": 51
+}
