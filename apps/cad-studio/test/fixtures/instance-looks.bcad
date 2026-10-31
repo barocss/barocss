@@ -1,0 +1,150 @@
+{
+  "format": "barocss-cad-model",
+  "schema": 3,
+  "units": "mm",
+  "parameters": {},
+  "nodes": [
+    {
+      "kind": "sketch",
+      "profile": "rectangle",
+      "min": [
+        -10,
+        -10
+      ],
+      "max": [
+        90,
+        40
+      ],
+      "id": "n0"
+    },
+    {
+      "kind": "extrude",
+      "sketch": 0,
+      "height": -4,
+      "id": "n1"
+    }
+  ],
+  "outputs": {
+    "b1": {
+      "node": 1,
+      "side": "solid"
+    }
+  },
+  "nextId": 2,
+  "instances": [
+    {
+      "id": "c1",
+      "name": "Cube 1",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              20,
+              20
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 20,
+            "id": "n1"
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "nextId": 2,
+        "bodies": {
+          "b1": {
+            "color": "#d9534f"
+          }
+        }
+      },
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "part": {
+        "id": "cube",
+        "rev": "A"
+      }
+    },
+    {
+      "id": "c2",
+      "name": "Cube 2",
+      "doc": {
+        "format": "barocss-cad-model",
+        "schema": 3,
+        "units": "mm",
+        "parameters": {},
+        "nodes": [
+          {
+            "kind": "sketch",
+            "profile": "rectangle",
+            "min": [
+              0,
+              0
+            ],
+            "max": [
+              20,
+              20
+            ],
+            "id": "n0"
+          },
+          {
+            "kind": "extrude",
+            "sketch": 0,
+            "height": 20,
+            "id": "n1"
+          }
+        ],
+        "outputs": {
+          "b1": {
+            "node": 1,
+            "side": "solid"
+          }
+        },
+        "nextId": 2,
+        "bodies": {
+          "b1": {
+            "color": "#d9534f"
+          }
+        }
+      },
+      "position": [
+        50,
+        0,
+        0
+      ],
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "part": {
+        "id": "cube",
+        "rev": "A"
+      }
+    }
+  ]
+}

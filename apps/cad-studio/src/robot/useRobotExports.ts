@@ -1,3 +1,4 @@
+import { looksDocOf } from '@barocss/cad-model/assembly/looks';
 import { useCallback, useMemo } from 'react';
 import type { PartInstance, StudioDoc } from '@barocss/cad-model/engine/doc';
 import type { BodyResult } from '@barocss/cad-model/engine/evaluate';
@@ -47,25 +48,25 @@ export function useRobotExports({ model, assembly, fileName, onNotice }: RobotEx
   const linkInertias = useMemo(() => !jointTree || !robotReady ? undefined : treeInertia(jointTree, p => {
     if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] };
     const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p);
-    return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null;
+    return i && b ? { doc: looksDocOf(i), bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null;
   }), [jointTree, doc, bodies, instanceBodies, robotReady]);
   // What each joint holds against gravity at the pose shown (RD1): the masses as placed (world), identity placements.
   const jointMasses = useMemo(() => !jointTree || !robotReady ? null : linkMasses(jointTree, p => {
     if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] };
     const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p);
-    return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null;
+    return i && b ? { doc: looksDocOf(i), bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null;
   }), [jointTree, robotReady, doc, bodies, instanceBodies]);
   const reportMotionError = useCallback((error: unknown) => {
     onNotice({ title: 'Motion refused', hint: error instanceof Error ? error.message : String(error), detail: '' });
   }, [onNotice]);
   /** A robot part for the exports (RM4–RM9c): the bodies as placed, so each part's placement is the identity here. */
-  const robotPartOf = (p: string) => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; };
+  const robotPartOf = (p: string) => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: looksDocOf(i), bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; };
   /** The tree's planar loops closed at their pins (RM8), those that are not left out (the exports note them). */
   const robotClosures = (): MjcfClosure[] => { const out: MjcfClosure[] = []; if (jointTree) for (const l of jointTree.loops) { try { out.push(closureOfDoc(doc, jointTree, l)); } catch { /* not planar: noted */ } } return out; };
   const exportUrdfFile = () => {
     if (!jointTree) return;
     // (RM4: the bodies as placed, so each part's placement is the identity here; the same robot as from part coordinates.)
-    const r = exportUrdf(jointTree, p => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; }, fileName);
+    const r = exportUrdf(jointTree, p => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: looksDocOf(i), bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; }, fileName);
     if (!r.ok) { onNotice({ title: 'URDF refused', hint: r.refusals.map(x => x.message).join(' '), detail: r.refusals.map(x => x.code).join(', ') }); return; }
     void writeZip([{ name: 'robot.urdf', data: new TextEncoder().encode(r.urdf), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true })), { name: 'robot.source.json', data: sourceBytes(sourceRecord(doc, ['robot.urdf', ...r.files.map(f => f.path)], { robot: true })), deflate: true }]).then(z => downloadBytes(z, `${fileName}-urdf.zip`, 'application/zip'));
     if (r.notes.length) onNotice({ title: 'URDF written', hint: r.notes.join(' '), detail: '' });
@@ -73,7 +74,7 @@ export function useRobotExports({ model, assembly, fileName, onNotice }: RobotEx
   const exportMjcfFile = () => {
     if (!jointTree) return;
     // (RM5: as the URDF, the same parts; robot.xml and its meshes.)
-    const r = exportMjcf(jointTree, p => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: i.doc, bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; }, fileName);
+    const r = exportMjcf(jointTree, p => { if (p === BASE) return { doc, bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = doc.instances?.find(x => x.id === p), b = instanceBodies.get(p); return i && b ? { doc: looksDocOf(i), bodies: b.bodies, position: [0, 0, 0], rotation: [0, 0, 0] } : null; }, fileName);
     if (!r.ok) { onNotice({ title: 'MJCF refused', hint: r.refusals.map(x => x.message).join(' '), detail: r.refusals.map(x => x.code).join(', ') }); return; }
     void writeZip([{ name: 'robot.xml', data: new TextEncoder().encode(r.xml), deflate: true }, ...r.files.map(f => ({ name: f.path, data: f.data, deflate: true })), { name: 'robot.source.json', data: sourceBytes(sourceRecord(doc, ['robot.xml', ...r.files.map(f => f.path)], { robot: true })), deflate: true }]).then(z => downloadBytes(z, `${fileName}-mjcf.zip`, 'application/zip'));
   };

@@ -8,6 +8,7 @@ import { nextRevision } from '../drawing/types';
 import { nextFreeId } from '../util/ids';
 import { curvePatternDocumentProblem } from '../engine/curveFeaturePattern';
 import { drivenRefusal, expandPatterns } from './patterns';
+import { heldByRevision, type HeldLook } from './looks';
 
 /** A definition id not yet used by any instance or pending revision. */
 export function freshPartId(doc: StudioDoc): string {
@@ -32,17 +33,19 @@ export function makeIndependent(doc: StudioDoc, instance: string): StudioDoc {
  * A newer file of a placed part, waiting: its revision is the file's when it says one newer than the
  * placed one, else the next after it. Refused when the file is the part as placed.
  */
-export function offerRevision(doc: StudioDoc, id: string, part: StudioDoc, name: string): { doc: StudioDoc } | { error: string } {
+export function offerRevision(doc: StudioDoc, id: string, part: StudioDoc, name: string): { doc: StudioDoc; held: HeldLook[] } | { error: string } {
   const pathProblem = fillPatternDocumentProblem(part) ?? curvePatternDocumentProblem({ instances: [{ doc: part }] });
   if (pathProblem) return { error: pathProblem };
   const placed = sharing(doc, id)[0]; if (!placed?.part) return { error: 'That part is not placed any more.' };
   const strip = (d: StudioDoc) => JSON.stringify({ ...d, render: undefined, direct: undefined, drawing: undefined });
   if (strip(part) === strip(placed.doc)) return { error: `This file is ${placed.name} as it is placed (Rev ${placed.part.rev}): nothing to update.` };
   const own = revisionOf(part), rev = own !== 'A' && own !== placed.part.rev ? own : nextRevision(placed.part.rev);
-  return { doc: { ...doc, pendingParts: { ...doc.pendingParts, [id]: { doc: { ...part, render: undefined, direct: undefined }, rev, name } } } };
+  const next = { ...doc, pendingParts: { ...doc.pendingParts, [id]: { doc: { ...part, render: undefined, direct: undefined }, rev, name } } };
+  // (Roadmap 10 ①: the occurrences' own looks stay through the revision; those whose body it no longer has are listed now, held when it is accepted.)
+  return { doc: next, held: heldByRevision(next, id) };
 }
 
-/** The waiting revision taken: every instance sharing the definition places it (where it is), at its revision. */
+/** The waiting revision taken: every instance sharing the definition places it (where it is), at its revision. Each occurrence keeps its own looks (heldLooks lists those whose body is gone). */
 export function acceptRevision(doc: StudioDoc, id: string): StudioDoc {
   const p = doc.pendingParts?.[id]; if (!p) return doc;
   const rest = Object.fromEntries(Object.entries(doc.pendingParts ?? {}).filter(([k]) => k !== id));

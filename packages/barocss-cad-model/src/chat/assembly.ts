@@ -26,6 +26,8 @@ import { runVariabilityTool, VARIABILITY_TOOLS } from './variability';
 import { addMate, lockPart, addPart, ASSEMBLY_CODES, editMate, partCopy, placePart, solveDoc, type Edited, type Mated } from '../assembly/edit';
 import { isRefusal } from '../engine/refusal';
 import { bodyDocOf, instanceJointsOf, setInstanceJoints } from '../assembly/flexible';
+import { lookKey } from '../app/bodies';
+import { instanceLooksListing, setInstanceLooks, type InstanceLookPatch } from '../assembly/looks';
 import { addInstancePattern, deleteInstancePattern, editInstancePattern, patternDeleteRefusal, type AddPatternOptions } from '../assembly/patterns';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
@@ -84,6 +86,9 @@ async function describe(doc: StudioDoc, base: BodyResult[], evaluate: Evaluate, 
       // (A sub-assembly: the parts inside it by path, to name in a mate as `sub1/p2`; its faces as the mate reads them, folded.)
       ...(flex?.joints.length ? { joints: flex.joints.map(j => ({ key: j.key, type: j.type, value: j.value, ...(j.lower !== undefined ? { lower: j.lower } : {}), ...(j.upper !== undefined ? { upper: j.upper } : {}) })), joints_note: 'this occurrence\'s own values (degrees, mm); set them with place_part "joints"' } : {}),
       ...(flex?.problem && inst.joints ? { joint_problem: flex.problem } : {}),
+      // (Roadmap 10 ①: the keys a body's look is set by, for a part with no parts inside — place_part "looks".)
+      ...(!inst.doc.instances?.length && bodies.length ? { body_keys: bodies.map(b => lookKey(inst.doc.nodes, b)) } : {}),
+      ...(inst.looks ? { looks: instanceLooksListing(doc, inst.id), looks_note: 'this occurrence\'s own looks over its part\'s; "held" ones name a body a new revision no longer has' } : {}),
       ...(inst.doc.instances?.length ? { parts_inside: nestedParts(inst.doc, [inst.id]), note: 'mate a part inside it by path: {"part": "<this id>/<part id>", "face": <that part\'s own face name>}; its faces: get_assembly {"faces_of": "<path>"}' } : {}),
       ...(detail !== null && hostOf(detail) === inst.id ? mateFaces(tablesFor(doc)(detail) ?? {}) : {}),
     };
@@ -156,6 +161,11 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
         if (args.joints !== undefined) {
           const posed = setInstanceJoints(next.doc, { part: String(args.part), joints: args.joints as Record<string, number | null> }), now = instanceJointsOf(posed.doc, String(args.part));
           return reported(doc, posed, `placed ${inst!.id}`, { joints: now.joints, ...(now.problem ? { problem: now.problem } : {}) });
+        }
+        // (Roadmap 10 ①: this occurrence's own looks, assembly/looks.ts — by body key; null: back to the definition's.)
+        if (args.looks !== undefined) {
+          const looked = setInstanceLooks(next.doc, String(args.part), args.looks as Record<string, InstanceLookPatch | null>);
+          return reported(doc, { ...next, doc: looked.doc }, `placed ${inst!.id}`, { looks: instanceLooksListing(looked.doc, inst!.id) });
         }
         const by = mates.filter(m => hostOf(m.b.part) === inst!.id);
         return reported(doc, next, `placed ${inst!.id}`,
@@ -332,8 +342,8 @@ export const ASSEMBLY_TOOLS: ToolDefinition[] = [
   },
   {
     name: 'place_part',
-    description: 'Moves, turns (degrees about X, then Y, then Z), renames, grounds (fixes in place: mates never move it) or hides a part. Mates on a part keep what they fix. "joints" poses a sub-assembly occurrence: {joint key from get_assembly: degrees | mm (offsets from its saved pose) | null to remove}; each occurrence keeps its own.',
-    input_schema: { type: 'object', properties: { part: { type: 'string' }, position: xyz, rotation: xyz, name: { type: 'string' }, grounded: { type: 'boolean' }, hidden: { type: 'boolean' }, joints: { type: 'object', additionalProperties: { type: ['number', 'null'] } } }, required: ['part'], additionalProperties: false },
+    description: 'Moves, turns (degrees about X, then Y, then Z), renames, grounds (fixes in place: mates never move it) or hides a part. Mates on a part keep what they fix. "joints" poses a sub-assembly occurrence: {joint key from get_assembly: degrees | mm (offsets from its saved pose) | null to remove}; each occurrence keeps its own. "looks" sets this occurrence\'s own look by body key ("b3", "p2/b3" inside a sub-assembly): {color?, material?, hidden?, faces?} or null to inherit the part\'s again; get_assembly lists them.',
+    input_schema: { type: 'object', properties: { part: { type: 'string' }, position: xyz, rotation: xyz, name: { type: 'string' }, grounded: { type: 'boolean' }, hidden: { type: 'boolean' }, joints: { type: 'object', additionalProperties: { type: ['number', 'null'] } }, looks: { type: 'object', additionalProperties: { type: ['object', 'null'] } } }, required: ['part'], additionalProperties: false },
   },
   {
     name: 'delete_part',

@@ -17852,3 +17852,22 @@ All fixed; the re-check is ACCEPT.
 **Verification.** Model 2329/2329; Studio 588/588. Actual run02 PASS: two hinges from one definition stand at 0° and 90°.
 
 **Follow-up.** The robot view and `world_bounds` omit nested parts. This predates ④.
+
+## D390 — Row 10 ①: instance looks, inherited and overridden per occurrence; full (2026-10-31)
+
+[Evidence](notes/instance-looks-2026-10-31/qualification.json). Issues: #2233; #538 stays open.
+
+**Change.**
+- Instances render their definition's looks.
+- `PartInstance.looks` overrides colour, material, faces and visibility per occurrence, with per-field provenance and reset.
+- Material overrides reach the BOM, mass, freshness, the bundle, the robot and 3MF.
+- Revisions keep overrides. A vanished, split or merged body's override is held and reported.
+
+**Studio panel.** Compact after owner feedback: Colour and Material, with a dot and Reset on each override; the rest under Details.
+
+**Audits.**
+- Round 1: 3 high, 3 medium, 3 low.
+- Round 2: 1 medium. Fixed; 454 outputs byte-identical; 6/6 mutants killed.
+- Round 3: ACCEPT.
+
+**Verification.** Model 2354/2354; Studio 597/597. Actual run04 PASS.

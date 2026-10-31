@@ -8,6 +8,8 @@ import { sourceBytes, sourceRecord } from '@barocss/cad-model/team/source';
 import { quotePackage } from '@barocss/cad-model/mould/quote';
 import { write3mf } from '@barocss/cad-model/print/threemf';
 import { threeMfModelOf } from '@barocss/cad-model/print/export3mf';
+import { looksOnFold } from '@barocss/cad-model/assembly/looks';
+import { placedLooksOf } from '../state/useInstanceLooks';
 import type { EngineClient } from '../engine/client';
 import { downloadBytes, lumpStls, meshToStl } from '../ui/files';
 
@@ -111,7 +113,11 @@ export function useModelExports({ model, engine, fileName, current, onNotice }: 
   /** 3MF (AM5, D76): every shown body and instance, its material and colours, turned the way it prints when chosen. */
   const exportThreeMf = async () => {
     if (!fresh) { onNotice({ title: 'Not written yet', hint: busy ? 'The part is still evaluating: export once it is up to date.' : 'The part did not evaluate: fix it first.', detail: '' }); return; }
-    const parts = [{ doc, bodies }, ...(doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => ({ doc: i.doc, bodies: instanceBodies.get(i.id)!.bodies, name: i.name }))];
+    const parts = [{ doc, bodies }, ...(doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => {
+      // (Roadmap 10 ①: each body in the definition's colours and material, this occurrence's own over them.)
+      const bodies = instanceBodies.get(i.id)!.bodies;
+      return { doc: i.doc, bodies, name: i.name, looks: looksOnFold(i, placedLooksOf(i, doc, bodies).targets) };
+    })];
     const model = threeMfModelOf(doc, parts, fileName);
     const r = typeof model === 'string' ? { error: model } : await write3mf(model);
     if ('error' in r) { onNotice({ title: 'Could not write 3MF', hint: r.error, detail: '' }); return; }

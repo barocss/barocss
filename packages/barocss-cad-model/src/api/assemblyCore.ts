@@ -15,6 +15,7 @@ import { addMate, addPart, checkFramesOn, placePart, solveDoc, withFrames } from
 import { bodiesOf, meshesOf, type MeshData } from './core';
 import { explodeOffsets } from '../assembly/explode';
 import { instanceJointsOf, setInstanceJoints } from '../assembly/flexible';
+import { instanceLooksListing, setInstanceLooks, type InstanceLookPatch } from '../assembly/looks';
 import { addInstancePattern, drivenRefusal, seedMateRefusal, deleteInstancePattern, editInstancePattern, skipOccurrence, type AddPatternOptions, type EditPatternOptions } from '../assembly/patterns';
 
 // (Document fields are mutable tuples; what the facade hands back is §10.2's readonly Vec3.)
@@ -39,6 +40,12 @@ export function setPartJointsDoc(doc: StudioDoc, id: string, joints: Record<stri
   return setInstanceJoints(doc, { part: id, joints, ...(replace ? { replace: true } : {}) }).doc;
 }
 export { instanceJointsOf as partJointsOf };
+
+/** set_part_look (setInstanceLooks): this occurrence's own looks by body key, each checked; `null` for a body, or for a field, goes back to the part's own. */
+export function setPartLookDoc(doc: StudioDoc, id: string, body: string, patch: InstanceLookPatch | null): StudioDoc {
+  return setInstanceLooks(doc, id, { [body]: patch }).doc;
+}
+export { instanceLooksListing as partLooksOf };
 
 /** add_mate (addMate): a mate between faces of two parts (b moves; a fixed b and a free a swap), checked, solved, or refused. */
 export function addMateDoc(doc: StudioDoc, kind: MateKind, a: { part: string; face: string }, b: { part: string; face: string }, o: { distance?: number; angle?: number; flip?: boolean }): { doc: StudioDoc; id: string } {

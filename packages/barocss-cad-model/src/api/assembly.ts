@@ -10,7 +10,7 @@ import type { FrameSettings } from '../robot/frames';
 import type { MeshData } from './core';
 import { meshSelection } from './select';
 import { bodiesOf } from './core';
-import { addMateDoc, addPartDoc, deletePatternDoc, editPatternDoc, lockDoc, patternDoc, skipOccurrenceDoc, assemblyMeshes, BASE, emptyDoc, framePosesOf, framesDoc, partJointsOf, placePartDoc, problemsOf, setPartJointsDoc, variabilityDoc, variantDoc } from './assemblyCore';
+import { addMateDoc, addPartDoc, deletePatternDoc, editPatternDoc, lockDoc, patternDoc, skipOccurrenceDoc, assemblyMeshes, BASE, emptyDoc, framePosesOf, framesDoc, partJointsOf, partLooksOf, placePartDoc, problemsOf, setPartJointsDoc, setPartLookDoc, variabilityDoc, variantDoc } from './assemblyCore';
 import { part as studioPart, StudioPart } from './part';
 import { Robot } from './robot';
 import { drawingDoc, drawingOf, outputOf } from './outputs';
@@ -79,6 +79,25 @@ export class Assembly {
     const id = this.idOf(name);
     if (id === BASE) throw refuse('VALUE', 'the base part has no joints of its own; the assembly\'s joints are the robot\'s (robot())');
     return new Assembly(this.name, setPartJointsDoc(this.#doc, id, joints, options.replace === true));
+  }
+
+  /**
+   * `assembly.set_part_look` (roadmap 10 ①): this occurrence's own look for a body of a placed part — `color` ("#rrggbb"), `material` (a library
+   * material id: its mass and BOM line change for this occurrence only), `hidden`, `faces` (face name to colour) — over the part's own look,
+   * which every occurrence otherwise shows. `null` for a field goes back to the part's; `null` for the whole look resets the body. Name a body of a
+   * part inside a sub-assembly by its path: `"p2/b3"`. Kept through new revisions of the part (one whose body is gone is held, see `partLooks`).
+   */
+  setPartLook(name: string, body: string, look: { color?: string | null; material?: string | null; hidden?: boolean | null; faces?: Record<string, string | null> } | null): Assembly {
+    const id = this.idOf(name);
+    if (id === BASE) throw refuse('VALUE', 'the base part is not an occurrence: set its bodies\' looks on the part itself');
+    return new Assembly(this.name, setPartLookDoc(this.#doc, id, body, look));
+  }
+
+  /** A placed part's own looks by body key: what this occurrence overrides, and the problem in words for one whose body the part no longer has (held). */
+  partLooks(name: string): { body: string; look: { color?: string; material?: string; hidden?: boolean; faces?: Record<string, string> }; held?: string }[] {
+    const id = this.idOf(name);
+    if (id === BASE) throw refuse('VALUE', 'the base part is not an occurrence: it has no looks of its own over a definition');
+    return partLooksOf(this.#doc, id);
   }
 
   /** A sub-assembly occurrence's joints: key, type, parent and child part, this occurrence's value and the limits (degrees, mm); `problem` in words when it cannot be posed. */

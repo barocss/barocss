@@ -138,6 +138,9 @@ import { browserStore } from './ui/browserStore';
 import { processProfile } from '@barocss/cad-model/library/materials';
 import { InstancePanel } from './ui/InstancePanel';
 import { InstanceJointsControls } from './ui/InstanceJoints';
+import { InstanceLooksControls } from './ui/InstanceLooks';
+import { instanceLookRows, useInstanceLooks } from './state/useInstanceLooks';
+import { heldByRevision, heldLooks, resetInstanceLook, setInstanceLook } from '@barocss/cad-model/assembly/looks';
 import { setInstanceJoints } from '@barocss/cad-model/assembly/flexible';
 import { InstancePatternControls } from './ui/InstancePattern';
 import { addInstancePattern, deleteInstancePattern, editInstancePattern, expandPatterns, patternDeleteRefusal, skipOccurrence } from '@barocss/cad-model/assembly/patterns';
@@ -1745,6 +1748,8 @@ export function App() {
     return new Float32Array(out);
   }, [bodies, evaluated.nodes, doc.fastenerSizes, rendering, section, previewBodies]);
   // (The placed parts' rings go with their meshes, G1: posed and exploded by the same matrix.)
+  // Roadmap 10 ①: each placed part's bodies in the definition's colours (or this occurrence's own), face colours and hidden bodies.
+  const instanceLooks = useInstanceLooks(doc, instanceBodies);
   const instancesDrawn = useMemo(() => {
     if (section) return cpuInstanceSection && sectionHatchOn
       ? instancesShown.map(it => ({ ...it, hatch: sectionHatch(it.bodies, sectionPlanes(section), hatchStep) }))
@@ -1752,10 +1757,12 @@ export function App() {
     if (rendering || previewBodies) return instancesShown;
     return instancesShown.map(it => {
       const inst = doc.instances?.find(i => i.id === it.id), t = inst ? threadsOf(flattenAssembly(inst.doc).nodes, { ...fastenerSizesOf(doc), ...fastenerSizesOf(inst.doc) }) : null, out: number[] = [];
-      if (t) for (const b of it.bodies) out.push(...threadLines(t, b.mesh));
+      if (t) for (const b of it.bodies) if (!instanceLooks.get(it.id)?.get(b.key)?.hidden) out.push(...threadLines(t, b.mesh));
       return out.length ? { ...it, threads: new Float32Array(out) } : it;
     });
-  }, [instancesShown, doc.instances, rendering, section, previewBodies, cpuInstanceSection, sectionHatchOn, hatchStep]);
+  }, [instancesShown, doc.instances, rendering, section, previewBodies, cpuInstanceSection, sectionHatchOn, hatchStep, instanceLooks]);
+
+  const instancesLooked = useMemo(() => instancesDrawn.map(it => { const looks = instanceLooks.get(it.id); return looks ? { ...it, looks } : it; }), [instancesDrawn, instanceLooks]);
 
   // A hole's whole region, see-through, while it is placed or edited: where it runs off the part's edge
   // only a notch shows of it otherwise.
@@ -1963,6 +1970,10 @@ export function App() {
           pattern={<InstancePatternControls inst={inst} pattern={doc.instancePatterns?.find(p => p.seed === inst.id)} occurrenceOf={inst.pattern ? doc.instancePatterns?.find(p => p.id === inst.pattern!.id) : undefined}
             onAdd={o => patternEdit(() => addInstancePattern(doc, o))} onEdit={o => patternEdit(() => editInstancePattern(doc, o))}
             onDelete={id => patternEdit(() => deleteInstancePattern(doc, id))} onSkip={() => { patternEdit(() => skipOccurrence(doc, inst.id)); setInstanceSel([]); }} />}
+          looks={<InstanceLooksControls rows={instanceLookRows(inst, instanceBodies.get(inst.id), doc)} readOnly={!!inst.pattern}
+            held={[...heldLooks(doc).filter(h => h.part === inst.id), ...(inst.part ? heldByRevision(doc, inst.part.id).filter(h => h.part === inst.id) : [])].map(h => h.problem)}
+            onSet={(key, patch) => patternEdit(() => setInstanceLook(doc, { part: inst.id, body: key, patch }), 'Look not changed')}
+            onReset={(key, field) => patternEdit(() => resetInstanceLook(doc, { part: inst.id, body: key, field }), 'Look not changed')} />}
           joints={inst.doc.instances?.length ? <InstanceJointsControls inst={inst}
             onSet={values => patternEdit(() => setInstanceJoints(doc, { part: inst.id, joints: values }), 'Joints not changed')}
             onReset={() => patternEdit(() => setInstanceJoints(doc, { part: inst.id, joints: {}, replace: true }), 'Joints not changed')} /> : undefined}
@@ -1970,9 +1981,14 @@ export function App() {
             const read = await readStudioFile(new Uint8Array(await file.arrayBuffer()));
             if ('error' in read) { setToast({ title: 'Could not read that part', hint: read.error, detail: '' }); return; }
             const r = offerRevision(doc, inst.part!.id, read.doc, file.name);
-            if ('error' in r) setToast({ title: 'Nothing to update', hint: r.error, detail: '' }); else commitParts(r.doc);
+            if ('error' in r) setToast({ title: 'Nothing to update', hint: r.error, detail: '' }); else {
+              commitParts(r.doc);
+              // (Roadmap 10 ①: the occurrences' own looks stay; those whose body the revision lacks are named now, held when it is accepted.)
+              if (r.held.length) setToast({ title: `${r.held.length} look${r.held.length > 1 ? 's' : ''} would be held`, hint: r.held.map(h => h.problem).join(' '), detail: '' });
+            }
           }}
-          onAccept={() => commitParts(acceptRevision(doc, inst.part!.id))} onDismiss={() => commitParts(dismissRevision(doc, inst.part!.id))}
+          onAccept={() => { const next = acceptRevision(doc, inst.part!.id), held = heldLooks(next); commitParts(next);
+            if (held.length) setToast({ title: `${held.length} look${held.length > 1 ? 's' : ''} held`, hint: held.map(h => h.problem).join(' '), detail: '' }); }} onDismiss={() => commitParts(dismissRevision(doc, inst.part!.id))}
           onRemove={() => {
             const held = patternDeleteRefusal(doc, inst.id); if (held) { setToast({ title: 'Can’t remove this part', hint: held.message, detail: '' }); return; }
             if (!commitAssembly(list.filter(i => i.id !== inst.id), assembly.without(inst.id))) return; setInstanceSel([]); }} />;
@@ -2053,7 +2069,7 @@ export function App() {
       </header></Profiler>
       <div className="stage">
       <SceneViewport ref={viewport} contactLinks={contactShown && motionContact ? motionContact.links : undefined} poses={{ poseStore, explodeStore, jointTree, bodies: drawnBodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : routeGizmo ?? gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
-        direct={viewportDirect} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={viewportUnderlays} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesDrawn} clearance={clearanceDisplay} isolatedInstances={displayScopeReason ? undefined : isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : compareOverlay} instanceSelection={assembly.draft ? assembly.highlight.instances : viewportInstanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
+        direct={viewportDirect} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={viewportUnderlays} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesLooked} clearance={clearanceDisplay} isolatedInstances={displayScopeReason ? undefined : isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : compareOverlay} instanceSelection={assembly.draft ? assembly.highlight.instances : viewportInstanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
         onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}

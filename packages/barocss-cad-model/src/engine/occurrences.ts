@@ -111,6 +111,20 @@ export function bodyOriginOf(doc: StudioDoc, faceNames: readonly string[]): stri
   return common;
 }
 
+/**
+ * Where a feature serial of the folded sub-assembly comes from: the nested part's path (empty: the sub-assembly's own
+ * feature) and its serial in that part's own ids (`n7` of the fold is `n1` of part `p2`). The inverse of the shift flattenPlan reports.
+ */
+export function serialOriginOf(doc: StudioDoc, serial: number): { path: string[]; serial: number } {
+  if (!doc.instances?.length) return { path: [], serial };
+  let owner: { id: string; serial: number } | undefined;
+  for (const p of planOf(doc).placed) if (p.serial <= serial) owner = p;
+  const inst = owner && doc.instances.find(i => i.id === owner!.id);
+  if (!owner || !inst) return { path: [], serial };
+  const inner = serialOriginOf(inst.doc, serial - owner.serial);
+  return { path: [owner.id, ...inner.path], serial: inner.serial };
+}
+
 /** Whether an origin path is `path` itself or inside it (a sub-assembly's path covers every part within). */
 export const pathWithin = (origin: readonly string[], path: readonly string[]): boolean => path.length <= origin.length && path.every((id, k) => origin[k] === id);
 

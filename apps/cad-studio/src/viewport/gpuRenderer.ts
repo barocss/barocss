@@ -32,6 +32,7 @@ import type { OrbitCamera } from './camera';
 import { PROPOSAL_ADDED, PROPOSAL_CHIP_STEP, PROPOSAL_REMOVED, displayModeStatus, lineDisplayMode, proposalChips } from './renderer';
 import type { DisplayModeStatus, EdgeRef, FaceRef, InstanceItem, MouldShown, OverlayLabels, OverlayLines, OverlayPoints, SectionClip, SectionHatch, ThemeName, ViewRenderer, ViewState, RenderPathTraceSession } from './renderer';
 import { hatchAngle } from './sectionView';
+import { bodyLooksOf, faceColorsOfMesh, type InstanceRenderLook } from './instanceLook';
 import type { ScalarMap } from './scalarMaps';
 import type { ProposalOverlay } from '../engine/client';
 
@@ -89,6 +90,8 @@ const mix = (a: Vec3, b: Vec3, k: number): Vec3 => [a[0] + (b[0] - a[0]) * k, a[
  * its own, so takes a private copy).
  */
 interface PlacedInstance {
+  /** Each body's own look (roadmap 10 ①: the occurrence's or definition's colour, face colours, hidden), set with the instance. */
+  looks: (InstanceRenderLook | undefined)[];
   id: string; sigs: string[]; threadLines: Float32Array | undefined; surfaces: Mesh[]; edges: Mesh[]; threads: Mesh | null;
   shapes: (Shape | null)[]; shareT: Float64Array[]; sharing: boolean[]; edgeBody: number[]; edgeSharing: boolean[]; bodies: BodyResult[];
 }
@@ -750,7 +753,7 @@ export class GpuRenderer implements ViewRenderer {
     }
     for (const it of this.instances) {
       const opacity = this.fadedInstance(it.id) ? FADED : 1;
-      for (let bi = 0; bi < it.surfaces.length; bi++) this.updateSilhouette(cache, seen, it.surfaces[bi], it.sharing[bi] ? it.shapes[bi]!.ref : it.bodies[bi].mesh, opacity, true);
+      for (let bi = 0; bi < it.surfaces.length; bi++) this.updateSilhouette(cache, seen, it.surfaces[bi], it.sharing[bi] ? it.shapes[bi]!.ref : it.bodies[bi].mesh, opacity, !it.looks[bi]?.hidden);
     }
     let dropped = false;
     for (const [surface, entry] of cache) if (!seen.has(surface)) { entry.line?.remove(); cache.delete(surface); dropped = true; }
@@ -983,8 +986,9 @@ export class GpuRenderer implements ViewRenderer {
     this.instanceMeshes = new Map(items.map(it => [it.id, it.bodies.map(b => b.mesh)]));
     this.instances = items.map(it => {
       const sigs = it.bodies.map(signature), old = had.get(it.id);
-      if (old && old.sigs.length === sigs.length && old.sigs.every((x, i) => x === sigs[i]) && sameLines(old.threadLines, it.threads)) { had.delete(it.id); return old; }
-      return this.makeInstance(it, sigs);
+      if (old && old.sigs.length === sigs.length && old.sigs.every((x, i) => x === sigs[i]) && sameLines(old.threadLines, it.threads)) { had.delete(it.id); old.looks = bodyLooksOf(it.bodies, it.looks); return old; }
+      const made = this.makeInstance(it, sigs); made.looks = bodyLooksOf(it.bodies, it.looks);
+      return made;
     });
     for (const it of had.values()) this.dropInstance(it);
     this.instanceSelection = selected; this.litBodies = parseInstanceSelection(selected);
@@ -995,7 +999,7 @@ export class GpuRenderer implements ViewRenderer {
     // (G10: with a placement, each body joins the copies of its shape — or starts a shape — and draws it through its matrix.)
     const P = this.shareCopies && it.placement ? it.placement : null, found = it.bodies.map(b => P ? this.shapeOf(b.mesh, P) : null);
     const out: PlacedInstance = {
-      id: it.id, sigs, threadLines: it.threads, bodies: it.bodies,
+      looks: [], id: it.id, sigs, threadLines: it.threads, bodies: it.bodies,
       shapes: found.map(f => f?.shape ?? null), shareT: found.map(f => f?.T ?? IDENTITY), sharing: found.map(f => !!f),
       surfaces: it.bodies.map((b, bi) => { const f = found[bi]; return f ? this.sharedSurface(it.id, f.shape) : this.privateSurface(it.id, b.mesh); }),
       edgeBody: [], edgeSharing: [], edges: [],
@@ -1031,8 +1035,9 @@ export class GpuRenderer implements ViewRenderer {
       const look = r ? appearanceOf(r, 'inst:' + it.id) : null;
       it.shapes.forEach((shape, bi) => {
         if (!shape) return;
-        const base: Vec3 = look ? [1, 1, 1] : this.theme.base, key = JSON.stringify(base);
-        const own = !!look && (!!look.texture || !!look.shader) || this.instanceFaces.some(f => f.id === it.id && f.body === bi);
+        const mine = it.looks[bi], base: Vec3 = look ? [1, 1, 1] : mine?.color ?? this.theme.base, key = JSON.stringify(base);
+        // (Copies drawing one geometry agree on its colour; one with face colours of its own paints a copy of its own.)
+        const own = !!look && (!!look.texture || !!look.shader) || !!mine?.faces || this.instanceFaces.some(f => f.id === it.id && f.body === bi);
         if (!own && !agreed.has(shape)) agreed.set(shape, key);
         want.push({ it, bi, share: !own && agreed.get(shape) === key });
       });
@@ -1073,15 +1078,18 @@ export class GpuRenderer implements ViewRenderer {
           : { color: '#ffffff', metallic: 0, roughness: 0.62, opacity: 1, shader: this.analysis, unlit: !!this.analysis, map: null, alphaCutoff: 0, ...finishOf(null, null) };
         // X-ray changes appearance only; picks retain the original material's transparency policy.
         m.pickTransparent = faded || (m.material.opacity ?? 1) < 1;
-        m.pickable = !faded;
+        const mine = it.looks[bi], hidden = !!mine?.hidden;
+        m.pickable = !faded && !hidden;
         // Faded line-only context contributes edges, not an occluder in front of the focus.
-        m.visible = !(faded && lineOnly);
+        m.visible = !(faded && lineOnly) && !hidden;
         m.material = { colorWrite: !lineOnly, opacity: (mode === 'x-ray' ? Math.min(XRAY_OPACITY, m.material.opacity ?? 1) : m.material.opacity ?? 1) * (faded ? FADED : 1) };
         m.outline = lineOnly || faded ? null : this.contactLinks.has(it.id) ? CONTACT : instanceBodyLit(this.litBodies, it.id, bi, sourceBodies) ? this.theme.selection : null;
         // Face colours as the bodies' (paint): the base, picked faces mixed with the accent.
         const mesh = this.instanceMeshes.get(it.id)?.[bi];
         if (!mesh) return;
-        const base: Vec3 = look ? [1, 1, 1] : this.theme.base, on = mix(base, this.theme.selection, SELECTION_MIX), picked = new Set(this.instanceFaces.filter(f => f.id === it.id && f.body === bi).map(f => f.face));
+        const base: Vec3 = look ? [1, 1, 1] : mine?.color ?? this.theme.base, on = mix(base, this.theme.selection, SELECTION_MIX), picked = new Set(this.instanceFaces.filter(f => f.id === it.id && f.body === bi).map(f => f.face));
+        // (Face colours of the look, over the body's: not under a render appearance, as the part's own bodies'.)
+        const faces = look ? null : faceColorsOfMesh(mine, mesh);
         // (Its cap as the CPU's section painted it: an instance's cut face was never selected, the base colour; G2b.)
         m.capColor = base;
         // (A shared geometry: painted once in its sharers' base colour — none of them has picked faces.)
@@ -1095,14 +1103,14 @@ export class GpuRenderer implements ViewRenderer {
           return;
         }
         // (The same colours on the same mesh as last time: nothing written. A new selection repaints none of them.)
-        const key = JSON.stringify([base, [...picked], this.theme.selection]);
+        const key = JSON.stringify([base, [...picked], this.theme.selection, faces ? [...faces] : null]);
         if (this.instancePainted.get(m)?.mesh === mesh && this.instancePainted.get(m)?.key === key) return;
         this.instancePainted.set(m, { mesh, key });
-        const colors = new Float32Array(mesh.positions.length);
-        for (let v = 0; v < colors.length / 3; v++) colors.set(picked.has(mesh.faceOfVertex[v]) ? on : base, v * 3);
+        const colors = new Float32Array(mesh.positions.length), onFace = faces ? new Map([...faces].map(([f, c]) => [f, mix(c, this.theme.selection, SELECTION_MIX)])) : null;
+        for (let v = 0; v < colors.length / 3; v++) { const f = mesh.faceOfVertex[v]; colors.set(picked.has(f) ? onFace?.get(f) ?? on : faces?.get(f) ?? base, v * 3); }
         m.geometry.setColors(colors);
       });
-      for (const e of it.edges) { e.material = { color: this.theme.edge, opacity: faded ? FADED : 1, ...edgeStyle }; e.visible = env ? env.edges : true; }
+      it.edges.forEach((e, k) => { e.material = { color: this.theme.edge, opacity: faded ? FADED : 1, ...edgeStyle }; e.visible = (env ? env.edges : true) && !it.looks[it.edgeBody[k]]?.hidden; });
       // Cosmetic thread rings are not native CAD edges.
       if (it.threads) { it.threads.material = { color: this.theme.edge, opacity: faded ? THREAD_OPACITY * FADED : THREAD_OPACITY }; it.threads.visible = !lineOnly; }
     }

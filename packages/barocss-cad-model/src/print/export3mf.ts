@@ -1,7 +1,7 @@
 // AM5 (D76): the part (and its shown instances) as a 3MF model — each visible body an object with its material, colour
 // and face colours; with a print direction (AM4) the build items are turned so it points up, set down on the bed and
 // centred on the printer's bed when one is chosen.
-import type { StudioDoc } from '../engine/doc';
+import type { BodyLook, StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import { bodyName, lookOf } from '../app/bodies';
 import { materialData, printerProfile } from '../library/materials';
@@ -21,7 +21,11 @@ export function rotationToUp(d: readonly number[]): number[] {
 /** A rotation (row-major, p' = R·p) and a translation as 3MF's 12 numbers (row vectors: the rows are R's columns). */
 export const toThreeMfTransform = (R: readonly number[], t: readonly number[]): number[] => [R[0], R[3], R[6], R[1], R[4], R[7], R[2], R[5], R[8], t[0], t[1], t[2]];
 
-export interface PartBodies { readonly doc: StudioDoc; readonly bodies: readonly BodyResult[]; /** An instance's name, before its bodies'. */ readonly name?: string }
+export interface PartBodies {
+  readonly doc: StudioDoc; readonly bodies: readonly BodyResult[]; /** An instance's name, before its bodies'. */ readonly name?: string;
+  /** Each body's look when the caller has resolved them (a placed occurrence's effective looks, by body); else the document's own. */
+  readonly looks?: readonly (BodyLook | undefined)[];
+}
 /** A body's 3MF object split a lump at a time (O8): each lump's own vertices and triangles, its triangles' colours kept. */
 function lumpObjects(whole: ThreeMfObject, mesh: DisplayMesh, triangleColors: (string | null)[] | undefined): ThreeMfObject[] {
   const lumps = lumpTriangles(mesh); if (!lumps) return [whole];
@@ -34,8 +38,8 @@ function lumpObjects(whole: ThreeMfObject, mesh: DisplayMesh, triangleColors: (s
 /** The 3MF model of the parts' visible bodies (meshes as shown: placed instances' already in place). */
 export function threeMfModelOf(doc: StudioDoc, parts: readonly PartBodies[], title: string): ThreeMfModel | string {
   const objects: ThreeMfObject[] = [];
-  for (const part of parts) for (const b of part.bodies) {
-    const look = lookOf(part.doc, b);
+  for (const part of parts) for (const [bi, b] of part.bodies.entries()) {
+    const look = part.looks?.[bi] ?? lookOf(part.doc, b);
     if (look.hidden) continue;
     const m = b.mesh, faces = look.faces;
     let triangleColors: (string | null)[] | undefined;

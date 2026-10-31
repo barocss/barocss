@@ -1,3 +1,4 @@
+import { MATERIALS } from '../library/materials';
 import { fillPatternDocumentProblem } from './fillFeaturePattern';
 import { curvePatternDocumentProblem } from './curveFeaturePattern';
 import { documentConnectorError } from '../assembly/connectors';
@@ -58,6 +59,8 @@ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] }
   if (idProblem) return { error: refusal('VALUE', idProblem).message };
   const jointsProblem = instanceJointsProblem(o, '');
   if (jointsProblem) return { error: refusal('VALUE', jointsProblem).message };
+  const looksProblem = instanceLooksProblem(o, '');
+  if (looksProblem) return { error: refusal('VALUE', looksProblem).message };
   const skeletonProblem = skeletonDocumentProblem({ ...o, parameters });
   if (skeletonProblem) return { error: skeletonProblem };
   const fillProblem = fillPatternDocumentProblem({ ...o, parameters });
@@ -165,6 +168,30 @@ function instanceJointsProblem(raw: unknown, where: string): string | null {
     const who = `${where}instances[${i}] (${typeof instance.id === 'string' ? instance.id : '?'})`;
     if (instance.joints !== undefined) { const why = valuesProblem(instance.joints, who); if (why) return why; }
     const inner = instanceJointsProblem(instance.doc, `${where}instances[${i}].doc.`);
+    if (inner) return inner;
+  }
+  return null;
+}
+
+/** An occurrence's `looks` (instance looks) is an object of looks, each with fields of the right kind: the first that is not, naming the part and the body. */
+function instanceLooksProblem(raw: unknown, where: string): string | null {
+  if (!record(raw) || !Array.isArray(raw.instances)) return null;
+  for (const [i, instance] of raw.instances.entries()) {
+    if (!record(instance)) continue;
+    const who = `${where}instances[${i}] (${typeof instance.id === 'string' ? instance.id : '?'})`;
+    if (instance.looks !== undefined) {
+      if (!record(instance.looks)) return `${who}: "looks" is an object of body key to look`;
+      for (const [key, look] of Object.entries(instance.looks)) {
+        if (!record(look)) return `${who}: the look of ${key} is an object of color, material, hidden and faces`;
+        const unknown = Object.keys(look).find(f => !['color', 'material', 'hidden', 'faces'].includes(f));
+        if (unknown) return `${who}: "${unknown}" is not a look field of ${key}; the fields are color, material, hidden, faces`;
+        if (look.color !== undefined && (typeof look.color !== 'string' || !/^#[0-9a-f]{6}$/i.test(look.color))) return `${who}: the colour of ${key} is not a colour like "#d9534f"`;
+        if (look.material !== undefined && (typeof look.material !== 'string' || !MATERIALS.some(m => m.id === look.material))) return `${who}: the material of ${key} is not a material of the library (${MATERIALS.map(m => m.id).join(', ')})`;
+        if (look.hidden !== undefined && typeof look.hidden !== 'boolean') return `${who}: "hidden" of ${key} is not true or false`;
+        if (look.faces !== undefined && (!record(look.faces) || Object.values(look.faces).some(c => typeof c !== 'string' || !/^#[0-9a-f]{6}$/i.test(c)))) return `${who}: the face colours of ${key} are not an object of face name to colour`;
+      }
+    }
+    const inner = instanceLooksProblem(instance.doc, `${where}instances[${i}].doc.`);
     if (inner) return inner;
   }
   return null;

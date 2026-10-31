@@ -2,6 +2,7 @@
 // is async only to evaluate each placed part; that happens once, in robotViewOf (the facade builds its view at once
 // from its own evaluation), and everything after it is these functions — the agent's tools (chat/robot.ts) and the
 // facade's robotCore call the same ones, and the replies are the tools' own (the call's shape is checked by its caller).
+import { looksDocOf } from '../assembly/looks';
 import { convexHull, type GearPlacement } from '@barocss/cad';
 import type { StudioDoc } from '../engine/doc';
 import { placeBody, type BodyResult, type EvalResult } from '../engine/evaluate';
@@ -51,7 +52,7 @@ export function treeOf(view: RobotView): JointTree {
 /** Each part: its document, its bodies in its own coordinates, and where the mates place it. */
 export function partsOf(view: RobotView) {
   const solved = solveDoc(view.doc).doc;
-  return (p: string) => { if (p === BASE) return { doc: view.doc, bodies: view.bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = solved.instances?.find(x => x.id === p); return i ? { doc: i.doc, bodies: view.parts.get(p) ?? [], position: i.position, rotation: i.rotation } : null; };
+  return (p: string) => { if (p === BASE) return { doc: view.doc, bodies: view.bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = solved.instances?.find(x => x.id === p); return i ? { doc: looksDocOf(i), bodies: view.parts.get(p) ?? [], position: i.position, rotation: i.rotation } : null; };
 }
 /** The robot's links for RM6's sweep: each part's bodies where the mates put them, with their convex hulls. */
 export function sweepLinksOf(view: RobotView, t: JointTree): SweepLink[] {

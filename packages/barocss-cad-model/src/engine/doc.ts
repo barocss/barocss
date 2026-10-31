@@ -328,6 +328,11 @@ export interface SketchOutline {
 /** `faces`: colours of single faces by their persistent names (`n1.top`), over the body's own. */
 /** `faces`: per-face colours by face name, with their faces' signatures (`faceSigs`) and re-matched names (`facesWas`, new → old), see engine/references.ts. */
 export interface BodyLook { name?: string; color?: string; hidden?: boolean; material?: string; faces?: Record<string, string>; faceSigs?: Record<string, Sig>; facesWas?: Record<string, string> }
+/**
+ * What one occurrence of a placed part sets of a body's look (PartInstance.looks): its colour, face colours, material and
+ * whether it is hidden. A field left out is the definition's (the part's own look), see assembly/looks.ts.
+ */
+export type InstanceLook = Pick<BodyLook, 'color' | 'faces' | 'material' | 'hidden'>;
 /** A solid made by a shape command (Box, Sphere …) with these values: picking it again edits those values. */
 /** `nodes`: how many nodes the command added (a sketch and its solid when absent). */
 export interface Made { command: string; values: Record<string, number | string>; nodes?: number }
@@ -862,6 +867,12 @@ export interface PartInstance {
    * tree's units (radians, mm), as offsets from the pose the sub-assembly was saved in. Absent or `{}`: rigid, as saved.
    */
   joints?: Record<string, number>;
+  /**
+   * This occurrence's own looks (assembly/looks.ts), by the look key of the body in the definition (`b3`, `b3_negative`; a part
+   * inside a sub-assembly by its path first: `p2/b3`). A field set here is this occurrence's; one left out is the definition's.
+   * Kept when a new revision is accepted (a key the revision no longer has is held, reported, never dropped).
+   */
+  looks?: Record<string, InstanceLook>;
   /** Set on an occurrence a pattern generated (never on a seed): the pattern's id and the occurrence's index k (the seed is 0). Driven by the seed: no mate moves it. */
   pattern?: { id: string; k: number };
 }

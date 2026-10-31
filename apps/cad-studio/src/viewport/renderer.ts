@@ -13,6 +13,7 @@ import { OrbitCamera } from './camera';
 import { invert, multiply } from '@barocss/gpu/viewer';
 import { topologyKey, movedCopy } from './instanceGeometry';
 import { silhouetteLines } from './silhouette';
+import { bodyLooksOf, lookKeyOf, type InstanceRenderLook, type InstanceRenderLooks } from './instanceLook';
 import { ClearanceOverlayGL } from './clearanceOverlayGL';
 import { FrameCostTally, type CostRecord, type FrameCost } from './frameCost';
 import type { ClearanceDisplay } from './clearanceDisplay';
@@ -66,6 +67,8 @@ export type ThemeName = 'dark' | 'light';
  */
 export interface InstanceItem {
   id: string; bodies: BodyResult[]; threads?: Float32Array; placement?: Float64Array;
+  /** The bodies' looks by body key (roadmap 10 ①): the occurrence's colour, face colours, hidden. A body without an entry is drawn in the base colour. */
+  looks?: InstanceRenderLooks;
   /** CPU section packet provenance; absent means the original body/face/edge ordinal. */
   sourceBodies?: readonly number[];
   sourceFaces?: readonly (readonly number[])[];
@@ -374,6 +377,8 @@ interface BodyGeometry {
 interface InstanceShape { key: string; ref: BodyResult['mesh']; inverse: Float64Array; geometry: BodyGeometry }
 interface InstanceShown {
   item: InstanceItem; bodies: { gpu: GpuBody; share: Float64Array }[];
+  /** Each body's look, resolved when the instance is set (a frame only reads it). */
+  looks: (InstanceRenderLook | undefined)[];
   threads: Plain | null; hatch: { body: number; line: Plain }[];
 }
 interface GpuBody {
@@ -631,10 +636,12 @@ export class Renderer implements ViewRenderer {
     this.instances = items.map(item => {
       const previous = old.get(item.id);
       if (previous && previous.item.bodies === item.bodies && previous.item.threads === item.threads && previous.item.hatch === item.hatch) {
-        old.delete(item.id); previous.item = item; return previous;
+        old.delete(item.id); previous.item = item;
+        if (previous.looks.length !== item.bodies.length || item.bodies.some((b, k) => lookKeyOf(previous.looks[k]) !== lookKeyOf(item.looks?.get(b.key)))) previous.looks = bodyLooksOf(item.bodies, item.looks);
+        return previous;
       }
       const P = item.placement ?? INSTANCE_IDENTITY;
-      return { item, bodies: item.bodies.map(result => {
+      return { item, looks: bodyLooksOf(item.bodies, item.looks), bodies: item.bodies.map(result => {
         // (Not shared: the copy's own world-placed mesh, drawn through its motion alone.)
         if (!this.shareCopies) return { gpu: this.uploadBody(result), share: INSTANCE_IDENTITY };
         const key = topologyKey(result.mesh), list = this.instanceShapes.get(key) ?? [];
@@ -906,8 +913,10 @@ export class Renderer implements ViewRenderer {
         gl.uniform3fv(this.u(this.mesh, 'uBase'), t.base);
         // (R2: index loops, not a closure for each copy in each frame.)
         for (const it of this.instances) for (let bi = 0; bi < it.bodies.length; bi++) {
-          const gpu = it.bodies[bi].gpu;
-          if (this.fadedInstance(it.item.id) !== (pass === 1)) continue;
+          const gpu = it.bodies[bi].gpu, look = it.looks[bi];
+          if (look?.hidden || this.fadedInstance(it.item.id) !== (pass === 1)) continue;
+          // (The occurrence's own colour, else the definition's, else the base: a uniform, no allocation.)
+          gl.uniform3fv(this.u(this.mesh, 'uBase'), look?.color ?? t.base);
           this.placeInstance(this.mesh, it, bi);
           gl.uniform1f(this.u(this.mesh, 'uBodySel'), instanceBodyLit(this.instanceSelection, it.item.id, bi, it.item.sourceBodies) ? 1 : 0);
           gl.uniform1f(this.u(this.mesh, 'uContact'), this.contactLinks.has(it.item.id) ? 1 : 0);
@@ -959,6 +968,7 @@ export class Renderer implements ViewRenderer {
       let lit: boolean | null = null;
       for (let bi = 0; bi < it.bodies.length; bi++) {
         const gpu = it.bodies[bi].gpu;
+        if (it.looks[bi]?.hidden) continue;
         const bodySelected = anyLit && !faded && instanceBodyLit(this.instanceSelection, it.item.id, bi, it.item.sourceBodies);
         if (bodySelected !== lit) {
           lit = bodySelected;
@@ -983,7 +993,7 @@ export class Renderer implements ViewRenderer {
         this.placeInstance(this.line, it, 0, false, false);
         gl.uniform1f(this.u(this.line, 'uWidth'), 0.5 * dpr);
         if (it.threads) { gl.uniform4f(this.u(this.line, 'uColor'), ...t.edge as [number, number, number], this.fadedInstance(it.item.id) ? THREAD_OPACITY * FADED : THREAD_OPACITY); gl.bindVertexArray(it.threads.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, it.threads.count); if (T) T.add(this.costOf(it.bodies[0], it.bodies[0].gpu.result.key, it.item.id), 'surface', 0, it.threads.count, 0); }
-        for (const hatch of it.hatch) { gl.uniform4f(this.u(this.line, 'uColor'), 0, 0, 0, this.fadedInstance(it.item.id) ? HATCH_OPACITY * FADED : HATCH_OPACITY); gl.bindVertexArray(hatch.line.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, hatch.line.count); if (T) { const o = it.bodies[hatch.body] ?? it.bodies[0]; T.add(this.costOf(o, o.gpu.result.key, it.item.id), 'caps', 0, hatch.line.count, 0); } }
+        for (const hatch of it.hatch) { if (it.looks[hatch.body]?.hidden) continue; gl.uniform4f(this.u(this.line, 'uColor'), 0, 0, 0, this.fadedInstance(it.item.id) ? HATCH_OPACITY * FADED : HATCH_OPACITY); gl.bindVertexArray(hatch.line.vao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, hatch.line.count); if (T) { const o = it.bodies[hatch.body] ?? it.bodies[0]; T.add(this.costOf(o, o.gpu.result.key, it.item.id), 'caps', 0, hatch.line.count, 0); } }
         gl.uniform1f(this.u(this.line, 'uWidth'), 0.62 * dpr);
       }
     }
@@ -1101,7 +1111,7 @@ export class Renderer implements ViewRenderer {
     let next = INSTANCE_ID;
     this.instanceIds.clear();
     for (const it of this.instances) it.bodies.forEach(({ gpu }, bi) => {
-      if (this.fadedInstance(it.item.id)) return;
+      if (this.fadedInstance(it.item.id) || it.looks[bi]?.hidden) return;
       const m = gpu.result.mesh, count = m.faces.length;
       if (next + count > 0xffffffff) throw new Error('Instance pick ID capacity exceeded.');
       this.placeInstance(this.pick, it, bi); gl.uniform1ui(this.u(this.pick, 'uInstanceId'), next);
@@ -1216,7 +1226,7 @@ export class Renderer implements ViewRenderer {
     let best: { id: string; body: number; edge: number } | null = null, distance = radius;
     const shown = this.depthsAround(x, y, radius, camera, this.view);
     for (const it of this.instances) it.bodies.forEach(({ gpu }, bi) => {
-      if (this.fadedInstance(it.item.id)) return;
+      if (this.fadedInstance(it.item.id) || it.looks[bi]?.hidden) return;
       this.instanceMatrix(it, bi, false);
       const m = gpu.result.mesh, near = nearSegments(m.edgeLines, this.model, camera.viewProjection(), this.canvas.clientWidth, this.canvas.clientHeight, x, y, distance);
       for (const candidate of near.slice(0, HIDDEN_TRIES)) {

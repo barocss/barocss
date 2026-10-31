@@ -7,7 +7,7 @@ import { resolveShopTree } from '../engine/shopRows';
 // checked against the assembly (every instance counted once, the totals), with a library part's source named.
 import { hostOf } from '../engine/occurrences';
 import { meshClearance } from '@barocss/cad';
-import type { StudioDoc } from '../engine/doc';
+import type { PartInstance, StudioDoc } from '../engine/doc';
 import type { BodyResult } from '../engine/evaluate';
 import type { Evaluate } from '../chat/tools';
 import { massProperties } from '../analysis/analysis';
@@ -19,6 +19,12 @@ import { bomViewOf, type Bom, type BomView } from '../bom/core';
 import { beadAccounting, combineBeadAccounting, incompleteBeadReason, type BeadAccounting } from '../frames/beadAccounting';
 import { r6 } from '../util/round';
 import { evaluateTree } from '../assembly/instances';
+import { looksDocOf, looksOf, lookTargetsOf } from '../assembly/looks';
+import { placedBase } from '../engine/doc';
+import { massGOf } from '../app/mass';
+import { materialOf } from '../library/materials';
+import { briefMaterial } from '../chat/brief';
+import { r3 } from '../util/round';
 
 export type AssemblyCode = 'PARTS_MEET' | 'PARTS_TOUCH' | 'EXPECTED_CONTACT' | 'PATTERN_MISALIGNED' | 'OVER_TOTAL_BUDGET' | 'BEAD_ACCOUNTING_INCOMPLETE';
 export interface AssemblyFinding { code: AssemblyCode; message: string; entities?: string[] }
@@ -33,6 +39,17 @@ export async function assemblyBodies(doc: StudioDoc, evaluate: Evaluate): Promis
   return out;
 }
 const massOf = (doc: StudioDoc, bodies: readonly BodyResult[]) => (massProperties(doc, bodies) as { mass: number }[]).reduce((s, x) => s + x.mass, 0);
+
+/**
+ * A placed part's mass: by its document's materials, with the occurrence's own looks over them (roadmap 10 ①). Overrides inside a
+ * sub-assembly name nested parts, whose bodies carry folded keys: each body's material is then read through where it comes from.
+ */
+function occurrenceMass(inst: PartInstance, bodies: readonly BodyResult[], parent: StudioDoc): number {
+  const nested = Object.keys(inst.looks ?? {}).some(k => k.includes('/'));
+  if (!nested) return massOf(looksDocOf(inst), bodies);
+  const looks = looksOf(inst, lookTargetsOf(inst, placedBase(inst, parent).nodes, bodies));
+  return bodies.reduce((t, b, k) => t + (b.volume === null ? 0 : r3(massGOf(b.volume, materialOf(looks[k].material ?? briefMaterial(inst.doc)).density))), 0);
+}
 
 /** The whole assembly's gate: parts meeting, the patterns on every built part, the total mass. */
 export async function checkAssembly(doc: StudioDoc, evaluate: Evaluate): Promise<AssemblyCheck> {
@@ -55,7 +72,7 @@ export async function checkAssembly(doc: StudioDoc, evaluate: Evaluate): Promise
   const ifc = readInterfaces(doc.interfaces);
   for (const p of ifc.holePatterns) for (const part of p.parts) { const b = parts.get(part); if (!b) continue; const off = holesOff(b, p); if (off.length) findings.push({ code: 'PATTERN_MISALIGNED', message: `${part} is off ${p.id} at ${off.map(o => `(${o.join(', ')})`).join(', ')}`, entities: [part] }); }
   let mass = 0;
-  for (const [id, b] of parts) mass += massOf(id === 'base' ? doc : (doc.instances ?? []).find(i => i.id === id)!.doc, b);
+  for (const [id, b] of parts) mass += id === 'base' ? massOf(doc, b) : occurrenceMass((doc.instances ?? []).find(i => i.id === id)!, b, doc);
   const accountingRows: { scope: string; accounting?: BeadAccounting }[] = [];
   const inspect = async (d: StudioDoc, scope: string) => {
     const e = await evaluate(d); accountingRows.push({ scope, accounting: beadAccounting(d, e?.ok ? e.bodies : []) });

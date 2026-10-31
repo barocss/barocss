@@ -175577,6 +175577,13 @@
                 "type": "(name: string) => { part: string; joints: { key: string; type: \"prismatic\" | \"revolute\" | \"continuous\"; parent: string; child: string; value: number; lower?: number | undefined; upper?: number | undefined; }[]; problem?: string | undefined; }"
               },
               {
+                "name": "partLooks",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => { body: string; look: { color?: string | undefined; material?: string | undefined; hidden?: boolean | undefined; faces?: Record<string, string> | undefined; }; held?: string | undefined; }[]"
+              },
+              {
                 "name": "parts",
                 "kind": "method",
                 "optional": false,
@@ -175638,6 +175645,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(name: string, joints: Record<string, number | null>, options?: { replace?: boolean | undefined; }) => Assembly"
+              },
+              {
+                "name": "setPartLook",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string, body: string, look: { color?: string | null | undefined; material?: string | null | undefined; hidden?: boolean | null | undefined; faces?: Record<string, string | null> | undefined; } | null) => Assembly"
               },
               {
                 "name": "skipOccurrence",
@@ -181788,6 +181802,13 @@
                 "type": "(name: string) => { part: string; joints: { key: string; type: \"prismatic\" | \"revolute\" | \"continuous\"; parent: string; child: string; value: number; lower?: number | undefined; upper?: number | undefined; }[]; problem?: string | undefined; }"
               },
               {
+                "name": "partLooks",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => { body: string; look: { color?: string | undefined; material?: string | undefined; hidden?: boolean | undefined; faces?: Record<string, string> | undefined; }; held?: string | undefined; }[]"
+              },
+              {
                 "name": "parts",
                 "kind": "method",
                 "optional": false,
@@ -181849,6 +181870,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(name: string, joints: Record<string, number | null>, options?: { replace?: boolean | undefined; }) => Assembly"
+              },
+              {
+                "name": "setPartLook",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string, body: string, look: { color?: string | null | undefined; material?: string | null | undefined; hidden?: boolean | null | undefined; faces?: Record<string, string | null> | undefined; } | null) => Assembly"
               },
               {
                 "name": "skipOccurrence",
@@ -182587,6 +182615,37 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./api/assemblyCore",
+      "exportName": "partLooksOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "instanceLooksListing",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, part: string) => { body: string; look: InstanceLook; held?: string | undefined; }[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, part: string) => { body: string; look: InstanceLook; held?: string | undefined; }[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/assemblyCore",
       "exportName": "patternDoc",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -182703,6 +182762,37 @@
             ],
             "callSignatures": [
               "(doc: StudioDoc, id: string, joints: Record<string, number | null>, replace: boolean) => StudioDoc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/assemblyCore",
+      "exportName": "setPartLookDoc",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/assemblyCore.ts",
+            "name": "setPartLookDoc",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, id: string, body: string, patch: InstanceLookPatch | null) => StudioDoc",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, id: string, body: string, patch: InstanceLookPatch | null) => StudioDoc"
             ]
           }
         }
@@ -183820,6 +183910,13 @@
                 "type": "(name: string) => { part: string; joints: { key: string; type: \"prismatic\" | \"revolute\" | \"continuous\"; parent: string; child: string; value: number; lower?: number | undefined; upper?: number | undefined; }[]; problem?: string | undefined; }"
               },
               {
+                "name": "partLooks",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => { body: string; look: { color?: string | undefined; material?: string | undefined; hidden?: boolean | undefined; faces?: Record<string, string> | undefined; }; held?: string | undefined; }[]"
+              },
+              {
                 "name": "parts",
                 "kind": "method",
                 "optional": false,
@@ -183881,6 +183978,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(name: string, joints: Record<string, number | null>, options?: { replace?: boolean | undefined; }) => Assembly"
+              },
+              {
+                "name": "setPartLook",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string, body: string, look: { color?: string | null | undefined; material?: string | null | undefined; hidden?: boolean | null | undefined; faces?: Record<string, string | null> | undefined; } | null) => Assembly"
               },
               {
                 "name": "skipOccurrence",
@@ -194971,7 +195075,7 @@
           ],
           "target": {
             "package": "@barocss/cad-model",
-            "file": "src/app/bodies.ts",
+            "file": "src/app/lookKey.ts",
             "name": "lookKey",
             "kind": "function"
           },
@@ -195126,7 +195230,7 @@
           ],
           "target": {
             "package": "@barocss/cad-model",
-            "file": "src/app/bodies.ts",
+            "file": "src/app/lookKey.ts",
             "name": "rootOf",
             "kind": "function"
           },
@@ -198742,6 +198846,68 @@
     },
     {
       "package": "@barocss/cad-model",
+      "subpath": "./app/lookKey",
+      "exportName": "lookKey",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/app/lookKey.ts",
+            "name": "lookKey",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(nodes: readonly ModelNode[], body: BodyResult) => string",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(nodes: readonly ModelNode[], body: BodyResult) => string"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./app/lookKey",
+      "exportName": "rootOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/app/lookKey.ts",
+            "name": "rootOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(nodes: readonly ModelNode[], index: number) => number",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(nodes: readonly ModelNode[], index: number) => number"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
       "subpath": "./app/mass",
       "exportName": "KERNEL_DENSITY",
       "space": "value",
@@ -201445,14 +201611,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(doc: StudioDoc, id: string, part: StudioDoc, name: string) => { doc: StudioDoc; } | { error: string; }",
+            "type": "(doc: StudioDoc, id: string, part: StudioDoc, name: string) => { doc: StudioDoc; held: HeldLook[]; } | { error: string; }",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(doc: StudioDoc, id: string, part: StudioDoc, name: string) => { doc: StudioDoc; } | { error: string; }"
+              "(doc: StudioDoc, id: string, part: StudioDoc, name: string) => { doc: StudioDoc; held: HeldLook[]; } | { error: string; }"
             ]
           }
         }
@@ -203302,6 +203468,1668 @@
             ],
             "callSignatures": [
               "(doc: StudioDoc, evaluate: Evaluate) => Promise<Map<StudioDoc, EvalResult | null>>"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "EffectiveLook",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "EffectiveLook",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "EffectiveLook",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration",
+                "heritage": [
+                  " extends InstanceLook"
+                ]
+              }
+            ],
+            "members": [
+              {
+                "name": "color",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "faces",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "Record<string, string> | undefined"
+              },
+              {
+                "name": "from",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ color?: LookSource | undefined; material?: LookSource | undefined; hidden?: LookSource | undefined; faces?: Record<string, LookSource> | undefined; }"
+              },
+              {
+                "name": "hidden",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "boolean | undefined"
+              },
+              {
+                "name": "material",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "HeldLook",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "HeldLook",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "HeldLook",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "body",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "part",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "problem",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "InstanceLookPatch",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "InstanceLookPatch",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "InstanceLookPatch",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "color",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | null | undefined"
+              },
+              {
+                "name": "faces",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "Record<string, string | null> | undefined"
+              },
+              {
+                "name": "hidden",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "boolean | null | undefined"
+              },
+              {
+                "name": "material",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | null | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "LOOK_FIELDS",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "LOOK_FIELDS",
+            "kind": "const"
+          },
+          "shape": {
+            "type": "readonly [\"color\", \"material\", \"hidden\", \"faces\"]",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "LookField",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "LookField",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "\"faces\" | \"color\" | \"material\" | \"hidden\"",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "typeof LOOK_FIELDS[number]"
+              }
+            ],
+            "members": [
+              {
+                "name": "__@iterator@81",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => StringIterator<string>"
+              },
+              {
+                "name": "anchor",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => string"
+              },
+              {
+                "name": "at",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => string | undefined"
+              },
+              {
+                "name": "big",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "blink",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "bold",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "charAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(pos: number) => string"
+              },
+              {
+                "name": "charCodeAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => number"
+              },
+              {
+                "name": "codePointAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(pos: number) => number | undefined"
+              },
+              {
+                "name": "concat",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(...strings: string[]) => string"
+              },
+              {
+                "name": "endsWith",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, endPosition?: number | undefined) => boolean"
+              },
+              {
+                "name": "fixed",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "fontcolor",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(color: string) => string"
+              },
+              {
+                "name": "fontsize",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (size: number): string; (size: string): string; }"
+              },
+              {
+                "name": "includes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => boolean"
+              },
+              {
+                "name": "indexOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => number"
+              },
+              {
+                "name": "italics",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "lastIndexOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => number"
+              },
+              {
+                "name": "length",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "link",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(url: string) => string"
+              },
+              {
+                "name": "localeCompare",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (that: string): number; (that: string, locales?: string | string[] | undefined, options?: CollatorOptions | undefined): number; (that: string, locales?: LocalesArgument, options?: CollatorOptions | undefined): number; }"
+              },
+              {
+                "name": "match",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (regexp: string | RegExp): RegExpMatchArray | null; (matcher: { [Symbol.match](string: string): RegExpMatchArray | null; }): RegExpMatchArray | null; }"
+              },
+              {
+                "name": "matchAll",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(regexp: RegExp) => RegExpStringIterator<RegExpExecArray>"
+              },
+              {
+                "name": "normalize",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (form: \"NFC\" | \"NFD\" | \"NFKC\" | \"NFKD\"): string; (form?: string | undefined): string; }"
+              },
+              {
+                "name": "padEnd",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(maxLength: number, fillString?: string | undefined) => string"
+              },
+              {
+                "name": "padStart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(maxLength: number, fillString?: string | undefined) => string"
+              },
+              {
+                "name": "repeat",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(count: number) => string"
+              },
+              {
+                "name": "replace",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; (searchValue: { [Symbol.replace](string: string, replaceValue: string): string; }, replaceValue: string): string; (searchValue: { [Symbol.replace](string: string, replacer: (substring: string, ...args: any[]) => string): string; }, replacer: (substring: string, ...args: any[]) => string): string; }"
+              },
+              {
+                "name": "replaceAll",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; }"
+              },
+              {
+                "name": "search",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (regexp: string | RegExp): number; (searcher: { [Symbol.search](string: string): number; }): number; }"
+              },
+              {
+                "name": "slice",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start?: number | undefined, end?: number | undefined) => string"
+              },
+              {
+                "name": "small",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "split",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (separator: string | RegExp, limit?: number | undefined): string[]; (splitter: { [Symbol.split](string: string, limit?: number | undefined): string[]; }, limit?: number | undefined): string[]; }"
+              },
+              {
+                "name": "startsWith",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => boolean"
+              },
+              {
+                "name": "strike",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "sub",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "substr",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(from: number, length?: number | undefined) => string"
+              },
+              {
+                "name": "substring",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start: number, end?: number | undefined) => string"
+              },
+              {
+                "name": "sup",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toLocaleLowerCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+              },
+              {
+                "name": "toLocaleUpperCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+              },
+              {
+                "name": "toLowerCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toString",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toUpperCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trim",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimEnd",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimLeft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimRight",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimStart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "valueOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              }
+            ],
+            "indexSignatures": [
+              {
+                "key": "number",
+                "type": "string",
+                "readonly": true,
+                "callable": false
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "LookSource",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "LookSource",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "\"definition\" | \"occurrence\"",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "\"definition\" | \"occurrence\""
+              }
+            ],
+            "members": [
+              {
+                "name": "__@iterator@81",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => StringIterator<string>"
+              },
+              {
+                "name": "anchor",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(name: string) => string"
+              },
+              {
+                "name": "at",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => string | undefined"
+              },
+              {
+                "name": "big",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "blink",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "bold",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "charAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(pos: number) => string"
+              },
+              {
+                "name": "charCodeAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => number"
+              },
+              {
+                "name": "codePointAt",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(pos: number) => number | undefined"
+              },
+              {
+                "name": "concat",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(...strings: string[]) => string"
+              },
+              {
+                "name": "endsWith",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, endPosition?: number | undefined) => boolean"
+              },
+              {
+                "name": "fixed",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "fontcolor",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(color: string) => string"
+              },
+              {
+                "name": "fontsize",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (size: number): string; (size: string): string; }"
+              },
+              {
+                "name": "includes",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => boolean"
+              },
+              {
+                "name": "indexOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => number"
+              },
+              {
+                "name": "italics",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "lastIndexOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => number"
+              },
+              {
+                "name": "length",
+                "kind": "property",
+                "optional": false,
+                "readonly": true,
+                "type": "number"
+              },
+              {
+                "name": "link",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(url: string) => string"
+              },
+              {
+                "name": "localeCompare",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (that: string): number; (that: string, locales?: string | string[] | undefined, options?: CollatorOptions | undefined): number; (that: string, locales?: LocalesArgument, options?: CollatorOptions | undefined): number; }"
+              },
+              {
+                "name": "match",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (regexp: string | RegExp): RegExpMatchArray | null; (matcher: { [Symbol.match](string: string): RegExpMatchArray | null; }): RegExpMatchArray | null; }"
+              },
+              {
+                "name": "matchAll",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(regexp: RegExp) => RegExpStringIterator<RegExpExecArray>"
+              },
+              {
+                "name": "normalize",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (form: \"NFC\" | \"NFD\" | \"NFKC\" | \"NFKD\"): string; (form?: string | undefined): string; }"
+              },
+              {
+                "name": "padEnd",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(maxLength: number, fillString?: string | undefined) => string"
+              },
+              {
+                "name": "padStart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(maxLength: number, fillString?: string | undefined) => string"
+              },
+              {
+                "name": "repeat",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(count: number) => string"
+              },
+              {
+                "name": "replace",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; (searchValue: { [Symbol.replace](string: string, replaceValue: string): string; }, replaceValue: string): string; (searchValue: { [Symbol.replace](string: string, replacer: (substring: string, ...args: any[]) => string): string; }, replacer: (substring: string, ...args: any[]) => string): string; }"
+              },
+              {
+                "name": "replaceAll",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (searchValue: string | RegExp, replaceValue: string): string; (searchValue: string | RegExp, replacer: (substring: string, ...args: any[]) => string): string; }"
+              },
+              {
+                "name": "search",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (regexp: string | RegExp): number; (searcher: { [Symbol.search](string: string): number; }): number; }"
+              },
+              {
+                "name": "slice",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start?: number | undefined, end?: number | undefined) => string"
+              },
+              {
+                "name": "small",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "split",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (separator: string | RegExp, limit?: number | undefined): string[]; (splitter: { [Symbol.split](string: string, limit?: number | undefined): string[]; }, limit?: number | undefined): string[]; }"
+              },
+              {
+                "name": "startsWith",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(searchString: string, position?: number | undefined) => boolean"
+              },
+              {
+                "name": "strike",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "sub",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "substr",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(from: number, length?: number | undefined) => string"
+              },
+              {
+                "name": "substring",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(start: number, end?: number | undefined) => string"
+              },
+              {
+                "name": "sup",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toLocaleLowerCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+              },
+              {
+                "name": "toLocaleUpperCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "{ (locales?: string | string[] | undefined): string; (locales?: LocalesArgument): string; }"
+              },
+              {
+                "name": "toLowerCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toString",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "toUpperCase",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trim",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimEnd",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimLeft",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimRight",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "trimStart",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              },
+              {
+                "name": "valueOf",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string"
+              }
+            ],
+            "indexSignatures": [
+              {
+                "key": "number",
+                "type": "string",
+                "readonly": true,
+                "callable": false
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "LookTarget",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "LookTarget",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "LookTarget",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "key",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "path",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "ResetInstanceLookOptions",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "ResetInstanceLookOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "ResetInstanceLookOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "body",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "field",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "\"faces\" | \"color\" | \"material\" | \"hidden\" | `face:${string}` | undefined"
+              },
+              {
+                "name": "part",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "SetInstanceLookOptions",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "SetInstanceLookOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "SetInstanceLookOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "body",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "part",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "patch",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "InstanceLookPatch"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "heldByRevision",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "heldByRevision",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, id: string) => HeldLook[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, id: string) => HeldLook[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "heldLooks",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "heldLooks",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc) => HeldLook[]",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc) => HeldLook[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "instanceLookByKey",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "instanceLookByKey",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(inst: PartInstance, key: string) => EffectiveLook",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(inst: PartInstance, key: string) => EffectiveLook"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "instanceLookOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "instanceLookOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(inst: PartInstance, body: BodyResult, path?: readonly string[]) => EffectiveLook",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(inst: PartInstance, body: BodyResult, path?: readonly string[]) => EffectiveLook"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "instanceLooksListing",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "instanceLooksListing",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, part: string) => { body: string; look: InstanceLook; held?: string | undefined; }[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, part: string) => { body: string; look: InstanceLook; held?: string | undefined; }[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "lookKeysOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "lookKeysOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc) => Set<string>",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc) => Set<string>"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "lookPathKey",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "lookPathKey",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(path: readonly string[], key: string) => string",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(path: readonly string[], key: string) => string"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "lookTargetsOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "lookTargetsOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(host: PartInstance, nodes: readonly ModelNode[], bodies: readonly BodyResult[]) => LookTarget[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(host: PartInstance, nodes: readonly ModelNode[], bodies: readonly BodyResult[]) => LookTarget[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "looksDocOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "looksDocOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(host: PartInstance, path?: readonly string[]) => StudioDoc",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(host: PartInstance, path?: readonly string[]) => StudioDoc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "looksOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "looksOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(host: PartInstance, targets: readonly LookTarget[]) => EffectiveLook[]",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(host: PartInstance, targets: readonly LookTarget[]) => EffectiveLook[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "looksOnFold",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "looksOnFold",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(host: PartInstance, targets: readonly LookTarget[]) => EffectiveLook[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(host: PartInstance, targets: readonly LookTarget[]) => EffectiveLook[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "materialLooksDocOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "materialLooksDocOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(host: PartInstance) => StudioDoc",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(host: PartInstance) => StudioDoc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "nestedMaterialLooks",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "nestedMaterialLooks",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(host: PartInstance) => [string, string][]",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(host: PartInstance) => [string, string][]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "resetInstanceLook",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "resetInstanceLook",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, o: ResetInstanceLookOptions) => { doc: StudioDoc; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, o: ResetInstanceLookOptions) => { doc: StudioDoc; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "setInstanceLook",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "setInstanceLook",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, o: SetInstanceLookOptions) => { doc: StudioDoc; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, o: SetInstanceLookOptions) => { doc: StudioDoc; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "setInstanceLooks",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "setInstanceLooks",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, part: string, looks: Record<string, InstanceLookPatch | null>) => { doc: StudioDoc; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, part: string, looks: Record<string, InstanceLookPatch | null>) => { doc: StudioDoc; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/looks",
+      "exportName": "withInstanceLooks",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/looks.ts",
+            "name": "withInstanceLooks",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(d: StudioDoc, host: PartInstance) => StudioDoc",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(d: StudioDoc, host: PartInstance) => StudioDoc"
             ]
           }
         }
@@ -253929,6 +255757,66 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./engine/doc",
+      "exportName": "InstanceLook",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/doc.ts",
+            "name": "InstanceLook",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "{ faces?: Record<string, string> | undefined; color?: string | undefined; material?: string | undefined; hidden?: boolean | undefined; }",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "Pick<BodyLook, \"color\" | \"faces\" | \"material\" | \"hidden\">"
+              }
+            ],
+            "members": [
+              {
+                "name": "color",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "faces",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "Record<string, string> | undefined"
+              },
+              {
+                "name": "hidden",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "boolean | undefined"
+              },
+              {
+                "name": "material",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/doc",
       "exportName": "InstancePattern",
       "space": "type",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -257704,6 +259592,13 @@
                 "optional": true,
                 "readonly": false,
                 "type": "Record<string, number> | undefined"
+              },
+              {
+                "name": "looks",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "Record<string, InstanceLook> | undefined"
               },
               {
                 "name": "name",
@@ -272067,6 +273962,37 @@
             ],
             "callSignatures": [
               "(doc: StudioDoc, name: string) => boolean"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/occurrences",
+      "exportName": "serialOriginOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/occurrences.ts",
+            "name": "serialOriginOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, serial: number) => { path: string[]; serial: number; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, serial: number) => { path: string[]; serial: number; }"
             ]
           }
         }
@@ -305214,6 +307140,13 @@
                 "optional": false,
                 "readonly": true,
                 "type": "StudioDoc"
+              },
+              {
+                "name": "looks",
+                "kind": "property",
+                "optional": true,
+                "readonly": true,
+                "type": "readonly (BodyLook | undefined)[] | undefined"
               },
               {
                 "name": "name",
