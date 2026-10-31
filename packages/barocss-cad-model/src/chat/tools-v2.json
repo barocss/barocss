@@ -25,6 +25,7 @@
        "pattern",
        "edit_pattern",
        "delete_pattern",
+       "cut",
        "delete_mate",
        "inputs",
        "variants",

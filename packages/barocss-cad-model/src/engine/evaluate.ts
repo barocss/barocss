@@ -12,6 +12,9 @@ import { bodyKeyOf, partSnapshot } from './part';
 import { placedBase, placedDoc, type PartInstance, type BodyRef, type ModelNode, type Side, type StudioDoc } from './doc';
 import { placementOf } from './placement';
 import { bodyKeyFor, bodyNodeOf } from './ids';
+import { registerPartBox, type PartBox } from './assemblyCut';
+import { boundsOf } from './bounds';
+import { evaluationKey } from './evalMemo';
 import { fastenerLinkNotes } from '../library/fastenerLinks';
 import { fastenerSizesOf } from './fastenerSizeRows';
 import { revisionOf } from '../util/revision';
@@ -577,4 +580,32 @@ function placedOutputs(inst: PartInstance, placed = placedDoc(inst), parent?: St
     if (!bead) throw new Error(`placed bead ${o.id} has no origin body`);
     return { ...o, brep: transformBrep(bead.brep, { matrix: m as [number, number, number, number, number, number, number, number, number], offset: t }) };
   });
+}
+
+// Roadmap 10 ⑤: what sizes an assembly cut's through tool — a part's box in its own frame, built once per part document (coarsely tessellated) —
+// and the trial that a cut leaves every body of a part there to be built.
+const partBoxes = new Map<string, PartBox | null>();
+// (Keyed by what the part is evaluated from — its features and the rows it takes from the assembly — so a changed row is a new box.)
+registerPartBox(doc => {
+  const key = evaluationKey(doc);
+  if (partBoxes.has(key)) { const have = partBoxes.get(key)!; partBoxes.delete(key); partBoxes.set(key, have); return have; }
+  let box: PartBox | null = null;
+  try {
+    const bodies = partSnapshot(doc, part => evaluateCadPart(part)).outputs.map(o => bodyOf(o, doc, 0, 4));
+    if (bodies.length) box = boundsOf(bodies);
+  } catch { box = null; }
+  partBoxes.set(key, box); if (partBoxes.size > 64) partBoxes.delete(partBoxes.keys().next().value!);
+  return box;
+});
+/** Whether the part builds with every one of its bodies (a cut that fails to build, or takes a whole body, is told here in words), else undefined. Synchronous, for the editing operations. */
+export function partBuildProblem(doc: StudioDoc, bodies: number): string | undefined {
+  try {
+    const outputs = partSnapshot(doc, part => evaluateCadPart(part)).outputs;
+    if (outputs.length < bodies || outputs.some(o => !o.brep.faces.length)) return 'a body of it is gone';
+    return undefined;
+  } catch (cause) { const e = friendlyCause(cause); return `${e.title}${e.hint ? ` (${e.hint})` : ''}`; }
+}
+/** How many bodies the part has, built; null when it does not build. */
+export function partBodyCount(doc: StudioDoc): number | null {
+  try { return partSnapshot(doc, part => evaluateCadPart(part)).outputs.length; } catch { return null; }
 }

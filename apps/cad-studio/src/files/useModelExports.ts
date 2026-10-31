@@ -6,6 +6,7 @@ import { bodyName } from '@barocss/cad-model/app/bodies';
 import { draftWarning } from '@barocss/cad-model/chat/drafts';
 import { sourceBytes, sourceRecord } from '@barocss/cad-model/team/source';
 import { quotePackage } from '@barocss/cad-model/mould/quote';
+import { withCutNodes } from '@barocss/cad-model/assembly/cuts';
 import { write3mf } from '@barocss/cad-model/print/threemf';
 import { threeMfModelOf } from '@barocss/cad-model/print/export3mf';
 import { looksOnFold } from '@barocss/cad-model/assembly/looks';
@@ -116,7 +117,8 @@ export function useModelExports({ model, engine, fileName, current, onNotice }: 
     const parts = [{ doc, bodies }, ...(doc.instances ?? []).filter(i => !i.hidden && instanceBodies.has(i.id)).map(i => {
       // (Roadmap 10 ①: each body in the definition's colours and material, this occurrence's own over them.)
       const bodies = instanceBodies.get(i.id)!.bodies;
-      return { doc: i.doc, bodies, name: i.name, looks: looksOnFold(i, placedLooksOf(i, doc, bodies).targets) };
+      // (Roadmap 10 ⑤: a cut part's bodies name their features in the cut part's nodes.)
+      return { doc: withCutNodes(i.doc, i, doc), bodies, name: i.name, looks: looksOnFold(i, placedLooksOf(i, doc, bodies).targets) };
     })];
     const model = threeMfModelOf(doc, parts, fileName);
     const r = typeof model === 'string' ? { error: model } : await write3mf(model);

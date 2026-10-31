@@ -119,15 +119,16 @@ Parts placed and mated with the base part; changes to it are proposed. A part to
 | `assembly.pattern` | `pattern_part` | seed, kind: linear \| circular, count, spacing?, direction? \| angle?, axis?, origin?, skip? — the part repeated; copies driven by it |
 | `assembly.edit_pattern` | `edit_pattern` | id, count?, skip?, spacing?, direction? \| angle?, axis?, origin? |
 | `assembly.delete_pattern` | `delete_pattern` | id |
+| `assembly.cut` | `cut_parts` | id?, profile, at, dir, depth, parts |
 | `assembly.delete_mate` | `delete_mate` | id |
 | `assembly.inputs` | `set_inputs` | inputs: {name: {type, default, bindings, unit?, min?, max?, choices?} \| null} |
 | `assembly.variants` | `set_variants` | variants?: {name: {input: value} \| null}, active? |
 | `assembly.insert` | `insert_part` | library, part, variant?, params?, name?, position?, rotation? |
 | `assembly.snap` | `snap_part` | a, b, offset? |
-| `assembly.joints` | `get_joints` | — the assembly as links and joints from its base link |
+| `assembly.joints` | `get_joints` | — links and joints from the base |
 | `assembly.frames` | `set_frames` | frames: {name: {link, position?, rotation?, kind?} \| null} — tool and sensor frames |
 | `assembly.pose` | `forward_kinematics` | values: {joint key: degrees \| mm} — where each part is |
-| `assembly.set_pose` | `set_pose` | values: {joint key: degrees \| mm} — the robot shown there, nothing stored |
+| `assembly.set_pose` | `set_pose` | values: {joint key: degrees \| mm} — shown there, nothing stored |
 | `assembly.waypoint` | `set_waypoint` | motion, values?, at?, remove?, limits? — a stored motion's waypoints (degrees, mm) |
 | `assembly.check_path` | `check_path` | motion — a stored motion checked for contact along its timing |
 | `assembly.play` | `play_motion` | motion, samples? — a stored motion's poses over time |

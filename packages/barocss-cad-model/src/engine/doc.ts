@@ -686,7 +686,8 @@ import type { DrawingSettings } from '../drawing/types';
 import { type Mate } from '../assembly/mates';
 import { rotationMatrix, rotationSteps } from './placement';
 import { flattenAssembly } from './flatten';
-import { bodyDocOf } from '../assembly/flexible';
+import { bodyDocOf, savedInstanceOf } from '../assembly/flexible';
+import { cutBase, cutsOf, partBoxOf } from './assemblyCut';
 import { bodyKeyFor, nextSerial, nodeIndexOf as nodeIndexOfLocal, withIds } from './ids';
 import type { Sig } from './references';
 import type { Requirement } from './schema/spec';
@@ -818,6 +819,8 @@ export interface StudioDoc {
   mates?: Mate[];
   /** Patterns of instances: a seed instance repeated along a line or about an axis (assembly/patterns.ts); the occurrences are regenerated into `instances`. */
   instancePatterns?: InstancePattern[];
+  /** Cuts across placed parts, made in the assembly's frame (roadmap 10 ⑤, assembly/cuts.ts): the placed documents carry them, the definitions never do. */
+  assemblyCuts?: AssemblyCut[];
   /** The assembly read as a robot: its base link, joint limits and ratings (robot/joints.ts, RM1; versioned). */
   robot?: RobotSettings;
   /**
@@ -875,6 +878,8 @@ export interface PartInstance {
   looks?: Record<string, InstanceLook>;
   /** Set on an occurrence a pattern generated (never on a seed): the pattern's id and the occurrence's index k (the seed is 0). Driven by the seed: no mate moves it. */
   pattern?: { id: string; k: number };
+  /** Set only on a part of a POSED sub-assembly (assembly/flexible.ts), never saved: the placement the sub-assembly saved it at, which its assembly cuts are made from. */
+  savedPlacement?: { position: [number, number, number]; rotation: [number, number, number] };
 }
 
 /**
@@ -885,14 +890,31 @@ export interface PartInstance {
 export type InstancePattern = { id: string; seed: string; count: number; skip?: number[] }
   & ({ kind: 'linear'; dir: [number, number, number]; spacing: number } | { kind: 'circular'; origin: [number, number, number]; axis: [number, number, number]; angle: number });
 
-/** An instance's part with its placement applied: every body rotated and moved by the part's own features. */
+/**
+ * A cut across placed parts (roadmap 10 ⑤): a circle or rectangle profile centred on `at` (mm, the assembly's frame), cut along
+ * `dir` (any length but zero). A number `depth` cuts that many mm one way from the profile plane, along `dir`; `'through'` cuts the whole part
+ * along `dir`, both ways from it (the tool is sized from the part's own box, just outside it at each end; a part longer than the kernel's
+ * 10,000 mm tool is refused). The rectangle's `w` runs along the profile plane's X, which is
+ * the assembly's X for a cut along Z or Y and the assembly's Y for a cut along X. `targets` are the top-level placed parts it cuts, by id.
+ * v1: mates read the definition's faces, not the cut part's.
+ */
+export interface AssemblyCut {
+  id: string; name?: string;
+  profile: { kind: 'circle'; radius: number } | { kind: 'rectangle'; w: number; d: number };
+  at: [number, number, number]; dir: [number, number, number];
+  depth: number | 'through';
+  targets: string[];
+}
+
 /** An instance's part as placed at the origin (a sub-assembly's own instances folded in as features). */
 export function placedBase(inst: PartInstance, parent?: StudioDoc): StudioDoc {
   if (inst.doc.nodes.some(n => n.kind === 'sketch' && n.association !== undefined)) throw refusal('BAD_REFERENCE', 'Associative sketch: placed part recipes are not supported.');
   // (A flexible sub-assembly occurrence: its own joint values applied first, assembly/flexible.ts.)
   const resolved = resolveShopTree(bodyDocOf(inst), parent, parent ? inst.id : undefined);
   const flat = flattenAssembly(flattenShopView(resolved));
-  return prefixDoc(flat, flat.nodes.length);
+  const base = prefixDoc(flat, flat.nodes.length), cuts = parent ? cutsOf(inst, parent) : [];
+  // (Roadmap 10 ⑤: the assembly's cuts of this occurrence, made in the part's own frame — its definition never changes.)
+  return cuts.length ? cutBase(base, savedInstanceOf(inst), cuts, cuts.some(c => c.depth === 'through') ? partBoxOf(base, bodyDocOf(inst)) : null) : base;
 }
 
 export function placedDoc(inst: PartInstance, parent?: StudioDoc): StudioDoc {
@@ -917,7 +939,7 @@ export function placedDoc(inst: PartInstance, parent?: StudioDoc): StudioDoc {
  * Every StudioDoc field, checked at compile time to be all of them (as NODE_EXTRA_FIELDS for nodes): `carryOver`
  * and the field test go by this list, so a new field is carried through commits or fails the test.
  */
-export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'variability', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'routeBundles', 'instances', 'drawing', 'bodies', 'mates', 'instancePatterns', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'printPreview', 'mould', 'machining', 'casting', 'frames', 'fits', 'bearings', 'orings', 'rings', 'fasteners', 'fastenerSizes', 'castingRules', 'mounts', 'drives', 'connectors', 'rowSources'] as const satisfies readonly (keyof StudioDoc)[];
+export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'variability', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'routeBundles', 'instances', 'drawing', 'bodies', 'mates', 'instancePatterns', 'assemblyCuts', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'printPreview', 'mould', 'machining', 'casting', 'frames', 'fits', 'bearings', 'orings', 'rings', 'fasteners', 'fastenerSizes', 'castingRules', 'mounts', 'drives', 'connectors', 'rowSources'] as const satisfies readonly (keyof StudioDoc)[];
 export const _docFieldsComplete: [Exclude<keyof StudioDoc, typeof STUDIO_DOC_FIELDS[number]>] extends [never] ? true : never = true;
 /** The fields a command makes from the model (the rest are the document's own: looks, render, requirements …). */
 const MODEL_FIELDS: ReadonlySet<string> = new Set(['nodes', 'outputs']);

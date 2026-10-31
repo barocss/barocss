@@ -17,7 +17,7 @@ import { mirrorCage, sprocketPitchDiameter, timingPitchDiameter } from '@barocss
 import type { BendTable, BeadSharedComponent, CadPartDocument, CadPartFeature, CadPartFrameOverride, CadPartNameSignature, CadPartSection } from '@barocss/cad';
 import type { Sig } from './references';
 import { frameGeometry, holeCentres, bevelSpiral, prefixDoc, rectangularPatternDocumentProblem, textDocumentProblem, textNodeProblem, textReliefNodeProblem, type TextNode, type TextReliefNode, type DocPlane, type Dim, type SketchNode, type BodyRef, type FrameOverride, type InlineSection, type MemberSection, type ModelNode, type PartInstance, type StudioDoc } from './doc';
-import { bodyNodeOf, featureId, nodeIndexOf, serialOf, withIds } from './ids';
+import { bodyKeyFor, bodyNodeOf, featureId, isAssemblyCut, nodeIndexOf, serialOf, withIds } from './ids';
 import { keyClasses } from './fits';
 import type { StudioRingRow } from './rings';
 import { rotationSteps } from './placement';
@@ -751,6 +751,8 @@ export const bodyKeyOf = (outputId: string, nodes?: readonly ModelNode[]) => {
   // (Keyed by the id's serial, `b<k>` for `n<k>`, see ids.ts; the node only tells a file's solids from a split's halves.)
   const k = serialOf(m[1]), i = nodes ? nodeIndexOf(nodes, m[1]) : k;
   if (!(k >= 0)) return outputId;
+  // (An assembly cut's difference is the body it cuts: the key that body has, engine/ids.ts.)
+  if (nodes && m[2] === undefined && isAssemblyCut(nodes[i])) return bodyKeyFor(nodes, i);
   if (m[2] !== undefined && (nodes?.[i]?.kind === 'import' || nodes?.[i]?.kind === 'separate' || nodes?.[i]?.kind === 'mesh' || nodes?.[i]?.kind === 'frame')) return `b${k}_part${m[2]}`;
   return m[2] === undefined ? `b${k}` : `b${k}_${m[2] === '0' ? 'negative' : 'positive'}`;
 };

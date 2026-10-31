@@ -70,7 +70,7 @@ export interface Command {
   defaults?(ctx: Ctx): Values;
   build?(ctx: Ctx, values: Values): StudioDoc;
   /** Commands without a build run a UI action (sketch mode, measure, …). */
-  action?: 'sketch' | 'measure' | 'interference' | 'cage';
+  action?: 'sketch' | 'measure' | 'interference' | 'cage' | 'assembly-cut';
   /** Arrows in the viewport that drag one of the values (see viewport/gizmo.ts FeatureHandle). */
   handles?(ctx: Ctx, values: Values): HandleSpec[];
   /** A face or edge clicked in the viewport while it runs (a revolve's axis): new values, or why it cannot be used. */
@@ -977,6 +977,9 @@ const allCommands: Command[] = [
   })),
   { id: 'interference', label: 'Interference', icon: 'cad-interference', hint: 'Where bodies overlap, and by how much (the picked bodies, or all of them)', group: 'inspect', keywords: 'clash collision overlap check',
     available: ctx => ctx.bodies.length > 1 ? ok : no('Interference needs two or more bodies.'), action: 'interference' },
+  // (Roadmap 10 ⑤: a hole or pocket across placed parts, made in the assembly; the HUD is the studio's, the cut the model's, assembly/cuts.ts.)
+  { id: 'assembly-cut', label: 'Assembly cut', icon: 'cad-hole', hint: 'A hole or pocket across placed parts, cut in the assembly: each part keeps its own definition', group: 'modify', keywords: 'cut hole pocket through across parts assembly occurrence',
+    available: ctx => ctx.doc.instances?.length ? ok : no('Assembly cut needs placed parts: add a part to the assembly first.'), action: 'assembly-cut' },
   // (R8.2, D81: the picked SubD body's cage, or the part's only SubD.)
   { id: 'subd-edit', label: 'Edit cage', icon: 'cad-subd', hint: 'Edit a SubD body\u2019s cage: pick vertices, edges or faces; move, extrude, insert loops, bridge, fill, weld, crease, mirror', group: 'modify', keywords: 'subd subdivision cage edit vertex edge face loop extrude crease mirror',
     available: ctx => subdNodeOf(ctx) !== null ? ok : no('Pick a SubD body (its cage is edited).'), action: 'cage' },

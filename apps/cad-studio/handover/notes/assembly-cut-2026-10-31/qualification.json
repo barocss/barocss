@@ -1,0 +1,45 @@
+{
+  "decision": "D392",
+  "roadmap": "10 ⑤ assembly feature: a cut across parts in assembly context (v1)",
+  "issues": {
+    "#538": "stays open (assembly epic; ASM features advanced)",
+    "#2180": "already closed (research reference); its BOM/drawing/export consistency criterion met for cuts"
+  },
+  "tier": "full (kernel-routed geometry, public API, new document field): four audit rounds with mutation, actual run",
+  "status": "QUALIFIED",
+  "before": "measured 2026-10-31: no assembly-context feature existed; a hole across parts meant editing each part's definition (every occurrence changed)",
+  "change": {
+    "document": "StudioDoc.assemblyCuts: {id, name?, profile circle(radius) | rectangle(w, d), at, dir, depth number | 'through', targets} — top-level placed parts only; definitions never change",
+    "geometry": "placedBase appends per output body a sketch + extrude tool + difference in the part's own frame (R⁻¹(at − position)); posed flexible sub-assemblies build the tool from the part's saved placement, then pose; 'through' is sized from the part's own box along dir both ways (1 % margins) within the kernel's 10,000 mm tool length",
+    "consumers": "Studio placed lane, drawings, STEP, 3MF, explode, clearance, robot (verbs + exports), BOM (per level, canonical cut shape so copies cut alike merge), checkAssembly/occurrence mass; body and look keys stay the definition's",
+    "checks": "add/edit run a build trial and refuse a cut that would lose a body, fail to build or exceed the tool length; definitions that start placing parts are refused while a cut targets them; Open keeps a cut whose target became uncuttable and reports it; problems CUT_REMOVES_NOTHING, CUT_CONSUMES_BODY, CUT_NOT_MADE, CUT_PARTIAL (fail) and CUT_LEAVES_BOUGHT (note)",
+    "api": "model addAssemblyCut/editAssemblyCut/deleteAssemblyCut/assemblyCutProblems, refusal NO_CUT; facade Assembly.cut/editCut/deleteCut/cuts; chat cut_parts (assembly.cut action; per turn 24,997/25,000)",
+    "studio": "command 'Assembly cut': compact HUD (profile, size, centre, direction, depth/Through, parts as chips with Add selected; name and explanation under a closed Details), viewport-only preview, Cut/Apply one Undo step, Browser row per cut with edit and delete; build trial debounced off the typing path"
+  },
+  "audits": {
+    "round1": "CHANGES_REQUIRED: high — a file could become unopenable (cut target later turned into a sub-assembly); high — BOM ignored a sub-assembly's own cuts; medium — robot read uncut parts, HUD preview leaked into 3MF/robot exports, trimmed chat text lost meaning; low — one-way through, BOM never merged alike cuts, mates on definition faces, nested cuts unvalidated; plus root: no instance multi-select so 'Use selection' → 'Add selected'. 10/12 mutants caught",
+    "round2": "CHANGES_REQUIRED: high — posed flexible sub-assembly lost its own cut while the BOM showed it; medium — through partial past 4900 mm and far tools removed the part; low — BOM over-split. 31/35 mutants caught",
+    "round3": "targeted CHANGES_REQUIRED: medium — through box cached by the definition went stale after the assembly's rows changed; medium — a cut end cap lost its BOM plate line; UI — build trial per keystroke (620–670 ms on a heavy part). 41/48 mutants caught",
+    "round4": "narrow re-check ACCEPT; M33/M34/M39 now caught"
+  },
+  "checks": {
+    "modelSuite": "2390/2390",
+    "studioSuite": "614/614",
+    "tsc": "PASS (model, Studio)",
+    "eslint": "0 errors on changed files",
+    "docsTables": "refusals, agent-tools, api-inventory, check-docs PASS"
+  },
+  "actualRun": {
+    "run03": "final source PASS on assembly-cut.bcad (Plate 1 at the origin, Plate 2 turned 90° about Z at (50, -10, 5)): palette 'Assembly cut' on Plate 1, radius 4, centre (30, 20, 10), −Z, Through; pick Plate 2 + Add selected; preview leaves the document unchanged; Cut → both plates 12000 − π·4²·5 = 11748.67 mm³ (oracle, product read placedDoc + evaluateDoc); Browser row edit → remove Plate 1 → Apply → Plate 2 only; Undo/Redo; Save + fresh Open; delete the cut → both whole; definitions, placements and base untouched; 0 page/console errors; root reviewed the screenshots (hole visible through the top plate, Browser 'Cuts 1' row)",
+    "earlierRuns": ["run01 PASS (before audit fixes)", "run02 PASS (after round-1 fixes)"]
+  },
+  "followUps": [
+    "the HUD's debounced trial is keyed by the draft, not the document: after Undo with the HUD open an old result can show for up to 250 ms (Apply re-checks)",
+    "mates still read the definition's uncut faces (a pin cannot mate to an assembly-cut hole yet)",
+    "cuts on sub-assemblies or on parts inside them by path are refused in v1",
+    "a cut plate's BOM area is the uncut stock's",
+    "the 1 % margin refuses bars of 9802–10000 mm the kernel could still cut (refused in words)"
+  ],
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

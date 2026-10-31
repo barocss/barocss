@@ -175479,6 +175479,27 @@
                 "type": "(o?: { near?: number | undefined; }) => Promise<Record<string, unknown>>"
               },
               {
+                "name": "cut",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: CutOptions) => Assembly"
+              },
+              {
+                "name": "cuts",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => { id: string; name?: string | undefined; profile: { kind: \"circle\"; radius: number; } | { kind: \"rectangle\"; w: number; d: number; }; at: Vec3; dir: Vec3; depth: number | \"through\"; parts: string[]; }[]"
+              },
+              {
+                "name": "deleteCut",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string) => Assembly"
+              },
+              {
                 "name": "deletePattern",
                 "kind": "method",
                 "optional": false,
@@ -175505,6 +175526,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(o: DrawingSettingsInput) => Assembly"
+              },
+              {
+                "name": "editCut",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string, o: CutEdit) => Assembly"
               },
               {
                 "name": "editPattern",
@@ -177180,7 +177208,7 @@
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
-                "type": "\"y-\" | \"x+\" | \"y+\" | \"x-\" | undefined"
+                "type": "\"x+\" | \"y+\" | \"x-\" | \"y-\" | undefined"
               },
               {
                 "name": "projection",
@@ -181704,6 +181732,27 @@
                 "type": "(o?: { near?: number | undefined; }) => Promise<Record<string, unknown>>"
               },
               {
+                "name": "cut",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: CutOptions) => Assembly"
+              },
+              {
+                "name": "cuts",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => { id: string; name?: string | undefined; profile: { kind: \"circle\"; radius: number; } | { kind: \"rectangle\"; w: number; d: number; }; at: Vec3; dir: Vec3; depth: number | \"through\"; parts: string[]; }[]"
+              },
+              {
+                "name": "deleteCut",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string) => Assembly"
+              },
+              {
                 "name": "deletePattern",
                 "kind": "method",
                 "optional": false,
@@ -181730,6 +181779,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(o: DrawingSettingsInput) => Assembly"
+              },
+              {
+                "name": "editCut",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string, o: CutEdit) => Assembly"
               },
               {
                 "name": "editPattern",
@@ -181908,6 +181964,152 @@
             "staticMembers": [],
             "abstract": false,
             "role": "resource-or-facade-NOT_PROVEN"
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/assembly",
+      "exportName": "CutEdit",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/assembly.ts",
+            "name": "CutEdit",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "CutEdit",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "at",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "Vec3 | undefined"
+              },
+              {
+                "name": "depth",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | \"through\" | undefined"
+              },
+              {
+                "name": "dir",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "Vec3 | undefined"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | null | undefined"
+              },
+              {
+                "name": "parts",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string[] | undefined"
+              },
+              {
+                "name": "profile",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "{ kind: \"circle\"; radius: number; } | { kind: \"rectangle\"; w: number; d: number; } | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/assembly",
+      "exportName": "CutOptions",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/assembly.ts",
+            "name": "CutOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "CutOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "at",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Vec3"
+              },
+              {
+                "name": "depth",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number | \"through\""
+              },
+              {
+                "name": "dir",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "Vec3"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "parts",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              },
+              {
+                "name": "profile",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ kind: \"circle\"; radius: number; } | { kind: \"rectangle\"; w: number; d: number; }"
+              }
+            ],
+            "indexSignatures": []
           }
         }
       ]
@@ -182398,6 +182600,68 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./api/assemblyCore",
+      "exportName": "cutDoc",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/assemblyCore.ts",
+            "name": "cutDoc",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, o: AddAssemblyCutOptions) => { doc: StudioDoc; id: string; }",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, o: AddAssemblyCutOptions) => { doc: StudioDoc; id: string; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/assemblyCore",
+      "exportName": "deleteCutDoc",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/assemblyCore.ts",
+            "name": "deleteCutDoc",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, id: string) => StudioDoc",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, id: string) => StudioDoc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/assemblyCore",
       "exportName": "deletePatternDoc",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -182421,6 +182685,37 @@
             ],
             "callSignatures": [
               "(doc: StudioDoc, id: string) => StudioDoc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/assemblyCore",
+      "exportName": "editCutDoc",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/assemblyCore.ts",
+            "name": "editCutDoc",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, o: EditAssemblyCutOptions) => StudioDoc",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, o: EditAssemblyCutOptions) => StudioDoc"
             ]
           }
         }
@@ -183812,6 +184107,27 @@
                 "type": "(o?: { near?: number | undefined; }) => Promise<Record<string, unknown>>"
               },
               {
+                "name": "cut",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: CutOptions) => Assembly"
+              },
+              {
+                "name": "cuts",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => { id: string; name?: string | undefined; profile: { kind: \"circle\"; radius: number; } | { kind: \"rectangle\"; w: number; d: number; }; at: Vec3; dir: Vec3; depth: number | \"through\"; parts: string[]; }[]"
+              },
+              {
+                "name": "deleteCut",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string) => Assembly"
+              },
+              {
                 "name": "deletePattern",
                 "kind": "method",
                 "optional": false,
@@ -183838,6 +184154,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(o: DrawingSettingsInput) => Assembly"
+              },
+              {
+                "name": "editCut",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string, o: CutEdit) => Assembly"
               },
               {
                 "name": "editPattern",
@@ -185513,7 +185836,7 @@
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
-                "type": "\"y-\" | \"x+\" | \"y+\" | \"x-\" | undefined"
+                "type": "\"x+\" | \"y+\" | \"x-\" | \"y-\" | undefined"
               },
               {
                 "name": "projection",
@@ -190348,7 +190671,7 @@
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
-                "type": "\"y-\" | \"x+\" | \"y+\" | \"x-\" | undefined"
+                "type": "\"x+\" | \"y+\" | \"x-\" | \"y-\" | undefined"
               },
               {
                 "name": "projection",
@@ -195340,7 +195663,7 @@
                 "kind": "property",
                 "optional": true,
                 "readonly": false,
-                "type": "\"interference\" | \"sketch\" | \"cage\" | \"measure\" | undefined"
+                "type": "\"interference\" | \"sketch\" | \"cage\" | \"measure\" | \"assembly-cut\" | undefined"
               },
               {
                 "name": "available",
@@ -201471,6 +201794,653 @@
     },
     {
       "package": "@barocss/cad-model",
+      "subpath": "./assembly/cuts",
+      "exportName": "AddAssemblyCutOptions",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/cuts.ts",
+            "name": "AddAssemblyCutOptions",
+            "kind": "type"
+          },
+          "shape": {
+            "type": "{ at: [number, number, number]; name?: string | undefined; profile: { kind: \"circle\"; radius: number; } | { kind: \"rectangle\"; w: number; d: number; }; depth: number | \"through\"; dir: [number, number, number]; targets: string[]; }",
+            "declarationSignatures": [
+              {
+                "kind": "TypeAliasDeclaration",
+                "definition": "Omit<AssemblyCut, \"id\">"
+              }
+            ],
+            "members": [
+              {
+                "name": "at",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "[number, number, number]"
+              },
+              {
+                "name": "depth",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number | \"through\""
+              },
+              {
+                "name": "dir",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "[number, number, number]"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "profile",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ kind: \"circle\"; radius: number; } | { kind: \"rectangle\"; w: number; d: number; }"
+              },
+              {
+                "name": "targets",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/cuts",
+      "exportName": "AssemblyCutProblem",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/cuts.ts",
+            "name": "AssemblyCutProblem",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "AssemblyCutProblem",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "cut",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "kind",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"removes-nothing\" | \"consumes-body\" | \"not-made\" | \"partial-through\" | \"leaves-bought\""
+              },
+              {
+                "name": "message",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "part",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/cuts",
+      "exportName": "EditAssemblyCutOptions",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/cuts.ts",
+            "name": "EditAssemblyCutOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "EditAssemblyCutOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "at",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "Tuple3 | undefined"
+              },
+              {
+                "name": "depth",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | \"through\" | undefined"
+              },
+              {
+                "name": "dir",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "Tuple3 | undefined"
+              },
+              {
+                "name": "id",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | null | undefined"
+              },
+              {
+                "name": "profile",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "{ kind: \"circle\"; radius: number; } | { kind: \"rectangle\"; w: number; d: number; } | undefined"
+              },
+              {
+                "name": "targets",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string[] | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/cuts",
+      "exportName": "addAssemblyCut",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/cuts.ts",
+            "name": "addAssemblyCut",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, o: AddAssemblyCutOptions) => Edited & { id: string; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, o: AddAssemblyCutOptions) => Edited & { id: string; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/cuts",
+      "exportName": "assemblyCutProblem",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/cuts.ts",
+            "name": "assemblyCutProblem",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: Pick<StudioDoc, \"instances\">, cut: AssemblyCut) => string | undefined",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: Pick<StudioDoc, \"instances\">, cut: AssemblyCut) => string | undefined"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/cuts",
+      "exportName": "assemblyCutProblems",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/cuts.ts",
+            "name": "assemblyCutProblems",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, evaluate: Evaluate, path?: string, depth?: number) => Promise<AssemblyCutProblem[]>",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, evaluate: Evaluate, path?: string, depth?: number) => Promise<AssemblyCutProblem[]>"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/cuts",
+      "exportName": "assemblyCutShapeProblem",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/cuts.ts",
+            "name": "assemblyCutShapeProblem",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(cut: AssemblyCut) => string | undefined",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(cut: AssemblyCut) => string | undefined"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/cuts",
+      "exportName": "assemblyCutTargetProblem",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/cuts.ts",
+            "name": "assemblyCutTargetProblem",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: Pick<StudioDoc, \"instances\">, cut: AssemblyCut, target: string) => string | undefined",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: Pick<StudioDoc, \"instances\">, cut: AssemblyCut, target: string) => string | undefined"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/cuts",
+      "exportName": "assemblyCutTrialProblem",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/cuts.ts",
+            "name": "assemblyCutTrialProblem",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, cut: AssemblyCut) => string | undefined",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, cut: AssemblyCut) => string | undefined"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/cuts",
+      "exportName": "assemblyCutsProblem",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/cuts.ts",
+            "name": "assemblyCutsProblem",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: Pick<StudioDoc, \"instances\" | \"assemblyCuts\">, depth?: number) => string | undefined",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: Pick<StudioDoc, \"instances\" | \"assemblyCuts\">, depth?: number) => string | undefined"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/cuts",
+      "exportName": "cutBlockedBy",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/cuts.ts",
+            "name": "cutBlockedBy",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: Pick<StudioDoc, \"instances\" | \"assemblyCuts\">, ids: readonly string[], part: StudioDoc) => AssemblyCut | undefined",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: Pick<StudioDoc, \"instances\" | \"assemblyCuts\">, ids: readonly string[], part: StudioDoc) => AssemblyCut | undefined"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/cuts",
+      "exportName": "cutBlockedWords",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/cuts.ts",
+            "name": "cutBlockedWords",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(cut: AssemblyCut, what: string) => string",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(cut: AssemblyCut, what: string) => string"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/cuts",
+      "exportName": "cutDocOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/cuts.ts",
+            "name": "cutDocOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(inst: PartInstance, parent: StudioDoc) => StudioDoc",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(inst: PartInstance, parent: StudioDoc) => StudioDoc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/cuts",
+      "exportName": "cutsOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/assemblyCut.ts",
+            "name": "cutsOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(inst: PartInstance, parent: Pick<StudioDoc, \"assemblyCuts\">) => AssemblyCut[]",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(inst: PartInstance, parent: Pick<StudioDoc, \"assemblyCuts\">) => AssemblyCut[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/cuts",
+      "exportName": "deleteAssemblyCut",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/cuts.ts",
+            "name": "deleteAssemblyCut",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, id: string) => Edited",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, id: string) => Edited"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/cuts",
+      "exportName": "editAssemblyCut",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/cuts.ts",
+            "name": "editAssemblyCut",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, o: EditAssemblyCutOptions) => Edited",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, o: EditAssemblyCutOptions) => Edited"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/cuts",
+      "exportName": "withCutNodes",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/cuts.ts",
+            "name": "withCutNodes",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, inst: PartInstance, parent: StudioDoc) => StudioDoc",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, inst: PartInstance, parent: StudioDoc) => StudioDoc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
       "subpath": "./assembly/definitions",
       "exportName": "acceptRevision",
       "space": "value",
@@ -203468,6 +204438,37 @@
             ],
             "callSignatures": [
               "(inst: PartInstance) => Posed"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/flexible",
+      "exportName": "savedInstanceOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/flexible.ts",
+            "name": "savedInstanceOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(inst: PartInstance) => PartInstance",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(inst: PartInstance) => PartInstance"
             ]
           }
         }
@@ -245536,7 +246537,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"y-\" | \"x+\" | \"y+\" | \"x-\"",
+            "type": "\"x+\" | \"y+\" | \"x-\" | \"y-\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -246408,14 +247409,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(views: DrawingViews, settings: DrawingSettings, sectionsIn?: { min: readonly number[]; max: readonly number[]; } | readonly SectionExtent[] | undefined) => SheetLayout",
+            "type": "(views: DrawingViews, settings: DrawingSettings, sectionsIn?: readonly SectionExtent[] | { min: readonly number[]; max: readonly number[]; } | undefined) => SheetLayout",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(views: DrawingViews, settings: DrawingSettings, sectionsIn?: { min: readonly number[]; max: readonly number[]; } | readonly SectionExtent[] | undefined) => SheetLayout"
+              "(views: DrawingViews, settings: DrawingSettings, sectionsIn?: readonly SectionExtent[] | { min: readonly number[]; max: readonly number[]; } | undefined) => SheetLayout"
             ]
           }
         }
@@ -247199,6 +248200,355 @@
             ],
             "callSignatures": [
               "(layout: SheetLayout, views: DrawingViews, joints: readonly WeldJoint[]) => WeldSymbols"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/assemblyCut",
+      "exportName": "CutChunk",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/assemblyCut.ts",
+            "name": "CutChunk",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "CutChunk",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "height",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "normal",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "V3"
+              },
+              {
+                "name": "origin",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "V3"
+              },
+              {
+                "name": "xAxis",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "V3"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/assemblyCut",
+      "exportName": "KERNEL_REACH",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/assemblyCut.ts",
+            "name": "KERNEL_REACH",
+            "kind": "const"
+          },
+          "shape": {
+            "type": "10000",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/assemblyCut",
+      "exportName": "PartBox",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/assemblyCut.ts",
+            "name": "PartBox",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "PartBox",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "max",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "readonly number[]"
+              },
+              {
+                "name": "min",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "readonly number[]"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/assemblyCut",
+      "exportName": "cutBase",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/assemblyCut.ts",
+            "name": "cutBase",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(base: StudioDoc, inst: PartInstance, cuts: readonly AssemblyCut[], box?: PartBox | null | undefined, cutBought?: boolean) => StudioDoc",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(base: StudioDoc, inst: PartInstance, cuts: readonly AssemblyCut[], box?: PartBox | null | undefined, cutBought?: boolean) => StudioDoc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/assemblyCut",
+      "exportName": "cutShapeOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/assemblyCut.ts",
+            "name": "cutShapeOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(inst: PartInstance, parent: Pick<StudioDoc, \"assemblyCuts\">) => string",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(inst: PartInstance, parent: Pick<StudioDoc, \"assemblyCuts\">) => string"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/assemblyCut",
+      "exportName": "cutTool",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/assemblyCut.ts",
+            "name": "cutTool",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(cut: AssemblyCut, inst: PartInstance, box?: PartBox | null | undefined) => { chunk: CutChunk; partial: boolean; foot: V3; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(cut: AssemblyCut, inst: PartInstance, box?: PartBox | null | undefined) => { chunk: CutChunk; partial: boolean; foot: V3; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/assemblyCut",
+      "exportName": "cutsOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/assemblyCut.ts",
+            "name": "cutsOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(inst: PartInstance, parent: Pick<StudioDoc, \"assemblyCuts\">) => AssemblyCut[]",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(inst: PartInstance, parent: Pick<StudioDoc, \"assemblyCuts\">) => AssemblyCut[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/assemblyCut",
+      "exportName": "partBoxOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/assemblyCut.ts",
+            "name": "partBoxOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, key: object) => PartBox | null",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, key: object) => PartBox | null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/assemblyCut",
+      "exportName": "profileAxis",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/assemblyCut.ts",
+            "name": "profileAxis",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(dir: readonly number[]) => V3",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(dir: readonly number[]) => V3"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/assemblyCut",
+      "exportName": "registerPartBox",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/assemblyCut.ts",
+            "name": "registerPartBox",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(f: (doc: StudioDoc, key: object) => PartBox | null) => void",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(f: (doc: StudioDoc, key: object) => PartBox | null) => void"
             ]
           }
         }
@@ -252789,6 +254139,86 @@
             "callSignatures": [
               "() => Promise<typeof import(\"@barocss/cad-model:src/engine/direct\")>"
             ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/doc",
+      "exportName": "AssemblyCut",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/doc.ts",
+            "name": "AssemblyCut",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "AssemblyCut",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "at",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "[number, number, number]"
+              },
+              {
+                "name": "depth",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number | \"through\""
+              },
+              {
+                "name": "dir",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "[number, number, number]"
+              },
+              {
+                "name": "id",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "profile",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "{ kind: \"circle\"; radius: number; } | { kind: \"rectangle\"; w: number; d: number; }"
+              },
+              {
+                "name": "targets",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              }
+            ],
+            "indexSignatures": []
           }
         }
       ]
@@ -259696,6 +261126,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "[number, number, number]"
+              },
+              {
+                "name": "savedPlacement",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "{ position: [number, number, number]; rotation: [number, number, number]; } | undefined"
               }
             ],
             "indexSignatures": []
@@ -260093,7 +261530,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "readonly [\"format\", \"schema\", \"nextId\", \"units\", \"parameters\", \"configurations\", \"variability\", \"pendingParts\", \"nodes\", \"outputs\", \"render\", \"direct\", \"routeBundles\", \"instances\", \"drawing\", \"bodies\", \"mates\", \"instancePatterns\", \"robot\", \"underlays\", \"brief\", \"questions\", \"references\", \"drafts\", \"interfaces\", \"ecrs\", \"baselines\", \"requirements\", \"proposals\", \"history\", \"libraries\", \"process\", \"printer\", \"print\", \"printPreview\", \"mould\", \"machining\", \"casting\", \"frames\", \"fits\", \"bearings\", \"orings\", \"rings\", \"fasteners\", \"fastenerSizes\", \"castingRules\", \"mounts\", \"drives\", \"connectors\", \"rowSources\"]",
+            "type": "readonly [\"format\", \"schema\", \"nextId\", \"units\", \"parameters\", \"configurations\", \"variability\", \"pendingParts\", \"nodes\", \"outputs\", \"render\", \"direct\", \"routeBundles\", \"instances\", \"drawing\", \"bodies\", \"mates\", \"instancePatterns\", \"assemblyCuts\", \"robot\", \"underlays\", \"brief\", \"questions\", \"references\", \"drafts\", \"interfaces\", \"ecrs\", \"baselines\", \"requirements\", \"proposals\", \"history\", \"libraries\", \"process\", \"printer\", \"print\", \"printPreview\", \"mould\", \"machining\", \"casting\", \"frames\", \"fits\", \"bearings\", \"orings\", \"rings\", \"fasteners\", \"fastenerSizes\", \"castingRules\", \"mounts\", \"drives\", \"connectors\", \"rowSources\"]",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -261018,6 +262455,13 @@
               }
             ],
             "members": [
+              {
+                "name": "assemblyCuts",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "AssemblyCut[] | undefined"
+              },
               {
                 "name": "baselines",
                 "kind": "property",
@@ -264736,7 +266180,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"part\" | \"check\" | \"probe\" | \"refs\" | \"agent\" | \"read\"",
+            "type": "\"part\" | \"check\" | \"probe\" | \"agent\" | \"read\" | \"refs\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -265745,6 +267189,37 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./engine/evaluate",
+      "exportName": "partBodyCount",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/evaluate.ts",
+            "name": "partBodyCount",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc) => number | null",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc) => number | null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/evaluate",
       "exportName": "partBreps",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -265768,6 +267243,37 @@
             ],
             "callSignatures": [
               "(doc: StudioDoc) => { key: string; brep: Brep; }[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/evaluate",
+      "exportName": "partBuildProblem",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/evaluate.ts",
+            "name": "partBuildProblem",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, bodies: number) => string | undefined",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, bodies: number) => string | undefined"
             ]
           }
         }
@@ -269917,6 +271423,37 @@
             ],
             "callSignatures": [
               "(name: string, id: string, nodes?: readonly ModelNode[] | undefined) => boolean"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/ids",
+      "exportName": "isAssemblyCut",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/ids.ts",
+            "name": "isAssemblyCut",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(n: ModelNode | undefined) => n is { kind: \"difference\"; parent: BodyRef; tool: BodyRef; made?: Made | undefined; } & NodeExtras",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(n: ModelNode | undefined) => n is { kind: \"difference\"; parent: BodyRef; tool: BodyRef; made?: Made | undefined; } & NodeExtras"
             ]
           }
         }
@@ -276286,11 +277823,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"LIMIT\" | \"SYNTAX\" | \"VALUE\" | \"TYPE\" | \"FIT_FACE\" | \"NO_BODY\" | \"PARAMETER_NAME\" | \"PARAMETER_UNKNOWN\" | \"PARAMETER_UNBINDABLE\" | VersionCode | FrameGeometryCode | \"HARNESS_RAW_PROVENANCE_UNAVAILABLE\" | \"NO_LINK\" | \"NO_JOINTS\" | \"NO_FRAME\" | \"NOT_PLANAR\" | \"NOT_ONE_LOOP\" | \"NO_CLOSURE\" | \"BRANCH_FLIP\" | \"NO_PIN\" | \"NO_RANGE\" | \"BAD_VALUES\" | \"NOT_NEEDED\" | \"ONE_BODY\" | \"NO_PRINTER\" | \"DIRECTION_NOT_AXIS\" | \"TOO_BIG_TWO_WAYS\" | \"NO_ROOM\" | \"BAD_CONNECTOR\" | \"NOT_HOLLOW\" | \"GRID_TOO_FINE\" | \"NO_LATTICE\" | \"UNDRAINED\" | \"CURVED_BODY\" | \"NOTHING_TO_HOLLOW\" | \"DRAIN_NO_ROOM\" | \"BOOLEAN_REFUSED\" | \"NO_CHANGE\" | \"STALE_ECR\" | \"NO_ECR\" | \"DECIDED\" | \"APPROVAL_IS_THE_USERS\" | \"BAD_TRANSITION\" | \"BASELINE_FROZEN\" | \"STALE_BASELINE\" | \"STALE_RESULT\" | \"RESULT_NOT_OK\" | \"NO_BASELINE\" | \"BOM_INVALID\" | \"NO_DRAFT\" | \"BAD_VALUE\" | \"BOUND\" | \"GONE\" | \"REFERENCE_LOCKED\" | \"BAD_REFERENCE\" | \"NO_REFERENCE\" | \"DATUM_FIT\" | \"BAD_KEEPOUT\" | \"NOT_READ\" | \"UNKNOWN_NAME\" | \"REFUSED\" | \"DXF_MALFORMED\" | \"DXF_UNSUPPORTED\" | \"DXF_OPEN\" | \"DXF_NESTED\" | \"DXF_EMPTY\" | \"DWG_NOT_READ\" | \"DRAWING_SCOPE\" | \"DRAWING_SCOPE_REFERENCES\" | \"DRAWING_OPTIONS\" | \"DRAWING_SECTION_REFERENCES\" | \"DRAWING_DETAIL_REFERENCES\" | \"DRAWING_DETAIL_LETTER\" | \"DRAWING_DETAIL_PARENT\" | \"FRAME_SKELETON_IN_USE\" | \"FRAME_PART_IN_USE\" | \"SKETCH3D_PARAMETER\" | \"SKETCH3D_INPUT\" | \"SKETCH3D_CONFLICT\" | \"FRAME_NAME\" | \"FRAME_LINK_MISSING\" | \"FRAME_LINK_STALE\" | \"FRAME_POSE\" | \"INPUT_RANGE\" | \"INPUT_TYPE\" | \"INPUT_TARGET\" | \"INPUT_CHOICE\" | \"INPUT_NAME\" | \"INPUT_CONFLICT\" | \"INPUT_DEFAULT\" | \"VARIANT_UNKNOWN\" | \"PRINT_PREVIEW_INPUT\" | \"BEARING_HOUSING_REFERENCE\" | \"BEARING_HOUSING_SCOPE\" | \"BEARING_HOUSING_CYCLE\" | \"BEARING_HOUSING_POSE\" | \"BEARING_HOUSING_EVALUATION\" | \"MOUNT_RANGE\" | \"MOUNT_FACE\" | \"MOUNT_ROW\" | \"FRAME_SECTION_UNKNOWN\" | \"ORING_ROW_UNKNOWN\" | \"CONNECTOR_ROW_UNKNOWN\" | \"BEARING_ROW_UNKNOWN\" | \"RING_ROW_UNKNOWN\" | \"DRIVE_ROW_UNKNOWN\" | \"DRIVE_WHEELS\" | \"SHOP_ROWS_FLATTEN_SCOPE\" | \"NO_TABLE\" | \"NO_ROW\" | \"NO_RUN\" | \"LIMITS_BAD\" | \"LIMITS_MISSING\" | \"PATH_TOO_SHORT\" | \"JOINT_UNKNOWN\" | \"JOINT_MIMIC\" | \"JOINT_LIMIT\" | \"MOTION_UNKNOWN\" | \"LOOP_OPEN\" | \"LOOP_MATE_UNSUPPORTED\" | \"LOOP_PASSIVE\" | \"DEAD_POINT\" | \"CAM_PROFILE_UNSUPPORTED\" | \"CAM_UNSUPPORTED\" | \"CAM_IN_LOOP\" | \"ACTUATOR_INPUT\" | \"MODEL_READ\" | \"XML_MALFORMED\" | \"MESH_NOT_LOADED\" | \"CONTAINER_NEWER\" | \"CONTAINER_DAMAGED\" | \"SKETCH_PARAMETER\" | \"PARAMETER_EXISTS\" | \"NO_FEATURE\" | \"CONNECTOR_INVALID\" | \"CONNECTOR_POINT\" | \"CONNECTOR_UNAVAILABLE\" | \"CONNECTOR_KIND\" | \"NO_PART\" | \"PART_MATED\" | \"MATE_KIND\" | \"MATE_SAME_PART\" | \"MATE_BOTH_FIXED\" | \"MATE_FACE_UNKNOWN\" | \"MATE_FACES\" | \"MATE_UNMET\" | \"NO_MATE\" | \"PATTERN_VALUE\" | \"PATTERN_DRIVEN\" | \"PATTERN_REFERENCED\" | \"NO_PATTERN\" | \"ALIGN_PICK\" | \"ALIGN_TURN\" | \"HOLE_SIZE\" | \"HOLE_PATTERN\" | \"DRAFT_PICK\" | \"DRAFT_ANGLE\" | \"FULL_ROUND_PICK\" | \"TEXT_RELIEF_PICK\" | \"FACE_FILLET_PICK\" | \"THREAD_PICK\" | \"FILLET_CHAIN\" | \"DECIMATE_KEEP\" | \"SPLIT_PLANE\" | \"FACE_DISTANCE\" | \"LOFT_SECTIONS\" | \"SWEEP_PATH\" | \"PRIMITIVE_SIZE\" | \"GEAR_PICK\" | \"FASTENER_POSITION\" | \"FASTENER_LENGTH\" | \"FASTENER_GRIP\" | \"FASTENER_SIZE_ROW\" | \"FRAME_SECTION_PICK\" | \"FRAME_MEMBER\" | \"FRAME_VALUE\" | \"FRAME_SKELETON_PICK\" | \"FRAME_NOTCH\" | \"GUSSET_PICK\" | \"CAP_PICK\" | \"SHEET_PICK\" | \"SHEET_VALUE\" | \"DIRECT_SOURCE\" | \"DIRECT_PICK\" | \"DIRECT_DEGREE\" | \"DIRECT_LOOP\" | \"DIRECT_VALUE\" | \"DIRECT_KNOT\" | \"DIRECT_LOFT\" | \"DIRECT_RANGE\" | \"DIRECT_PLANE\" | \"DIRECT_INTERSECT\" | \"DIRECT_ID\" | \"IGES_READ\" | \"IGES_EXPORT\" | \"TRIM_CURVE\" | \"ROWS_NOT_FROM_PERSON\" | \"ROW_FILES\" | \"ROW_UNKNOWN\" | \"ROW_IN_USE\" | \"RING_ROW\" | \"FASTENER_ROW\" | \"CASTING_RULE_ROW\" | \"LIBRARY_ID\" | \"LIBRARY_UNKNOWN\" | \"ZIP_LIMIT\" | \"MERGE_SUPERSEDED\" | \"MERGE_MISSING\"",
+            "type": "\"LIMIT\" | \"SYNTAX\" | \"VALUE\" | \"TYPE\" | \"FIT_FACE\" | \"NO_BODY\" | \"PARAMETER_NAME\" | \"PARAMETER_UNKNOWN\" | \"PARAMETER_UNBINDABLE\" | VersionCode | FrameGeometryCode | \"HARNESS_RAW_PROVENANCE_UNAVAILABLE\" | \"NO_LINK\" | \"NO_JOINTS\" | \"NO_FRAME\" | \"NOT_PLANAR\" | \"NOT_ONE_LOOP\" | \"NO_CLOSURE\" | \"BRANCH_FLIP\" | \"NO_PIN\" | \"NO_RANGE\" | \"BAD_VALUES\" | \"NOT_NEEDED\" | \"ONE_BODY\" | \"NO_PRINTER\" | \"DIRECTION_NOT_AXIS\" | \"TOO_BIG_TWO_WAYS\" | \"NO_ROOM\" | \"BAD_CONNECTOR\" | \"NOT_HOLLOW\" | \"GRID_TOO_FINE\" | \"NO_LATTICE\" | \"UNDRAINED\" | \"CURVED_BODY\" | \"NOTHING_TO_HOLLOW\" | \"DRAIN_NO_ROOM\" | \"BOOLEAN_REFUSED\" | \"NO_CHANGE\" | \"STALE_ECR\" | \"NO_ECR\" | \"DECIDED\" | \"APPROVAL_IS_THE_USERS\" | \"BAD_TRANSITION\" | \"BASELINE_FROZEN\" | \"STALE_BASELINE\" | \"STALE_RESULT\" | \"RESULT_NOT_OK\" | \"NO_BASELINE\" | \"BOM_INVALID\" | \"NO_DRAFT\" | \"BAD_VALUE\" | \"BOUND\" | \"GONE\" | \"REFERENCE_LOCKED\" | \"BAD_REFERENCE\" | \"NO_REFERENCE\" | \"DATUM_FIT\" | \"BAD_KEEPOUT\" | \"NOT_READ\" | \"UNKNOWN_NAME\" | \"REFUSED\" | \"DXF_MALFORMED\" | \"DXF_UNSUPPORTED\" | \"DXF_OPEN\" | \"DXF_NESTED\" | \"DXF_EMPTY\" | \"DWG_NOT_READ\" | \"DRAWING_SCOPE\" | \"DRAWING_SCOPE_REFERENCES\" | \"DRAWING_OPTIONS\" | \"DRAWING_SECTION_REFERENCES\" | \"DRAWING_DETAIL_REFERENCES\" | \"DRAWING_DETAIL_LETTER\" | \"DRAWING_DETAIL_PARENT\" | \"FRAME_SKELETON_IN_USE\" | \"FRAME_PART_IN_USE\" | \"SKETCH3D_PARAMETER\" | \"SKETCH3D_INPUT\" | \"SKETCH3D_CONFLICT\" | \"FRAME_NAME\" | \"FRAME_LINK_MISSING\" | \"FRAME_LINK_STALE\" | \"FRAME_POSE\" | \"INPUT_RANGE\" | \"INPUT_TYPE\" | \"INPUT_TARGET\" | \"INPUT_CHOICE\" | \"INPUT_NAME\" | \"INPUT_CONFLICT\" | \"INPUT_DEFAULT\" | \"VARIANT_UNKNOWN\" | \"PRINT_PREVIEW_INPUT\" | \"BEARING_HOUSING_REFERENCE\" | \"BEARING_HOUSING_SCOPE\" | \"BEARING_HOUSING_CYCLE\" | \"BEARING_HOUSING_POSE\" | \"BEARING_HOUSING_EVALUATION\" | \"MOUNT_RANGE\" | \"MOUNT_FACE\" | \"MOUNT_ROW\" | \"FRAME_SECTION_UNKNOWN\" | \"ORING_ROW_UNKNOWN\" | \"CONNECTOR_ROW_UNKNOWN\" | \"BEARING_ROW_UNKNOWN\" | \"RING_ROW_UNKNOWN\" | \"DRIVE_ROW_UNKNOWN\" | \"DRIVE_WHEELS\" | \"SHOP_ROWS_FLATTEN_SCOPE\" | \"NO_TABLE\" | \"NO_ROW\" | \"NO_RUN\" | \"LIMITS_BAD\" | \"LIMITS_MISSING\" | \"PATH_TOO_SHORT\" | \"JOINT_UNKNOWN\" | \"JOINT_MIMIC\" | \"JOINT_LIMIT\" | \"MOTION_UNKNOWN\" | \"LOOP_OPEN\" | \"LOOP_MATE_UNSUPPORTED\" | \"LOOP_PASSIVE\" | \"DEAD_POINT\" | \"CAM_PROFILE_UNSUPPORTED\" | \"CAM_UNSUPPORTED\" | \"CAM_IN_LOOP\" | \"ACTUATOR_INPUT\" | \"MODEL_READ\" | \"XML_MALFORMED\" | \"MESH_NOT_LOADED\" | \"CONTAINER_NEWER\" | \"CONTAINER_DAMAGED\" | \"SKETCH_PARAMETER\" | \"PARAMETER_EXISTS\" | \"NO_FEATURE\" | \"CONNECTOR_INVALID\" | \"CONNECTOR_POINT\" | \"CONNECTOR_UNAVAILABLE\" | \"CONNECTOR_KIND\" | \"NO_PART\" | \"PART_MATED\" | \"MATE_KIND\" | \"MATE_SAME_PART\" | \"MATE_BOTH_FIXED\" | \"MATE_FACE_UNKNOWN\" | \"MATE_FACES\" | \"MATE_UNMET\" | \"NO_MATE\" | \"PATTERN_VALUE\" | \"PATTERN_DRIVEN\" | \"PATTERN_REFERENCED\" | \"NO_PATTERN\" | \"NO_CUT\" | \"ALIGN_PICK\" | \"ALIGN_TURN\" | \"HOLE_SIZE\" | \"HOLE_PATTERN\" | \"DRAFT_PICK\" | \"DRAFT_ANGLE\" | \"FULL_ROUND_PICK\" | \"TEXT_RELIEF_PICK\" | \"FACE_FILLET_PICK\" | \"THREAD_PICK\" | \"FILLET_CHAIN\" | \"DECIMATE_KEEP\" | \"SPLIT_PLANE\" | \"FACE_DISTANCE\" | \"LOFT_SECTIONS\" | \"SWEEP_PATH\" | \"PRIMITIVE_SIZE\" | \"GEAR_PICK\" | \"FASTENER_POSITION\" | \"FASTENER_LENGTH\" | \"FASTENER_GRIP\" | \"FASTENER_SIZE_ROW\" | \"FRAME_SECTION_PICK\" | \"FRAME_MEMBER\" | \"FRAME_VALUE\" | \"FRAME_SKELETON_PICK\" | \"FRAME_NOTCH\" | \"GUSSET_PICK\" | \"CAP_PICK\" | \"SHEET_PICK\" | \"SHEET_VALUE\" | \"DIRECT_SOURCE\" | \"DIRECT_PICK\" | \"DIRECT_DEGREE\" | \"DIRECT_LOOP\" | \"DIRECT_VALUE\" | \"DIRECT_KNOT\" | \"DIRECT_LOFT\" | \"DIRECT_RANGE\" | \"DIRECT_PLANE\" | \"DIRECT_INTERSECT\" | \"DIRECT_ID\" | \"IGES_READ\" | \"IGES_EXPORT\" | \"TRIM_CURVE\" | \"ROWS_NOT_FROM_PERSON\" | \"ROW_FILES\" | \"ROW_UNKNOWN\" | \"ROW_IN_USE\" | \"RING_ROW\" | \"FASTENER_ROW\" | \"CASTING_RULE_ROW\" | \"LIBRARY_ID\" | \"LIBRARY_UNKNOWN\" | \"ZIP_LIMIT\" | \"MERGE_SUPERSEDED\" | \"MERGE_MISSING\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "\"HARNESS_RAW_PROVENANCE_UNAVAILABLE\" | \"NO_LINK\" | \"NO_JOINTS\" | \"NO_FRAME\" | \"NOT_PLANAR\" | \"NOT_ONE_LOOP\" | \"NO_CLOSURE\" | \"BRANCH_FLIP\" | \"NO_PIN\" | \"NO_RANGE\" | \"BAD_VALUES\" | \"NOT_NEEDED\" | \"ONE_BODY\" | \"NO_PRINTER\" | \"DIRECTION_NOT_AXIS\" | \"TOO_BIG_TWO_WAYS\" | \"NO_ROOM\" | \"BAD_CONNECTOR\" | \"NOT_HOLLOW\" | \"GRID_TOO_FINE\" | \"NO_LATTICE\" | \"UNDRAINED\" | \"CURVED_BODY\" | \"NOTHING_TO_HOLLOW\" | \"DRAIN_NO_ROOM\" | \"BOOLEAN_REFUSED\" | \"NO_CHANGE\" | \"STALE_ECR\" | \"NO_ECR\" | \"DECIDED\" | \"APPROVAL_IS_THE_USERS\" | \"BAD_TRANSITION\" | \"BASELINE_FROZEN\" | \"STALE_BASELINE\" | \"STALE_RESULT\" | \"RESULT_NOT_OK\" | \"NO_BASELINE\" | \"BOM_INVALID\" | \"NO_DRAFT\" | \"BAD_VALUE\" | \"BOUND\" | \"GONE\" | \"REFERENCE_LOCKED\" | \"BAD_REFERENCE\" | \"NO_REFERENCE\" | \"DATUM_FIT\" | \"BAD_KEEPOUT\" | \"NOT_READ\" | \"SYNTAX\" | \"UNKNOWN_NAME\" | \"TYPE\" | \"LIMIT\" | \"REFUSED\" | \"DXF_MALFORMED\" | \"DXF_UNSUPPORTED\" | \"DXF_OPEN\" | \"DXF_NESTED\" | \"DXF_EMPTY\" | \"DWG_NOT_READ\" | \"DRAWING_SCOPE\" | \"DRAWING_SCOPE_REFERENCES\" | \"DRAWING_OPTIONS\" | \"DRAWING_SECTION_REFERENCES\" | \"DRAWING_DETAIL_REFERENCES\" | \"DRAWING_DETAIL_LETTER\" | \"DRAWING_DETAIL_PARENT\" | FrameGeometryCode | \"FRAME_SKELETON_IN_USE\" | \"FRAME_PART_IN_USE\" | \"SKETCH3D_PARAMETER\" | \"SKETCH3D_INPUT\" | \"SKETCH3D_CONFLICT\" | \"FRAME_NAME\" | \"FRAME_LINK_MISSING\" | \"FRAME_LINK_STALE\" | \"FRAME_POSE\" | \"INPUT_RANGE\" | \"INPUT_TYPE\" | \"INPUT_TARGET\" | \"INPUT_CHOICE\" | \"INPUT_NAME\" | \"INPUT_CONFLICT\" | \"INPUT_DEFAULT\" | \"VARIANT_UNKNOWN\" | \"PRINT_PREVIEW_INPUT\" | \"BEARING_HOUSING_REFERENCE\" | \"BEARING_HOUSING_SCOPE\" | \"BEARING_HOUSING_CYCLE\" | \"BEARING_HOUSING_POSE\" | \"BEARING_HOUSING_EVALUATION\" | \"MOUNT_RANGE\" | \"MOUNT_FACE\" | \"MOUNT_ROW\" | \"FRAME_SECTION_UNKNOWN\" | \"ORING_ROW_UNKNOWN\" | \"CONNECTOR_ROW_UNKNOWN\" | \"BEARING_ROW_UNKNOWN\" | \"RING_ROW_UNKNOWN\" | \"DRIVE_ROW_UNKNOWN\" | \"DRIVE_WHEELS\" | \"FIT_FACE\" | \"SHOP_ROWS_FLATTEN_SCOPE\" | \"NO_TABLE\" | \"NO_ROW\" | \"NO_RUN\" | \"LIMITS_BAD\" | \"LIMITS_MISSING\" | \"PATH_TOO_SHORT\" | \"JOINT_UNKNOWN\" | \"JOINT_MIMIC\" | \"JOINT_LIMIT\" | \"MOTION_UNKNOWN\" | \"LOOP_OPEN\" | \"LOOP_MATE_UNSUPPORTED\" | \"LOOP_PASSIVE\" | \"DEAD_POINT\" | \"CAM_PROFILE_UNSUPPORTED\" | \"CAM_UNSUPPORTED\" | \"CAM_IN_LOOP\" | \"ACTUATOR_INPUT\" | \"MODEL_READ\" | \"XML_MALFORMED\" | \"MESH_NOT_LOADED\" | \"CONTAINER_NEWER\" | \"CONTAINER_DAMAGED\" | \"SKETCH_PARAMETER\" | \"NO_BODY\" | \"PARAMETER_UNKNOWN\" | \"PARAMETER_NAME\" | \"PARAMETER_EXISTS\" | \"PARAMETER_UNBINDABLE\" | \"VALUE\" | \"NO_FEATURE\" | \"CONNECTOR_INVALID\" | \"CONNECTOR_POINT\" | \"CONNECTOR_UNAVAILABLE\" | \"CONNECTOR_KIND\" | \"NO_PART\" | \"PART_MATED\" | \"MATE_KIND\" | \"MATE_SAME_PART\" | \"MATE_BOTH_FIXED\" | \"MATE_FACE_UNKNOWN\" | \"MATE_FACES\" | \"MATE_UNMET\" | \"NO_MATE\" | \"PATTERN_VALUE\" | \"PATTERN_DRIVEN\" | \"PATTERN_REFERENCED\" | \"NO_PATTERN\" | \"ALIGN_PICK\" | \"ALIGN_TURN\" | \"HOLE_SIZE\" | \"HOLE_PATTERN\" | \"DRAFT_PICK\" | \"DRAFT_ANGLE\" | \"FULL_ROUND_PICK\" | \"TEXT_RELIEF_PICK\" | \"FACE_FILLET_PICK\" | \"THREAD_PICK\" | \"FILLET_CHAIN\" | \"DECIMATE_KEEP\" | \"SPLIT_PLANE\" | \"FACE_DISTANCE\" | \"LOFT_SECTIONS\" | \"SWEEP_PATH\" | \"PRIMITIVE_SIZE\" | \"GEAR_PICK\" | \"FASTENER_POSITION\" | \"FASTENER_LENGTH\" | \"FASTENER_GRIP\" | \"FASTENER_SIZE_ROW\" | \"FRAME_SECTION_PICK\" | \"FRAME_MEMBER\" | \"FRAME_VALUE\" | \"FRAME_SKELETON_PICK\" | \"FRAME_NOTCH\" | \"GUSSET_PICK\" | \"CAP_PICK\" | \"SHEET_PICK\" | \"SHEET_VALUE\" | \"DIRECT_SOURCE\" | \"DIRECT_PICK\" | \"DIRECT_DEGREE\" | \"DIRECT_LOOP\" | \"DIRECT_VALUE\" | \"DIRECT_KNOT\" | \"DIRECT_LOFT\" | \"DIRECT_RANGE\" | \"DIRECT_PLANE\" | \"DIRECT_INTERSECT\" | \"DIRECT_ID\" | \"IGES_READ\" | \"IGES_EXPORT\" | \"TRIM_CURVE\" | VersionCode | \"ROWS_NOT_FROM_PERSON\" | \"ROW_FILES\" | \"ROW_UNKNOWN\" | \"ROW_IN_USE\" | \"RING_ROW\" | \"FASTENER_ROW\" | \"CASTING_RULE_ROW\" | \"LIBRARY_ID\" | \"LIBRARY_UNKNOWN\" | \"ZIP_LIMIT\" | \"MERGE_SUPERSEDED\" | \"MERGE_MISSING\""
+                "definition": "\"HARNESS_RAW_PROVENANCE_UNAVAILABLE\" | \"NO_LINK\" | \"NO_JOINTS\" | \"NO_FRAME\" | \"NOT_PLANAR\" | \"NOT_ONE_LOOP\" | \"NO_CLOSURE\" | \"BRANCH_FLIP\" | \"NO_PIN\" | \"NO_RANGE\" | \"BAD_VALUES\" | \"NOT_NEEDED\" | \"ONE_BODY\" | \"NO_PRINTER\" | \"DIRECTION_NOT_AXIS\" | \"TOO_BIG_TWO_WAYS\" | \"NO_ROOM\" | \"BAD_CONNECTOR\" | \"NOT_HOLLOW\" | \"GRID_TOO_FINE\" | \"NO_LATTICE\" | \"UNDRAINED\" | \"CURVED_BODY\" | \"NOTHING_TO_HOLLOW\" | \"DRAIN_NO_ROOM\" | \"BOOLEAN_REFUSED\" | \"NO_CHANGE\" | \"STALE_ECR\" | \"NO_ECR\" | \"DECIDED\" | \"APPROVAL_IS_THE_USERS\" | \"BAD_TRANSITION\" | \"BASELINE_FROZEN\" | \"STALE_BASELINE\" | \"STALE_RESULT\" | \"RESULT_NOT_OK\" | \"NO_BASELINE\" | \"BOM_INVALID\" | \"NO_DRAFT\" | \"BAD_VALUE\" | \"BOUND\" | \"GONE\" | \"REFERENCE_LOCKED\" | \"BAD_REFERENCE\" | \"NO_REFERENCE\" | \"DATUM_FIT\" | \"BAD_KEEPOUT\" | \"NOT_READ\" | \"SYNTAX\" | \"UNKNOWN_NAME\" | \"TYPE\" | \"LIMIT\" | \"REFUSED\" | \"DXF_MALFORMED\" | \"DXF_UNSUPPORTED\" | \"DXF_OPEN\" | \"DXF_NESTED\" | \"DXF_EMPTY\" | \"DWG_NOT_READ\" | \"DRAWING_SCOPE\" | \"DRAWING_SCOPE_REFERENCES\" | \"DRAWING_OPTIONS\" | \"DRAWING_SECTION_REFERENCES\" | \"DRAWING_DETAIL_REFERENCES\" | \"DRAWING_DETAIL_LETTER\" | \"DRAWING_DETAIL_PARENT\" | FrameGeometryCode | \"FRAME_SKELETON_IN_USE\" | \"FRAME_PART_IN_USE\" | \"SKETCH3D_PARAMETER\" | \"SKETCH3D_INPUT\" | \"SKETCH3D_CONFLICT\" | \"FRAME_NAME\" | \"FRAME_LINK_MISSING\" | \"FRAME_LINK_STALE\" | \"FRAME_POSE\" | \"INPUT_RANGE\" | \"INPUT_TYPE\" | \"INPUT_TARGET\" | \"INPUT_CHOICE\" | \"INPUT_NAME\" | \"INPUT_CONFLICT\" | \"INPUT_DEFAULT\" | \"VARIANT_UNKNOWN\" | \"PRINT_PREVIEW_INPUT\" | \"BEARING_HOUSING_REFERENCE\" | \"BEARING_HOUSING_SCOPE\" | \"BEARING_HOUSING_CYCLE\" | \"BEARING_HOUSING_POSE\" | \"BEARING_HOUSING_EVALUATION\" | \"MOUNT_RANGE\" | \"MOUNT_FACE\" | \"MOUNT_ROW\" | \"FRAME_SECTION_UNKNOWN\" | \"ORING_ROW_UNKNOWN\" | \"CONNECTOR_ROW_UNKNOWN\" | \"BEARING_ROW_UNKNOWN\" | \"RING_ROW_UNKNOWN\" | \"DRIVE_ROW_UNKNOWN\" | \"DRIVE_WHEELS\" | \"FIT_FACE\" | \"SHOP_ROWS_FLATTEN_SCOPE\" | \"NO_TABLE\" | \"NO_ROW\" | \"NO_RUN\" | \"LIMITS_BAD\" | \"LIMITS_MISSING\" | \"PATH_TOO_SHORT\" | \"JOINT_UNKNOWN\" | \"JOINT_MIMIC\" | \"JOINT_LIMIT\" | \"MOTION_UNKNOWN\" | \"LOOP_OPEN\" | \"LOOP_MATE_UNSUPPORTED\" | \"LOOP_PASSIVE\" | \"DEAD_POINT\" | \"CAM_PROFILE_UNSUPPORTED\" | \"CAM_UNSUPPORTED\" | \"CAM_IN_LOOP\" | \"ACTUATOR_INPUT\" | \"MODEL_READ\" | \"XML_MALFORMED\" | \"MESH_NOT_LOADED\" | \"CONTAINER_NEWER\" | \"CONTAINER_DAMAGED\" | \"SKETCH_PARAMETER\" | \"NO_BODY\" | \"PARAMETER_UNKNOWN\" | \"PARAMETER_NAME\" | \"PARAMETER_EXISTS\" | \"PARAMETER_UNBINDABLE\" | \"VALUE\" | \"NO_FEATURE\" | \"CONNECTOR_INVALID\" | \"CONNECTOR_POINT\" | \"CONNECTOR_UNAVAILABLE\" | \"CONNECTOR_KIND\" | \"NO_PART\" | \"PART_MATED\" | \"MATE_KIND\" | \"MATE_SAME_PART\" | \"MATE_BOTH_FIXED\" | \"MATE_FACE_UNKNOWN\" | \"MATE_FACES\" | \"MATE_UNMET\" | \"NO_MATE\" | \"PATTERN_VALUE\" | \"PATTERN_DRIVEN\" | \"PATTERN_REFERENCED\" | \"NO_PATTERN\" | \"NO_CUT\" | \"ALIGN_PICK\" | \"ALIGN_TURN\" | \"HOLE_SIZE\" | \"HOLE_PATTERN\" | \"DRAFT_PICK\" | \"DRAFT_ANGLE\" | \"FULL_ROUND_PICK\" | \"TEXT_RELIEF_PICK\" | \"FACE_FILLET_PICK\" | \"THREAD_PICK\" | \"FILLET_CHAIN\" | \"DECIMATE_KEEP\" | \"SPLIT_PLANE\" | \"FACE_DISTANCE\" | \"LOFT_SECTIONS\" | \"SWEEP_PATH\" | \"PRIMITIVE_SIZE\" | \"GEAR_PICK\" | \"FASTENER_POSITION\" | \"FASTENER_LENGTH\" | \"FASTENER_GRIP\" | \"FASTENER_SIZE_ROW\" | \"FRAME_SECTION_PICK\" | \"FRAME_MEMBER\" | \"FRAME_VALUE\" | \"FRAME_SKELETON_PICK\" | \"FRAME_NOTCH\" | \"GUSSET_PICK\" | \"CAP_PICK\" | \"SHEET_PICK\" | \"SHEET_VALUE\" | \"DIRECT_SOURCE\" | \"DIRECT_PICK\" | \"DIRECT_DEGREE\" | \"DIRECT_LOOP\" | \"DIRECT_VALUE\" | \"DIRECT_KNOT\" | \"DIRECT_LOFT\" | \"DIRECT_RANGE\" | \"DIRECT_PLANE\" | \"DIRECT_INTERSECT\" | \"DIRECT_ID\" | \"IGES_READ\" | \"IGES_EXPORT\" | \"TRIM_CURVE\" | VersionCode | \"ROWS_NOT_FROM_PERSON\" | \"ROW_FILES\" | \"ROW_UNKNOWN\" | \"ROW_IN_USE\" | \"RING_ROW\" | \"FASTENER_ROW\" | \"CASTING_RULE_ROW\" | \"LIBRARY_ID\" | \"LIBRARY_UNKNOWN\" | \"ZIP_LIMIT\" | \"MERGE_SUPERSEDED\" | \"MERGE_MISSING\""
               }
             ],
             "members": [
@@ -281460,6 +282997,13 @@
               }
             ],
             "members": [
+              {
+                "name": "assemblyCuts",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "AssemblyCut[] | undefined"
+              },
               {
                 "name": "baselines",
                 "kind": "property",
@@ -300968,7 +302512,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "\"drill\" | \"pocket\""
+                "type": "\"pocket\" | \"drill\""
               },
               {
                 "name": "level",
@@ -345814,11 +347358,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"PARTS_MEET\" | \"PARTS_TOUCH\" | \"EXPECTED_CONTACT\" | \"PATTERN_MISALIGNED\" | \"OVER_TOTAL_BUDGET\" | \"BEAD_ACCOUNTING_INCOMPLETE\"",
+            "type": "\"PARTS_MEET\" | \"PARTS_TOUCH\" | \"EXPECTED_CONTACT\" | \"PATTERN_MISALIGNED\" | \"OVER_TOTAL_BUDGET\" | \"BEAD_ACCOUNTING_INCOMPLETE\" | \"CUT_REMOVES_NOTHING\" | \"CUT_CONSUMES_BODY\" | \"CUT_NOT_MADE\" | \"CUT_PARTIAL\" | \"CUT_LEAVES_BOUGHT\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "\"PARTS_MEET\" | \"PARTS_TOUCH\" | \"EXPECTED_CONTACT\" | \"PATTERN_MISALIGNED\" | \"OVER_TOTAL_BUDGET\" | \"BEAD_ACCOUNTING_INCOMPLETE\""
+                "definition": "\"PARTS_MEET\" | \"PARTS_TOUCH\" | \"EXPECTED_CONTACT\" | \"PATTERN_MISALIGNED\" | \"OVER_TOTAL_BUDGET\" | \"BEAD_ACCOUNTING_INCOMPLETE\" | \"CUT_REMOVES_NOTHING\" | \"CUT_CONSUMES_BODY\" | \"CUT_NOT_MADE\" | \"CUT_PARTIAL\" | \"CUT_LEAVES_BOUGHT\""
               }
             ],
             "members": [
@@ -349829,7 +351373,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"refused\" | \"accepted\" | \"pending\" | \"failed\" | \"built\" | \"cancelled\" | \"timed_out\"",
+            "type": "\"refused\" | \"accepted\" | \"pending\" | \"built\" | \"failed\" | \"cancelled\" | \"timed_out\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -353017,7 +354561,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"inertia\" | \"mass\" | \"drawing\" | \"bom\" | \"keepout\" | \"check_spec\" | \"requirement\" | \"dfm\"",
+            "type": "\"inertia\" | \"mass\" | \"drawing\" | \"bom\" | \"check_spec\" | \"keepout\" | \"requirement\" | \"dfm\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -355800,11 +357344,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"OP_REFUSED\" | \"NOT_EVALUATED\" | \"PARTS_MEET\" | \"PARTS_TOUCH\" | \"EXPECTED_CONTACT\" | \"PATTERN_MISALIGNED\" | \"OVER_TOTAL_BUDGET\" | \"BEAD_ACCOUNTING_INCOMPLETE\" | \"NO_LEASE\" | \"LEASE_EXPIRED\" | \"CONTRACT_MOVED\" | \"OUT_OF_PART\" | \"OUT_OF_ENVELOPE\" | \"HOLE_OFF_PATTERN\" | \"OVER_BUDGET\"",
+            "type": "\"OP_REFUSED\" | \"NOT_EVALUATED\" | \"PARTS_MEET\" | \"PARTS_TOUCH\" | \"EXPECTED_CONTACT\" | \"PATTERN_MISALIGNED\" | \"OVER_TOTAL_BUDGET\" | \"BEAD_ACCOUNTING_INCOMPLETE\" | \"CUT_REMOVES_NOTHING\" | \"CUT_CONSUMES_BODY\" | \"CUT_NOT_MADE\" | \"CUT_PARTIAL\" | \"CUT_LEAVES_BOUGHT\" | \"NO_LEASE\" | \"LEASE_EXPIRED\" | \"CONTRACT_MOVED\" | \"OUT_OF_PART\" | \"OUT_OF_ENVELOPE\" | \"HOLE_OFF_PATTERN\" | \"OVER_BUDGET\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "\"PARTS_MEET\" | \"PARTS_TOUCH\" | \"EXPECTED_CONTACT\" | \"PATTERN_MISALIGNED\" | \"OVER_TOTAL_BUDGET\" | \"BEAD_ACCOUNTING_INCOMPLETE\" | \"NO_LEASE\" | \"LEASE_EXPIRED\" | \"CONTRACT_MOVED\" | \"OUT_OF_PART\" | \"OP_REFUSED\" | \"NOT_EVALUATED\" | \"OUT_OF_ENVELOPE\" | \"HOLE_OFF_PATTERN\" | \"OVER_BUDGET\""
+                "definition": "\"PARTS_MEET\" | \"PARTS_TOUCH\" | \"EXPECTED_CONTACT\" | \"PATTERN_MISALIGNED\" | \"OVER_TOTAL_BUDGET\" | \"BEAD_ACCOUNTING_INCOMPLETE\" | \"CUT_REMOVES_NOTHING\" | \"CUT_CONSUMES_BODY\" | \"CUT_NOT_MADE\" | \"CUT_PARTIAL\" | \"CUT_LEAVES_BOUGHT\" | \"NO_LEASE\" | \"LEASE_EXPIRED\" | \"CONTRACT_MOVED\" | \"OUT_OF_PART\" | \"OP_REFUSED\" | \"NOT_EVALUATED\" | \"OUT_OF_ENVELOPE\" | \"HOLE_OFF_PATTERN\" | \"OVER_BUDGET\""
               }
             ],
             "members": [
@@ -356274,7 +357818,7 @@
                 "kind": "property",
                 "optional": false,
                 "readonly": false,
-                "type": "(Omit<GateResult, \"gate\" | \"findings\"> & { gate: \"assembly\" | \"validity\" | \"contract\" | \"lease\"; findings: { code: \"NOT_REACHED\" | PartCode; message: string; entities?: string[] | undefined; }[]; })[]"
+                "type": "(Omit<GateResult, \"gate\" | \"findings\"> & { gate: \"assembly\" | \"validity\" | \"lease\" | \"contract\"; findings: { code: \"NOT_REACHED\" | PartCode; message: string; entities?: string[] | undefined; }[]; })[]"
               },
               {
                 "name": "patch",
@@ -357282,7 +358826,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"input\" | \"reused\" | \"built\"",
+            "type": "\"input\" | \"built\" | \"reused\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -358837,14 +360381,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(r: PartsRun) => { accepted: number; leases: Lease[]; traces: { seq: number; patch: string; by: string; part: string; decision: Decision; gates: (Omit<GateResult, \"gate\" | \"findings\"> & { gate: \"assembly\" | \"validity\" | \"contract\" | \"lease\"; findings: { code: \"NOT_REACHED\" | PartCode; message: string; entities?: string[] | undefined; }[]; })[]; revision_after: string | null; }[]; }",
+            "type": "(r: PartsRun) => { accepted: number; leases: Lease[]; traces: { seq: number; patch: string; by: string; part: string; decision: Decision; gates: (Omit<GateResult, \"gate\" | \"findings\"> & { gate: \"assembly\" | \"validity\" | \"lease\" | \"contract\"; findings: { code: \"NOT_REACHED\" | PartCode; message: string; entities?: string[] | undefined; }[]; })[]; revision_after: string | null; }[]; }",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
               }
             ],
             "callSignatures": [
-              "(r: PartsRun) => { accepted: number; leases: Lease[]; traces: { seq: number; patch: string; by: string; part: string; decision: Decision; gates: (Omit<GateResult, \"gate\" | \"findings\"> & { gate: \"assembly\" | \"validity\" | \"contract\" | \"lease\"; findings: { code: \"NOT_REACHED\" | PartCode; message: string; entities?: string[] | undefined; }[]; })[]; revision_after: string | null; }[]; }"
+              "(r: PartsRun) => { accepted: number; leases: Lease[]; traces: { seq: number; patch: string; by: string; part: string; decision: Decision; gates: (Omit<GateResult, \"gate\" | \"findings\"> & { gate: \"assembly\" | \"validity\" | \"lease\" | \"contract\"; findings: { code: \"NOT_REACHED\" | PartCode; message: string; entities?: string[] | undefined; }[]; })[]; revision_after: string | null; }[]; }"
             ]
           }
         }
@@ -362672,7 +364216,7 @@
                 "kind": "method",
                 "optional": false,
                 "readonly": false,
-                "type": "(view: Readonly<Record<\"mass\" | \"checks\" | \"requirements\" | \"brief\" | \"revision\" | \"boxes\" | \"keepouts\" | \"facts\" | \"printability\", unknown>>) => Promise<{ accept: boolean; findings: string[]; } & RoleReport>"
+                "type": "(view: Readonly<Record<\"mass\" | \"checks\" | \"requirements\" | \"brief\" | \"revision\" | \"keepouts\" | \"boxes\" | \"facts\" | \"printability\", unknown>>) => Promise<{ accept: boolean; findings: string[]; } & RoleReport>"
               }
             ],
             "indexSignatures": []
@@ -362698,7 +364242,7 @@
             "kind": "type"
           },
           "shape": {
-            "type": "{ readonly mass: unknown; readonly checks: unknown; readonly requirements: unknown; readonly brief: unknown; readonly revision: unknown; readonly boxes: unknown; readonly keepouts: unknown; readonly facts: unknown; readonly printability: unknown; }",
+            "type": "{ readonly mass: unknown; readonly checks: unknown; readonly requirements: unknown; readonly brief: unknown; readonly revision: unknown; readonly keepouts: unknown; readonly boxes: unknown; readonly facts: unknown; readonly printability: unknown; }",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
@@ -363101,14 +364645,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(doc: StudioDoc, bodies: readonly BodyResult[], extra: { keepouts: readonly KeepoutResult[]; print: PrintabilityReport | null; spec: Report | null; }) => Readonly<Record<\"mass\" | \"checks\" | \"requirements\" | \"brief\" | \"revision\" | \"boxes\" | \"keepouts\" | \"facts\" | \"printability\", unknown>>",
+            "type": "(doc: StudioDoc, bodies: readonly BodyResult[], extra: { keepouts: readonly KeepoutResult[]; print: PrintabilityReport | null; spec: Report | null; }) => Readonly<Record<\"mass\" | \"checks\" | \"requirements\" | \"brief\" | \"revision\" | \"keepouts\" | \"boxes\" | \"facts\" | \"printability\", unknown>>",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(doc: StudioDoc, bodies: readonly BodyResult[], extra: { keepouts: readonly KeepoutResult[]; print: PrintabilityReport | null; spec: Report | null; }) => Readonly<Record<\"mass\" | \"checks\" | \"requirements\" | \"brief\" | \"revision\" | \"boxes\" | \"keepouts\" | \"facts\" | \"printability\", unknown>>"
+              "(doc: StudioDoc, bodies: readonly BodyResult[], extra: { keepouts: readonly KeepoutResult[]; print: PrintabilityReport | null; spec: Report | null; }) => Readonly<Record<\"mass\" | \"checks\" | \"requirements\" | \"brief\" | \"revision\" | \"keepouts\" | \"boxes\" | \"facts\" | \"printability\", unknown>>"
             ]
           }
         }

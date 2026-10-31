@@ -79,7 +79,7 @@ function moved(i: PartInstance, d: Motion): PartInstance {
   const M: Mat3 = [0, 0, 0, 0, 0, 0, 0, 0, 0];
   for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) M[r * 3 + c] = R[r * 3] * m[c] + R[r * 3 + 1] * m[3 + c] + R[r * 3 + 2] * m[6 + c];
   const position = [0, 1, 2].map(r => clean(R[r * 3] * t[0] + R[r * 3 + 1] * t[1] + R[r * 3 + 2] * t[2] + d.t[r])) as [number, number, number];
-  return { ...i, position, rotation: eulerOf(M) as [number, number, number] };
+  return { ...i, position, rotation: eulerOf(M) as [number, number, number], savedPlacement: i.savedPlacement ?? { position: i.position, rotation: i.rotation } };
 }
 const still = (d: Motion) => d.t[0] === 0 && d.t[1] === 0 && d.t[2] === 0 && d.R[0] === 1 && d.R[1] === 0 && d.R[2] === 0 && d.R[3] === 0 && d.R[4] === 1 && d.R[5] === 0 && d.R[6] === 0 && d.R[7] === 0 && d.R[8] === 1;
 
@@ -114,6 +114,11 @@ function pose(inst: PartInstance): Posed {
   const fk = forwardKinematics(t.tree, inst.joints!);
   return { doc: { ...inst.doc, instances: inst.doc.instances!.map(n => { const d = fk.motions.get(n.id); return d && !still(d) ? moved(n, d) : n; }) } };
 }
+/**
+ * A part of a posed sub-assembly as the sub-assembly saved it. Its assembly cuts are in the part's own frame at its saved placement
+ * (roadmap 10 ⑤), so they travel with the part as the joints move it: the tool is made from this, then posed with the part.
+ */
+export const savedInstanceOf = (inst: PartInstance): PartInstance => inst.savedPlacement ? { ...inst, ...inst.savedPlacement } : inst;
 
 /** The document of an occurrence as it stands: its sub-assembly posed by its joint values (the very `inst.doc` when it has none). */
 export const bodyDocOf = (inst: PartInstance): StudioDoc => inst.joints ? poseOf(inst).doc : inst.doc;

@@ -28,6 +28,7 @@ import { isRefusal } from '../engine/refusal';
 import { bodyDocOf, instanceJointsOf, setInstanceJoints } from '../assembly/flexible';
 import { lookKey } from '../app/bodies';
 import { instanceLooksListing, setInstanceLooks, type InstanceLookPatch } from '../assembly/looks';
+import { addAssemblyCut, assemblyCutProblems, deleteAssemblyCut, editAssemblyCut } from '../assembly/cuts';
 import { addInstancePattern, deleteInstancePattern, editInstancePattern, patternDeleteRefusal, type AddPatternOptions } from '../assembly/patterns';
 
 type Evaluate = (doc: StudioDoc) => Promise<EvalResult | null>;
@@ -125,7 +126,7 @@ function reported(doc: StudioDoc, r: Edited, what: string, extra: Record<string,
   };
 }
 
-export const ASSEMBLY_TOOL_NAMES = new Set(['get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'lock_part', 'delete_mate', 'pattern_part', 'edit_pattern', 'delete_pattern', 'list_library', 'insert_part', 'snap_part', 'add_library', 'add_library_part', 'check_printability', 'orient_for_print', 'set_inputs', 'set_variants']);
+export const ASSEMBLY_TOOL_NAMES = new Set(['get_assembly', 'add_part', 'place_part', 'delete_part', 'add_mate', 'edit_mate', 'lock_part', 'delete_mate', 'pattern_part', 'edit_pattern', 'delete_pattern', 'cut_parts', 'list_library', 'insert_part', 'snap_part', 'add_library', 'add_library_part', 'check_printability', 'orient_for_print', 'set_inputs', 'set_variants']);
 
 export async function runAssemblyTool(state: State, name: string, args: Record<string, unknown>, evaluate: Evaluate): Promise<AssemblyOutcome> {
   const doc = state.doc, instances = doc.instances ?? [], mates = doc.mates ?? [];
@@ -231,6 +232,18 @@ export async function runAssemblyTool(state: State, name: string, args: Record<s
         }
         const r = editInstancePattern(doc, { id: String(args.id), ...got.v } as { id: string });
         return reported(doc, r, `edited pattern ${String(args.id)}`);
+      } catch (e) { if (isRefusal(e, ...ASSEMBLY_CODES)) return fail(doc, e.message); throw e; }
+    }
+    case 'cut_parts': {
+      // (Roadmap 10 ⑤: a hole or pocket across placed parts, in the assembly's frame. No id: a new cut; an id: that cut changed, or removed with "delete".)
+      const o: Record<string, unknown> = {};
+      for (const [from, to] of [['at', 'at'], ['dir', 'dir']] as const) if (args[from] !== undefined) { if (!vec3(args[from])) return fail(doc, `"${from}" is [x, y, z] in mm.`); o[to] = args[from]; }
+      for (const k of ['profile', 'depth', 'name'] as const) if (args[k] !== undefined) o[k] = args[k];
+      if (args.parts !== undefined) o.targets = args.parts;
+      try {
+        const done = args.id === undefined ? addAssemblyCut(doc, o as never) : args.delete === true ? deleteAssemblyCut(doc, String(args.id)) : editAssemblyCut(doc, { id: String(args.id), ...o } as never);
+        const id = 'id' in done ? String(done.id) : String(args.id), problems = args.delete === true ? [] : (await assemblyCutProblems(done.doc, evaluate)).map(p => p.message);
+        return reported(doc, done, `${args.id === undefined ? 'added' : args.delete === true ? 'deleted' : 'edited'} cut ${id}`, { cut: id, ...(problems.length ? { cut_problems: problems } : {}) });
       } catch (e) { if (isRefusal(e, ...ASSEMBLY_CODES)) return fail(doc, e.message); throw e; }
     }
     case 'delete_pattern': {
@@ -359,6 +372,11 @@ export const ASSEMBLY_TOOLS: ToolDefinition[] = [
     name: 'edit_pattern',
     description: 'Changes a pattern (get_assembly lists them): count, skip (the k left out; [] brings all back), and its own kind\'s spacing/direction or angle/axis/origin; left out: kept. Refused while a mate holds a copy it would remove.',
     input_schema: { type: 'object', properties: { id: { type: 'string' }, count: { type: 'number' }, spacing: { type: 'number' }, direction: xyz, angle: { type: 'number' }, axis: xyz, origin: xyz, skip: { type: 'array', items: { type: 'number' } } }, required: ['id'], additionalProperties: false },
+  },
+  {
+    name: 'cut_parts',
+    description: 'A hole or pocket across placed parts, in the assembly\'s frame: no "id" makes a cut, an id changes it, or removes it with "delete": true. A number "depth" cuts that far one way from the profile plane along "dir"; "through" cuts the whole part along "dir", both ways from the plane (not a part longer than 10,000 mm). The rectangle\'s w runs along X (along Y for a cut along X). Each target part (top-level, not a sub-assembly) is cut in its own placed document only: its definition and other occurrences stay whole. Mates still read the definition\'s faces (v1). Reports a cut that removes nothing.',
+    input_schema: { type: 'object', properties: { id: { type: 'string' }, delete: { type: 'boolean' }, profile: { type: 'object', description: '{kind: "circle", radius} or {kind: "rectangle", w, d}, mm.' }, at: xyz, dir: xyz, depth: { anyOf: [{ type: 'number' }, { const: 'through' }] }, parts: { type: 'array', items: { type: 'string' } }, name: { type: 'string' } }, additionalProperties: false },
   },
   {
     name: 'delete_pattern',

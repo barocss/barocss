@@ -16,7 +16,7 @@ import { readRobot, type JointTree, type RobotSettings } from '../robot/joints';
 import type { FrameSettings } from '../robot/frames';
 
 /** What the assembly's edits refuse with. */
-export const ASSEMBLY_CODES: readonly CadModelCode[] = ['VALUE', 'CONNECTOR_INVALID', 'CONNECTOR_POINT', 'CONNECTOR_UNAVAILABLE', 'CONNECTOR_KIND', 'NO_PART', 'PART_MATED', 'MATE_KIND', 'MATE_SAME_PART', 'MATE_BOTH_FIXED', 'MATE_FACE_UNKNOWN', 'MATE_FACES', 'MATE_UNMET', 'NO_MATE', 'FRAME_NAME', 'PATTERN_VALUE', 'PATTERN_DRIVEN', 'PATTERN_REFERENCED', 'NO_PATTERN'];
+export const ASSEMBLY_CODES: readonly CadModelCode[] = ['VALUE', 'CONNECTOR_INVALID', 'CONNECTOR_POINT', 'CONNECTOR_UNAVAILABLE', 'CONNECTOR_KIND', 'NO_PART', 'PART_MATED', 'MATE_KIND', 'MATE_SAME_PART', 'MATE_BOTH_FIXED', 'MATE_FACE_UNKNOWN', 'MATE_FACES', 'MATE_UNMET', 'NO_MATE', 'FRAME_NAME', 'PATTERN_VALUE', 'PATTERN_DRIVEN', 'PATTERN_REFERENCED', 'NO_PATTERN', 'NO_CUT'];
 
 /** A problem the solver or the patterns report: the mate, why, and for a pattern that does not settle its id and the mates on the cycle. */
 export interface SolveProblem { mate: string; reason: string; pattern?: string; mates?: string[] }

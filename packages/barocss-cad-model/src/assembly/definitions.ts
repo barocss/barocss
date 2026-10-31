@@ -8,6 +8,8 @@ import { nextRevision } from '../drawing/types';
 import { nextFreeId } from '../util/ids';
 import { curvePatternDocumentProblem } from '../engine/curveFeaturePattern';
 import { drivenRefusal, expandPatterns } from './patterns';
+import { cutBlockedBy, cutBlockedWords } from './cuts';
+import { refusal } from '../engine/refusal';
 import { heldByRevision, heldLooks, type HeldLook } from './looks';
 
 /** A definition id not yet used by any instance or pending revision. */
@@ -40,6 +42,7 @@ export function offerRevision(doc: StudioDoc, id: string, part: StudioDoc, name:
   const pathProblem = fillPatternDocumentProblem(part) ?? curvePatternDocumentProblem({ instances: [{ doc: part }] });
   if (pathProblem) return { error: pathProblem };
   const placed = sharing(doc, id)[0]; if (!placed?.part) return { error: 'That part is not placed any more.' };
+  const blocked = cutBlockedBy(doc, sharing(doc, id).map(i => i.id), part); if (blocked) return { error: cutBlockedWords(blocked, 'This file') };
   const strip = (d: StudioDoc) => JSON.stringify({ ...d, render: undefined, direct: undefined, drawing: undefined });
   if (strip(part) === strip(placed.doc)) return { error: `This file is ${placed.name} as it is placed (Rev ${placed.part.rev}): nothing to update.` };
   const own = revisionOf(part), rev = own !== 'A' && own !== placed.part.rev ? own : nextRevision(placed.part.rev);
@@ -51,6 +54,7 @@ export function offerRevision(doc: StudioDoc, id: string, part: StudioDoc, name:
 /** The waiting revision taken: every instance sharing the definition places it (where it is), at its revision. Each occurrence keeps its own looks (heldLooks lists those whose body is gone). */
 export function acceptRevision(doc: StudioDoc, id: string): StudioDoc {
   const p = doc.pendingParts?.[id]; if (!p) return doc;
+  const blocked = cutBlockedBy(doc, sharing(doc, id).map(i => i.id), p.doc); if (blocked) throw refusal('VALUE', cutBlockedWords(blocked, 'Accepting this revision'));
   const rest = Object.fromEntries(Object.entries(doc.pendingParts ?? {}).filter(([k]) => k !== id));
   const instances = (doc.instances ?? []).map((i): PartInstance => i.part?.id === id ? { ...i, doc: p.doc, part: { ...i.part, rev: p.rev, source: p.name } } : i);
   return expandPatterns({ ...doc, instances, pendingParts: Object.keys(rest).length ? rest : undefined });
@@ -72,6 +76,7 @@ export function editDefinition(doc: StudioDoc, owner: string, part: StudioDoc): 
   const id = seed.part?.id, holds = (d: StudioDoc, depth = 0): boolean => depth < 8 && !!d.instances?.some(i => i.doc === seed.doc || holds(i.doc, depth + 1));
   if (part.instances === doc.instances && part.instances !== undefined || holds(part)) return { error: `That document contains ${seed.name} itself (it is the assembly, or places this part): a part cannot hold the instance it is edited from.` };
   if (JSON.stringify(part) === JSON.stringify(seed.doc)) return { doc, held: [], changed: false };
+  const blocked = cutBlockedBy(doc, [...new Set([seed.id, inst.id, ...(seed.part ? sharing(doc, seed.part.id).map(i => i.id) : [])])], part); if (blocked) return { error: cutBlockedWords(blocked, 'This edit') };
   // (Never backwards: the next after the newer of the placed revision and the one the part's own document names.)
   const rev = seed.part ? nextRevision(newerRevision(seed.part.rev, revisionOf(part))) : undefined;
   // (A part linked to a project file stops being linked: the file is not the edited part, so it is not offered later as a newer one. The name stays, marked.)

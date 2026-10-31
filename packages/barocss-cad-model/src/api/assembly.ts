@@ -10,7 +10,7 @@ import type { FrameSettings } from '../robot/frames';
 import type { MeshData } from './core';
 import { meshSelection } from './select';
 import { bodiesOf } from './core';
-import { addMateDoc, addPartDoc, deletePatternDoc, editPatternDoc, lockDoc, patternDoc, skipOccurrenceDoc, assemblyMeshes, BASE, emptyDoc, framePosesOf, framesDoc, partJointsOf, partLooksOf, placePartDoc, problemsOf, setPartJointsDoc, setPartLookDoc, variabilityDoc, variantDoc } from './assemblyCore';
+import { cutDoc, deleteCutDoc, editCutDoc, addMateDoc, addPartDoc, deletePatternDoc, editPatternDoc, lockDoc, patternDoc, skipOccurrenceDoc, assemblyMeshes, BASE, emptyDoc, framePosesOf, framesDoc, partJointsOf, partLooksOf, placePartDoc, problemsOf, setPartJointsDoc, setPartLookDoc, variabilityDoc, variantDoc } from './assemblyCore';
 import { part as studioPart, StudioPart } from './part';
 import { Robot } from './robot';
 import { drawingDoc, drawingOf, outputOf } from './outputs';
@@ -30,6 +30,14 @@ export interface FrameOptions { link: string; at?: Location; kind?: 'tool' | 'se
 export type PatternOptions = { count: number; skip?: number[] } & ({ kind: 'linear'; direction: Vec3; spacing: number } | { kind: 'circular'; axis: Vec3; origin?: Vec3; angle: number });
 /** What `editPattern` changes (each left out: kept): the values of the pattern's own kind. */
 export interface PatternEdit { count?: number; skip?: number[]; spacing?: number; direction?: Vec3; angle?: number; axis?: Vec3; origin?: Vec3 }
+
+/**
+ * A cut across placed parts (`cut`, roadmap 10 ⑤): a circle (`radius`) or rectangle (`w`, `d`) profile centred on `at` (mm, the assembly's
+ * frame), cut along `dir` for `depth` mm from the profile plane or `'through'`, in the parts named in `parts`. The definitions never change.
+ */
+export interface CutOptions { profile: { kind: 'circle'; radius: number } | { kind: 'rectangle'; w: number; d: number }; at: Vec3; dir: Vec3; depth: number | 'through'; parts: string[]; name?: string }
+/** What `editCut` changes (each left out: kept; `name: null` clears it). */
+export interface CutEdit { profile?: CutOptions['profile']; at?: Vec3; dir?: Vec3; depth?: number | 'through'; parts?: string[]; name?: string | null }
 
 const toVec = (v: readonly number[]): XYZ => [v[0], v[1], v[2]];
 
@@ -143,6 +151,25 @@ export class Assembly {
   patterns(): { id: string; part: string; count: number; skip: number[]; kind: 'linear' | 'circular'; direction?: Vec3; spacing?: number; axis?: Vec3; origin?: Vec3; angle?: number }[] {
     return (this.#doc.instancePatterns ?? []).map(p => ({ id: p.id, part: this.#doc.instances!.find(i => i.id === p.seed)!.name, count: p.count, skip: [...(p.skip ?? [])], kind: p.kind,
       ...(p.kind === 'linear' ? { direction: toVec(p.dir), spacing: p.spacing } : { axis: toVec(p.axis), origin: toVec(p.origin), angle: p.angle }) }));
+  }
+
+  /** `assembly.cut`: a hole or pocket made across the named placed parts, in the assembly's frame; each cut part is its definition with the cut taken, in every output. Its id: `cuts()`. */
+  cut(o: CutOptions): Assembly {
+    return new Assembly(this.name, cutDoc(this.#doc, { profile: { ...o.profile }, at: toVec(o.at), dir: toVec(o.dir), depth: o.depth, targets: o.parts.map(n => this.idOf(n)), ...(o.name ? { name: o.name } : {}) }).doc);
+  }
+
+  /** `assembly.edit_cut`: a cut's profile, place, direction, depth, parts or name changed. */
+  editCut(id: string, o: CutEdit): Assembly {
+    return new Assembly(this.name, editCutDoc(this.#doc, { id, ...(o.profile !== undefined ? { profile: { ...o.profile } } : {}), ...(o.at !== undefined ? { at: toVec(o.at) } : {}), ...(o.dir !== undefined ? { dir: toVec(o.dir) } : {}),
+      ...(o.depth !== undefined ? { depth: o.depth } : {}), ...(o.parts !== undefined ? { targets: o.parts.map(n => this.idOf(n)) } : {}), ...(o.name !== undefined ? { name: o.name } : {}) }));
+  }
+
+  /** `assembly.delete_cut`: the cut removed; its parts are whole again. */
+  deleteCut(id: string): Assembly { return new Assembly(this.name, deleteCutDoc(this.#doc, id)); }
+
+  /** The cuts: id, name, profile, place, direction, depth and the parts they cut (their names). */
+  cuts(): { id: string; name?: string; profile: CutOptions['profile']; at: Vec3; dir: Vec3; depth: number | 'through'; parts: string[] }[] {
+    return (this.#doc.assemblyCuts ?? []).map(c => ({ id: c.id, ...(c.name ? { name: c.name } : {}), profile: { ...c.profile }, at: toVec(c.at), dir: toVec(c.dir), depth: c.depth, parts: c.targets.map(t => this.#doc.instances!.find(i => i.id === t)?.name ?? t) }));
   }
 
   /** A placed part locked where it stands to another (the base part unless named) — the studio's Lock: they move as one. */

@@ -23,7 +23,7 @@ export { readInterfaces, interfacesRevision, type HolePattern, type Envelope, ty
 
 export interface Lease { part: string; holder: string; contract: string; until: number; /** The ECR whose approval left it on the old contract (A8.3): renewed by the Architect. */ expiredBy?: string }
 export interface PartPatch { id: string; by: string; part: string; contract: string; ops: Op[] }
-export type PartCode = 'PARTS_MEET' | 'PARTS_TOUCH' | 'EXPECTED_CONTACT' | 'PATTERN_MISALIGNED' | 'OVER_TOTAL_BUDGET' | 'BEAD_ACCOUNTING_INCOMPLETE' | 'NO_LEASE' | 'LEASE_EXPIRED' | 'CONTRACT_MOVED' | 'OUT_OF_PART' | 'OP_REFUSED' | 'NOT_EVALUATED' | 'OUT_OF_ENVELOPE' | 'HOLE_OFF_PATTERN' | 'OVER_BUDGET';
+export type PartCode = 'PARTS_MEET' | 'PARTS_TOUCH' | 'EXPECTED_CONTACT' | 'PATTERN_MISALIGNED' | 'OVER_TOTAL_BUDGET' | 'BEAD_ACCOUNTING_INCOMPLETE' | 'CUT_REMOVES_NOTHING' | 'CUT_CONSUMES_BODY' | 'CUT_NOT_MADE' | 'CUT_PARTIAL' | 'CUT_LEAVES_BOUGHT' | 'NO_LEASE' | 'LEASE_EXPIRED' | 'CONTRACT_MOVED' | 'OUT_OF_PART' | 'OP_REFUSED' | 'NOT_EVALUATED' | 'OUT_OF_ENVELOPE' | 'HOLE_OFF_PATTERN' | 'OVER_BUDGET';
 export interface PartTrace { seq: number; patch: PartPatch; decision: Decision; gates: (Omit<GateResult, 'gate' | 'findings'> & { gate: 'lease' | 'validity' | 'contract' | 'assembly'; findings: { code: PartCode | 'NOT_REACHED'; message: string; entities?: string[] }[] })[]; revisionAfter: string | null }
 
 /** The tools that change the assembly itself, not a part: a Part agent may not use them. */

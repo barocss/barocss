@@ -87,7 +87,7 @@ const ADDS = new Set(['run_command', 'add_features', 'extrude_image_layer', 'inf
 const ALTERS: Record<string, boolean> = {
   load_rows: true, edit_feature: true, delete_feature: true, apply_ops: false, run_script: false, restore: true, restore_best: true, set_requirements: true, set_brief: true, set_material: true, set_stock: true, set_casting: true, set_frame_stock: true, set_parameters: false, set_frame_sections: true, set_welds: true, ask_user: false, add_reference: false, add_datum: false, add_keepout: false, delete_reference_item: true, import_drawing: false, accept_proposal: true,
   subd_move: false, subd_extrude: false, subd_insert_loop: false, subd_bridge: false, subd_fill: false, subd_weld: false, subd_crease: true, subd_delete: false,
-  place_part: true, delete_part: true, edit_pattern: true, delete_pattern: true, edit_mate: true, lock_part: false, delete_mate: true, snap_part: true, orient_for_print: true,
+  place_part: true, delete_part: true, edit_pattern: true, delete_pattern: true, cut_parts: false, edit_mate: true, lock_part: false, delete_mate: true, snap_part: true, orient_for_print: true,
   restore_version: true, switch_branch: true, merge_branch: true,
   auto_dimension: true, fix_drawing: false, accept_tolerances: false, set_drawing: true, set_joints: true, set_inputs: true, set_variants: true, set_frames: true, set_waypoint: false,
 };

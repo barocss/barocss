@@ -20,13 +20,14 @@ import { beadAccounting, combineBeadAccounting, incompleteBeadReason, type BeadA
 import { r6 } from '../util/round';
 import { evaluateTree } from '../assembly/instances';
 import { looksDocOf, looksOf, lookTargetsOf } from '../assembly/looks';
+import { withCutNodes, assemblyCutProblems } from '../assembly/cuts';
 import { placedBase } from '../engine/doc';
 import { massGOf } from '../app/mass';
 import { materialOf } from '../library/materials';
 import { briefMaterial } from '../chat/brief';
 import { r3 } from '../util/round';
 
-export type AssemblyCode = 'PARTS_MEET' | 'PARTS_TOUCH' | 'EXPECTED_CONTACT' | 'PATTERN_MISALIGNED' | 'OVER_TOTAL_BUDGET' | 'BEAD_ACCOUNTING_INCOMPLETE';
+export type AssemblyCode = 'PARTS_MEET' | 'PARTS_TOUCH' | 'EXPECTED_CONTACT' | 'PATTERN_MISALIGNED' | 'OVER_TOTAL_BUDGET' | 'BEAD_ACCOUNTING_INCOMPLETE' | 'CUT_REMOVES_NOTHING' | 'CUT_CONSUMES_BODY' | 'CUT_NOT_MADE' | 'CUT_PARTIAL' | 'CUT_LEAVES_BOUGHT';
 export interface AssemblyFinding { code: AssemblyCode; message: string; entities?: string[] }
 export interface AssemblyCheck { verdict: 'pass' | 'fail' | 'undecided'; findings: AssemblyFinding[]; /** Valid body subtotal when beadAccounting is incomplete. */ mass: number; beadAccounting?: BeadAccounting }
 
@@ -46,7 +47,7 @@ const massOf = (doc: StudioDoc, bodies: readonly BodyResult[]) => (massPropertie
  */
 function occurrenceMass(inst: PartInstance, bodies: readonly BodyResult[], parent: StudioDoc): number {
   const nested = Object.keys(inst.looks ?? {}).some(k => k.includes('/'));
-  if (!nested) return massOf(looksDocOf(inst), bodies);
+  if (!nested) return massOf(withCutNodes(looksDocOf(inst), inst, parent), bodies);
   const looks = looksOf(inst, lookTargetsOf(inst, placedBase(inst, parent).nodes, bodies));
   return bodies.reduce((t, b, k) => t + (b.volume === null ? 0 : r3(massGOf(b.volume, materialOf(looks[k].material ?? briefMaterial(inst.doc)).density))), 0);
 }
@@ -71,6 +72,9 @@ export async function checkAssembly(doc: StudioDoc, evaluate: Evaluate): Promise
   }
   const ifc = readInterfaces(doc.interfaces);
   for (const p of ifc.holePatterns) for (const part of p.parts) { const b = parts.get(part); if (!b) continue; const off = holesOff(b, p); if (off.length) findings.push({ code: 'PATTERN_MISALIGNED', message: `${part} is off ${p.id} at ${off.map(o => `(${o.join(', ')})`).join(', ')}`, entities: [part] }); }
+  // (Roadmap 10 ⑤: a cut that removes nothing, takes a whole body or cannot be made is a finding naming the cut and the part.)
+  const cutCode = { 'removes-nothing': 'CUT_REMOVES_NOTHING', 'consumes-body': 'CUT_CONSUMES_BODY', 'not-made': 'CUT_NOT_MADE', 'partial-through': 'CUT_PARTIAL', 'leaves-bought': 'CUT_LEAVES_BOUGHT' } as const;
+  for (const p of await assemblyCutProblems(doc, evaluate)) findings.push({ code: cutCode[p.kind], message: p.message, entities: [p.part] });
   let mass = 0;
   for (const [id, b] of parts) mass += id === 'base' ? massOf(doc, b) : occurrenceMass((doc.instances ?? []).find(i => i.id === id)!, b, doc);
   const accountingRows: { scope: string; accounting?: BeadAccounting }[] = [];
@@ -83,7 +87,7 @@ export async function checkAssembly(doc: StudioDoc, evaluate: Evaluate): Promise
   const incomplete = incompleteBeadReason(accounting);
   if (incomplete) findings.push({ code: 'BEAD_ACCOUNTING_INCOMPLETE', message: `${incomplete}; massG is a valid body subtotal only` });
   if (!incomplete && ifc.budgets.mass !== undefined && mass > ifc.budgets.mass + 1e-9) findings.push({ code: 'OVER_TOTAL_BUDGET', message: `the assembly weighs ${Number(mass.toPrecision(6))} g, over its ${ifc.budgets.mass} g` });
-  const deciding = findings.filter(f => f.code !== 'EXPECTED_CONTACT');
+  const deciding = findings.filter(f => f.code !== 'EXPECTED_CONTACT' && f.code !== 'CUT_LEAVES_BOUGHT');
   return { verdict: deciding.some(f => f.code !== 'PARTS_TOUCH' && f.code !== 'BEAD_ACCOUNTING_INCOMPLETE') ? 'fail' : deciding.length ? 'undecided' : 'pass', findings, mass, ...(accounting ? { beadAccounting: accounting } : {}) };
 }
 

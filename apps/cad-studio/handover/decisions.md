@@ -17892,3 +17892,23 @@ All fixed; the re-check is ACCEPT.
 **Verification.** Model 2358/2358; Studio 607/607. Actual run04 PASS.
 
 **Follow-ups.** Guard call sites are untested; nested parts cannot be edited in place yet.
+
+## D392 — Row 10 ⑤: a cut across parts in assembly context (v1); full (2026-10-31)
+
+[Evidence](notes/assembly-cut-2026-10-31/qualification.json). #538 stays open; #2180 (closed research) consistency criterion met for cuts.
+
+**What it adds.** `StudioDoc.assemblyCuts`: a circle or rectangle hole/pocket with a depth or Through, cut across chosen top-level parts in the assembly's frame. Each part's definition stays whole; only its placed document takes the cut, so every consumer (viewport, drawings, STEP, 3MF, explode, clearance, robot, mass, BOM) reads the cut part. Model ops, refusal `NO_CUT`, facade `Assembly.cut`, chat `cut_parts`, Studio "Assembly cut" HUD and Browser rows.
+
+**Rules.** Through is sized from the part's own box, both ways. A cut that would remove a part or cannot be built is refused when made; a file with a stale cut opens and reports it. Copies cut alike share a BOM line; bought elements stay whole (reported).
+
+**Audits.**
+- Round 1: 2 high, 3 medium, 4 low.
+- Round 2: 1 high, 1 medium, 1 low.
+- Round 3 (targeted): 2 wrong results and a per-keystroke trial.
+- Round 4 (narrow): ACCEPT.
+
+All were fixed; 41/48 mutants caught at round 3, the survivors then covered.
+
+**Verification.** Model 2390/2390; Studio 614/614. Actual run03 PASS.
+
+**Follow-ups.** Mates read uncut definition faces; sub-assembly targets refused; a cut plate's BOM area is the stock's; the HUD trial is keyed by the draft only.

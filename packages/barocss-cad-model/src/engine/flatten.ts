@@ -4,6 +4,7 @@ import { fillPatternDocumentProblem } from './fillFeaturePattern';
 // another assembly, it is then one instance with several bodies whose faces mate like any part's.
 import { placedDoc, prefixDoc, type BodyRef, type Dim, type MemberSection, type ModelNode, type StudioDoc } from './doc';
 import { nextSerial, renameFeatureIds, withIds } from './ids';
+import { cutsOf } from './assemblyCut';
 import { refusal } from './refusal';
 import { assertRouteBundleDocument } from './routeBundle';
 import { curvePatternDocumentProblem } from './curveFeaturePattern';
@@ -30,7 +31,8 @@ export function flattenPlan(doc: StudioDoc): { doc: StudioDoc; placed: { id: str
   for (const inst of shown) {
     // (placedDoc folds the instance's own instances first. Its features' ids move past every id so far, the
     // document's handed-out ones too: with none deleted, by its node count, as its names always moved.)
-    const placed = withIds(placedDoc(inst)), serial = nextSerial({ nodes, nextId: own.nextId });
+    // (Roadmap 10 ⑤: a sub-assembly's own cuts are taken from its parts as they are folded in.)
+    const placed = withIds(placedDoc(inst, cutsOf(inst, doc).length ? doc : undefined)), serial = nextSerial({ nodes, nextId: own.nextId });
     nodes = [...nodes, ...placed.nodes.map(n => shiftNode(inlineParameters(n, placed.parameters), nodes.length, serial))];
     placedAt.push({ id: inst.id, serial });
   }

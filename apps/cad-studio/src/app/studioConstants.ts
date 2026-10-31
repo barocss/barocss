@@ -4,6 +4,8 @@ import { SKETCH3D_COMMAND } from '../skeleton/useSkeletonEditor';
 import type { DisplayMode } from '../viewport/renderer';
 export const emptySel: Selection = { faces: [], edges: [], bodies: [] };
 export const NO_INSTANCES: PartInstance[] = [];
+/** No assembly cuts (a stable empty list for the Browser's rows). */
+export const NO_CUTS: readonly import('@barocss/cad-model/engine/doc').AssemblyCut[] = [];
 // (The rail's groups and the shapes strip's commands, made once: the button lists compare them by identity.)
 export const TOOL_GROUPS = ['create', 'modify', 'pattern', 'combine', 'inspect'] as const;
 export const GROUP_COMMANDS = TOOL_GROUPS.map(g => commands.filter(c => c.group === g && !c.place));

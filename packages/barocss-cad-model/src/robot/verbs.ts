@@ -3,6 +3,7 @@
 // from its own evaluation), and everything after it is these functions — the agent's tools (chat/robot.ts) and the
 // facade's robotCore call the same ones, and the replies are the tools' own (the call's shape is checked by its caller).
 import { looksDocOf } from '../assembly/looks';
+import { cutDocOf, withCutNodes } from '../assembly/cuts';
 import { convexHull, type GearPlacement } from '@barocss/cad';
 import type { StudioDoc } from '../engine/doc';
 import { placeBody, type BodyResult, type EvalResult } from '../engine/evaluate';
@@ -37,7 +38,9 @@ export interface RobotView { readonly doc: StudioDoc; readonly bodies: readonly 
 /** The view of a document's robot: each placed part evaluated once (a part that does not build: no bodies). */
 export async function robotViewOf(doc: StudioDoc, bodies: readonly BodyResult[], evaluate: Evaluate): Promise<RobotView> {
   const parts = new Map<string, readonly BodyResult[]>();
-  for (const inst of solveDoc(doc).doc.instances ?? []) { const r = await evaluate(inst.doc); parts.set(inst.id, r?.ok ? r.bodies : []); }
+  // (Roadmap 10 ⑤: a part the assembly cuts is its cut part — the masses, sweeps and exports read what is there.)
+  const solved = solveDoc(doc).doc;
+  for (const inst of solved.instances ?? []) { const r = await evaluate(cutDocOf(inst, solved)); parts.set(inst.id, r?.ok ? r.bodies : []); }
   return { doc, bodies, parts };
 }
 /** The same parts with another document's settings (its robot or frames changed, its parts not). */
@@ -52,7 +55,7 @@ export function treeOf(view: RobotView): JointTree {
 /** Each part: its document, its bodies in its own coordinates, and where the mates place it. */
 export function partsOf(view: RobotView) {
   const solved = solveDoc(view.doc).doc;
-  return (p: string) => { if (p === BASE) return { doc: view.doc, bodies: view.bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = solved.instances?.find(x => x.id === p); return i ? { doc: looksDocOf(i), bodies: view.parts.get(p) ?? [], position: i.position, rotation: i.rotation } : null; };
+  return (p: string) => { if (p === BASE) return { doc: view.doc, bodies: view.bodies, position: [0, 0, 0], rotation: [0, 0, 0] }; const i = solved.instances?.find(x => x.id === p); return i ? { doc: withCutNodes(looksDocOf(i), i, solved), bodies: view.parts.get(p) ?? [], position: i.position, rotation: i.rotation } : null; };
 }
 /** The robot's links for RM6's sweep: each part's bodies where the mates put them, with their convex hulls. */
 export function sweepLinksOf(view: RobotView, t: JointTree): SweepLink[] {

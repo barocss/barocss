@@ -470,6 +470,7 @@
 | `[NO_BODY]` | `engine` | … |
 | `[NO_CHANGE]` | `app`, `team` | It is already there. |
 | `[NO_CLOSURE]` | `robot` | … at … rad: the loop does not close (its pin … mm apart after … steps) |
+| `[NO_CUT]` | `assembly` | No cut "…"; cuts: …. |
 | `[NO_DRAFT]` | `chat` | no draft dimension …; … |
 | `[NO_ECR]` | `team` | no ECR …; ECRs: … |
 | `[NO_FEATURE]` | `engine` | no feature … (features 0–…) |

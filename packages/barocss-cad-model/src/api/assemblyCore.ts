@@ -16,6 +16,7 @@ import { bodiesOf, meshesOf, type MeshData } from './core';
 import { explodeOffsets } from '../assembly/explode';
 import { instanceJointsOf, setInstanceJoints } from '../assembly/flexible';
 import { instanceLooksListing, setInstanceLooks, type InstanceLookPatch } from '../assembly/looks';
+import { addAssemblyCut, deleteAssemblyCut, editAssemblyCut, type AddAssemblyCutOptions, type EditAssemblyCutOptions } from '../assembly/cuts';
 import { addInstancePattern, drivenRefusal, seedMateRefusal, deleteInstancePattern, editInstancePattern, skipOccurrence, type AddPatternOptions, type EditPatternOptions } from '../assembly/patterns';
 
 // (Document fields are mutable tuples; what the facade hands back is §10.2's readonly Vec3.)
@@ -79,6 +80,11 @@ export const patternDoc = (doc: StudioDoc, o: AddPatternOptions): { doc: StudioD
 export const editPatternDoc = (doc: StudioDoc, o: EditPatternOptions): StudioDoc => editInstancePattern(doc, o).doc;
 export const deletePatternDoc = (doc: StudioDoc, id: string): StudioDoc => deleteInstancePattern(doc, id).doc;
 export const skipOccurrenceDoc = (doc: StudioDoc, occurrence: string): StudioDoc => skipOccurrence(doc, occurrence).doc;
+
+/** cut_parts (addAssemblyCut), edit and delete (roadmap 10 ⑤): a cut across placed parts made, changed or removed; the new cut's id. */
+export const cutDoc = (doc: StudioDoc, o: AddAssemblyCutOptions): { doc: StudioDoc; id: string } => { const r = addAssemblyCut(doc, o); return { doc: r.doc, id: r.id }; };
+export const editCutDoc = (doc: StudioDoc, o: EditAssemblyCutOptions): StudioDoc => editAssemblyCut(doc, o).doc;
+export const deleteCutDoc = (doc: StudioDoc, id: string): StudioDoc => deleteAssemblyCut(doc, id).doc;
 
 /** set_inputs and set_variants (O11): the variability written, every variant regenerated to check it. */
 export function variabilityDoc(doc: StudioDoc, tool: 'set_inputs' | 'set_variants', args: Record<string, unknown>): StudioDoc {

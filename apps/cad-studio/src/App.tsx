@@ -47,7 +47,7 @@ import { bandHighlight } from './app/bandHighlight';
 import { TOOLS, SKETCH_INSETS, sketchRegion, switchTool, detachSketchLink, bezierEdit } from './app/sketchControls';
 import { ellipseError } from '@barocss/cad-model/sketch/ellipse';
 import { activeKey, type Active } from './app/commandState';
-import { emptySel, NO_INSTANCES, GROUP_COMMANDS, PLACE_COMMANDS, BROWSER_PLACEMENT, PALETTE_EXTRA } from './app/studioConstants';
+import { emptySel, NO_CUTS, NO_INSTANCES, GROUP_COMMANDS, PLACE_COMMANDS, BROWSER_PLACEMENT, PALETTE_EXTRA } from './app/studioConstants';
 import { routeMessage } from './app/routeSession';
 import { CursorReadout } from './ui/CursorReadout';
 import { iconFor } from './ui/featureIcon';
@@ -88,6 +88,10 @@ import { Button } from '@/components/ui/button';
 import { ToolIconButton } from '@/components/ui/tool-button';
 import { countRender, onBlockRender } from './devRenders';
 import { OutlinerInstances } from './ui/OutlinerInstances';
+import { OutlinerCuts } from './ui/OutlinerCuts';
+import { AssemblyCutHud } from './ui/AssemblyCutHud';
+import { cutOfDraft, cuttableOf, defaultCutAt, draftOfCut, draftProblem, draftTrialProblem, newCutDraft, withAddedTargets, withDraftCut, type CutDraft } from './app/assemblyCutDraft';
+import { addAssemblyCut, deleteAssemblyCut, editAssemblyCut } from '@barocss/cad-model/assembly/cuts';
 import { useJoints } from './state/useJoints';
 import { refuseMotionSweep, timedMotion } from './state/motion';
 import { timedPathOf } from '@barocss/cad-model/robot/motion';
@@ -335,6 +339,8 @@ export function App() {
   const turnFrom = useRef<RenderCamera | null>(null);
   /** Selected part instances (by id), and their evaluated bodies (by id, with the placed document they are of). */
   const [instanceSel, setInstanceSel] = useState<string[]>([]);
+  // Roadmap 10 ⑤: the Assembly cut's HUD values while it is open (null: closed). The viewport shows the cut parts as the draft leaves them.
+  const [cutDraft, setCutDraft] = useState<CutDraft | null>(null);
   // (Each entry keeps the instance it was evaluated for; `key` changes whenever its bodies are evaluated anew.)
   const [instanceBodies, setInstanceBodies] = useState<Map<string, { key: string; sourceKey: string; inst: PartInstance; bodies: BodyResult[] }>>(new Map());
   const [workerSession, setWorkerSession] = useState(0);
@@ -958,6 +964,28 @@ export function App() {
     })();
     return () => { for (const lane of asked) lanes.cancel(lane); };
   }, [shownDoc.instances, instanceSources, workerSession]);
+  // Roadmap 10 ⑤: the Assembly cut HUD's preview. It is the viewport's only: the parts the draft changes are evaluated apart from the
+  // committed ones (`instanceBodies`), so no export, robot calculation or looks panel reads an unapplied draft.
+  const cutPreviewDoc = useMemo(() => withDraftCut(shownDoc, cutDraft), [shownDoc, cutDraft]);
+  const [cutPreview, setCutPreview] = useState<Map<string, { key: string; sourceKey: string; inst: PartInstance; bodies: BodyResult[] }>>(new Map());
+  useEffect(() => {
+    if (cutPreviewDoc === shownDoc) { setCutPreview(was => was.size ? new Map() : was); return; }
+    const sources = instanceEvaluationSources(cutPreviewDoc), generation = workerSessionNow.current;
+    const changed = (shownDoc.instances ?? []).filter(i => { const a = sources.get(i.id), b = instanceSources.get(i.id); return a?.ok && (!b?.ok || a.key !== b.key); });
+    const asked = changed.map(i => `placed-preview:${i.id}`);
+    (async () => {
+      const next = new Map<string, { key: string; sourceKey: string; inst: PartInstance; bodies: BodyResult[] }>();
+      for (const inst of changed) {
+        const source = sources.get(inst.id); if (!source?.ok) continue;
+        const at = revision.current++, reply = await lanes.run(`placed-preview:${inst.id}`, { revision: at, source: source.key }, () => engine.placed(placedDoc(inst, cutPreviewDoc), source.base, placementOf(inst), at));
+        if (reply.stale || generation !== workerSessionNow.current) return;
+        if (reply.result.ok) next.set(inst.id, { key: `${inst.id}#p${++instanceRun.current}`, sourceKey: source.key, inst, bodies: reply.result.bodies });
+      }
+      setCutPreview(next);
+    })();
+    return () => { for (const lane of asked) lanes.cancel(lane); };
+  }, [cutPreviewDoc, shownDoc, instanceSources, workerSession]);
+  const sceneInstanceBodies = useMemo(() => cutPreviewDoc !== shownDoc && cutPreview.size ? new Map([...instanceBodies, ...cutPreview]) : instanceBodies, [instanceBodies, cutPreview, cutPreviewDoc, shownDoc]);
   /** One undoable change of the instances and their mates together. */
   /** One undoable change of the placed parts and their waiting revisions (shared definitions). */
   const commitParts = useCallback((next: Pick<StudioDoc, 'instances' | 'pendingParts'>) => {
@@ -977,6 +1005,25 @@ export function App() {
     try { next = run().doc; } catch (e) { setToast({ title: refused, hint: e instanceof Error ? e.message : String(e), detail: '' }); return; }
     commit(next);
   };
+  // Roadmap 10 ⑤: Apply makes (or changes) the cut through the model, one undo step; a cut deleted, or undone, closes its HUD.
+  const applyCut = () => {
+    if (!cutDraft) return;
+    const o = cutOfDraft(cutDraft), why = draftProblem(doc, cutDraft);
+    if (typeof o === 'string' || why) { setToast({ title: 'Cut not made', hint: why ?? String(o), detail: '' }); return; }
+    let next: StudioDoc;
+    try { next = (cutDraft.editing ? editAssemblyCut(doc, { id: cutDraft.editing, ...o, name: o.name ?? null }) : addAssemblyCut(doc, o)).doc; }
+    catch (e) { setToast({ title: 'Cut not made', hint: e instanceof Error ? e.message : String(e), detail: '' }); return; }
+    if (commit(next)) setCutDraft(null);
+  };
+  // (The build trial of the draft — whether every cut part still builds — a pause after the last change, never on the typing path; Apply runs it again and refuses in words.)
+  const cutKey = cutDraft ? JSON.stringify(cutDraft) : '', [cutTrial, setCutTrial] = useState<{ key: string; problem: string | undefined } | null>(null);
+  useEffect(() => {
+    if (!cutDraft || draftProblem(doc, cutDraft)) { setCutTrial(null); return; }
+    const timer = setTimeout(() => setCutTrial({ key: cutKey, problem: draftTrialProblem(doc, cutDraft) }), 250);
+    return () => clearTimeout(timer);
+  }, [doc, cutKey]);
+  const deleteCut = (id: string) => patternEdit(() => deleteAssemblyCut(doc, id), 'Cut not deleted');
+  useEffect(() => { if (cutDraft?.editing && !doc.assemblyCuts?.some(c => c.id === cutDraft.editing)) setCutDraft(null); }, [doc.assemblyCuts, cutDraft?.editing]);
   const readLinkedFaces = useCallback(async (owner: string, input: StudioDoc) => {
     const result = await engine.part(bearingFaceInput(doc, owner, input), revision.current++, 'read');
     return result.ok ? result.faceTable ?? null : null;
@@ -1032,7 +1079,7 @@ export function App() {
   useEffect(() => { if (import.meta.env.DEV) (window as unknown as { __studioSetExplode: (k: number) => void }).__studioSetExplode = setExplode; }, []);
   const [instDrag, setInstDrag] = useState<{ id: string; drag: InstanceDrag; settling: boolean; key: string } | null>(null);
   // (R1c (3a): the placed parts as they are shown — placed, posed, exploded, dragged and sectioned.)
-  const { instancesPlaced, instancePoseMap, cpuInstanceSection, instancesShown } = useScenePoses(doc, instanceBodies, bodies, jointFk, explode, section, sketch, gpuSection, instDrag);
+  const { instancesPlaced, instancePoseMap, cpuInstanceSection, instancesShown } = useScenePoses(doc, sceneInstanceBodies, bodies, jointFk, explode, section, sketch, gpuSection, instDrag);
   // (`source`: what the instance names as its file — CG6: `./<path>` for a project document, storage/linked.ts.)
   const insertPart = async (file: File, source = file.name) => {
     try {
@@ -1136,9 +1183,17 @@ export function App() {
     return activeStore.subscribe(check);
   }, [previewBodies, active?.cmd, apply, activeStore]);
 
+  // Roadmap 10 ⑤: the Assembly cut HUD — new (on the selected parts, at the middle of their top, going down) or editing a cut of the Browser.
+  const openCut = useCallback((id: string | null) => {
+    const cut = id ? doc.assemblyCuts?.find(c => c.id === id) : undefined;
+    if (id && !cut) return;
+    const targets = cuttableOf(doc, instanceSel), boxes = targets.flatMap(t => (instanceBodies.get(t)?.bodies ?? []).map(b => b.mesh.bounds));
+    setInstanceEdit(null); setCutDraft(cut ? draftOfCut(cut) : newCutDraft(targets, defaultCutAt(boxes)));
+  }, [doc, instanceSel, instanceBodies]);
   const start = useCallback((cmd: Command, initial?: Values) => {
-    if ((cmd.build || cmd.action === 'sketch' || cmd.action === 'cage' || cmd.id === SKETCH3D_COMMAND.id) && !canChangeDocument()) return;
+    if ((cmd.build || cmd.action === 'sketch' || cmd.action === 'cage' || cmd.action === 'assembly-cut' || cmd.id === SKETCH3D_COMMAND.id) && !canChangeDocument()) return;
     discardRouteRef.current(); setRoutePanelOpen(false);
+    if (cmd.action !== 'assembly-cut') setCutDraft(null);
     setPalette(false); setRendering(false); setPlaying(false); setDrawing(false);
     const avail = cmd.available(ctx);
     if (!avail.ok) { setToast({ title: `${cmd.label} can’t run here`, hint: avail.reason, detail: '' }); return; }
@@ -1158,6 +1213,7 @@ export function App() {
       const [min, max] = sketchRegion(base && f ? [bodies[f.body]] : bodies, plane);
       viewport.current?.frameSketch(min, max, plane, SKETCH_INSETS); return;
     }
+    if (cmd.action === 'assembly-cut') { cancel(); openCut(null); return; }
     if (cmd.action === 'interference') { void checkInterference(); return; }
     if (cmd.action === 'cage') { const n = subdNodeOf(ctx); if (n !== null) { cageEd.begin(n); setSelection(emptySel); setEditNode(null); } return; }
     if (cmd.action === 'measure') {
@@ -1185,7 +1241,7 @@ export function App() {
     const startCtx = cmd.id === 'bearing' ? { ...ctx, doc: { ...ctx.doc, instances: doc.instances } }
       : cmd.id === 'loft' ? { ...ctx, doc: { ...ctx.doc, direct: shownDoc.direct } } : ctx;
     setActive({ cmd, values: { ...(cmd.defaults?.(startCtx) ?? {}), ...initial }, preview: 'busy', ctx: { ...startCtx }, ...(cmd.place ? { placing: true } : {}) });
-  }, [ctx, selection, bodies, engine, commit, evaluated.nodes, shownDoc.direct, variants.showing, setSketch, acceptanceScope]);
+  }, [ctx, selection, bodies, engine, commit, evaluated.nodes, shownDoc.direct, variants.showing, setSketch, acceptanceScope, openCut]);
 
   const openHistoryFeature = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     const raw = event.currentTarget.dataset.nodeIndex;
@@ -1376,7 +1432,7 @@ export function App() {
     try {
       if (!commit(next, false, true)) return;
       if (!fromProject) { project.detach(); setCompareBase(null); }
-      cancel(); setDocGeneration(g => g + 1); setSelection(emptySel); setPick(null); setInstanceSel([]); setIsolatedInstances(undefined); setDirectSel([]); setMeasure(null); setEditNode(null);
+      cancel(); setCutDraft(null); setDocGeneration(g => g + 1); setSelection(emptySel); setPick(null); setInstanceSel([]); setIsolatedInstances(undefined); setDirectSel([]); setMeasure(null); setEditNode(null);
     } finally { replacementScope.current = null; }
   };
   // Roadmap 10 ⑧: a part edited in place. The session swaps the working document for the part's own and back; the other parts are drawn around it
@@ -1938,6 +1994,8 @@ export function App() {
         {!!doc.instances?.length && <div className="ol-head">Parts placed <span className="muted">{doc.instances.length}</span></div>}
         <OutlinerInstances instances={doc.instances ?? NO_INSTANCES} selection={instanceSel} edit={instanceEdit} locked={!!active || !!sketch || rendering || drawing}
           onPick={pickInstanceRow} onEdit={editInstanceRow} iconFor={iconFor} />
+        {!!doc.assemblyCuts?.length && <div className="ol-head">Cuts <span className="muted">{doc.assemblyCuts.length}</span></div>}
+        <OutlinerCuts cuts={doc.assemblyCuts ?? NO_CUTS} instances={doc.instances ?? NO_INSTANCES} editing={cutDraft?.editing ?? null} locked={!!active || !!sketch || rendering || drawing} onEdit={openCut} onDelete={deleteCut} />
         {!!doc.direct?.objects.length && <div className="ol-head">Curves and surfaces</div>}
         {(doc.direct?.objects ?? []).map(o => <button key={o.id} className={'ol direct' + (directSel.includes(o.id) ? ' sel' : '') + (o.hidden ? ' hidden-obj' : '')}
           title={o.hidden ? 'Hidden: click to show' : o.name}
@@ -1998,6 +2056,9 @@ export function App() {
         onSaveCamera={() => { const c = viewport.current?.getCamera(); if (c) commitRender({ ...render, camera: c }); }}
         onUseCamera={() => { if (render.camera) { viewport.current?.setCamera(render.camera); setFov(Math.round(render.camera.fovY * 180 / Math.PI)); } }} /></Suspense>}
       {!rendering && !sketch && measure && <MeasurementInspector bodies={bodies} measure={measure} measured={measured} setMeasure={setMeasure} />}
+      {cutDraft && !rendering && !sketch && !measure && <AssemblyCutHud draft={cutDraft} instances={doc.instances ?? NO_INSTANCES} problem={draftProblem(doc, cutDraft) ?? (cutTrial?.key === cutKey ? cutTrial.problem : undefined)}
+        onChange={patch => setCutDraft(d => d && { ...d, ...patch })} onAddSelected={() => setCutDraft(d => d && { ...d, targets: withAddedTargets(d.targets, cuttableOf(doc, instanceSel)) })}
+        onApply={applyCut} onCancel={() => setCutDraft(null)} />}
       {!rendering && !sketch && !measure && !!nestedSelected && (() => {
         const card = nestedCard(doc, nestedSelected, instanceBodies.get(hostsOf(instanceSel)[0]));
         return card ? <NestedPartPanel card={card} /> : null;
@@ -2047,7 +2108,7 @@ export function App() {
               if (r.held.length) setToast({ title: `${r.held.length} look${r.held.length > 1 ? 's' : ''} would be held`, hint: r.held.map(h => h.problem).join(' '), detail: '' });
             }
           }}
-          onAccept={() => { const next = acceptRevision(doc, inst.part!.id), held = heldLooks(next); commitParts(next);
+          onAccept={() => { let next: StudioDoc; try { next = acceptRevision(doc, inst.part!.id); } catch (e) { setToast({ title: 'Revision not accepted', hint: e instanceof Error ? e.message : String(e), detail: '' }); return; } const held = heldLooks(next); commitParts(next);
             if (held.length) setToast({ title: `${held.length} look${held.length > 1 ? 's' : ''} held`, hint: held.map(h => h.problem).join(' '), detail: '' }); }} onDismiss={() => commitParts(dismissRevision(doc, inst.part!.id))}
           onRemove={() => {
             const held = patternDeleteRefusal(doc, inst.id); if (held) { setToast({ title: 'Can’t remove this part', hint: held.message, detail: '' }); return; }

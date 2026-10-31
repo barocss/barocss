@@ -96,12 +96,20 @@ export function cutAfter(name: string, from: number): boolean {
 export const serialOf = (id: string): number => serial(id);
 /** The key of the body node `index` makes (`side`: 'solid', or a split's or an import's part). */
 export const bodyKeyFor = (nodes: readonly ModelNode[], index: number, side = 'solid'): string => {
+  // (An assembly cut's difference is its body again: the key the part's body has, so a cut does not rename it.)
+  const cut = nodes[index];
+  if (isAssemblyCut(cut) && side === 'solid') return bodyKeyFor(nodes, cut.parent.node, cut.parent.side);
   const k = serial(featureId(nodes, index)), at = k >= 0 ? `b${k}` : `b${featureId(nodes, index)}`;
   return side === 'solid' ? at : `${at}_${side}`;
 };
 /** The node and side a body key names (null when no node has it). */
 export function bodyNodeOf(nodes: readonly ModelNode[], key: string): { node: number; side: string } | null {
   const m = /^b(\d+)(?:_(.+))?$/.exec(key); if (!m) return null;
-  const node = nodeIndexOf(nodes, `n${m[1]}`);
-  return node < 0 ? null : { node, side: m[2] ?? 'solid' };
+  let node = nodeIndexOf(nodes, `n${m[1]}`), side = m[2] ?? 'solid';
+  if (node < 0) return null;
+  // (Through the assembly cuts made of it, the last one: the body as it stands.)
+  for (let j = node + 1; j < nodes.length; j++) { const c = nodes[j]; if (isAssemblyCut(c) && c.parent.node === node && c.parent.side === side) { node = j; side = 'solid'; } }
+  return { node, side };
 }
+/** A difference an assembly cut made (engine/assemblyCut.ts): it stands for the body it cuts. */
+export const isAssemblyCut = (n: ModelNode | undefined): n is Extract<ModelNode, { kind: 'difference' }> => n?.kind === 'difference' && n.made?.command === 'assembly-cut';

@@ -72,7 +72,7 @@ function checkAll(doc: Parameters<typeof patternsProblem>[0]): void {
 // The live fields of the document that name a placed part by id (and so stop its removal): the robot's base, joints and
 // frames, the inputs' bindings and the drawing's scope and balloons. The mates and the features (a base frame following a
 // part's sketch) are read apart. Past records and text — history, baselines, proposals, the brief — never block.
-const REFERRERS: readonly (readonly [string, (doc: StudioDoc) => unknown])[] = [['robot', d => d.robot], ['variability', d => d.variability], ['drawing.scope', d => d.drawing?.scope], ['drawing.balloons', d => (d.drawing as { balloons?: unknown } | undefined)?.balloons]];
+const REFERRERS: readonly (readonly [string, (doc: StudioDoc) => unknown])[] = [['robot', d => d.robot], ['variability', d => d.variability], ['drawing.scope', d => d.drawing?.scope], ['drawing.balloons', d => (d.drawing as { balloons?: unknown } | undefined)?.balloons], ['assemblyCuts', d => d.assemblyCuts?.map(c => c.targets)]];
 const SEPARATORS = /[~/:,\s]/;
 /** Where a string in `value` (or a key; a joint's `a~b`, a face's `id/face` read by its parts) satisfies `named`: its path, or undefined. */
 function mention(value: unknown, named: (token: string) => boolean, path: string, depth = 0): string | undefined {
@@ -199,6 +199,8 @@ export function bothFixedRefusal(doc: StudioDoc, a: string, b: string, code: Cad
 export function patternDeleteRefusal(doc: StudioDoc, id: string) {
   const own = drivenRefusal(doc, id, 'skip it (edit_pattern skip) or delete the pattern.');
   if (own) return own;
+  const cut = doc.assemblyCuts?.find(c => c.targets.includes(id));
+  if (cut) return refusal('PATTERN_REFERENCED', `${nameOf(doc, id)} is cut by ${cut.name ? `${cut.name} (${cut.id})` : cut.id}: delete that cut, or take the part off its targets, first.`, { cut: cut.id });
   const p = doc.instancePatterns?.find(x => x.seed === id);
   return p ? refusal('PATTERN_REFERENCED', `${nameOf(doc, id)} is the seed of pattern ${p.id}: delete that pattern first.`, { pattern: p.id }) : undefined;
 }
