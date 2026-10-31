@@ -135,7 +135,7 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
 **완료 2026-10-30:** ① D360 — 100파일 제거, 37파일·test/example 전용 19파일 유지; ② D361 — `part-model.ts` 4,583→2,192줄; ③ D362 — 오류 30개 코드 매핑, 문구 0 차이; ④ D365 — schema 3·4만 읽음(그 전 파일 거절); 추가 D364 — 필렛 64-edge 한도 제목 수정. 병합 트리 cad-model 2175/2175, kernel 1847 pass/0 fail, bench 34/34 SAME. 남은 일: `doc.ts` `schema: 1|2|3|4` → `3|4`(sketch lane 파일).
 4. 10 조립 → 11 도면 확장 → 13 교환 → 14 생산. 12 파일·버전과 16 정확도는 각 단계에서 함께 검사한다. 30 커널 일반성은 16과 함께 이 단계 내내 진행하고, 31 직접 편집은 30 뒤에 붙인다.
    **10 조립 원장 (2026-10-31, 오너 "Go to row 10", 한 번에 한 항목·직렬; 조사: 하위 조립은 항상 강체로 접힘, occurrence 경로·부품 반복·조립 피처·인스턴스별 겉모습·조립 단계 없음):**
-   - 10① 인스턴스별 겉모습과 링크 갱신 보존(#2233): PartInstance에 색·재질 local override, 공유 정의 개정 수락(acceptRevision) 때 override 유지·필드별 출처(상속/로컬) 표시. 문서 필드 추가 = 공개 schema → full(감사 반복).
+   - 10① [측정 2026-10-31: 인스턴스 몸체는 고정 기본색으로 그려져 정의의 색도 인스턴스별 색도 화면에 반영되지 않음 → GPU 렌더러 작업 필요, 순서를 ③→②→④ 뒤로] 인스턴스별 겉모습과 링크 갱신 보존(#2233): PartInstance에 색·재질 local override, 공유 정의 개정 수락(acceptRevision) 때 override 유지·필드별 출처(상속/로컬) 표시. 문서 필드 추가 = 공개 schema → full(감사 반복).
    - 10② occurrence 경로 참조('a/b' 경로)(#2180): 하위 조립 안 부품을 mate·BOM·선택·도면이 같은 경로로 가리키고 저장/열기 후 유지. 공개 API → full.
    - 10③ 부품 반복(component pattern)(#2180, RS7.4): 인스턴스의 선형/원형 반복, 생성 occurrence의 안정된 id, BOM 수량·mate 대상. feature(문서 필드 → full).
    - 10④ 유연한 하위 조립(RS7.4): 같은 하위 조립의 occurrence마다 자기 관절 상태(문서에 occurrence 경로로 저장), 강체 접힘 기본 유지. 10② 뒤. full.
