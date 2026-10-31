@@ -18121,3 +18121,23 @@ The missing-edge title was already correct. Its hint now says “re-apply the fe
 **NOT_REPRODUCED.** The reported frame stutter on this selected >120 ms part. Existing slow-preview rollback remains intentional. This does not close all row 20③ workloads or prove physical display vsync. **NOT_RUN.** Quick D377 baseline, broad suites, independent audit (small measurement), Apply, Save/download, CI and release. Raw evidence stays under `/tmp/barocss-d403-*`.
 
 **Next.** Boundary candidates (a)–(e) have now been checked at their recorded scope. Start row 13 with a support matrix and independent-reader measurement, including explicit losses and unavailable reader coverage.
+
+## D404 — Row 13 initial profiles and independent STEP graph read; small measurement (2026-11-01)
+
+[Support matrix](notes/exchange-profile-2026-11-01/README.md), [qualification](notes/exchange-profile-2026-11-01/qualification.json). Implementation and checks: GPT-6.1 Sol Medium. No product code or public API changed.
+
+**Measured.** Current-source AP214 output: 80×50×10 box, 6551 bytes, 152 entities, one product/solid, eight vertices; two-level assembly, three occurrences of one named/coloured 10×20×5 definition, 14541 bytes, 369 entities, one product, three solids, 24 vertices. The assembly's three translated/rotated bounds match explicit analytic constants.
+
+**Independent PASS, bounded.** A Python-stdlib reader with zero product imports checks unique IDs/references, schema/mm units and reachable topological vertex bounds (1e-7 mm). Each fixture passes baseline and escaped-string/comment decoy checks. Five corruption kinds per fixture are caught: dangling reference, duplicate ID, valid-graph coordinate alteration, wrong unit and wrong schema. The coordinate control fails the numeric bounds check. This reader does not evaluate surfaces, certify manifold topology or calculate volume; it is not third-party geometric acceptance.
+
+**SELF_READ PASS.** Product reimport returns 1/3 bodies and volume 40000/2999.9999999999995 (absolute tolerance 1e-5 mm³), with expected bounds. These volumes are not independent readback.
+
+**Actual Studio run01 PASS.** The native three red occurrences retain their shared-definition paths in a nested assembly. Opening its STEP yields three grey solids, one import node, no instances/body looks, and an explicit colour/name/assembly-structure loss notice. Coordinates are baked into flattened solids; hierarchy/sharing are not preserved. Two root-reviewed screenshots; 737 frozen files unchanged; errors/watcher changes/downloads 0. Outbound Export/Save UI is NOT_RUN.
+
+**Band probe.** A valid base band definition exports two source solids and names the omitted sheet. Direct placed-band exports, alone and mixed with a root solid, refuse BAD_REFERENCE because flattening bands is unsupported. The static silent-drop suspicion is NOT_REPRODUCED in this profile. An earlier scratch pre-export flatten failure is not an exporter result.
+
+**Other profiles and readers.** The matrix distinguishes source-only AP242 mesh, IGES, STL, 3MF, DXF/SVG, generic glTF/USDZ and robot USDA paths, plus PMI/named frames/units/history losses. The documented OCP interpreter is absent; cached OpenUSD 26.8 and ezdxf 1.4.5 are present but not run here. This is not an exhaustive machine inventory. No installation/download occurred.
+
+**FAIL.** Deliberate corruption controls only; actual Studio run01 passed. **NOT_RUN.** Third-party STEP geometry, other-format independent reads, broader corpus, full suites, outbound downloads, CI and release. #2263 remains incomplete; #2248 remains research. No issue closes from this item.
+
+**Next, D405.** Qualify the same files with a third-party STEP geometric reader before extending assembly/presentation encoding. OCP is a test-only candidate; its download/installation needs the owner's explicit permission under handoff §5. No product runtime dependency or external fixture download is authorized by this record.
