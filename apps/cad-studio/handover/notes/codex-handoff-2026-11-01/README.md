@@ -91,6 +91,36 @@ git config user.name; git config user.email   # easylogic / cyberuls@gmail.com
   - 고리를 닫는 mate를 Studio가 한 번 커밋하고 모델이 거절한다. `drawing.balloons`가 테스트되지 않았다(D383).
 - **id 규칙:** `assembly/takenIds.ts`가 instance id 할당 때 steps·cut 대상·mate·pattern seed가 아직 가리키는 id를 건너뛴다. 오래된 참조를 새 부품에 다시 잇지 않는다. 새 할당기도 이것을 쓴다.
 
+DXF DIMSTYLE 머리글은 지금 `DIMTXT 3.5`, `DIMTAD 1`로 고정되어 있다. 짧은 치수 글자를 올리면 커널 DXF fixture `conformance/r11b/plate-drawing`이 바뀐다. 이 두 항목은 커널 lane 몫이다.
+
+## 4a. lane만 알던 것 (2026-11-01 lane 보고)
+
+**코드 규칙:**
+- 모든 도면 commit 경로는 `apps/cad-studio/src/ui/drawing/commitSettings.ts` → `readDrawing`을 거친다. 그래서 작성한 도면과 다시 연 JSON이 같다.
+  - 새 도면 필드는 `readDrawing`의 정해진 key 순서에 넣는다. 그렇지 않으면 fresh Open 뒤 `f.same`이 실패한다.
+- 도면 표준·단위 preset은 명시적 인자(`presetOf`)다. module 상태로 되돌리지 않는다.
+- 출력하는 공차 한계는 항상 참 공차 영역 안에 있어야 한다. property test가 `drawing-units.test.ts`에 있다.
+
+**실제 Studio driver의 함정:**
+- `f.openFile(file, n)`의 두 번째 인자는 instance 수가 아니라 NODE 수다. 보통 2다.
+- 도면 작업 공간은 거절을 toast가 아니라 `.dw-hint`(안내 막대)에 보인다.
+- 버튼 `textContent`에 아이콘 이름이 섞여 있다. 라벨은 `.ms` span을 빼고 읽는다.
+- 분해 보기에서는 gizmo가 나오지 않는다.
+- Save 뒤 SVG title 글자는 파일 이름을 따른다.
+- SVG의 완전한 원은 가장 오른쪽 점에서 시작하는 반원 두 개다(cx = startX − r).
+
+**이번 구간의 새 driver:** 모두 `apps/cad-studio/test/`에 있다.
+- `assembly-cut-browser.mjs`, `assembly-steps-browser.mjs`
+- `gdt-completion-browser.mjs`, `datum-target-kinds-browser.mjs`
+- `drawing-standard-browser.mjs`, `drawing-units-browser.mjs`, `drawing-sheets-browser.mjs`
+
+모두 flow-helper를 쓴다. `<NAME>_SOURCE_FROZEN=1`과 `PW_DIR`·`CHROME`을 주고 `gate.sh` heavy로 감싸 돌린다.
+
+**기타:**
+- 확대한 SVG를 검토하는 도구는 lane scratch에만 있었다. 저장소에는 없다. 다시 필요하면 새로 만든다.
+- chat port 52391에서는 이번 구간에 충돌이 없었다.
+- 4–5일 된 agent-browser Chrome 프로세스(pid 5600, 18269 등)는 lane 것이 아니다. 그대로 두었다.
+
 ## 5. 지킬 규칙 (오너 결정)
 
 **답과 기록:**
