@@ -1,5 +1,7 @@
 # CAD Studio handover — current entry
 
+**Latest (2026-11-01): Claude → Codex hand-over.** Read [notes/codex-handoff-2026-11-01/README.md](notes/codex-handoff-2026-11-01/README.md) first; it supersedes the entry text below, which is kept as history.
+
 Read [state.yaml](state.yaml) first for the current code baseline, Work identities,
 verification receipts, blockers and next actions. Then read [roadmap.md](roadmap.md)
 and [protocol.md](protocol.md). The coordinator alone updates these current records.
