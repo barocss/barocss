@@ -821,6 +821,8 @@ export interface StudioDoc {
   instancePatterns?: InstancePattern[];
   /** Cuts across placed parts, made in the assembly's frame (roadmap 10 ⑤, assembly/cuts.ts): the placed documents carry them, the definitions never do. */
   assemblyCuts?: AssemblyCut[];
+  /** Instruction steps over the placed parts (roadmap 10 ⑥, assembly/steps.ts): an ordered explanation of how the assembly goes together. Presentation only: nothing here changes a placement, a mate, a body, the BOM or an export. */
+  assemblySteps?: AssemblyStep[];
   /** The assembly read as a robot: its base link, joint limits and ratings (robot/joints.ts, RM1; versioned). */
   robot?: RobotSettings;
   /**
@@ -906,6 +908,18 @@ export interface AssemblyCut {
   targets: string[];
 }
 
+/**
+ * One instruction step (roadmap 10 ⑥): the top-level occurrences it introduces (`add`, by occurrence id: pattern copies and whole sub-assemblies
+ * too; an occurrence is in at most one step), the camera it recommends (`view`: where the eye is, what it looks at, which way is up) and the
+ * display-only explode scale (0..2) it is shown at. A step that names a part that is gone is kept and reported; it is never renamed to another part.
+ */
+export interface AssemblyStep {
+  id: string; name: string; note?: string;
+  add: string[];
+  view?: { eye: [number, number, number]; target: [number, number, number]; up: [number, number, number] };
+  explode?: number;
+}
+
 /** An instance's part as placed at the origin (a sub-assembly's own instances folded in as features). */
 export function placedBase(inst: PartInstance, parent?: StudioDoc): StudioDoc {
   if (inst.doc.nodes.some(n => n.kind === 'sketch' && n.association !== undefined)) throw refusal('BAD_REFERENCE', 'Associative sketch: placed part recipes are not supported.');
@@ -939,7 +953,7 @@ export function placedDoc(inst: PartInstance, parent?: StudioDoc): StudioDoc {
  * Every StudioDoc field, checked at compile time to be all of them (as NODE_EXTRA_FIELDS for nodes): `carryOver`
  * and the field test go by this list, so a new field is carried through commits or fails the test.
  */
-export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'variability', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'routeBundles', 'instances', 'drawing', 'bodies', 'mates', 'instancePatterns', 'assemblyCuts', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'printPreview', 'mould', 'machining', 'casting', 'frames', 'fits', 'bearings', 'orings', 'rings', 'fasteners', 'fastenerSizes', 'castingRules', 'mounts', 'drives', 'connectors', 'rowSources'] as const satisfies readonly (keyof StudioDoc)[];
+export const STUDIO_DOC_FIELDS = ['format', 'schema', 'nextId', 'units', 'parameters', 'configurations', 'variability', 'pendingParts', 'nodes', 'outputs', 'render', 'direct', 'routeBundles', 'instances', 'drawing', 'bodies', 'mates', 'instancePatterns', 'assemblyCuts', 'assemblySteps', 'robot', 'underlays', 'brief', 'questions', 'references', 'drafts', 'interfaces', 'ecrs', 'baselines', 'requirements', 'proposals', 'history', 'libraries', 'process', 'printer', 'print', 'printPreview', 'mould', 'machining', 'casting', 'frames', 'fits', 'bearings', 'orings', 'rings', 'fasteners', 'fastenerSizes', 'castingRules', 'mounts', 'drives', 'connectors', 'rowSources'] as const satisfies readonly (keyof StudioDoc)[];
 export const _docFieldsComplete: [Exclude<keyof StudioDoc, typeof STUDIO_DOC_FIELDS[number]>] extends [never] ? true : never = true;
 /** The fields a command makes from the model (the rest are the document's own: looks, render, requirements …). */
 const MODEL_FIELDS: ReadonlySet<string> = new Set(['nodes', 'outputs']);

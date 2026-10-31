@@ -17912,3 +17912,25 @@ All were fixed; 41/48 mutants caught at round 3, the survivors then covered.
 **Verification.** Model 2390/2390; Studio 614/614. Actual run03 PASS.
 
 **Follow-ups.** Mates read uncut definition faces; sub-assembly targets refused; a cut plate's BOM area is the stock's; the HUD trial is keyed by the draft only.
+
+## D393 — Row 10 ⑥: assembly instruction steps (v1); full (2026-10-31)
+
+[Evidence](notes/assembly-steps-2026-10-31/qualification.json). #2251's minimum explanation contract (v1, no playback). #538 stays open.
+
+**What it adds.** `StudioDoc.assemblySteps`: ordered steps, each introducing top-level occurrences, with an optional recommended view and explode scale. Steps are presentation only.
+- Model: ops, `stepStateOf`, problems and refusal `NO_STEP`.
+- Facade: `Assembly.step`.
+- Studio: the Steps panel. Waiting parts are hidden and active ones highlighted; navigation is deterministic and session-only.
+
+**Ids.** `assembly/takenIds.ts` makes every instance-id allocator skip ids still named by steps, cut targets, mates or pattern seeds. A stale reference is never remapped to a new part, and this closes the same hole for D392 cuts.
+
+**Audits.**
+- Root image review: a floating gizmo on a hidden part.
+- Round 1: a wrong result (stale id reuse) and 2 minor findings.
+- Round 2: tests only.
+
+All were fixed.
+
+**Verification.** Model 2403/2403; Studio 622/622. Actual run05 PASS.
+
+**Follow-ups.** No playback or chat tool. Top-level occurrences only. The removal refusal reuses `PATTERN_REFERENCED`.

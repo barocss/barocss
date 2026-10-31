@@ -16,6 +16,7 @@ import { bodiesOf, meshesOf, type MeshData } from './core';
 import { explodeOffsets } from '../assembly/explode';
 import { instanceJointsOf, setInstanceJoints } from '../assembly/flexible';
 import { instanceLooksListing, setInstanceLooks, type InstanceLookPatch } from '../assembly/looks';
+import { addAssemblyStep, deleteAssemblyStep, editAssemblyStep, moveAssemblyStep, type AddAssemblyStepOptions, type EditAssemblyStepOptions } from '../assembly/steps';
 import { addAssemblyCut, deleteAssemblyCut, editAssemblyCut, type AddAssemblyCutOptions, type EditAssemblyCutOptions } from '../assembly/cuts';
 import { addInstancePattern, drivenRefusal, seedMateRefusal, deleteInstancePattern, editInstancePattern, skipOccurrence, type AddPatternOptions, type EditPatternOptions } from '../assembly/patterns';
 
@@ -85,6 +86,12 @@ export const skipOccurrenceDoc = (doc: StudioDoc, occurrence: string): StudioDoc
 export const cutDoc = (doc: StudioDoc, o: AddAssemblyCutOptions): { doc: StudioDoc; id: string } => { const r = addAssemblyCut(doc, o); return { doc: r.doc, id: r.id }; };
 export const editCutDoc = (doc: StudioDoc, o: EditAssemblyCutOptions): StudioDoc => editAssemblyCut(doc, o).doc;
 export const deleteCutDoc = (doc: StudioDoc, id: string): StudioDoc => deleteAssemblyCut(doc, id).doc;
+
+/** Instruction steps (roadmap 10 ⑥) added, changed, removed or reordered; the new step's id. Presentation only. */
+export const stepDoc = (doc: StudioDoc, o: AddAssemblyStepOptions): { doc: StudioDoc; id: string } => { const r = addAssemblyStep(doc, o); return { doc: r.doc, id: r.id }; };
+export const editStepDoc = (doc: StudioDoc, o: EditAssemblyStepOptions): StudioDoc => editAssemblyStep(doc, o).doc;
+export const deleteStepDoc = (doc: StudioDoc, id: string): StudioDoc => deleteAssemblyStep(doc, id).doc;
+export const moveStepDoc = (doc: StudioDoc, id: string, to: number): StudioDoc => moveAssemblyStep(doc, id, to).doc;
 
 /** set_inputs and set_variants (O11): the variability written, every variant regenerated to check it. */
 export function variabilityDoc(doc: StudioDoc, tool: 'set_inputs' | 'set_variants', args: Record<string, unknown>): StudioDoc {

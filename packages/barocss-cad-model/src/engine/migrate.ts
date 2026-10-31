@@ -12,6 +12,7 @@ import { checkDocumentBearingHousing } from './bearingContext';
 import { firstProblem, refusal } from './refusal';
 import { patternsProblem } from '../assembly/patternCheck';
 import { assemblyCutsProblem } from '../assembly/cuts';
+import { assemblyStepsProblem } from '../assembly/steps';
 import { assertRouteBundleDocument } from './routeBundle';
 import { assertSavedDrawingDocument } from './savedDrawing';
 import { valuesProblem } from './jointValues';
@@ -43,6 +44,8 @@ export function readStudioDoc(text: string): { doc: StudioDoc; notes: string[] }
   if (patternError) return { error: refusal('PATTERN_VALUE', patternError).message };
   const cutError = assemblyCutsProblem(o as Parameters<typeof assemblyCutsProblem>[0]);
   if (cutError) return { error: refusal('VALUE', cutError).message };
+  const stepError = assemblyStepsProblem(o as Parameters<typeof assemblyStepsProblem>[0]);
+  if (stepError) return { error: refusal('VALUE', stepError).message };
   const schema = o.schema === undefined ? 0 : Number(o.schema), notes: string[] = [];
   if (!Number.isInteger(schema) || schema < 0) return { error: `This model file has an unreadable schema (${String(o.schema)}).` };
   if (schema > MAX_READ_SCHEMA) return { error: `This model was saved by a newer cad-studio (schema ${schema}; this one reads up to ${MAX_READ_SCHEMA}). Open it there, or save it from there in an older form.` };

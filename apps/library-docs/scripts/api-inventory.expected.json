@@ -175507,6 +175507,13 @@
                 "type": "(id: string) => Assembly"
               },
               {
+                "name": "deleteStep",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string) => Assembly"
+              },
+              {
                 "name": "doc",
                 "kind": "getter",
                 "optional": false,
@@ -175540,6 +175547,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(id: string, o: PatternEdit) => Assembly"
+              },
+              {
+                "name": "editStep",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string, o: StepEdit) => Assembly"
               },
               {
                 "name": "framePoses",
@@ -175582,6 +175596,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(o?: { explode?: number | undefined; }) => MeshData[]"
+              },
+              {
+                "name": "moveStep",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string, to: number) => Assembly"
               },
               {
                 "name": "name",
@@ -175687,6 +175708,34 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(name: string) => Assembly"
+              },
+              {
+                "name": "step",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: StepOptions) => Assembly"
+              },
+              {
+                "name": "stepProblems",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string[]"
+              },
+              {
+                "name": "stepState",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => { installed: string[]; active: string[]; waiting: string[]; unresolved: string[]; unassigned: string[]; }"
+              },
+              {
+                "name": "steps",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => StepListing[]"
               },
               {
                 "name": "variant",
@@ -181760,6 +181809,13 @@
                 "type": "(id: string) => Assembly"
               },
               {
+                "name": "deleteStep",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string) => Assembly"
+              },
+              {
                 "name": "doc",
                 "kind": "getter",
                 "optional": false,
@@ -181793,6 +181849,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(id: string, o: PatternEdit) => Assembly"
+              },
+              {
+                "name": "editStep",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string, o: StepEdit) => Assembly"
               },
               {
                 "name": "framePoses",
@@ -181835,6 +181898,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(o?: { explode?: number | undefined; }) => MeshData[]"
+              },
+              {
+                "name": "moveStep",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string, to: number) => Assembly"
               },
               {
                 "name": "name",
@@ -181940,6 +182010,34 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(name: string) => Assembly"
+              },
+              {
+                "name": "step",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: StepOptions) => Assembly"
+              },
+              {
+                "name": "stepProblems",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string[]"
+              },
+              {
+                "name": "stepState",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => { installed: string[]; active: string[]; waiting: string[]; unresolved: string[]; unassigned: string[]; }"
+              },
+              {
+                "name": "steps",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => StepListing[]"
               },
               {
                 "name": "variant",
@@ -182448,6 +182546,211 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./api/assembly",
+      "exportName": "StepEdit",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/assembly.ts",
+            "name": "StepEdit",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "StepEdit",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "explode",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | null | undefined"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "note",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | null | undefined"
+              },
+              {
+                "name": "parts",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string[] | undefined"
+              },
+              {
+                "name": "view",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "{ eye: Vec3; target: Vec3; up: Vec3; } | null | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/assembly",
+      "exportName": "StepListing",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/assembly.ts",
+            "name": "StepListing",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "StepListing",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "explode",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "id",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "note",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "parts",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              },
+              {
+                "name": "view",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "{ eye: Vec3; target: Vec3; up: Vec3; } | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/assembly",
+      "exportName": "StepOptions",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/assembly.ts",
+            "name": "StepOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "StepOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "explode",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "note",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "parts",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string[] | undefined"
+              },
+              {
+                "name": "view",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "{ eye: Vec3; target: Vec3; up: Vec3; } | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/assembly",
       "exportName": "assembly",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -182693,6 +182996,37 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./api/assemblyCore",
+      "exportName": "deleteStepDoc",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/assemblyCore.ts",
+            "name": "deleteStepDoc",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, id: string) => StudioDoc",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, id: string) => StudioDoc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/assemblyCore",
       "exportName": "editCutDoc",
       "space": "value",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -182747,6 +183081,37 @@
             ],
             "callSignatures": [
               "(doc: StudioDoc, o: EditPatternOptions) => StudioDoc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/assemblyCore",
+      "exportName": "editStepDoc",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/assemblyCore.ts",
+            "name": "editStepDoc",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, o: EditAssemblyStepOptions) => StudioDoc",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, o: EditAssemblyStepOptions) => StudioDoc"
             ]
           }
         }
@@ -182871,6 +183236,37 @@
             ],
             "callSignatures": [
               "(doc: StudioDoc, part: string, to: string) => { doc: StudioDoc; id: string; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/assemblyCore",
+      "exportName": "moveStepDoc",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/assemblyCore.ts",
+            "name": "moveStepDoc",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, id: string, to: number) => StudioDoc",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, id: string, to: number) => StudioDoc"
             ]
           }
         }
@@ -183119,6 +183515,37 @@
             ],
             "callSignatures": [
               "(doc: StudioDoc, occurrence: string) => StudioDoc"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./api/assemblyCore",
+      "exportName": "stepDoc",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/api/assemblyCore.ts",
+            "name": "stepDoc",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, o: AddAssemblyStepOptions) => { doc: StudioDoc; id: string; }",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, o: AddAssemblyStepOptions) => { doc: StudioDoc; id: string; }"
             ]
           }
         }
@@ -184135,6 +184562,13 @@
                 "type": "(id: string) => Assembly"
               },
               {
+                "name": "deleteStep",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string) => Assembly"
+              },
+              {
                 "name": "doc",
                 "kind": "getter",
                 "optional": false,
@@ -184168,6 +184602,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(id: string, o: PatternEdit) => Assembly"
+              },
+              {
+                "name": "editStep",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string, o: StepEdit) => Assembly"
               },
               {
                 "name": "framePoses",
@@ -184210,6 +184651,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(o?: { explode?: number | undefined; }) => MeshData[]"
+              },
+              {
+                "name": "moveStep",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(id: string, to: number) => Assembly"
               },
               {
                 "name": "name",
@@ -184315,6 +184763,34 @@
                 "optional": false,
                 "readonly": false,
                 "type": "(name: string) => Assembly"
+              },
+              {
+                "name": "step",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(o: StepOptions) => Assembly"
+              },
+              {
+                "name": "stepProblems",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => string[]"
+              },
+              {
+                "name": "stepState",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "(index: number) => { installed: string[]; active: string[]; waiting: string[]; unresolved: string[]; unassigned: string[]; }"
+              },
+              {
+                "name": "steps",
+                "kind": "method",
+                "optional": false,
+                "readonly": false,
+                "type": "() => StepListing[]"
               },
               {
                 "name": "variant",
@@ -208721,6 +209197,833 @@
             ],
             "callSignatures": [
               "(loops: readonly { curves: readonly Vec3[][]; outer: boolean; }[], n: Vec3) => { area: number; moment: Vec3; } | null"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/steps",
+      "exportName": "AddAssemblyStepOptions",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/steps.ts",
+            "name": "AddAssemblyStepOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "AddAssemblyStepOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "add",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string[] | undefined"
+              },
+              {
+                "name": "explode",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "note",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "view",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "{ eye: [number, number, number]; target: [number, number, number]; up: [number, number, number]; } | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/steps",
+      "exportName": "AssemblyStepProblem",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/steps.ts",
+            "name": "AssemblyStepProblem",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "AssemblyStepProblem",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "kind",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "\"missing-part\" | \"unlistable-part\" | \"unassigned\""
+              },
+              {
+                "name": "message",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "part",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "step",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/steps",
+      "exportName": "EditAssemblyStepOptions",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/steps.ts",
+            "name": "EditAssemblyStepOptions",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "EditAssemblyStepOptions",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "add",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string[] | undefined"
+              },
+              {
+                "name": "explode",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | null | undefined"
+              },
+              {
+                "name": "id",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "note",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | null | undefined"
+              },
+              {
+                "name": "view",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "{ eye: [number, number, number]; target: [number, number, number]; up: [number, number, number]; } | null | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/steps",
+      "exportName": "MAX_STEP_EXPLODE",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/steps.ts",
+            "name": "MAX_STEP_EXPLODE",
+            "kind": "const"
+          },
+          "shape": {
+            "type": "2",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/steps",
+      "exportName": "MAX_STEP_NAME",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/steps.ts",
+            "name": "MAX_STEP_NAME",
+            "kind": "const"
+          },
+          "shape": {
+            "type": "60",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/steps",
+      "exportName": "MAX_STEP_NOTE",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/steps.ts",
+            "name": "MAX_STEP_NOTE",
+            "kind": "const"
+          },
+          "shape": {
+            "type": "500",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/steps",
+      "exportName": "StepState",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/steps.ts",
+            "name": "StepState",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "StepState",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "active",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              },
+              {
+                "name": "index",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "number"
+              },
+              {
+                "name": "installed",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              },
+              {
+                "name": "step",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "AssemblyStep"
+              },
+              {
+                "name": "unassigned",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              },
+              {
+                "name": "unresolved",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              },
+              {
+                "name": "waiting",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/steps",
+      "exportName": "addAssemblyStep",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/steps.ts",
+            "name": "addAssemblyStep",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, o: AddAssemblyStepOptions) => Edited & { id: string; }",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, o: AddAssemblyStepOptions) => Edited & { id: string; }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/steps",
+      "exportName": "assemblyStepProblems",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/steps.ts",
+            "name": "assemblyStepProblems",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: Pick<StudioDoc, \"instances\" | \"assemblySteps\">) => AssemblyStepProblem[]",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: Pick<StudioDoc, \"instances\" | \"assemblySteps\">) => AssemblyStepProblem[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/steps",
+      "exportName": "assemblyStepShapeProblem",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/steps.ts",
+            "name": "assemblyStepShapeProblem",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(step: AssemblyStep) => string | undefined",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(step: AssemblyStep) => string | undefined"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/steps",
+      "exportName": "assemblyStepsProblem",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/steps.ts",
+            "name": "assemblyStepsProblem",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: Pick<StudioDoc, \"instances\" | \"assemblySteps\">, depth?: number) => string | undefined",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: Pick<StudioDoc, \"instances\" | \"assemblySteps\">, depth?: number) => string | undefined"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/steps",
+      "exportName": "deleteAssemblyStep",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/steps.ts",
+            "name": "deleteAssemblyStep",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, id: string) => Edited",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, id: string) => Edited"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/steps",
+      "exportName": "editAssemblyStep",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/steps.ts",
+            "name": "editAssemblyStep",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, o: EditAssemblyStepOptions) => Edited",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, o: EditAssemblyStepOptions) => Edited"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/steps",
+      "exportName": "moveAssemblyStep",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/steps.ts",
+            "name": "moveAssemblyStep",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: StudioDoc, id: string, to: number) => Edited",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: StudioDoc, id: string, to: number) => Edited"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/steps",
+      "exportName": "nameOfStep",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/steps.ts",
+            "name": "nameOfStep",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(s: Pick<AssemblyStep, \"id\" | \"name\">) => string",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(s: Pick<AssemblyStep, \"id\" | \"name\">) => string"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/steps",
+      "exportName": "stepHoldWords",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/steps.ts",
+            "name": "stepHoldWords",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: Pick<StudioDoc, \"instances\">, id: string, step: AssemblyStep) => string",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: Pick<StudioDoc, \"instances\">, id: string, step: AssemblyStep) => string"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/steps",
+      "exportName": "stepHolding",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/steps.ts",
+            "name": "stepHolding",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: Pick<StudioDoc, \"instances\" | \"assemblySteps\">, named: (id: string) => boolean) => AssemblyStep | undefined",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: Pick<StudioDoc, \"instances\" | \"assemblySteps\">, named: (id: string) => boolean) => AssemblyStep | undefined"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/steps",
+      "exportName": "stepOfOccurrence",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/steps.ts",
+            "name": "stepOfOccurrence",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: Pick<StudioDoc, \"assemblySteps\">, id: string) => { index: number; step: AssemblyStep; } | undefined",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: Pick<StudioDoc, \"assemblySteps\">, id: string) => { index: number; step: AssemblyStep; } | undefined"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/steps",
+      "exportName": "stepStateOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/steps.ts",
+            "name": "stepStateOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: Pick<StudioDoc, \"instances\" | \"assemblySteps\">, index: number) => StepState",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: Pick<StudioDoc, \"instances\" | \"assemblySteps\">, index: number) => StepState"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/steps",
+      "exportName": "stepsOf",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/steps.ts",
+            "name": "stepsOf",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: Pick<StudioDoc, \"assemblySteps\">) => readonly AssemblyStep[]",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: Pick<StudioDoc, \"assemblySteps\">) => readonly AssemblyStep[]"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/takenIds",
+      "exportName": "nextInstanceId",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/takenIds.ts",
+            "name": "nextInstanceId",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: Naming, prefix: string) => string",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: Naming, prefix: string) => string"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./assembly/takenIds",
+      "exportName": "takenInstanceIds",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/assembly/takenIds.ts",
+            "name": "takenInstanceIds",
+            "kind": "function"
+          },
+          "shape": {
+            "type": "(doc: Naming) => Set<string>",
+            "declarationSignatures": [
+              {
+                "kind": "FunctionDeclaration"
+              }
+            ],
+            "callSignatures": [
+              "(doc: Naming) => Set<string>"
             ]
           }
         }
@@ -254226,6 +255529,79 @@
     {
       "package": "@barocss/cad-model",
       "subpath": "./engine/doc",
+      "exportName": "AssemblyStep",
+      "space": "type",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/engine/doc.ts",
+            "name": "AssemblyStep",
+            "kind": "interface"
+          },
+          "shape": {
+            "type": "AssemblyStep",
+            "declarationSignatures": [
+              {
+                "kind": "InterfaceDeclaration"
+              }
+            ],
+            "members": [
+              {
+                "name": "add",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string[]"
+              },
+              {
+                "name": "explode",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "number | undefined"
+              },
+              {
+                "name": "id",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "name",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "string"
+              },
+              {
+                "name": "note",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "string | undefined"
+              },
+              {
+                "name": "view",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "{ eye: [number, number, number]; target: [number, number, number]; up: [number, number, number]; } | undefined"
+              }
+            ],
+            "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./engine/doc",
       "exportName": "Axis",
       "space": "type",
       "observedRole": "unclassified-observed; no policy exemption",
@@ -261530,7 +262906,7 @@
             "kind": "const"
           },
           "shape": {
-            "type": "readonly [\"format\", \"schema\", \"nextId\", \"units\", \"parameters\", \"configurations\", \"variability\", \"pendingParts\", \"nodes\", \"outputs\", \"render\", \"direct\", \"routeBundles\", \"instances\", \"drawing\", \"bodies\", \"mates\", \"instancePatterns\", \"assemblyCuts\", \"robot\", \"underlays\", \"brief\", \"questions\", \"references\", \"drafts\", \"interfaces\", \"ecrs\", \"baselines\", \"requirements\", \"proposals\", \"history\", \"libraries\", \"process\", \"printer\", \"print\", \"printPreview\", \"mould\", \"machining\", \"casting\", \"frames\", \"fits\", \"bearings\", \"orings\", \"rings\", \"fasteners\", \"fastenerSizes\", \"castingRules\", \"mounts\", \"drives\", \"connectors\", \"rowSources\"]",
+            "type": "readonly [\"format\", \"schema\", \"nextId\", \"units\", \"parameters\", \"configurations\", \"variability\", \"pendingParts\", \"nodes\", \"outputs\", \"render\", \"direct\", \"routeBundles\", \"instances\", \"drawing\", \"bodies\", \"mates\", \"instancePatterns\", \"assemblyCuts\", \"assemblySteps\", \"robot\", \"underlays\", \"brief\", \"questions\", \"references\", \"drafts\", \"interfaces\", \"ecrs\", \"baselines\", \"requirements\", \"proposals\", \"history\", \"libraries\", \"process\", \"printer\", \"print\", \"printPreview\", \"mould\", \"machining\", \"casting\", \"frames\", \"fits\", \"bearings\", \"orings\", \"rings\", \"fasteners\", \"fastenerSizes\", \"castingRules\", \"mounts\", \"drives\", \"connectors\", \"rowSources\"]",
             "declarationSignatures": [
               {
                 "kind": "VariableDeclaration"
@@ -262461,6 +263837,13 @@
                 "optional": true,
                 "readonly": false,
                 "type": "AssemblyCut[] | undefined"
+              },
+              {
+                "name": "assemblySteps",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "AssemblyStep[] | undefined"
               },
               {
                 "name": "baselines",
@@ -277823,11 +279206,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "\"LIMIT\" | \"SYNTAX\" | \"VALUE\" | \"TYPE\" | \"FIT_FACE\" | \"NO_BODY\" | \"PARAMETER_NAME\" | \"PARAMETER_UNKNOWN\" | \"PARAMETER_UNBINDABLE\" | VersionCode | FrameGeometryCode | \"HARNESS_RAW_PROVENANCE_UNAVAILABLE\" | \"NO_LINK\" | \"NO_JOINTS\" | \"NO_FRAME\" | \"NOT_PLANAR\" | \"NOT_ONE_LOOP\" | \"NO_CLOSURE\" | \"BRANCH_FLIP\" | \"NO_PIN\" | \"NO_RANGE\" | \"BAD_VALUES\" | \"NOT_NEEDED\" | \"ONE_BODY\" | \"NO_PRINTER\" | \"DIRECTION_NOT_AXIS\" | \"TOO_BIG_TWO_WAYS\" | \"NO_ROOM\" | \"BAD_CONNECTOR\" | \"NOT_HOLLOW\" | \"GRID_TOO_FINE\" | \"NO_LATTICE\" | \"UNDRAINED\" | \"CURVED_BODY\" | \"NOTHING_TO_HOLLOW\" | \"DRAIN_NO_ROOM\" | \"BOOLEAN_REFUSED\" | \"NO_CHANGE\" | \"STALE_ECR\" | \"NO_ECR\" | \"DECIDED\" | \"APPROVAL_IS_THE_USERS\" | \"BAD_TRANSITION\" | \"BASELINE_FROZEN\" | \"STALE_BASELINE\" | \"STALE_RESULT\" | \"RESULT_NOT_OK\" | \"NO_BASELINE\" | \"BOM_INVALID\" | \"NO_DRAFT\" | \"BAD_VALUE\" | \"BOUND\" | \"GONE\" | \"REFERENCE_LOCKED\" | \"BAD_REFERENCE\" | \"NO_REFERENCE\" | \"DATUM_FIT\" | \"BAD_KEEPOUT\" | \"NOT_READ\" | \"UNKNOWN_NAME\" | \"REFUSED\" | \"DXF_MALFORMED\" | \"DXF_UNSUPPORTED\" | \"DXF_OPEN\" | \"DXF_NESTED\" | \"DXF_EMPTY\" | \"DWG_NOT_READ\" | \"DRAWING_SCOPE\" | \"DRAWING_SCOPE_REFERENCES\" | \"DRAWING_OPTIONS\" | \"DRAWING_SECTION_REFERENCES\" | \"DRAWING_DETAIL_REFERENCES\" | \"DRAWING_DETAIL_LETTER\" | \"DRAWING_DETAIL_PARENT\" | \"FRAME_SKELETON_IN_USE\" | \"FRAME_PART_IN_USE\" | \"SKETCH3D_PARAMETER\" | \"SKETCH3D_INPUT\" | \"SKETCH3D_CONFLICT\" | \"FRAME_NAME\" | \"FRAME_LINK_MISSING\" | \"FRAME_LINK_STALE\" | \"FRAME_POSE\" | \"INPUT_RANGE\" | \"INPUT_TYPE\" | \"INPUT_TARGET\" | \"INPUT_CHOICE\" | \"INPUT_NAME\" | \"INPUT_CONFLICT\" | \"INPUT_DEFAULT\" | \"VARIANT_UNKNOWN\" | \"PRINT_PREVIEW_INPUT\" | \"BEARING_HOUSING_REFERENCE\" | \"BEARING_HOUSING_SCOPE\" | \"BEARING_HOUSING_CYCLE\" | \"BEARING_HOUSING_POSE\" | \"BEARING_HOUSING_EVALUATION\" | \"MOUNT_RANGE\" | \"MOUNT_FACE\" | \"MOUNT_ROW\" | \"FRAME_SECTION_UNKNOWN\" | \"ORING_ROW_UNKNOWN\" | \"CONNECTOR_ROW_UNKNOWN\" | \"BEARING_ROW_UNKNOWN\" | \"RING_ROW_UNKNOWN\" | \"DRIVE_ROW_UNKNOWN\" | \"DRIVE_WHEELS\" | \"SHOP_ROWS_FLATTEN_SCOPE\" | \"NO_TABLE\" | \"NO_ROW\" | \"NO_RUN\" | \"LIMITS_BAD\" | \"LIMITS_MISSING\" | \"PATH_TOO_SHORT\" | \"JOINT_UNKNOWN\" | \"JOINT_MIMIC\" | \"JOINT_LIMIT\" | \"MOTION_UNKNOWN\" | \"LOOP_OPEN\" | \"LOOP_MATE_UNSUPPORTED\" | \"LOOP_PASSIVE\" | \"DEAD_POINT\" | \"CAM_PROFILE_UNSUPPORTED\" | \"CAM_UNSUPPORTED\" | \"CAM_IN_LOOP\" | \"ACTUATOR_INPUT\" | \"MODEL_READ\" | \"XML_MALFORMED\" | \"MESH_NOT_LOADED\" | \"CONTAINER_NEWER\" | \"CONTAINER_DAMAGED\" | \"SKETCH_PARAMETER\" | \"PARAMETER_EXISTS\" | \"NO_FEATURE\" | \"CONNECTOR_INVALID\" | \"CONNECTOR_POINT\" | \"CONNECTOR_UNAVAILABLE\" | \"CONNECTOR_KIND\" | \"NO_PART\" | \"PART_MATED\" | \"MATE_KIND\" | \"MATE_SAME_PART\" | \"MATE_BOTH_FIXED\" | \"MATE_FACE_UNKNOWN\" | \"MATE_FACES\" | \"MATE_UNMET\" | \"NO_MATE\" | \"PATTERN_VALUE\" | \"PATTERN_DRIVEN\" | \"PATTERN_REFERENCED\" | \"NO_PATTERN\" | \"NO_CUT\" | \"ALIGN_PICK\" | \"ALIGN_TURN\" | \"HOLE_SIZE\" | \"HOLE_PATTERN\" | \"DRAFT_PICK\" | \"DRAFT_ANGLE\" | \"FULL_ROUND_PICK\" | \"TEXT_RELIEF_PICK\" | \"FACE_FILLET_PICK\" | \"THREAD_PICK\" | \"FILLET_CHAIN\" | \"DECIMATE_KEEP\" | \"SPLIT_PLANE\" | \"FACE_DISTANCE\" | \"LOFT_SECTIONS\" | \"SWEEP_PATH\" | \"PRIMITIVE_SIZE\" | \"GEAR_PICK\" | \"FASTENER_POSITION\" | \"FASTENER_LENGTH\" | \"FASTENER_GRIP\" | \"FASTENER_SIZE_ROW\" | \"FRAME_SECTION_PICK\" | \"FRAME_MEMBER\" | \"FRAME_VALUE\" | \"FRAME_SKELETON_PICK\" | \"FRAME_NOTCH\" | \"GUSSET_PICK\" | \"CAP_PICK\" | \"SHEET_PICK\" | \"SHEET_VALUE\" | \"DIRECT_SOURCE\" | \"DIRECT_PICK\" | \"DIRECT_DEGREE\" | \"DIRECT_LOOP\" | \"DIRECT_VALUE\" | \"DIRECT_KNOT\" | \"DIRECT_LOFT\" | \"DIRECT_RANGE\" | \"DIRECT_PLANE\" | \"DIRECT_INTERSECT\" | \"DIRECT_ID\" | \"IGES_READ\" | \"IGES_EXPORT\" | \"TRIM_CURVE\" | \"ROWS_NOT_FROM_PERSON\" | \"ROW_FILES\" | \"ROW_UNKNOWN\" | \"ROW_IN_USE\" | \"RING_ROW\" | \"FASTENER_ROW\" | \"CASTING_RULE_ROW\" | \"LIBRARY_ID\" | \"LIBRARY_UNKNOWN\" | \"ZIP_LIMIT\" | \"MERGE_SUPERSEDED\" | \"MERGE_MISSING\"",
+            "type": "\"LIMIT\" | \"SYNTAX\" | \"VALUE\" | \"TYPE\" | \"FIT_FACE\" | \"NO_BODY\" | \"PARAMETER_NAME\" | \"PARAMETER_UNKNOWN\" | \"PARAMETER_UNBINDABLE\" | VersionCode | FrameGeometryCode | \"HARNESS_RAW_PROVENANCE_UNAVAILABLE\" | \"NO_LINK\" | \"NO_JOINTS\" | \"NO_FRAME\" | \"NOT_PLANAR\" | \"NOT_ONE_LOOP\" | \"NO_CLOSURE\" | \"BRANCH_FLIP\" | \"NO_PIN\" | \"NO_RANGE\" | \"BAD_VALUES\" | \"NOT_NEEDED\" | \"ONE_BODY\" | \"NO_PRINTER\" | \"DIRECTION_NOT_AXIS\" | \"TOO_BIG_TWO_WAYS\" | \"NO_ROOM\" | \"BAD_CONNECTOR\" | \"NOT_HOLLOW\" | \"GRID_TOO_FINE\" | \"NO_LATTICE\" | \"UNDRAINED\" | \"CURVED_BODY\" | \"NOTHING_TO_HOLLOW\" | \"DRAIN_NO_ROOM\" | \"BOOLEAN_REFUSED\" | \"NO_CHANGE\" | \"STALE_ECR\" | \"NO_ECR\" | \"DECIDED\" | \"APPROVAL_IS_THE_USERS\" | \"BAD_TRANSITION\" | \"BASELINE_FROZEN\" | \"STALE_BASELINE\" | \"STALE_RESULT\" | \"RESULT_NOT_OK\" | \"NO_BASELINE\" | \"BOM_INVALID\" | \"NO_DRAFT\" | \"BAD_VALUE\" | \"BOUND\" | \"GONE\" | \"REFERENCE_LOCKED\" | \"BAD_REFERENCE\" | \"NO_REFERENCE\" | \"DATUM_FIT\" | \"BAD_KEEPOUT\" | \"NOT_READ\" | \"UNKNOWN_NAME\" | \"REFUSED\" | \"DXF_MALFORMED\" | \"DXF_UNSUPPORTED\" | \"DXF_OPEN\" | \"DXF_NESTED\" | \"DXF_EMPTY\" | \"DWG_NOT_READ\" | \"DRAWING_SCOPE\" | \"DRAWING_SCOPE_REFERENCES\" | \"DRAWING_OPTIONS\" | \"DRAWING_SECTION_REFERENCES\" | \"DRAWING_DETAIL_REFERENCES\" | \"DRAWING_DETAIL_LETTER\" | \"DRAWING_DETAIL_PARENT\" | \"FRAME_SKELETON_IN_USE\" | \"FRAME_PART_IN_USE\" | \"SKETCH3D_PARAMETER\" | \"SKETCH3D_INPUT\" | \"SKETCH3D_CONFLICT\" | \"FRAME_NAME\" | \"FRAME_LINK_MISSING\" | \"FRAME_LINK_STALE\" | \"FRAME_POSE\" | \"INPUT_RANGE\" | \"INPUT_TYPE\" | \"INPUT_TARGET\" | \"INPUT_CHOICE\" | \"INPUT_NAME\" | \"INPUT_CONFLICT\" | \"INPUT_DEFAULT\" | \"VARIANT_UNKNOWN\" | \"PRINT_PREVIEW_INPUT\" | \"BEARING_HOUSING_REFERENCE\" | \"BEARING_HOUSING_SCOPE\" | \"BEARING_HOUSING_CYCLE\" | \"BEARING_HOUSING_POSE\" | \"BEARING_HOUSING_EVALUATION\" | \"MOUNT_RANGE\" | \"MOUNT_FACE\" | \"MOUNT_ROW\" | \"FRAME_SECTION_UNKNOWN\" | \"ORING_ROW_UNKNOWN\" | \"CONNECTOR_ROW_UNKNOWN\" | \"BEARING_ROW_UNKNOWN\" | \"RING_ROW_UNKNOWN\" | \"DRIVE_ROW_UNKNOWN\" | \"DRIVE_WHEELS\" | \"SHOP_ROWS_FLATTEN_SCOPE\" | \"NO_TABLE\" | \"NO_ROW\" | \"NO_RUN\" | \"LIMITS_BAD\" | \"LIMITS_MISSING\" | \"PATH_TOO_SHORT\" | \"JOINT_UNKNOWN\" | \"JOINT_MIMIC\" | \"JOINT_LIMIT\" | \"MOTION_UNKNOWN\" | \"LOOP_OPEN\" | \"LOOP_MATE_UNSUPPORTED\" | \"LOOP_PASSIVE\" | \"DEAD_POINT\" | \"CAM_PROFILE_UNSUPPORTED\" | \"CAM_UNSUPPORTED\" | \"CAM_IN_LOOP\" | \"ACTUATOR_INPUT\" | \"MODEL_READ\" | \"XML_MALFORMED\" | \"MESH_NOT_LOADED\" | \"CONTAINER_NEWER\" | \"CONTAINER_DAMAGED\" | \"SKETCH_PARAMETER\" | \"PARAMETER_EXISTS\" | \"NO_FEATURE\" | \"CONNECTOR_INVALID\" | \"CONNECTOR_POINT\" | \"CONNECTOR_UNAVAILABLE\" | \"CONNECTOR_KIND\" | \"NO_PART\" | \"PART_MATED\" | \"MATE_KIND\" | \"MATE_SAME_PART\" | \"MATE_BOTH_FIXED\" | \"MATE_FACE_UNKNOWN\" | \"MATE_FACES\" | \"MATE_UNMET\" | \"NO_MATE\" | \"PATTERN_VALUE\" | \"PATTERN_DRIVEN\" | \"PATTERN_REFERENCED\" | \"NO_PATTERN\" | \"NO_CUT\" | \"NO_STEP\" | \"ALIGN_PICK\" | \"ALIGN_TURN\" | \"HOLE_SIZE\" | \"HOLE_PATTERN\" | \"DRAFT_PICK\" | \"DRAFT_ANGLE\" | \"FULL_ROUND_PICK\" | \"TEXT_RELIEF_PICK\" | \"FACE_FILLET_PICK\" | \"THREAD_PICK\" | \"FILLET_CHAIN\" | \"DECIMATE_KEEP\" | \"SPLIT_PLANE\" | \"FACE_DISTANCE\" | \"LOFT_SECTIONS\" | \"SWEEP_PATH\" | \"PRIMITIVE_SIZE\" | \"GEAR_PICK\" | \"FASTENER_POSITION\" | \"FASTENER_LENGTH\" | \"FASTENER_GRIP\" | \"FASTENER_SIZE_ROW\" | \"FRAME_SECTION_PICK\" | \"FRAME_MEMBER\" | \"FRAME_VALUE\" | \"FRAME_SKELETON_PICK\" | \"FRAME_NOTCH\" | \"GUSSET_PICK\" | \"CAP_PICK\" | \"SHEET_PICK\" | \"SHEET_VALUE\" | \"DIRECT_SOURCE\" | \"DIRECT_PICK\" | \"DIRECT_DEGREE\" | \"DIRECT_LOOP\" | \"DIRECT_VALUE\" | \"DIRECT_KNOT\" | \"DIRECT_LOFT\" | \"DIRECT_RANGE\" | \"DIRECT_PLANE\" | \"DIRECT_INTERSECT\" | \"DIRECT_ID\" | \"IGES_READ\" | \"IGES_EXPORT\" | \"TRIM_CURVE\" | \"ROWS_NOT_FROM_PERSON\" | \"ROW_FILES\" | \"ROW_UNKNOWN\" | \"ROW_IN_USE\" | \"RING_ROW\" | \"FASTENER_ROW\" | \"CASTING_RULE_ROW\" | \"LIBRARY_ID\" | \"LIBRARY_UNKNOWN\" | \"ZIP_LIMIT\" | \"MERGE_SUPERSEDED\" | \"MERGE_MISSING\"",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "\"HARNESS_RAW_PROVENANCE_UNAVAILABLE\" | \"NO_LINK\" | \"NO_JOINTS\" | \"NO_FRAME\" | \"NOT_PLANAR\" | \"NOT_ONE_LOOP\" | \"NO_CLOSURE\" | \"BRANCH_FLIP\" | \"NO_PIN\" | \"NO_RANGE\" | \"BAD_VALUES\" | \"NOT_NEEDED\" | \"ONE_BODY\" | \"NO_PRINTER\" | \"DIRECTION_NOT_AXIS\" | \"TOO_BIG_TWO_WAYS\" | \"NO_ROOM\" | \"BAD_CONNECTOR\" | \"NOT_HOLLOW\" | \"GRID_TOO_FINE\" | \"NO_LATTICE\" | \"UNDRAINED\" | \"CURVED_BODY\" | \"NOTHING_TO_HOLLOW\" | \"DRAIN_NO_ROOM\" | \"BOOLEAN_REFUSED\" | \"NO_CHANGE\" | \"STALE_ECR\" | \"NO_ECR\" | \"DECIDED\" | \"APPROVAL_IS_THE_USERS\" | \"BAD_TRANSITION\" | \"BASELINE_FROZEN\" | \"STALE_BASELINE\" | \"STALE_RESULT\" | \"RESULT_NOT_OK\" | \"NO_BASELINE\" | \"BOM_INVALID\" | \"NO_DRAFT\" | \"BAD_VALUE\" | \"BOUND\" | \"GONE\" | \"REFERENCE_LOCKED\" | \"BAD_REFERENCE\" | \"NO_REFERENCE\" | \"DATUM_FIT\" | \"BAD_KEEPOUT\" | \"NOT_READ\" | \"SYNTAX\" | \"UNKNOWN_NAME\" | \"TYPE\" | \"LIMIT\" | \"REFUSED\" | \"DXF_MALFORMED\" | \"DXF_UNSUPPORTED\" | \"DXF_OPEN\" | \"DXF_NESTED\" | \"DXF_EMPTY\" | \"DWG_NOT_READ\" | \"DRAWING_SCOPE\" | \"DRAWING_SCOPE_REFERENCES\" | \"DRAWING_OPTIONS\" | \"DRAWING_SECTION_REFERENCES\" | \"DRAWING_DETAIL_REFERENCES\" | \"DRAWING_DETAIL_LETTER\" | \"DRAWING_DETAIL_PARENT\" | FrameGeometryCode | \"FRAME_SKELETON_IN_USE\" | \"FRAME_PART_IN_USE\" | \"SKETCH3D_PARAMETER\" | \"SKETCH3D_INPUT\" | \"SKETCH3D_CONFLICT\" | \"FRAME_NAME\" | \"FRAME_LINK_MISSING\" | \"FRAME_LINK_STALE\" | \"FRAME_POSE\" | \"INPUT_RANGE\" | \"INPUT_TYPE\" | \"INPUT_TARGET\" | \"INPUT_CHOICE\" | \"INPUT_NAME\" | \"INPUT_CONFLICT\" | \"INPUT_DEFAULT\" | \"VARIANT_UNKNOWN\" | \"PRINT_PREVIEW_INPUT\" | \"BEARING_HOUSING_REFERENCE\" | \"BEARING_HOUSING_SCOPE\" | \"BEARING_HOUSING_CYCLE\" | \"BEARING_HOUSING_POSE\" | \"BEARING_HOUSING_EVALUATION\" | \"MOUNT_RANGE\" | \"MOUNT_FACE\" | \"MOUNT_ROW\" | \"FRAME_SECTION_UNKNOWN\" | \"ORING_ROW_UNKNOWN\" | \"CONNECTOR_ROW_UNKNOWN\" | \"BEARING_ROW_UNKNOWN\" | \"RING_ROW_UNKNOWN\" | \"DRIVE_ROW_UNKNOWN\" | \"DRIVE_WHEELS\" | \"FIT_FACE\" | \"SHOP_ROWS_FLATTEN_SCOPE\" | \"NO_TABLE\" | \"NO_ROW\" | \"NO_RUN\" | \"LIMITS_BAD\" | \"LIMITS_MISSING\" | \"PATH_TOO_SHORT\" | \"JOINT_UNKNOWN\" | \"JOINT_MIMIC\" | \"JOINT_LIMIT\" | \"MOTION_UNKNOWN\" | \"LOOP_OPEN\" | \"LOOP_MATE_UNSUPPORTED\" | \"LOOP_PASSIVE\" | \"DEAD_POINT\" | \"CAM_PROFILE_UNSUPPORTED\" | \"CAM_UNSUPPORTED\" | \"CAM_IN_LOOP\" | \"ACTUATOR_INPUT\" | \"MODEL_READ\" | \"XML_MALFORMED\" | \"MESH_NOT_LOADED\" | \"CONTAINER_NEWER\" | \"CONTAINER_DAMAGED\" | \"SKETCH_PARAMETER\" | \"NO_BODY\" | \"PARAMETER_UNKNOWN\" | \"PARAMETER_NAME\" | \"PARAMETER_EXISTS\" | \"PARAMETER_UNBINDABLE\" | \"VALUE\" | \"NO_FEATURE\" | \"CONNECTOR_INVALID\" | \"CONNECTOR_POINT\" | \"CONNECTOR_UNAVAILABLE\" | \"CONNECTOR_KIND\" | \"NO_PART\" | \"PART_MATED\" | \"MATE_KIND\" | \"MATE_SAME_PART\" | \"MATE_BOTH_FIXED\" | \"MATE_FACE_UNKNOWN\" | \"MATE_FACES\" | \"MATE_UNMET\" | \"NO_MATE\" | \"PATTERN_VALUE\" | \"PATTERN_DRIVEN\" | \"PATTERN_REFERENCED\" | \"NO_PATTERN\" | \"NO_CUT\" | \"ALIGN_PICK\" | \"ALIGN_TURN\" | \"HOLE_SIZE\" | \"HOLE_PATTERN\" | \"DRAFT_PICK\" | \"DRAFT_ANGLE\" | \"FULL_ROUND_PICK\" | \"TEXT_RELIEF_PICK\" | \"FACE_FILLET_PICK\" | \"THREAD_PICK\" | \"FILLET_CHAIN\" | \"DECIMATE_KEEP\" | \"SPLIT_PLANE\" | \"FACE_DISTANCE\" | \"LOFT_SECTIONS\" | \"SWEEP_PATH\" | \"PRIMITIVE_SIZE\" | \"GEAR_PICK\" | \"FASTENER_POSITION\" | \"FASTENER_LENGTH\" | \"FASTENER_GRIP\" | \"FASTENER_SIZE_ROW\" | \"FRAME_SECTION_PICK\" | \"FRAME_MEMBER\" | \"FRAME_VALUE\" | \"FRAME_SKELETON_PICK\" | \"FRAME_NOTCH\" | \"GUSSET_PICK\" | \"CAP_PICK\" | \"SHEET_PICK\" | \"SHEET_VALUE\" | \"DIRECT_SOURCE\" | \"DIRECT_PICK\" | \"DIRECT_DEGREE\" | \"DIRECT_LOOP\" | \"DIRECT_VALUE\" | \"DIRECT_KNOT\" | \"DIRECT_LOFT\" | \"DIRECT_RANGE\" | \"DIRECT_PLANE\" | \"DIRECT_INTERSECT\" | \"DIRECT_ID\" | \"IGES_READ\" | \"IGES_EXPORT\" | \"TRIM_CURVE\" | VersionCode | \"ROWS_NOT_FROM_PERSON\" | \"ROW_FILES\" | \"ROW_UNKNOWN\" | \"ROW_IN_USE\" | \"RING_ROW\" | \"FASTENER_ROW\" | \"CASTING_RULE_ROW\" | \"LIBRARY_ID\" | \"LIBRARY_UNKNOWN\" | \"ZIP_LIMIT\" | \"MERGE_SUPERSEDED\" | \"MERGE_MISSING\""
+                "definition": "\"HARNESS_RAW_PROVENANCE_UNAVAILABLE\" | \"NO_LINK\" | \"NO_JOINTS\" | \"NO_FRAME\" | \"NOT_PLANAR\" | \"NOT_ONE_LOOP\" | \"NO_CLOSURE\" | \"BRANCH_FLIP\" | \"NO_PIN\" | \"NO_RANGE\" | \"BAD_VALUES\" | \"NOT_NEEDED\" | \"ONE_BODY\" | \"NO_PRINTER\" | \"DIRECTION_NOT_AXIS\" | \"TOO_BIG_TWO_WAYS\" | \"NO_ROOM\" | \"BAD_CONNECTOR\" | \"NOT_HOLLOW\" | \"GRID_TOO_FINE\" | \"NO_LATTICE\" | \"UNDRAINED\" | \"CURVED_BODY\" | \"NOTHING_TO_HOLLOW\" | \"DRAIN_NO_ROOM\" | \"BOOLEAN_REFUSED\" | \"NO_CHANGE\" | \"STALE_ECR\" | \"NO_ECR\" | \"DECIDED\" | \"APPROVAL_IS_THE_USERS\" | \"BAD_TRANSITION\" | \"BASELINE_FROZEN\" | \"STALE_BASELINE\" | \"STALE_RESULT\" | \"RESULT_NOT_OK\" | \"NO_BASELINE\" | \"BOM_INVALID\" | \"NO_DRAFT\" | \"BAD_VALUE\" | \"BOUND\" | \"GONE\" | \"REFERENCE_LOCKED\" | \"BAD_REFERENCE\" | \"NO_REFERENCE\" | \"DATUM_FIT\" | \"BAD_KEEPOUT\" | \"NOT_READ\" | \"SYNTAX\" | \"UNKNOWN_NAME\" | \"TYPE\" | \"LIMIT\" | \"REFUSED\" | \"DXF_MALFORMED\" | \"DXF_UNSUPPORTED\" | \"DXF_OPEN\" | \"DXF_NESTED\" | \"DXF_EMPTY\" | \"DWG_NOT_READ\" | \"DRAWING_SCOPE\" | \"DRAWING_SCOPE_REFERENCES\" | \"DRAWING_OPTIONS\" | \"DRAWING_SECTION_REFERENCES\" | \"DRAWING_DETAIL_REFERENCES\" | \"DRAWING_DETAIL_LETTER\" | \"DRAWING_DETAIL_PARENT\" | FrameGeometryCode | \"FRAME_SKELETON_IN_USE\" | \"FRAME_PART_IN_USE\" | \"SKETCH3D_PARAMETER\" | \"SKETCH3D_INPUT\" | \"SKETCH3D_CONFLICT\" | \"FRAME_NAME\" | \"FRAME_LINK_MISSING\" | \"FRAME_LINK_STALE\" | \"FRAME_POSE\" | \"INPUT_RANGE\" | \"INPUT_TYPE\" | \"INPUT_TARGET\" | \"INPUT_CHOICE\" | \"INPUT_NAME\" | \"INPUT_CONFLICT\" | \"INPUT_DEFAULT\" | \"VARIANT_UNKNOWN\" | \"PRINT_PREVIEW_INPUT\" | \"BEARING_HOUSING_REFERENCE\" | \"BEARING_HOUSING_SCOPE\" | \"BEARING_HOUSING_CYCLE\" | \"BEARING_HOUSING_POSE\" | \"BEARING_HOUSING_EVALUATION\" | \"MOUNT_RANGE\" | \"MOUNT_FACE\" | \"MOUNT_ROW\" | \"FRAME_SECTION_UNKNOWN\" | \"ORING_ROW_UNKNOWN\" | \"CONNECTOR_ROW_UNKNOWN\" | \"BEARING_ROW_UNKNOWN\" | \"RING_ROW_UNKNOWN\" | \"DRIVE_ROW_UNKNOWN\" | \"DRIVE_WHEELS\" | \"FIT_FACE\" | \"SHOP_ROWS_FLATTEN_SCOPE\" | \"NO_TABLE\" | \"NO_ROW\" | \"NO_RUN\" | \"LIMITS_BAD\" | \"LIMITS_MISSING\" | \"PATH_TOO_SHORT\" | \"JOINT_UNKNOWN\" | \"JOINT_MIMIC\" | \"JOINT_LIMIT\" | \"MOTION_UNKNOWN\" | \"LOOP_OPEN\" | \"LOOP_MATE_UNSUPPORTED\" | \"LOOP_PASSIVE\" | \"DEAD_POINT\" | \"CAM_PROFILE_UNSUPPORTED\" | \"CAM_UNSUPPORTED\" | \"CAM_IN_LOOP\" | \"ACTUATOR_INPUT\" | \"MODEL_READ\" | \"XML_MALFORMED\" | \"MESH_NOT_LOADED\" | \"CONTAINER_NEWER\" | \"CONTAINER_DAMAGED\" | \"SKETCH_PARAMETER\" | \"NO_BODY\" | \"PARAMETER_UNKNOWN\" | \"PARAMETER_NAME\" | \"PARAMETER_EXISTS\" | \"PARAMETER_UNBINDABLE\" | \"VALUE\" | \"NO_FEATURE\" | \"CONNECTOR_INVALID\" | \"CONNECTOR_POINT\" | \"CONNECTOR_UNAVAILABLE\" | \"CONNECTOR_KIND\" | \"NO_PART\" | \"PART_MATED\" | \"MATE_KIND\" | \"MATE_SAME_PART\" | \"MATE_BOTH_FIXED\" | \"MATE_FACE_UNKNOWN\" | \"MATE_FACES\" | \"MATE_UNMET\" | \"NO_MATE\" | \"PATTERN_VALUE\" | \"PATTERN_DRIVEN\" | \"PATTERN_REFERENCED\" | \"NO_PATTERN\" | \"NO_CUT\" | \"NO_STEP\" | \"ALIGN_PICK\" | \"ALIGN_TURN\" | \"HOLE_SIZE\" | \"HOLE_PATTERN\" | \"DRAFT_PICK\" | \"DRAFT_ANGLE\" | \"FULL_ROUND_PICK\" | \"TEXT_RELIEF_PICK\" | \"FACE_FILLET_PICK\" | \"THREAD_PICK\" | \"FILLET_CHAIN\" | \"DECIMATE_KEEP\" | \"SPLIT_PLANE\" | \"FACE_DISTANCE\" | \"LOFT_SECTIONS\" | \"SWEEP_PATH\" | \"PRIMITIVE_SIZE\" | \"GEAR_PICK\" | \"FASTENER_POSITION\" | \"FASTENER_LENGTH\" | \"FASTENER_GRIP\" | \"FASTENER_SIZE_ROW\" | \"FRAME_SECTION_PICK\" | \"FRAME_MEMBER\" | \"FRAME_VALUE\" | \"FRAME_SKELETON_PICK\" | \"FRAME_NOTCH\" | \"GUSSET_PICK\" | \"CAP_PICK\" | \"SHEET_PICK\" | \"SHEET_VALUE\" | \"DIRECT_SOURCE\" | \"DIRECT_PICK\" | \"DIRECT_DEGREE\" | \"DIRECT_LOOP\" | \"DIRECT_VALUE\" | \"DIRECT_KNOT\" | \"DIRECT_LOFT\" | \"DIRECT_RANGE\" | \"DIRECT_PLANE\" | \"DIRECT_INTERSECT\" | \"DIRECT_ID\" | \"IGES_READ\" | \"IGES_EXPORT\" | \"TRIM_CURVE\" | VersionCode | \"ROWS_NOT_FROM_PERSON\" | \"ROW_FILES\" | \"ROW_UNKNOWN\" | \"ROW_IN_USE\" | \"RING_ROW\" | \"FASTENER_ROW\" | \"CASTING_RULE_ROW\" | \"LIBRARY_ID\" | \"LIBRARY_UNKNOWN\" | \"ZIP_LIMIT\" | \"MERGE_SUPERSEDED\" | \"MERGE_MISSING\""
               }
             ],
             "members": [
@@ -283003,6 +284386,13 @@
                 "optional": true,
                 "readonly": false,
                 "type": "AssemblyCut[] | undefined"
+              },
+              {
+                "name": "assemblySteps",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "AssemblyStep[] | undefined"
               },
               {
                 "name": "baselines",

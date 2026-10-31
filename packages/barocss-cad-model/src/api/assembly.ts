@@ -5,12 +5,13 @@
 // tool writes (./assemblyCore), the assembly solved again after it. Results are plain data.
 import { Location, refuse, type BodyQuery, type FaceQuery, type Vec3 } from '@barocss/cad/api';
 import type { StudioDoc } from '../engine/doc';
+import { assemblyStepProblems, stepStateOf, stepsOf } from '../assembly/steps';
 import type { MateKind } from '../assembly/mates';
 import type { FrameSettings } from '../robot/frames';
 import type { MeshData } from './core';
 import { meshSelection } from './select';
 import { bodiesOf } from './core';
-import { cutDoc, deleteCutDoc, editCutDoc, addMateDoc, addPartDoc, deletePatternDoc, editPatternDoc, lockDoc, patternDoc, skipOccurrenceDoc, assemblyMeshes, BASE, emptyDoc, framePosesOf, framesDoc, partJointsOf, partLooksOf, placePartDoc, problemsOf, setPartJointsDoc, setPartLookDoc, variabilityDoc, variantDoc } from './assemblyCore';
+import { stepDoc, editStepDoc, deleteStepDoc, moveStepDoc, cutDoc, deleteCutDoc, editCutDoc, addMateDoc, addPartDoc, deletePatternDoc, editPatternDoc, lockDoc, patternDoc, skipOccurrenceDoc, assemblyMeshes, BASE, emptyDoc, framePosesOf, framesDoc, partJointsOf, partLooksOf, placePartDoc, problemsOf, setPartJointsDoc, setPartLookDoc, variabilityDoc, variantDoc } from './assemblyCore';
 import { part as studioPart, StudioPart } from './part';
 import { Robot } from './robot';
 import { drawingDoc, drawingOf, outputOf } from './outputs';
@@ -38,6 +39,16 @@ export interface PatternEdit { count?: number; skip?: number[]; spacing?: number
 export interface CutOptions { profile: { kind: 'circle'; radius: number } | { kind: 'rectangle'; w: number; d: number }; at: Vec3; dir: Vec3; depth: number | 'through'; parts: string[]; name?: string }
 /** What `editCut` changes (each left out: kept; `name: null` clears it). */
 export interface CutEdit { profile?: CutOptions['profile']; at?: Vec3; dir?: Vec3; depth?: number | 'through'; parts?: string[]; name?: string | null }
+
+/**
+ * An instruction step (`step`, roadmap 10 ⑥): the placed parts it introduces (`parts`, by name), a recommended camera (`view`: eye, target, up, mm)
+ * and a display-only explode scale 0 to 2. Presentation only: no placement, mate, BOM or export reads it.
+ */
+export interface StepOptions { name?: string; note?: string; parts?: string[]; view?: { eye: Vec3; target: Vec3; up: Vec3 }; explode?: number }
+/** What `editStep` changes (each left out: kept; `note`, `view` and `explode` null: cleared). */
+export interface StepEdit { name?: string; note?: string | null; parts?: string[]; view?: StepOptions['view'] | null; explode?: number | null }
+/** A step as `steps()` lists it: parts by name (an id when the part is gone). */
+export interface StepListing { id: string; name: string; note?: string; parts: string[]; view?: StepOptions['view']; explode?: number }
 
 const toVec = (v: readonly number[]): XYZ => [v[0], v[1], v[2]];
 
@@ -171,6 +182,40 @@ export class Assembly {
   cuts(): { id: string; name?: string; profile: CutOptions['profile']; at: Vec3; dir: Vec3; depth: number | 'through'; parts: string[] }[] {
     return (this.#doc.assemblyCuts ?? []).map(c => ({ id: c.id, ...(c.name ? { name: c.name } : {}), profile: { ...c.profile }, at: toVec(c.at), dir: toVec(c.dir), depth: c.depth, parts: c.targets.map(t => this.#doc.instances!.find(i => i.id === t)?.name ?? t) }));
   }
+
+  /** `assembly.step`: an instruction step added at the end, introducing the named parts; each part is in one step. Its id: `steps()`. Presentation only. */
+  step(o: StepOptions): Assembly {
+    return new Assembly(this.name, stepDoc(this.#doc, { ...(o.name ? { name: o.name } : {}), ...(o.note ? { note: o.note } : {}), add: (o.parts ?? []).map(n => this.idOf(n)), ...(o.view ? { view: this.#view(o.view) } : {}), ...(o.explode !== undefined ? { explode: o.explode } : {}) }).doc);
+  }
+
+  /** `assembly.edit_step`: a step's name, note, parts, view or explode scale changed. */
+  editStep(id: string, o: StepEdit): Assembly {
+    return new Assembly(this.name, editStepDoc(this.#doc, { id, ...(o.name !== undefined ? { name: o.name } : {}), ...(o.note !== undefined ? { note: o.note } : {}), ...(o.parts !== undefined ? { add: o.parts.map(n => this.idOf(n)) } : {}),
+      ...(o.view !== undefined ? { view: o.view === null ? null : this.#view(o.view) } : {}), ...(o.explode !== undefined ? { explode: o.explode } : {}) }));
+  }
+
+  /** `assembly.delete_step`: the step removed; the placed parts stay. */
+  deleteStep(id: string): Assembly { return new Assembly(this.name, deleteStepDoc(this.#doc, id)); }
+
+  /** `assembly.move_step`: the step put at position `to` (0 is first). */
+  moveStep(id: string, to: number): Assembly { return new Assembly(this.name, moveStepDoc(this.#doc, id, to)); }
+
+  /** The steps in order: id, name, note, the parts each introduces (names), its view and explode scale. */
+  steps(): StepListing[] {
+    const nameOf = (id: string) => this.#doc.instances?.find(i => i.id === id)?.name ?? id;
+    return stepsOf(this.#doc).map(s => ({ id: s.id, name: s.name, ...(s.note ? { note: s.note } : {}), parts: s.add.map(nameOf), ...(s.view ? { view: { eye: toVec(s.view.eye), target: toVec(s.view.target), up: toVec(s.view.up) } } : {}), ...(s.explode !== undefined ? { explode: s.explode } : {}) }));
+  }
+
+  /** What step `index` (0 is the first) shows, parts by name: installed, active, waiting, unresolved (placed no more) and unassigned (in no step). */
+  stepState(index: number): { installed: string[]; active: string[]; waiting: string[]; unresolved: string[]; unassigned: string[] } {
+    const nameOf = (id: string) => this.#doc.instances?.find(i => i.id === id)?.name ?? id, r = stepStateOf(this.#doc, index);
+    return { installed: r.installed.map(nameOf), active: r.active.map(nameOf), waiting: r.waiting.map(nameOf), unresolved: r.unresolved, unassigned: r.unassigned.map(nameOf) };
+  }
+
+  /** What the steps get wrong about the placed parts now (a part a step names that is gone; parts in no step), in words. */
+  stepProblems(): string[] { return assemblyStepProblems(this.#doc).map(p => p.message); }
+
+  #view(v: NonNullable<StepOptions['view']>) { return { eye: toVec(v.eye), target: toVec(v.target), up: toVec(v.up) }; }
 
   /** A placed part locked where it stands to another (the base part unless named) — the studio's Lock: they move as one. */
   lock(name: string, to = BASE): Assembly {

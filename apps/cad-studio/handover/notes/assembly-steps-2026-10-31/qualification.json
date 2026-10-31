@@ -1,0 +1,44 @@
+{
+  "decision": "D393",
+  "roadmap": "10 ⑥ assembly instruction steps (v1)",
+  "issues": {
+    "#2251": "the minimum explanation contract (order, part↔step, recommended view, explode per step, deterministic navigation, stale references unresolved) built; v1 limits: no playback, top-level occurrences only, no chat tool",
+    "#538": "stays open"
+  },
+  "tier": "full (new document field + public API): two audit rounds with mutation, actual run",
+  "status": "QUALIFIED",
+  "before": "measured 2026-10-31: no step/sequence contract; only the display-only radial Explode existed",
+  "change": {
+    "document": "StudioDoc.assemblySteps: {id, name (≤ 60), note? (≤ 500), add: top-level occurrence ids, view? {eye, target, up}, explode? 0..2}; a part is introduced in one step only",
+    "model": "addAssemblyStep/editAssemblyStep/deleteAssemblyStep/moveAssemblyStep, stepStateOf (installed/active/waiting/unresolved), stepOfOccurrence, assemblyStepProblems (missing-part, unassigned, unlistable-part); refusal NO_STEP; Open refuses malformed steps, keeps stale references and reports them",
+    "ids": "assembly/takenIds.ts: every allocator (addPart → facade/chat, library, fasteners, Studio insert/Duplicate) skips ids still named by steps, cut targets, mates or pattern seeds — a stale reference is never remapped to a new part (also closes the same hole for D392 cuts)",
+    "guards": "removing a part a step names is refused on every path (Studio Remove, chat delete_part, pattern count/skip/delete, seed delete)",
+    "presentation": "steps never reach placement, mates, geometry, BOM, exports or the evaluation key; the step explode is display-only and the previous explode comes back on close",
+    "studio": "palette 'Assembly steps' → Steps dock panel: New step from selection, Prev/Next 'Step k of n', step rows, Go to its step, name, parts chips with Add selected, Step explode, Capture view/Reset view, move/delete; note, 'Show waiting parts faded' and notes under a closed Details; waiting parts hidden, active highlighted, a hidden waiting part shows no gizmo or outline; position is session state"
+  },
+  "audits": {
+    "root": "actual run02 image review: the gizmo of a selected waiting (hidden) part floated in mid-air — fixed",
+    "round1": "CHANGES_REQUIRED: wrong result — a stale step id was handed to a new part by every allocator (the step silently showed the new part); minor — 'base'/'p1/q' wording, no model length cap; 12/12 mutants caught",
+    "round2": "targeted: product correct; tests added for the survived mutants (stale mate, stale pattern seed, unlistable-part kind) — root re-ran both taken-id mutants: caught"
+  },
+  "checks": {
+    "modelSuite": "2403/2403",
+    "studioSuite": "622/622",
+    "tsc": "PASS (model, Studio)",
+    "eslint": "clean on changed files",
+    "docsTables": "refusals, agent-tools, api-inventory, check-docs PASS"
+  },
+  "actualRun": {
+    "run05": "final source PASS on assembly-steps.bcad (base, Block 1 + Block 2 of one definition, Post, Cap): three steps built through the panel (Blocks: Block 1 + Add selected Block 2; Post with Capture view; Cap with Step explode ×1); Prev/Prev/Next/row jumps give identical step 2 (position + parts) and step 3; navigation never changes the document; Cap selected and waiting → no gizmo, Post shown → gizmo; Go to its step from Block 2 → step 1; Remove Post refused in words; Undo/Redo; Save + fresh Open; Close steps → all parts, explode label back to off; oracle: steps stored as built, instances/base/mates untouched; 0 page/console errors; root reviewed the screenshots (step 1 shows only the blocks highlighted, step 2 adds the post, step 3 the cap exploded)",
+    "failedRuns": ["run01: driver passed the instance count where the node count was expected", "run03: driver read the explode button text with its icon name", "run04: driver expected a gizmo in an exploded step (exploded views show none, pre-existing)"]
+  },
+  "followUps": [
+    "no step playback; no chat tool (per-turn budget full)",
+    "steps list top-level occurrences only (parts inside sub-assemblies by path later)",
+    "the step-part removal refusal reuses code PATTERN_REFERENCED (plain words name the step)",
+    "an opened step whose name is over 60 refuses every edit until renamed",
+    "the orbit camera ignores the stored up vector (+Z)"
+  ],
+  "remoteCI": "NOT_RUN",
+  "release": "NOT_RUN"
+}

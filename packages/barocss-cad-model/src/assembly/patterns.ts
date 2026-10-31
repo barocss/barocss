@@ -11,6 +11,7 @@ import { solveDoc, type Edited, type SolveProblem } from './edit';
 import { checkPartDelete } from '../frames/skeleton';
 import { BASE, type Vec3 } from './mates';
 import { hostOf } from '../engine/occurrences';
+import { nameOfStep, stepHoldWords, stepHolding } from './steps';
 
 export { PATTERN_MAX, PATTERN_MIN, PATTERN_SPACING_MAX };
 
@@ -92,6 +93,7 @@ function mention(value: unknown, named: (token: string) => boolean, path: string
 function referrerOf(doc: StudioDoc, named: (token: string) => boolean): string | undefined {
   const m = (doc.mates ?? []).find(x => named(hostOf(x.a.part)) || named(hostOf(x.b.part)));
   if (m) return `mate ${m.id}`;
+  const step = stepHolding(doc, named); if (step) return `step ${nameOfStep(step)} lists it`;
   for (const [path, of] of REFERRERS) { const at = mention(of(doc), named, path); if (at) return at; }
   return undefined;
 }
@@ -201,6 +203,8 @@ export function patternDeleteRefusal(doc: StudioDoc, id: string) {
   if (own) return own;
   const cut = doc.assemblyCuts?.find(c => c.targets.includes(id));
   if (cut) return refusal('PATTERN_REFERENCED', `${nameOf(doc, id)} is cut by ${cut.name ? `${cut.name} (${cut.id})` : cut.id}: delete that cut, or take the part off its targets, first.`, { cut: cut.id });
+  const step = stepHolding(doc, t => t === id);
+  if (step) return refusal('PATTERN_REFERENCED', stepHoldWords(doc, id, step), { step: step.id });
   const p = doc.instancePatterns?.find(x => x.seed === id);
   return p ? refusal('PATTERN_REFERENCED', `${nameOf(doc, id)} is the seed of pattern ${p.id}: delete that pattern first.`, { pattern: p.id }) : undefined;
 }

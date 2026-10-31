@@ -2,6 +2,7 @@ import { commands, type Selection } from '@barocss/cad-model/app/commands';
 import type { PartInstance } from '@barocss/cad-model/engine/doc';
 import { SKETCH3D_COMMAND } from '../skeleton/useSkeletonEditor';
 import type { DisplayMode } from '../viewport/renderer';
+import { STEPS_COMMAND } from './assemblySteps';
 export const emptySel: Selection = { faces: [], edges: [], bodies: [] };
 export const NO_INSTANCES: PartInstance[] = [];
 /** No assembly cuts (a stable empty list for the Browser's rows). */
@@ -19,7 +20,7 @@ export const whenOf = (at: string) => { const d = new Date(at); return Number.is
 export const BROWSER_PLACEMENT = 'dock' as 'dock' | 'left';
 
 /** The studio's own commands in the palette, after the model's (G17's 3D sketch). */
-export const PALETTE_EXTRA = [SKETCH3D_COMMAND];
+export const PALETTE_EXTRA = [SKETCH3D_COMMAND, STEPS_COMMAND];
 export const CAD_DISPLAY_MODES: { value: DisplayMode; label: string }[] = [
   { value: 'shaded-with-edges', label: 'Shaded with edges' },
   { value: 'hidden-lines-removed', label: 'Hidden lines removed' },

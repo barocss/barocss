@@ -141,7 +141,7 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
    - 10③ [CLOSED D383: 선형·원형 반복, 안정된 occurrence id, Skip/Restore, BOM·도면·STEP·3MF 일관, 감사 3회] 부품 반복(component pattern)(#2180, RS7.4): 인스턴스의 선형/원형 반복, 생성 occurrence의 안정된 id, BOM 수량·mate 대상. feature(문서 필드 → full).
    - 10④ [CLOSED D389: occurrence별 joints(저장 자세 기준 오프셋), FK로 자세를 잡아 접음, 패널·API·채팅, 감사 2회] 유연한 하위 조립(RS7.4): 같은 하위 조립의 occurrence마다 자기 관절 상태(문서에 occurrence 경로로 저장), 강체 접힘 기본 유지. 10② 뒤. full.
    - 10⑤ [CLOSED D392 v1: assemblyCuts(원·사각, 깊이/Through 양방향, 최상위 부품), 정의 불변·배치 문서에서만 cut, 뷰·도면·STEP·3MF·분해·간섭·로봇·질량·BOM 일관, 같은 cut은 BOM 한 줄; 감사 4회] [측정 2026-10-31: 조립 문맥 피처 없음, 구멍 하나에도 각 부품 정의를 바꿔야 했음] 조립 피처(여러 부품을 가로지르는 cut): 부품 정의를 바꾸지 않고 조립 문맥에서만 적용, BOM/도면/내보내기 일관(#2180). Kernel 경유 → full.
-   - 10⑥ 조립 설명 단계(#2251): 순서 있는 단계(단계별 보이기·분해·시점), 표시 전용이며 CAD 배치를 바꾸지 않음. feature.
+   - 10⑥ [CLOSED D393 v1: assemblySteps(단계별 도입 부품·권장 시점·분해 배율), 표시 전용, Prev/Next/점프 동일 상태, 기다리는 부품 숨김·현재 단계 강조, 오래된 참조 유지·보고·id 재사용 금지; 재생·채팅 도구는 다음; 감사 2회] [측정 2026-10-31: 단계 계약 없음, 표시 전용 방사형 Explode만] 조립 설명 단계(#2251): 순서 있는 단계(단계별 보이기·분해·시점), 표시 전용이며 CAD 배치를 바꾸지 않음. feature.
    - 10⑧ [CLOSED D391 v1: 최상위 인스턴스 Edit part, 반투명 문맥, Finish/Cancel 배너, 공유 정의 갱신 Undo 한 단계, 세션 중 저장·열기·채팅·가져오기 보호; 하위 조립 안 부품은 다음] (사용자 2026-10-31) 조립 안에서 부품 편집(edit in context): 인스턴스/개요에서 "부품 편집" → 나머지 부품 흐리게, History 막대가 그 부품의 피처로, 기존 도구 그대로; 끝내면 공유 정의 갱신(모든 인스턴스·BOM·도면·내보내기 반영, Undo 한 단계). v1은 그 자리 편집만, 다른 부품 형상을 참조로 거는 문맥 참조(in-context reference)는 순환·이식 위험 때문에 나중. 하위 조립 안 부품(②의 경로)도 대상. feature(문서 동작 변경 → 감사 반복 여부는 범위 확정 때).
    - 10⑦ motion study(시간 구동·값 그래프, RS7.4 pitch–azimuth): 기존 robot motions/재생 위; Physics/Motion 보류 조건과 범위는 오너 확인 뒤 시작.
    - 대형 조립 성능은 23행 소유(여기서 다루지 않음). #538은 epic으로 열어 둠.

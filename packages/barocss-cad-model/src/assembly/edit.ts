@@ -6,6 +6,7 @@ import { readConnector, validateBallOptions, validateFastenedOptions, validateUn
 // again from the placements before it, as the studio does; a refusal is thrown, coded (ASSEMBLY_CODES).
 import { emptyDoc, type PartInstance, type StudioDoc } from '../engine/doc';
 import { coded, refusal, type CadModelCode } from '../engine/refusal';
+import { nextInstanceId } from './takenIds';
 import { nextFreeId } from '../util/ids';
 import { curvePatternDocumentProblem } from '../engine/curveFeaturePattern';
 import { tableOf, tablesFor } from './faces';
@@ -16,7 +17,7 @@ import { readRobot, type JointTree, type RobotSettings } from '../robot/joints';
 import type { FrameSettings } from '../robot/frames';
 
 /** What the assembly's edits refuse with. */
-export const ASSEMBLY_CODES: readonly CadModelCode[] = ['VALUE', 'CONNECTOR_INVALID', 'CONNECTOR_POINT', 'CONNECTOR_UNAVAILABLE', 'CONNECTOR_KIND', 'NO_PART', 'PART_MATED', 'MATE_KIND', 'MATE_SAME_PART', 'MATE_BOTH_FIXED', 'MATE_FACE_UNKNOWN', 'MATE_FACES', 'MATE_UNMET', 'NO_MATE', 'FRAME_NAME', 'PATTERN_VALUE', 'PATTERN_DRIVEN', 'PATTERN_REFERENCED', 'NO_PATTERN', 'NO_CUT'];
+export const ASSEMBLY_CODES: readonly CadModelCode[] = ['VALUE', 'CONNECTOR_INVALID', 'CONNECTOR_POINT', 'CONNECTOR_UNAVAILABLE', 'CONNECTOR_KIND', 'NO_PART', 'PART_MATED', 'MATE_KIND', 'MATE_SAME_PART', 'MATE_BOTH_FIXED', 'MATE_FACE_UNKNOWN', 'MATE_FACES', 'MATE_UNMET', 'NO_MATE', 'FRAME_NAME', 'PATTERN_VALUE', 'PATTERN_DRIVEN', 'PATTERN_REFERENCED', 'NO_PATTERN', 'NO_CUT', 'NO_STEP'];
 
 /** A problem the solver or the patterns report: the mate, why, and for a pattern that does not settle its id and the mates on the cycle. */
 export interface SolveProblem { mate: string; reason: string; pattern?: string; mates?: string[] }
@@ -101,7 +102,7 @@ export interface Edited { doc: StudioDoc; problems: SolveProblem[] }
 export function addPart(doc: StudioDoc, o: AddPartOptions): Edited & { id: string } {
   const pathProblem = o.doc && (fillPatternDocumentProblem(o.doc) ?? curvePatternDocumentProblem({ instances: [{ doc: o.doc }] }));
   if (pathProblem) throw refusal('VALUE', pathProblem);
-  const instances = doc.instances ?? [], id = nextFreeId('p', new Set(instances.map(i => i.id)));
+  const instances = doc.instances ?? [], id = nextInstanceId(doc, 'p');
   const inst: PartInstance = { id, name: o.name, doc: o.doc ?? emptyDoc(), position: o.position ?? [0, 0, 0], rotation: o.rotation ?? [0, 0, 0], ...(o.grounded ? { grounded: true } : {}) };
   return { ...solveDoc({ ...doc, instances: [...instances, inst] }, instances), id };
 }

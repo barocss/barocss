@@ -488,6 +488,7 @@
 | `[NO_ROOM]` | `print` | the part could not be cut |
 | `[NO_ROW]` | `standards` | … … has no field …; fields: … |
 | `[NO_RUN]` | `team` | … is not a run for … … |
+| `[NO_STEP]` | `assembly` | No step "…"; steps: …. |
 | `[NO_TABLE]` | `standards` | no table …; tables: … |
 | `[ONE_BODY]` | `app`, `print` | Select one cut result to repeat. |
 | `[ORING_ROW_UNKNOWN]` | `engine` | a gland names the O-ring row "…", which the document's O-ring rows do not hold (rows: …) |

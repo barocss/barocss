@@ -90,6 +90,10 @@ import { countRender, onBlockRender } from './devRenders';
 import { OutlinerInstances } from './ui/OutlinerInstances';
 import { OutlinerCuts } from './ui/OutlinerCuts';
 import { AssemblyCutHud } from './ui/AssemblyCutHud';
+import { nextInstanceId } from '@barocss/cad-model/assembly/takenIds';
+import { AssemblyStepsPanel } from './ui/AssemblyStepsPanel';
+import { STEPS_COMMAND, cameraOfView, shownSelection as litSelection, stepAfter, stepOffer, stepsDisplay, viewOfCamera } from './app/assemblySteps';
+import { addAssemblyStep, assemblyStepProblems, deleteAssemblyStep, editAssemblyStep, moveAssemblyStep, stepsOf, type EditAssemblyStepOptions } from '@barocss/cad-model/assembly/steps';
 import { cutOfDraft, cuttableOf, defaultCutAt, draftOfCut, draftProblem, draftTrialProblem, newCutDraft, withAddedTargets, withDraftCut, type CutDraft } from './app/assemblyCutDraft';
 import { addAssemblyCut, deleteAssemblyCut, editAssemblyCut } from '@barocss/cad-model/assembly/cuts';
 import { useJoints } from './state/useJoints';
@@ -575,6 +579,8 @@ export function App() {
   /** O10: the Rebuild panel, and the last evaluation it reads (a store: an evaluation renders only the open panel). */
   const [rebuildOpen, setRebuildOpen] = useState(false);
   const [variantsOpen, setVariantsOpen] = useState(false);
+  // Roadmap 10 ⑥: the Steps panel and its session state — the step shown and whether waiting parts are faded (neither is saved, nor an undo step).
+  const [stepsOpen, setStepsOpen] = useState(false), [stepIndex, setStepIndex] = useState(0), [stepsFaded, setStepsFaded] = useState(false);
   const rebuildStore = useMemo(rebuildStoreOf, []);
   // (AM2: the overhang map along +Z for the part's printing process, the bed at the bodies' lowest point.)
   const printing = processProfile(doc.process)?.additive ? processProfile(doc.process)! : null;
@@ -1080,6 +1086,36 @@ export function App() {
   const [instDrag, setInstDrag] = useState<{ id: string; drag: InstanceDrag; settling: boolean; key: string } | null>(null);
   // (R1c (3a): the placed parts as they are shown — placed, posed, exploded, dragged and sectioned.)
   const { instancesPlaced, instancePoseMap, cpuInstanceSection, instancesShown } = useScenePoses(doc, sceneInstanceBodies, bodies, jointFk, explode, section, sketch, gpuSection, instDrag);
+  // Roadmap 10 ⑥: the Steps panel. While it is shown the viewport leaves the waiting parts out (or draws them faded), highlights the step's own
+  // parts and takes the step's explode scale and view; closing it puts the display back (all parts, the explode it had, the camera as it is).
+  const stepsShown = stepsOpen && !bomOpen && !libraryOpen && !paramsOpen && !variantsOpen && !rebuildOpen && !rendering && !drawing && !sketch && !active;
+  const stepCount = stepsOf(doc).length, stepAt = stepCount ? Math.min(stepIndex, stepCount - 1) : 0;
+  const stepsDisp = useMemo(() => stepsShown ? stepsDisplay(doc, stepAt, stepsFaded) : null, [stepsShown, doc.assemblySteps, doc.instances, stepAt, stepsFaded]);
+  const explodeBefore = useRef<number | null>(null), stepExplode = stepsDisp?.explode;
+  useEffect(() => {
+    if (stepExplode === undefined) { if (explodeBefore.current !== null) { setExplode(explodeBefore.current); explodeBefore.current = null; } return; }
+    if (explodeBefore.current === null) explodeBefore.current = explodeStore.get();
+    setExplode(stepExplode);
+  }, [stepExplode]);
+  const stepView = stepsDisp?.state.step.view, stepViewRef = useRef(stepView), stepId = stepsDisp?.state.step.id;
+  stepViewRef.current = stepView;
+  const applyStepView = useCallback(() => { const v = stepViewRef.current, vp = viewport.current; if (v && vp) vp.setCamera(cameraOfView(v, vp.getCamera())); }, []);
+  // (On entering a step only: an edit of the step's explode scale or note does not take the camera back.)
+  useEffect(() => { if (stepId) applyStepView(); }, [stepId, applyStepView]);
+  const stepEdit = (run: () => { doc: StudioDoc }, then?: () => void) => {
+    let next: StudioDoc;
+    try { next = run().doc; } catch (e) { setToast({ title: 'Step not changed', hint: e instanceof Error ? e.message : String(e), detail: '' }); return; }
+    if (commit(next)) then?.();
+  };
+  const stepChange = (o: EditAssemblyStepOptions) => stepEdit(() => editAssemblyStep(doc, o));
+  const stepParts = () => hostsOf(instanceSel).filter(id => doc.instances?.some(i => i.id === id));
+  const newStep = () => {
+    const add = stepParts();
+    if (!add.length) { setToast({ title: 'Step not added', hint: 'Select the parts the step adds first, in the Browser or the view.', detail: '' }); return; }
+    stepEdit(() => addAssemblyStep(doc, { add }), () => setStepIndex(stepCount));
+  };
+  const stepsProblems = useMemo(() => assemblyStepProblems(doc).map(p => p.message), [doc.assemblySteps, doc.instances]);
+  const stepsOffer = stepsShown ? stepOffer(doc, instanceSel, stepAt) : null;
   // (`source`: what the instance names as its file — CG6: `./<path>` for a project document, storage/linked.ts.)
   const insertPart = async (file: File, source = file.name) => {
     try {
@@ -1089,11 +1125,10 @@ export function App() {
       const pathProblem = insertedCurvePartProblem(parsed);
       if (pathProblem) throw new Error(pathProblem);
       if (parsed.schema === 4 || Object.prototype.hasOwnProperty.call(parsed, 'routeBundles')) throw refusal('BAD_REFERENCE', 'Route bundle: inserting a linked route document as a part is not supported. Detach the bundle first.');
-      const list = doc.instances ?? [], used = new Set(list.map(i => i.id));
-      let n = 1; while (used.has(`inst${n}`)) n++;
+      const list = doc.instances ?? [], newId = nextInstanceId(doc, 'inst');
       // Placed to the right of everything shown.
       const right = Math.max(0, ...bodies.map(b => b.mesh.bounds.max[0]), ...[...instanceBodies.values()].flatMap(v => v.bodies.map(b => b.mesh.bounds.max[0])));
-      const inst: PartInstance = { id: `inst${n}`, name: file.name.replace(/\.(bcad|json)$/i, ''), doc: { ...parsed, render: undefined, direct: undefined }, position: [Math.ceil(right + 20), 0, 0], rotation: [0, 0, 0], part: { id: freshPartId(doc), rev: revisionOf(parsed), source } };
+      const inst: PartInstance = { id: newId, name: file.name.replace(/\.(bcad|json)$/i, ''), doc: { ...parsed, render: undefined, direct: undefined }, position: [Math.ceil(right + 20), 0, 0], rotation: [0, 0, 0], part: { id: freshPartId(doc), rev: revisionOf(parsed), source } };
       if (!commitInstances([...list, inst], [inst.id])) return; setSelection(emptySel); setDirectSel([]);
       setTimeout(() => viewport.current?.fit(), 600);
     } catch (e) { setToast({ title: 'Could not insert this part', hint: e instanceof Error ? e.message : String(e), detail: '' }); }
@@ -1199,6 +1234,7 @@ export function App() {
     if (!avail.ok) { setToast({ title: `${cmd.label} can’t run here`, hint: avail.reason, detail: '' }); return; }
     if (variants.showing) { setToast({ title: `${cmd.label} can’t run here`, hint: `Showing ${variants.showing}: show the master to edit.`, detail: '' }); return; }
     if (cmd.id === SKETCH3D_COMMAND.id) { cancel(); skel.begin(null); setSelection(emptySel); setEditNode(null); return; }
+    if (cmd.id === STEPS_COMMAND.id) { cancel(); setBomOpen(false); setRebuildOpen(false); setVariantsOpen(false); setLibraryOpen(false); setParamsOpen(false); setStepsOpen(true); return; }
     if (cmd.action === 'sketch') {
       // On a selected flat face (horizontal or vertical), joined to its body by default; else on XY.
       const f = selection.faces[0]; const face = f && bodies[f.body]?.mesh.faces[f.face];
@@ -1828,7 +1864,7 @@ export function App() {
   const viewportInstanceSel = useMemo(() => viewportInstanceSelection(instanceSel, host => instanceBodies.get(host)), [instanceSel, instanceBodies]) as string[];
   const instGizmo: TransformGizmo | null = (() => {
     // (An occurrence of a pattern is placed by its seed: no gizmo of its own.)
-    if (!selectedInst || selectedInst.pattern || active || sketch || rendering || drawing || measure || assembly.draft || exploded) return null;
+    if (!selectedInst || stepsDisp?.hidden.has(selectedInst.id) || selectedInst.pattern || active || sketch || rendering || drawing || measure || assembly.draft || exploded) return null;
     const ib = instanceBodies.get(selectedInst.id), axes = gizmoAxes(selectedInst, assembly.freedom[selectedInst.id]);
     if (!ib?.bodies.length || !axes) return null;
     const lo = [0, 1, 2].map(k => Math.min(...ib.bodies.map(b => b.mesh.bounds.min[k]))), hi = [0, 1, 2].map(k => Math.max(...ib.bodies.map(b => b.mesh.bounds.max[k])));
@@ -1879,6 +1915,9 @@ export function App() {
   }, [instancesShown, doc.instances, rendering, section, previewBodies, cpuInstanceSection, sectionHatchOn, hatchStep, instanceLooks]);
 
   const instancesLooked = useMemo(() => instancesDrawn.map(it => { const looks = instanceLooks.get(it.id); return looks ? { ...it, looks } : it; }), [instancesDrawn, instanceLooks]);
+  // (Roadmap 10 ⑥: the parts the shown step has not introduced yet are left out of the view — display only, the document is untouched.)
+  const instancesStepped = useMemo(() => stepsDisp?.hidden.size ? instancesLooked.filter(it => !stepsDisp.hidden.has(it.id)) : instancesLooked, [instancesLooked, stepsDisp]);
+  const steppedSelection = useMemo(() => { const own = stepsDisp ? [...litSelection(viewportInstanceSel, stepsDisp.hidden)] : viewportInstanceSel; return stepsDisp?.highlight.length ? [...new Set([...own, ...stepsDisp.highlight])] : own; }, [viewportInstanceSel, stepsDisp]);
 
   // A hole's whole region, see-through, while it is placed or edited: where it runs off the part's edge
   // only a notch shows of it otherwise.
@@ -2026,6 +2065,13 @@ export function App() {
       {versionsOpen && !variantsOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <VersionsPanel project={project} doc={doc} fileName={fileName} comparing={compareBase?.id ?? null} onCompare={setCompareBase}
         onInsert={path => void project.fileOf(path).then(f => { if (f) void insertPart(f, linkSource(path)); })}
         onOpen={d => { setCompareBase(null); replaceDoc(d, true); setDirty(true); setTimeout(() => viewport.current?.fit(), 300); }} />}
+      {stepsShown && <AssemblyStepsPanel doc={doc} index={stepAt} offer={stepsOffer} faded={stepsFaded} problems={stepsProblems}
+        onGo={k => setStepIndex(stepAfter(k, 0, stepCount))} onFaded={setStepsFaded} onNew={newStep}
+        onRename={(id, name) => stepChange({ id, name })} onNote={(id, note) => stepChange({ id, note: note.trim() ? note : null })} onExplode={(id, explode) => stepChange({ id, explode: explode || null })}
+        onAddSelected={id => { const add = stepParts(), step = stepsOf(doc).find(s => s.id === id); if (!step) return; if (!add.length) { setToast({ title: 'Step not changed', hint: 'Select the parts to add first, in the Browser or the view.', detail: '' }); return; } stepChange({ id, add: [...step.add, ...add.filter(a => !step.add.includes(a))] }); }}
+        onTakeOut={(id, part) => { const step = stepsOf(doc).find(s => s.id === id); if (step) stepChange({ id, add: step.add.filter(a => a !== part) }); }}
+        onCaptureView={id => { const c = viewport.current?.getCamera(); if (c) stepChange({ id, view: viewOfCamera(c) }); }} onResetView={applyStepView}
+        onMove={(id, to) => stepEdit(() => moveAssemblyStep(doc, id, to), () => setStepIndex(to))} onDelete={id => stepEdit(() => deleteAssemblyStep(doc, id), () => setStepIndex(k => Math.max(0, Math.min(k, stepCount - 2))))} onClose={() => setStepsOpen(false)} />}
       {variantsOpen && !bomOpen && !libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <VariantsPanel doc={doc} variants={variants} onCommit={next => commit(next, false)} onError={hint => setToast({ title: 'Variants: refused', hint, detail: '' })} onClose={() => setVariantsOpen(false)} />}
       {libraryOpen && !paramsOpen && !rendering && !drawing && !sketch && !active && <LibraryPanel doc={doc} onCommit={next => commit(next)} onClose={() => setLibraryOpen(false)} onError={(title, hint) => setToast({ title, hint, detail: '' })} onQuote={() => { void exportQuote(); }} />}
       {paramsOpen && !rendering && !drawing && !sketch && !active && <ParametersPanel doc={doc} onClose={() => setParamsOpen(false)}
@@ -2081,10 +2127,10 @@ export function App() {
         }
         return <InstancePanel inst={inst} bodies={instanceBodies.get(inst.id)?.bodies}
           onChange={next => commitInstances(list.map(i => i.id === inst.id ? next : i))}
-          onDuplicate={() => { const used = new Set(list.map(i => i.id)); let n = 1; while (used.has(`inst${n}`)) n++;
+          onDuplicate={() => { const newId = nextInstanceId(doc, 'inst');
             // (A copy of an occurrence is a free part: not the pattern's, not fixed by it.)
             const copy: PartInstance = inst.pattern ? { ...inst, pattern: undefined, grounded: undefined } : inst;
-            commitInstances([...list, { ...copy, id: `inst${n}`, name: `${inst.name} copy`, position: [inst.position[0] + 20, inst.position[1] + 20, inst.position[2]] }], [`inst${n}`]); }}
+            commitInstances([...list, { ...copy, id: newId, name: `${inst.name} copy`, position: [inst.position[0] + 20, inst.position[1] + 20, inst.position[2]] }], [newId]); }}
           onGround={on => { const why = assembly.ground(inst.id, on); if (why) setToast({ title: 'Can’t fix this part in place', hint: why, detail: '' }); }}
           shared={inst.part ? sharing(doc, inst.part.id).length : 0} pending={inst.part ? doc.pendingParts?.[inst.part.id] : undefined}
           onEditPart={() => startInPlace(inst.id)} onIndependent={() => commitParts(makeIndependent(doc, inst.id))}
@@ -2190,7 +2236,7 @@ export function App() {
       </header></Profiler>
       <div className="stage">
       <SceneViewport ref={viewport} contactLinks={contactShown && motionContact ? motionContact.links : undefined} poses={{ poseStore, explodeStore, jointTree, bodies: drawnBodies, instancesPlaced, cpuInstanceSection }} liveSection={sectionLiveView} displayMode={effectiveDisplayMode} requestedDisplayMode={displayMode} displayModeReason={displayModeReason} onDisplayModeStatus={onDisplayModeStatus} onBackend={setViewBackend} bodies={cageEd.session ? cageEd.shown(shownBodies) : viewBodies} selection={cageEd.session ? emptySel : shownSelection} ghost={sketchGhost} sketch={sketch} gizmo={cageEd.session ? cageEd.gizmo : routeGizmo ?? gizmo ?? instGizmo ?? poleGizmo} cage={cageEd.overlay} onPickCage={cageEd.onPick} tool={skel.tool} regions={regions} threads={threads} analysis={rendering ? null : viewAnalysis} handles={sectionDrag.length ? sectionDrag : handles} instancePreview={instancePreview} profiles={active ? [] : profiles} onPickProfile={pickProfile} render={rendering ? render : null} printDisplay={printDisplay} printActive={printEnabled && !printReason} camDisplay={camDisplay} camActive={camEnabled && !camReason} annotations={pmiItems} annotationSelected={pmiSelected} onPickAnnotation={pickAnnotation}
-        direct={viewportDirect} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={viewportUnderlays} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesLooked} clearance={clearanceDisplay} isolatedInstances={displayScopeReason ? undefined : isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : compareOverlay} instanceSelection={assembly.draft ? assembly.highlight.instances : viewportInstanceSel} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
+        direct={viewportDirect} directSelection={directSel} poles={poleMode ? poles : undefined} cloud={benchCloud ?? workspaceCloud} underlays={viewportUnderlays} pickedPole={poleHere?.key ?? null} onPickPole={key => poleObj && setPole(pole?.id === poleObj && pole.key === key ? null : { id: poleObj, key })} offsets={animatedOffsets} transforms={dragTransforms} instances={instancesStepped} clearance={clearanceDisplay} isolatedInstances={displayScopeReason ? undefined : stepsDisp?.opaque ?? isolatedInstances} clip={sectionClip} sectionHatch={sectionHatchLines} scalarMaps={scalarMaps} onHoverScalar={scalarMaps ? setMapHover : undefined} mould={mouldShown} isoclines={isoclines} proposal={ghost ? proposalOverlay : compareOverlay} instanceSelection={assembly.draft ? assembly.highlight.instances : steppedSelection} instanceFaces={mateFaces ? assembly.highlight.instanceFaces : undefined}
         placing={!!active?.placing} placeSkip={placeSkip} onSpot={onSpot}
         onPickBody={b => { if (active || section) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: [], bodies: [b] }); }}
         onPickChain={(b, e) => { if (active || section || !bodies[b]) return; setDirectSel([]); setInstanceSel([]); setSelection({ faces: [], edges: edgeChain(bodies[b].mesh, e).map(edge => ({ body: b, edge })), bodies: [] }); }} bodyColors={bodyColors} faceColors={faceColors} pickedVertices={selection.vertices} hiddenBodies={hiddenBodies} snapStep={snapStep} pickFilter={active ? 'all' : pickFilter} hoverBody={previewBodies ? null : rowHover}
