@@ -2,7 +2,7 @@
 // and the dimensions. The SVG and PDF writers and the workspace all draw from it.
 import { datumAnchor } from './datums';
 import { datumTargetConflicts, resolveDatumTarget, type DrawingDatumTarget } from './datumTargets';
-import { characteristicMarks, modifierMarks } from './controls';
+import { characteristicMarks, fmtTol, modifierMarks, zonePrefix, type DrawingFrameComposite } from './controls';
 import { TITLE_FIELDS, TITLE_EXTRA_HEIGHT, revisionTableContent } from './metadata';
 import { weldSymbols, type WeldPlaced } from './welds';
 import { balloonMarks, type BalloonPlaced, type BodyFaces } from './balloons';
@@ -925,13 +925,29 @@ export function frameMarks(under: Extract<Mark, { kind: 'text' }>, f: DrawingFra
   const x0 = Math.min(q[0][0], q[3][0]), y0 = under.at[1] + 1.6;
   return frameMarksAt([x0, y0], f);
 }
+/** The frame of one extra row (a stacked frame): its values, without the first row's modifiers or extras. */
+function rowFrame(f: DrawingFrame, row: DrawingFrameComposite): DrawingFrame {
+  return { ...f, value: row.value, datums: row.datums, diameter: row.diameter, material: row.material, datumModifiers: row.datumModifiers, projected: undefined, freeState: undefined, tangentPlane: undefined, composite: undefined, stacked: undefined, statistical: undefined, unequal: undefined, around: undefined };
+}
 /** A control frame's top-left corner in sheet mm; symbol sizes are independent of view scale. */
-function frameMarksAt([x0, y0]: XY, f: DrawingFrame): Mark[] {
+function frameMarksAt(at: XY, f: DrawingFrame): Mark[] {
+  const [x0, y0] = at, marks = frameBlockMarks(at, f), height = (f.composite ? 2 : 1) * FRAME_H;
+  if (f.around) {
+    // All around is a circle, all over a double circle, joined to the frame's left edge.
+    const c: XY = [x0 - 5, y0 + height / 2], ring = (r: number): Mark => ({ kind: 'arc', center: c, u: [r, 0], v: [0, r], t0: 0, t1: 2 * Math.PI, pen: 'thin', role: 'frame' });
+    marks.push(ring(1.7), ...(f.around === 'all-over' ? [ring(1.05)] : []), { kind: 'line', a: [c[0] + 1.7, c[1]], b: [x0, c[1]], pen: 'thin', role: 'frame' });
+  }
+  // A stacked frame is a full frame of its own, with its own symbol cell, directly below.
+  if (f.stacked) marks.push(...frameBlockMarks([x0, y0 + height], rowFrame(f, f.stacked)));
+  return marks;
+}
+/** One frame block (one row, or the two rows of a composite frame). */
+function frameBlockMarks([x0, y0]: XY, f: DrawingFrame): Mark[] {
   if (f.composite) {
     const { composite, ...upper } = f;
     // The second row has its own value, datums and modifiers. Other modifiers belong to the first row.
-    const lower: DrawingFrame = { ...upper, value: composite.value, datums: composite.datums, diameter: composite.diameter, material: composite.material, datumModifiers: composite.datumModifiers, projected: undefined, freeState: undefined, tangentPlane: undefined };
-    const top = frameMarksAt([x0, y0], upper), bottom = frameMarksAt([x0, y0 + FRAME_H], lower);
+    const lower = rowFrame(f, composite);
+    const top = frameBlockMarks([x0, y0], upper), bottom = frameBlockMarks([x0, y0 + FRAME_H], lower);
     const topBorder = top[0], bottomBorder = bottom[0];
     if (topBorder.kind !== 'polyline' || bottomBorder.kind !== 'polyline') return [];
     const right = Math.max(topBorder.points[1][0], bottomBorder.points[1][0]);
@@ -951,10 +967,12 @@ function frameMarksAt([x0, y0]: XY, f: DrawingFrame): Mark[] {
       ...withoutBorderAndSymbol(bottom, lower.datums),
     ];
   }
-  const value = `${(f.diameter ?? (f.characteristic === 'position')) ? 'Ø' : ''}${fmtMM(f.value)}`, base = textWidth(value, TEXT, false) + 2.5;
+  const value = `${zonePrefix(f, f)}${fmtTol(f.value)}`, base = textWidth(value, TEXT, false) + 2.5;
   const modifiers = [...(f.material ? [f.material === 'maximum' ? 'M' : 'L'] : []), ...(f.freeState ? ['F'] : []), ...(f.tangentPlane ? ['T'] : []), ...(f.projected ? ['P'] : [])];
-  const height = f.projected ? fmtMM(f.projected) : '', heightWidth = height ? textWidth(height, TEXT, false) + 1 : 0;
-  const vw = base + modifiers.length * 4 + heightWidth;
+  const height = f.projected ? fmtTol(f.projected) : '', heightWidth = height ? textWidth(height, TEXT, false) + 1 : 0;
+  // Statistical tolerance (ST in a hexagon) and the unequal amount (U in a circle, then the number) follow the other modifiers.
+  const statWidth = f.statistical ? 6.6 : 0, unequal = f.unequal !== undefined ? fmtTol(f.unequal) : '', unequalWidth = unequal ? 4.4 + textWidth(unequal, TEXT, false) : 0;
+  const vw = base + modifiers.length * 4 + heightWidth + statWidth + unequalWidth;
   const datumWidths = f.datums.map(d => FRAME_DATUM + (f.datumModifiers?.[d] ? 4 : 0));
   const cells = [FRAME_SYMBOL, vw, ...datumWidths], x1 = x0 + cells.reduce((s, w) => s + w, 0), y1 = y0 + FRAME_H;
   const marks: Mark[] = [{ kind: 'polyline', points: [[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]], pen: 'thin', role: 'frame' }];
@@ -964,6 +982,15 @@ function frameMarksAt([x0, y0]: XY, f: DrawingFrame): Mark[] {
   marks.push({ kind: 'text', at: [x0 + FRAME_SYMBOL + base / 2, y0 + 4.5], text: value, size: TEXT, anchor: 'middle' });
   modifiers.forEach((m, k) => marks.push(...modifierMarks(m, [x0 + FRAME_SYMBOL + base + 2 + k * 4, y0 + FRAME_H / 2])));
   if (height) marks.push({ kind: 'text', at: [x0 + FRAME_SYMBOL + base + modifiers.length * 4 + 0.5, y0 + 4.5], text: height, size: TEXT, anchor: 'start' });
+  let ex = x0 + FRAME_SYMBOL + base + modifiers.length * 4 + heightWidth;
+  if (f.statistical) {
+    const c: XY = [ex + 3.3, y0 + FRAME_H / 2], hex = Array.from({ length: 7 }, (_, k): XY => [c[0] + 2.8 * Math.cos(k * Math.PI / 3), c[1] + 2.4 * Math.sin(k * Math.PI / 3)]);
+    marks.push({ kind: 'polyline', points: hex, pen: 'thin', role: 'frame' }, { kind: 'text', at: [c[0], c[1] + 0.55], text: 'ST', size: 1.5, anchor: 'middle' });
+    ex += statWidth;
+  }
+  if (unequal) {
+    marks.push(...modifierMarks('U', [ex + 2.2, y0 + FRAME_H / 2]), { kind: 'text', at: [ex + 4.2, y0 + 4.5], text: unequal, size: TEXT, anchor: 'start' });
+  }
   x = x0 + FRAME_SYMBOL + vw;
   f.datums.forEach((d, k) => {
     marks.push({ kind: 'text', at: [x + FRAME_DATUM / 2, y0 + 4.5], text: d, size: TEXT, anchor: 'middle' });

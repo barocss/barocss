@@ -17934,3 +17934,23 @@ All were fixed.
 **Verification.** Model 2403/2403; Studio 622/622. Actual run05 PASS.
 
 **Follow-ups.** No playback or chat tool. Top-level occurrences only. The removal refusal reuses `PATTERN_REFERENCED`.
+
+## D394 — Row 11 ①: GD&T completion (CG5 DR-6); full (2026-10-31)
+
+[Evidence](notes/gdt-completion-2026-10-31/qualification.json).
+
+**What it adds.**
+- Frame fields `sphere` (SØ), `statistical` (ST), `unequal` (Ⓤ), `around` (all around/over) and `stacked`, plus profile composite.
+- Semantic rules shared by ISO 1101 and ASME Y14.5 (`frameRules`, FRAME_RULE). Authoring refuses only new rule breaks, and Open reports breaks instead of refusing.
+- DATUM_UNDEFINED now counts stacked rows and target letters.
+- The sheet, 3D and DXF agree, and values show as entered.
+- Every drawing commit goes through the Open reader, so the round trip is exact (the earlier settings key-order mismatch is fixed).
+- In the editor, rare options sit under a closed Details.
+
+**Audits.**
+- Round 1: 2 high, 2 medium, 2 low and 1 wrong display, all fixed.
+- Round 2 (targeted): ACCEPT.
+
+**Verification.** Model 2426/2426; Studio 623/623. Actual run06 PASS.
+
+**Follow-ups.** Tests for the surviving mutants; datum target areas/lines (11②); the ISO/ASME setting (11③).

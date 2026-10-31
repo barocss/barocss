@@ -51,8 +51,9 @@ import { DatumsEditor } from './drawing/DatumsEditor';
 import { DatumTargetsEditor } from './drawing/DatumTargetsEditor';
 import { checkDatumTargetOptions, datumTargetConflicts, datumTargetEndpoint, resolveDatumTarget, type DrawingDatumTarget } from '@barocss/cad-model/drawing/datumTargets';
 import { FrameEditor } from './drawing/FrameEditor';
+import { committedSettings } from './drawing/commitSettings';
 import { StandaloneFramesEditor } from './drawing/StandaloneFramesEditor';
-import { checkDrawingFrames, type DrawingFrame } from '@barocss/cad-model/drawing/controls';
+import { checkDrawingFrames, readFrames, type DrawingFrame } from '@barocss/cad-model/drawing/controls';
 import { ToleranceEditor } from './drawing/ToleranceEditor';
 import { NotesList } from './drawing/NotesList';
 import { ExportActions } from './drawing/ExportActions';
@@ -94,7 +95,7 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const { source, scopeRead, scope, scopeKey, doc, model, currentModel, bodies, views, cutsMade, sectionList, error, empty, busy, title, cuts, sectionA, cutA, layout, elements, callout, locationOwner, fitMissOf, followedChanged, threads, bom, tableContentOf, hasSheet, hasFrame, kinds, hasBought, weldJoints, bodyFaces, sheet } = useDrawingSheet(true, { engine, doc: sourceDoc, bodies: sourceBodies, settings, fileName });
   const onChange = (next: DrawingSettings) => {
     if (!scopeRead.scope) { onToast({ title: 'Drawing scope unchanged', hint: scopeRead.error ?? 'Invalid drawing scope', detail: '' }); return; }
-    sourceOnChange({ ...next, scope: next.scope ?? scopeRead.scope });
+    sourceOnChange(committedSettings(next, scopeRead.scope));
   };
   const [dxfSection, setDxfSection] = useState<string | null>(null);
   const [tool, setTool] = useState<Tool>('select');
@@ -241,9 +242,9 @@ export function DrawingWorkspace({ engine, doc: sourceDoc, bodies: sourceBodies,
   const commitDims = (dimensions: DrawingDimension[]) => onChange({ ...settings, dimensions });
   const commitFrames = (frames: DrawingFrame[]) => {
     if (!scopeRead.scope) { setMessage(scopeRead.error ?? 'Invalid drawing scope.'); return false; }
-    const why = checkDrawingFrames({ frames })[0];
+    const why = checkDrawingFrames({ frames }, settings.frames ?? [])[0];
     if (why) { setMessage(why.message); return false; }
-    onChange({ ...settings, frames }); return true;
+    onChange({ ...settings, frames: readFrames(frames) }); return true;
   };
   const removeFrame = (frame: DrawingFrame) => {
     if (frame.dim !== undefined) return;

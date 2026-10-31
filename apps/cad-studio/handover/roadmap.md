@@ -145,6 +145,12 @@ unit/coordinate/reference loss and actual errors within the affected feature fir
    - 10⑧ [CLOSED D391 v1: 최상위 인스턴스 Edit part, 반투명 문맥, Finish/Cancel 배너, 공유 정의 갱신 Undo 한 단계, 세션 중 저장·열기·채팅·가져오기 보호; 하위 조립 안 부품은 다음] (사용자 2026-10-31) 조립 안에서 부품 편집(edit in context): 인스턴스/개요에서 "부품 편집" → 나머지 부품 흐리게, History 막대가 그 부품의 피처로, 기존 도구 그대로; 끝내면 공유 정의 갱신(모든 인스턴스·BOM·도면·내보내기 반영, Undo 한 단계). v1은 그 자리 편집만, 다른 부품 형상을 참조로 거는 문맥 참조(in-context reference)는 순환·이식 위험 때문에 나중. 하위 조립 안 부품(②의 경로)도 대상. feature(문서 동작 변경 → 감사 반복 여부는 범위 확정 때).
    - 10⑦ motion study(시간 구동·값 그래프, RS7.4 pitch–azimuth): 기존 robot motions/재생 위; Physics/Motion 보류 조건과 범위는 오너 확인 뒤 시작.
    - 대형 조립 성능은 23행 소유(여기서 다루지 않음). #538은 epic으로 열어 둠.
+   - 10행 상태(2026-10-31): ①②③④⑤⑥⑧ CLOSED(D383–D393); ⑦ motion study는 Physics/Motion 보류·오너 확인 조건 그대로 건너뜀(기록만).
+   **11 도면 확장 원장 (2026-10-31, 10 다음 직렬; 측정: GD&T 14특성·M/L/F/T/P·직경 영역·위치 2단 복합·점 datum target까지 있음; Ⓢ·SØ·all around/over·묶음(stacked) 프레임·윤곽 복합·의미 규칙·datum 존재 검사 없음; ISO/ASME 스타일·인치·이중 치수 없음(투영 방식 글자만); 도면 세트(여러 sheet·n of N·다중 페이지 PDF) 없음):**
+   - 11① [CLOSED D394: SØ·ST·Ⓤ·all around/over·묶음 프레임·윤곽 복합, ISO/ASME 공통 규칙(새 위반만 거절, 열기는 보고), 도면 왕복 정확; 감사 2회] GD&T 마무리: Ⓢ, SØ(구 영역), all around/all over, 묶음 프레임, 윤곽(profile) 복합, 프레임 의미 규칙(모양 공차에 datum 금지 등)과 참조 datum 존재 검사. 도면 문서 필드 → full.
+   - 11② datum target 확장: 선·면적 target, target 기호 원(크기/문자), SVG 출력. feature(문서 필드면 full).
+   - 11③ 표준 스타일과 단위: ISO/ASME preset(화살표·글자 높이·datum 삼각형·0 표기 규칙·투영 기호 그림), 인치 표시와 이중 치수. full.
+   - 11④ 도면 세트: sheets 배열, n of N, sheet별 표제란·색인, 다중 페이지 PDF/SVG, 다른 sheet의 상세도, ECO 행. full(파일 schema).
 5. 15 사용성으로 릴리스 전 마감. 32 Viewer SDK는 05·23과 함께, 34 이름 정리는 B2 뒤 진행 lane이 적은 경계에서 한다. 23–29 상용 공백은 선행 행이 끝나는 대로 붙이고, 26·27·28·29의 외부 의존은 오너 결정 뒤에 시작한다.
 6. 17 경로 묶음, 18 로봇, 19 가상 실험은 기존 Physics/Motion·CAE 보류를 유지한 채 마지막. 22 성능은 측정 작업량이 생길 때 붙인다.
 오너 결정 대기: FEA 기본 정적 해석의 로드맵 복귀 여부, 28행의 외부 형식 SDK 정책.

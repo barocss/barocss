@@ -11,7 +11,8 @@
 //   DATUM_LOST         a datum's edge is gone (R14.4)                                     fix: remove it
 //   DATUM_TWICE        two datums with one letter                                         fix: remove the later
 //   FRAME_LOST         a feature control frame's dimension is gone or lost               fix: remove it
-//   DATUM_UNDEFINED    a frame refers to a datum the drawing does not have                (none: define it or edit the frame)
+//   DATUM_UNDEFINED    a frame refers to a datum no datum feature or datum target set has  (none: define it or edit the frame)
+//   FRAME_RULE         a frame breaks a Y14.5 / ISO 1101 rule (a datum on a form tolerance, a profile composite that is not a refinement ...)  (none: edit the frame)
 // Worth a check (warnings):
 //   DUPLICATE          the same size given twice (in one view or two that share the axis) fix: remove the auto one or the later
 //   REMATCHED          a reference was matched again after an edit: check it              fix: accept it as it is
@@ -34,12 +35,13 @@ import { textCorners } from './text';
 import { SCALES, layoutSheet, scaleLabel, sectionDepth, type SheetLayout } from './views';
 import { detailScale } from './detail';
 import { viewBreaksOf } from './breaks';
+import { frameRules } from './controls';
 import { fmtMM, type Resolved } from './dimensions';
 import { SECTION_VIEWS, VIEW_IDS, baseViewOf, detailLetter, isDetailRef, isViewId, isSectionRef, nextSectionId, sectionLetter, sectionsOf, withSections, type DimPoint, type SectionViewId, type DimView, type DrawingDimension, type DrawingSettings, type DrawingViews, type ViewId, type XY } from './types';
 
 export const DRAWING_ISSUES_VERSION = 'cad-studio-drawing-issues-v1';
 
-export type DrawingIssueCode = 'DIM_ON_HIDDEN' | 'DATUM_LOST' | 'FRAME_LOST' | 'FRAME_VIEW_MISSING' | 'DATUM_UNDEFINED' | 'DATUM_TWICE' | 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING' | 'TABLE_SOURCE' | 'WELD_NOT_SHOWN' | 'BALLOON_NOT_CLEAR' | 'BALLOON_NO_EDGE' | 'FIT_ROW_MISSING' | 'FOLLOWED_CHANGED' | 'DETAIL_PARENT_MISSING' | 'DETAIL_EMPTY' | 'DETAIL_NO_ROOM' | 'BREAK_NO_VIEW' | 'SECTION_NO_ROOM' | 'SECTION_NO_VIEW' | DatumTargetFailureCode;
+export type DrawingIssueCode = 'DIM_ON_HIDDEN' | 'DATUM_LOST' | 'FRAME_LOST' | 'FRAME_VIEW_MISSING' | 'DATUM_UNDEFINED' | 'FRAME_RULE' | 'DATUM_TWICE' | 'VIEW_NEEDED' | 'DIMENSION_LOST' | 'TEXT_OVERLAP' | 'TEXT_OVER_LINES' | 'OFF_SHEET' | 'VIEWS_DONT_FIT' | 'DUPLICATE' | 'REMATCHED' | 'HOLE_SIZE_MISSING' | 'HOLE_NOT_LOCATED' | 'STEP_NOT_LOCATED' | 'OVERALL_MISSING' | 'TABLE_SOURCE' | 'WELD_NOT_SHOWN' | 'BALLOON_NOT_CLEAR' | 'BALLOON_NO_EDGE' | 'FIT_ROW_MISSING' | 'FOLLOWED_CHANGED' | 'DETAIL_PARENT_MISSING' | 'DETAIL_EMPTY' | 'DETAIL_NO_ROOM' | 'BREAK_NO_VIEW' | 'SECTION_NO_ROOM' | 'SECTION_NO_VIEW' | DatumTargetFailureCode;
 export type DrawingFix =
   | { kind: 'remove'; dim: string }
   | { kind: 'move'; dim: string; place: XY }
@@ -247,18 +249,21 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
     if (!result.ok) out.push({ code: result.code, severity: 'error', message: `Datum target ${d.letter}${d.number}: ${result.reason}`, datumTargets: [d.id], view: d.view });
     else if (layout.views[d.view].hidden) out.push({ code: 'VIEW_NEEDED', severity: 'warning', message: `Datum target ${d.letter}${d.number}: its ${d.view} view is not shown.`, datumTargets: [d.id], view: d.view });
   }
+  // (A datum exists when a datum feature symbol or a datum target set has its letter.)
+  const known = new Set([...letters.keys(), ...(settings.datumTargets ?? []).map(t => t.letter)]);
   for (const f of settings.frames ?? []) {
+    for (const why of frameRules(f)) out.push({ code: 'FRAME_RULE', severity: 'error', message: `The ${f.characteristic} frame${f.dim === undefined ? '' : ` on dimension ${f.dim}`}: ${why}`, frames: [f.id], ...(f.dim === undefined ? { view: f.view } : { dims: [f.dim] }) });
     if (f.dim === undefined) {
       const placement = placementOf(layout, sheet, f.view), projection = projectionOf(ctx.views, sheet, f.view);
       if (!placement || !projection) out.push({ code: 'FRAME_VIEW_MISSING', severity: 'error', message: `A standalone ${f.characteristic} frame has no current ${viewName(f.view)}. The saved frame is retained.`, frames: [f.id], view: f.view });
       else if (placement.hidden) out.push({ code: 'VIEW_NEEDED', severity: 'warning', message: `A standalone ${f.characteristic} frame is in ${viewName(f.view)}, which is not shown.`, frames: [f.id], view: f.view });
-      const missing = [...new Set([...f.datums, ...(f.composite?.datums ?? [])])].filter(l => !letters.has(l));
+      const missing = [...new Set([...f.datums, ...(f.composite?.datums ?? []), ...(f.stacked?.datums ?? [])])].filter(l => !known.has(l));
       if (missing.length) out.push({ code: 'DATUM_UNDEFINED', severity: 'error', message: `A standalone ${f.characteristic} frame refers to datum${missing.length > 1 ? 's' : ''} ${missing.join(', ')}, which the drawing does not have.`, frames: [f.id], view: f.view });
       continue;
     }
     const r = sheet.dimensions.find(x => x.dim.id === f.dim);
     if (!r?.ok) { out.push({ code: 'FRAME_LOST', severity: 'error', message: `A ${f.characteristic} frame (${f.characteristic === 'position' ? 'Ø' : ''}${f.value}) belongs to a dimension that is ${r ? 'lost' : 'gone'}.`, ...(r ? { dims: [f.dim] } : {}), fix: { kind: 'remove-frame', frame: f.id } }); continue; }
-    const missing = [...new Set([...f.datums, ...(f.composite?.datums ?? [])])].filter(l => !letters.has(l));
+    const missing = [...new Set([...f.datums, ...(f.composite?.datums ?? []), ...(f.stacked?.datums ?? [])])].filter(l => !known.has(l));
     if (missing.length) out.push({ code: 'DATUM_UNDEFINED', severity: 'error', message: `The ${f.characteristic} frame on ${r.text} refers to datum${missing.length > 1 ? 's' : ''} ${missing.join(', ')}, which the drawing does not have.`, dims: [f.dim], view: r.dim.view });
   }
   for (const r of sheet.dimensions) {

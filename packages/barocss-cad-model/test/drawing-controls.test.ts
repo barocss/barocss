@@ -18,7 +18,7 @@ import { validate, type JsonSchema } from '../src/chat/contract';
 const frame: DrawingFrame = { id: 'f1', dim: 'd1', characteristic: 'position', value: 0.25, datums: ['A', 'B'] };
 const under = { kind: 'text' as const, at: [20, 30] as [number, number], text: '10', size: 3.5, anchor: 'start' as const };
 const texts = (marks: Mark[]) => marks.filter((m): m is Extract<Mark, { kind: 'text' }> => m.kind === 'text');
-const modified: DrawingFrame = { ...frame, material: 'maximum', datumModifiers: { A: 'least', B: 'maximum' }, projected: 12, freeState: true, tangentPlane: true };
+const modified: DrawingFrame = { ...frame, characteristic: 'angularity', diameter: true, material: 'maximum', datumModifiers: { A: 'least', B: 'maximum' }, projected: 12, freeState: true, tangentPlane: true };
 
 test('vector characteristics: circle radii, position cross, flatness area, half-circle profiles and parallel lines', () => {
   const pos = characteristicMarks('position', [10, 20]);
@@ -49,7 +49,7 @@ test('frame cells: position keeps its diameter default; other characteristics ar
   assert.equal(y1 - y0, 6);
   assert.deepEqual(texts(marks).map(m => m.text), ['Ø0.25', 'M', 'F', 'T', 'P', '12', 'A', 'L', 'B', 'M']);
   for (const m of texts(marks)) for (const p of textCorners(m.at, m.text, m.size, m.anchor)) assert.ok(p[0] >= x0 && p[0] <= x1 && p[1] >= y0 && p[1] <= y1, m.text);
-  assert.equal(marks.filter(m => m.kind === 'arc').length, 7, 'position circle and six modifier circles');
+  assert.equal(marks.filter(m => m.kind === 'arc').length, 6, 'six modifier circles');
 });
 
 test('frames round-trip through saved JSON; invalid and duplicate references are dropped without sharing input objects', () => {
@@ -78,8 +78,9 @@ test('v2 drawing.set and describe expose controls without extra per-turn tools; 
   const state = { doc, bodies: result.bodies };
   const described = await dispatchTool(state, 'describe', { tool: 'drawing', action: 'set' }, evaluate);
   assert.deepEqual(JSON.parse(described.content).input.properties.frames.items.properties.characteristic.enum, [...CHARACTERISTICS]);
-  const r = await dispatchTool(state, 'drawing', { action: 'set', frames: [modified] }, evaluate);
-  assert.ok(!r.isError, r.content); assert.deepEqual(r.state.doc.drawing?.frames, [modified]);
+  const authorable = { ...modified } as DrawingFrame & { tangentPlane?: boolean }; delete authorable.tangentPlane;  // (a tangent plane is not combined with a diameter or projected zone)
+  const r = await dispatchTool(state, 'drawing', { action: 'set', frames: [authorable] }, evaluate);
+  assert.ok(!r.isError, r.content); assert.deepEqual(r.state.doc.drawing?.frames, [authorable]);
   const refused = await dispatchTool(state, 'proposals', { action: 'propose', title: 'Invalid frame', ops: [{ tool: 'set_drawing', args: { frames: [{ ...frame, material: 'guess' }] } }] }, evaluate);
   assert.ok(refused.isError); assert.match(refused.content, /DRAWING_OPTIONS/); assert.deepEqual(refused.state.doc, doc);
 });

@@ -8,9 +8,9 @@
 // builders the sheet uses are given in plane coordinates too (`frameGlyph`, `weldGlyph`), one source for both.
 import { datumAnchor } from './datums';
 import { datumTargetConflicts, resolveDatumTarget, type DatumTargetFailureCode } from './datumTargets';
-import type { Characteristic, MaterialModifier } from './controls';
+import { fmtTol, zonePrefix, type Characteristic, type MaterialModifier } from './controls';
 import type { BrepProjection } from '@barocss/cad';
-import { fmtMM, type Resolved } from './dimensions';
+import type { Resolved } from './dimensions';
 import { frameMarks, placementOf, projectionOf, type Head, type LineRole, type Mark, type MarkGroup, type Sheet } from './sheet';
 import { symbolMarks, type Side } from './welds';
 import { fromSheet, type SheetLayout, type ViewPlacement } from './views';
@@ -44,7 +44,7 @@ export interface ModelAnnotation {
   lines: Line3[]; arcs: Arc3[]; arrows: Head3[];
   dimension?: { measure: 'linear' | 'diameter' | 'radius' | 'pcd' | 'angle'; value: number; unit: 'mm' | 'deg'; text: string; tol?: Tolerance; basic?: true; count?: number };
   /** The frame's compartments in order (the symbol's, the zone and value, each datum), and its box in plane coordinates [u0, v0, u1, v1]. */
-  frame?: { characteristic: Characteristic; zone: 'diameter' | 'linear'; value: number; datums: string[]; dim: string; material?: MaterialModifier; datumModifiers?: Record<string, MaterialModifier>; projected?: number; freeState?: boolean; tangentPlane?: boolean; cells: { text: string; symbol?: Characteristic }[]; composite?: { zone: 'diameter' | 'linear'; value: number; datums: string[]; material?: MaterialModifier; datumModifiers?: Record<string, MaterialModifier>; cells: { text: string }[] }; box: [number, number, number, number] };
+  frame?: { characteristic: Characteristic; zone: 'diameter' | 'linear' | 'sphere'; statistical?: boolean; unequal?: number; around?: 'all-around' | 'all-over'; stacked?: { zone: 'diameter' | 'linear' | 'sphere'; value: number; datums: string[]; material?: MaterialModifier; datumModifiers?: Record<string, MaterialModifier>; cells: { text: string; symbol?: Characteristic }[] }; value: number; datums: string[]; dim: string; material?: MaterialModifier; datumModifiers?: Record<string, MaterialModifier>; projected?: number; freeState?: boolean; tangentPlane?: boolean; cells: { text: string; symbol?: Characteristic }[]; composite?: { zone: 'diameter' | 'linear' | 'sphere'; value: number; datums: string[]; material?: MaterialModifier; datumModifiers?: Record<string, MaterialModifier>; cells: { text: string }[] }; box: [number, number, number, number] };
   datum?: { letter: string; targetNumber?: number };
   weld?: { joint: string; kind: 'fillet' | 'butt'; size: number | null; estimate: boolean; allRound: boolean; inner: boolean };
 }
@@ -104,7 +104,7 @@ function itemOf(i: AnnotationInputs, g: MarkGroup, view: DimView, v: ViewPlaceme
     if (!r) return null;
     targets = targetsOf(r.dim);
     if (kind === 'dimension') extra = { dimension: { measure: r.kind, value: r.value, unit: r.kind === 'angle' ? 'deg' : 'mm', text: r.text, ...(r.dim.tol ? { tol: r.dim.tol } : {}), ...(r.dim.basic ? { basic: true as const } : {}), ...(r.dim.count ? { count: r.dim.count } : {}) } };
-    else if (f?.dim !== undefined) extra = { frame: { characteristic: f.characteristic, zone: (f.diameter ?? (f.characteristic === 'position')) ? 'diameter' : 'linear', value: f.value, ...(f.material ? { material: f.material } : {}), ...(f.datumModifiers ? { datumModifiers: { ...f.datumModifiers } } : {}), ...(f.projected ? { projected: f.projected } : {}), ...(f.freeState ? { freeState: true } : {}), ...(f.tangentPlane ? { tangentPlane: true } : {}), datums: [...f.datums], dim: f.dim, cells: cellsOf(f), ...(f.composite ? { composite: { zone: (f.composite.diameter ?? true) ? 'diameter' as const : 'linear' as const, value: f.composite.value, datums: [...f.composite.datums], ...(f.composite.material ? { material: f.composite.material } : {}), ...(f.composite.datumModifiers ? { datumModifiers: { ...f.composite.datumModifiers } } : {}), cells: compositeCellsOf(f.composite) } } : {}), box: boxOf(g.marks, v) } };
+    else if (f?.dim !== undefined) extra = { frame: { characteristic: f.characteristic, zone: zoneOf(f, f), value: f.value, ...(f.statistical ? { statistical: true } : {}), ...(f.unequal !== undefined ? { unequal: f.unequal } : {}), ...(f.around ? { around: f.around } : {}), ...(f.material ? { material: f.material } : {}), ...(f.datumModifiers ? { datumModifiers: { ...f.datumModifiers } } : {}), ...(f.projected ? { projected: f.projected } : {}), ...(f.freeState ? { freeState: true } : {}), ...(f.tangentPlane ? { tangentPlane: true } : {}), datums: [...f.datums], dim: f.dim, cells: cellsOf(f), ...(f.composite ? { composite: rowDataOf(f, f.composite) } : {}), ...(f.stacked ? { stacked: rowDataOf(f, f.stacked, f.characteristic) } : {}), box: boxOf(g.marks, v) } };
   } else if (kind === 'datum') {
     if (g.datumTarget) {
       const d = i.settings.datumTargets?.find(x => x.id === g.id); if (!d) return null;
@@ -156,15 +156,18 @@ function planeOf(i: AnnotationInputs, view: DimView, pr: BrepProjection, targets
   return { normal, right, up, depth: depth + 0 };
 }
 
+type RowData = { zone: 'diameter' | 'linear' | 'sphere'; value: number; datums: string[]; material?: MaterialModifier; datumModifiers?: Record<string, MaterialModifier>; cells: { text: string; symbol?: Characteristic }[] };
+const zoneOf = (f: DrawingFrame, row: { diameter?: boolean }): RowData['zone'] => f.sphere ? 'sphere' : zonePrefix(f, row) ? 'diameter' : 'linear';
+const rowDataOf = (f: DrawingFrame, c: NonNullable<DrawingFrame['composite']>, symbol?: Characteristic): RowData => ({ zone: zoneOf(f, c), value: c.value, datums: [...c.datums], ...(c.material ? { material: c.material } : {}), ...(c.datumModifiers ? { datumModifiers: { ...c.datumModifiers } } : {}), cells: [...(symbol ? [{ text: symbol === 'position' ? '⌖' : symbol, symbol }] : []), ...rowCellsOf(f, c)] });
 const materialLetter = (m: MaterialModifier) => m === 'maximum' ? '(M)' : '(L)';
 const cellsOf = (f: DrawingFrame): { text: string; symbol?: Characteristic }[] => [
   { text: f.characteristic === 'position' ? '⌖' : f.characteristic, symbol: f.characteristic },
-  { text: `${(f.diameter ?? (f.characteristic === 'position')) ? 'Ø' : ''}${fmtMM(f.value)}${f.material ? materialLetter(f.material) : ''}${f.freeState ? '(F)' : ''}${f.tangentPlane ? '(T)' : ''}${f.projected ? `(P)${fmtMM(f.projected)}` : ''}` },
+  { text: `${zonePrefix(f, f)}${fmtTol(f.value)}${f.material ? materialLetter(f.material) : ''}${f.freeState ? '(F)' : ''}${f.tangentPlane ? '(T)' : ''}${f.projected ? `(P)${fmtTol(f.projected)}` : ''}${f.statistical ? '(ST)' : ''}${f.unequal !== undefined ? `(U)${fmtTol(f.unequal)}` : ''}` },
   ...f.datums.map(d => ({ text: d + (f.datumModifiers?.[d] ? materialLetter(f.datumModifiers[d]) : '') })),
 ];
-/** The lower row of a position composite frame, in order, without repeating the shared symbol. */
-const compositeCellsOf = (c: NonNullable<DrawingFrame['composite']>): { text: string }[] => [
-  { text: `${(c.diameter ?? true) ? 'Ø' : ''}${fmtMM(c.value)}${c.material ? materialLetter(c.material) : ''}` },
+/** The lower row of a composite frame, or a stacked frame's (which repeats the symbol), in order. */
+const rowCellsOf = (f: DrawingFrame, c: NonNullable<DrawingFrame['composite']>): { text: string }[] => [
+  { text: `${zonePrefix(f, c)}${fmtTol(c.value)}${c.material ? materialLetter(c.material) : ''}` },
   ...c.datums.map(d => ({ text: d + (c.datumModifiers?.[d] ? materialLetter(c.datumModifiers[d]) : '') })),
 ];
 /** A frame's box: its marks' extent, in plane coordinates. */

@@ -99,7 +99,7 @@ const issueList = (i: SheetInputs) => { const { ctx, sheet } = sheetOf(i); retur
 
 /** Runs a drawing tool on the document. */
 export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string, unknown>): Outcome {
-  if (name === 'set_drawing') { const why = setDrawingProblem(args); if (why) return { error: why }; }
+  if (name === 'set_drawing') { const why = setDrawingProblem(args, readDrawing(doc.drawing).frames); if (why) return { error: why }; }
   const original = readDrawing(doc.drawing);
   let settings = original;
   if (name === 'set_drawing' && args.scope !== undefined) {
@@ -110,7 +110,7 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
   if (typeof i === 'string') return { error: i };
   // (`from`: the projection the settings are for — another front side's when one was turned to.)
   const set = (settings: DrawingSettings, summary: string, extra: Record<string, unknown> = {}, from: SheetInputs = i): Outcome => {
-    settings = { ...settings, scope: drawingScopeOf(settings) };
+    settings = readDrawing({ ...settings, scope: drawingScopeOf(settings) });
     const next = { ...from, settings };
     return { doc: { ...doc, drawing: settings }, content: { ...extra, ...issueList(next) }, changed: JSON.stringify(settings) !== JSON.stringify(original), summary };
   };
@@ -206,7 +206,7 @@ export function runDrawingTool(doc: StudioDoc, name: string, args: Record<string
 const withMode = (s: DrawingSettings, mode: 'plus-minus' | 'geometric'): DrawingSettings => { const next = { ...s }; delete next.tolerancing; return mode === 'geometric' ? { ...next, tolerancing: 'geometric' } : next; };
 
 /** The handler also validates input: dispatch and saved proposal replay do not enforce JSON schema. */
-function setDrawingProblem(args: Record<string, unknown>): string | null {
+function setDrawingProblem(args: Record<string, unknown>, frames: DrawingSettings['frames']): string | null {
   const allowed = ['scope', 'sheet', 'scale', 'projection', 'front', 'views', 'tolerancing', 'title', ...Object.keys(manufacturingDrawingProperties), 'response_format', 'because'];
   const unknown = Object.keys(args).find(k => !allowed.includes(k));
   if (unknown) return `[DRAWING_OPTIONS] Unknown drawing setting ${unknown}.`;
@@ -216,5 +216,5 @@ function setDrawingProblem(args: Record<string, unknown>): string | null {
   if ('scale' in args && args.scale !== 'auto' && (typeof args.scale !== 'number' || !SCALES.includes(args.scale))) return '[DRAWING_OPTIONS] scale must be a standard numeric scale or "auto".';
   for (const key of ['title', 'because']) if (key in args && typeof args[key] !== 'string') return `[DRAWING_OPTIONS] ${key} must be a string.`;
   if ('views' in args && (!Array.isArray(args.views) || !args.views.every(v => VIEW_IDS.includes(v)) || new Set(args.views).size !== args.views.length)) return '[DRAWING_OPTIONS] views must be unique front/top/right/iso names.';
-  return firstProblem(checkManufacturingDrawing(args));
+  return firstProblem(checkManufacturingDrawing(args, frames));
 }

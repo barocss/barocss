@@ -261,6 +261,30 @@ Saved files and the SVG export keep the frame at its position in the view. Autho
 ids, datum letters and frame ids. These symbols and modifiers are annotations; they do not solve or verify the
 part's geometric tolerances.
 
+A frame can also carry a spherical zone (`sphere`, drawn SØ, position only), a statistical tolerance (`statistical`,
+ST in a hexagon), an unequally disposed profile (`unequal`, the outward amount from 0 up to the value, drawn as a circled U
+and the amount) and `around` (`all-around` or `all-over`, a circle or double circle beside the frame; profile only).
+A profile frame can have a `composite` second segment like position, or a `stacked` frame: a second, independent frame of the
+same position or profile characteristic, drawn as a full frame with its own symbol directly below the first. A frame is
+composite or stacked, not both. In the frame editor the options that fit the chosen characteristic are shown; the rarer ones
+(statistical tolerance, the unequal amount) are under **Details**, and the problem with the frame is written under the controls.
+
+New and edited frames must follow the rules that ASME Y14.5 and ISO 1101 share, and are refused in plain words when they do not:
+
+- Form tolerances (straightness, flatness, circularity, cylindricity) take no datums. Maximum or least material is allowed on straightness and flatness only.
+- Orientation (parallelism, perpendicularity, angularity), concentricity, symmetry and runout need at least one datum.
+- Runout takes no material modifier on the tolerance or the datums; profile takes none on the tolerance; circularity and cylindricity take none.
+- A diameter zone is for position, straightness, orientation and concentricity. Runout takes none.
+- A projected zone is for position and orientation. A tangent plane is for orientation and profile, and is not combined with a diameter zone or a projected zone.
+- A composite second segment names some of the first segment's datums in the same order and has a smaller tolerance.
+
+Only rules that ASME Y14.5 and ISO 1101 share are enforced; standard-specific rules (for example concentricity and symmetry, which ISO keeps and ASME dropped) come with the standard setting of roadmap 11③.
+A frame is refused only for a rule break it did not already have, so an old frame can be repaired one field at a time. Frame numbers show as authored, up to 4 decimals.
+
+A saved drawing that breaks one of these still opens unchanged: `FRAME_RULE` lists each broken rule, with no automatic fix.
+`DATUM_UNDEFINED` also counts a point datum
+target set as defining its letter.
+
 ## Issues
 
 **Drawing issues** lists what the sheet is missing or gets wrong: a feature with no dimension, a dimension that was
@@ -269,7 +293,7 @@ applies them all, and **Issue count** shows how many are left.
 
 `DATUM_LOST` reports a datum with no current anchor in a visible view. `DATUM_TWICE` reports a repeated datum
 letter. `FRAME_LOST` reports a frame whose dimension is lost or missing, and `DATUM_UNDEFINED` reports a frame
-that names an undefined datum. `FRAME_VIEW_MISSING` reports a standalone frame whose view is missing;
+that names a datum with no datum feature or point target set. `FRAME_RULE` reports a frame that breaks a rule above. `FRAME_VIEW_MISSING` reports a standalone frame whose view is missing;
 its saved position is kept. `TEXT_OVER_LINES` reports annotation text, such as a dimension's, a table's or a
 standalone frame's, that lies over drawing lines. `DATUM_TARGET_UNVERIFIED` reports a point target that needs its endpoint selected
 again. `DATUM_UNDEFINED` has no automatic fix: define the datum or edit the frame.

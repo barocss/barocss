@@ -29,10 +29,10 @@ const keys = (v: Record<string, unknown>, allowed: string[]) => Object.keys(v).e
 const finiteTuple = (v: unknown, length: 2 | 3): boolean => Array.isArray(v) && v.length === length && finite(v[0]) && finite(v[1]) && (length === 2 || finite(v[2]));
 
 /** No coercion or partial acceptance, even when the caller bypasses the offered JSON schema. */
-export function checkManufacturingDrawing(args: Record<string, unknown>): Problem[] {
+export function checkManufacturingDrawing(args: Record<string, unknown>, currentFrames?: DrawingSettings['frames']): Problem[] {
   const datums = checkDatumOptions(args); if (datums.length) return datums;
   const datumTargets = checkDatumTargetOptions(args); if (datumTargets.length) return datumTargets;
-  const frames = checkDrawingFrames(args); if (frames.length) return frames;
+  const frames = checkDrawingFrames(args, currentFrames); if (frames.length) return frames;
   const metadata = checkDrawingMetadata(args); if (metadata.length) return metadata;
   for (const flag of ['weldSymbols', 'balloons']) if (flag in args && typeof args[flag] !== 'boolean') return [problem('DRAWING_OPTIONS', `${flag} must be boolean.`)];
   if ('sections' in args) {

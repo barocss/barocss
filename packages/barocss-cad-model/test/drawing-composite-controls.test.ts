@@ -7,7 +7,7 @@ import { encodeStudioFile, readStudioFile } from '../src/engine/container';
 import { runDrawingTool } from '../src/chat/drawing';
 import { validate, type JsonSchema } from '../src/chat/contract';
 
-const legacy: DrawingFrame = { id: 'legacy', dim: 'd1', characteristic: 'flatness', value: 0.2, datums: ['A'] };
+const legacy: DrawingFrame = { id: 'legacy', dim: 'd1', characteristic: 'parallelism', value: 0.2, datums: ['A'] };
 const composite: DrawingFrame = { id: 'position', view: 'right', place: [12, -4], characteristic: 'position', value: 0.3, datums: ['A', 'B'], composite: { value: 0.1, datums: ['A'], diameter: false, material: 'maximum', datumModifiers: { A: 'least' } } };
 
 test('composite position frames accept two independently validated rows and copy the lower row', () => {
@@ -179,7 +179,7 @@ test('frameProblem gives one short reason exactly where the frame check refuses'
   assert.equal(frameProblem({ ...legacy, value: 100 }), 'Tolerance must be more than 0 and less than 100 mm.');
   assert.equal(frameProblem({ ...legacy, datums: ['I'] }), 'Datums are single letters A to Z, except I, O and Q.');
   assert.equal(frameProblem({ ...legacy, datums: ['A', 'A'] }), 'Each datum can appear only once.');
-  assert.equal(frameProblem({ ...legacy, characteristic: 'flatness', composite: composite.composite }), 'Only a position frame can have a second segment.');
+  assert.equal(frameProblem({ ...legacy, characteristic: 'flatness', composite: composite.composite }), 'Only a position or profile frame can have a second segment.');
   assert.equal(frameProblem({ ...legacy, projected: 0 }), 'Projected height must be more than 0 and at most 1000 mm.');
   assert.equal(frameProblem({ ...legacy, view: 'front', place: [0, 0] }), 'A frame is attached to one dimension or placed in one view, not both.');
   const lower = composite.composite!, sparse = new Array(1);
