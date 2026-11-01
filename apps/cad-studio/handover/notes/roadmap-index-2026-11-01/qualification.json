@@ -92,7 +92,9 @@
     "# Final combined receipt: /tmp/barocss-d418-prep/result.json",
     "node --check apps/cad-studio/handover/scripts/check-navigation.mjs",
     "node apps/cad-studio/handover/scripts/check-navigation.mjs > /tmp/barocss-d418-prep/root-final-navigation.json",
-    "git diff --check"
+    "git diff --check",
+    "git diff b920418ae 94ce44b88 --check",
+    "git diff b920418ae 94ce44b88 --check -- apps/cad-studio/handover (excluding the two byte-exact historical copies)"
   ],
   "failedEvidencePreserved": [
     {
@@ -104,6 +106,11 @@
       "stage": "first validator scope",
       "status": "FAIL",
       "cause": "Unrelated outgoing links from inbound-candidate files were treated as new failures; validation restricted to incoming links plus all outgoing links of new/index/archive files."
+    },
+    {
+      "stage": "staged copied-history whitespace check",
+      "status": "FAIL",
+      "cause": "Three inherited whitespace-only lines; original byte-exact copy is preserved, new-content check PASS."
     }
   ],
   "reviewChanges": [
@@ -138,6 +145,21 @@
     "knownHistoricalMissingPaths": 1,
     "operatingHandoff": "unchanged",
     "productRuntime": "748/748 unchanged; reused D417 only",
-    "newProductExecution": "NOT_RUN"
+    "newProductExecution": "NOT_RUN",
+    "syntaxAndNavigation": "PASS",
+    "diffWhitespace": "PASS for new/changed content excluding historical copies; full copied-history diff FAIL as recorded"
+  },
+  "verificationBoundaryCorrection": {
+    "discoveredAfterStaging": true,
+    "fullPublishedDiffWhitespaceCheck": "FAIL: three inherited trailing-whitespace lines in byte-exact historical decision copy",
+    "inheritedLines": [
+      1369,
+      1401,
+      1496
+    ],
+    "sourceArchiveBytesEqual": true,
+    "newAndChangedContentExcludingHistoricalCopies": "PASS",
+    "cause": "The earlier unstaged git diff --check omitted new untracked archives. The staged check reported inherited whitespace, but the shell continued to commit. This record corrects the scope; published history is not rewritten.",
+    "resolution": "Keep archived original bytes; distinguish inherited archive warnings from new content, with a follow-up commit."
   }
 }
