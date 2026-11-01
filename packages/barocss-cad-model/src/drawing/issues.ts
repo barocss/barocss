@@ -38,7 +38,7 @@ import { SCALES, layoutSheet, scaleLabel, sectionDepth, type SheetLayout } from 
 import { detailScale } from './detail';
 import { viewBreaksOf } from './breaks';
 import { frameNotes, frameRules } from './controls';
-import { deviationPair, frameValue, presetFor, type DrawingUnits, type FrameRounding } from './standard';
+import { UNPRINTABLE_FIT_LIMITS, deviationPair, frameValue, presetFor, type DrawingUnits, type FrameRounding } from './standard';
 import { fmtMM, type Resolved } from './dimensions';
 import { SECTION_VIEWS, VIEW_IDS, baseViewOf, detailLetter, isDetailRef, isViewId, isSectionRef, nextSectionId, sectionLetter, sectionsOf, withSections, type DimPoint, type SectionViewId, type DimView, type DrawingDimension, type DrawingSettings, type DrawingViews, type ViewId, type XY } from './types';
 
@@ -265,12 +265,20 @@ export function drawingIssues(ctx: IssueContext): DrawingIssue[] {
         out.push({ code: 'DATUM_TARGET_OUTSIDE', severity: 'warning', message: `Datum target ${d.letter}${d.number}: its ${d.kind === 'line' ? 'line' : 'area'} lies partly outside the part in the ${d.view} view. It is placed by view points and does not follow the part; move it.`, datumTargets: [d.id], view: d.view });
     }
   }
-  // Units (11 ③b): a tolerance too fine for the unit's most decimals prints inward-rounded and may be zero or narrow: say which.
-  const preset = presetFor(settings), units: DrawingUnits[] = preset.units === 'mm' && preset.precision.mm === undefined && !preset.dual ? [] : preset.dual ? [preset.units, preset.units === 'mm' ? 'inch' : 'mm'] : [preset.units];
+  // A numeric interval remains inside its true zone; an unrepresentable interval is omitted, never inverted or collapsed.
+  const preset = presetFor(settings), units: DrawingUnits[] = preset.dual ? [preset.units, preset.units === 'mm' ? 'inch' : 'mm'] : [preset.units];
   for (const r of sheet.dimensions) {
-    const t = r.ok && r.kind !== 'angle' ? r.dim.tol : undefined; if (!r.ok || !t || t.kind === 'fit') continue;
-    const [up, lo] = t.kind === 'symmetric' ? [t.value, -t.value] : [t.upper, t.lower];
-    for (const u of units) if (deviationPair(up, lo, preset, u, r.value).tight) out.push({ code: 'UNIT_PRECISION', severity: 'warning', message: `Dimension ${r.dim.id}: its tolerance is too fine to print in ${u === 'inch' ? 'inches' : 'mm'} even at ${u === 'inch' ? 5 : Math.max(4, preset.precision.mm ?? 4)} decimals, so the printed limits differ noticeably from the real ones. Loosen the tolerance or print this drawing in ${u === 'inch' ? 'mm' : 'inches'}.`, dims: [r.dim.id], view: r.dim.view });
+    if (!r.ok || r.kind === 'angle') continue;
+    const t = r.dim.tol;
+    const displayedPreset = r.shownPrecision ? { ...preset, precision: { ...preset.precision, ...r.shownPrecision } } : preset;
+    for (const u of units) {
+      const pair = t && t.kind !== 'fit' ? deviationPair(t.kind === 'symmetric' ? t.value : t.upper, t.kind === 'symmetric' ? -t.value : t.lower, displayedPreset, u, r.value) : null;
+      // Fit callouts already include their unit-specific marker. This detects omitted fit limits only, not numeric-but-tight fits.
+      const omittedFit = (u === preset.units ? r.text : r.alt)?.includes(UNPRINTABLE_FIT_LIMITS) === true;
+      if (!pair?.tight && !omittedFit) continue;
+      const digits = pair?.digits ?? Math.max(u === 'inch' ? 5 : 4, preset.precision[u] ?? 0), omitted = omittedFit || pair?.printable === false;
+      out.push({ code: 'UNIT_PRECISION', severity: 'warning', message: `Dimension ${r.dim.id}: its tolerance is too fine to print in ${u === 'inch' ? 'inches' : 'mm'} even at ${digits} decimals. ${omitted ? 'Its limits are omitted because no numeric interval can be printed inside the true zone.' : 'Its printed limits remain inside the true zone but do not preserve enough of its width or a nonzero deviation.'} Use more decimal places or another drawing unit.`, dims: [r.dim.id], view: r.dim.view });
+    }
   }
   if (preset.units === 'inch') for (const f of settings.frames ?? []) {
     const values: [number | undefined, FrameRounding][] = [[f.value, 'down'], [f.projected, 'up'], [f.unequal, 'nearest'], [f.composite?.value, 'down'], [f.stacked?.value, 'down']];

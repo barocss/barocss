@@ -90,16 +90,23 @@ and `precision` (`{mm?, inch?}`; `{}` resets); a value outside those is refused.
 - Millimetres follow the standard's rule as before (trailing zeros dropped); with an **mm decimals** value the
   number has exactly that many places (`12.0`). A tolerance in plain mm prints as entered, up to 4 places
   (`±0.005`, `±0.125`).
-- Tolerances are never printed wider than they are, and never as zero. The dimension is rounded to nearest at the chosen
+- Numeric tolerance limits stay ordered and inside the authored zone. The dimension is rounded to nearest at the chosen
   decimals, and each deviation is then rounded inward from the true limit (the upper one down, the lower one up), so
   every printed limit lies inside the true zone. The decimals start at the drawing's (inch 3, or **mm decimals**; plain mm 2
-  or the decimals the tolerance was entered with) and rise, inch up to 5 and mm up to 4, until no deviation prints as zero
+  or the decimals the tolerance was entered with) and rise, inch up to 5 and mm up to 4 (or an explicitly higher precision), until no nonzero deviation prints as zero
   and the zone keeps at least 80% of its width; the dimension gains zeros to the same decimals (ASME Y14.5 §1.6.2).
   Rounding can make a symmetric tolerance unequal, and then it prints as two deviations. 0.05 mm on 64 is
   `2.5197 ±.0019`, 0.005 mm is `2.51969 +.00019/-.00020`, +0.009/-0.004 mm on 8 is `.31496 +.00035/-.00015`, ±0.05 mm at
   0 mm decimals is `64.00 ±0.05`, and 10.004 ±0.005 in plain mm is `10.004 ±0.005`. If even the most decimals cannot do it,
-  it prints at the most and **Drawing issues** shows `UNIT_PRECISION` naming the dimension. A fit class (`h7`, `H7/g6`)
-  stays as written; its size and deviations print at common decimals by the same rule.
+  an ordered numeric interval still prints at the most and **Drawing issues** shows `UNIT_PRECISION` naming the dimension.
+  If no numeric interval can be represented, the sheet prints **tolerance not printable** and reports `UNIT_PRECISION`;
+  it does not print inverted limits or collapse a positive-width zone to a point. An exact zero-width zone remains numeric
+  when its endpoint is representable, including a deviation that compensates for rounding the nominal. The authored
+  tolerance is unchanged. A fit class (`h7`, `H7/g6`) stays as written; its size and deviations print at common decimals by
+  the same rule. An unrepresentable fit member shows **limits not printable** while other members remain numeric.
+  An explicit tolerance and a fit on the same dimension share the displayed nominal precision. Exact decimal limits
+  use the resolved model number: a small floating-point residue in a measured size can contract a printed limit by one
+  final decimal step to keep it inside the authored zone.
 - Dual prints the dimension and its tolerance in both units: `2.5197 ±.0019 [64 ±0.05]`. Deviations that stack
   beside the value print on the line instead (`.3150 +.0039/-.0019 [8 +0.1/-0.05]`). A hole callout prints whole in both
   units. An angle never converts and never gets brackets. A dual text that does not fit between the arrowheads is

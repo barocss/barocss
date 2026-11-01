@@ -86,17 +86,24 @@ is kept in the project instead.
 Hidden trimmed surfaces do not block IGES export of the other visible geometry.
 Use **Untrim** only when you intend to remove a surface's trims.
 
-### Choose how STEP writes mesh bodies
+### Prepare a STEP export
 
-When the evaluated part contains a mesh body other than infill, **Export STEP** opens **Mesh bodies in the STEP file as…**. Select a representation, or select **Cancel** to close the dialog without exporting.
+**Export STEP** prepares the current evaluated design and opens one panel in the right dock. Check its schema,
+millimetre units and applicable loss report. This profile does not transfer native editing history, assembly hierarchy
+and shared definitions, user body labels, colours, semantic PMI or named datum systems. The file/product name and
+generated face names are separate from user body labels. Only the panel's **Export** action writes the file.
+**Cancel**, **Close** or Escape discards the preparation. An edit, Open or New also clears it; prepare again for the
+current design.
+
+When visible root or placed mesh bodies are present, the same panel has a **Mesh bodies** selector.
 
 | Choose | What it writes |
 |---|---|
 | **Auto** | Closed mesh bodies with up to 5,000 triangles per body use planar faces. Larger ones use AP242 tessellated faces. |
-| **Tessellated (AP242, compact)** | Mesh bodies use AP242 triangulated faces. Check that the receiving app supports this representation. |
-| **Planar faces (compatible)** | Closed mesh bodies use triangles as planar B-rep faces, merged where flat. More than 250,000 triangles in one body is refused. |
+| **Tessellated** | Mesh bodies use AP242 triangulated faces. Check that the receiving app supports this representation. |
+| **Planar faces** | Closed mesh bodies use triangles as planar B-rep faces, merged where flat. More than 250,000 triangles in one body is refused. |
 
-Open mesh sheets always use AP242, including when you select **Planar faces (compatible)**. A body with both exact
+Open mesh sheets always use AP242, including when you select **Planar faces**. A body with both exact
 and mesh faces can use only AP242; selecting planar faces is refused. Its exact faces are sampled at 64 segments
 per quarter. Planar files can be large. Older CAD, CAM and slicer apps may not read AP242 tessellated faces.
 

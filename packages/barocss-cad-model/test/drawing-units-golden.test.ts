@@ -1,6 +1,6 @@
-// Roadmap 11 ③b: with no units setting, the sheet is byte for byte what it was before units existed — plain, ISO and ASME.
-// Golden hashes made from the sources before the setting (UPDATE_UNITS_GOLDEN=1 only from such sources). This file only
-// uses what those sources had, so it can be run against them.
+// D397's original no-units hashes remain in drawing-units-absent.json. D408's exact-decimal inward limits correct a
+// last tick for resolved geometric nominals such as 12.000000000000002. Keep the original dimension data unchanged;
+// separately record the corrected SVG/DXF baseline (UPDATE_UNITS_GOLDEN=1).
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
@@ -61,14 +61,17 @@ function outputs(): Record<string, string> {
     const { views, settings: base } = fixture(fine);
     for (const [name, extra] of Object.entries<Partial<DrawingSettings>>({ plain: {}, iso: { standard: 'iso' }, asme: { standard: 'asme' } })) {
       const settings = { ...base, ...extra }, layout = layoutSheet(views, settings), sheet = buildSheet(views, layout, settings, { title: 'Plate', date: '2026-10-31' });
+      if (process.env.UPDATE_UNITS_GOLDEN && name === 'plain') console.log(JSON.stringify({ fixture: prefix || 'fine', toleranceTexts: sheet.groups.filter(g => g.id === 'far' || g.id === 'round').map(g => ({ id: g.id, nominal: sheet.dimensions.find(d => d.ok && d.dim.id === g.id)?.ok ? sheet.dimensions.find(d => d.ok && d.dim.id === g.id) : undefined, texts: g.marks.filter(m => m.kind === 'text').map(m => m.text) })) }));
       out[`${prefix}${name}.svg`] = hash(sheetSvg(sheet, 'Plate')); out[`${prefix}${name}.dxf`] = hash(sheetDxf(sheet, layout).text); out[`${prefix}${name}.dims`] = hash(JSON.stringify(sheet.dimensions));
     }
   }
   return out;
 }
-const GOLDEN = join(import.meta.dirname, 'fixtures/drawing-units-absent.json');
-test('no units setting: plain, ISO and ASME sheets (SVG, DXF and the resolved dimensions; every tolerance kind, targets, frames) are byte for byte the ones made before units', () => {
+const ORIGINAL = join(import.meta.dirname, 'fixtures/drawing-units-absent.json'), GOLDEN = join(import.meta.dirname, 'fixtures/drawing-units-exact-limits.json');
+test('no units setting: original dimension data stays byte-identical; plain, ISO and ASME SVG/DXF use the exact-limit baseline', () => {
   const now = outputs();
   if (process.env.UPDATE_UNITS_GOLDEN) writeFileSync(GOLDEN, JSON.stringify(now, null, 2) + '\n');
-  assert.deepEqual(now, JSON.parse(readFileSync(GOLDEN, 'utf8')), 'made by the sources before drawing.units existed');
+  const before: Record<string, string> = JSON.parse(readFileSync(ORIGINAL, 'utf8'));
+  for (const key of Object.keys(now).filter(key => key.endsWith('.dims'))) assert.equal(now[key], before[key], `${key}: authored/resolved data unchanged`);
+  assert.deepEqual(now, JSON.parse(readFileSync(GOLDEN, 'utf8')), 'exact-decimal tolerance text, with original data and other drawing content');
 });

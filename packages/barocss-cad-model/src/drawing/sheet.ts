@@ -14,7 +14,7 @@ import { centreMarks } from './centres';
 import { threadMarks } from './threads';
 import type { FaceThread } from '../app/threads';
 import { fitText, textCorners, textWidth } from './text';
-import { PLAIN, deviationPair, formatLength, frameValue, hasUnitSettings, lengthFormats, presetFor, unitsLabel, withDigits, type DeviationPair, type DrawingUnits, type FrameRounding, type LengthFormat, type StandardPreset, type UnitPrecision } from './standard';
+import { MAX_PRECISION, PLAIN, UNPRINTABLE_TOLERANCE, deviationPair, formatLength, frameValue, hasUnitSettings, lengthFormats, presetFor, unitsLabel, withDigits, type DeviationPair, type DrawingUnits, type FrameRounding, type LengthFormat, type StandardPreset, type UnitPrecision } from './standard';
 import { VIEWS, scaleLabel, sectionDepth, sectionFrame, toSheet, type Orientation, type SectionExtent, type SectionPlacement, type SheetLayout, type ViewPlacement, TITLE_BLOCK } from './views';
 import type { DrawingDatum, DrawingFrame, DrawingNote, DrawingSection, DrawingSettings, DrawingTable, DrawingViews, SectionViewId, Tolerance, ViewId, XY } from './types';
 import { tableLayout, tableSize, type TableContent, type TableLayout } from './table';
@@ -554,11 +554,24 @@ export function dimensionText(r: Extract<Resolved, { ok: true }>, callout?: (edg
 export function withShownText(r: Extract<Resolved, { ok: true }>, callout: ((edge: string, diameter?: number, f?: LengthFormat) => string | null) | undefined, p: StandardPreset): Resolved {
   // (A dimension with a tolerance prints at the tolerance's decimals: the dimension gains zeros, ASME Y14.5 §1.6.2.)
   const tol = r.kind !== 'angle' && r.dim.tol && r.dim.tol.kind !== 'fit' ? r.dim.tol : null;
+  const shownPrecision: UnitPrecision = {};
   const textIn = (u: DrawingUnits): string => {
-    const digits = tol ? deviationsOf(tol, '', p, u, r.value).digits : undefined, q = digits === undefined ? p : withDigits(p, u, digits), f = lengthFormats(q);
-    return dimensionText(r, callout, u === p.units ? f.primary : f.secondary!);
+    const initial = tol ? deviationsOf(tol, '', p, u, r.value).digits : undefined;
+    let digits = initial;
+    // Built-in fit requests are monotone and bounded by the validated 0..6 places. Rerender both consumers after a raise.
+    for (let pass = 0; pass <= MAX_PRECISION; pass++) {
+      const q = digits === undefined ? p : withDigits(p, u, digits), f = lengthFormats(q), state = { digits: Math.max(digits ?? 0, tol ? deviationsOf(tol, '', q, u, r.value).digits : 0) };
+      const format = u === p.units ? f.primary : f.secondary!, text = dimensionText(r, callout, tol ? trackFormatPrecision(format, state) : format);
+      if (!tol || state.digits <= (digits ?? 0)) { if (digits !== initial) shownPrecision[u] = digits; return text; }
+      digits = state.digits;
+    }
+    throw new RangeError('Drawing callout precision did not settle.');
   };
-  return p.dual && r.kind !== 'angle' ? { ...r, text: textIn(p.units), alt: textIn(otherUnit(p)) } : { ...r, text: textIn(p.units) };
+  const text = textIn(p.units), alt = p.dual && r.kind !== 'angle' ? textIn(otherUnit(p)) : undefined;
+  return { ...r, text, ...(alt === undefined ? {} : { alt }), ...(Object.keys(shownPrecision).length ? { shownPrecision } : r.shownPrecision ? { shownPrecision: undefined } : {}) };
+}
+function trackFormatPrecision(f: LengthFormat, state: { digits: number }): LengthFormat {
+  return Object.assign((mm: number, places?: 2 | 3 | 4) => f(mm, places), { unit: f.unit, pairs: f.pairs, ...(f.at ? { at: (digits: number): LengthFormat => { state.digits = Math.max(state.digits, digits); return trackFormatPrecision(f.at!(digits), state); } } : {}) });
 }
 
 export function curveMark(v: ViewPlacement, c: ProjectedCurve, pen: Pen): Mark {
@@ -673,6 +686,7 @@ const withUnit = (v: string, unit: string) => v === '0' ? v : v + unit;
 export function toleranceText(t: Tolerance, unit = '', p: StandardPreset = PLAIN, u: DrawingUnits = p.units, nominal = 0): string {
   if (t.kind === 'fit') return t.code;
   const d = deviationsOf(t, unit, p, u, nominal);
+  if (!d.printable) return UNPRINTABLE_TOLERANCE;
   // (A symmetric tolerance that the rounding made unequal prints its two deviations.)
   return t.kind === 'symmetric' && d.equal ? `±${d.upper.replace(/^\+/, '')}${unit}` : `${withUnit(d.upper, unit)}/${withUnit(d.lower, unit)}`;
 }
@@ -681,6 +695,7 @@ const otherUnit = (p: StandardPreset): DrawingUnits => p.units === 'mm' ? 'inch'
 
 /** A dimension on one line: its value and tolerance, then on a dual drawing the same in the other unit in brackets (DXF text, the dimension list). */
 export function dimensionLine(r: Extract<Resolved, { ok: true }>, p: StandardPreset): string {
+  if (r.shownPrecision) p = { ...p, precision: { ...p.precision, ...r.shownPrecision } };
   const unit = r.kind === 'angle' ? '°' : '', part = (v: string, u: DrawingUnits) => r.dim.tol ? `${v} ${toleranceText(r.dim.tol, unit, p, u, r.value)}` : v;
   return r.alt === undefined ? part(r.text, p.units) : `${part(r.text, p.units)} [${part(r.alt, otherUnit(p))}]`;
 }
@@ -692,9 +707,10 @@ export function dimensionLine(r: Extract<Resolved, { ok: true }>, p: StandardPre
 export function valueMarks(at: XY, angle: number, anchor: 'start' | 'middle' | 'end', value: string, tol?: Tolerance, unit = '', p: StandardPreset = PLAIN, alt?: string, nominal = 0): Mark[] {
   const a = angle * Math.PI / 180, x: XY = [Math.cos(a), -Math.sin(a)], up: XY = [-Math.sin(a), -Math.cos(a)];
   // (11 ③b: lengths in the drawing's unit, an angle's tolerance never; on a dual drawing the value and its tolerance in the other unit follow in brackets, and deviations then print on the line, not stacked.)
-  const stacked = tol?.kind === 'deviation' && alt === undefined, part = (v: string, u: DrawingUnits) => tol && !stacked ? `${v} ${toleranceText(tol, unit, p, u, nominal)}` : v;
+  const dv = tol?.kind === 'deviation' && alt === undefined ? deviationsOf(tol, unit, p, p.units, nominal) : null;
+  const stacked = !!dv?.printable, part = (v: string, u: DrawingUnits) => tol && !stacked ? `${v} ${toleranceText(tol, unit, p, u, nominal)}` : v;
   const main = alt === undefined ? part(value, p.units) : `${part(value, p.units)} [${part(alt, otherUnit(p))}]`;
-  const small = 2.5, dv = stacked && tol?.kind === 'deviation' ? deviationsOf(tol, unit, p, p.units, nominal) : null, devs = dv ? [withUnit(dv.upper, unit), withUnit(dv.lower, unit)] : null;
+  const small = 2.5, devs = stacked && dv ? [withUnit(dv.upper, unit), withUnit(dv.lower, unit)] : null;
   const wMain = textWidth(main, p.text, false), wDev = devs ? 0.8 + Math.max(...devs.map(d => textWidth(d, small, false))) : 0, total = wMain + wDev;
   const from = add(at, x, anchor === 'start' ? 0 : anchor === 'middle' ? -total / 2 : -total);
   const marks: Mark[] = [{ kind: 'text', at: from, text: main, size: p.text, anchor: 'start', ...(angle ? { angle } : {}) }];
@@ -707,6 +723,7 @@ export function valueMarks(at: XY, angle: number, anchor: 'start' | 'middle' | '
 }
 
 export function dimensionMarks(v: ViewPlacement, r: Extract<Resolved, { ok: true }>, p: StandardPreset = PLAIN): Mark[] {
+  if (r.shownPrecision) p = { ...p, precision: { ...p.precision, ...r.shownPrecision } };
   if (r.kind === 'pcd') {
     // A pitch circle (R14.5): the circle in chain line through the holes' centres, a leader to it like a diameter's.
     const C = toSheet(v, r.center), R = r.radius * v.scale;

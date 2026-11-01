@@ -1,0 +1,20 @@
+{
+  "coarse-plain.svg": "7e406b9125bebb87e3b3ec0cef1a1b9a2ec2a00cafce57616a2da9df61750a68",
+  "coarse-plain.dxf": "178b9e580253ad3ee35d24d2bbdd583eeecd38863b4d679cf2423faad8556270",
+  "coarse-plain.dims": "ce7c93b20bb6a99306d29c2e0166a00c5bf9e2be1d27e6f69bee1c0c37e230b2",
+  "coarse-iso.svg": "573197454de645f331b96dfb332c023a736b3b4c6295aeca1569a1938136bebd",
+  "coarse-iso.dxf": "4d73cf506c77b83b1693f08f10812becc0c67ba0f0ad5600a81fd0add3e947b2",
+  "coarse-iso.dims": "ce7c93b20bb6a99306d29c2e0166a00c5bf9e2be1d27e6f69bee1c0c37e230b2",
+  "coarse-asme.svg": "3f37cc0bfa277752360d9871b144baa4b64a97fddb64e1eb19e0cfbcc77e0956",
+  "coarse-asme.dxf": "63a94d1ad16a0a87b31cfc78b1bec277cf0a0cdc5bee9dd30a7c919884ed0816",
+  "coarse-asme.dims": "ce7c93b20bb6a99306d29c2e0166a00c5bf9e2be1d27e6f69bee1c0c37e230b2",
+  "plain.svg": "be1caf8c1a90532c427bbdda411adbc7bc841b07dae61ec0e849abee49c5b383",
+  "plain.dxf": "173b2875dd219011e8b2b57684afff65b3bdb5f0401f1923b8778fe8493aba27",
+  "plain.dims": "d77e690d4a09a4d45384513c1eca9edae649693b259948f43fbbed105d7cd5d2",
+  "iso.svg": "7b627ba33394c90a48c008ad93b463fb4062e6703a190b5bf968c9ac490ae4c4",
+  "iso.dxf": "2c0e7c7582d79f3abc28092e55b012b9802adfb82d15435cf32ce5b3f0f8f495",
+  "iso.dims": "d77e690d4a09a4d45384513c1eca9edae649693b259948f43fbbed105d7cd5d2",
+  "asme.svg": "b191948b62309075ceab7aed347266d142e95bdc6b9af92d692cc3ed070ac90a",
+  "asme.dxf": "737426daf84d468af7bbfce302f62e32200dc6f53295e096f815b8419830eac0",
+  "asme.dims": "d77e690d4a09a4d45384513c1eca9edae649693b259948f43fbbed105d7cd5d2"
+}

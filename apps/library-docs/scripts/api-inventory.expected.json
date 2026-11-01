@@ -234611,11 +234611,11 @@
             "kind": "type"
           },
           "shape": {
-            "type": "{ ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; } | { ok: false; dim: DrawingDimension; reason: string; }",
+            "type": "(({ ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }) & { shownPrecision?: UnitPrecision | undefined; }) | { ok: false; dim: DrawingDimension; reason: string; }",
             "declarationSignatures": [
               {
                 "kind": "TypeAliasDeclaration",
-                "definition": "{\n    ok: true;\n    kind: \"linear\";\n    dim: Extract<DrawingDimension, {\n        kind: \"linear\";\n    }>;\n    a: XY;\n    b: XY;\n    value: number;\n    text: string;\n    alt?: string;\n} | {\n    ok: true;\n    kind: \"diameter\" | \"radius\";\n    dim: Extract<DrawingDimension, {\n        kind: \"diameter\" | \"radius\";\n    }>;\n    center: XY;\n    radius: number;\n    value: number;\n    text: string;\n    alt?: string;\n} | {\n    ok: true;\n    kind: \"angle\";\n    dim: Extract<DrawingDimension, {\n        kind: \"angle\";\n    }>;\n    vertex: XY;\n    from: XY;\n    to: XY;\n    ends: [\n        XY,\n        XY\n    ];\n    value: number;\n    text: string;\n    alt?: string;\n} | {\n    ok: true;\n    kind: \"pcd\";\n    dim: Extract<DrawingDimension, {\n        kind: \"pcd\";\n    }>;\n    center: XY;\n    center3: Vec3;\n    radius: number;\n    members: XY[];\n    even: boolean;\n    value: number;\n    text: string;\n    alt?: string;\n} | {\n    ok: false;\n    dim: DrawingDimension;\n    reason: string;\n}"
+                "definition": "({\n    ok: true;\n    kind: \"linear\";\n    dim: Extract<DrawingDimension, {\n        kind: \"linear\";\n    }>;\n    a: XY;\n    b: XY;\n    value: number;\n    text: string;\n    alt?: string;\n} | {\n    ok: true;\n    kind: \"diameter\" | \"radius\";\n    dim: Extract<DrawingDimension, {\n        kind: \"diameter\" | \"radius\";\n    }>;\n    center: XY;\n    radius: number;\n    value: number;\n    text: string;\n    alt?: string;\n} | {\n    ok: true;\n    kind: \"angle\";\n    dim: Extract<DrawingDimension, {\n        kind: \"angle\";\n    }>;\n    vertex: XY;\n    from: XY;\n    to: XY;\n    ends: [\n        XY,\n        XY\n    ];\n    value: number;\n    text: string;\n    alt?: string;\n} | {\n    ok: true;\n    kind: \"pcd\";\n    dim: Extract<DrawingDimension, {\n        kind: \"pcd\";\n    }>;\n    center: XY;\n    center3: Vec3;\n    radius: number;\n    members: XY[];\n    even: boolean;\n    value: number;\n    text: string;\n    alt?: string;\n}) & {\n    shownPrecision?: UnitPrecision;\n} | {\n    ok: false;\n    dim: DrawingDimension;\n    reason: string;\n}"
               }
             ],
             "members": [
@@ -234772,6 +234772,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "string"
+              },
+              {
+                "name": "shownPrecision",
+                "kind": "property",
+                "optional": true,
+                "readonly": false,
+                "type": "UnitPrecision | undefined"
               },
               {
                 "name": "text",
@@ -238124,14 +238131,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(a: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; }, av: BrepProjection, b: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; }, bv: BrepProjection, axis: string, locationOwner?: LocationOwner | undefined) => boolean",
+            "type": "(a: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } & { shownPrecision?: UnitPrecision | undefined; }, av: BrepProjection, b: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } & { shownPrecision?: UnitPrecision | undefined; }, bv: BrepProjection, axis: string, locationOwner?: LocationOwner | undefined) => boolean",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(a: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; }, av: BrepProjection, b: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; }, bv: BrepProjection, axis: string, locationOwner?: LocationOwner | undefined) => boolean"
+              "(a: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } & { shownPrecision?: UnitPrecision | undefined; }, av: BrepProjection, b: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } & { shownPrecision?: UnitPrecision | undefined; }, bv: BrepProjection, axis: string, locationOwner?: LocationOwner | undefined) => boolean"
             ]
           }
         }
@@ -241785,14 +241792,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }, p: StandardPreset) => string",
+            "type": "(r: ({ ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }) & { shownPrecision?: UnitPrecision | undefined; }, p: StandardPreset) => string",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }, p: StandardPreset) => string"
+              "(r: ({ ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }) & { shownPrecision?: UnitPrecision | undefined; }, p: StandardPreset) => string"
             ]
           }
         }
@@ -241816,14 +241823,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(v: ViewPlacement, r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }, p?: StandardPreset) => Mark[]",
+            "type": "(v: ViewPlacement, r: ({ ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }) & { shownPrecision?: UnitPrecision | undefined; }, p?: StandardPreset) => Mark[]",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(v: ViewPlacement, r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }, p?: StandardPreset) => Mark[]"
+              "(v: ViewPlacement, r: ({ ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }) & { shownPrecision?: UnitPrecision | undefined; }, p?: StandardPreset) => Mark[]"
             ]
           }
         }
@@ -241847,14 +241854,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }, callout?: ((edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null) | undefined, f?: LengthFormat) => string",
+            "type": "(r: ({ ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }) & { shownPrecision?: UnitPrecision | undefined; }, callout?: ((edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null) | undefined, f?: LengthFormat) => string",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }, callout?: ((edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null) | undefined, f?: LengthFormat) => string"
+              "(r: ({ ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }) & { shownPrecision?: UnitPrecision | undefined; }, callout?: ((edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null) | undefined, f?: LengthFormat) => string"
             ]
           }
         }
@@ -242281,14 +242288,14 @@
             "kind": "function"
           },
           "shape": {
-            "type": "(r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }, callout: ((edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null) | undefined, p: StandardPreset) => Resolved",
+            "type": "(r: ({ ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }) & { shownPrecision?: UnitPrecision | undefined; }, callout: ((edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null) | undefined, p: StandardPreset) => Resolved",
             "declarationSignatures": [
               {
                 "kind": "FunctionDeclaration"
               }
             ],
             "callSignatures": [
-              "(r: { ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }, callout: ((edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null) | undefined, p: StandardPreset) => Resolved"
+              "(r: ({ ok: true; kind: \"linear\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"linear\"; a: DimPoint; b: DimPoint; orient: \"vertical\" | \"aligned\" | \"horizontal\"; place: XY; }; a: XY; b: XY; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"radius\" | \"diameter\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"radius\" | \"diameter\"; edge: string; near: Vec3; place: XY; sig?: Sig | undefined; was?: string | undefined; }; center: XY; radius: number; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"angle\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"angle\"; a: EdgeRef; b: EdgeRef; place: XY; }; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string | undefined; } | { ok: true; kind: \"pcd\"; dim: { tol?: Tolerance | undefined; count?: number | undefined; auto?: true | undefined; basic?: true | undefined; } & { id: string; view: DimView; kind: \"pcd\"; ring: CentreRef[]; place: XY; }; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string | undefined; }) & { shownPrecision?: UnitPrecision | undefined; }, callout: ((edge: string, diameter?: number | undefined, f?: LengthFormat | undefined) => string | null) | undefined, p: StandardPreset) => Resolved"
             ]
           }
         }
@@ -243435,6 +243442,13 @@
                 "type": "string"
               },
               {
+                "name": "printable",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "boolean"
+              },
+              {
                 "name": "tight",
                 "kind": "property",
                 "optional": false,
@@ -243551,6 +243565,13 @@
                 "optional": false,
                 "readonly": false,
                 "type": "string"
+              },
+              {
+                "name": "printable",
+                "kind": "property",
+                "optional": false,
+                "readonly": false,
+                "type": "boolean"
               },
               {
                 "name": "upper",
@@ -245010,6 +245031,62 @@
               }
             ],
             "indexSignatures": []
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
+      "exportName": "UNPRINTABLE_FIT_LIMITS",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "UNPRINTABLE_FIT_LIMITS",
+            "kind": "const"
+          },
+          "shape": {
+            "type": "\"limits not printable\"",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "package": "@barocss/cad-model",
+      "subpath": "./drawing/standard",
+      "exportName": "UNPRINTABLE_TOLERANCE",
+      "space": "value",
+      "observedRole": "unclassified-observed; no policy exemption",
+      "variants": [
+        {
+          "conditions": [
+            []
+          ],
+          "target": {
+            "package": "@barocss/cad-model",
+            "file": "src/drawing/standard.ts",
+            "name": "UNPRINTABLE_TOLERANCE",
+            "kind": "const"
+          },
+          "shape": {
+            "type": "\"tolerance not printable\"",
+            "declarationSignatures": [
+              {
+                "kind": "VariableDeclaration"
+              }
+            ]
           }
         }
       ]

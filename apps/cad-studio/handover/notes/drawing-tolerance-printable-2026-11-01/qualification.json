@@ -1,0 +1,248 @@
+{
+  "decision": "D408",
+  "date": "2026-11-01",
+  "tier": "full printed tolerance/public API",
+  "status": "BOUNDED_QUALIFIED",
+  "baseCommit": "f97415a47f0189e904467cb57d0e329a42df675c",
+  "models": {
+    "toleranceImplementationAndIndependentAudit": "gpt-6.1-sol / high",
+    "actualStudioDriver": "gpt-6.1-sol / medium"
+  },
+  "contract": {
+    "numberMeaning": "canonical decimal spelling of each model number before nominal+deviation addition; inch ratio exactly 127/5 mm",
+    "numericTolerance": "exact upper endpoint floor and lower endpoint ceil on decimal grid, compensated against actual printed nominal; no EPS in rounding/containment/point representability",
+    "point": "numeric iff its endpoint is exactly on final decimal grid; shifted and compensation-to-zero points supported",
+    "positiveWidth": "numeric iff final grid interval has strictly positive width; no inversion or collapse; ordered but narrow intervals may remain numeric with tight=true under existing policy",
+    "missing": "one tolerance not printable marker; fit preserves class and each printable member with limits not printable for affected member",
+    "issue": "UNIT_PRECISION; per displayed unit incl plain mm and explicit6; distinguishes omitted limits vs ordered numeric-but-tight; fit-marker scan covers omitted fits only",
+    "sharedNominal": "monotone bounded per-unit rerender tracks own tolerance and fit at requests; transient shownPrecision feeds line/marks/issues",
+    "unchanged": [
+      "model geometry",
+      "authored tolerance values",
+      "saved drawing schema",
+      "frameValue",
+      "physical oracle tolerance",
+      "runtime dependencies"
+    ]
+  },
+  "reproductionBefore": [
+    {
+      "nominal": 64,
+      "upper": 0,
+      "lower": 0,
+      "unit": "inch",
+      "printedNominal": "2.51969",
+      "printedUpper": "-.00001",
+      "printedLower": "0",
+      "tight": true,
+      "result": "inverted pair"
+    },
+    {
+      "nominal": 25.4,
+      "upper": 0.01,
+      "lower": 0.01,
+      "unit": "inch",
+      "printedNominal": "1.00000",
+      "printedUpper": "+.00039",
+      "printedLower": "+.00040",
+      "tight": true,
+      "result": "inverted pair"
+    },
+    {
+      "nominal": 25.4001,
+      "upper": -0.0001,
+      "lower": -0.0001,
+      "unit": "inch",
+      "printedNominal": "1.00000",
+      "printedUpper": "-.00000",
+      "printedLower": "-.00000",
+      "tight": true,
+      "result": "exact endpoint incorrectly marked tight"
+    }
+  ],
+  "checks": {
+    "focused": {
+      "status": "PASS",
+      "pass": 35,
+      "fail": 0,
+      "includesGolden": 1,
+      "existingRandomCases": 120000,
+      "newExactMatrixCases": 960
+    },
+    "postFinalTestModelTypes": "PASS",
+    "studioTypes": "PASS",
+    "ownedLint": "PASS 8 TS files",
+    "driverSyntaxDiff": "PASS",
+    "apiReview": {
+      "status": "PASS",
+      "added": 2,
+      "removed": 0,
+      "changedShapes": 8,
+      "exposures": 6469,
+      "otherInventoryFieldsUnchanged": true
+    },
+    "docs": {
+      "status": "PASS",
+      "pages": 68,
+      "shots": 55,
+      "labels": 930
+    }
+  },
+  "audit": {
+    "status": "ACCEPT_AFTER_CORRECTION",
+    "round1": "Exact endpoint design accepted, no EPS or silent positive-width collapse",
+    "round2": "Found explicit tolerance + fit nominal precision mismatch; corrected with transient common precision",
+    "round3": "Final source accepted; mixed/stacked/dual regressions reviewed",
+    "mutation": {
+      "status": "PASS",
+      "baseline": 34,
+      "goldenExcluded": true,
+      "killed": 12,
+      "total": 12,
+      "survivors": 0,
+      "runtimeCrashKills": 0
+    },
+    "independentProbe": {
+      "status": "PASS",
+      "cases": 15000,
+      "settings": 15,
+      "numeric": 7727,
+      "omitted": 7273,
+      "exactNumericPoints": 404,
+      "epsilon": 0,
+      "checks": [
+        "containment",
+        "order",
+        "point equality",
+        "omission iff no valid grid interval at reported digits"
+      ]
+    },
+    "artifacts": "/tmp/barocss-d408-audit.FxTjqm"
+  },
+  "intentionalGoldenTextCorrections": [
+    {
+      "fixture": "coarse far",
+      "resolvedNominal": "24.000000000000004",
+      "enteredUpper": "0.01",
+      "enteredLower": "0",
+      "before": [
+        "\u00d824",
+        "+0.01",
+        "0"
+      ],
+      "after": [
+        "\u00d824",
+        "+0.01",
+        "+0.001"
+      ]
+    },
+    {
+      "fixture": "fine far",
+      "resolvedNominal": "24.000000000000004",
+      "enteredUpper": "0.0125",
+      "enteredLower": "0",
+      "before": [
+        "\u00d824",
+        "+0.0125",
+        "0"
+      ],
+      "after": [
+        "\u00d824",
+        "+0.0125",
+        "+0.0001"
+      ]
+    },
+    {
+      "fixture": "coarse radius",
+      "resolvedNominal": "12.000000000000002",
+      "enteredSymmetric": "0.13",
+      "before": [
+        "R12 \u00b10.13"
+      ],
+      "after": [
+        "R12 +0.13/-0.12"
+      ]
+    },
+    {
+      "fixture": "fine radius",
+      "resolvedNominal": "12.000000000000002",
+      "enteredSymmetric": "0.125",
+      "before": [
+        "R12 \u00b10.125"
+      ],
+      "after": [
+        "R12 +0.125/-0.124"
+      ],
+      "trueZone": [
+        "11.875000000000002",
+        "12.125000000000002"
+      ],
+      "newNumericZone": [
+        "11.876",
+        "12.125"
+      ],
+      "retainedWidthPercent": "99.6"
+    }
+  ],
+  "publicDelta": {
+    "Deviations": "required printable:boolean; propagates to DeviationPair; items cardinality preserved; unprintable upper/lower strings = not printable",
+    "ResolvedSuccess": "optional shownPrecision?:UnitPrecision; transient only, not authored/saved",
+    "newConstants": [
+      "UNPRINTABLE_TOLERANCE = tolerance not printable",
+      "UNPRINTABLE_FIT_LIMITS = limits not printable"
+    ],
+    "rationalHelpers": "all private; no exported numeric utility",
+    "functionSignatures": "unchanged"
+  },
+  "studio": {
+    "status": "PASS",
+    "run": 2,
+    "frozenFiles": 748,
+    "sourceChanges": 0,
+    "errors": 0,
+    "consoleErrors": 0,
+    "downloads": 0,
+    "rootReviewedScreenshots": 2,
+    "observed": [
+      "Real Auto-dimension and tolerance fields: 30 mm point0/0",
+      "Inch: 1.18110 tolerance not printable, marker once and UNIT_PRECISION omitted-limits warning",
+      "Dual secondary: [30 0/0]",
+      "Undo/Redo exact inch/dual document snapshots",
+      "Inch precision2 still reports unrepresentable point",
+      "Shifted -4.6/-4.6: 1.18 -.18/-.18 [30 -4.6/-4.6], both exact decimal endpoints1in"
+    ],
+    "modelExcludingDrawingUnchanged": true,
+    "resources": "Context/browser/server closed; gate released",
+    "artifacts": "/tmp/barocss-d408-browser-run02"
+  },
+  "retainedFailures": [
+    "Initial focused29/33:3 expected exact-limit text/golden changes and1 missing SVG test title",
+    "Initial test type narrowing TS2339; test-only fix, final post-test tsc PASS",
+    "Independent R2 found mixed explicit tolerance/fit nominal mismatch; final regression passes",
+    "Docs stale D407 STEP labels; current preparation/report/mesh labels corrected",
+    "Actual run01 source capsule omitted required dependencies; guard stopped before browser, driver-only correction"
+  ],
+  "commands": {
+    "focusedInitial": "/Users/user/Library/pnpm/nodejs/22.19.0/bin/node packages/barocss-cad-model/scripts/test.mjs drawing-units drawing-tolerance-printable",
+    "goldenGeneration": "UPDATE_UNITS_GOLDEN=1 /Users/user/Library/pnpm/nodejs/22.19.0/bin/node packages/barocss-cad-model/scripts/test.mjs drawing-units-golden",
+    "focusedFinal": "/Users/user/Library/pnpm/nodejs/22.19.0/bin/node packages/barocss-cad-model/scripts/test.mjs drawing-units drawing-tolerance-printable",
+    "typeCheck": "/Users/user/Library/pnpm/nodejs/22.19.0/bin/node packages/barocss-cad-model/node_modules/typescript/bin/tsc --noEmit -p packages/barocss-cad-model",
+    "lint": "/Users/user/Library/pnpm/nodejs/22.19.0/bin/node node_modules/eslint/bin/eslint.js packages/barocss-cad-model/src/drawing/standard.ts packages/barocss-cad-model/src/drawing/sheet.ts packages/barocss-cad-model/src/drawing/fits.ts packages/barocss-cad-model/src/drawing/issues.ts packages/barocss-cad-model/src/drawing/dimensions.ts packages/barocss-cad-model/test/drawing-units.test.ts packages/barocss-cad-model/test/drawing-units-golden.test.ts packages/barocss-cad-model/test/drawing-tolerance-printable.test.ts"
+  },
+  "rootCommands": {
+    "apiGenerate": "node apps/library-docs/scripts/api-inventory.mjs --write-expected /tmp/barocss-d408-root/api-inventory.expected.json; reviewed delta then copied expected baseline",
+    "docs": "node apps/library-docs/scripts/check-docs.mjs",
+    "studioTypes": "pnpm --filter @barocss/cad-studio-app type-check",
+    "independent": "node /tmp/barocss-d408-audit.FxTjqm/run-mutations.mjs; node /tmp/barocss-d408-audit.FxTjqm/probe.mjs",
+    "actual": "DRAWING_TOLERANCE_PRINTABLE_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME=/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome node apps/cad-studio/test/drawing-tolerance-printable-browser.mjs /tmp/barocss-d408-browser-run02"
+  },
+  "execution": "Node22.19.0; serial gate.sh heavy acquire/release; no worktree writes during actual Studio",
+  "notRun": [
+    "Actual Save/outbound SVG/PDF/DXF downloads",
+    "Actual fit UI and all dimension kinds; focused consumer proof only",
+    "General ASME/ISO or manufacturing acceptance",
+    "Full baseline/kernel suite, CI, release"
+  ],
+  "issueReview": "Bounded search found research links; #540 is an OPEN backlog epic with broader criteria. No dedicated closable issue identified; no issue closed.",
+  "ocp": "Remains removed; no new dependency/download"
+}

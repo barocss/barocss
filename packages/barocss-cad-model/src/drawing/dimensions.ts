@@ -5,7 +5,7 @@ import type { BrepProjection, ProjectedCurve, ProjectedEdge } from '@barocss/cad
 import type { CentreRef, DimPoint, DimView, DrawingDimension, EdgeRef, Vec3, XY } from './types';
 import { dot } from '../engine/vec3';
 import { nextFreeId } from '../util/ids';
-import { formatNumber, type LengthFormat } from './standard';
+import { formatNumber, type LengthFormat, type UnitPrecision } from './standard';
 
 const sub3 = (a: readonly number[], b: readonly number[]): Vec3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 const dist3 = (a: readonly number[], b: readonly number[]) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
@@ -103,13 +103,13 @@ export function pitchCircle(pr: BrepProjection, ring: readonly CentreRef[]): { c
 const cross3 = (a: readonly number[], b: readonly number[]): Vec3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 
 /** `alt` (11 ③b): on a dual drawing, the same text in the other unit; the sheet sets it, resolving never does. */
-export type Resolved =
+export type Resolved = (
   | { ok: true; kind: 'linear'; dim: Extract<DrawingDimension, { kind: 'linear' }>; a: XY; b: XY; value: number; text: string; alt?: string }
   | { ok: true; kind: 'diameter' | 'radius'; dim: Extract<DrawingDimension, { kind: 'diameter' | 'radius' }>; center: XY; radius: number; value: number; text: string; alt?: string }
   /** `vertex`: where the two lines meet; `from`/`to`: the sector's bounding directions (counter-clockwise from → to); `ends`: each edge's far end from the vertex. */
   | { ok: true; kind: 'angle'; dim: Extract<DrawingDimension, { kind: 'angle' }>; vertex: XY; from: XY; to: XY; ends: [XY, XY]; value: number; text: string; alt?: string }
   /** A pitch circle (R14.5): `center` in the view, `center3` in the model, `radius` (mm), `members` in the view; `value` its diameter. */
-  | { ok: true; kind: 'pcd'; dim: Extract<DrawingDimension, { kind: 'pcd' }>; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string }
+  | { ok: true; kind: 'pcd'; dim: Extract<DrawingDimension, { kind: 'pcd' }>; center: XY; center3: Vec3; radius: number; members: XY[]; even: boolean; value: number; text: string; alt?: string }) & { /** Transient common nominal precision selected by the sheet when an explicit tolerance and fit share it. Never authored or saved. */ shownPrecision?: UnitPrecision }
   | { ok: false; dim: DrawingDimension; reason: string };
 
 /** A value to 0.01 mm, leading zero kept and trailing zeros trimmed: the metric rule of both standards (standard.ts `formatNumber` takes another). */

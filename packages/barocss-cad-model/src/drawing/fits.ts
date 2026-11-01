@@ -5,7 +5,7 @@
 // a class with no row for that size keeps its class alone and is a typed issue (FIT_ROW_MISSING) saying what to load.
 import { fitLimits, isHoleClass, lookupFit, FitError } from '@barocss/cad';
 import type { StudioDoc } from '../engine/doc';
-import type { LengthFormat } from './standard';
+import { UNPRINTABLE_FIT_LIMITS, type LengthFormat } from './standard';
 
 /** A length as the sheet's units print it (11 ③b; absent: mm, as before). */
 const plainMM: LengthFormat = (mm, places = 2) => String(+mm.toFixed(places));
@@ -17,7 +17,7 @@ const plainMM: LengthFormat = (mm, places = 2) => String(+mm.toFixed(places));
 function limitsOf(list: readonly (readonly [number, number])[], diameter: number, f: LengthFormat): { texts: string[]; digits?: number } {
   if (!f.pairs) return { texts: list.map(([u, l]) => `${deviation(u)}/${deviation(l)}`) };
   const set = f.pairs(list, diameter);
-  return { texts: set.items.map(d => `${d.upper}/${d.lower}`), digits: set.digits };
+  return { texts: set.items.map(d => d.printable ? `${d.upper}/${d.lower}` : UNPRINTABLE_FIT_LIMITS), digits: set.digits };
 }
 
 /** A deviation (mm) as drawings write it: +0.025, 0, -0.009 (ASCII, as the PDF's fonts show). */

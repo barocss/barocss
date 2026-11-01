@@ -18022,7 +18022,7 @@ The preset is passed explicitly everywhere. It is exposed as a Studio select and
 **Verification.** Model 2486/2486, including a 120k-case property test; Studio 623/623. Actual run03 PASS.
 
 **Follow-ups.**
-- A zero-width zone prints inverted in inch.
+- A zero-width zone prints inverted in inch (closed by D408; original evidence retained).
 - Non-dual short dimension text (kernel DXF fixture).
 - Chat hint.
 - DXF DIMSTYLE.
@@ -18181,3 +18181,17 @@ The independent audit found master-versus-shown instance use, stale appearance m
 **FAIL retained.** Initial incorrect source-revision test oracle, run01 real metadata transport omission, and run02 driver click intercepted by Chat overlay. Run02 is not a whole-flow PASS. **NOT_RUN.** Actual download/Save, actual UI variant selection, forced real worker timing, general independent geometry/corpus, full baseline suites, CI/release. Stale/delayed final-download guards are injected-controller proof. OCP remains removed. Commands/counts/raw locations are in qualification; no logs/screens/binaries are committed.
 
 **Issues/follow-ups.** #2263 remains incomplete for actual assembly sharing/transforms, exact presentation, PMI and geometric import breadth; #539 remains a backlog epic; #2248 remains research. Row 13 stays OPEN. Next D408: reproduce the registered D397 zero-width inch tolerance inversion under row 16/11 before optional exchange extensions. No download is required.
+
+## D408 — Exact printed tolerance intervals and point-zone refusal; full (2026-11-01)
+
+[Report](notes/drawing-tolerance-printable-2026-11-01/README.md), [commands/counts](notes/drawing-tolerance-printable-2026-11-01/qualification.json). Registered D397 follow-up under11/16. Sol High tolerance implementation and independent audit; Sol Medium actual Studio driver.
+
+**Reproduced.** Nominal64mm, deviations0/0, inch printed2.51969 with upper-.00001/lower0. Nominal25.4+.01/.01 printed+.00039/+.00040. UNIT_PRECISION alone left an inverted numeric pair. Each input's canonical decimal is now added exactly before inch conversion (mm ratio127/5). Integer-grid upper-floor/lower-ceil arithmetic has no EPS. Numeric points require an exact endpoint; positive zones require positive numeric width. Otherwise one tolerance-not-printable marker and UNIT_PRECISION replace invalid limits. Safe fit members remain numeric; ordered-but-tight intervals keep the prior warning policy. No physical tolerance widening, model geometry/schema/frameValue/dependency change.
+
+Independent R2 found explicit-tolerance and fit digits could disagree on the printed nominal. Common per-unit precision now feeds inline/stacked/dual/issue consumers, carried as transient Resolved.shownPrecision. Public Deviations.printable is required, and2 shared marker constants are intentional. Reviewed inventory:2added/0removed/8changed shapes. Exact decimal containment also corrects four inherited SVG/DXF texts: far-diameter lower0→+.001(coarse)/+.0001(fine), radius±.13→+.13/-.12 and±.125→+.125/-.124. For the latter nominal12.000000000000002, new interval[11.876,12.125] is contained in[11.875000000000002,12.125000000000002] and retains99.6% width. Original golden and resolved-dimension hashes remain checked; exact-limit output has a separate baseline.
+
+**PASS.** Focused35/35 (includes golden; prior120k cases and new960 exact cases), post-final-test Model types, Studio types,8-file lint, driver syntax/diff, API inventory and docs68pages/55shots/930labels. High R1 design/R2 correction/R3 final audit; independent34-test mutation baseline and12/12 assertion-killed mutants,0survivors/runtime-crash kills. Independent15k rational probes/15settings:7727numeric,7273omitted,404exact numeric points, no epsilon. Actual Studio run02: real authored mm point, inch marker once+warning, dual, exact Undo/Redo, precision2, shifted30-4.6 control displaying1.18-.18/-.18 with both endpoints exactly1in. Entire document outside intended drawing settings unchanged.748 frozen files unchanged;2root-reviewed images; errors/console errors/downloads0, owned resources closed.
+
+**FAIL retained.** Initial29/33, first test-only TS2339 narrowing, R2 compound mismatch, stale D407 STEP docs labels (now corrected), run01 dependency-capsule guard before browser launch. **NOT_RUN.** Actual Save/outbound SVG/PDF/DXF, actual fit UI/all dimension kinds, whole standards/manufacturing acceptance, full baseline/kernel suites, CI/release. OCP remains removed. No logs/screens/archives are committed.
+
+**Issues/follow-ups.** Checked related issue search and #540; parent is a backlog epic with broader unchecked acceptance, remains OPEN. No dedicated closable issue identified. D397 inversion is closed only at this profile. Next D409: reproduce registered D396 ASME fixed2.5mm text follow-up before optional UI work; existing production/motion/external-format holds remain.

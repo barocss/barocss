@@ -96,7 +96,9 @@ export function formatLength(mm: number, p: StandardPreset, unit: DrawingUnits =
 }
 
 /** One tolerance's deviations as printed (`+.0005`, `-.0002`, `0`). */
-export interface Deviations { upper: string; lower: string; /** Both limits are the same distance from the printed nominal: a symmetric tolerance prints ±. */ equal: boolean }
+export interface Deviations { upper: string; lower: string; /** False: no numeric interval can be printed inside this zone; upper/lower contain a marker. */ printable: boolean; /** Both limits are the same distance from the printed nominal: a symmetric tolerance prints ±. */ equal: boolean }
+export const UNPRINTABLE_TOLERANCE = 'tolerance not printable';
+export const UNPRINTABLE_FIT_LIMITS = 'limits not printable';
 /** The deviations of one or more tolerances on one nominal, at common `digits` decimals; `nominal` is the nominal printed at them; `tight`: even the most decimals could not keep the zone. */
 export interface DeviationSet { items: Deviations[]; digits: number; nominal: string; tight: boolean }
 /** A single tolerance's (`deviationSet` of one). */
@@ -106,29 +108,72 @@ const KEEP = 0.8;
 const EPS = 1e-9;
 /** The decimals a value was entered with (up to 4). */
 const decimalsOf = (v: number): number => { for (let d = 0; d < 4; d++) if (Math.abs(Math.round(Math.abs(v) * 10 ** d) - Math.abs(v) * 10 ** d) < EPS) return d; return 4; };
+interface DecimalValue { integer: bigint; places: number }
+interface ToleranceZone { upper: bigint; lower: bigint; denominator: bigint; upperEntered: number; lowerEntered: number }
+interface RoundedZone { U: bigint; L: bigint; printable: boolean; adequate: boolean }
+/** Model numbers mean their canonical decimal spelling, before adding the nominal and deviation. */
+function decimalValue(value: number | string): DecimalValue {
+  const [mantissa, power = '0'] = String(value).toLowerCase().split('e'), dot = mantissa.indexOf('.');
+  const places = (dot < 0 ? 0 : mantissa.length - dot - 1) - Number(power), integer = BigInt(mantissa.replace('.', ''));
+  return places < 0 ? { integer: integer * 10n ** BigInt(-places), places: 0 } : { integer, places };
+}
+const decimalAt = (value: DecimalValue, places: number): bigint => value.integer * 10n ** BigInt(places - value.places);
+function toleranceZone(nominal: DecimalValue, upper: number, lower: number, unit: DrawingUnits): ToleranceZone {
+  const u = decimalValue(upper), l = decimalValue(lower), places = Math.max(nominal.places, u.places, l.places), n = decimalAt(nominal, places);
+  const factor = unit === 'inch' ? 5n : 1n, denominator = 10n ** BigInt(places) * (unit === 'inch' ? 127n : 1n);
+  return { upper: (n + decimalAt(u, places)) * factor, lower: (n + decimalAt(l, places)) * factor, denominator, upperEntered: upper, lowerEntered: lower };
+}
+function floorRatio(numerator: bigint, denominator: bigint): bigint {
+  const quotient = numerator / denominator;
+  return numerator < 0n && numerator % denominator !== 0n ? quotient - 1n : quotient;
+}
+function ceilRatio(numerator: bigint, denominator: bigint): bigint {
+  const quotient = numerator / denominator;
+  return numerator > 0n && numerator % denominator !== 0n ? quotient + 1n : quotient;
+}
+function roundedZone(zone: ToleranceZone, q: bigint, nominal: bigint): RoundedZone {
+  const U = floorRatio(zone.upper * q, zone.denominator) - nominal, L = ceilRatio(zone.lower * q, zone.denominator) - nominal;
+  const point = zone.upper === zone.lower, printable = point ? U === L : U > L;
+  const adequate = printable && (point || ((zone.upperEntered === 0 || U !== 0n) && (zone.lowerEntered === 0 || L !== 0n) && 5n * (U - L) * zone.denominator >= 4n * (zone.upper - zone.lower) * q));
+  return { U, L, printable, adequate };
+}
+/** Exact decimal text from integer grid ticks; no floating-point conversion of a printed deviation. */
+function tickNumber(value: bigint, digits: number, leadingZero: boolean, trim: boolean): string {
+  const raw = (value < 0n ? -value : value).toString().padStart(digits + 1, '0');
+  let text = digits ? `${raw.slice(0, -digits)}.${raw.slice(-digits)}` : raw;
+  if (trim && text.includes('.')) text = text.replace(/0+$/, '').replace(/\.$/, '');
+  return leadingZero ? text : text.replace(/^0\./, '.');
+}
+function deviationText(value: bigint, truth: number, digits: number, lead: boolean, plain: boolean): string {
+  if (value === 0n) return truth === 0 ? '0' : `${truth > 0 ? '+' : '-'}${tickNumber(0n, digits, lead, plain)}`;
+  return `${value > 0n ? '+' : '-'}${tickNumber(value, digits, lead, plain)}`;
+}
 /**
  * Tolerances on one nominal in a unit (ASME Y14.5 §1.6.2: decimals are equalised by adding zeros to the dimension, never by
  * dropping a tolerance's digits). The nominal is rounded to nearest at `digits` decimals (N_r); each upper deviation is then
  * rounded down and each lower one up from the limits `N + u` and `N + l`, so the printed limits `N_r + U'` and `N_r + L'` never
  * lie outside the true zone. `digits` start at the drawing's precision for the unit (plain mm: 2, or the decimals the
- * tolerances were entered with, if more; its zeros are trimmed) and rise (inch to 5, mm to 4) until no nonzero deviation prints
- * as zero and every zone keeps 80% of its width.
+ * tolerances were entered with, if more; its zeros are trimmed) and rise (inch to 5, mm to 4, or an explicit higher
+ * precision) until no nonzero deviation prints as zero and every positive-width zone keeps 80% of its width. A point
+ * zone needs an exactly representable endpoint, including compensation for the printed nominal. At the final precision,
+ * an inverted/collapsed interval has no numeric output; an ordered but narrow interval stays numeric and `tight`.
  */
 export function deviationSet(list: readonly (readonly [number, number])[], p: StandardPreset, unit: DrawingUnits, nominal = 0): DeviationSet {
   const plain = unit === 'mm' && p.precision.mm === undefined, conv = (v: number) => unit === 'inch' ? v / MM_PER_INCH : v;
-  const zones = list.map(([upper, lower]) => [conv(upper), conv(lower)] as const), n = conv(nominal);
+  const exactNominal = decimalValue(nominal), zones = list.map(([upper, lower]) => toleranceZone(exactNominal, upper, lower, unit)), n = conv(nominal);
   const base = plain ? Math.max(2, ...list.flat().map(decimalsOf)) : unit === 'inch' ? p.precision.inch ?? INCH_DECIMALS : p.precision.mm!, max = Math.max(MAX_DIGITS[unit], base);
   const lead = unit === 'mm' ? p.number.leadingZero : INCH_NUMBER.leadingZero;
-  const at = (d: number) => { const q = 10 ** d, nr = Number(n.toFixed(d)), s = n - nr; return { nr, items: zones.map(([u, l]) => ({ U: Math.floor((u + s) * q + EPS) / q, L: Math.ceil((l + s) * q - EPS) / q })) }; };
-  let digits = base, tight = true;
+  let digits = base, tight = true, nominalText = '', items: RoundedZone[] = [];
   for (let d = base; d <= max; d++) {
-    const { items } = at(d); digits = d;
-    if (items.every(({ U, L }, k) => { const [u, l] = zones[k]; return (u === 0 || U !== 0) && (l === 0 || L !== 0) && U - L >= KEEP * (u - l) - 1e-12; })) { tight = false; break; }
+    digits = d; nominalText = fixedNumber(n, d, lead, plain);
+    const q = 10n ** BigInt(d), printedNominal = decimalAt(decimalValue(nominalText), d);
+    items = []; let adequate = true;
+    for (const zone of zones) { const item = roundedZone(zone, q, printedNominal); items.push(item); adequate = adequate && item.adequate; }
+    if (adequate) { tight = false; break; }
   }
-  const { nr, items } = at(digits);
-  const num = (v: number) => fixedNumber(Math.abs(v), digits, lead, plain);
-  const text = (rounded: number, truth: number) => rounded === 0 ? (truth === 0 ? '0' : `${truth > 0 ? '+' : '-'}${num(0)}`) : `${rounded > 0 ? '+' : '-'}${num(rounded)}`;
-  return { digits, tight, nominal: fixedNumber(nr, digits, lead, plain), items: items.map(({ U, L }, k) => ({ upper: text(U, zones[k][0]), lower: text(L, zones[k][1]), equal: Math.abs(U + L) < 1e-12 })) };
+  return { digits, tight, nominal: nominalText, items: items.map(({ U, L, printable }, k) => printable
+    ? { upper: deviationText(U, zones[k].upper === zones[k].lower ? 0 : zones[k].upperEntered, digits, lead, plain), lower: deviationText(L, zones[k].upper === zones[k].lower ? 0 : zones[k].lowerEntered, digits, lead, plain), printable: true, equal: U + L === 0n }
+    : { upper: 'not printable', lower: 'not printable', printable: false, equal: false }) };
 }
 export function deviationPair(upper: number, lower: number, p: StandardPreset, unit: DrawingUnits, nominal = 0): DeviationPair {
   const set = deviationSet([[upper, lower]], p, unit, nominal);
