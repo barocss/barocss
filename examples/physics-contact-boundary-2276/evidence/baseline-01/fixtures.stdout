@@ -1,0 +1,1 @@
+{"status": "AUTHENTICATED_BOUNDARY_DATA_EXPORTED", "cases": 4, "rows": 128, "historicalFailedRows": 77, "historicalPassingRows": 51, "positiveControlRows": 32, "fixtureSha256": "6dbee5b66fa8b7fe638220181cf41ce3beed6e57456588943cc0e91fb135fe49", "worldCalls": 0, "solverCalls": 0}

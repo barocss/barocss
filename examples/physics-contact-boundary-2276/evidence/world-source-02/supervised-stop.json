@@ -1,0 +1,13 @@
+{
+  "action": "SIGTERM_OWN_EXPERIMENT_AFTER_RECORDED_WALL_GUARD",
+  "reason": "review found wall guard did not abort; prevent unqualified later scenes",
+  "pid": 3633,
+  "scene": "ALIGNED",
+  "independentlyAcceptedSteps": 308,
+  "firstFailureRetained": {
+    "kind": "execution-wall-guard",
+    "step": 309,
+    "limitMs": 180000
+  },
+  "heldWorkersAffected": false
+}

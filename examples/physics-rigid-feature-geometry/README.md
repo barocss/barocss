@@ -1,4 +1,25 @@
-# Private SAT feature geometry qualification (#1233)
+---
+work_id: physics-contact-boundary-2276
+artifact_type: canonical-module-and-historical-evidence-note
+status: bounded-contact-construction-verified
+owner_role: independent-algorithm-work
+source_request: fix the current contact construction without a compatibility path; retain first evidence
+last_updated: 2026-11-01
+---
+
+# Current canonical feature geometry
+
+The current face constructor includes exact normalized-OBB line intervals,
+actual surface-midpoint and selected-face certificates, and bounded
+representable inward rounding. It has one execution path and the existing
+numeric/work limits. See [the current verification report](../physics-contact-boundary-2276/README.md)
+for192fixed rows, original-scene diagnostic prefixes and remaining NO_GO.
+
+The record below describes the immutable #1233 experiment and its frozen
+source revision. Its old source pins are historical reproduction inputs;
+they do not qualify the changed constructor or the current World.
+
+# Historical private SAT feature geometry qualification (#1233)
 
 Native geometry GO for the frozen archive and analytical controls. Original hit arithmetic is unchanged. This is renderer-neutral private geometry, not a public engine or stability claim.
 

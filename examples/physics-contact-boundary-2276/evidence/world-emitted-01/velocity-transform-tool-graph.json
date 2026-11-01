@@ -1,0 +1,18 @@
+{
+  "emitted": true,
+  "bundleSha256": "f6059618793a36015616316bada10d7f004109ba44e91ba290a63f737f54c308",
+  "inputs": [
+    {
+      "path": "packages/barocss-physics/src/types.ts",
+      "sha256": "e8befc80c94e1b109f5024581f056639acff2c19ed445f2875e20eaf2d3bf240"
+    },
+    {
+      "path": "examples/physics-contact-boundary-2276/evidence/world-emitted-01/modules/examples/physics-stack-solver-2276/candidate.js",
+      "sha256": "d672f4a7f41179fc9aefb767d0e92ed580cf346c9bd17ac8cc75b75aefba9570"
+    },
+    {
+      "path": "examples/physics-contact-boundary-2276/evidence/world-emitted-01/modules/examples/physics-stack-solver-2276/world-adapter.js",
+      "sha256": "9ab4e627e271eeb5ceda3f761fd1c2b66f00eabce9fcae209193b0e13ee26c10"
+    }
+  ]
+}

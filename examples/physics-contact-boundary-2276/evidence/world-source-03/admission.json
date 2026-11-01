@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "qualificationSha256": "467d4c00d15f01461eea1b6eb65b7360fbcd57a2559acfcde0fdcde3a53d505b",
+  "qualifiedNumericalSourceCount": 68,
+  "runnerErrorTests": "error-tests-02",
+  "selectedSteps": 16,
+  "node": "v22.19.0"
+}

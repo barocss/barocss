@@ -1,0 +1,21 @@
+{
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "records": [
+    {
+      "name": "world-consumer",
+      "command": [
+        "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/world-source-01/world-consumer.mjs",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/world-source-01"
+      ],
+      "started": "2026-11-01T13:45:57.229Z",
+      "finished": "2026-11-01T13:45:59.199Z",
+      "exit": 1,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "3fb3171c10363b09532905262764e5a86c20b4276fa5d702982175fce27b5a16",
+      "stderrSha256": "7718ccd76aa1d066f74d0f02953df6a0e622f7cf68a90b85463c2b41a46ab496"
+    }
+  ]
+}

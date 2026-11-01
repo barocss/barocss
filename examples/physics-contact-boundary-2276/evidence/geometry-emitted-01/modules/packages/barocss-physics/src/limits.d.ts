@@ -1,0 +1,11 @@
+export declare const ID: RegExp;
+export declare const MAX_BODIES = 32;
+export declare const MAX_LARGE_BODIES = 64;
+export declare const MAX_STEPS = 3600;
+export declare const MAX_STEP_DISPLACEMENT_M = 10;
+export declare const MAX_COMMANDS = 64;
+export declare const MAX_FORCE_N = 1000000;
+export declare const MAX_IMPULSE_NS = 100000;
+export declare const MAX_TORQUE_NM = 1000000;
+export declare const MAX_ANGULAR_IMPULSE_NMS = 100000;
+export declare const SOLVER_PASSES = 8;

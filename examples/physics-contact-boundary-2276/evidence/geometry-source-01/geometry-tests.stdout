@@ -1,0 +1,76 @@
+TAP version 13
+# Subtest: strict closed slabs admit an exact edge and reject one representable step outside
+ok 1 - strict closed slabs admit an exact edge and reject one representable step outside
+  ---
+  duration_ms: 2.072417
+  type: 'test'
+  ...
+# Subtest: line intersection does not inflate a parallel slab by witness tolerance
+ok 2 - line intersection does not inflate a parallel slab by witness tolerance
+  ---
+  duration_ms: 0.41225
+  type: 'test'
+  ...
+# Subtest: nextafter moves exactly one representable value for either sign
+ok 3 - nextafter moves exactly one representable value for either sign
+  ---
+  duration_ms: 0.244458
+  type: 'test'
+  ...
+# Subtest: named face projection correctly rounds an exact non-dyadic ratio
+ok 4 - named face projection correctly rounds an exact non-dyadic ratio
+  ---
+  duration_ms: 1.271334
+  type: 'test'
+  ...
+# Subtest: named face projection rounds a half-ULP tie to the even significand
+ok 5 - named face projection rounds a half-ULP tie to the even significand
+  ---
+  duration_ms: 0.37175
+  type: 'test'
+  ...
+# Subtest: exact movement gate is Euclidean rather than a per-coordinate box
+ok 6 - exact movement gate is Euclidean rather than a per-coordinate box
+  ---
+  duration_ms: 0.521833
+  type: 'test'
+  ...
+# Subtest: normalized rational quaternion geometry is invariant to its sign
+ok 7 - normalized rational quaternion geometry is invariant to its sign
+  ---
+  duration_ms: 1.051125
+  type: 'test'
+  ...
+# Subtest: already valid aligned face retains exact witnesses, IDs and input data
+ok 8 - already valid aligned face retains exact witnesses, IDs and input data
+  ---
+  duration_ms: 2.708209
+  type: 'test'
+  ...
+# Subtest: zero-width edge contact retains both selected face rows
+ok 9 - zero-width edge contact retains both selected face rows
+  ---
+  duration_ms: 0.758875
+  type: 'test'
+  ...
+# Subtest: rotated face outputs certify the actual returned float midpoint
+ok 10 - rotated face outputs certify the actual returned float midpoint
+  ---
+  duration_ms: 2.21175
+  type: 'test'
+  ...
+# Subtest: invalid exact operands and parallel named-face projection refuse
+ok 11 - invalid exact operands and parallel named-face projection refuse
+  ---
+  duration_ms: 0.270291
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 55.786125

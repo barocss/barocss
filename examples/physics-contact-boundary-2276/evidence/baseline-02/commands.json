@@ -1,0 +1,43 @@
+{
+  "node": "v22.19.0",
+  "executable": "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+  "records": [
+    {
+      "name": "fixtures",
+      "command": [
+        "python3",
+        "-B",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/failure-fixtures.py",
+        "--output",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/baseline-02/fixtures.json"
+      ],
+      "started": "2026-11-01T13:55:20.448Z",
+      "finished": "2026-11-01T13:55:20.582Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "2b5d3d244947206413904893a6fe18755cd4312dab3ab4ec85f4b9b48b99a008",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "baseline",
+      "command": [
+        "python3",
+        "-B",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/independent-check.py",
+        "--fixtures",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/baseline-02/fixtures.json",
+        "--baseline",
+        "--output",
+        "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-contact-boundary-2276/evidence/baseline-02/result.json"
+      ],
+      "started": "2026-11-01T13:55:20.582Z",
+      "finished": "2026-11-01T13:55:20.794Z",
+      "exit": 0,
+      "signal": null,
+      "error": null,
+      "stdoutSha256": "26e576f79e70f9d0a70e2787580742213e203da66627abebcbdbe5fbbbd38885",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}
