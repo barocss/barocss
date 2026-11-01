@@ -6,6 +6,7 @@ The complete original D1–D417 record body is preserved byte-for-byte in the [d
 
 ## Decision navigation — current checkpoint
 
+- [D426: native Model world coordinates — bounded qualification](notes/native-display-world-precision-2026-11-02/README.md).
 - [D425: nonzero body quantities — bounded display qualification](notes/nonzero-quantity-display-2026-11-01/README.md).
 - [D424: local-coordinate display inversion — bounded qualification](notes/display-inversion-conditioning-2026-11-01/README.md).
 - [D423: local-coordinate mass source checkpoint — acceptance HOLD](notes/mass-translation-2026-11-01/README.md).
@@ -50,6 +51,7 @@ Numeric proof and limits remain in the canonical item notes.
 | D423 | Local-coordinate mass source checkpoint — historical Studio/backend HOLD | [Note](notes/mass-translation-2026-11-01/README.md) |
 | D424 | Local-coordinate display inversion; bounded current full-kernel and actual flow PASS | [Note](notes/display-inversion-conditioning-2026-11-01/README.md) |
 | D425 | Nonzero Body/Part quantities and STEP summary; display-only | [Note](notes/nonzero-quantity-display-2026-11-01/README.md) |
+| D426 | Native Model world coordinates and ordinary GL byte compatibility; GPU precision separate | [Note](notes/native-display-world-precision-2026-11-02/README.md) |
 
 <!-- D418 LEGACY COMPATIBILITY BEGIN: fixed original heading sequence -->
 <details>

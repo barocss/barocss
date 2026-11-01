@@ -81,7 +81,7 @@ export const RUNG9: Rung = {
 // (G: the FDM profile's fit gap — the clearance round every hook, tip to wall, catch to ledge.)
 const G = processProfile('fdm')!.thresholds.fitGap.value, HH = 2;
 /** One library part's triangles in a body (its faces by their prefix): the hook alone, for its clearance from the box. */
-function partMesh(bodies: readonly BodyResult[], prefix: string): { p: Float32Array; i: Uint32Array } | null {
+function partMesh(bodies: readonly BodyResult[], prefix: string): { p: ArrayLike<number>; i: Uint32Array } | null {
   for (const b of bodies) {
     const m = b.mesh, faces = new Set(m.faces.filter(f => f.name.startsWith(`${prefix}_`)).map(f => f.index));
     if (!faces.size) continue;

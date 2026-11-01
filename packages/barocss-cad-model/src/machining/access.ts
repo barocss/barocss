@@ -54,7 +54,7 @@ export function accessOf(bodies: readonly BodyResult[], stepMM?: number): Access
  * One triangle's samples (its n² parts' centres), each one's area added to `byMask` by its mask and to `total` (sample by
  * sample, in accessOf's order): the triangle's area, the area none reaches, the OR of the masks.
  */
-function sampleTriangle(P: Float32Array | readonly number[], I: Uint32Array | readonly number[], t: number, h: number, bvh: ReturnType<typeof triangleBvh>, byMask: number[], total: { area: number; samples: number }): { area: number; none: number; or: number } | null {
+function sampleTriangle(P: ArrayLike<number>, I: Uint32Array | readonly number[], t: number, h: number, bvh: ReturnType<typeof triangleBvh>, byMask: number[], total: { area: number; samples: number }): { area: number; none: number; or: number } | null {
   const a = 3 * I[3 * t], b = 3 * I[3 * t + 1], c = 3 * I[3 * t + 2];
   const ux = P[b] - P[a], uy = P[b + 1] - P[a + 1], uz = P[b + 2] - P[a + 2], vx = P[c] - P[a], vy = P[c + 1] - P[a + 1], vz = P[c + 2] - P[a + 2];
   const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx, l = Math.hypot(nx, ny, nz);

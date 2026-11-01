@@ -430,7 +430,7 @@ function boxOf(vs: readonly { point: readonly number[] }[], m: readonly number[]
 const move = (m: readonly number[], t: readonly number[], p: readonly number[]): [number, number, number] => [m[0] * p[0] + m[1] * p[1] + m[2] * p[2] + t[0], m[3] * p[0] + m[4] * p[1] + m[5] * p[2] + t[1], m[6] * p[0] + m[7] * p[1] + m[8] * p[2] + t[2]];
 const turn = (m: readonly number[], p: readonly number[]): [number, number, number] => [m[0] * p[0] + m[1] * p[1] + m[2] * p[2], m[3] * p[0] + m[4] * p[1] + m[5] * p[2], m[6] * p[0] + m[7] * p[1] + m[8] * p[2]];
 /** In place: each xyz triple of a ← m·xyz (+ t). */
-function moveAll(a: Float32Array, m: readonly number[], t: readonly number[] | null): void {
+function moveAll(a: Float32Array | Float64Array, m: readonly number[], t: readonly number[] | null): void {
   for (let i = 0; i < a.length; i += 3) {
     const x = a[i], y = a[i + 1], z = a[i + 2];
     a[i] = m[0] * x + m[1] * y + m[2] * z + (t ? t[0] : 0); a[i + 1] = m[3] * x + m[4] * y + m[5] * z + (t ? t[1] : 0); a[i + 2] = m[6] * x + m[7] * y + m[8] * z + (t ? t[2] : 0);

@@ -30,8 +30,9 @@ export function withoutNativeFaces(face: DisplayFace): DisplayFace {
 }
 export interface DisplayEdge { index: number; faces: [number, number]; a: Vec3; b: Vec3; straight: boolean; axis: 'x' | 'y' | 'z' | null; names: string[] }
 export interface DisplayMesh {
-  positions: Float32Array; normals: Float32Array; faceOfVertex: Float32Array; indices: Uint32Array;
-  faces: DisplayFace[]; edgeLines: Float32Array; edgeOfSegment: Float32Array; edges: DisplayEdge[];
+  /** World XYZ millimetres: native bodyMesh retains doubles; legacy display generators can retain floats. */
+  positions: Float32Array | Float64Array; normals: Float32Array; faceOfVertex: Float32Array; indices: Uint32Array;
+  faces: DisplayFace[]; edgeLines: Float32Array | Float64Array; edgeOfSegment: Float32Array; edges: DisplayEdge[];
   bounds: { min: Vec3; max: Vec3 };
   /** The tessellation's segments per quarter turn (bodyMesh's quality): measureChords re-tessellates at it. */
   quality?: number;
@@ -203,10 +204,10 @@ export function bodyMesh(brep: Brep, _revision: number, quality = 8): DisplayMes
     edges.push(made); if (same) same.push(made); else byPair.set(key, [made]);
     for (let k = 0; k + 1 < pts.length; k++) { pushSegment(lines, pts[k], pts[k + 1]); segmentEdge.push(index, index); }
   }
-  const positions = new Float32Array(b.p), normals = new Float32Array(b.n), faceOfVertex = new Float32Array(b.f), indices = new Uint32Array(b.i);
+  const positions = new Float64Array(b.p), normals = new Float32Array(b.n), faceOfVertex = new Float32Array(b.f), indices = new Uint32Array(b.i);
   const min: Vec3 = [Infinity, Infinity, Infinity], max: Vec3 = [-Infinity, -Infinity, -Infinity];
   for (let v = 0; v < positions.length; v += 3) for (let k = 0; k < 3; k++) { min[k] = Math.min(min[k], positions[v + k]); max[k] = Math.max(max[k], positions[v + k]); }
-  return { positions, normals, faceOfVertex, indices, faces: b.faces, edgeLines: new Float32Array(lines), edgeOfSegment: new Float32Array(segmentEdge), edges, bounds: { min, max }, quality };
+  return { positions, normals, faceOfVertex, indices, faces: b.faces, edgeLines: new Float64Array(lines), edgeOfSegment: new Float32Array(segmentEdge), edges, bounds: { min, max }, quality };
 }
 
 /** Whether a mesh has a freeform face not yet measured (chordOf takes it as unbounded until measureChords runs). */

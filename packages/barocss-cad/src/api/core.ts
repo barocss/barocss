@@ -13,9 +13,10 @@ import type { Vec3 } from './select.js';
 export interface MassResult { volume: number; mass: number; centroid: Vec3; inertia: number[][] }
 /** A body's display triangles in the common mesh shape (api-conventions.md §10.3): mm, Z up — what gpu's GeometryInput takes. */
 export interface MeshData {
-  key: string; positions: Float32Array; normals: Float32Array; indices: Uint32Array;
+  /** Coordinate storage can retain native doubles; both types remain world millimetres, Z up. */
+  key: string; positions: Float32Array | Float64Array; normals: Float32Array; indices: Uint32Array;
   /** Its display lines (the edges a person sees) as segment pairs, x, y, z each end — gpu's line geometry (R7.5b). */
-  lines?: Float32Array;
+  lines?: Float32Array | Float64Array;
   /** The material id its body names (cad-model: the body's own, else the brief's), for gpu's scene materials (§10.6). */
   material?: string;
 }
