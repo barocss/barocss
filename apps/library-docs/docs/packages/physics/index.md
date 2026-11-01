@@ -114,3 +114,9 @@ step. The [library roadmap](/physics-evidence/api-roadmap.txt) proposes one acce
 separate numerical solvers, with replay as a service and CAD as an adapter. That target API is not implemented.
 A common facade cannot establish coupling: each admitted interaction needs its own numerical checks.
 The unreleased transition will update callers directly; it will not retain a parallel compatibility engine.
+
+
+P0 now fixes the proposed [model/state/command/failure contract](/physics-evidence/p0-contract.txt),
+[unexported target types](/physics-evidence/p0-types.txt) and
+[direct caller transition](/physics-evidence/p0-migration.txt). These documents do not change the current API shown
+above. Type checks and an inventory do not establish runtime integration, physical coupling or a numerical pass.

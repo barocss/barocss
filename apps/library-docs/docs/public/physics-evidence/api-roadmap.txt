@@ -4,7 +4,7 @@ artifact_type: architecture-and-development-roadmap
 status: ready_for_build
 owner_role: independent-physics-algorithm-work
 source_request: redesign the unreleased Physics library and reorganize its roadmap; preserve HOLD, NO_GO and first failures
-last_updated: 2026-11-01
+last_updated: 2026-11-02
 ---
 
 # Physics library design and roadmap
@@ -19,7 +19,9 @@ Neither replay nor a CAD adapter is a physical domain.
 This is the local design direction for subsequent bounded implementation. The proposed API below is NOT implemented.
 `ready_for_build` applies to the first contract/inventory slice, not to all later solvers or to release. Numerical
 profiles beyond existing receipts remain BACKLOG until their own inputs, error gates and execution costs are frozen.
-The current public API remains unchanged by this design document.
+The current public API remains unchanged by this design document. The frozen [P0 contract](design/p0/CONTRACT.md),
+[target types](design/p0/types.ts), [direct migration scope](design/p0/MIGRATION.md) and [validation requirements](design/p0/validation.json)
+now define the first implementation boundary. They are design artifacts, not package exports or runtime support.
 
 The initial product is a renderer-neutral numerical library for bounded CAD and mechanism experiments. Visual
 fluid and cloth models can be useful, but their evidence class must stay visual until separately validated.
@@ -203,7 +205,7 @@ iterations, original input law or evidence in order to pass.
 
 | Slice | Dependency and bounded change | Exit evidence | Current status |
 |---|---|---|---|
-| P0 — capability and API contract | This source baseline and current owner/HOLD check. Inventory all public factories, subpaths and first-party callers; fix model/state/command/error/lifetime/recording contracts. | Every current supported/refused/unmeasured row mapped; complete caller file list; proposed types and negative cases; no silent domain isolation. | NEXT. This design is written; API/type implementation NOT_RUN. |
+| P0 — capability and API contract | This source baseline and current owner/HOLD check. Inventory all public factories, subpaths and first-party callers; fix model/state/command/error/lifetime/recording contracts. | Every current supported/refused/unmeasured row mapped; complete caller file list; proposed types and negative cases; no silent domain isolation. | CONTRACT_READY: target types/negative consumers and admission-constant checks pass; bounded caller inventory classified. Runtime target NOT_IMPLEMENTED. |
 | P1 — common World, rigid first | P0. Separate immutable model from rigid runtime without changing numerical phases; implement one clock, candidate caches, copied state and idempotent disposal. | Existing admitted rigid fixtures and refusal precedence preserved; failure injection before and after each phase leaves accepted state/cache/log/time identical; deterministic next accepted step matches a fresh control. Measure allocation and per-step cost. | BACKLOG; no new body/joint support. |
 | P2 — recording and CAD boundary | P1. Move recording to the common World; separate CAD admission from runtime; migrate actual callers directly. | Record/restore/continue matches source and actual emitted consumers; stale source/model/profile rejection; unrecorded stepping prevented; numerical root graph has no CAD/parser/Viewer imports. MMGS/off-origin independent adapter tests pass. | BACKLOG. No arbitrary checkpoint import or CAD Studio integration. |
 | P3 — hinge and mechanism dynamics | P1; original #1489 contract. Preserve four spheres, two disjoint hinges, 1/120 s and 1200 steps. Retain step77 raw-bit failure. | Exact original source/repeat/emitted/reference gates; independently verified rename/order controls before widening admission. Resolve missing original runtime operands or separately decide a new cross-runtime claim without rewriting the old gate. | NO_GO. Scalar reconstruction alone is insufficient. #1490 stays dependent on public adoption and existing owner authority. |
@@ -294,3 +296,18 @@ The inherited local reports remain authoritative for their measured cases:
 The five documentation bundles added in the accompanying docs work describe today's real API, not the signature
 sketch above. They must change with each canonical API transition. See
 `apps/library-docs/docs/reference/physics-verification.md` for publicly readable bounded results and preserved failures.
+
+
+## P0 checkpoint (2026-11-02)
+
+P0 fixes the required model/state/command/failure/lifetime/recording contracts in `design/p0/`.
+The target API remains unexported. `contract-check.ts` verifies positive/negative type consumers only;
+`examples/physics-world-p0-2276/check-contract.mjs` checks admission constants, fixed vectors and requirement structure.
+The expanded caller inventory separates active imports, computed loaders, shared build metadata and frozen evidence.
+No lexical count is a runtime call count. Source-based review identified return-copy/log allocations after commit,
+shared cloth lambdas and fluid scratch ownership as explicit next-step tests, not verified retention properties.
+
+P1 starts with internal preparation P1a under the one current root signature, then P1b performs the atomic public
+model/options cutover with all affected root/replay/CAD consumers. This adds no compatibility overload or parallel
+engine. Recording wire encoding must preserve signed zero; raw JSON is not its future save/load path. See the
+P0 report in `examples/physics-world-p0-2276/`. Original HOLD/NO_GO/error gates and archived failures remain unchanged.

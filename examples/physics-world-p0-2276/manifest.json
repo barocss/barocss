@@ -1,0 +1,180 @@
+{
+  "base": "66df02f8e7d5a3a7ab7b8ff7a0184bf34d978713",
+  "files": [
+    {
+      "path": "apps/library-docs/docs/packages/physics/index.md",
+      "bytes": 8244,
+      "sha256": "954437c2a10c11f32f24512ebc7e8b6ab3e3aa23b3618923a255f7bdeebea4b6"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/api-roadmap.txt",
+      "bytes": 30039,
+      "sha256": "86ba8904036812413c1983fad991c87cf2fb15f56a00680fcdc4c8f49149c24b"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/p0-contract.txt",
+      "bytes": 25835,
+      "sha256": "20ab398684a8a10b3f43eed240d404416d76ac851dc23bc3b4219482c4a28799"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/p0-migration.txt",
+      "bytes": 10487,
+      "sha256": "422b864e89cef26e4dba704152ef59297e6a6ef19d80bae74faa7dec3eaa3231"
+    },
+    {
+      "path": "apps/library-docs/docs/public/physics-evidence/p0-types.txt",
+      "bytes": 11436,
+      "sha256": "51dd83451ad0eb7e3d5a6238854850fc21b953baf2e90be9db1d2effc2e7a3c1"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/README.md",
+      "bytes": 7346,
+      "sha256": "948a4fa596d3ab71047f9f197fcd23936cda8ae535fa251a0d371400eeacf375"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/callers.json",
+      "bytes": 6190462,
+      "sha256": "ed3bf687efdd45ebc3ef8569ab9602589303bdfbbe429e1498c0dd45b6354e49"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/callers.md",
+      "bytes": 30873,
+      "sha256": "c99e04ef103b6ab53a5caaee751b9dbcc1466d2e875f41d6de56f69ac29e99ba"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/check-contract.mjs",
+      "bytes": 5401,
+      "sha256": "d144c96c23db09695b0de1b757e4c2a186bd99ef5739b6ccf7b1f17c033052e5"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/evidence/build-01.txt",
+      "bytes": 518,
+      "sha256": "9a726ca7857412a3d0c1db1a30c1944fd06cfdb43b6df4b44c215bf8231f0c9f"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/evidence/build-02.txt",
+      "bytes": 518,
+      "sha256": "ea68fd61fba2808907c491ac30c4f41b31923646ae1486a90b4d4ec0aa206527"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/evidence/contract-01.txt",
+      "bytes": 178,
+      "sha256": "4b51d787db0f98526d853ccfde9c78c4ac02fa63ec0caeb2d561c53e61dfc240"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/evidence/contract-02.txt",
+      "bytes": 178,
+      "sha256": "4b51d787db0f98526d853ccfde9c78c4ac02fa63ec0caeb2d561c53e61dfc240"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/evidence/contract-03.txt",
+      "bytes": 178,
+      "sha256": "4b51d787db0f98526d853ccfde9c78c4ac02fa63ec0caeb2d561c53e61dfc240"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/evidence/copies.json",
+      "bytes": 53,
+      "sha256": "69ad1a2f86378b980c0e2ec0a1273aa2dda58ffc28f35d35fff1e379ea74f31f"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/evidence/docs-01.txt",
+      "bytes": 68,
+      "sha256": "f000a55e73987aede01b7568e640b07d755cdcce5c236aa48e52c5e054fda658"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/evidence/inventory-check-01.txt",
+      "bytes": 178,
+      "sha256": "9abb51bb73d37855ff4e01ac2f44d10b770a3f69ec0cc299710a277ddd118aae"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/evidence/inventory-check-02.txt",
+      "bytes": 178,
+      "sha256": "9abb51bb73d37855ff4e01ac2f44d10b770a3f69ec0cc299710a277ddd118aae"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/evidence/inventory-generate-01.txt",
+      "bytes": 181,
+      "sha256": "0d1cf750a95bd41bbf9324312e3b4f0e654450fdbe34d748d2073f4d081e0842"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/evidence/inventory-generate-02.txt",
+      "bytes": 181,
+      "sha256": "0d1cf750a95bd41bbf9324312e3b4f0e654450fdbe34d748d2073f4d081e0842"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/evidence/results.json",
+      "bytes": 1155,
+      "sha256": "ce2de28003e0377b3a4b3e96224af0ccc532715fddbb4e492aa8e95f26b5496f"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/evidence/site-01.txt",
+      "bytes": 146,
+      "sha256": "85d22a94cd23ae052bdf2e95c0fb3498f2528b80c411aff0b22aba1d52983ba1"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/evidence/site-02.txt",
+      "bytes": 146,
+      "sha256": "85d22a94cd23ae052bdf2e95c0fb3498f2528b80c411aff0b22aba1d52983ba1"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/evidence/types-01.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/evidence/types-02.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-world-p0-2276/inventory.mjs",
+      "bytes": 24414,
+      "sha256": "5d4a42705ab88f737ebed11787b0c83c585da6e03b75643818523fe125ba1c8d"
+    },
+    {
+      "path": "packages/barocss-physics/ROADMAP.md",
+      "bytes": 30039,
+      "sha256": "86ba8904036812413c1983fad991c87cf2fb15f56a00680fcdc4c8f49149c24b"
+    },
+    {
+      "path": "packages/barocss-physics/design/p0/CONTRACT.md",
+      "bytes": 25835,
+      "sha256": "20ab398684a8a10b3f43eed240d404416d76ac851dc23bc3b4219482c4a28799"
+    },
+    {
+      "path": "packages/barocss-physics/design/p0/MIGRATION.md",
+      "bytes": 10487,
+      "sha256": "422b864e89cef26e4dba704152ef59297e6a6ef19d80bae74faa7dec3eaa3231"
+    },
+    {
+      "path": "packages/barocss-physics/design/p0/contract-check.ts",
+      "bytes": 4717,
+      "sha256": "99fa0c9f3f548a6b68b2e79d5097c73133c966b5f62abe0b271eeaa4dfd10742"
+    },
+    {
+      "path": "packages/barocss-physics/design/p0/encoding-vectors.json",
+      "bytes": 2248,
+      "sha256": "958a39cb452b42ec3da1f4e90f0ab8499560922ccfde34bdb5676288974c99fd"
+    },
+    {
+      "path": "packages/barocss-physics/design/p0/profiles.json",
+      "bytes": 7369,
+      "sha256": "620d55c0f0394eaf1ed5ff7ddb775a131d627f2793c783430490ca871621ffc7"
+    },
+    {
+      "path": "packages/barocss-physics/design/p0/tsconfig.json",
+      "bytes": 346,
+      "sha256": "1abbf6430af5f9e5895608eaa9a977478e6468d9189a6fcbb70f1c8a337cbed3"
+    },
+    {
+      "path": "packages/barocss-physics/design/p0/types.ts",
+      "bytes": 11436,
+      "sha256": "51dd83451ad0eb7e3d5a6238854850fc21b953baf2e90be9db1d2effc2e7a3c1"
+    },
+    {
+      "path": "packages/barocss-physics/design/p0/validation.json",
+      "bytes": 5541,
+      "sha256": "df998dc328c81d7dd2d8a94a274718a3c2992f52fd30cb2c80a18ae20bf90460"
+    }
+  ]
+}
