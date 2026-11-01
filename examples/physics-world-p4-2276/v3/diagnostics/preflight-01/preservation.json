@@ -1,0 +1,31 @@
+{
+  "status": "FAILED_SOURCE_PRESERVED_BEFORE_REPAIR",
+  "sources": {
+    "accounting-cache.py": {
+      "bytes": 14852,
+      "sha256": "a99f3b4a30cbba40fbadf822a19c9fad78ff009eb00670319a878d21a2abcbe1"
+    },
+    "controls.py": {
+      "bytes": 23088,
+      "sha256": "4c2093c6c1bead610223c66f48dbb36af797b51035016d1de6551f268c124463"
+    },
+    "gate.py": {
+      "bytes": 13007,
+      "sha256": "51454c277bce2df656c8f76003dbedb147d42284210c0a925d26cc79cd6dfea8"
+    },
+    "execution-freeze-01.json": {
+      "bytes": 1812,
+      "sha256": "adfa89fabaf5e7894f5cab9bef010f95a989c1e738b785abc0f95e5160f0eb9d"
+    },
+    "implementation-freeze-01.json": {
+      "bytes": 1015,
+      "sha256": "e856c539d7f2594ca32bde5a82efbf5a5599bcf36138a1a1b519bb5acd56c5db"
+    }
+  },
+  "failure": "unapproved subclass override",
+  "SATCalls": 0,
+  "supportCalls": 0,
+  "fullReferenceCalls": 0,
+  "failedReceipt": "evidence/controls-01/summary.json",
+  "runtimeRepairAuthorized": false
+}

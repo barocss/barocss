@@ -1,0 +1,71 @@
+{
+  "workId": "physics-world-p4-accounting-cache-v3-2276",
+  "status": "parent_source_refrozen_after_zero_math_metadata_repair",
+  "base": "46e4a957fac7b8f114a603ff9ad939573176b56a",
+  "sources": {
+    "controls.py": {
+      "bytes": 23088,
+      "sha256": "4c2093c6c1bead610223c66f48dbb36af797b51035016d1de6551f268c124463"
+    },
+    "controls-run.mjs": {
+      "bytes": 11800,
+      "sha256": "346d1f080419a34354516830500989976026b91eb80cb65a746c6af892f9a3f6"
+    },
+    "SCOPE-CONTRACT.md": {
+      "bytes": 10749,
+      "sha256": "611d9da9911eebc3df290c2dbdcc22489fd70c9c1f3e6efddf337de7f6d91b41"
+    },
+    "metadata-repair-01.json": {
+      "bytes": 4697,
+      "sha256": "011547f3a69a8f58ff43c2a14e7f4f6513c6fcae9ad5b8215590f753ebd26d88"
+    },
+    "accounting-cache.py": {
+      "bytes": 16442,
+      "sha256": "133c51a35338ce950e30bfd5c7d676897b986b1a89caac0eb5d3281df17c0d15"
+    },
+    "implementation-freeze-01.json": {
+      "bytes": 1015,
+      "sha256": "e856c539d7f2594ca32bde5a82efbf5a5599bcf36138a1a1b519bb5acd56c5db"
+    },
+    "gate.py": {
+      "bytes": 13007,
+      "sha256": "51454c277bce2df656c8f76003dbedb147d42284210c0a925d26cc79cd6dfea8"
+    },
+    "CONTROL-RECIPES.json": {
+      "bytes": 44263,
+      "sha256": "bcbcd482cb350fb8171f2067f9ed0cd260c01f3ae43c5100d943c2f2c6602c8f"
+    },
+    "gate-run.mjs": {
+      "bytes": 12692,
+      "sha256": "8d0b7f0de01e712485b3bb89b3755e0576747c0a882a02adae6931570f4905e8"
+    }
+  },
+  "controlsCommand": [
+    "node",
+    "controls-run.mjs",
+    "controls-guard-02",
+    "controls-02"
+  ],
+  "controlsPopulation": {
+    "pairedCases": 12,
+    "totalSatCalls": 24,
+    "maxOriginalSupportAttempts": 720,
+    "fullEvaluateCalls": 0,
+    "WorldCalls": 0
+  },
+  "onFirstFailure": "stop preserve nofullgate",
+  "newFullReferenceCallsMax": 6,
+  "studyBefore": 38,
+  "studyMaximum": 44,
+  "costCriterionNs": 885643000,
+  "thirdCostNoGo": "end thiscache slice",
+  "originalToleranceOrBudgetChanges": false,
+  "preservedFailure": {
+    "receipt": "evidence/controls-01/summary.json",
+    "sourceCopies": "diagnostics/preflight-01",
+    "SATCalls": 0,
+    "supportCalls": 0,
+    "fullReferenceCalls": 0
+  },
+  "repairScope": "transfer_proof compiler metadata only; all other AST unchanged"
+}

@@ -260,3 +260,47 @@ runtime budgets remain intact. No fresh original trajectory ran. Next is a
 read-only check for a narrowly justified overhead reduction; P5 baseline work
 can proceed independently. P4 is not complete and develop merge remains pending
 the full required roadmap. No push, deployment or release ran.
+
+## Third cache candidate: exact output, approach ended at cost NO_GO
+
+V3 changes ownership accounting only. The original complete key, SAT traversal,
+Context/flag behavior and ten inherited mathematical/pointer methods remain the
+same function objects as frozen v2. Per-stage accounting uses a conservative
+256KiB fixed bookkeeping reservation inside the unchanged64MiB total ceiling,
+plus incremental variable storage. Independent full allocation sums validate
+that bound at start/end and during primitive live-pending controls. Observed
+allocation sums are labeled separately from upper bounds and are not RSS.
+
+The first control attempt failed before any SAT/support call: CPython3.13 adds
+two compiler metadata fields absent from the author whitelist. That failure and
+exact failed source copies remain under `v3/evidence/controls-01` and
+`v3/diagnostics/preflight-01`. A source-only repair validates the exact builtin
+metadata types/values against source AST and19 fixed attribute names. It changes
+only `transfer_proof`, keeps the callable whitelist/identity/commit checks, and
+performs zero mathematical imports/calls. `execution-freeze-02.json` pins it.
+
+`controls-02` then PASSes all12 paired cases (24 SAT attempts,494 original helper
+attempts). `gate-01` makes exactly six fresh reference calls: every CURRENT raw
+response byte and parsed number bit matches. Study full evaluations now total44;
+primitive SAT/support work is separate. No World, fixture, trig seed, projection
+or production solver call ran. The original historical reply-sign UNKNOWN and
+first raw-census failure remain unchanged.
+
+CPU fails the original criterion again:885.643ms uncached versus1078.494ms
+candidate, a21.775% increase. Every selected frame regresses. Peak conservative
+ownership bound is2537394bytes; largest measured allocation sum is2264294bytes.
+Both are below the unchanged64MiB limit and remain distinct measurements.
+The guard completes normally and returns exit1 for the cost NO_GO.
+
+```sh
+$NODE22 examples/physics-world-p4-2276/v3/controls-run.mjs controls-guard-02 controls-02
+# Digest is read from v3/gate-freeze-01.json and passed as one argv element.
+$NODE22 examples/physics-world-p4-2276/v3/gate-run.mjs gate-guard-01 gate-01 controls-02 "$CONTROLS_SHA256"
+```
+
+`v3/results.json` pins results and the first preflight failure. As frozen before
+execution, this third cost NO_GO **ends this support-radius cache approach**.
+There is no adoption, fourth cache iteration, original trajectory expansion,
+changed tolerance or raised runtime/resource bound. Original8-box full exit
+remains NO_GO. P5b can proceed independently; develop merge still requires the
+whole required roadmap. No push, deploy or release ran.
