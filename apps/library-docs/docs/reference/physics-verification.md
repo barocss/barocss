@@ -194,7 +194,7 @@ original numerical providers. P1a pinned injection runners remain historical, an
 Selected #1572 diagnostic commands exit normally, but their three-box OFFSET and YAW reductions retain
 `BOUNDED_SETTLING_NO_GO`. The collision reference is producer-only; these are not independent eight-box passes.
 
-Recorder attachment was outside that P1b slice. The current P2 recorder is described below. Common fluid/cloth migration, Viewer product acceptance, hardware and manufacturing remain outside this work. Existing Physics/Studio/manufacturing HOLDs, public
+Recorder attachment was outside that P1b slice. The current P2 recorder is described below. Common fluid/cloth migration was outside that P1b checkpoint; P5 records its later transition below. Viewer product acceptance, hardware and manufacturing remain unverified. Existing Physics/Studio/manufacturing HOLDs, public
 multi-hinge and original-stack NO_GO decisions and all original first-failure tolerances remain unchanged.
 
 ## P2 attached recorder: selected local software verification
@@ -258,3 +258,51 @@ See the [P3 report](/physics-evidence/p3-report.txt),
 [recorder](/physics-evidence/p3-recorder.json) and
 [current API](/physics-evidence/p3-adoption.json). These local receipts do not
 establish publication, Studio/Viewer acceptance or measured equipment agreement.
+
+
+## P5 common World visual profiles
+
+The only simulation factory is root `createPhysicsWorld(model, options)`.
+Cloth, basin water, XSPH water and one static CAD shelf are explicit model data.
+There is no old domain factory, compatibility engine or second domain clock.
+These remain visual profiles, without material calibration or dynamic coupling.
+
+Public source and actual native published-map runtime cohorts each pass101factory
+attempts:37returned Worlds and64creation refusals. Each records6334step entries:
+6281accepted,13synthetic preparation failures and40refusals. The refusal count
+includes4private numeric-limit controls. Separate source/native state retention,
+repeat and raw-output comparisons pass. Fault controls are test-only evidence.
+
+| Named check | Result | Fixed gate and boundary |
+|---|---|---|
+| Cloth, five240-step Worlds per graph | All241frames per World pass the independent research oracle comparison | Absolute component error≤1e-12; exact peak error was not recorded. Oracle generated once from the original independent research implementation. |
+| Cloth geometry | Maximum sampled triangle penetration0.0013840839157666096m; structural extension0.05174255069177636 |≤0.002m and≤0.10 respectively; not calibrated fabric accuracy. |
+| Cloth cost | Source p95≤1.849875ms; native p95≤1.947125ms across three timed runs each | Each<8.333333ms on the named host. |
+| Version1 low-start water | Density residual0.22785881124725596 at60;0.015288410357167534 at240 |<0.25 and<0.05; six basin runs per graph reach720steps, not the3600-step admission cap. |
+| XSPH cost | Maximum paired ratio1.21170536 |<1.5; visual coefficient0.15 is not calibrated viscosity. |
+| Static CAD shelf |859cumulative hits at60;2660at240; source/native original hashes and geometry checks pass | Two shelf240-step runs plus one bare timing run per graph; static contact only. |
+| Domain recorder refusal | Cloth `WORLD_LIMIT`; three fluid profiles `INVALID_SNAPSHOT`; no owner residue | Original128KiB/1MiB/512frame/4096command caps retained; no domain recording, restore or wire qualification. |
+
+Strict positive/negative source/native consumers pass. Compilation covers60
+source entries and127logical source/native/generated/root bundles. Native
+rendering dependencies use an explicit boundary:8missing published SDK endpoint
+identities across13hosts are external. Viewer/CADInterop/GPU implementation
+closure and product execution remain NOT_RUN. Physics, CAD and replay use
+actual native modules without a source fallback. Earlier compilation and
+copy-provenance failures remain recorded; authenticated passes are reused.
+
+The displayed visual example passes in a separate source cohort:4Worlds,
+4accepted steps,4failed recorder attaches and4disposals. This is not a fresh
+execution of the older full documentation suite. Site structure/build/link
+receipts are separate. A documentation build executes no physics and cannot
+supply runtime accuracy evidence. The original native import failure
+from a private/root `types.js` external-name collision is preserved. The build
+now selects externals by canonical source path; repaired native entry import
+and subsequent public runtime pass.
+
+Detailed commands, provider hashes, raw operands, immutable references, first
+failures and exact proof limits are in the repository report
+`examples/physics-world-p5-2276/README.md` and `public-runtime-results.json`.
+P4 full eight-box settling remains NO_GO. Connected mechanisms, P6 coupling,
+P7 control, full Viewer acceptance, measured equipment validation and
+manufacturing approval remain unsupported or NOT_RUN. Existing HOLDs remain.

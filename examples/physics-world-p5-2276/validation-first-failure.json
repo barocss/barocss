@@ -1,0 +1,28 @@
+{
+  "status": "FAIL_HARNESS_OWN_CLOSURE_ASSUMPTION_PRESERVED",
+  "receipt": "validation-static-01",
+  "files": {
+    "evidence/validation-static-01/summary.json": {
+      "bytes": 1364,
+      "sha256": "51f9a9971e95c7ca7d07a7e2f3d26d0ceb5dd65f0305d9018df839cdeb78b3ba"
+    },
+    "evidence/validation-static-01/exit.json": {
+      "bytes": 301,
+      "sha256": "cdaca09abec69c6c20131e2e08b8bf8c0b59634e38dcb351b85d239ba2f70a28"
+    },
+    "evidence/validation-static-01/strict-types-source.json": {
+      "bytes": 27644,
+      "sha256": "ee75eb7202cb7bba87290d4732f19577494b2c2af4424d74294187f3a0091da4"
+    },
+    "evidence/validation-static-01/author-inputs/preservation.json": {
+      "bytes": 677,
+      "sha256": "0454dcfc9ac6d0c55f0a6dfbaed17f3f7379fb6b80273dca5ed16b85e520a765"
+    }
+  },
+  "actualCompleted": "strict-source positive/negative; numeric-root-source; source entries0..3",
+  "firstFailedEntry": "examples/physics-scene/cloth-source-import-probe.mjs",
+  "firstFailure": "expected actual own package input",
+  "reason": "Loader builds generated program text; bundling loader itself correctly has no own package input. Generated program must be compiled separately and require actual Physics closure.",
+  "WorldCalls": 0,
+  "repairBoundary": "Explicit exact per-entry closure classification; reuse authenticated passed reports and unchanged providers; no physics source/tolerance change, no prior numeric or accepted static rerun."
+}

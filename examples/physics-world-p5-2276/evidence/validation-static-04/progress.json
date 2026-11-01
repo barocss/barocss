@@ -1,0 +1,22 @@
+{
+  "phase": "static",
+  "completed": [],
+  "counts": {
+    "WorldCalls": 0,
+    "factoryAttempts": 0,
+    "WorldReturns": 0,
+    "stepEntries": 0,
+    "acceptedSteps": 0,
+    "recorderAttachAttempts": 0,
+    "failedRecorderAttaches": 0,
+    "WorldDisposals": 0
+  },
+  "census": {
+    "bundleAttempts": 0,
+    "bundlePasses": 0,
+    "strictTypeAttempts": 0,
+    "strictTypePasses": 0,
+    "lintAttempts": 0,
+    "lintPasses": 0
+  }
+}

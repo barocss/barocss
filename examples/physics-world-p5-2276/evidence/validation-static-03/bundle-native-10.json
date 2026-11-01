@@ -1,0 +1,41 @@
+{
+  "mode": "native",
+  "entry": "examples/physics-scene/fluid-world-probe.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/physics-scene/fluid-world-probe.mjs": {
+      "bytes": 5204,
+      "sha256": "125b8e11dca3efe3f3f65c13514846c9b0200763d9c88defc0d376c2400beceb",
+      "effectiveSha256": "125b8e11dca3efe3f3f65c13514846c9b0200763d9c88defc0d376c2400beceb"
+    },
+    "examples/physics-scene/fluid-viewer/scene.js": {
+      "bytes": 748,
+      "sha256": "93dc46a49b553f425614a630f2956c29c92f194b089fef54f09b6b3d330fc332",
+      "effectiveSha256": "93dc46a49b553f425614a630f2956c29c92f194b089fef54f09b6b3d330fc332"
+    },
+    "examples/physics-model-data-2276/model-data.mjs": {
+      "bytes": 185560,
+      "sha256": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604",
+      "effectiveSha256": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 218799,
+  "outputSha256": "173a86235c3a29d3182a24aab1bfd9e258d925cb1ef46d4ee66ee3e180cf87be",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "missingNativeSDKBoundary": null,
+  "nativeHostSDKIntegration": "NOT_CLAIMED_BY_COMPILE",
+  "externalImports": [
+    "node:path",
+    "node:assert/strict",
+    "node:crypto",
+    "node:perf_hooks"
+  ],
+  "moduleEvaluation": false
+}

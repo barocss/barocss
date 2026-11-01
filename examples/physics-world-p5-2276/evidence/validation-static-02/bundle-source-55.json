@@ -1,0 +1,28 @@
+{
+  "mode": "source",
+  "entry": "examples/physics-error-entry/setup.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/physics-error-entry/setup.mjs": {
+      "bytes": 750,
+      "sha256": "273ca7b9bce689dd1f86acccbd5c295f947f2e97b7a56e5678990b5b5d56fd9c",
+      "effectiveSha256": "273ca7b9bce689dd1f86acccbd5c295f947f2e97b7a56e5678990b5b5d56fd9c"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 791,
+  "outputSha256": "a2f68693ca3ad63a6c00b55a67008fd1ee3f7617b404487e68effa6b968a4f07",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "externalImports": [
+    "node:fs/promises",
+    "node:path",
+    "node:url"
+  ],
+  "moduleEvaluation": false
+}

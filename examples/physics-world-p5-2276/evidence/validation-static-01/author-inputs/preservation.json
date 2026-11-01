@@ -1,0 +1,22 @@
+{
+  "status": "ORIGINAL_FAILED_STATIC_HARNESS_PRESERVED_BEFORE_FIX",
+  "files": {
+    "validation-provider.mjs": {
+      "bytes": 13269,
+      "sha256": "2f337360eab5d57a3f8671d45f6d8e5ef8b6a1fc7d8a2f56da52a50fc7637712"
+    },
+    "validation-child.mjs": {
+      "bytes": 10775,
+      "sha256": "c808bdb59eaaf9c09027090c776848df336f9aad2ced72586e158b0bce6d89e8"
+    },
+    "validation-run.mjs": {
+      "bytes": 5731,
+      "sha256": "de42b29673e08897a1a779c459905dd4d199496dee3cea1a0b2e15bb3e0aa2fb"
+    },
+    "VALIDATION-RECIPES.json": {
+      "bytes": 13603,
+      "sha256": "ab977679b08500f30dc45834eb17a2cf34bb2f207c118f1d9cdeb865a22c3483"
+    }
+  },
+  "WorldCalls": 0
+}

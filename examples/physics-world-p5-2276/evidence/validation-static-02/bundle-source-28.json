@@ -1,0 +1,34 @@
+{
+  "mode": "source",
+  "entry": "examples/physics-cloth-viewer/clock.mjs",
+  "platform": "browser",
+  "inputs": {
+    "examples/physics-cloth-viewer/clock.mjs": {
+      "bytes": 3755,
+      "sha256": "6767cb361e6f0658e8411dd443405bdb08c82360f632bd5365946b33f76d23e3",
+      "effectiveSha256": "6767cb361e6f0658e8411dd443405bdb08c82360f632bd5365946b33f76d23e3"
+    },
+    "examples/physics-cloth-viewer/frame.mjs": {
+      "bytes": 2149,
+      "sha256": "b00a8df08931994296ccaed007f62c732eae668255bb18865aa47143e627fa9d",
+      "effectiveSha256": "b00a8df08931994296ccaed007f62c732eae668255bb18865aa47143e627fa9d"
+    },
+    "examples/physics-model-data-2276/model-data.mjs": {
+      "bytes": 185560,
+      "sha256": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604",
+      "effectiveSha256": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 216360,
+  "outputSha256": "68875515f3c9eacd969215b68bf1e1305b4593f3deafd954bf1a80a47695470c",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "externalImports": [],
+  "moduleEvaluation": false
+}

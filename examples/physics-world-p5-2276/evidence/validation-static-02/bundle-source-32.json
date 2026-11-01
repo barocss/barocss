@@ -1,0 +1,28 @@
+{
+  "mode": "source",
+  "entry": "examples/physics-cloth-viewer/setup.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/physics-cloth-viewer/setup.mjs": {
+      "bytes": 674,
+      "sha256": "417b2b5abb2cab84ae466a9dbfe34c788ad536dc026519007795546c2a060bc1",
+      "effectiveSha256": "417b2b5abb2cab84ae466a9dbfe34c788ad536dc026519007795546c2a060bc1"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 795,
+  "outputSha256": "1a3e6921ccdf1f0768d8e372e78ecb45df091a95123253eaeb0fd61187b20063",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "externalImports": [
+    "node:fs/promises",
+    "node:path",
+    "node:url"
+  ],
+  "moduleEvaluation": false
+}

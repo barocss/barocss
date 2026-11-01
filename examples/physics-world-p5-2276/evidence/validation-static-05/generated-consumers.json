@@ -1,0 +1,35 @@
+[
+  {
+    "file": "examples/physics-scene/source-import-probe.mjs",
+    "variable": "contents",
+    "contents": "\n  import { createPhysicsWorld } from '@barocss/physics';\n  import { admitCadSurfaceProxy } from '@barocss/physics/cad-proxy';\n  import { createPhysicsRecorder } from '@barocss/physics/replay';\n  console.log(createPhysicsWorld, admitCadSurfaceProxy, createPhysicsRecorder);\n",
+    "modes": [
+      "source",
+      "native"
+    ],
+    "contentsSha256": "ed224473a99c8b41e518a9591802881e753f780e8def5cc04658fb4665b44978"
+  },
+  {
+    "file": "examples/physics-scene/cloth-source-import-probe.mjs",
+    "variable": "contents",
+    "contents": "import {createPhysicsWorld,PhysicsError} from '@barocss/physics'; console.log(createPhysicsWorld,PhysicsError);",
+    "modes": [
+      "source",
+      "native"
+    ],
+    "contentsSha256": "dd7a2d1b3eef508955243fac2bf49c9a9093ceba6fc12fe43f3030c37a666243"
+  },
+  {
+    "file": "examples/physics-scene/cloth-source-import-probe.mjs",
+    "variable": "program",
+    "contents": "\nimport assert from 'node:assert/strict';\nimport {createPhysicsWorld,PhysicsError} from \"file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/packages/barocss-physics/dist/index.js\";\nimport {copyPhysicsModelPreset} from \"file:///Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-model-data-2276/model-data.mjs\";\nconst input=copyPhysicsModelPreset('cloth-pinned-sphere-visual-v1');\nconst world=createPhysicsWorld(input.model,input.options);\nconst state=world.step([]);assert.equal(state.stepIndex,1);assert.equal(state.cloths[0].positionsM.length/3,289);\nworld.dispose();assert.throws(()=>world.getState(),e=>e instanceof PhysicsError&&e.code==='DISPOSED');\nconsole.log(JSON.stringify({result:'ok',stepIndex:state.stepIndex,vertexCount:state.cloths[0].positionsM.length/3,physicsErrorIdentity:true}));",
+    "modes": [
+      "native"
+    ],
+    "slots": [
+      "JSON.stringify(pathToFileURL(resolve(pkg,published['.'].import)).href)",
+      "JSON.stringify(pathToFileURL(resolve(root,'examples/physics-model-data-2276/model-data.mjs')).href)"
+    ],
+    "contentsSha256": "b89316bb327157532b9f5b3d0aae847c8663ab20784475b3eff2aeaddb87da80"
+  }
+]

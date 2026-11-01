@@ -1,0 +1,82 @@
+{
+  "mode": "native",
+  "entry": "examples/physics-capsule-query-scene/controls.mjs",
+  "platform": "browser",
+  "inputs": {
+    "examples/physics-capsule-query-scene/controls.mjs": {
+      "bytes": 8450,
+      "sha256": "3b7a8933bfc890842a93fe5aa8eed00773945b841616d273af469ef7871ce51e",
+      "effectiveSha256": "3b7a8933bfc890842a93fe5aa8eed00773945b841616d273af469ef7871ce51e"
+    },
+    "packages/barocss-physics/dist/index.js": {
+      "bytes": 398311,
+      "sha256": "eb0303e4393102ebf5554b02d3fd20f048fecc368337ceb26c5b266b929c70cf",
+      "effectiveSha256": "eb0303e4393102ebf5554b02d3fd20f048fecc368337ceb26c5b266b929c70cf"
+    },
+    "examples/physics-capsule-sweep-reference/binary.mjs": {
+      "bytes": 478,
+      "sha256": "f18fad67fd66cbc0ebad04bd1df405218b68ee2775a3faf529afb84cb59fb28a",
+      "effectiveSha256": "f18fad67fd66cbc0ebad04bd1df405218b68ee2775a3faf529afb84cb59fb28a"
+    },
+    "examples/physics-capsule-query-scene/fixture.mjs": {
+      "bytes": 219,
+      "sha256": "aa1cb7dcab2b4cde949a27ce049d9bdf93ae5791c6e8686bce356f83760fc546",
+      "effectiveSha256": "aa1cb7dcab2b4cde949a27ce049d9bdf93ae5791c6e8686bce356f83760fc546"
+    },
+    "examples/physics-capsule-query-scene/public-snapshot.mjs": {
+      "bytes": 655,
+      "sha256": "7eb3653d5efb8f45f382612964e023fe4a6b908a53b84480de202b82e88f620a",
+      "effectiveSha256": "7eb3653d5efb8f45f382612964e023fe4a6b908a53b84480de202b82e88f620a"
+    },
+    "examples/physics-capsule-distinct-reference/fixture.mjs": {
+      "bytes": 1437,
+      "sha256": "831d2206cf1d03e46d8a1659df63fe86316a03c23269a3bf52f2abacff6fee6d",
+      "effectiveSha256": "831d2206cf1d03e46d8a1659df63fe86316a03c23269a3bf52f2abacff6fee6d"
+    },
+    "examples/physics-capsule-sweep-reference/fixture.mjs": {
+      "bytes": 2811,
+      "sha256": "c4f7a9d627b6e1788eeb1134082e316f52ad02aaec4b1548ecd4a1151cabbe5d",
+      "effectiveSha256": "c4f7a9d627b6e1788eeb1134082e316f52ad02aaec4b1548ecd4a1151cabbe5d"
+    },
+    "packages/barocss-physics/dist/provider-manifest.generated.js": {
+      "bytes": 2375,
+      "sha256": "41a7c51c4d725a8aea2a5e54628f28a43811c027870dd3361187f27c66e273df",
+      "effectiveSha256": "41a7c51c4d725a8aea2a5e54628f28a43811c027870dd3361187f27c66e273df"
+    },
+    "packages/barocss-physics/dist/types.js": {
+      "bytes": 418,
+      "sha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b",
+      "effectiveSha256": "65a4905c6bda0d4e7a5fc7ea105a1362c8cae1345070b5d17fd524a8790e1f8b"
+    },
+    "packages/barocss-physics/dist/recording-owner.js": {
+      "bytes": 46,
+      "sha256": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521",
+      "effectiveSha256": "cfdebb45a5a4ba3af0926770605b0e57035c361cd717837dbf3506d93e5dd521"
+    }
+  },
+  "resolutions": [
+    {
+      "specifier": "@barocss/physics",
+      "importer": "examples/physics-capsule-query-scene/controls.mjs",
+      "target": "packages/barocss-physics/dist/index.js",
+      "kind": "actual-package-map"
+    },
+    {
+      "specifier": "@barocss/physics",
+      "importer": "examples/physics-capsule-query-scene/public-snapshot.mjs",
+      "target": "packages/barocss-physics/dist/index.js",
+      "kind": "actual-package-map"
+    }
+  ],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 4,
+  "outputBytes": 206831,
+  "outputSha256": "2a1c82b89a410504060607ea8cb132e6754e87fb4adf275d825e3b03ccc945d3",
+  "expectedOwn": {
+    "kind": "physics",
+    "reason": "actual static own Physics import, directly or through explicit local imports"
+  },
+  "externalRuntime": [],
+  "externalImports": [],
+  "moduleEvaluation": false
+}

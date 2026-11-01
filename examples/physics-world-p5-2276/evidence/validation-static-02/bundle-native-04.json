@@ -1,0 +1,31 @@
+{
+  "mode": "native",
+  "entry": "examples/physics-scene/cloth-source-import-probe.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/physics-scene/cloth-source-import-probe.mjs": {
+      "bytes": 2360,
+      "sha256": "f2569e97667c00fd7171306ad3dd441335a2e798a147f4504c00b26a5616dc7d",
+      "effectiveSha256": "f2569e97667c00fd7171306ad3dd441335a2e798a147f4504c00b26a5616dc7d"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 2528,
+  "outputSha256": "b81b2b9c6f9a1865197b82b415e4659ed3b0c5753b843ba0492095e2d30a7573",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "externalImports": [
+    "node:assert/strict",
+    "node:child_process",
+    "node:fs",
+    "node:path",
+    "node:url",
+    "esbuild"
+  ],
+  "moduleEvaluation": false
+}

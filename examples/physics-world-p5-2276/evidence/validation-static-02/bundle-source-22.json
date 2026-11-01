@@ -1,0 +1,36 @@
+{
+  "mode": "source",
+  "entry": "examples/physics-cloth-viewer/server.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/physics-cloth-viewer/server.mjs": {
+      "bytes": 1379,
+      "sha256": "c8f76a8b56943236f1bfafca83674b73634b75e70cc634b92a17fc39adb8afb2",
+      "effectiveSha256": "c8f76a8b56943236f1bfafca83674b73634b75e70cc634b92a17fc39adb8afb2"
+    },
+    "examples/physics-cloth-viewer/bundle.mjs": {
+      "bytes": 2249,
+      "sha256": "838b57e48810a74f7c25622724a569e0d9a282c8da255a5e31f274d91fc24797",
+      "effectiveSha256": "838b57e48810a74f7c25622724a569e0d9a282c8da255a5e31f274d91fc24797"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 4321,
+  "outputSha256": "64b99cd1a7d10ddb9078dd3e30203de65969f0dde4bc713643cca9d382fa5795",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "externalImports": [
+    "node:http",
+    "node:fs/promises",
+    "node:path",
+    "esbuild",
+    "node:assert/strict",
+    "node:url"
+  ],
+  "moduleEvaluation": false
+}

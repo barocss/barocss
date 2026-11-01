@@ -27,8 +27,11 @@ decisions remain in force. See [Physics verification](/reference/physics-verific
 
 These visual profiles use the same World clock, guard and state contract.
 P5a private kernels passed their bounded two-step source/native gates. P5b
-full public/source/native and affected-example runtime verification is pending;
-compiling these snippets does not complete that proof.
+public source and actual native runtime checks also pass for the named fixtures
+and horizons in [verification](/reference/physics-verification#p5-common-world-visual-profiles).
+Strict source/native consumers and the selected four-profile source example pass.
+Native host compilation keeps the missing rendering SDKs external; their implementation
+and product execution remain unverified. Site checks have separate receipts.
 
 [Download the inert model asset](/physics/model-data.mjs). It contains explicit
 public PhysicsModel data, not another World factory. Copy it into your
@@ -156,8 +159,9 @@ The current rigid root uses the [model/state/command/failure contract](/physics-
 and `dispose()`. State includes model, configuration and provider digests. It identifies bodies and colliders
 separately. The old root config and root reduced-pendulum factory are removed. There is no compatibility engine.
 
-Fluid and cloth still have separate runtime owners and clocks until their own model transition. They do not
-exchange forces with the rigid world. The replay service attaches to the common World through
+Cloth and fluid now use the common World. The removed `/cloth`, `/fluid` and `/fluid-cad` factories have no
+compatibility path. Each admitted visual model contains one domain and its fixed static colliders. Dynamic
+mixtures and force exchange with a moving rigid body remain unsupported. The replay service attaches to the common World through
 `createPhysicsRecorder(world)` at step0 and owns advancing commands while attached. Recorder disposal detaches it;
 the caller also disposes the World. CAD admission emits a body, collider and source binding; it never steps a
 world. The [roadmap](/physics-evidence/api-roadmap.txt) and [migration contract](/physics-evidence/p0-migration.txt)
@@ -172,6 +176,7 @@ a native local published-map runtime/declaration receipt (`examples/physics-worl
 These are checks of named providers, not a new numerical qualification. Five foundation entries pass 21 tests; documentation samples pass 174/174 and source mapping passes (`mapping-02`).
 Documentation build, site and scoped link checks pass. README examples compile and execute (`native-05`). Current host callsites bundle with the absent Viewer SDK explicitly external; full Viewer/DOM execution remains NOT_RUN. Independent reduced-ODE receipts remain reference
 results. P2_DONE_LOCALSELECTED has public source05/emitted05 checks11/11 each, test-only preparation-fault checks12/12
-each, and native published-map/runtime/type checks. These receipts apply to the named providers; whole-engine
-acceptance remains NO_GO. Final recording callers pass3 per graph and docs samples174/174; documentation build/site/link receipts are recorded separately. P5 domain migration
-remains future work. Existing HOLD and NO_GO decisions stay in force.
+each, and native published-map/runtime/type checks. These historical receipts apply to their named providers; whole-engine
+acceptance remains NO_GO. At that checkpoint, final recording callers passed3 per graph and docs samples174/174.
+Current P5 results are separate in [verification](/reference/physics-verification#p5-common-world-visual-profiles).
+Existing HOLD and NO_GO decisions stay in force.

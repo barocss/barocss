@@ -1,0 +1,27 @@
+{
+  "phase": "docs",
+  "completed": [
+    "cloth-pinned-sphere-visual-v1",
+    "fluid-basin-visual-v1",
+    "fluid-basin-xsph-visual-v1",
+    "fluid-static-box-visual-v1"
+  ],
+  "counts": {
+    "WorldCalls": 8,
+    "factoryAttempts": 4,
+    "WorldReturns": 4,
+    "stepEntries": 4,
+    "acceptedSteps": 4,
+    "recorderAttachAttempts": 4,
+    "failedRecorderAttaches": 4,
+    "WorldDisposals": 4
+  },
+  "census": {
+    "bundleAttempts": 1,
+    "bundlePasses": 1,
+    "strictTypeAttempts": 0,
+    "strictTypePasses": 0,
+    "lintAttempts": 0,
+    "lintPasses": 0
+  }
+}

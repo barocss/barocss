@@ -1,0 +1,31 @@
+{
+  "mode": "source",
+  "entry": "examples/viewer-assembly-scene/server.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/viewer-assembly-scene/server.mjs": {
+      "bytes": 5634,
+      "sha256": "a4a5f3d5ee1ef41ec19c2b35be55b72554a74db2d7ed3690dab6c945f6b02da0",
+      "effectiveSha256": "a4a5f3d5ee1ef41ec19c2b35be55b72554a74db2d7ed3690dab6c945f6b02da0"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 5572,
+  "outputSha256": "55aa72fbb0ab52a56cde249abcdbadf2a0958bde06dc81744c3b5ada63278a35",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "externalImports": [
+    "node:http",
+    "node:fs/promises",
+    "node:path",
+    "node:url",
+    "esbuild",
+    "node:crypto"
+  ],
+  "moduleEvaluation": false
+}

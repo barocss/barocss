@@ -1,0 +1,15 @@
+{
+  "code": 0,
+  "signal": null,
+  "timedOut": false,
+  "overflow": false,
+  "closed": true,
+  "stdoutEOF": true,
+  "stderrEOF": true,
+  "groupAbsent": true,
+  "signals": [],
+  "status": "PASS_P5B_SELECTED_DOC_EXAMPLES",
+  "progressPath": "progress.json",
+  "summaryPath": "summary.json",
+  "end": "2026-11-01T23:44:32.786Z"
+}

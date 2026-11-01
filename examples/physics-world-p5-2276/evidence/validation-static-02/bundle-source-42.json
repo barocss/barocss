@@ -1,0 +1,29 @@
+{
+  "mode": "source",
+  "entry": "examples/viewer-fluid-scene/server.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/viewer-fluid-scene/server.mjs": {
+      "bytes": 2349,
+      "sha256": "53532dee7f14eb584a2e3c6a8e1fd9d872e18c1d7186dcab8181dc9086b9f647",
+      "effectiveSha256": "53532dee7f14eb584a2e3c6a8e1fd9d872e18c1d7186dcab8181dc9086b9f647"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 2421,
+  "outputSha256": "e61ed14e7c4abe89d3ada6d53924a6912783614e79401eba68459b2617817a49",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "externalImports": [
+    "node:http",
+    "node:fs/promises",
+    "node:path",
+    "esbuild"
+  ],
+  "moduleEvaluation": false
+}

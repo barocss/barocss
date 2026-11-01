@@ -80,25 +80,27 @@ impulse components by ±`1e5` N·s or N·m·s. Angular velocity components are w
 A candidate refuses movement or measured penetration above 10 m, or angular displacement above
 10 rad per step. Limits are numerical guards, not recommended physical operating conditions.
 
-## Separate numerical profiles
+## Visual domains, recording and independent helpers
 
-These entry points do not increase `PhysicsWorld` capacity or share its contacts. `/replay` delegates to one
-rigid World through an attached recorder. `/fluid-cad` delegates to the fluid solver with a static CAD box; it is an
-adapter. Fluid and cloth own separate state and clocks. They do not exchange forces with the rigid world or with
-each other. Calling each `step` in turn does not provide a combined, atomic physical step.
-
-Lifecycle also differs today: rigid, cloth and the independent reduced pendulum reference have idempotent `dispose()`. Fluid and CAD fluid
-throw `DISPOSED` on a second disposal. Do not assume one lifecycle contract across the current factories.
+Cloth and fluid use the root common World. They share its fixed clock, candidate
+commit and idempotent disposal. Their selected profiles admit one domain plus
+fixed static colliders. They refuse dynamic mixtures and do not exchange forces
+with moving rigid bodies or with each other. The old domain factory subpaths
+are removed. CAD data admission is not another simulation owner.
 
 | Entry and selection | Step and capacity | Boundary |
 | --- | --- | --- |
-| Independent example `createPlanarPendulum`, outside the public root | Step `1e-6`–`1/30` s; `dt * naturalFrequency <= 0.05`; `maxSteps` integer 1–1000000, default 1000000 | One reduced angle, velocity Verlet, no contacts, motors or damping. Pivot +Z, gravity −Y. No `reset()` method. |
-| Root `createUprightCapsuleQuery`, `upright-capsule-box-v1` | 0–32 immutable static boxes; query displacement norm at most 2 m | Fixed upright capsule: radius 0.15 m, half segment 0.35 m. Scene box centres ±10 m, half extents 0.0001–5 m; query centres ±5 m. A sweep does not advance a world. |
-| Root `createUprightCapsuleController`, `upright-capsule-controller-v1` | Exactly 1/120 s; at most 240 steps | Uses the bounded capsule query, −Y gravity, 0.002 m skin, 0.1 m step limit and 10° walkable slope. No general dynamic obstacles. |
-| `/fluid`, version 1 or version 2 visual viscosity | Exactly 256 particles in a 0.7 × 1.3 × 0.5 m basin; 1/120 s; 3600 steps | Version 2 requires `visualViscosity:{kind:'xsph',coefficient:0.15}`. No calibrated viscosity, emitters or moving obstacles. |
-| `/cloth`, `pinned-sheet-sphere-v1` | Fixed 289 vertices and 512 triangles; 1/120 s; 240 host steps | Two pinned corners and one static sphere. Visual settings; no fabric calibration, self-collision, tearing or arbitrary meshes. |
-| `/fluid-cad`, version 1 water | Same version 1 water limits and one static axis-aligned CAD box proxy | Exact source/revision checks on step and reset. No version 2 viscosity combination or moving CAD obstacle. |
-| `/replay` | At most 512 frames, 4096 total commands, 128 KiB canonical model and 1 MiB binary recording including its 8-byte magic | Bounded accepted rigid command log. Equality on restore does not establish physical accuracy. |
+| Root World, `fluid-basin-visual-v1` or `fluid-basin-xsph-visual-v1` | Exactly256 particles in a0.7 ×1.3 ×0.5m basin;1/120s;3600-step admission cap | Qualified horizon720steps. XSPH coefficient0.15 is a visual parameter. No calibrated viscosity, emitters or moving obstacles. |
+| Root World, `cloth-pinned-sphere-visual-v1` | Fixed289vertices and512triangles;1/120s;240host steps | Two pinned corners and one static sphere. No fabric calibration, self-collision, tearing or arbitrary mesh admission. |
+| `admitCadFluidStaticData`, then root `fluid-static-box-visual-v1` | Version1 water and one static axis-aligned CAD box proxy | Qualified horizon240steps. Caller checks exact current source/revision before stepping. No XSPH combination or moving CAD obstacle. |
+| `/replay` |512frames,4096total commands,128KiB canonical model and1MiB binary recording including8-byte magic | Bounded accepted rigid command log. Cloth attach refuses `WORLD_LIMIT`; fluid attach refuses `INVALID_SNAPSHOT`. No domain restore is qualified. |
+| Independent example `createPlanarPendulum`, outside the public root | Step1e-6–1/30s; dt × natural frequency ≤0.05;1–1000000steps | One reduced angle, velocity Verlet, no contacts, motors or damping. Pivot+Z, gravity−Y. |
+| Root `createUprightCapsuleQuery`, `upright-capsule-box-v1` |0–32immutable static boxes; query displacement norm≤2m | Fixed upright capsule: radius0.15m, half segment0.35m. Scene box centres±10m, half extents0.0001–5m; query centres±5m. Query does not advance a World. |
+| Root `createUprightCapsuleController`, `upright-capsule-controller-v1` | Exactly1/120s; at most240steps | Bounded capsule query,−Y gravity,0.002m skin,0.1m step limit and10°walkable slope. No general dynamic obstacles. |
+
+See the [fixed visual model example](./#fixed-cloth-and-fluid-model-data) and
+[verification](/reference/physics-verification#p5-common-world-visual-profiles).
+An admission cap is separate from the executed horizon.
 
 ## Own the clock and retain accepted state
 
@@ -125,7 +127,7 @@ public reset or arbitrary state setter. Create a new world for a new initial con
 | Code | Caller action |
 | --- | --- |
 | `INVALID_CONFIG` | Correct the input model or select a supported profile before creating another instance. |
-| `INVALID_STEP` | For separate domain or reference APIs that take `dt`, supply their configured step. A numeric argument to the rigid root `step` gives `INVALID_COMMAND`. |
+| `INVALID_STEP` | For numerical helpers and independent reference APIs that take `dt`, supply their configured step. A numeric argument to common World `step` gives `INVALID_COMMAND`. |
 | `INVALID_COMMAND` / `INVALID_QUERY` | Correct the command or query; do not alter accepted state to conceal the refusal. |
 | `WORLD_LIMIT` | The admitted step, frame or command budget is exhausted. Choose an explicit new session. |
 | `NUMERIC_LIMIT` | Stop advancing this model. Record the first failed input and the retained state before investigating. |
@@ -142,7 +144,7 @@ Contacts use `bodyAId`, `bodyBId`, `colliderAId`, `colliderBId`, `normalImpulseN
 `PhysicsError.details` identifies the operation, phase, domain, entity IDs and last accepted step/time.
 
 Use `PhysicsError.code` for branching. Error messages supply context and are not a stable protocol.
-The root and fluid/cloth/fluid-cad subpaths share the error constructor within one installed package
+The root and its replay/CAD adapter entries share the error constructor within one installed package
 instance. Do not assume `instanceof` identity across versions, realms or separate source/compiled bundles.
 
 ## Restore a command log, not arbitrary state

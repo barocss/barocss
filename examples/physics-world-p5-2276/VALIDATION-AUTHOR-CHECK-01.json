@@ -1,0 +1,12 @@
+{
+  "status": "FAIL_OWN_SOURCE_ONLY_DOC_OVERLAY_ANCHOR",
+  "gate": "existingheavygate acquired/releasedbyEXITtrap",
+  "exit": 1,
+  "firstError": "docsObserver /src/replay.ts unique anchor0 !=1",
+  "reason": "Current frozen public recorder now returns recordingOperation(record,()=>attachRecorder(world)), not direct attachRecorder; author-only observer literal anchor was stale",
+  "beforeSourceSha256": "dbf68b18f81934d83aa896e6cea1ef80fc61f3a022abfe2aef66330ae7aa4182",
+  "applicationImports": 0,
+  "WorldCalls": 0,
+  "actualStaticValidation": "NOT_RUN",
+  "actualDocTests": "NOT_RUN"
+}

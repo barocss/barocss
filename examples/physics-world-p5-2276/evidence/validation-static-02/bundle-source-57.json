@@ -1,0 +1,26 @@
+{
+  "mode": "source",
+  "entry": "examples/physics-scene/release-gate-criteria.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/physics-scene/release-gate-criteria.mjs": {
+      "bytes": 2525,
+      "sha256": "83c26dd78a998b5fdf25e8362fadd9e19ea2c9ad0a348cd3e6fca18dda27f4a6",
+      "effectiveSha256": "83c26dd78a998b5fdf25e8362fadd9e19ea2c9ad0a348cd3e6fca18dda27f4a6"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 2618,
+  "outputSha256": "f4183a3013cdb8cb0635f68c9afd1abf985804efa9741b6e7fcba6e71d425cbd",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "externalImports": [
+    "node:assert/strict"
+  ],
+  "moduleEvaluation": false
+}

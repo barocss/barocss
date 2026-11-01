@@ -1,8 +1,14 @@
 # P5 common World domain transition
 
-Current checkpoint: source and native legacy failure baselines reproduced.
-P5 implementation and public domain admission are not complete. Existing HOLD,
-original8-box NO_GO, original hinge failure, tolerances and first receipts stay.
+Current status: **P5_DONE_BOUNDED_LOCALSELECTED**, with explicit native rendering
+SDK externals. Public source/native runtime, source/native strict consumers,
+127logical compile checks, selected4World source documentation examples and
+site structure/build/link checks pass. Native rendering SDK implementation and
+product execution are NOT_RUN. Existing HOLD, original8-box NO_GO, original
+hinge failure, tolerances and first receipts remain. This is not whole-roadmap
+completion or develop integration; see `completion-results.json`.
+
+The sections below retain the chronological baseline and intermediate status.
 
 `SCOPE-CONTRACT.md` and `MIGRATION-PLAN.json` define the proposed direct cutover
 of21 active leaf callers. No compatibility factory, second clock or hidden
@@ -300,3 +306,61 @@ examples and docs build/links remain pending; P5b is not marked wholly complete.
 Old runtime factories/subpaths/DTOs are removed directly, with historical old
 providers/first failures retained. P4 original8-box NO_GO and required P6/P7
 still block whole-roadmap develop integration. No push/deploy/release occurred.
+
+
+## P5b consumer and documentation closure
+
+`validation-static-05` PASSes51remaining bundles and one lint invocation.
+It authenticates/reuses76earlier bundle passes and both strict source/native
+positive/negative consumers. All60source entries pass. Across source/native
+entry pairs, generated programs and independent numeric roots there are127
+logical bundle checks and130actual attempts, including3preserved build
+failures. A fourth startup failure ran0bundles. No World or old numeric campaign
+ran during these static checks.
+
+The first failure was a loader-only entry incorrectly required to contain a
+Physics module; exact20Physics/40zero-own-closure policies replace that single
+blanket assumption. The second/third failures expose absent Viewer/CADInterop
+and GPU emitted SDK files. Full source-report/manifest inventory finds10missing
+published identities, including aliases; the minimal exact external frontier
+has8identities across13hosts. Native Physics/CAD/replay use actual emitted
+modules; no source fallback occurs. SDK implementations and browser/product
+integration remain NOT_RUN. The final startup failure was missing copied-file
+provenance for the already-passed packed native consumer. Exact staged/original
+byte/hash equality repairs that reuse proof. All original QA files/receipts are
+saved under their failed run's `author-inputs/`; criteria and Physics sources
+are unchanged. Reviews02–05 describe each correction.
+
+`docs-example-source-01` separately PASSes the exact displayed four-profile
+sample:4factories/4Worlds,4accepted steps,4recorder refusals and4disposals.
+It executes one filtered test per process; the other three callbacks are
+skipped. No restore, broad175sample runner or new native numeric cohort runs.
+The actual displayed function is unchanged; only test counters/error observers
+are added to its numerical source dependencies. This is source example proof,
+not native documentation-runtime or browser proof.
+
+`docs-structure-01`/`docs-build-01` passed; `docs-links-01` failed on a stale
+mutable current roadmap copy. Its original error and original copy hash are
+preserved in `docs-links-first-failure.json`. After current API/status text and
+that copy are corrected, `docs-structure-02`, `docs-build-02` and `docs-links-02`
+PASS:73structure pages;5selected rendered pages,806link occurrences,215anchor occurrences,26snippet
+regions and14byte-identical historical receipt copies. The mutable roadmap
+copy matches package source. The example/public/built inert model assets also
+all match SHA256 `ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604`.
+No network check, deployment or publication occurs.
+
+```sh
+$NODE22 examples/physics-world-p5-2276/validation-run.mjs --run-id validation-static-05 --phase static --freeze "$FREEZE_05" --freeze-sha256 852ffe99f3c1a9374dc67dd57d404da351d9a7d6ff8eac25cb8b022209471829 --authorize-validation
+$NODE22 examples/physics-world-p5-2276/validation-run.mjs --run-id docs-example-source-01 --phase docs --freeze "$FREEZE_05" --freeze-sha256 852ffe99f3c1a9374dc67dd57d404da351d9a7d6ff8eac25cb8b022209471829 --authorize-validation
+$NODE22 examples/physics-world-p5-2276/command-run.mjs docs-structure-02 apps/library-docs $NODE22 scripts/check-docs.mjs
+$NODE22 examples/physics-world-p5-2276/command-run.mjs docs-build-02 apps/library-docs $NODE22 node_modules/vitepress/bin/vitepress.js build docs
+$NODE22 examples/physics-world-p5-2276/command-run.mjs docs-links-02 . $NODE22 examples/physics-motion-docs-2276/check-site.mjs
+```
+
+These are the actual commands, with `$NODE22` set to the installed22.19.0 and
+`$FREEZE_05` the absolute `validation-execution-freeze-05.json` path. Each ran
+inside the existing heavy gate and a fresh bounded owned process group.
+Receipts are immutable; reruns require fresh IDs and a reviewed provider freeze.
+`completion-results.json` pins final results and proof limits. P4 full original
+stack, required P6/P7 and whole-roadmap merge remain pending. The next private
+attachment impulse proposal is not a coupled-World or public API PASS.

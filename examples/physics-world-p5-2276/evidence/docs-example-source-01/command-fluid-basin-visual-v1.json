@@ -1,0 +1,11 @@
+{
+  "command": [
+    "/Users/user/.volta/tools/image/node/22.19.0/bin/node",
+    "--test",
+    "--test-concurrency=1",
+    "--test-name-pattern=^explicit model fluid-basin-visual-v1:",
+    "/Users/user/Documents/ChatGPT/barocss-physics-motion-2276/examples/physics-world-p5-2276/evidence/docs-example-source-01/docs-source.mjs"
+  ],
+  "selectedProfile": "fluid-basin-visual-v1",
+  "otherCallbacksSkipped": 3
+}

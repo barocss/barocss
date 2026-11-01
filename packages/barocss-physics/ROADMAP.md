@@ -1,7 +1,7 @@
 ---
 work_id: physics-api-roadmap-2276
 artifact_type: architecture-and-development-roadmap
-status: p3_selected_local_pass_p4_full_stack_no_go
+status: p5_done_bounded_localselected_p4_no_go
 owner_role: independent-physics-algorithm-work
 source_request: redesign the unreleased Physics library and reorganize its roadmap; preserve HOLD, NO_GO and first failures
 last_updated: 2026-11-02
@@ -16,9 +16,10 @@ inside that World. Give the World one frame, gravity definition, entity identity
 boundary. Replay records that World. CAD code admits numerical inputs and binds results to a source revision.
 Neither replay nor a CAD adapter is a physical domain.
 
-The rigid P1b root now implements the P0 model/options/state contract locally. The remaining domain and service
-transitions below are future work. Selected source and emitted checks exist, but this is not completion of the
-whole common World or release qualification. The frozen [P0 contract](design/p0/CONTRACT.md),
+The common root implements the P0 model/options/state contract for the admitted rigid and fixed visual
+profiles. P2 owns attached recording for supported rigid models; P5 moves cloth/fluid state under the common
+World. Selected source and native runtime checks pass. Remaining consumer/document gates, dynamic coupling,
+original full-stack exit and connected mechanisms remain separate; this is not whole-engine or release qualification. The frozen [P0 contract](design/p0/CONTRACT.md),
 [target types](design/p0/types.ts), [direct migration scope](design/p0/MIGRATION.md) and
 [validation requirements](design/p0/validation.json) define the boundary. The design files remain design artifacts;
 the current package runtime exports only implemented capabilities. See the P1b checkpoint below for exact evidence limits.
@@ -34,7 +35,8 @@ Retain old source and first failures in immutable Git/evidence records, rather t
 The retired Motion package stays retired. Robot kinematics and prescribed-motion loads remain in CAD Model.
 
 Existing Physics, Studio and manufacturing HOLDs remain. This roadmap is not an instruction to resume their owners,
-merge to develop, activate an unsupported profile, deploy, publish or run hardware. Work continues in the independent
+activate an unsupported profile, deploy, publish or run hardware. The owner separately authorized a develop
+merge after the whole required roadmap passes; that condition has not been met. Work continues in the independent
 branch with explicit owned paths. No dependency or security-setting change is proposed in this slice.
 
 ## Historical source baseline: the apparent worlds have different roles
@@ -212,7 +214,7 @@ iterations, original input law or evidence in order to pass.
 | P2 — recording and CAD boundary | P1. Move recording to the common World; separate CAD admission from runtime; migrate actual callers directly. | Record/restore/continue matches source and actual emitted consumers; stale source/model/profile rejection; unrecorded stepping prevented; numerical root graph has no CAD/parser/Viewer imports. MMGS/off-origin independent adapter tests pass. | P2_DONE_LOCALSELECTED. Public source/emitted11/11 each; test-only injected preparation15/15 each; native published maps/types PASS. No arbitrary checkpoint import or CAD Studio integration. |
 | P3 — hinge and mechanism dynamics | P1/P2; original #1489 contract. Preserve four spheres, two disjoint hinges, 1/120 s and 1200 steps. Retain step77 raw-bit failure. | Exact original source/repeat/emitted/reference gates; independently mapped rename/order controls; separately budgeted recorder and hardened current API checks. Historical operands remain unavailable; no cross-runtime claim follows. | Selected local disjoint profile PASS; current API adopted with unchanged calculation bytes. Historical step77, general connected joints and #1490 live adoption remain separate. See the P3 checkpoint. |
 | P4 — contact and original eight-box exit | P1 and the already measured 32-point equilibrium/192-row repair. Improve independent reference cost within the fixed 180 s budget before full replay. Preserve original inputs and all points. | Same32 patch equilibrium, strict line booleans, 1e-9 m geometry, 1e-10 SI residual gates; original ALIGNED/OFFSET/YAW1200-step settling metrics; actual source/repeat/emitted graph and per-phase accounting. Public adoption only after the full selected contract. | NO_GO. Matched16-step prefixes pass; separate ALIGNED308-step source attempt is incomplete. Public persistent limit stays4. |
-| P5 — cloth and fluid as model data | P1/P2 and each domain's independent current receipts. Extract kernels into candidate buffers, admit existing fixed scenes as explicit model data and static colliders. No dynamic coupling. | Reproduce original fixed-profile results before adding input freedom; domain failure rolls back whole host step; common-clock/substep checks; source/emitted closure; reject unsupported cross-domain pairs. | P5a private candidate extraction PASS for four fixtures/two steps/failure recovery; P5b common-World/caller transition is implemented with public/source/native/full-horizon/example qualification pending. Visual evidence class stays visual; full required roadmap exits still block integration. |
+| P5 — cloth and fluid as model data | P1/P2 and each domain's independent current receipts. Extract kernels into candidate buffers, admit existing fixed scenes as explicit model data and static colliders. No dynamic coupling. | Reproduce original fixed-profile results before adding input freedom; domain failure rolls back whole host step; common-clock/substep checks; source/emitted closure; reject unsupported cross-domain pairs. | P5a private candidate extraction PASS for four fixtures/two steps/failure recovery; P5b_DONE_BOUNDED_LOCALSELECTED: public source/native runtime, strict source/native consumers,127logical bundles and4selected source doc examples pass. Native rendering SDKs remain explicit external dependencies; their implementation/product closure is NOT_RUN. Visual evidence class stays visual; full required roadmap exits still block integration. |
 | P6a — cloth–rigid coupling | P5 and qualified contact/rigid cases needed by a small declared pair, not a blanket full-engine GO. | Equal/opposite impulse and torque, attachment/contact residuals, work/dissipation balance, dt refinement, mass-ratio/boundary/refusal tests; no pinned-vertex masquerading as dynamic reaction. Freeze numerical tolerances first. | NOT_SUPPORTED; gates must be specified before execution. |
 | P6b — fluid–rigid coupling | P5 and its required rigid/contact profile. Independent of P6a. Start with one small dynamic rigid object, no cloth. | Momentum/reaction accounting, independent buoyancy or pressure reference where the model supports it, dt/particle refinement, density/free-surface limits and measured cost; correct external basin reaction. Freeze reference error first. | NOT_SUPPORTED; visual PBF alone is not a CFD accuracy claim. |
 | P7 — connected joints and control | Required P3/P4 leaf profiles, verified single fixed-axis dynamics and explicit plant model. Keep Robot FK/IK/timing in CAD Model. | First two-link conservation/reference case; then actuator units/saturation/sample time and tracking gates. Desired motion and actual response are separate arrays. Unreachable/saturated inputs remain visible. | BACKLOG. Reduced pendulum ODE checks do not qualify rigid multi-link dynamics. |
@@ -418,3 +420,55 @@ in `examples/physics-world-p3-2276/README.md`. Next is P4 independent reference
 cost analysis before the original full-stack exit. P5 domain migration and P6/P7
 remain separate. The owner authorized a develop merge after the entire required
 roadmap completes; that conditional step is pending. No push, release or deployment.
+
+
+## P4/P5 current checkpoint (2026-11-02)
+
+P4 support-radius cache candidates v1/v2/v3 preserve their selected current raw
+results but fail the fixed cost gate. V3 CPU cost is885643000→1078494000ns
+(+21.775%). That cache slice is ended; no fourth variant or full-stack replay
+is authorized by its result. Original eight-box exits remain NO_GO and the
+public persistent-body cap remains4.
+
+P5b now has one public common World for its admitted rigid and fixed visual
+models. Old cloth/fluid/CAD-fluid factories, DTOs and subpaths were removed
+with their first-party callers; no compatibility engine remains. The same
+World owns accepted state, configured time and failure commit. Domain kernels
+own only private candidates. Numerical root imports no CAD runtime.
+
+Actual source and native published-map cohorts each pass101factory attempts,
+37Worlds,64creation refusals and6334step entries:6281accepted,13synthetic
+preparation/log failures and40refusals. Four refusals are private numeric-limit
+controls. Five240-step cloth runs per graph compare all241frames to a single
+independently generated research reference at the unchanged1e-12 absolute
+component gate. Exact peak difference was not recorded. Fluid basin cases
+reach720steps; shelf cases240steps. No3600-step stability claim follows from
+that admission cap. Original numerical hashes, residuals, active-contact checks,
+repeat gates and measured cost limits pass for those selected horizons.
+
+Cloth recorder attach refuses at the unchanged128KiB model cap; three fluid
+profiles refuse unqualified recording with `INVALID_SNAPSHOT` and no owner
+residue. Original1MiB/512frame/4096command budgets and BCPHREC1 remain. Domain
+recording/restore, moving-body coupling, calibrated cloth/CFD and equipment
+validation are not qualified. Native-entry01's private/root types external
+collision remains recorded; canonical-path external resolution repairs the
+build, and native-entry02 plus later source/native runtime pass.
+
+Strict positive/negative consumers pass for actual source and published-native
+maps. All60source entry bundles pass. Native entry/generated/root compilation
+completes127logical checks across the two modes with an explicit rendering-SDK
+boundary:8missing published endpoint identities across13hosts remain external.
+Those Viewer/CADInterop/GPU implementations and product execution are NOT_RUN;
+Physics, CAD and replay use actual native modules without source fallback.
+Three earlier build failures plus a zero-build copy-provenance startup failure
+remain recorded.76valid prior bundle results and both strict results are
+verified/reused; the final51bundles and one lint invocation pass. No passed
+numeric campaign was repeated for this compilation work.
+
+The displayed visual example passes separately:4Worlds,4accepted steps,
+4recorder refusals and4disposals, source only. It does not reclassify the older
+whole-sample receipts. Current site structure/build/link receipts and exact
+commands are recorded separately in `examples/physics-world-p5-2276/README.md`.
+`public-runtime-results.json` retains the prior runtime checkpoint unchanged.
+P4 full-stack NO_GO and required P6/P7 work still block whole-roadmap develop
+integration. Existing HOLDs, error gates and first failures remain.

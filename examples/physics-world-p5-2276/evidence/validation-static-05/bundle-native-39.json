@@ -1,0 +1,32 @@
+{
+  "mode": "native",
+  "entry": "examples/physics-cad-scene/server.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/physics-cad-scene/server.mjs": {
+      "bytes": 1481,
+      "sha256": "a87166977513a81a22f8ff6d6ab5cccb6a28e2305389f13dcd7c3db4b67f92b3",
+      "effectiveSha256": "a87166977513a81a22f8ff6d6ab5cccb6a28e2305389f13dcd7c3db4b67f92b3"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 1466,
+  "outputSha256": "bb1bc1c051bb0faad3f0ccbe00634c80025597f1f1774e018c29703e7403c42c",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "missingNativeSDKBoundary": null,
+  "nativeHostSDKIntegration": "NOT_CLAIMED_BY_COMPILE",
+  "externalImports": [
+    "node:child_process",
+    "node:url",
+    "node:http",
+    "node:fs/promises",
+    "esbuild"
+  ],
+  "moduleEvaluation": false
+}

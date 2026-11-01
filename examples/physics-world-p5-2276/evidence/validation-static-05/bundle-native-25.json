@@ -1,0 +1,31 @@
+{
+  "mode": "native",
+  "entry": "examples/physics-cloth-viewer/frame.mjs",
+  "platform": "browser",
+  "inputs": {
+    "examples/physics-cloth-viewer/frame.mjs": {
+      "bytes": 2149,
+      "sha256": "b00a8df08931994296ccaed007f62c732eae668255bb18865aa47143e627fa9d",
+      "effectiveSha256": "b00a8df08931994296ccaed007f62c732eae668255bb18865aa47143e627fa9d"
+    },
+    "examples/physics-model-data-2276/model-data.mjs": {
+      "bytes": 185560,
+      "sha256": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604",
+      "effectiveSha256": "ccd3aff04c93027a0c4561d9aab1757e6a6a6f0b7bc54ec13885ff4b4d59e604"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 214569,
+  "outputSha256": "7480e0ea3247e5a49b210c5ba70cc34c405167e9a5cbad0368f212761d4e30b8",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "missingNativeSDKBoundary": null,
+  "nativeHostSDKIntegration": "NOT_CLAIMED_BY_COMPILE",
+  "externalImports": [],
+  "moduleEvaluation": false
+}

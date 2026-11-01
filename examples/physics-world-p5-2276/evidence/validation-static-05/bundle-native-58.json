@@ -1,0 +1,28 @@
+{
+  "mode": "native",
+  "entry": "examples/physics-scene/fluid-release-criteria.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/physics-scene/fluid-release-criteria.mjs": {
+      "bytes": 3355,
+      "sha256": "8b60d3af9725720f61f13dbbc9e08ab3fa4cd910be0a1e9babb6a0d51d82d8e6",
+      "effectiveSha256": "8b60d3af9725720f61f13dbbc9e08ab3fa4cd910be0a1e9babb6a0d51d82d8e6"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 3582,
+  "outputSha256": "cf10822c802262ac0d6669522d380d4f0770165c020e81a1379d3124b1ca7b88",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "missingNativeSDKBoundary": null,
+  "nativeHostSDKIntegration": "NOT_CLAIMED_BY_COMPILE",
+  "externalImports": [
+    "node:assert/strict"
+  ],
+  "moduleEvaluation": false
+}

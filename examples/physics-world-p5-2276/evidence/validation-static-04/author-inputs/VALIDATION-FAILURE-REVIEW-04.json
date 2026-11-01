@@ -1,0 +1,2918 @@
+{
+  "status": "AUTHOR_ONLY_REVISION04_NOT_RUN",
+  "sourceReports": [
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-01/bundle-source-00.json",
+      "bytes": 20950,
+      "sha256": "7c1b3136bf840c3f5ddd1c4c21003a9362191d5a3f333713938d8789be83ae06"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-01/bundle-source-01.json",
+      "bytes": 19915,
+      "sha256": "f1b41c85f98df33ee76745ee3c3abb6074dff9d6415fb30bba660191a20db792"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-01/bundle-source-02.json",
+      "bytes": 20161,
+      "sha256": "34839b5c3fad42637320c092c9f6bff1bdfca70e26b2c85198714b3372bda2cb"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-01/bundle-source-03.json",
+      "bytes": 115525,
+      "sha256": "77c57b5e650ddc64092ccdb9a343fe2bde11d94d0238042063a77f9c20fea4b9"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-04.json",
+      "bytes": 925,
+      "sha256": "9824035e2998d84e22707a6d3165d375a9dca0d93247221b7814334f517b41c1"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-05.json",
+      "bytes": 1701,
+      "sha256": "4b9d062f4953245fdc7f0c8ffce9f1b878d6fcd550978aaea07ac7d17bc5073b"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-06.json",
+      "bytes": 1433,
+      "sha256": "364ee073c486ad518a52347096cdf885d4abee2358e74df4d780ddec9e3dac62"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-07.json",
+      "bytes": 170485,
+      "sha256": "25c526e623cff443d04f3b2d923eff017701127123be4fad6fc2d0ac861014d8"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-08.json",
+      "bytes": 1059,
+      "sha256": "3d0bd5cbc4540c506d30df1209deab931421f338a745e242557c80923b3b6248"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-09.json",
+      "bytes": 1419,
+      "sha256": "0c9f2198787825e6379a3b426f589539d9f4b5a8a83eb60e563a303824a58bea"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-10.json",
+      "bytes": 1401,
+      "sha256": "e5047db2fbe016bd2fb373f3bdd3d0bc8dfb09d21d203039a5701ea0cf67f3ed"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-11.json",
+      "bytes": 115842,
+      "sha256": "26bee1710aa88f9913ec83fb34d4abc5517eac38b366347e6c7931b54ee44233"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-12.json",
+      "bytes": 887,
+      "sha256": "6a80affd54281959a33fb4f5bf0993c5cac7d1f145a60fe5886e6ef9743a2a9d"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-13.json",
+      "bytes": 168401,
+      "sha256": "e5254dbe90f48b84acbbe21e8e85aa51852b84479ae01715f1376b3e9190bf7e"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-14.json",
+      "bytes": 167700,
+      "sha256": "9a0814c16a44f358cfa51bfc2e33c86191e1624024f6fa1623652281091b7605"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-15.json",
+      "bytes": 167610,
+      "sha256": "6604767af55c6a328473fe4c01541eda9626a454163dd2c88df44ea68c3d55e7"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-16.json",
+      "bytes": 175770,
+      "sha256": "9c94e9e0091d996ca61c33f1350dd133d709c225f396d0d56a2849c63457a951"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-17.json",
+      "bytes": 177042,
+      "sha256": "5bfd6a6c82d2b1a050c59c8b046bc87bdb0d90592442a2e0db01b4e98cbec390"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-18.json",
+      "bytes": 168572,
+      "sha256": "5efd1ef284f3dbaabfc8883b3b4d74a3ee872e5c9e9b6ca8bbf85bef5bfeeab3"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-19.json",
+      "bytes": 167868,
+      "sha256": "fe603754d4275634fae25b6e770dfeb9a72c971e2cf845d9f42c408a0c5859c1"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-20.json",
+      "bytes": 169020,
+      "sha256": "1cbb1f012bb30fd8aab3775a0cc5a273d28664c8de51a78baa3ffb9160f79ce7"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-21.json",
+      "bytes": 169264,
+      "sha256": "02c9b10338b9b153699dda6237b4e7eb1812c18f64046a29163f017e5fd0d392"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-22.json",
+      "bytes": 1155,
+      "sha256": "62ca0643ed119a714c93e0946e4a730db6aa684539008cd1ee876668f4a25364"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-23.json",
+      "bytes": 1721,
+      "sha256": "249c4dc10590b835c7da0b90db369150de24420dbc64c9471e92cfce65ef596d"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-24.json",
+      "bytes": 1058,
+      "sha256": "546953b5eddcced254ad1494b9d2e18a365565f42d39876cebbf6f74adc88191"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-25.json",
+      "bytes": 1050,
+      "sha256": "d99a21ee17f18c8b1cee7603b90f70bffd46b3ce48138a0e39a8aa19e884bb5e"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-26.json",
+      "bytes": 789,
+      "sha256": "d70b3f154fb11f5cf38c0832e9a07b18c7c21be0f21cf1f38cd9abb1e2fccce9"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-27.json",
+      "bytes": 783,
+      "sha256": "d06b47f12d23859eb1cb77951250dd565b3cc14e275e13d7b57981ada8a2f3db"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-28.json",
+      "bytes": 1303,
+      "sha256": "99ee2213a5d03831d0cd96f0df604c17d54e3a863874dd350f0235f508bf3146"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-29.json",
+      "bytes": 1214,
+      "sha256": "28c8f874a281b320bb76984a75637e110fd63160d9a497fcb72a2619abaec4bb"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-30.json",
+      "bytes": 884,
+      "sha256": "5b5de1aabbd16493378e037c905f81e3df930d57598161615c06e5b1f1dad059"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-31.json",
+      "bytes": 1135,
+      "sha256": "cb447bfba5206aafb100738ed6e38e88c850d52c9e6e5733c0d3983da9b1f0a3"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-32.json",
+      "bytes": 839,
+      "sha256": "340dc9cf98540bf973af51654849a2681737fb937d2c51ccdefda0ba737fc144"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-33.json",
+      "bytes": 168688,
+      "sha256": "83d2c4d1ef151cbce33e145c57c14fd133bfffd39e84ee694185c98adc54e517"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-34.json",
+      "bytes": 20122,
+      "sha256": "d56424a29bf80445314cc85bcd4bdae51f1d320f113bd6bb605c63ff5249bb79"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-35.json",
+      "bytes": 1119,
+      "sha256": "cdc645426c355cd1b6a26e4b62e035d54bbbad2a76110b0f078677e11ffc2b43"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-36.json",
+      "bytes": 862,
+      "sha256": "2ee7e9cb09e52cfc2f88adbd59f3c868934937c9a91dece68e582f83eeb21265"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-37.json",
+      "bytes": 805,
+      "sha256": "d7733ec873e7a4f5b9ec7c5c06002ca8254066a0903229d6249a2298ec20ffdb"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-38.json",
+      "bytes": 1149,
+      "sha256": "feabb26665433694a5319e28003ade9520664d2c5ba0770146160dec863b224e"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-39.json",
+      "bytes": 878,
+      "sha256": "389ac71978b3fce18a41160ce207253a1f646aafff96545d7ff481cedbabbc94"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-40.json",
+      "bytes": 896,
+      "sha256": "c7a285d2bf8ad5f59ebeccc1bfc207b72c138530cfdef2cfa11c2228b165fc98"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-41.json",
+      "bytes": 871,
+      "sha256": "f4a4a4f9dc80aee0f19559269ab7588add0af446c25d653bece7c97810b88bb9"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-42.json",
+      "bytes": 855,
+      "sha256": "85f627c59e55e1aca05035c2780b0551209cadbbda65501daf6f86e681ef8750"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-43.json",
+      "bytes": 916,
+      "sha256": "2694fa2b54edecef84ea7241dc490eaed3295ba7c76ed15a41448a4a7c52c4bc"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-44.json",
+      "bytes": 908,
+      "sha256": "8a499ac2d72e5a708d4e7982bb61c3e2e9f53d8bfeaeb3ca5252caaaa50028a0"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-45.json",
+      "bytes": 890,
+      "sha256": "da79c54f5c7ae529ebf9f60bfa3a01dee1314dd2d48d13bedeab8d36a3f358a5"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-46.json",
+      "bytes": 865,
+      "sha256": "7b7b4d4ed32ff63db143b24e6d1b0ff760ee340b5add602ecd27eed430bf128e"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-47.json",
+      "bytes": 1161,
+      "sha256": "a70dbe53bc751e7e3ff16a1558b386f7b8b0ae0ac38e46c10e19556e2deb7c0c"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-48.json",
+      "bytes": 1165,
+      "sha256": "99e2a779d86072bca88de9bbd91f87d513d1e20518e163b02ecd69fb1adceb50"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-49.json",
+      "bytes": 169273,
+      "sha256": "0b0d42e57eb627e3fbb5f24938b927b4cbf9939b31c5e0ddb4a07a14ed05c504"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-50.json",
+      "bytes": 900,
+      "sha256": "b9e7f5bbc39b4c879c65fda37260c089ab751e3069ab3b4e330d8ef6d271daff"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-51.json",
+      "bytes": 169274,
+      "sha256": "29d54ac81b150d74ace62b9d974326a7c3ff51b7673e9549fb89a4bac7214928"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-52.json",
+      "bytes": 1185,
+      "sha256": "8fcc075d9403ef953b46bf5c154146025b481ac497fc227e7124de2640181e65"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-53.json",
+      "bytes": 831,
+      "sha256": "ecb69c591d048455bb55c57ed1e1eb02b83d9310c181d695b3033a82473c937c"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-54.json",
+      "bytes": 1155,
+      "sha256": "10a18a8871d79e506f629391e52514102f05d4bd85e1eb803e1169677f8ad921"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-55.json",
+      "bytes": 837,
+      "sha256": "7e0f56c696c9d98a067b44e910ae5689bf711e142e6525a1851c2da3cf76467b"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-56.json",
+      "bytes": 889,
+      "sha256": "e62cb42ea00fc3b0471d85559092c5889a00db8f8ab42e06e59fc90b08fd054f"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-57.json",
+      "bytes": 828,
+      "sha256": "989f5a99ab3980f9ace1989348563c132d17c2d8b63629bf42122b8ff6a12b2e"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-58.json",
+      "bytes": 830,
+      "sha256": "c156f17ebaa29ddf61a5d1b593f24f218e79f6e59b20b0ce31f065e1db1b9153"
+    },
+    {
+      "path": "examples/physics-world-p5-2276/evidence/validation-static-02/bundle-source-59.json",
+      "bytes": 21149,
+      "sha256": "d865b4a31d78f10fb00f64c2ab0d6c30079317ba9c971a1b4669ed9327fbe832"
+    }
+  ],
+  "completeMissingPublishedEndpointInventory": [
+    {
+      "packageName": "@barocss/viewer",
+      "packageDirectory": "packages/barocss-viewer",
+      "manifestPath": "packages/barocss-viewer/package.json",
+      "exportKey": ".",
+      "specifier": "@barocss/viewer",
+      "sourcePath": "packages/barocss-viewer/src/index.ts",
+      "nativePath": "packages/barocss-viewer/dist/index.js",
+      "aliasesForSameSource": [
+        "@barocss/viewer"
+      ],
+      "observations": [
+        {
+          "hostIndex": 7,
+          "specifier": "../../../packages/barocss-viewer/dist/index.js",
+          "importer": "examples/physics-scene/fluid-cad-viewer/app.js",
+          "target": "packages/barocss-viewer/src/index.ts",
+          "kind": "paired-public-caller-entry"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/viewer",
+          "importer": "examples/viewer-assembly-scene/app.js",
+          "target": "packages/barocss-viewer/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/viewer",
+          "importer": "examples/viewer-cloth-scene/app.js",
+          "target": "packages/barocss-viewer/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "../../packages/barocss-viewer/dist/index.js",
+          "importer": "examples/viewer-fluid-scene/app.js",
+          "target": "packages/barocss-viewer/src/index.ts",
+          "kind": "paired-public-caller-entry"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/viewer",
+          "importer": "examples/viewer-native-scene-replacement/app.js",
+          "target": "packages/barocss-viewer/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/viewer",
+          "importer": "examples/viewer-qualified-face-scene/app.js",
+          "target": "packages/barocss-viewer/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/viewer",
+          "importer": "examples/viewer-shell-scene/app.js",
+          "target": "packages/barocss-viewer/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "../../packages/barocss-viewer/dist/index.js",
+          "importer": "examples/viewer-surface-material/app.js",
+          "target": "packages/barocss-viewer/src/index.ts",
+          "kind": "paired-public-caller-entry"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/viewer",
+          "importer": "examples/workspace-source/flow.mjs",
+          "target": "packages/barocss-viewer/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/viewer",
+          "importer": "examples/physics-cloth-viewer/app.mjs",
+          "target": "packages/barocss-viewer/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "../../../packages/barocss-viewer/dist/index.js",
+          "importer": "examples/physics-scene/fluid-viewer/app.js",
+          "target": "packages/barocss-viewer/src/index.ts",
+          "kind": "paired-public-caller-entry"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/viewer",
+          "importer": "examples/workspace-source/flow.mjs",
+          "target": "packages/barocss-viewer/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/viewer",
+          "importer": "examples/workspace-source/flow.mjs",
+          "target": "packages/barocss-viewer/src/index.ts",
+          "kind": "actual-package-map"
+        }
+      ]
+    },
+    {
+      "packageName": "@barocss/cad-interop",
+      "packageDirectory": "packages/barocss-cad-interop",
+      "manifestPath": "packages/barocss-cad-interop/package.json",
+      "exportKey": "./model-set",
+      "specifier": "@barocss/cad-interop/model-set",
+      "sourcePath": "packages/barocss-cad-interop/src/model-set.ts",
+      "nativePath": "packages/barocss-cad-interop/dist/model-set.js",
+      "aliasesForSameSource": [
+        "@barocss/cad-interop/model-set"
+      ],
+      "observations": [
+        {
+          "hostIndex": 7,
+          "specifier": "../../../packages/barocss-cad-interop/dist/model-set.js",
+          "importer": "examples/physics-scene/fluid-cad-viewer/app.js",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "paired-public-caller-entry"
+        },
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "examples/viewer-assembly-scene/app.js",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "examples/viewer-cloth-scene/app.js",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "../../packages/barocss-cad-interop/dist/model-set.js",
+          "importer": "examples/viewer-fluid-scene/app.js",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "paired-public-caller-entry"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "examples/viewer-native-scene-replacement/app.js",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "examples/viewer-qualified-face-scene/app.js",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "examples/viewer-shell-scene/app.js",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "../../packages/barocss-cad-interop/dist/model-set.js",
+          "importer": "examples/viewer-surface-material/app.js",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "paired-public-caller-entry"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "examples/workspace-source/flow.mjs",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "examples/physics-cloth-viewer/app.mjs",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "../../../packages/barocss-cad-interop/dist/model-set.js",
+          "importer": "examples/physics-scene/fluid-viewer/app.js",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "paired-public-caller-entry"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "examples/workspace-source/flow.mjs",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "examples/workspace-source/flow.mjs",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/cad-interop/model-set",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/model-set.ts",
+          "kind": "actual-package-map"
+        }
+      ]
+    },
+    {
+      "packageName": "@barocss/cad-interop",
+      "packageDirectory": "packages/barocss-cad-interop",
+      "manifestPath": "packages/barocss-cad-interop/package.json",
+      "exportKey": "./native",
+      "specifier": "@barocss/cad-interop/native",
+      "sourcePath": "packages/barocss-cad-interop/src/native.ts",
+      "nativePath": "packages/barocss-cad-interop/dist/native.js",
+      "aliasesForSameSource": [
+        "@barocss/cad-interop/native"
+      ],
+      "observations": [
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "examples/viewer-native-scene-replacement/app.js",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "examples/viewer-native-scene-replacement/native-file-open.js",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "examples/viewer-native-scene-replacement/iges-file-open.js",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "examples/viewer-native-scene-replacement/native-source-download.js",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "examples/viewer-qualified-face-scene/app.js",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "examples/workspace-source/flow.mjs",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "examples/workspace-source/flow.mjs",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "examples/workspace-source/flow.mjs",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/cad-interop/native",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-cad-interop/src/native.ts",
+          "kind": "actual-package-map"
+        }
+      ]
+    },
+    {
+      "packageName": "@barocss/cad-interop",
+      "packageDirectory": "packages/barocss-cad-interop",
+      "manifestPath": "packages/barocss-cad-interop/package.json",
+      "exportKey": "./document",
+      "specifier": "@barocss/cad-interop/document",
+      "sourcePath": "packages/barocss-cad-interop/src/document.ts",
+      "nativePath": "packages/barocss-cad-interop/dist/document.js",
+      "aliasesForSameSource": [
+        "@barocss/cad-interop/document"
+      ],
+      "observations": [
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/mounted-native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/assembly.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/assembly.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/mounted-native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/mounted-native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/assembly.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/assembly.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/mounted-native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "examples/viewer-native-scene-replacement/app.js",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "examples/viewer-native-scene-replacement/mounted-appearance.js",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/mounted-native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/assembly.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "examples/viewer-qualified-face-scene/app.js",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/mounted-native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/assembly.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/mounted-native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/assembly.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/assembly.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/mounted-native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/mounted-native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/assembly.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/assembly.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/mounted-native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/mounted-native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/assembly.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/mounted-native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/assembly.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/assembly.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/mounted-native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/cad-interop/document",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-cad-interop/src/document.ts",
+          "kind": "actual-package-map"
+        }
+      ]
+    },
+    {
+      "packageName": "@barocss/gpu",
+      "packageDirectory": "packages/barocss-gpu",
+      "manifestPath": "packages/barocss-gpu/package.json",
+      "exportKey": ".",
+      "specifier": "@barocss/gpu",
+      "sourcePath": "packages/barocss-gpu/src/index.ts",
+      "nativePath": "packages/barocss-gpu/dist/index.js",
+      "aliasesForSameSource": [
+        "@barocss/gpu",
+        "@barocss/gpu/source"
+      ],
+      "observations": [
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-faces.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-surface-uv01-candidate.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-fit.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/screen-triangle.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-backend.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-faces.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-surface-uv01-candidate.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-fit.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/screen-triangle.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-backend.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/gpu",
+          "importer": "examples/viewer-cloth-scene/app.js",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-faces.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-fit.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-surface-uv01-candidate.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/screen-triangle.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-backend.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-faces.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-fit.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-surface-uv01-candidate.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/screen-triangle.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-backend.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/gpu",
+          "importer": "examples/viewer-native-scene-replacement/app.js",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/gpu",
+          "importer": "examples/viewer-native-scene-replacement/mounted-appearance.js",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-faces.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-surface-uv01-candidate.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-fit.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-backend.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/screen-triangle.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/gpu",
+          "importer": "examples/viewer-qualified-face-scene/app.js",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-faces.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-fit.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-surface-uv01-candidate.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-backend.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/screen-triangle.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/gpu",
+          "importer": "examples/viewer-shell-scene/app.js",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-faces.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-surface-uv01-candidate.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-fit.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-backend.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/screen-triangle.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "../../packages/barocss-gpu/dist/index.js",
+          "importer": "examples/viewer-surface-material/app.js",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "paired-public-caller-entry"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-faces.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-fit.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-surface-uv01-candidate.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/screen-triangle.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-backend.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/gpu",
+          "importer": "examples/workspace-source/flow.mjs",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-faces.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-fit.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-surface-uv01-candidate.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/screen-triangle.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-backend.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/gpu",
+          "importer": "examples/physics-cloth-viewer/app.mjs",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-faces.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-fit.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-surface-uv01-candidate.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/screen-triangle.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-backend.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-faces.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-surface-uv01-candidate.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-fit.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/screen-triangle.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-backend.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/gpu",
+          "importer": "examples/workspace-source/flow.mjs",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-faces.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-surface-uv01-candidate.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-fit.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/screen-triangle.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-backend.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/gpu",
+          "importer": "examples/workspace-source/flow.mjs",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/index.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-faces.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-fit.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/qualified-face-pick.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-surface-uv01-candidate.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/mixed-depth.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-scene-appearance.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/native-backend.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/gpu",
+          "importer": "packages/barocss-viewer/src/screen-triangle.ts",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        }
+      ]
+    },
+    {
+      "packageName": "@barocss/gpu",
+      "packageDirectory": "packages/barocss-gpu",
+      "manifestPath": "packages/barocss-gpu/package.json",
+      "exportKey": "./viewer",
+      "specifier": "@barocss/gpu/viewer",
+      "sourcePath": "packages/barocss-gpu/src/viewer/index.ts",
+      "nativePath": "packages/barocss-gpu/dist/viewer/index.js",
+      "aliasesForSameSource": [
+        "@barocss/gpu/viewer"
+      ],
+      "observations": [
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/gpu/viewer",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/viewer/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/gpu/viewer",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/viewer/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/gpu/viewer",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/viewer/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/gpu/viewer",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/viewer/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/gpu/viewer",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/viewer/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/gpu/viewer",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/viewer/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/gpu/viewer",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/viewer/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/gpu/viewer",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/viewer/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/gpu/viewer",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/viewer/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/gpu/viewer",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/viewer/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/gpu/viewer",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/viewer/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/gpu/viewer",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/viewer/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/gpu/viewer",
+          "importer": "packages/barocss-viewer/src/presenter.ts",
+          "target": "packages/barocss-gpu/src/viewer/index.ts",
+          "kind": "actual-package-map"
+        }
+      ]
+    },
+    {
+      "packageName": "@barocss/cad-interop",
+      "packageDirectory": "packages/barocss-cad-interop",
+      "manifestPath": "packages/barocss-cad-interop/package.json",
+      "exportKey": "./boolean-extrusion-feature-mesh",
+      "specifier": "@barocss/cad-interop/boolean-extrusion-feature-mesh",
+      "sourcePath": "packages/barocss-cad-interop/src/boolean-extrusion-feature-mesh.ts",
+      "nativePath": "packages/barocss-cad-interop/dist/boolean-extrusion-feature-mesh.js",
+      "aliasesForSameSource": [
+        "@barocss/cad-interop/boolean-extrusion-feature-mesh"
+      ],
+      "observations": [
+        {
+          "hostIndex": 7,
+          "specifier": "@barocss/cad-interop/boolean-extrusion-feature-mesh",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-cad-interop/src/boolean-extrusion-feature-mesh.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/cad-interop/boolean-extrusion-feature-mesh",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-cad-interop/src/boolean-extrusion-feature-mesh.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 14,
+          "specifier": "@barocss/cad-interop/boolean-extrusion-feature-mesh",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-cad-interop/src/boolean-extrusion-feature-mesh.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 15,
+          "specifier": "@barocss/cad-interop/boolean-extrusion-feature-mesh",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-cad-interop/src/boolean-extrusion-feature-mesh.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/cad-interop/boolean-extrusion-feature-mesh",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-cad-interop/src/boolean-extrusion-feature-mesh.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/cad-interop/boolean-extrusion-feature-mesh",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-cad-interop/src/boolean-extrusion-feature-mesh.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/cad-interop/boolean-extrusion-feature-mesh",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-cad-interop/src/boolean-extrusion-feature-mesh.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 19,
+          "specifier": "@barocss/cad-interop/boolean-extrusion-feature-mesh",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-cad-interop/src/boolean-extrusion-feature-mesh.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/cad-interop/boolean-extrusion-feature-mesh",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-cad-interop/src/boolean-extrusion-feature-mesh.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 21,
+          "specifier": "@barocss/cad-interop/boolean-extrusion-feature-mesh",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-cad-interop/src/boolean-extrusion-feature-mesh.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 33,
+          "specifier": "@barocss/cad-interop/boolean-extrusion-feature-mesh",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-cad-interop/src/boolean-extrusion-feature-mesh.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/cad-interop/boolean-extrusion-feature-mesh",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-cad-interop/src/boolean-extrusion-feature-mesh.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/cad-interop/boolean-extrusion-feature-mesh",
+          "importer": "packages/barocss-viewer/src/shell-graph.ts",
+          "target": "packages/barocss-cad-interop/src/boolean-extrusion-feature-mesh.ts",
+          "kind": "actual-package-map"
+        }
+      ]
+    },
+    {
+      "packageName": "@barocss/cad-interop",
+      "packageDirectory": "packages/barocss-cad-interop",
+      "manifestPath": "packages/barocss-cad-interop/package.json",
+      "exportKey": "./assembly",
+      "specifier": "@barocss/cad-interop/assembly",
+      "sourcePath": "packages/barocss-cad-interop/src/assembly.ts",
+      "nativePath": "packages/barocss-cad-interop/dist/assembly.js",
+      "aliasesForSameSource": [
+        "@barocss/cad-interop/assembly"
+      ],
+      "observations": [
+        {
+          "hostIndex": 13,
+          "specifier": "@barocss/cad-interop/assembly",
+          "importer": "examples/viewer-assembly-scene/app.js",
+          "target": "packages/barocss-cad-interop/src/assembly.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 16,
+          "specifier": "@barocss/cad-interop/assembly",
+          "importer": "examples/viewer-native-scene-replacement/app.js",
+          "target": "packages/barocss-cad-interop/src/assembly.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 17,
+          "specifier": "@barocss/cad-interop/assembly",
+          "importer": "examples/viewer-qualified-face-scene/app.js",
+          "target": "packages/barocss-cad-interop/src/assembly.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 18,
+          "specifier": "@barocss/cad-interop/assembly",
+          "importer": "examples/viewer-shell-scene/app.js",
+          "target": "packages/barocss-cad-interop/src/assembly.ts",
+          "kind": "actual-package-map"
+        }
+      ]
+    },
+    {
+      "packageName": "@barocss/gpu",
+      "packageDirectory": "packages/barocss-gpu",
+      "manifestPath": "packages/barocss-gpu/package.json",
+      "exportKey": "./source",
+      "specifier": "@barocss/gpu/source",
+      "sourcePath": "packages/barocss-gpu/src/index.ts",
+      "nativePath": "packages/barocss-gpu/dist/index.js",
+      "aliasesForSameSource": [
+        "@barocss/gpu",
+        "@barocss/gpu/source"
+      ],
+      "observations": [
+        {
+          "hostIndex": 19,
+          "specifier": "../../packages/barocss-gpu/dist/index.js",
+          "importer": "examples/viewer-surface-material/app.js",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "paired-public-caller-entry"
+        },
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/gpu/source",
+          "importer": "examples/workspace-source/flow.mjs",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/gpu/source",
+          "importer": "examples/workspace-source/flow.mjs",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/gpu/source",
+          "importer": "examples/workspace-source/flow.mjs",
+          "target": "packages/barocss-gpu/src/index.ts",
+          "kind": "actual-package-map"
+        }
+      ]
+    },
+    {
+      "packageName": "@barocss/cad-interop",
+      "packageDirectory": "packages/barocss-cad-interop",
+      "manifestPath": "packages/barocss-cad-interop/package.json",
+      "exportKey": ".",
+      "specifier": "@barocss/cad-interop",
+      "sourcePath": "packages/barocss-cad-interop/src/index.ts",
+      "nativePath": "packages/barocss-cad-interop/dist/index.js",
+      "aliasesForSameSource": [
+        "@barocss/cad-interop"
+      ],
+      "observations": [
+        {
+          "hostIndex": 20,
+          "specifier": "@barocss/cad-interop",
+          "importer": "examples/workspace-source/flow.mjs",
+          "target": "packages/barocss-cad-interop/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 49,
+          "specifier": "@barocss/cad-interop",
+          "importer": "examples/workspace-source/flow.mjs",
+          "target": "packages/barocss-cad-interop/src/index.ts",
+          "kind": "actual-package-map"
+        },
+        {
+          "hostIndex": 51,
+          "specifier": "@barocss/cad-interop",
+          "importer": "examples/workspace-source/flow.mjs",
+          "target": "packages/barocss-cad-interop/src/index.ts",
+          "kind": "actual-package-map"
+        }
+      ]
+    }
+  ],
+  "minimalExternalFrontier": [
+    {
+      "index": 7,
+      "path": "examples/physics-scene/fluid-cad-viewer/app.js",
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 13,
+      "path": "examples/viewer-assembly-scene/app.js",
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/assembly",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 14,
+      "path": "examples/viewer-cloth-scene/app.js",
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set",
+        "@barocss/gpu"
+      ]
+    },
+    {
+      "index": 15,
+      "path": "examples/viewer-fluid-scene/app.js",
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 16,
+      "path": "examples/viewer-native-scene-replacement/app.js",
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/document",
+        "@barocss/cad-interop/native",
+        "@barocss/cad-interop/model-set",
+        "@barocss/cad-interop/assembly",
+        "@barocss/gpu"
+      ]
+    },
+    {
+      "index": 17,
+      "path": "examples/viewer-qualified-face-scene/app.js",
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/gpu",
+        "@barocss/cad-interop/native",
+        "@barocss/cad-interop/model-set",
+        "@barocss/cad-interop/document",
+        "@barocss/cad-interop/assembly"
+      ]
+    },
+    {
+      "index": 18,
+      "path": "examples/viewer-shell-scene/app.js",
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set",
+        "@barocss/cad-interop/assembly",
+        "@barocss/gpu"
+      ]
+    },
+    {
+      "index": 19,
+      "path": "examples/viewer-surface-material/app.js",
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set",
+        "@barocss/gpu"
+      ]
+    },
+    {
+      "index": 20,
+      "path": "examples/workspace-source/flow.mjs",
+      "endpoints": [
+        "@barocss/cad-interop",
+        "@barocss/gpu",
+        "@barocss/gpu/source",
+        "@barocss/viewer",
+        "@barocss/cad-interop/native",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 21,
+      "path": "examples/physics-cloth-viewer/app.mjs",
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set",
+        "@barocss/gpu"
+      ]
+    },
+    {
+      "index": 33,
+      "path": "examples/physics-scene/fluid-viewer/app.js",
+      "endpoints": [
+        "@barocss/viewer",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 49,
+      "path": "examples/workspace-source/cpu-entry.mjs",
+      "endpoints": [
+        "@barocss/cad-interop",
+        "@barocss/gpu",
+        "@barocss/gpu/source",
+        "@barocss/viewer",
+        "@barocss/cad-interop/native",
+        "@barocss/cad-interop/model-set"
+      ]
+    },
+    {
+      "index": 51,
+      "path": "examples/workspace-source/browser.mjs",
+      "endpoints": [
+        "@barocss/cad-interop",
+        "@barocss/gpu",
+        "@barocss/gpu/source",
+        "@barocss/viewer",
+        "@barocss/cad-interop/native",
+        "@barocss/cad-interop/model-set"
+      ]
+    }
+  ],
+  "inventoryPolicy": "All 60 source resolution reports; all source-to-published manifest pairs; aliases preserved by actual bare specifier. Every absent published mapping belongs only to Viewer/CADInterop/GPU. Internal Viewer dependencies are cut by Viewer external frontier, not independently externalized.",
+  "sourceFallback": false,
+  "SDKImplementationClosure": "NOT_RUN",
+  "nativeHostProductIntegration": "NOT_RUN",
+  "failuresPreserved": [
+    "validation-static-01",
+    "validation-static-02",
+    "validation-static-03"
+  ],
+  "reusedBundlePasses": 76,
+  "reusedStrictPasses": 2,
+  "freshBudget": {
+    "bundleAttempts": 51,
+    "strictTypeAttempts": 0,
+    "lintAttempts": 1,
+    "WorldCalls": 0
+  },
+  "aggregateBundleAttemptsIncludingFailures": 130,
+  "uniqueLogicalBundleChecks": 127,
+  "runtime": "NOT_RUN"
+}

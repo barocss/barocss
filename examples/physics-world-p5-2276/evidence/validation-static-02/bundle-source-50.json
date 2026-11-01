@@ -1,0 +1,31 @@
+{
+  "mode": "source",
+  "entry": "examples/workspace-source/probe.mjs",
+  "platform": "node",
+  "inputs": {
+    "examples/workspace-source/probe.mjs": {
+      "bytes": 5767,
+      "sha256": "e077c98279d08e83f9839d2a47a042ba4d77fed328a8b87af60f70ca4d54810e",
+      "effectiveSha256": "e077c98279d08e83f9839d2a47a042ba4d77fed328a8b87af60f70ca4d54810e"
+    }
+  },
+  "resolutions": [],
+  "ownSourceFiles": 0,
+  "ownDistFiles": 0,
+  "outputBytes": 5992,
+  "outputSha256": "2f920e7a0c17de2319b95bbafb191f62f9b97bb8366edf04c487bd995f728f00",
+  "expectedOwn": {
+    "kind": "none",
+    "reason": "exact-zero data/helper/loader closure; package-bearing generated/target entries checked separately"
+  },
+  "externalRuntime": [],
+  "externalImports": [
+    "node:assert/strict",
+    "node:child_process",
+    "node:fs/promises",
+    "node:path",
+    "node:url",
+    "esbuild"
+  ],
+  "moduleEvaluation": false
+}
