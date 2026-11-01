@@ -1,0 +1,219 @@
+{
+  "decision": "D406",
+  "date": "2026-11-01",
+  "tier": "small bounded metadata correctness fix and independent measurement",
+  "status": "BOUNDED_QUALIFIED_AND_CLEANED",
+  "baseCommit": "8569f7d5fa0ce26133b560dc4d3ff3dca361e40d",
+  "models": {
+    "implementationVerification": "gpt-6.1-sol / medium",
+    "difficultCppStepDiagnosis": "gpt-6.1-sol / high"
+  },
+  "productChange": "Validation volume/area units use plain DERIVED_UNIT; existing values, powers, links, geometry and tolerances preserved",
+  "originalFailure": {
+    "strictStatus": "FAIL",
+    "loadFailures": 2,
+    "source": "/tmp/barocss-d406-evidence/native-smoke.json.load.txt",
+    "cause": "Pinned OCCT unit select does not accept emitted complex validation units"
+  },
+  "checks": {
+    "regressionBefore": {
+      "pass": 0,
+      "fail": 1
+    },
+    "stepAfter": {
+      "status": "PASS",
+      "pass": 13,
+      "fail": 0,
+      "command": "node --test --test-concurrency=1 packages/barocss-cad/test/step-validation.test.mjs packages/barocss-cad/test/step.test.mjs packages/barocss-cad/test/step-tessellated.test.mjs"
+    },
+    "cadBuild": {
+      "status": "PASS",
+      "command": "pnpm --filter @barocss/cad build:library"
+    },
+    "modelTypes": {
+      "status": "PASS",
+      "command": "node node_modules/typescript/bin/tsc -p packages/barocss-cad-model/tsconfig.json --noEmit"
+    },
+    "lintSyntaxDiff": "PASS"
+  },
+  "native": {
+    "status": "PASS",
+    "productImports": 0,
+    "cases": {
+      "box": {
+        "status": "PASS",
+        "inputSha256": "17422b076f9c617e1297487e042943659cd8133c7102426dd362e4b385c66152",
+        "metrics": {
+          "valid": true,
+          "solids": 1,
+          "shells": 1,
+          "faces": 6,
+          "edges": 12,
+          "vertices": 8,
+          "volume": 39999.99999999999,
+          "bbox": [
+            0,
+            0,
+            0,
+            80,
+            50,
+            10
+          ],
+          "max_tolerance": 1e-07,
+          "flags_set_before": true,
+          "flags_empty_before": true,
+          "flags_set_after": true,
+          "flags_empty_after": true,
+          "load_warning_count": 0,
+          "load_failure_count": 0,
+          "transfer_warning_count": 0,
+          "transfer_failure_count": 0
+        },
+        "comparison": {
+          "pass": true,
+          "errors": [],
+          "totalVolumeError": -7.275957614183426e-12,
+          "aggregateBoundsMaxError": 0,
+          "matchedSolids": [
+            {
+              "boundsMaxError": 0,
+              "volumeError": -7.275957614183426e-12
+            }
+          ]
+        }
+      },
+      "assembly": {
+        "status": "PASS",
+        "inputSha256": "4103e2691d11938cf584aaafd778825dadd9ab9e14561e953b474d36f81dc9fa",
+        "metrics": {
+          "valid": true,
+          "solids": 3,
+          "shells": 3,
+          "faces": 18,
+          "edges": 36,
+          "vertices": 24,
+          "volume": 3000,
+          "bbox": [
+            -20,
+            0,
+            0,
+            100,
+            90,
+            5
+          ],
+          "max_tolerance": 1e-07,
+          "flags_set_before": true,
+          "flags_empty_before": true,
+          "flags_set_after": true,
+          "flags_empty_after": true,
+          "load_warning_count": 0,
+          "load_failure_count": 0,
+          "transfer_warning_count": 0,
+          "transfer_failure_count": 0
+        },
+        "comparison": {
+          "pass": true,
+          "errors": [],
+          "totalVolumeError": 0,
+          "aggregateBoundsMaxError": 0,
+          "matchedSolids": [
+            {
+              "boundsMaxError": 0,
+              "volumeError": -2.2737367544323206e-13
+            },
+            {
+              "boundsMaxError": 0,
+              "volumeError": -2.2737367544323206e-13
+            },
+            {
+              "boundsMaxError": 0,
+              "volumeError": -2.2737367544323206e-13
+            }
+          ]
+        }
+      }
+    },
+    "boundsTolerance": 1e-06,
+    "volumeTolerance": 1e-05,
+    "controls": {
+      "defaultFlags": "PASS detection: exit 2 before transfer",
+      "truncated": "PASS detection: ReadFile rejection, exit 1",
+      "validWrongGeometry": "PASS detection: valid 80x50x11, volume error 4000 and bounds error 1"
+    },
+    "scope": "Automatic ShapeProcess disabled; not every built-in translator adjustment disabled"
+  },
+  "build": {
+    "pinnedCommit": "b8f597c677811d1f9f4d8a97f5ae2825c0353a42",
+    "pinnedTree": "76543d44e49c73bfffa2d141089e6c5add106f9a",
+    "verifiedHeaderClosure": 178,
+    "compileUsedVerifiedHeaders": 178,
+    "compilerVersion": "Apple clang version 17.0.0 (clang-1700.6.4.2)\nTarget: arm64-apple-darwin24.6.0\nThread model: posix\nInstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin\n",
+    "installedDylibsModified": false,
+    "noOcctLibrariesBuilt": true,
+    "binarySha256": "51b96c5cc30d75eab3186f23e64dc3d8888f162d270cd1a4793099f5117045ec"
+  },
+  "archive": {
+    "bytes": 45131814,
+    "sha256Provenance": "dba62b81078dd43cec23feba89432be301582341001edad1b93342ad8bda35ea",
+    "publisherDigestVerified": false
+  },
+  "byteComparison": {
+    "changedEntitiesPerFixture": 2,
+    "sameEntityIds": true,
+    "byteReductionPerFixture": 28,
+    "validationPropertiesFalseIdentity": "NOT_RUN"
+  },
+  "commands": {
+    "build": "python3 apps/cad-studio/test/build-step-native-reader.py /tmp/barocss-d406-native-source/OCCT-b8f597c677811d1f9f4d8a97f5ae2825c0353a42 /tmp/barocss-d406-evidence/tree.json /Users/user/.cache/barocss-step-reader/lib/python3.13/site-packages/OCP/.dylibs /tmp/barocss-d406-native-build /tmp/barocss-d406-evidence",
+    "producer": "node apps/cad-studio/test/exchange-profile-producer.mjs /tmp/barocss-d406-forward-fixed",
+    "nativeGate": "python3 apps/cad-studio/test/qualify-step-native.py /tmp/barocss-d406-native-build/step-native-reader /tmp/barocss-d406-forward-fixed /tmp/barocss-d406-controls-source/valid-wrong-dimensions.step /tmp/barocss-d406-qualified /Users/user/.cache/barocss-step-reader/lib/python3.13/site-packages/OCP/.dylibs",
+    "studio": "cd apps/cad-studio && STEP_NATIVE_SOURCE_FROZEN=1 PW_DIR=/Users/user/.cache/barocss-playwright/node_modules/playwright CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' node test/step-native-browser.mjs /tmp/barocss-d406-run01 /tmp/barocss-d406-forward-fixed /tmp/barocss-d406-qualified/qualification-readback.json"
+  },
+  "execution": "Node22.19.0; heavy gate serial; no worktree writes during actual Studio",
+  "studio": {
+    "status": "PASS",
+    "run": 1,
+    "snapshots": 2,
+    "frozenFiles": 740,
+    "sourceChanges": 0,
+    "pageErrors": 0,
+    "consoleErrors": 0,
+    "outboundDownloads": 0,
+    "exactNativeCheckedBytes": true,
+    "rootVisualReview": "PASS: assembly image",
+    "artifacts": "/tmp/barocss-d406-run01",
+    "resources": "All owned processes closed"
+  },
+  "cleanup": {
+    "status": "PASS",
+    "date": "2026-11-01",
+    "authorization": "Owner requested removal of task OCP after tests; approved source/build was test-only",
+    "testsFinished": true,
+    "removed": [
+      "/Users/user/.cache/barocss-step-reader",
+      "/tmp/barocss-d406-native-source",
+      "/tmp/barocss-d406-native-build"
+    ],
+    "preserved": [
+      "/tmp/barocss-d406-evidence",
+      "/tmp/barocss-d406-forward",
+      "/tmp/barocss-d406-forward-fixed",
+      "/tmp/barocss-d406-qualified",
+      "/tmp/barocss-d406-controls-source",
+      "/tmp/barocss-d406-run01",
+      "D405 raw evidence and High diagnostic text",
+      "Other user environments and user data"
+    ],
+    "installedDylibsWereModified": false
+  },
+  "notRun": [
+    "General STEP/AP242 acceptance",
+    "Curved/offset/seam profiles",
+    "Assembly hierarchy/sharing/presentation/PMI/datum preservation",
+    "Full kernel and Studio suites",
+    "Remote CI",
+    "Release",
+    "Outbound Save/Export"
+  ],
+  "issueClosure": "No closure; #2263 incomplete and #2248 research"
+}

@@ -213,7 +213,8 @@ function writeValidationProperties(breps: readonly Brep[], add_: (e: string) => 
   }
   if (!(volume > 0)) return;
   const property = (what: string, representation: string) => { const def = add_(`PROPERTY_DEFINITION('geometric validation property',${text(`${what} of ${name}`)},${shape})`); add_(`PROPERTY_DEFINITION_REPRESENTATION(${def},${representation})`); };
-  const volumeUnit = add_(`(DERIVED_UNIT((${add_(`DERIVED_UNIT_ELEMENT(${mm},3.)`)}))VOLUME_UNIT())`), areaUnit = add_(`(AREA_UNIT()DERIVED_UNIT((${add_(`DERIVED_UNIT_ELEMENT(${mm},2.)`)})))`);
+  // Plain derived units keep the mm powers readable by the declared AP214 profile and OCCT's unit select.
+  const volumeUnit = add_(`DERIVED_UNIT((${add_(`DERIVED_UNIT_ELEMENT(${mm},3.)`)}))`), areaUnit = add_(`DERIVED_UNIT((${add_(`DERIVED_UNIT_ELEMENT(${mm},2.)`)}))`);
   property('volume', add_(`REPRESENTATION('volume',(${add_(`MEASURE_REPRESENTATION_ITEM('volume measure',VOLUME_MEASURE(${real(volume)}),${volumeUnit})`)}),${context})`));
   property('surface area', add_(`REPRESENTATION('surface area',(${add_(`MEASURE_REPRESENTATION_ITEM('surface area measure',AREA_MEASURE(${real(area)}),${areaUnit})`)}),${context})`));
   const centre = moment.map(x => x / volume);
