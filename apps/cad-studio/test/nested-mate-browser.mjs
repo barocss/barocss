@@ -9,7 +9,6 @@
 //   CHROME='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' node test/nested-mate-browser.mjs /absolute/artifacts
 import assert from 'node:assert/strict';
 import { build } from 'esbuild';
-import { writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createFlow } from './flow-helper.mjs';

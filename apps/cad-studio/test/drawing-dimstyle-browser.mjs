@@ -1,7 +1,7 @@
 // D414: real settings UI plus exact document snapshot -> frozen Model producer -> independent reader.
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFile, writeFile } from 'node:fs/promises';
+import { writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { createFlow } from './flow-helper.mjs';
 import { INSPECTOR_SOURCE } from './drawing-dimstyle-producer.mjs';
@@ -19,7 +19,6 @@ const f = await createFlow({
     'One box with horizontal/vertical linear dimensions; no short-arrow, dual/fit overhaul or broad standards certification.',
   ],
 });
-const SHEET = 'svg[aria-label="Drawing sheet"]';
 let model;
 const ready = () => f.page.waitForFunction(() => !!document.querySelector('svg[aria-label="Drawing sheet"]') && window.__studioDrawing?.()?.dimensions.length === 2);
 async function read(label, standard, units = 'mm', dual = false) {

@@ -127,7 +127,7 @@ async function read(label, standard, units, dual) {
     const own = baseline.match(/<g class="dimension"[^>]*data-dim="d2"[^>]*>([\s\S]*?)<\/g>/)?.[1];
     assert.ok(own, 'Saved original dimension group is required');
     const originalLines = [...own.matchAll(/<line\b[^>]*>/g)].map(match =>
-      ['x1', 'y1', 'x2', 'y2', 'stroke-width'].map(name => Number(match[0].match(new RegExp(name + '="([^\"]+)"'))?.[1] ?? '.25')));
+      ['x1', 'y1', 'x2', 'y2', 'stroke-width'].map(name => Number(match[0].match(new RegExp(name + '="([^"]+)"'))?.[1] ?? '.25')));
     assert.equal(originalLines.length, 3);
     for (const line of originalLines) assert.ok(state.rawLines.some(candidate => JSON.stringify(candidate) === JSON.stringify(line)), 'Original fixed segment changed: ' + JSON.stringify(line));
     state.originalThreeSegmentsUnchanged = true;

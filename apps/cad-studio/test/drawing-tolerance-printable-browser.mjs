@@ -6,7 +6,6 @@ import { createFlow } from './flow-helper.mjs';
 const output = resolve(process.argv[2] ?? ''); assert.ok(process.argv[2], 'artifact output directory required');
 await mkdir(output, { recursive: true }); const fixture = join(output, 'box30.bcad');
 await copyFile(join(import.meta.dirname, 'fixtures/bracket.bcad'), fixture);
-const SHEET = 'svg[aria-label="Drawing sheet"]';
 const f = await createFlow({ name: 'drawing-tolerance-printable', envFrozen: 'DRAWING_TOLERANCE_PRINTABLE_SOURCE_FROZEN', output,
   qualification: 'D408_DRAWING_TOLERANCE_PRINTABILITY',
   inspectorSource: "export { buildSheet } from '@barocss/cad-model/drawing/sheet'; export { drawingIssues } from '@barocss/cad-model/drawing/issues'; export { presetFor } from '@barocss/cad-model/drawing/standard';",

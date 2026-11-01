@@ -127,7 +127,7 @@ await f.run(async () => {
   f.phase = 'mated seed'; await f.newPage(); await f.openFile(mated, 2); const m0 = await f.doc();
   await pick('Cube'); await panel().getByRole('button', { name: 'Pattern…', exact: true }).click();
   await form().getByLabel('Pattern count').fill('3'); await form().getByLabel('Pattern spacing').fill('30'); await form().getByLabel('Pattern axis').selectOption('X');
-  await form().getByRole('button', { name: 'Make pattern', exact: true }).click(); await changedTo(m0, '15-mated-pattern'); const mp = await check('15-mated-pattern', 1, 2);
+  await form().getByRole('button', { name: 'Make pattern', exact: true }).click(); await changedTo(m0, '15-mated-pattern'); await check('15-mated-pattern', 1, 2);
   // (The re-solve puts the seed back at once, so the document may end as it was: the commit is shown by two Undos reaching the pattern-less file.)
   const z = panel().getByLabel('Instance Z').first(); await z.fill('60'); await z.press('Enter'); await new Promise(r => setTimeout(r, 1500));
   await f.page.waitForFunction(() => window.__studioDoc.instances.every(i => Math.abs(i.position[2] - 4) < 1e-6), null, { timeout: 30000 });
